@@ -14,7 +14,6 @@
 		860C15642C10B01C0062D6E7 /* KalorieTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C15632C10B01C0062D6E7 /* KalorieTests.swift */; };
 		860C156E2C10B01C0062D6E7 /* KalorieUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C156D2C10B01C0062D6E7 /* KalorieUITests.swift */; };
 		860C15702C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C156F2C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift */; };
-		866E535D2C10D40000BD3262 /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 866E535C2C10D40000BD3262 /* .swiftlint.yml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,7 +45,6 @@
 		860C15692C10B01C0062D6E7 /* KalorieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KalorieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		860C156D2C10B01C0062D6E7 /* KalorieUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalorieUITests.swift; sourceTree = "<group>"; };
 		860C156F2C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalorieUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		866E535C2C10D40000BD3262 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,7 +78,6 @@
 				860C15502C10B01B0062D6E7 /* Kalorie */,
 				860C15622C10B01C0062D6E7 /* KalorieTests */,
 				860C156C2C10B01C0062D6E7 /* KalorieUITests */,
-				866E535E2C10D63F00BD3262 /* Tools */,
 				860C154F2C10B01B0062D6E7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,14 +127,6 @@
 				860C156F2C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift */,
 			);
 			path = KalorieUITests;
-			sourceTree = "<group>";
-		};
-		866E535E2C10D63F00BD3262 /* Tools */ = {
-			isa = PBXGroup;
-			children = (
-				866E535C2C10D40000BD3262 /* .swiftlint.yml */,
-			);
-			path = Tools;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -248,7 +237,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				866E535D2C10D40000BD3262 /* .swiftlint.yml in Resources */,
 				860C155A2C10B01B0062D6E7 /* Preview Assets.xcassets in Resources */,
 				860C15562C10B01B0062D6E7 /* Assets.xcassets in Resources */,
 			);
