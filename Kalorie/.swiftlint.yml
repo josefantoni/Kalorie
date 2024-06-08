@@ -8,6 +8,11 @@ excluded:
 - Carthage
 - Pods
 - SwiftLint/Common/3rdPartyLib
+identifier_name:
+  min_length:
+    warning: 2
+  excluded:
+    - id
 line_length:
     warning: 150
     error: 200
