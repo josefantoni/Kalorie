@@ -18,6 +18,7 @@
 		866E53642C10DB8E00BD3262 /* FoodItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866E53632C10DB8E00BD3262 /* FoodItemView.swift */; };
 		86AE4F932C13D0E000DDEA81 /* MealTypeItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */; };
 		86AE4F952C13D54500DDEA81 /* SheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AE4F942C13D54500DDEA81 /* SheetView.swift */; };
+		86FFA1D42C145EA9000D53AA /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 86FFA1D32C145EA9000D53AA /* .swiftlint.yml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,9 +52,9 @@
 		866E535F2C10D91C00BD3262 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
 		866E53612C10DB4C00BD3262 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		866E53632C10DB8E00BD3262 /* FoodItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItemView.swift; sourceTree = "<group>"; };
-		869427E72C13E55500E902C4 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeItemView.swift; sourceTree = "<group>"; };
 		86AE4F942C13D54500DDEA81 /* SheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetView.swift; sourceTree = "<group>"; };
+		86FFA1D32C145EA9000D53AA /* .swiftlint.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +88,7 @@
 				860C15502C10B01B0062D6E7 /* Kalorie */,
 				860C15622C10B01C0062D6E7 /* KalorieTests */,
 				860C156C2C10B01C0062D6E7 /* KalorieUITests */,
+				86FFA1D32C145EA9000D53AA /* .swiftlint.yml */,
 				860C154F2C10B01B0062D6E7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -282,6 +284,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				86FFA1D42C145EA9000D53AA /* .swiftlint.yml in Resources */,
 				860C155A2C10B01B0062D6E7 /* Preview Assets.xcassets in Resources */,
 				860C15562C10B01B0062D6E7 /* Assets.xcassets in Resources */,
 			);
@@ -304,7 +307,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		866E535B2C10C44600BD3262 /* SwiftLint */ = {
+		86FFA1D52C145EC0000D53AA /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -314,7 +317,6 @@
 			);
 			inputPaths = (
 			);
-			name = SwiftLint;
 			outputFileListPaths = (
 			);
 			outputPaths = (
@@ -322,6 +324,7 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]\nthen\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif command -v swiftlint >/dev/null 2>&1\nthen\n    swiftlint\nelse\n    echo \"warning: `swiftlint` command not found - See https://github.com/realm/SwiftLint#installation for installation instructions.\"\nfi\n";
+			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 

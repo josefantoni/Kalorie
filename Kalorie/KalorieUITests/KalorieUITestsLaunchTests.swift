@@ -3,7 +3,7 @@
 //  KalorieUITests
 //
 //  Created by Josef Antoni on 05.06.2024.
-//
+//  swiftlint:disable static_over_final_class
 
 import XCTest
 
