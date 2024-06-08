@@ -8,12 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		860C15522C10B01B0062D6E7 /* KalorieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C15512C10B01B0062D6E7 /* KalorieApp.swift */; };
-		860C15542C10B01B0062D6E7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C15532C10B01B0062D6E7 /* ContentView.swift */; };
 		860C15562C10B01B0062D6E7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 860C15552C10B01B0062D6E7 /* Assets.xcassets */; };
 		860C155A2C10B01B0062D6E7 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 860C15592C10B01B0062D6E7 /* Preview Assets.xcassets */; };
 		860C15642C10B01C0062D6E7 /* KalorieTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C15632C10B01C0062D6E7 /* KalorieTests.swift */; };
 		860C156E2C10B01C0062D6E7 /* KalorieUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C156D2C10B01C0062D6E7 /* KalorieUITests.swift */; };
 		860C15702C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C156F2C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift */; };
+		866E53602C10D91C00BD3262 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866E535F2C10D91C00BD3262 /* DashboardViewModel.swift */; };
+		866E53622C10DB4C00BD3262 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866E53612C10DB4C00BD3262 /* DashboardView.swift */; };
+		866E53642C10DB8E00BD3262 /* FoodItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866E53632C10DB8E00BD3262 /* FoodItemView.swift */; };
+		86AE4F932C13D0E000DDEA81 /* MealTypeItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */; };
+		86AE4F952C13D54500DDEA81 /* SheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AE4F942C13D54500DDEA81 /* SheetView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,7 +40,6 @@
 /* Begin PBXFileReference section */
 		860C154E2C10B01B0062D6E7 /* Kalorie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kalorie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		860C15512C10B01B0062D6E7 /* KalorieApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalorieApp.swift; sourceTree = "<group>"; };
-		860C15532C10B01B0062D6E7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		860C15552C10B01B0062D6E7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		860C15572C10B01B0062D6E7 /* Kalorie.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Kalorie.entitlements; sourceTree = "<group>"; };
 		860C15592C10B01B0062D6E7 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -45,6 +48,12 @@
 		860C15692C10B01C0062D6E7 /* KalorieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KalorieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		860C156D2C10B01C0062D6E7 /* KalorieUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalorieUITests.swift; sourceTree = "<group>"; };
 		860C156F2C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalorieUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		866E535F2C10D91C00BD3262 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		866E53612C10DB4C00BD3262 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		866E53632C10DB8E00BD3262 /* FoodItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItemView.swift; sourceTree = "<group>"; };
+		869427E72C13E55500E902C4 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
+		86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeItemView.swift; sourceTree = "<group>"; };
+		86AE4F942C13D54500DDEA81 /* SheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,9 +105,10 @@
 			isa = PBXGroup;
 			children = (
 				860C15512C10B01B0062D6E7 /* KalorieApp.swift */,
-				860C15532C10B01B0062D6E7 /* ContentView.swift */,
-				860C15552C10B01B0062D6E7 /* Assets.xcassets */,
-				860C15572C10B01B0062D6E7 /* Kalorie.entitlements */,
+				86AE4F912C13D0C000DDEA81 /* Meal Type Item */,
+				866E53672C10DCA400BD3262 /* Food item */,
+				866E53662C10DC9200BD3262 /* Dashboard */,
+				866E53652C10DC7300BD3262 /* Supporting files */,
 				860C15582C10B01B0062D6E7 /* Preview Content */,
 			);
 			path = Kalorie;
@@ -129,6 +139,41 @@
 			path = KalorieUITests;
 			sourceTree = "<group>";
 		};
+		866E53652C10DC7300BD3262 /* Supporting files */ = {
+			isa = PBXGroup;
+			children = (
+				860C15572C10B01B0062D6E7 /* Kalorie.entitlements */,
+				860C15552C10B01B0062D6E7 /* Assets.xcassets */,
+			);
+			path = "Supporting files";
+			sourceTree = "<group>";
+		};
+		866E53662C10DC9200BD3262 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				866E53612C10DB4C00BD3262 /* DashboardView.swift */,
+				866E535F2C10D91C00BD3262 /* DashboardViewModel.swift */,
+				86AE4F942C13D54500DDEA81 /* SheetView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		866E53672C10DCA400BD3262 /* Food item */ = {
+			isa = PBXGroup;
+			children = (
+				866E53632C10DB8E00BD3262 /* FoodItemView.swift */,
+			);
+			path = "Food item";
+			sourceTree = "<group>";
+		};
+		86AE4F912C13D0C000DDEA81 /* Meal Type Item */ = {
+			isa = PBXGroup;
+			children = (
+				86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */,
+			);
+			path = "Meal Type Item";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -139,7 +184,7 @@
 				860C154A2C10B01B0062D6E7 /* Sources */,
 				860C154B2C10B01B0062D6E7 /* Frameworks */,
 				860C154C2C10B01B0062D6E7 /* Resources */,
-				866E535B2C10C44600BD3262 /* SwiftLint */,
+				869427E42C13E37700E902C4 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -285,7 +330,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				860C15542C10B01B0062D6E7 /* ContentView.swift in Sources */,
+				866E53642C10DB8E00BD3262 /* FoodItemView.swift in Sources */,
+				866E53602C10D91C00BD3262 /* DashboardViewModel.swift in Sources */,
+				866E53622C10DB4C00BD3262 /* DashboardView.swift in Sources */,
+				86AE4F932C13D0E000DDEA81 /* MealTypeItemView.swift in Sources */,
+				86AE4F952C13D54500DDEA81 /* SheetView.swift in Sources */,
 				860C15522C10B01B0062D6E7 /* KalorieApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -442,7 +491,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Kalorie/Kalorie.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Kalorie/Supporting files/Kalorie.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Kalorie/Preview Content\"";
@@ -483,7 +532,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Kalorie/Kalorie.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "Kalorie/Supporting files/Kalorie.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Kalorie/Preview Content\"";
