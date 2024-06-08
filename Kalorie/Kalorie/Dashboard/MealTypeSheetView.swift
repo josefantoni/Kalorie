@@ -29,7 +29,7 @@ struct MealTypeSheetView: View {
                 MealTypeItemView(food.wrappedValue)
             }
             .environment(\.editMode, .constant(EditMode.active))
-         }
+        }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         .padding()
     }
