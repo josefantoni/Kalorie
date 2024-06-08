@@ -17,7 +17,7 @@
 		866E53622C10DB4C00BD3262 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866E53612C10DB4C00BD3262 /* DashboardView.swift */; };
 		866E53642C10DB8E00BD3262 /* FoodItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866E53632C10DB8E00BD3262 /* FoodItemView.swift */; };
 		86AE4F932C13D0E000DDEA81 /* MealTypeItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */; };
-		86AE4F952C13D54500DDEA81 /* SheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AE4F942C13D54500DDEA81 /* SheetView.swift */; };
+		86AE4F952C13D54500DDEA81 /* MealTypeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AE4F942C13D54500DDEA81 /* MealTypeSheetView.swift */; };
 		86FFA1D42C145EA9000D53AA /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 86FFA1D32C145EA9000D53AA /* .swiftlint.yml */; };
 /* End PBXBuildFile section */
 
@@ -53,7 +53,7 @@
 		866E53612C10DB4C00BD3262 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		866E53632C10DB8E00BD3262 /* FoodItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItemView.swift; sourceTree = "<group>"; };
 		86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeItemView.swift; sourceTree = "<group>"; };
-		86AE4F942C13D54500DDEA81 /* SheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetView.swift; sourceTree = "<group>"; };
+		86AE4F942C13D54500DDEA81 /* MealTypeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeSheetView.swift; sourceTree = "<group>"; };
 		86FFA1D32C145EA9000D53AA /* .swiftlint.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -155,7 +155,7 @@
 			children = (
 				866E53612C10DB4C00BD3262 /* DashboardView.swift */,
 				866E535F2C10D91C00BD3262 /* DashboardViewModel.swift */,
-				86AE4F942C13D54500DDEA81 /* SheetView.swift */,
+				86AE4F942C13D54500DDEA81 /* MealTypeSheetView.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -186,7 +186,7 @@
 				860C154A2C10B01B0062D6E7 /* Sources */,
 				860C154B2C10B01B0062D6E7 /* Frameworks */,
 				860C154C2C10B01B0062D6E7 /* Resources */,
-				869427E42C13E37700E902C4 /* ShellScript */,
+				86FFA1D52C145EC0000D53AA /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -337,7 +337,7 @@
 				866E53602C10D91C00BD3262 /* DashboardViewModel.swift in Sources */,
 				866E53622C10DB4C00BD3262 /* DashboardView.swift in Sources */,
 				86AE4F932C13D0E000DDEA81 /* MealTypeItemView.swift in Sources */,
-				86AE4F952C13D54500DDEA81 /* SheetView.swift in Sources */,
+				86AE4F952C13D54500DDEA81 /* MealTypeSheetView.swift in Sources */,
 				860C15522C10B01B0062D6E7 /* KalorieApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

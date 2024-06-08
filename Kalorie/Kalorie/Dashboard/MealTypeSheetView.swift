@@ -1,5 +1,5 @@
 //
-//  SheetView.swift
+//  MealTypeSheetView.swift
 //  Kalorie
 //
 //  Created by Josef Antoni on 08.06.2024.
@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct SheetView: View {
+struct MealTypeSheetView: View {
     @Environment(\.dismiss) var dismiss
     @State var foodItems = ["Snídaně", "Oběd", "Večeře"]
 

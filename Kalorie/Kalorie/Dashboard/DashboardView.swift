@@ -30,8 +30,8 @@ struct DashboardView: View {
                 Text("rozvržení jídel")
             })
             .sheet(isPresented: $showSheet) {
-                      SheetView()
-                  }
+                MealTypeSheetView()
+            }
         }
         .padding(.trailing)
         
