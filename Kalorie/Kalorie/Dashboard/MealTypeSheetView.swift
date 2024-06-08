@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct MealTypeSheetView: View {
+    
     @Environment(\.dismiss) var dismiss
     @State var foodItems = ["Snídaně", "Oběd", "Večeře"]
 

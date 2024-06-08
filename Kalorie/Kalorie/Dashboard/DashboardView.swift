@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct FoodItem: Hashable {
+    
     let name: String
 
     init(_ name: String) {
@@ -17,6 +18,7 @@ struct FoodItem: Hashable {
 }
 
 struct DashboardView: View {
+    
     @State var foodItems = ["1", "2", "3"]
     @State var showSheet = false
 

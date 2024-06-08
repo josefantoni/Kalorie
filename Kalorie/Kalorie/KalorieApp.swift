@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct KalorieApp: App {
+    
     var body: some Scene {
         WindowGroup {
             DashboardView()

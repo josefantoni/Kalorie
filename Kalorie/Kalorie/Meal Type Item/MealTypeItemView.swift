@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct MealTypeItemView: View {
+    
     var mealName: String
 
     init(_ foodName: String) {
