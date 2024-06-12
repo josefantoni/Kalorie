@@ -13,12 +13,11 @@
 		860C15642C10B01C0062D6E7 /* DashboardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C15632C10B01C0062D6E7 /* DashboardTests.swift */; };
 		860C156E2C10B01C0062D6E7 /* KalorieUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C156D2C10B01C0062D6E7 /* KalorieUITests.swift */; };
 		860C15702C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C156F2C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift */; };
-		866E53602C10D91C00BD3262 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866E535F2C10D91C00BD3262 /* DashboardViewModel.swift */; };
-		866E53622C10DB4C00BD3262 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866E53612C10DB4C00BD3262 /* DashboardView.swift */; };
-		866E53642C10DB8E00BD3262 /* FoodItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866E53632C10DB8E00BD3262 /* FoodItemView.swift */; };
-		86AE4F932C13D0E000DDEA81 /* MealTypeItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */; };
-		86AE4F952C13D54500DDEA81 /* MealTypeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AE4F942C13D54500DDEA81 /* MealTypeSheetView.swift */; };
-		86FFA1D42C145EA9000D53AA /* .swiftlint.yml in Resources */ = {isa = PBXBuildFile; fileRef = 86FFA1D32C145EA9000D53AA /* .swiftlint.yml */; };
+		867592722C16DAE8005F143D /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 867592692C16DAE8005F143D /* DashboardView.swift */; };
+		867592732C16DAE8005F143D /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8675926A2C16DAE8005F143D /* DashboardViewModel.swift */; };
+		867592742C16DAE8005F143D /* MealTypeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8675926B2C16DAE8005F143D /* MealTypeSheetView.swift */; };
+		867592752C16DAE8005F143D /* FoodItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8675926D2C16DAE8005F143D /* FoodItemView.swift */; };
+		867592762C16DAE8005F143D /* MealTypeItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8675926F2C16DAE8005F143D /* MealTypeItemView.swift */; };
 		86FFA1E32C146A03000D53AA /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 86FFA1E22C146A03000D53AA /* SnapshotTesting */; };
 		86FFA1E52C146C59000D53AA /* MealTypeSheetViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FFA1E42C146C59000D53AA /* MealTypeSheetViewTests.swift */; };
 /* End PBXBuildFile section */
@@ -51,12 +50,11 @@
 		860C15692C10B01C0062D6E7 /* KalorieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KalorieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		860C156D2C10B01C0062D6E7 /* KalorieUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalorieUITests.swift; sourceTree = "<group>"; };
 		860C156F2C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalorieUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		866E535F2C10D91C00BD3262 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
-		866E53612C10DB4C00BD3262 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
-		866E53632C10DB8E00BD3262 /* FoodItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItemView.swift; sourceTree = "<group>"; };
-		86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeItemView.swift; sourceTree = "<group>"; };
-		86AE4F942C13D54500DDEA81 /* MealTypeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeSheetView.swift; sourceTree = "<group>"; };
-		86FFA1D32C145EA9000D53AA /* .swiftlint.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
+		867592692C16DAE8005F143D /* DashboardView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		8675926A2C16DAE8005F143D /* DashboardViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		8675926B2C16DAE8005F143D /* MealTypeSheetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MealTypeSheetView.swift; sourceTree = "<group>"; };
+		8675926D2C16DAE8005F143D /* FoodItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoodItemView.swift; sourceTree = "<group>"; };
+		8675926F2C16DAE8005F143D /* MealTypeItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MealTypeItemView.swift; sourceTree = "<group>"; };
 		86FFA1E42C146C59000D53AA /* MealTypeSheetViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeSheetViewTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -92,7 +90,6 @@
 				860C15502C10B01B0062D6E7 /* Kalorie */,
 				860C15622C10B01C0062D6E7 /* KalorieTests */,
 				860C156C2C10B01C0062D6E7 /* KalorieUITests */,
-				86FFA1D32C145EA9000D53AA /* .swiftlint.yml */,
 				860C154F2C10B01B0062D6E7 /* Products */,
 				86FFA1DD2C146939000D53AA /* Frameworks */,
 			);
@@ -111,12 +108,9 @@
 		860C15502C10B01B0062D6E7 /* Kalorie */ = {
 			isa = PBXGroup;
 			children = (
-				860C15512C10B01B0062D6E7 /* KalorieApp.swift */,
-				86AE4F912C13D0C000DDEA81 /* Meal Type Item */,
-				866E53672C10DCA400BD3262 /* Food item */,
-				866E53662C10DC9200BD3262 /* Dashboard */,
-				866E53652C10DC7300BD3262 /* Supporting files */,
-				860C15582C10B01B0062D6E7 /* Preview Content */,
+				865B45862C16CA3600B6C52B /* Application */,
+				867592772C16DB05005F143D /* Modules */,
+				866E53652C10DC7300BD3262 /* Resources */,
 			);
 			path = Kalorie;
 			sourceTree = "<group>";
@@ -147,39 +141,90 @@
 			path = KalorieUITests;
 			sourceTree = "<group>";
 		};
-		866E53652C10DC7300BD3262 /* Supporting files */ = {
+		865B45862C16CA3600B6C52B /* Application */ = {
+			isa = PBXGroup;
+			children = (
+				860C15512C10B01B0062D6E7 /* KalorieApp.swift */,
+			);
+			path = Application;
+			sourceTree = "<group>";
+		};
+		865B45882C16D76B00B6C52B /* Data */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		865B458B2C16DA7800B6C52B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				865B45882C16D76B00B6C52B /* Data */,
+				867592682C16DAE8005F143D /* Domain */,
+				867592712C16DAE8005F143D /* Presentation */,
+			);
+			path = Products;
+			sourceTree = "<group>";
+		};
+		866E53652C10DC7300BD3262 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 				860C15572C10B01B0062D6E7 /* Kalorie.entitlements */,
 				860C15552C10B01B0062D6E7 /* Assets.xcassets */,
+				860C15582C10B01B0062D6E7 /* Preview Content */,
 			);
-			path = "Supporting files";
+			path = Resources;
 			sourceTree = "<group>";
 		};
-		866E53662C10DC9200BD3262 /* Dashboard */ = {
+		867592682C16DAE8005F143D /* Domain */ = {
 			isa = PBXGroup;
 			children = (
-				866E53612C10DB4C00BD3262 /* DashboardView.swift */,
-				866E535F2C10D91C00BD3262 /* DashboardViewModel.swift */,
-				86AE4F942C13D54500DDEA81 /* MealTypeSheetView.swift */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		8675926C2C16DAE8005F143D /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				867592692C16DAE8005F143D /* DashboardView.swift */,
+				8675926A2C16DAE8005F143D /* DashboardViewModel.swift */,
+				8675926B2C16DAE8005F143D /* MealTypeSheetView.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
 		};
-		866E53672C10DCA400BD3262 /* Food item */ = {
+		8675926E2C16DAE8005F143D /* Food item */ = {
 			isa = PBXGroup;
 			children = (
-				866E53632C10DB8E00BD3262 /* FoodItemView.swift */,
+				8675926D2C16DAE8005F143D /* FoodItemView.swift */,
 			);
 			path = "Food item";
 			sourceTree = "<group>";
 		};
-		86AE4F912C13D0C000DDEA81 /* Meal Type Item */ = {
+		867592702C16DAE8005F143D /* Meal Type Item */ = {
 			isa = PBXGroup;
 			children = (
-				86AE4F922C13D0E000DDEA81 /* MealTypeItemView.swift */,
+				8675926F2C16DAE8005F143D /* MealTypeItemView.swift */,
 			);
 			path = "Meal Type Item";
+			sourceTree = "<group>";
+		};
+		867592712C16DAE8005F143D /* Presentation */ = {
+			isa = PBXGroup;
+			children = (
+				8675926C2C16DAE8005F143D /* Dashboard */,
+				8675926E2C16DAE8005F143D /* Food item */,
+				867592702C16DAE8005F143D /* Meal Type Item */,
+			);
+			path = Presentation;
+			sourceTree = "<group>";
+		};
+		867592772C16DB05005F143D /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				865B458B2C16DA7800B6C52B /* Products */,
+			);
+			path = Modules;
 			sourceTree = "<group>";
 		};
 		86FFA1DD2C146939000D53AA /* Frameworks */ = {
@@ -305,7 +350,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				86FFA1D42C145EA9000D53AA /* .swiftlint.yml in Resources */,
 				860C155A2C10B01B0062D6E7 /* Preview Assets.xcassets in Resources */,
 				860C15562C10B01B0062D6E7 /* Assets.xcassets in Resources */,
 			);
@@ -354,12 +398,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				866E53642C10DB8E00BD3262 /* FoodItemView.swift in Sources */,
-				866E53602C10D91C00BD3262 /* DashboardViewModel.swift in Sources */,
-				866E53622C10DB4C00BD3262 /* DashboardView.swift in Sources */,
-				86AE4F932C13D0E000DDEA81 /* MealTypeItemView.swift in Sources */,
-				86AE4F952C13D54500DDEA81 /* MealTypeSheetView.swift in Sources */,
+				867592762C16DAE8005F143D /* MealTypeItemView.swift in Sources */,
+				867592732C16DAE8005F143D /* DashboardViewModel.swift in Sources */,
 				860C15522C10B01B0062D6E7 /* KalorieApp.swift in Sources */,
+				867592752C16DAE8005F143D /* FoodItemView.swift in Sources */,
+				867592722C16DAE8005F143D /* DashboardView.swift in Sources */,
+				867592742C16DAE8005F143D /* MealTypeSheetView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -516,10 +560,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Kalorie/Supporting files/Kalorie.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Kalorie/Resources/Kalorie.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Kalorie/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Kalorie/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = RL34KUMN9E;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -557,10 +601,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Kalorie/Supporting files/Kalorie.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Kalorie/Resources/Kalorie.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Kalorie/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Kalorie/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = RL34KUMN9E;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
