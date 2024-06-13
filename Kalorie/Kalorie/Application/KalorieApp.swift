@@ -7,12 +7,15 @@
 
 import SwiftUI
 
+
 @main
 struct KalorieApp: App {
     
+    // MARK: - Body
+    
     var body: some Scene {
         WindowGroup {
-            DashboardView()
+            DashboardView(viewModel: .live)
         }
     }
 }

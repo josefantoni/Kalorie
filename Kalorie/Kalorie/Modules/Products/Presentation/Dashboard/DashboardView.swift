@@ -11,14 +11,26 @@ import SwiftUI
 
 struct DashboardView: View {
     
+    // MARK: - Properties
+    
     @State var foodItems = ["1", "2", "3"]
+    @ObservedObject var viewModel: DashboardViewModel
     @State var showSheet = false
+
+    
+    // MARK: - Init
+    
+    init(viewModel: DashboardViewModel) {
+        self.viewModel = viewModel
+    }
+    
+    
+    // MARK: - Body
 
     var body: some View {
         HStack {
             Spacer()
             Button(action: {
-                // TODO: rozvržení jídel
                 showSheet.toggle()
             }, label: {
                 Text("rozvržení jídel")
@@ -37,6 +49,9 @@ struct DashboardView: View {
     }
 }
 
+
+// MARK: - Preview
+
 #Preview {
-    DashboardView()
+    DashboardView(viewModel: .demo)
 }
