@@ -8,14 +8,6 @@
 import Foundation
 import SwiftUI
 
-struct FoodItem: Hashable {
-    
-    let name: String
-
-    init(_ name: String) {
-        self.name = name
-    }
-}
 
 struct DashboardView: View {
     
