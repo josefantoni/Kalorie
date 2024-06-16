@@ -47,53 +47,7 @@ final class DashboardViewModel: ObservableObject {
             self.state.mealTypes = getAllMealTypes()
         }
     }
-        
-    func createMealTypeIfPossible(
-        mealName: String,
-        startTime: Date,
-        endTime: Date
-    ) throws -> MealType {
-        if mealName.isEmpty {
-            throw CreateMealTypeResult.emptyName
-        }
-        if state.mealTypes.contains(where: { $0.name == mealName }) {
-            throw CreateMealTypeResult.invalidName
-        }
-        if state.mealTypes.contains(where: {
-            startTime.isBetween($0.startTime.toDate, $0.endTime.toDate) ||
-            endTime.isBetween($0.startTime.toDate, $0.endTime.toDate)
-        }) {
-            throw CreateMealTypeResult.invalidTime
-        }
-        
-        let newId = state.mealTypes.map { $0.id }.max() ?? -1 // if nil - there are no mealtypes
-        
-        let mealType = createMealType(
-            id: (newId + 1).toInt,
-            mealType: mealName,
-            startTime: startTime,
-            endTime: endTime
-        )
-        return mealType
-    }
             
-    func createMealType(
-        id: Int,
-        mealType: String,
-        startTime: Date,
-        endTime: Date
-    ) -> MealType {
-        let mealType = MealType(
-            id: id,
-            name: mealType,
-            startTime: startTime,
-            endTime: endTime,
-            context: state.container.viewContext
-        )
-        PersistentContainer.save(container: state.container)
-        return mealType
-    }
-    
     /**
      *   Add breakfast, lunch, dinner as basic meal types
      */
@@ -106,12 +60,15 @@ final class DashboardViewModel: ObservableObject {
         let mealNames = ["Snídaně", "Druhá snídaně", "Oběd", "Svačina", "Večeře"]
         
         for mealName in mealNames {
-            let meal = createMealType(
+            let meal = MealType(
                 id: id,
-                mealType: mealName,
+                name: mealName,
                 startTime: startTime,
-                endTime: endTime
+                endTime: endTime,
+                context: state.container.viewContext
             )
+            PersistentContainer.save(container: state.container)
+
             startTime = endTime
             endTime = startTime.withAddedHours(hours: 3)
             id += 1
