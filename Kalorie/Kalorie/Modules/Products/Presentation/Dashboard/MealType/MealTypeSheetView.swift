@@ -19,16 +19,6 @@ struct MealTypeSheetView: View {
     @ObservedObject var viewModel: MealTypeSheetViewModel
     @FocusState private var focusedField: Field? // resigning
 
-    // Hidden UI
-    @State private var isAddButtonHidden = true
-    @State private var showingAlert = false
-    
-    // New meal creation
-    @State private var alertTitle = ""
-    @State private var newMealName = ""
-    @State private var newMealStart = Date.now
-    @State private var newMealEnd = Date.now
-
 //    private var isEditing: Bool {
 //       editMode?.wrappedValue.isEditing == true
 //    }
@@ -97,12 +87,10 @@ struct MealTypeSheetView: View {
     }
         
     @ViewBuilder var footerView: some View {
-        if isAddButtonHidden {
+        if viewModel.state.isAddButtonHidden {
             Button {
-                let time = dashboardViewModel.getPossibleTimeForNewMealCreation()
-                newMealStart = time.possibleStart
-                newMealEnd = time.possibleEnd
-                isAddButtonHidden.toggle()
+                let time = viewModel.getPossibleTimeForNewMealCreation()
+                showAddButton(possibleStart: time.possibleStart, possibleEnd: time.possibleEnd)
             } label: {
                 Spacer()
                 Image(systemName: "plus.circle.fill")
@@ -114,7 +102,7 @@ struct MealTypeSheetView: View {
         } else {
             VStack {
                 VStack {
-                    TextField("Druhá večeře nebo přesnídávka", text: $newMealName)
+                    TextField("Druhá večeře nebo přesnídávka", text: $viewModel.state.newMealName)
                         .padding([.leading, .trailing], 20)
                         .font(.system(size: 20))
                         .padding(.top, 20)
@@ -123,19 +111,19 @@ struct MealTypeSheetView: View {
                     Divider()
 
                     HStack {
-                        DatePicker("Od", selection: $newMealStart, displayedComponents: .hourAndMinute)
+                        DatePicker("Od", selection: $viewModel.state.newMealStart, displayedComponents: .hourAndMinute)
                             .datePickerStyle(GraphicalDatePickerStyle())
-                            .onChange(of: newMealStart) {
-                                if newMealStart >= newMealEnd {
-                                    newMealEnd = newMealStart.withAddedMinutes(minutes: 30)
+                            .onChange(of: viewModel.state.newMealStart) {
+                                if viewModel.state.newMealStart >= viewModel.state.newMealEnd {
+                                    viewModel.state.newMealEnd = viewModel.state.newMealStart.withAddedMinutes(minutes: 30)
                                 }
                             }
                         Divider()
-                        DatePicker("Do", selection: $newMealEnd, displayedComponents: .hourAndMinute)
+                        DatePicker("Do", selection: $viewModel.state.newMealEnd, displayedComponents: .hourAndMinute)
                             .datePickerStyle(CompactDatePickerStyle())
-                            .onChange(of: newMealEnd) {
-                                if newMealStart >= newMealEnd {
-                                    newMealEnd = newMealStart.withAddedMinutes(minutes: 30)
+                            .onChange(of: viewModel.state.newMealEnd) {
+                                if viewModel.state.newMealStart >= viewModel.state.newMealEnd {
+                                    viewModel.state.newMealEnd = viewModel.state.newMealStart.withAddedMinutes(minutes: 30)
                                 }
                             }
                     }
@@ -151,34 +139,34 @@ struct MealTypeSheetView: View {
 
                     do {
                         let newMeal = try dashboardViewModel.createMealTypeIfPossible(
-                            mealName: newMealName,
-                            startTime: newMealStart,
-                            endTime: newMealEnd
+                            mealName: viewModel.state.newMealName,
+                            startTime: viewModel.state.newMealStart,
+                            endTime: viewModel.state.newMealEnd
                         )
                         viewModel.state.mealTypes.append(newMeal)
                         dashboardViewModel.state.mealTypes.append(newMeal)
-                        isAddButtonHidden.toggle()
+                        viewModel.state.isAddButtonHidden.toggle()
                     } catch CreateMealTypeResult.emptyName {
-                        alertTitle = "Zadejte jméno jídla"
-                        showingAlert.toggle()
+                        viewModel.state.alertTitle = "Zadejte jméno jídla"
+                        viewModel.state.showingAlert.toggle()
                     } catch CreateMealTypeResult.invalidName {
-                        alertTitle = "Jméno jídla musí být unikátní"
-                        showingAlert.toggle()
+                        viewModel.state.alertTitle = "Jméno jídla musí být unikátní"
+                        viewModel.state.showingAlert.toggle()
                     } catch CreateMealTypeResult.invalidTime {
-                        alertTitle = "Zadaný čas, se překrývá s jinou kategorií jídla"
-                        showingAlert.toggle()
+                        viewModel.state.alertTitle = "Zadaný čas, se překrývá s jinou kategorií jídla"
+                        viewModel.state.showingAlert.toggle()
                     } catch {
-                        alertTitle = "Nastala nečekaná chyba"
-                        showingAlert.toggle()
+                        viewModel.state.alertTitle = "Nastala nečekaná chyba"
+                        viewModel.state.showingAlert.toggle()
                     }
                 } label: {
                     Text("Vytvořit")
                         .padding()
                         .frame(maxWidth: .infinity)
                 }
-                .alert(isPresented: $showingAlert) {
+                .alert(isPresented: $viewModel.state.showingAlert) {
                     Alert(
-                        title: Text(alertTitle),
+                        title: Text(viewModel.state.alertTitle),
                         dismissButton: Alert.Button.default(Text("Dobrá"))
                     )
                 }
@@ -190,6 +178,15 @@ struct MealTypeSheetView: View {
             }
             .cornerRadius(10)
         }
+    }
+    
+    
+    // MARK: - Functions
+    
+    func showAddButton(possibleStart: Date, possibleEnd: Date) {
+        viewModel.state.newMealStart = possibleStart
+        viewModel.state.newMealEnd = possibleEnd
+        viewModel.state.isAddButtonHidden = false
     }
 }
 
