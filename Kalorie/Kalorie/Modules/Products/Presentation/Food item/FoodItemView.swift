@@ -8,27 +8,32 @@
 import Foundation
 import SwiftUI
 
+
 struct FoodItemView: View {
     
-    var foodName: String
+    // MARK: - Properties
+    
+    var foodItem: FoodItem
 
-    init(_ foodName: String) {
-        self.foodName = foodName
+    
+    // MARK: - Init
+
+    init(_ foodItem: FoodItem) {
+        self.foodItem = foodItem
     }
     
+
+    // MARK: - Body
+
     var body: some View {
         VStack {
             HStack {
-                Text("11:00")
+                Text(foodItem.timeFormatted).padding(.leading)
+                Text(foodItem.name ?? "")
                 Spacer()
-                Text(foodName)
-                Spacer()
-                Text("1000 kcal")
+                Text(foodItem.caloriesFormatted).padding(.trailing)
             }
         }
+        .contentShape(Rectangle())
     }
-}
-
-#Preview {
-    FoodItemView("Snídaně")
 }

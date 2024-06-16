@@ -13,4 +13,20 @@ extension Int {
     var toInt16: Int16 {
         Int16(self)
     }
+    
+    var toString: String {
+        String(self)
+    }
+    
+    var makeDoubleDigit: String {
+        String(format: "%02d", self)
+    }
+}
+
+
+extension Int16 {
+    
+    var toInt: Int {
+        Int(self)
+    }
 }

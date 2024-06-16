@@ -15,19 +15,17 @@ public class MealType: NSManagedObject {
     // MARK: - Init
     
     convenience init(
-        id: UUID,
+        id: Int,
         name: String,
-        start: (Int, Int),
-        end: (Int, Int),
+        startTime: Date,
+        endTime: Date,
         context: NSManagedObjectContext
     ) {
         self.init(context: context)
 
-        self.id = id
+        self.id = id.toInt16
         self.name = name
-        self.startHour = start.0.toInt16
-        self.startMinute = start.1.toInt16
-        self.endHour = end.0.toInt16
-        self.endMinute = end.1.toInt16
+        self.startTime = startTime.timeIntervalSince1970
+        self.endTime = endTime.timeIntervalSince1970
     }
 }

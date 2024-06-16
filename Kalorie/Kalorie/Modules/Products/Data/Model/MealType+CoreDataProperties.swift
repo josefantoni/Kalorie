@@ -17,12 +17,10 @@ extension MealType {
         return NSFetchRequest<MealType>(entityName: "MealType")
     }
 
-    @NSManaged public var endHour: Int16
-    @NSManaged public var endMinute: Int16
-    @NSManaged public var id: UUID?
+    @NSManaged public var endTime: TimeInterval
+    @NSManaged public var id: Int16
     @NSManaged public var name: String?
-    @NSManaged public var startHour: Int16
-    @NSManaged public var startMinute: Int16
+    @NSManaged public var startTime: TimeInterval
     @NSManaged public var foodItem: NSSet?
 }
 
