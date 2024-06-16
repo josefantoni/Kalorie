@@ -135,14 +135,6 @@ final class DashboardViewModel: ObservableObject {
         }
         return storedSportActivities
     }
-    
-    func getPossibleTimeForNewMealCreation() -> (possibleStart: Date, possibleEnd: Date) {
-        // we show default value at night - after dinner
-        guard let possibleStart = state.mealTypes.map({ $0.endTime }).max()?.toDate else {
-            return (Date.now, Date.now.withAddedMinutes(minutes: 30))
-        }
-        return (possibleStart, possibleStart.withAddedMinutes(minutes: 30))
-    }
 }
 
 

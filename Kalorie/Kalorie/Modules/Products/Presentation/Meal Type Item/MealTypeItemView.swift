@@ -46,16 +46,9 @@ struct MealTypeItemView: View {
 #Preview {
     
     let container = PersistentContainer.container
-    guard let startTime = Calendar.current.date(bySettingHour: 5, minute: 0, second: 0, of: Date.now) else {
-        fatalError("No toto? Nějak se pokazilo vytváření dne v: 'firstTimeAppLaunchSetup'")
+    guard let mealType = DemoData.demoMeals(on: container.viewContext).first else {
+        fatalError("empty demo data")
     }
-    let mealType = MealType(
-        id: 0,
-        name: "Snídaně",
-        startTime: startTime,
-        endTime: startTime.withAddedHours(hours: 3),
-        context: container.viewContext
-    )
     PersistentContainer.save(container: container)
     return MealTypeItemView(mealType)
 }
