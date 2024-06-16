@@ -13,7 +13,6 @@ struct DashboardView: View {
     
     // MARK: - Properties
     
-    @State var foodItems = ["1", "2", "3"]
     @ObservedObject var viewModel: DashboardViewModel
     @State var showSheet = false
 
@@ -36,16 +35,36 @@ struct DashboardView: View {
                 Text("rozvržení jídel")
             })
             .sheet(isPresented: $showSheet) {
-                MealTypeSheetView()
+                let state = MealTypeSheetViewState(
+                    mealTypes: self.viewModel.state.mealTypes,
+                    container: self.viewModel.state.container
+                )
+                let viewModel = MealTypeSheetViewModel(state)
+                MealTypeSheetView(viewModel: viewModel)
             }
+            .environmentObject(viewModel)
         }
         .padding(.trailing)
         
-        List($foodItems, id: \.self, editActions: .move) { food in
+        List($viewModel.state.foodItems, id: \.id, editActions: .move) { food in
           // List item UI
             FoodItemView(food.wrappedValue)
         }
-        // .environment(\.editMode, .constant(self.editMode ? EditMode.active : EditMode.inactive))
+        .overlay {
+            if viewModel.state.foodItems.isEmpty {
+                ContentUnavailableView(label: {
+                    Label("Žádné záznamy jídel", systemImage: "list.bullet.rectangle.portrait")
+                    .padding()
+                }, description: {
+                    Text("Ještě jste dnes nic nesnědli, přidejme nějaké jídlo")
+                }, actions: {
+                    Button("Přidat jídlo") {
+                        // TODO: Přidat jídlo
+                    }
+                })
+                .padding()
+            }
+        }
     }
 }
 
