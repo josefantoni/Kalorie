@@ -138,7 +138,7 @@ struct MealTypeSheetView: View {
                     focusedField = nil
 
                     do {
-                        let newMeal = try dashboardViewModel.createMealTypeIfPossible(
+                        let newMeal = try viewModel.createMealType(
                             mealName: viewModel.state.newMealName,
                             startTime: viewModel.state.newMealStart,
                             endTime: viewModel.state.newMealEnd

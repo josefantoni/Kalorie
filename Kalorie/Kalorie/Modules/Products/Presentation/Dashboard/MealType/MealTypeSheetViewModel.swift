@@ -42,6 +42,38 @@ final class MealTypeSheetViewModel: ObservableObject {
     
     // MARK: - Function
     
+    func createMealType(
+        mealName: String,
+        startTime: Date,
+        endTime: Date
+    ) throws -> MealType {
+        if mealName.isEmpty {
+            throw CreateMealTypeResult.emptyName
+        }
+        if state.mealTypes.contains(where: { $0.name == mealName }) {
+            throw CreateMealTypeResult.invalidName
+        }
+        if state.mealTypes.contains(where: {
+            startTime.isBetween($0.startTime.toDate, $0.endTime.toDate) ||
+            endTime.isBetween($0.startTime.toDate, $0.endTime.toDate)
+        }) {
+            throw CreateMealTypeResult.invalidTime
+        }
+        
+        let newId = state.mealTypes.map { $0.id }.max() ?? -1 // if nil - there are no mealtypes
+        
+        let mealType = MealType(
+            id: (newId + 1).toInt,
+            name: mealName,
+            startTime: startTime,
+            endTime: endTime,
+            context: state.container.viewContext
+        )
+        PersistentContainer.save(container: state.container)
+
+        return mealType
+    }
+
     func delete(by indexPath: IndexPath.Element) {
         state.container.viewContext.delete(state.mealTypes.remove(at: indexPath))
         PersistentContainer.save(container: state.container)
