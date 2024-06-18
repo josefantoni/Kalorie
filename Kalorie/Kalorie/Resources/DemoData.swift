@@ -20,7 +20,7 @@ enum DemoData {
         formatter.timeZone = TimeZone.current
         formatter.locale = Locale(identifier: "en_US_POSIX")
         
-        guard var startTime = formatter.date(from: "2024-06-12 05:00") else {
+        guard let startTime = formatter.date(from: "2024-06-12 05:00") else {
             fatalError("No toto? Nějak se pokazilo vytváření dne v: 'DemoData.defaultDate'")
         }
         return startTime
