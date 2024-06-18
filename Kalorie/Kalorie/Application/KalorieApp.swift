@@ -15,7 +15,11 @@ struct KalorieApp: App {
     
     var body: some Scene {
         WindowGroup {
-            DashboardView(viewModel: DashboardViewModel(container: PersistentContainer.container))
+            DashboardView(
+                viewModel: DashboardViewModel(
+                    container: PersistentContainer.container
+                )
+            )
         }
     }
 }
