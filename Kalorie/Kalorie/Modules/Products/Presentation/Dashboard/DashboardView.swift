@@ -47,8 +47,43 @@ struct DashboardView: View {
         
         List($viewModel.state.foodItems, id: \.id, editActions: .move) { food in
           // List item UI
-            FoodItemView(food.wrappedValue)
+            Section {
+                FoodItemView(food.wrappedValue)
+            }
+            header: {
+                Text("Ostatní nezařazená jídla")
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
+                    )
+                    .font(.subheadline)
+                    .padding(.leading, -5)
+
+                Button {
+                    viewModel.state.showAddFoodSheet = (
+                        isVisible: true,
+                        screenType: .barCode
+                    )
+                } label: {
+                    Image(systemName: "barcode.viewfinder")
+                        .foregroundColor(.green)
+                }
+                .font(.title)
+                
+                Button {
+                    viewModel.state.showAddFoodSheet = (
+                        isVisible: true,
+                        screenType: .base
+                    )
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(.green)
+                }
+                .font(.title)
+                .padding(.trailing, -25)
+            }
         }
+        .listStyle(.sidebar)
         .overlay {
             if viewModel.state.foodItems.isEmpty {
                 ContentUnavailableView(label: {
@@ -58,10 +93,18 @@ struct DashboardView: View {
                     Text("Ještě jste dnes nic nesnědli, přidejme nějaké jídlo")
                 }, actions: {
                     Button("Přidat jídlo") {
-                        // TODO: Přidat jídlo
+                        viewModel.state.showAddFoodSheet.isVisible.toggle()
                     }
                 })
                 .padding()
+            }
+        }
+        .sheet(isPresented: $viewModel.state.showAddFoodSheet.isVisible) {
+            switch viewModel.state.showAddFoodSheet.screenType {
+            case .base:
+                AddFoodSheetView(withBarcodeScan: false)
+            case .barCode:
+                AddFoodSheetView(withBarcodeScan: true)
             }
         }
     }

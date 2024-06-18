@@ -19,6 +19,8 @@
 		8648D33E2C1A2F45009152DA /* DemoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D33D2C1A2F45009152DA /* DemoData.swift */; };
 		8648D3402C1A323B009152DA /* Int+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D33F2C1A323B009152DA /* Int+Extension.swift */; };
 		8648D3422C1A3F76009152DA /* PersistentContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D3412C1A3F76009152DA /* PersistentContainer.swift */; };
+		8669B5AF2C21C9320079EB7F /* DataScannerRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8669B5AE2C21C9320079EB7F /* DataScannerRepresentable.swift */; };
+		8674EB102C203ED300E8E4E4 /* AddFoodSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8674EB0F2C203ED300E8E4E4 /* AddFoodSheetView.swift */; };
 		867592722C16DAE8005F143D /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 867592692C16DAE8005F143D /* DashboardView.swift */; };
 		867592732C16DAE8005F143D /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8675926A2C16DAE8005F143D /* DashboardViewModel.swift */; };
 		867592742C16DAE8005F143D /* MealTypeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8675926B2C16DAE8005F143D /* MealTypeSheetView.swift */; };
@@ -69,6 +71,8 @@
 		8648D33D2C1A2F45009152DA /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
 		8648D33F2C1A323B009152DA /* Int+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Int+Extension.swift"; sourceTree = "<group>"; };
 		8648D3412C1A3F76009152DA /* PersistentContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentContainer.swift; sourceTree = "<group>"; };
+		8669B5AE2C21C9320079EB7F /* DataScannerRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataScannerRepresentable.swift; sourceTree = "<group>"; };
+		8674EB0F2C203ED300E8E4E4 /* AddFoodSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFoodSheetView.swift; sourceTree = "<group>"; };
 		867592692C16DAE8005F143D /* DashboardView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		8675926A2C16DAE8005F143D /* DashboardViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
 		8675926B2C16DAE8005F143D /* MealTypeSheetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MealTypeSheetView.swift; sourceTree = "<group>"; };
@@ -195,6 +199,15 @@
 			path = Products;
 			sourceTree = "<group>";
 		};
+		8669B5AD2C21C91D0079EB7F /* AddFood */ = {
+			isa = PBXGroup;
+			children = (
+				8674EB0F2C203ED300E8E4E4 /* AddFoodSheetView.swift */,
+				8669B5AE2C21C9320079EB7F /* DataScannerRepresentable.swift */,
+			);
+			path = AddFood;
+			sourceTree = "<group>";
+		};
 		866E53652C10DC7300BD3262 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -219,6 +232,7 @@
 			children = (
 				867592692C16DAE8005F143D /* DashboardView.swift */,
 				8675926A2C16DAE8005F143D /* DashboardViewModel.swift */,
+				8669B5AD2C21C91D0079EB7F /* AddFood */,
 				868FF36B2C1E4B5100128B0A /* MealType */,
 			);
 			path = Dashboard;
@@ -463,12 +477,14 @@
 			files = (
 				8648D3422C1A3F76009152DA /* PersistentContainer.swift in Sources */,
 				867592762C16DAE8005F143D /* MealTypeItemView.swift in Sources */,
+				8674EB102C203ED300E8E4E4 /* AddFoodSheetView.swift in Sources */,
 				867592732C16DAE8005F143D /* DashboardViewModel.swift in Sources */,
 				860C15522C10B01B0062D6E7 /* KalorieApp.swift in Sources */,
 				86FAD5DF2C1A08A80087F199 /* FoodItem+CoreDataClass.swift in Sources */,
 				8648D3302C1A0F8A009152DA /* MealType+CoreDataProperties.swift in Sources */,
 				8648D3322C1A0F8A009152DA /* FoodItem+CoreDataProperties.swift in Sources */,
 				86FAD5E12C1A08A80087F199 /* MealType+CoreDataClass.swift in Sources */,
+				8669B5AF2C21C9320079EB7F /* DataScannerRepresentable.swift in Sources */,
 				86CE28E32C19D71D000ACC92 /* Date+Extension.swift in Sources */,
 				867592752C16DAE8005F143D /* FoodItemView.swift in Sources */,
 				868FF36A2C1DF56600128B0A /* CreateMealTypeResult.swift in Sources */,
