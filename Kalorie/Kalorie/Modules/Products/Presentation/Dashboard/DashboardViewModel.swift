@@ -25,13 +25,11 @@ final class DashboardViewModel: ObservableObject {
     // MARK: - Properties
     
     @Published var state: DashboardViewState
-    let isDemo: Bool
     
     
     // MARK: - Init
     
-    init(isDemo: Bool, container: NSPersistentContainer) {
-        self.isDemo = isDemo
+    init(container: NSPersistentContainer) {
         self.state = .init(container: container)
         self.firstTimeAppLaunchSetupIfNeeded()
     }
@@ -40,7 +38,7 @@ final class DashboardViewModel: ObservableObject {
     // MARK: - Function
 
     func firstTimeAppLaunchSetupIfNeeded() {
-        if UserDefaults.standard.object(forKey: "FirstOpen") == nil || isDemo {
+        if UserDefaults.standard.object(forKey: "FirstOpen") == nil {
             firstTimeAppLaunchSetup()
             UserDefaults.standard.set(true, forKey: "FirstOpen")
         } else {
@@ -91,25 +89,5 @@ final class DashboardViewModel: ObservableObject {
             fatalError("No toto? Nějak se pokazilo 'getAllMealTypes': \(error)")
         }
         return storedSportActivities
-    }
-}
-
-
-// MARK: - Helpers
-
-extension DashboardViewModel {
-    
-    static var demo: DashboardViewModel {
-        DashboardViewModel(
-            isDemo: true,
-            container: PersistentContainer.container
-        )
-    }
-    
-    static var live: DashboardViewModel {
-        DashboardViewModel(
-            isDemo: false,
-            container: PersistentContainer.container
-        )
     }
 }

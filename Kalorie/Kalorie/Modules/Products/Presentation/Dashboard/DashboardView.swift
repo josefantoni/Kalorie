@@ -71,6 +71,5 @@ struct DashboardView: View {
 
 // MARK: - Preview
 
-#Preview {
-    DashboardView(viewModel: .demo)
-}
+// #Preview {
+// }
