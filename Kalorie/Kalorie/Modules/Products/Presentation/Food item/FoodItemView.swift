@@ -37,3 +37,11 @@ struct FoodItemView: View {
         .contentShape(Rectangle())
     }
 }
+
+
+#Preview {
+    let container = PersistentContainer.container
+    let foodItem = DemoData.demoFoodItem(on: container.viewContext)
+    PersistentContainer.save(container: container)
+    return FoodItemView(foodItem)
+}

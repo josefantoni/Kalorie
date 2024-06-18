@@ -273,8 +273,8 @@
 			isa = PBXGroup;
 			children = (
 				86FAD5DB2C1A08A80087F199 /* FoodItem+CoreDataClass.swift */,
-				86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */,
 				8648D32E2C1A0F8A009152DA /* FoodItem+CoreDataProperties.swift */,
+				86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */,
 				8648D32C2C1A0F8A009152DA /* MealType+CoreDataProperties.swift */,
 			);
 			path = Model;
