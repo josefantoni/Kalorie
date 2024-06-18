@@ -3,16 +3,16 @@
     <entity name="FoodItem" representedClassName=".FoodItem" syncable="YES">
         <attribute name="calories" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="date" attributeType="Date" usesScalarValueType="YES"/>
-        <attribute name="id" attributeType="String" defaultValueString=""/>
+        <attribute name="id" attributeType="UUID" defaultValueString="" usesScalarValueType="NO"/>
         <attribute name="name" attributeType="String" defaultValueString=""/>
         <attribute name="weight" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <relationship name="mealType" maxCount="1" deletionRule="Cascade" destinationEntity="MealType" inverseName="foodItem" inverseEntity="MealType"/>
+        <relationship name="mealType" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MealType" inverseName="foodItem" inverseEntity="MealType"/>
     </entity>
     <entity name="MealType" representedClassName=".MealType" syncable="YES">
         <attribute name="endTime" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" attributeType="String" defaultValueString=""/>
         <attribute name="startTime" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="foodItem" toMany="YES" deletionRule="Cascade" destinationEntity="FoodItem" inverseName="mealType" inverseEntity="FoodItem"/>
+        <relationship name="foodItem" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FoodItem" inverseName="mealType" inverseEntity="FoodItem"/>
     </entity>
 </model>

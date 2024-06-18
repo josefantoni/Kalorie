@@ -19,7 +19,7 @@ extension FoodItem {
 
     @NSManaged public var calories: Int16
     @NSManaged public var date: TimeInterval
-    @NSManaged public var id: String?
+    @NSManaged public var id: UUID?
     @NSManaged public var name: String?
     @NSManaged public var weight: Double
     @NSManaged public var mealType: MealType?

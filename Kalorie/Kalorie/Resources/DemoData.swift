@@ -11,7 +11,9 @@ import CoreData
 
 enum DemoData {
     
-    static func demoMeals(on context: NSManagedObjectContext) -> [MealType] {
+    // MARK: - Properties
+
+    private static var defaultDate: Date {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         formatter.calendar = Calendar(identifier: .iso8601)
@@ -19,8 +21,16 @@ enum DemoData {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         
         guard var startTime = formatter.date(from: "2024-06-12 05:00") else {
-            fatalError("No toto? Nějak se pokazilo vytváření dne v: 'demoMeals'")
+            fatalError("No toto? Nějak se pokazilo vytváření dne v: 'DemoData.defaultDate'")
         }
+        return startTime
+    }
+
+    
+    // MARK: - Functions
+    
+    static func demoMeals(on context: NSManagedObjectContext) -> [MealType] {
+        var startTime = defaultDate
         var endTime = startTime.withAddedHours(hours: 3)
         var id = 0
         let mealNames = ["Snídaně", "Druhá snídaně", "Oběd", "Svačina", "Večeře"]
@@ -40,5 +50,18 @@ enum DemoData {
             mealTypes.append(meal)
         }
         return mealTypes
+    }
+    
+    static func demoFoodItem(on context: NSManagedObjectContext, date: Date = defaultDate) -> FoodItem {
+        let foodItem = FoodItem(
+            id: UUID(),
+            name: "Olomoucké tvarůžky",
+            weight: 100.0,
+            date: date.timeIntervalSince1970,
+            calories: 100,
+            mealType: nil,
+            context: context
+        )
+        return foodItem
     }
 }

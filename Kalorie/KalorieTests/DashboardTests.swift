@@ -13,7 +13,11 @@ import SwiftUI
 final class DashboardTests: XCTestCase {
     
     func testMyViewController() {
-        let vc = DashboardView(viewModel: .demo)
+        let vc = DashboardView(
+            viewModel: DashboardViewModel(
+                container: PersistentContainer.container
+            )
+        )
         let view = UIHostingController(rootView: vc)
         assertSnapshot(of: view, as: .image(on: .iPhone13))
     }

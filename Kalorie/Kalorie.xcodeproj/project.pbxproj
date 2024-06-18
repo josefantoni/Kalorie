@@ -198,10 +198,10 @@
 		866E53652C10DC7300BD3262 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				860C15552C10B01B0062D6E7 /* Assets.xcassets */,
 				8648D33D2C1A2F45009152DA /* DemoData.swift */,
 				860C15572C10B01B0062D6E7 /* Kalorie.entitlements */,
 				86CE28EA2C19F785000ACC92 /* Model.xcdatamodeld */,
-				860C15552C10B01B0062D6E7 /* Assets.xcassets */,
 				860C15582C10B01B0062D6E7 /* Preview Content */,
 			);
 			path = Resources;
@@ -273,8 +273,8 @@
 			isa = PBXGroup;
 			children = (
 				86FAD5DB2C1A08A80087F199 /* FoodItem+CoreDataClass.swift */,
-				86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */,
 				8648D32E2C1A0F8A009152DA /* FoodItem+CoreDataProperties.swift */,
+				86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */,
 				8648D32C2C1A0F8A009152DA /* MealType+CoreDataProperties.swift */,
 			);
 			path = Model;
@@ -645,6 +645,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kalorie/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Kalorie;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -686,6 +687,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kalorie/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Kalorie;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
