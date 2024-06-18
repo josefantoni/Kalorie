@@ -17,6 +17,7 @@ struct DashboardViewState {
     var foodItems: [FoodItem] = []
     var mealTypes: [MealType] = []
     var container: NSPersistentContainer
+    var showMealTypeSheet = false
 }
 
 
@@ -82,12 +83,12 @@ final class DashboardViewModel: ObservableObject {
     
     func getAllMealTypes() -> [MealType] {
         let request = NSFetchRequest<MealType>(entityName: "MealType")
-        var storedSportActivities: [MealType] = []
+        var result: [MealType] = []
         do {
-            storedSportActivities = try state.container.viewContext.fetch(request)
+            result = try state.container.viewContext.fetch(request)
         } catch let error {
             fatalError("No toto? Nějak se pokazilo 'getAllMealTypes': \(error)")
         }
-        return storedSportActivities
+        return result
     }
 }

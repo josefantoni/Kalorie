@@ -14,7 +14,6 @@ struct DashboardView: View {
     // MARK: - Properties
     
     @ObservedObject var viewModel: DashboardViewModel
-    @State var showSheet = false
 
     
     // MARK: - Init
@@ -30,11 +29,11 @@ struct DashboardView: View {
         HStack {
             Spacer()
             Button(action: {
-                showSheet.toggle()
+                viewModel.state.showMealTypeSheet.toggle()
             }, label: {
                 Text("rozvržení jídel")
             })
-            .sheet(isPresented: $showSheet) {
+            .sheet(isPresented: $viewModel.state.showMealTypeSheet) {
                 let state = MealTypeSheetViewState(
                     mealTypes: self.viewModel.state.mealTypes,
                     container: self.viewModel.state.container
@@ -71,5 +70,12 @@ struct DashboardView: View {
 
 // MARK: - Preview
 
-// #Preview {
-// }
+#Preview {
+    let container = PersistentContainer.container
+    let viewModel = DashboardViewModel(container: container)
+    viewModel.state.foodItems = [
+        DemoData.demoFoodItem(on: container.viewContext)
+    ]
+    PersistentContainer.save(container: container)
+    return DashboardView(viewModel: viewModel)
+}
