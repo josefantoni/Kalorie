@@ -52,9 +52,9 @@ enum DemoData {
         return mealTypes
     }
     
-    static func demoFoodItem(on context: NSManagedObjectContext, date: Date = defaultDate) -> FoodItem {
-        let foodItem = FoodItem(
-            id: UUID(),
+    static func demofoodConsumed(on context: NSManagedObjectContext, date: Date = defaultDate) -> FoodConsumed {
+        let foodConsumed = FoodConsumed(
+            id: "12345",
             name: "Olomoucké tvarůžky",
             weight: 100.0,
             date: date.timeIntervalSince1970,
@@ -62,6 +62,6 @@ enum DemoData {
             mealType: nil,
             context: context
         )
-        return foodItem
+        return foodConsumed
     }
 }

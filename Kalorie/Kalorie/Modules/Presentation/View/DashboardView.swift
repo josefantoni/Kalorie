@@ -45,10 +45,10 @@ struct DashboardView: View {
         }
         .padding(.trailing)
         
-        List($viewModel.state.foodItems, id: \.id, editActions: .move) { food in
+        List($viewModel.state.foodsConsumed, id: \.id, editActions: .move) { food in
           // List item UI
             Section {
-                FoodItemView(food.wrappedValue)
+                FoodConsumedView(food.wrappedValue)
             }
             header: {
                 Text("Ostatní nezařazená jídla")
@@ -85,7 +85,7 @@ struct DashboardView: View {
         }
         .listStyle(.sidebar)
         .overlay {
-            if viewModel.state.foodItems.isEmpty {
+            if viewModel.state.foodsConsumed.isEmpty {
                 ContentUnavailableView(label: {
                     Label("Žádné záznamy jídel", systemImage: "list.bullet.rectangle.portrait")
                     .padding()
@@ -116,8 +116,8 @@ struct DashboardView: View {
 #Preview {
     let container = PersistentContainer.container
     let viewModel = DashboardViewModel(container: container)
-    viewModel.state.foodItems = [
-        DemoData.demoFoodItem(on: container.viewContext)
+    viewModel.state.foodsConsumed = [
+        DemoData.demofoodConsumed(on: container.viewContext)
     ]
     PersistentContainer.save(container: container)
     return DashboardView(viewModel: viewModel)

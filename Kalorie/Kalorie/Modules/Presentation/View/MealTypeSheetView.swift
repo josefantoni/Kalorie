@@ -15,19 +15,16 @@ struct MealTypeSheetView: View {
     
     @EnvironmentObject var dashboardViewModel: DashboardViewModel
     @Environment(\.dismiss) var dismiss
-//    @Environment(\.editMode) var editMode
     @ObservedObject var viewModel: MealTypeSheetViewModel
     @FocusState private var focusedField: Field? // resigning
 
-//    private var isEditing: Bool {
-//       editMode?.wrappedValue.isEditing == true
-//    }
-    
     private enum Field: Int, CaseIterable {
         case newMealName
     }
     
+    
     // MARK: - Init
+    
     init(viewModel: MealTypeSheetViewModel) {
         self.viewModel = viewModel
     }
@@ -66,8 +63,6 @@ struct MealTypeSheetView: View {
                         }
                     }
                 }
-//                TODO: - changing of order
-//                .environment(\.editMode, .constant(EditMode.active))
             }
             .frame(
                 maxWidth: .infinity,
@@ -75,15 +70,6 @@ struct MealTypeSheetView: View {
                 alignment: .topTrailing
             )
         }
-//        TODO: - changing of order
-//        .onChange(of: viewModel.state.mealTypes) { oldValue, newValue in
-//            print("oldValue: \(oldValue)")
-//            print("newValue: \(newValue)")
-//            if let oldValueFirst = oldValue.first, let i = viewModel.state.mealTypes.firstIndex(where: { $0.id == oldValueFirst.id }) {
-//                print("oldValueFirst: \(oldValueFirst)")
-//                print("index of it: \(i)")
-//            }
-//        }
     }
         
     @ViewBuilder var footerView: some View {
@@ -135,30 +121,10 @@ struct MealTypeSheetView: View {
                 .background(.white)
 
                 Button {
-                    focusedField = nil
-
-                    do {
-                        let newMeal = try viewModel.createMealType(
-                            mealName: viewModel.state.newMealName,
-                            startTime: viewModel.state.newMealStart,
-                            endTime: viewModel.state.newMealEnd
-                        )
-                        viewModel.state.mealTypes.append(newMeal)
-                        dashboardViewModel.state.mealTypes.append(newMeal)
-                        viewModel.state.isAddButtonHidden.toggle()
-                    } catch CreateMealTypeResult.emptyName {
-                        viewModel.state.alertTitle = "Zadejte jméno jídla"
-                        viewModel.state.showingAlert.toggle()
-                    } catch CreateMealTypeResult.invalidName {
-                        viewModel.state.alertTitle = "Jméno jídla musí být unikátní"
-                        viewModel.state.showingAlert.toggle()
-                    } catch CreateMealTypeResult.invalidTime {
-                        viewModel.state.alertTitle = "Zadaný čas, se překrývá s jinou kategorií jídla"
-                        viewModel.state.showingAlert.toggle()
-                    } catch {
-                        viewModel.state.alertTitle = "Nastala nečekaná chyba"
-                        viewModel.state.showingAlert.toggle()
+                    if let createdMealType = viewModel.createMealType() {
+                        dashboardViewModel.state.mealTypes.append(createdMealType)
                     }
+                    focusedField = nil
                 } label: {
                     Text("Vytvořit")
                         .padding()

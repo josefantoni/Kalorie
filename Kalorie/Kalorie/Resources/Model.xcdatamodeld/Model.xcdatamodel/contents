@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="FoodItem" representedClassName=".FoodItem" syncable="YES">
+    <entity name="FoodConsumed" representedClassName=".FoodConsumed" syncable="YES">
         <attribute name="calories" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="date" attributeType="Date" usesScalarValueType="YES"/>
-        <attribute name="id" attributeType="UUID" defaultValueString="" usesScalarValueType="NO"/>
+        <attribute name="id" attributeType="String"/>
         <attribute name="name" attributeType="String" defaultValueString=""/>
         <attribute name="weight" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <relationship name="mealType" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MealType" inverseName="foodItem" inverseEntity="MealType"/>
+        <relationship name="mealType" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="MealType" inverseName="foodConsumed" inverseEntity="MealType"/>
     </entity>
     <entity name="MealType" representedClassName=".MealType" syncable="YES">
         <attribute name="endTime" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" attributeType="String" defaultValueString=""/>
         <attribute name="startTime" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="foodItem" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FoodItem" inverseName="mealType" inverseEntity="FoodItem"/>
+        <relationship name="foodConsumed" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FoodConsumed" inverseName="mealType" inverseEntity="FoodConsumed"/>
     </entity>
 </model>
