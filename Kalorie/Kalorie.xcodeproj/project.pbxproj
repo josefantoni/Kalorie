@@ -13,8 +13,11 @@
 		860C15642C10B01C0062D6E7 /* DashboardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C15632C10B01C0062D6E7 /* DashboardTests.swift */; };
 		860C156E2C10B01C0062D6E7 /* KalorieUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C156D2C10B01C0062D6E7 /* KalorieUITests.swift */; };
 		860C15702C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860C156F2C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift */; };
+		86186DAC2C2C63B500176E09 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 86186DAB2C2C63B500176E09 /* FirebaseFirestore */; };
+		86186DAF2C2C69B300176E09 /* FoodItemDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86186DAE2C2C69B300176E09 /* FoodItemDTO.swift */; };
+		8647A1882C2205BE00F2787D /* AddFoodSheetViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8647A1872C2205BE00F2787D /* AddFoodSheetViewModel.swift */; };
 		8648D3302C1A0F8A009152DA /* MealType+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D32C2C1A0F8A009152DA /* MealType+CoreDataProperties.swift */; };
-		8648D3322C1A0F8A009152DA /* FoodItem+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D32E2C1A0F8A009152DA /* FoodItem+CoreDataProperties.swift */; };
+		8648D3322C1A0F8A009152DA /* FoodConsumed+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D32E2C1A0F8A009152DA /* FoodConsumed+CoreDataProperties.swift */; };
 		8648D3342C1A11F0009152DA /* MealTypeSheetViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D3332C1A11F0009152DA /* MealTypeSheetViewModel.swift */; };
 		8648D33E2C1A2F45009152DA /* DemoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D33D2C1A2F45009152DA /* DemoData.swift */; };
 		8648D3402C1A323B009152DA /* Int+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D33F2C1A323B009152DA /* Int+Extension.swift */; };
@@ -28,10 +31,13 @@
 		867592762C16DAE8005F143D /* MealTypeItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8675926F2C16DAE8005F143D /* MealTypeItemView.swift */; };
 		868FF3682C1DC7E100128B0A /* TimeInterval+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868FF3672C1DC7E100128B0A /* TimeInterval+Extension.swift */; };
 		868FF36A2C1DF56600128B0A /* CreateMealTypeResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868FF3692C1DF56600128B0A /* CreateMealTypeResult.swift */; };
+		86C775E32C2A6E1600FC4493 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 86C775E22C2A6E1600FC4493 /* FirebaseFirestore */; };
 		86CE28DB2C19A718000ACC92 /* ApplicationType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CE28DA2C19A718000ACC92 /* ApplicationType.swift */; };
 		86CE28E32C19D71D000ACC92 /* Date+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CE28E22C19D71D000ACC92 /* Date+Extension.swift */; };
-		86CE28EC2C19F785000ACC92 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 86CE28EA2C19F785000ACC92 /* Model.xcdatamodeld */; };
-		86FAD5DF2C1A08A80087F199 /* FoodItem+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FAD5DB2C1A08A80087F199 /* FoodItem+CoreDataClass.swift */; };
+		86E53C7E2C2C5EF90081E20F /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 86E53C7C2C2C5EF90081E20F /* Model.xcdatamodeld */; };
+		86EF07E22C2F917D0009B7A1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 86EF07E12C2F917D0009B7A1 /* GoogleService-Info.plist */; };
+		86EF07E62C2F96200009B7A1 /* Binding+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EF07E52C2F96200009B7A1 /* Binding+Extension.swift */; };
+		86FAD5DF2C1A08A80087F199 /* FoodIConsumed+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FAD5DB2C1A08A80087F199 /* FoodIConsumed+CoreDataClass.swift */; };
 		86FAD5E12C1A08A80087F199 /* MealType+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */; };
 		86FFA1E32C146A03000D53AA /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 86FFA1E22C146A03000D53AA /* SnapshotTesting */; };
 		86FFA1E52C146C59000D53AA /* MealTypeSheetViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FFA1E42C146C59000D53AA /* MealTypeSheetViewTests.swift */; };
@@ -65,8 +71,10 @@
 		860C15692C10B01C0062D6E7 /* KalorieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KalorieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		860C156D2C10B01C0062D6E7 /* KalorieUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalorieUITests.swift; sourceTree = "<group>"; };
 		860C156F2C10B01C0062D6E7 /* KalorieUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KalorieUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		86186DAE2C2C69B300176E09 /* FoodItemDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodItemDTO.swift; sourceTree = "<group>"; };
+		8647A1872C2205BE00F2787D /* AddFoodSheetViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFoodSheetViewModel.swift; sourceTree = "<group>"; };
 		8648D32C2C1A0F8A009152DA /* MealType+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealType+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		8648D32E2C1A0F8A009152DA /* FoodItem+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FoodItem+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		8648D32E2C1A0F8A009152DA /* FoodConsumed+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FoodConsumed+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		8648D3332C1A11F0009152DA /* MealTypeSheetViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeSheetViewModel.swift; sourceTree = "<group>"; };
 		8648D33D2C1A2F45009152DA /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
 		8648D33F2C1A323B009152DA /* Int+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Int+Extension.swift"; sourceTree = "<group>"; };
@@ -82,8 +90,10 @@
 		868FF3692C1DF56600128B0A /* CreateMealTypeResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateMealTypeResult.swift; sourceTree = "<group>"; };
 		86CE28DA2C19A718000ACC92 /* ApplicationType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationType.swift; sourceTree = "<group>"; };
 		86CE28E22C19D71D000ACC92 /* Date+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extension.swift"; sourceTree = "<group>"; };
-		86CE28EB2C19F785000ACC92 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
-		86FAD5DB2C1A08A80087F199 /* FoodItem+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FoodItem+CoreDataClass.swift"; sourceTree = "<group>"; };
+		86E53C7D2C2C5EF90081E20F /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
+		86EF07E12C2F917D0009B7A1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		86EF07E52C2F96200009B7A1 /* Binding+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Binding+Extension.swift"; sourceTree = "<group>"; };
+		86FAD5DB2C1A08A80087F199 /* FoodIConsumed+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FoodIConsumed+CoreDataClass.swift"; sourceTree = "<group>"; };
 		86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealType+CoreDataClass.swift"; sourceTree = "<group>"; };
 		86FFA1E42C146C59000D53AA /* MealTypeSheetViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeSheetViewTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -93,6 +103,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				86C775E32C2A6E1600FC4493 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -108,6 +119,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				86186DAC2C2C63B500176E09 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -171,12 +183,48 @@
 			path = KalorieUITests;
 			sourceTree = "<group>";
 		};
+		86186DAD2C2C683500176E09 /* Entities */ = {
+			isa = PBXGroup;
+			children = (
+				86FAD5DB2C1A08A80087F199 /* FoodIConsumed+CoreDataClass.swift */,
+				8648D32E2C1A0F8A009152DA /* FoodConsumed+CoreDataProperties.swift */,
+				86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */,
+				8648D32C2C1A0F8A009152DA /* MealType+CoreDataProperties.swift */,
+			);
+			path = Entities;
+			sourceTree = "<group>";
+		};
+		86186DB02C2C6DCA00176E09 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				8647A1872C2205BE00F2787D /* AddFoodSheetViewModel.swift */,
+				8675926A2C16DAE8005F143D /* DashboardViewModel.swift */,
+				8648D3332C1A11F0009152DA /* MealTypeSheetViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		86186DB12C2C6F4500176E09 /* Use Case */ = {
+			isa = PBXGroup;
+			children = (
+				8648D3412C1A3F76009152DA /* PersistentContainer.swift */,
+			);
+			path = "Use Case";
+			sourceTree = "<group>";
+		};
+		86186DB22C2C6F6000176E09 /* ViewController */ = {
+			isa = PBXGroup;
+			children = (
+				8669B5AE2C21C9320079EB7F /* DataScannerRepresentable.swift */,
+			);
+			path = ViewController;
+			sourceTree = "<group>";
+		};
 		865B45862C16CA3600B6C52B /* Application */ = {
 			isa = PBXGroup;
 			children = (
 				86CE28DA2C19A718000ACC92 /* ApplicationType.swift */,
 				860C15512C10B01B0062D6E7 /* KalorieApp.swift */,
-				8648D3412C1A3F76009152DA /* PersistentContainer.swift */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -184,28 +232,10 @@
 		865B45882C16D76B00B6C52B /* Data */ = {
 			isa = PBXGroup;
 			children = (
+				86186DAD2C2C683500176E09 /* Entities */,
 				86CE28DE2C19A75A000ACC92 /* Model */,
 			);
 			path = Data;
-			sourceTree = "<group>";
-		};
-		865B458B2C16DA7800B6C52B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				865B45882C16D76B00B6C52B /* Data */,
-				867592682C16DAE8005F143D /* Domain */,
-				867592712C16DAE8005F143D /* Presentation */,
-			);
-			path = Products;
-			sourceTree = "<group>";
-		};
-		8669B5AD2C21C91D0079EB7F /* AddFood */ = {
-			isa = PBXGroup;
-			children = (
-				8674EB0F2C203ED300E8E4E4 /* AddFoodSheetView.swift */,
-				8669B5AE2C21C9320079EB7F /* DataScannerRepresentable.swift */,
-			);
-			path = AddFood;
 			sourceTree = "<group>";
 		};
 		866E53652C10DC7300BD3262 /* Resources */ = {
@@ -214,7 +244,8 @@
 				860C15552C10B01B0062D6E7 /* Assets.xcassets */,
 				8648D33D2C1A2F45009152DA /* DemoData.swift */,
 				860C15572C10B01B0062D6E7 /* Kalorie.entitlements */,
-				86CE28EA2C19F785000ACC92 /* Model.xcdatamodeld */,
+				86E53C7C2C2C5EF90081E20F /* Model.xcdatamodeld */,
+				86EF07E12C2F917D0009B7A1 /* GoogleService-Info.plist */,
 				860C15582C10B01B0062D6E7 /* Preview Content */,
 			);
 			path = Resources;
@@ -223,44 +254,31 @@
 		867592682C16DAE8005F143D /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				86186DB12C2C6F4500176E09 /* Use Case */,
+				86CE28E12C19D6EB000ACC92 /* Utils */,
 			);
 			path = Domain;
 			sourceTree = "<group>";
 		};
-		8675926C2C16DAE8005F143D /* Dashboard */ = {
+		8675926C2C16DAE8005F143D /* View */ = {
 			isa = PBXGroup;
 			children = (
+				8674EB0F2C203ED300E8E4E4 /* AddFoodSheetView.swift */,
 				867592692C16DAE8005F143D /* DashboardView.swift */,
-				8675926A2C16DAE8005F143D /* DashboardViewModel.swift */,
-				8669B5AD2C21C91D0079EB7F /* AddFood */,
-				868FF36B2C1E4B5100128B0A /* MealType */,
-			);
-			path = Dashboard;
-			sourceTree = "<group>";
-		};
-		8675926E2C16DAE8005F143D /* Food item */ = {
-			isa = PBXGroup;
-			children = (
 				8675926D2C16DAE8005F143D /* FoodItemView.swift */,
-			);
-			path = "Food item";
-			sourceTree = "<group>";
-		};
-		867592702C16DAE8005F143D /* Meal Type Item */ = {
-			isa = PBXGroup;
-			children = (
+				8675926B2C16DAE8005F143D /* MealTypeSheetView.swift */,
 				8675926F2C16DAE8005F143D /* MealTypeItemView.swift */,
 			);
-			path = "Meal Type Item";
+			path = View;
 			sourceTree = "<group>";
 		};
 		867592712C16DAE8005F143D /* Presentation */ = {
 			isa = PBXGroup;
 			children = (
-				8675926C2C16DAE8005F143D /* Dashboard */,
-				8675926E2C16DAE8005F143D /* Food item */,
-				867592702C16DAE8005F143D /* Meal Type Item */,
-				86CE28E12C19D6EB000ACC92 /* Utils */,
+				868FF3692C1DF56600128B0A /* CreateMealTypeResult.swift */,
+				86186DB02C2C6DCA00176E09 /* ViewModel */,
+				8675926C2C16DAE8005F143D /* View */,
+				86186DB22C2C6F6000176E09 /* ViewController */,
 			);
 			path = Presentation;
 			sourceTree = "<group>";
@@ -268,28 +286,17 @@
 		867592772C16DB05005F143D /* Modules */ = {
 			isa = PBXGroup;
 			children = (
-				865B458B2C16DA7800B6C52B /* Products */,
+				865B45882C16D76B00B6C52B /* Data */,
+				867592682C16DAE8005F143D /* Domain */,
+				867592712C16DAE8005F143D /* Presentation */,
 			);
 			path = Modules;
-			sourceTree = "<group>";
-		};
-		868FF36B2C1E4B5100128B0A /* MealType */ = {
-			isa = PBXGroup;
-			children = (
-				868FF3692C1DF56600128B0A /* CreateMealTypeResult.swift */,
-				8675926B2C16DAE8005F143D /* MealTypeSheetView.swift */,
-				8648D3332C1A11F0009152DA /* MealTypeSheetViewModel.swift */,
-			);
-			path = MealType;
 			sourceTree = "<group>";
 		};
 		86CE28DE2C19A75A000ACC92 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				86FAD5DB2C1A08A80087F199 /* FoodItem+CoreDataClass.swift */,
-				8648D32E2C1A0F8A009152DA /* FoodItem+CoreDataProperties.swift */,
-				86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */,
-				8648D32C2C1A0F8A009152DA /* MealType+CoreDataProperties.swift */,
+				86186DAE2C2C69B300176E09 /* FoodItemDTO.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -300,6 +307,7 @@
 				86CE28E22C19D71D000ACC92 /* Date+Extension.swift */,
 				8648D33F2C1A323B009152DA /* Int+Extension.swift */,
 				868FF3672C1DC7E100128B0A /* TimeInterval+Extension.swift */,
+				86EF07E52C2F96200009B7A1 /* Binding+Extension.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -329,6 +337,7 @@
 			);
 			name = Kalorie;
 			packageProductDependencies = (
+				86C775E22C2A6E1600FC4493 /* FirebaseFirestore */,
 			);
 			productName = Kalorie;
 			productReference = 860C154E2C10B01B0062D6E7 /* Kalorie.app */;
@@ -370,6 +379,7 @@
 			);
 			name = KalorieUITests;
 			packageProductDependencies = (
+				86186DAB2C2C63B500176E09 /* FirebaseFirestore */,
 			);
 			productName = KalorieUITests;
 			productReference = 860C15692C10B01C0062D6E7 /* KalorieUITests.xctest */;
@@ -410,6 +420,7 @@
 			packageReferences = (
 				866E535A2C10C2F200BD3262 /* XCRemoteSwiftPackageReference "SwiftLint" */,
 				86FFA1D62C146237000D53AA /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+				8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 860C154F2C10B01B0062D6E7 /* Products */;
 			projectDirPath = "";
@@ -429,6 +440,7 @@
 			files = (
 				860C155A2C10B01B0062D6E7 /* Preview Assets.xcassets in Resources */,
 				860C15562C10B01B0062D6E7 /* Assets.xcassets in Resources */,
+				86EF07E22C2F917D0009B7A1 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -476,16 +488,19 @@
 			buildActionMask = 2147483647;
 			files = (
 				8648D3422C1A3F76009152DA /* PersistentContainer.swift in Sources */,
+				86186DAF2C2C69B300176E09 /* FoodItemDTO.swift in Sources */,
 				867592762C16DAE8005F143D /* MealTypeItemView.swift in Sources */,
 				8674EB102C203ED300E8E4E4 /* AddFoodSheetView.swift in Sources */,
 				867592732C16DAE8005F143D /* DashboardViewModel.swift in Sources */,
 				860C15522C10B01B0062D6E7 /* KalorieApp.swift in Sources */,
-				86FAD5DF2C1A08A80087F199 /* FoodItem+CoreDataClass.swift in Sources */,
+				86FAD5DF2C1A08A80087F199 /* FoodIConsumed+CoreDataClass.swift in Sources */,
 				8648D3302C1A0F8A009152DA /* MealType+CoreDataProperties.swift in Sources */,
-				8648D3322C1A0F8A009152DA /* FoodItem+CoreDataProperties.swift in Sources */,
+				8648D3322C1A0F8A009152DA /* FoodConsumed+CoreDataProperties.swift in Sources */,
 				86FAD5E12C1A08A80087F199 /* MealType+CoreDataClass.swift in Sources */,
+				86E53C7E2C2C5EF90081E20F /* Model.xcdatamodeld in Sources */,
 				8669B5AF2C21C9320079EB7F /* DataScannerRepresentable.swift in Sources */,
 				86CE28E32C19D71D000ACC92 /* Date+Extension.swift in Sources */,
+				86EF07E62C2F96200009B7A1 /* Binding+Extension.swift in Sources */,
 				867592752C16DAE8005F143D /* FoodItemView.swift in Sources */,
 				868FF36A2C1DF56600128B0A /* CreateMealTypeResult.swift in Sources */,
 				8648D33E2C1A2F45009152DA /* DemoData.swift in Sources */,
@@ -493,7 +508,7 @@
 				867592722C16DAE8005F143D /* DashboardView.swift in Sources */,
 				86CE28DB2C19A718000ACC92 /* ApplicationType.swift in Sources */,
 				8648D3342C1A11F0009152DA /* MealTypeSheetViewModel.swift in Sources */,
-				86CE28EC2C19F785000ACC92 /* Model.xcdatamodeld in Sources */,
+				8647A1882C2205BE00F2787D /* AddFoodSheetViewModel.swift in Sources */,
 				867592742C16DAE8005F143D /* MealTypeSheetView.swift in Sources */,
 				868FF3682C1DC7E100128B0A /* TimeInterval+Extension.swift in Sources */,
 			);
@@ -863,6 +878,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.28.0;
+			};
+		};
 		866E535A2C10C2F200BD3262 /* XCRemoteSwiftPackageReference "SwiftLint" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/realm/SwiftLint.git";
@@ -882,6 +905,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		86186DAB2C2C63B500176E09 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		86C775E22C2A6E1600FC4493 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
 		86FFA1E22C146A03000D53AA /* SnapshotTesting */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 86FFA1D62C146237000D53AA /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
@@ -890,12 +923,12 @@
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
-		86CE28EA2C19F785000ACC92 /* Model.xcdatamodeld */ = {
+		86E53C7C2C2C5EF90081E20F /* Model.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				86CE28EB2C19F785000ACC92 /* Model.xcdatamodel */,
+				86E53C7D2C2C5EF90081E20F /* Model.xcdatamodel */,
 			);
-			currentVersion = 86CE28EB2C19F785000ACC92 /* Model.xcdatamodel */;
+			currentVersion = 86E53C7D2C2C5EF90081E20F /* Model.xcdatamodel */;
 			name = Model.xcdatamodeld;
 			path = /Users/josefantoni/Documents/Kalorie/Kalorie/Kalorie/Resources/Model.xcdatamodeld;
 			sourceTree = "<group>";

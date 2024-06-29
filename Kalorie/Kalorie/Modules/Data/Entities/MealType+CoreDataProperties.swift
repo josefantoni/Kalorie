@@ -21,23 +21,23 @@ extension MealType {
     @NSManaged public var id: Int16
     @NSManaged public var name: String?
     @NSManaged public var startTime: TimeInterval
-    @NSManaged public var foodItem: NSSet?
+    @NSManaged public var foodConsumed: NSSet?
 }
 
-// MARK: Generated accessors for foodItem
+// MARK: Generated accessors for foodConsumed
 extension MealType {
 
-    @objc(addFoodItemObject:)
-    @NSManaged public func addToFoodItem(_ value: FoodItem)
+    @objc(addfoodConsumedObject:)
+    @NSManaged public func addToFoodConsumed(_ value: FoodConsumed)
 
-    @objc(removeFoodItemObject:)
-    @NSManaged public func removeFromFoodItem(_ value: FoodItem)
+    @objc(removefoodConsumedObject:)
+    @NSManaged public func removeFromFoodConsumed(_ value: FoodConsumed)
 
-    @objc(addFoodItem:)
-    @NSManaged public func addToFoodItem(_ values: NSSet)
+    @objc(addfoodConsumed:)
+    @NSManaged public func addToFoodConsumed(_ values: NSSet)
 
-    @objc(removeFoodItem:)
-    @NSManaged public func removeFromFoodItem(_ values: NSSet)
+    @objc(removefoodConsumed:)
+    @NSManaged public func removeFromFoodConsumed(_ values: NSSet)
 }
 
 extension MealType : Identifiable {

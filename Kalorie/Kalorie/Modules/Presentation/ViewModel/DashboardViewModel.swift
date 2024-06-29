@@ -19,7 +19,7 @@ struct DashboardViewState {
     }
     
     var selectedDay = Date.now
-    var foodItems: [FoodItem] = []
+    var foodsConsumed: [FoodConsumed] = []
     var mealTypes: [MealType] = []
     var container: NSPersistentContainer
     var showMealTypeSheet = false
@@ -50,7 +50,7 @@ final class DashboardViewModel: ObservableObject {
             UserDefaults.standard.set(true, forKey: "FirstOpen")
         } else {
             self.state.mealTypes = getAllMealTypes()
-            self.state.foodItems = getAllFood(for: state.selectedDay)
+            self.state.foodsConsumed = getAllFood(for: state.selectedDay)
         }
     }
             
@@ -80,11 +80,6 @@ final class DashboardViewModel: ObservableObject {
             id += 1
             state.mealTypes.append(meal)
         }
-        
-        // TODO: Temp developing solution
-        let foodItem = DemoData.demoFoodItem(on: state.container.viewContext, date: Date.now)
-        state.foodItems.append(foodItem)
-        PersistentContainer.save(container: state.container)
     }
     
     func getTime(from date: Date) -> (hour: String, minute: String) {
@@ -104,9 +99,9 @@ final class DashboardViewModel: ObservableObject {
         return result
     }
     
-    func getAllFood(for date: Date) -> [FoodItem] {   
-        let request = NSFetchRequest<FoodItem>(entityName: "FoodItem")
-        var result: [FoodItem] = []
+    func getAllFood(for date: Date) -> [FoodConsumed] {
+        let request = NSFetchRequest<FoodConsumed>(entityName: "FoodConsumed")
+        var result: [FoodConsumed] = []
         do {
             result = try state.container.viewContext.fetch(request)
         } catch let error {

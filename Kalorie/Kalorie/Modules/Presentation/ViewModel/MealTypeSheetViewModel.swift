@@ -86,4 +86,27 @@ final class MealTypeSheetViewModel: ObservableObject {
         }
         return (possibleStart, possibleStart.withAddedMinutes(minutes: 30))
     }
+    
+    func createMealType() -> MealType? {
+        do {
+            let newMeal = try createMealType(
+                mealName: state.newMealName,
+                startTime: state.newMealStart,
+                endTime: state.newMealEnd
+            )
+            state.mealTypes.append(newMeal)
+            state.isAddButtonHidden.toggle()
+            return newMeal
+        } catch CreateMealTypeResult.emptyName {
+            state.alertTitle = "Zadejte jméno jídla"
+        } catch CreateMealTypeResult.invalidName {
+            state.alertTitle = "Jméno jídla musí být unikátní"
+        } catch CreateMealTypeResult.invalidTime {
+            state.alertTitle = "Zadaný čas, se překrývá s jinou kategorií jídla"
+        } catch {
+            state.alertTitle = "Nastala nečekaná chyba"
+        }
+        state.showingAlert.toggle()
+        return nil
+    }
 }
