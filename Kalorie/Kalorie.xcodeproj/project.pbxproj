@@ -36,6 +36,7 @@
 		86CE28E32C19D71D000ACC92 /* Date+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CE28E22C19D71D000ACC92 /* Date+Extension.swift */; };
 		86E53C7E2C2C5EF90081E20F /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 86E53C7C2C2C5EF90081E20F /* Model.xcdatamodeld */; };
 		86EF07E22C2F917D0009B7A1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 86EF07E12C2F917D0009B7A1 /* GoogleService-Info.plist */; };
+		86EF07E62C2F96200009B7A1 /* Binding+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86EF07E52C2F96200009B7A1 /* Binding+Extension.swift */; };
 		86FAD5DF2C1A08A80087F199 /* FoodIConsumed+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FAD5DB2C1A08A80087F199 /* FoodIConsumed+CoreDataClass.swift */; };
 		86FAD5E12C1A08A80087F199 /* MealType+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */; };
 		86FFA1E32C146A03000D53AA /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 86FFA1E22C146A03000D53AA /* SnapshotTesting */; };
@@ -91,6 +92,7 @@
 		86CE28E22C19D71D000ACC92 /* Date+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extension.swift"; sourceTree = "<group>"; };
 		86E53C7D2C2C5EF90081E20F /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		86EF07E12C2F917D0009B7A1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		86EF07E52C2F96200009B7A1 /* Binding+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Binding+Extension.swift"; sourceTree = "<group>"; };
 		86FAD5DB2C1A08A80087F199 /* FoodIConsumed+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FoodIConsumed+CoreDataClass.swift"; sourceTree = "<group>"; };
 		86FAD5DD2C1A08A80087F199 /* MealType+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MealType+CoreDataClass.swift"; sourceTree = "<group>"; };
 		86FFA1E42C146C59000D53AA /* MealTypeSheetViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTypeSheetViewTests.swift; sourceTree = "<group>"; };
@@ -305,6 +307,7 @@
 				86CE28E22C19D71D000ACC92 /* Date+Extension.swift */,
 				8648D33F2C1A323B009152DA /* Int+Extension.swift */,
 				868FF3672C1DC7E100128B0A /* TimeInterval+Extension.swift */,
+				86EF07E52C2F96200009B7A1 /* Binding+Extension.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -497,6 +500,7 @@
 				86E53C7E2C2C5EF90081E20F /* Model.xcdatamodeld in Sources */,
 				8669B5AF2C21C9320079EB7F /* DataScannerRepresentable.swift in Sources */,
 				86CE28E32C19D71D000ACC92 /* Date+Extension.swift in Sources */,
+				86EF07E62C2F96200009B7A1 /* Binding+Extension.swift in Sources */,
 				867592752C16DAE8005F143D /* FoodItemView.swift in Sources */,
 				868FF36A2C1DF56600128B0A /* CreateMealTypeResult.swift in Sources */,
 				8648D33E2C1A2F45009152DA /* DemoData.swift in Sources */,

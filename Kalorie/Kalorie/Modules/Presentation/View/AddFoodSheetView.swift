@@ -183,7 +183,7 @@ struct AddFoodSheetView: View {
     @ViewBuilder @MainActor var startDataScanner: some View {
         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
             ZStack(alignment: .bottom) {
-//                DataScannerRepresentable(shouldStartScanning: $isScannerVisible, scannedCode: $scannedCode)
+                DataScannerRepresentable(shouldStartScanning: $viewModel.state.isScannerVisible, scannedCode: $viewModel.state.scannedCode)
             }
         } else if !DataScannerViewController.isSupported {
             Text("It looks like this device doesn't support the DataScannerViewController")
@@ -198,20 +198,4 @@ struct AddFoodSheetView: View {
 
 #Preview {
     AddFoodSheetView(withBarcodeScan: false)
-}
-
-
-public extension Binding {
-    /// Create a non-optional version of an optional `Binding` with a default value
-    /// - Parameters:
-    ///   - lhs: The original `Binding<Value?>` (binding to an optional value)
-    ///   - rhs: The default value if the original `wrappedValue` is `nil`
-    /// - Returns: The `Binding<Value>` (where `Value` is non-optional)
-    static func ?? (lhs: Binding<Value?>, rhs: Value) -> Binding<Value> {
-        Binding {
-            lhs.wrappedValue ?? rhs
-        } set: {
-            lhs.wrappedValue = $0
-        }
-    }
 }
