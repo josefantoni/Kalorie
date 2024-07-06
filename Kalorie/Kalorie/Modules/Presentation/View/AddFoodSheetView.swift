@@ -14,8 +14,8 @@ struct AddFoodSheetView: View {
     
     // MARK: - Properties
     
-    @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: AddFoodSheetViewModel
+    @Environment(\.dismiss) var dismiss
     
     
     // MARK: - Init
@@ -32,163 +32,173 @@ struct AddFoodSheetView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                Spacer()
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.largeTitle)
-                        .fontWeight(.light)
+        NavigationView {
+            VStack(spacing: 0) {
+                ZStack {
+                    if !viewModel.state.isAddNewItemVisible {
+                        addFoodItem
+                    } else {
+                        addCustomFoodItem
+                    }
+                    startDataScannerIfPossible
                 }
-                .padding([.top, .trailing])
+                .rotation3DEffect(
+                    .degrees(viewModel.state.isAddNewItemVisible ? 360 : 0),
+                    axis: (x: 0, y: 1, z: 0)
+                )
+                .animation(.default, value: viewModel.state.isAddNewItemVisible)
             }
-            
-            ZStack {
-                if !viewModel.state.isAddNewItemVisible {
-                    VStack {
-                        HStack {
-                            Button {
-                                viewModel.state.isAddNewItemVisible.toggle()
-                            } label: {
-                                Image(systemName: "plus.circle")
-                                    .font(.system(size: 30))
-                                    .frame(maxWidth: .infinity, minHeight: 50)
-                            }
-                            .background(.green)
-                            .clipShape(Capsule())
-
-                            Button {
-                                viewModel.state.isAddNewItemVisible.toggle()
-                                viewModel.state.isScannerVisible.toggle()
-                            } label: {
-                                Image(systemName: "barcode.viewfinder")
-                                    .font(.system(size: 30))
-                                    .frame(maxWidth: .infinity, minHeight: 50)
-                            }
-                            .background(.green)
-                            .clipShape(Capsule())
-
-                        }
-                        .padding(.horizontal, 15)
-                        
-                        List {
-                            ForEach($viewModel.state.foodsOnServer, id: \.id) { food in
-                                Text(food.name.wrappedValue)
-                            }
-                        }
+            .safeAreaInset(edge: VerticalEdge.bottom) {
+                HStack {
+                    Spacer()
+                    Button {
+                        viewModel.state.isAddNewItemVisible.toggle()
+                    } label: {
+                        BaseImage(
+                            imageName: .carrotFill,
+                            imageSize: .mediumPlus
+                        )
+                        .padding(.all, 5)
                     }
-                } else {
-                    VStack {
-                        HStack {
-                            TextField("Kód potraviny", text: $viewModel.state.scannedCode ?? "")
-                                .keyboardType(.numberPad)
-                                .frame(maxWidth: .infinity)
-                            
-                            Button {
-
-                            } label: {
-                                Image(systemName: "barcode.viewfinder")
-                                    .foregroundColor(.green)
-                            }
-
-                        }
-
-                        TextField("Název potraviny", text: $viewModel.state.name ?? "")
-                        VStack {
-                            TextField("hmotnost", value: $viewModel.state.weightOfProduct, format: .number)
-                            TextField("kalorie na 100 gramů", value: $viewModel.state.caloriesPerHundredGrams, format: .number)
-
-                            TextField(
-                                "$caloriesPerHundredGrams",
-                                value: $viewModel.state.caloriesPerHundredGrams,
-                                format: .number
-                            )
-                            TextField(
-                                "$fat",
-                                value: $viewModel.state.fat,
-                                format: .number
-                            )
-                            TextField(
-                                "$fatUnsaturatedFattyAcids",
-                                value: $viewModel.state.fatUnsaturatedFattyAcids,
-                                format: .number
-                            )
-                            TextField(
-                                "$carbohydrate",
-                                value: $viewModel.state.carbohydrate,
-                                format: .number
-                            )
-                            TextField(
-                                "$carbohydratePureSugar",
-                                value: $viewModel.state.carbohydratePureSugar,
-                                format: .number
-                            )
-                            TextField(
-                                "$protein",
-                                value: $viewModel.state.protein,
-                                format: .number
-                            )
-                            TextField(
-                                "$salt",
-                                value: $viewModel.state.salt,
-                                format: .number
-                            )
-                        }
-                        .padding()
-                        .keyboardType(.numberPad)
-                        
-                        Spacer()
-                        Button(action: {
-                            do {
-                                try viewModel.createNewFoodRecord(
-                                    id: viewModel.state.scannedCode ?? "",
-                                    name: viewModel.state.name ?? "",
-                                    weightOfProduct: viewModel.state.weightOfProduct ?? 0,
-                                    caloriesPerHundredGrams: viewModel.state.caloriesPerHundredGrams ?? 0,
-                                    fat: viewModel.state.fat ?? 0,
-                                    fatUnsaturatedFattyAcids: viewModel.state.fatUnsaturatedFattyAcids ?? 0,
-                                    carbohydrate: viewModel.state.carbohydrate ?? 0,
-                                    carbohydratePureSugar: viewModel.state.carbohydratePureSugar ?? 0,
-                                    protein: viewModel.state.protein ?? 0,
-                                    salt: viewModel.state.salt ?? 0
-                                )
-                                viewModel.state.isAddNewItemVisible.toggle()
-                            } catch let error {
-                                viewModel.createNewFoodRecordErrorHandler(error)
-                                viewModel.state.isAddNewItemVisible.toggle()
-                            }
-                        }, label: {
-                            Text("Vytvořit")
-                        }).padding()
-                    }
-                }
-                if viewModel.state.isScannerVisible {
-                    startDataScanner
+                    .clipShape(Circle())
+                    .buttonStyle(.borderedProminent)
+                    .padding([.trailing, .bottom], 15)
                 }
             }
-        }
-        .alert(isPresented: $viewModel.state.isAlertVisible) {
-            Alert(
-                title: Text(viewModel.state.alertTitle),
-                dismissButton: Alert.Button.default(Text("Dobrá"))
-            )
-        }
-        .onAppear {
-            viewModel.refreshAvailableFoodItems()
+            .alert(isPresented: $viewModel.state.isAlertVisible) {
+                Alert(
+                    title: Text(viewModel.state.alertTitle),
+                    dismissButton: Alert.Button.default(Text("Dobrá"))
+                )
+            }
+            .onAppear {
+                viewModel.refreshAvailableFoodItems()
+            }
+            .toolbar {
+                dismissButton
+            }
         }
     }
     
-    @ViewBuilder @MainActor var startDataScanner: some View {
-        if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
+    @ViewBuilder @MainActor var startDataScannerIfPossible: some View {
+        if viewModel.state.isScannerVisible && DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
             ZStack(alignment: .bottom) {
-                DataScannerRepresentable(shouldStartScanning: $viewModel.state.isScannerVisible, scannedCode: $viewModel.state.scannedCode)
+//                DataScannerRepresentable(shouldStartScanning: $viewModel.state.isScannerVisible, scannedCode: $viewModel.state.scannedCode)
             }
-        } else if !DataScannerViewController.isSupported {
-            Text("It looks like this device doesn't support the DataScannerViewController")
-        } else {
-            Text("It appears your camera may not be available")
+        }
+    }
+    
+    var dismissButton: ToolbarItem<(), some View> {
+        ToolbarItem(placement: .topBarTrailing) {
+            BaseButton(
+                style: .plain,
+                imageName: .close,
+                imageSize: .basicPlus
+            ) {
+                dismiss()
+            }
+            .padding(.top, 10)
+        }
+    }
+    
+    var addFoodItem: some View {
+        List {
+            Section {
+                HStack {
+                    TextField("Vyhledávané jídlo", text: $viewModel.state.searchedFood)
+                    BaseButton(
+                        style: .plain,
+                        imageName: .barCode,
+                        imageSize: .medium
+                    ) {
+                        if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
+                            viewModel.state.isAddNewItemVisible.toggle()
+                            viewModel.state.isScannerVisible.toggle()
+                        } else {
+                            viewModel.state.alertTitle = "Povolte v nastavení fotoaparát, nemůžeme bez něj skenovat čárový kód. 🙁"
+                            viewModel.state.isAlertVisible.toggle()
+                        }
+                    }
+                }
+            }
+            Section(header: Text("Vyhledaná jídla")) {
+                ForEach(viewModel.state.foodsFiltered, id: \.id) {
+                    Text($0.name)
+                }
+            }
+        }
+    }
+    
+    var addCustomFoodItem: some View {
+        VStack {
+            List {
+                BaseStringTextField(
+                    placeholder: "321321...12345",
+                    title: "Čárový kód potraviny",
+                    text: $viewModel.state.scannedCode
+                )
+                BaseStringTextField(
+                    placeholder: "Tvaroh nízkotučný",
+                    title: "Název potraviny",
+                    text: $viewModel.state.name
+                )
+                BaseDoubleTextField(
+                    title: "Hmotnost",
+                    weight: $viewModel.state.weightOfProduct
+                )
+                BaseDoubleTextField(
+                    title: "Kalorie na 100 gramů",
+                    weight: $viewModel.state.caloriesPerHundredGrams
+                )
+                BaseDoubleTextField(
+                    title: "Bílkoviny",
+                    weight: $viewModel.state.protein
+                )
+                BaseDoubleTextField(
+                    title: "Sacharidy",
+                    weight: $viewModel.state.carbohydrate
+                )
+                BaseDoubleTextField(
+                    title: "z toho cukry",
+                    weight: $viewModel.state.carbohydratePureSugar
+                )
+                BaseDoubleTextField(
+                    title: "Tuky",
+                    weight: $viewModel.state.fat
+                )
+                BaseDoubleTextField(
+                    title: "z toho nenasycené",
+                    weight: $viewModel.state.fatUnsaturatedFattyAcids
+                )
+                BaseDoubleTextField(
+                    title: "Sůl",
+                    weight: $viewModel.state.salt
+                )
+                Button {
+                    do {
+                        try viewModel.createNewFoodRecord(
+                            id: viewModel.state.scannedCode,
+                            name: viewModel.state.name,
+                            weightOfProduct: viewModel.state.weightOfProduct,
+                            caloriesPerHundredGrams: viewModel.state.caloriesPerHundredGrams,
+                            fat: viewModel.state.fat,
+                            fatUnsaturatedFattyAcids: viewModel.state.fatUnsaturatedFattyAcids,
+                            carbohydrate: viewModel.state.carbohydrate,
+                            carbohydratePureSugar: viewModel.state.carbohydratePureSugar,
+                            protein: viewModel.state.protein,
+                            salt: viewModel.state.salt
+                        )
+                    } catch let error {
+                        viewModel.createNewFoodRecordErrorHandler(error)
+                    }
+                } label: {
+                    Text("Přidat")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+                .background(.blue)
+                .padding(.top, 0)
+            }
         }
     }
 }

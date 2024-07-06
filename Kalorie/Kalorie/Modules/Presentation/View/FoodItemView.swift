@@ -33,13 +33,11 @@ struct FoodConsumedView: View {
                 Spacer()
                 VStack {
                     Text(foodConsumed.caloriesFormatted)
-//                    Text(foodConsumed.)
                 }
             }
             .padding([.all])
             .frame(height: 80)
         }
-        .background(.green)
     }
 }
 

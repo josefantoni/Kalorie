@@ -14,9 +14,9 @@ struct MealTypeSheetView: View {
     // MARK: - Properties
     
     @EnvironmentObject var dashboardViewModel: DashboardViewModel
-    @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: MealTypeSheetViewModel
     @FocusState private var focusedField: Field? // resigning
+    @Environment(\.dismiss) var dismiss
 
     private enum Field: Int, CaseIterable {
         case newMealName
@@ -35,22 +35,12 @@ struct MealTypeSheetView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                HStack(spacing: 0) {
-                    Spacer()
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle")
-                            .font(.largeTitle)
-                    }
-                    .padding([.top, .trailing])
-                }
                 List {
                     Section(
                         header: Text("Rozvržení jídel"),
                         footer: footerView
-                                .padding([.leading, .trailing], -20)
-                                .padding([.top], 20)
+                            .padding([.leading, .trailing], -20)
+                            .padding([.top], 20)
                     ) {
                         ForEach($viewModel.state.mealTypes, id: \.id, editActions: .move) { mealType in
                             MealTypeItemView(mealType.wrappedValue)
@@ -69,22 +59,26 @@ struct MealTypeSheetView: View {
                 maxHeight: .infinity,
                 alignment: .topTrailing
             )
+            .toolbar {
+                dismissButton
+            }
         }
     }
         
     @ViewBuilder var footerView: some View {
         if viewModel.state.isAddButtonHidden {
-            Button {
+            BaseButton(
+                style: .plain,
+                imageName: .plusCircle,
+                imageSize: .extraLarge
+            ) {
                 let time = viewModel.getPossibleTimeForNewMealCreation()
-                showAddButton(possibleStart: time.possibleStart, possibleEnd: time.possibleEnd)
-            } label: {
-                Spacer()
-                Image(systemName: "plus.circle.fill")
-                    .foregroundColor(.green)
-                    .font(.system(size: 60))
-                    .padding(.top, 15)
-                Spacer()
+                showAddButton(
+                    possibleStart: time.possibleStart,
+                    possibleEnd: time.possibleEnd
+                )
             }
+            .frame(maxWidth: .infinity)
         } else {
             VStack {
                 VStack {
@@ -137,15 +131,32 @@ struct MealTypeSheetView: View {
                     )
                 }
                 .foregroundColor(.white)
-                .background(.green)
+                .background(.blue)
                 .frame(maxWidth: .infinity)
                 .padding(.top, -10)
                 .font(.system(size: 20, weight: .bold))
             }
             .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(.blue, lineWidth: 1)
+            )
         }
     }
     
+    var dismissButton: ToolbarItem<(), some View> {
+        ToolbarItem(placement: .topBarTrailing) {
+            BaseButton(
+                style: .plain,
+                imageName: .close,
+                imageSize: .basicPlus
+            ) {
+                dismiss()
+            }
+            .padding(.top, 10)
+        }
+    }
+
     
     // MARK: - Functions
     
@@ -160,7 +171,6 @@ struct MealTypeSheetView: View {
 // MARK: - Preview
 
 #Preview {
-    
     let container = PersistentContainer.container
     let state = MealTypeSheetViewState(
         mealTypes: DemoData.demoMeals(on: container.viewContext), 
