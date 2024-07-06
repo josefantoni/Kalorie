@@ -78,6 +78,9 @@ struct AddFoodSheetView: View {
             .toolbar {
                 dismissButton
             }
+            .background(
+                Color(.secondarySystemBackground)
+            )
         }
     }
     
@@ -198,6 +201,7 @@ struct AddFoodSheetView: View {
                         protein: viewModel.state.protein,
                         salt: viewModel.state.salt
                     )
+                    dismiss()
                 } catch let error {
                     viewModel.createNewFoodRecordErrorHandler(error)
                 }
