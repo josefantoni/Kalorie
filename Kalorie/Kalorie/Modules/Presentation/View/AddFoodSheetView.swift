@@ -83,7 +83,7 @@ struct AddFoodSheetView: View {
     @ViewBuilder @MainActor var startDataScannerIfPossible: some View {
         if viewModel.state.isScannerVisible && DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
             ZStack(alignment: .bottom) {
-//                DataScannerRepresentable(shouldStartScanning: $viewModel.state.isScannerVisible, scannedCode: $viewModel.state.scannedCode)
+                DataScannerRepresentable(shouldStartScanning: $viewModel.state.isScannerVisible, scannedCode: $viewModel.state.scannedCode)
             }
         }
     }
