@@ -23,8 +23,16 @@ enum FoodOnServerErrorType: Error {
 
 struct AddFoodSheetViewState {
     
-    // tohle asi bude jinak
     var foodsOnServer: [FoodItemDTO] = []
+    
+    // Seach for food
+    var searchedFood = ""
+    var foodsFiltered: [FoodItemDTO] {
+        if searchedFood.isEmpty {
+            return foodsOnServer
+        }
+        return foodsOnServer.filter { $0.name.lowercased().contains(searchedFood.lowercased()) }
+    }
     
     // UI
     var isAlertVisible = false
@@ -33,16 +41,16 @@ struct AddFoodSheetViewState {
     var alertTitle = ""
 
     // Form values
-    var scannedCode: String?
-    var name: String?
-    var weightOfProduct: Double?
-    var caloriesPerHundredGrams: Double?
-    var fat: Double?
-    var fatUnsaturatedFattyAcids: Double?
-    var carbohydrate: Double?
-    var carbohydratePureSugar: Double?
-    var protein: Double?
-    var salt: Double?
+    var scannedCode: String = ""
+    var name: String = ""
+    var weightOfProduct: Double = 0
+    var caloriesPerHundredGrams: Double = 0
+    var fat: Double = 0
+    var fatUnsaturatedFattyAcids: Double = 0
+    var carbohydrate: Double = 0
+    var carbohydratePureSugar: Double = 0
+    var protein: Double = 0
+    var salt: Double = 0
 }
 
 
@@ -74,7 +82,7 @@ class AddFoodSheetViewModel: ObservableObject {
         protein: Double,
         salt: Double
     ) throws {
-        if id.isEmpty {
+        if id.isEmpty || !containOnlyNumners(id) {
             throw FoodOnServerErrorType.invalidCode
         }
         if name.isEmpty {
@@ -181,5 +189,9 @@ class AddFoodSheetViewModel: ObservableObject {
             state.alertTitle = "Vyplňte všechny nezbytné hodnoty"
         }
         state.isAlertVisible.toggle()
+    }
+    
+    func containOnlyNumners(_ string: String) -> Bool {
+        !(string.isEmpty) && string.allSatisfy { $0.isNumber }
     }
 }

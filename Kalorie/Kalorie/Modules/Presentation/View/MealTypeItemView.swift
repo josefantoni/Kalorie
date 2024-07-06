@@ -44,7 +44,6 @@ struct MealTypeItemView: View {
 // MARK: - Preview
 
 #Preview {
-    
     let container = PersistentContainer.container
     guard let mealType = DemoData.demoMeals(on: container.viewContext).first else {
         fatalError("empty demo data")

@@ -28,11 +28,11 @@ struct DashboardView: View {
     var body: some View {
         HStack {
             Spacer()
-            Button(action: {
+            Button {
                 viewModel.state.showMealTypeSheet.toggle()
-            }, label: {
+            } label: {
                 Text("rozvržení jídel")
-            })
+            }
             .sheet(isPresented: $viewModel.state.showMealTypeSheet) {
                 let state = MealTypeSheetViewState(
                     mealTypes: self.viewModel.state.mealTypes,
@@ -51,39 +51,45 @@ struct DashboardView: View {
                 FoodConsumedView(food.wrappedValue)
             }
             header: {
-                Text("Ostatní nezařazená jídla")
-                    .frame(
-                        maxWidth: .infinity,
-                        alignment: .leading
-                    )
-                    .font(.subheadline)
-                    .padding(.leading, -5)
-
-                Button {
-                    viewModel.state.showAddFoodSheet = (
-                        isVisible: true,
-                        screenType: .barCode
-                    )
-                } label: {
-                    Image(systemName: "barcode.viewfinder")
-                        .foregroundColor(.green)
+                VStack {
+                    Text("Ostatní nezařazená jídla")
+                        .frame(
+                            maxWidth: .infinity,
+                            alignment: .leading
+                        )
+                        .font(.subheadline)
+                        .padding(.leading, -5)
+                    
+//                    HStack {
+//                        Button {
+//                            viewModel.state.showAddFoodSheet = (
+//                                isVisible: true,
+//                                screenType: .barCode
+//                            )
+//                        } label: {
+//                            Image(systemName: "barcode.viewfinder")
+//                                .font(.system(size: 30))
+//                                .frame(maxWidth: .infinity)
+//                        }
+//                        .clipShape(Capsule())
+//                        .buttonStyle(.borderedProminent)
+//
+//                        Button {
+//                            viewModel.state.showAddFoodSheet = (
+//                                isVisible: true,
+//                                screenType: .base
+//                            )
+//                        } label: {
+//                            Image(systemName: "plus.circle")
+//                                .font(.system(size: 30))
+//                                .frame(maxWidth: .infinity)
+//                        }
+//                        .clipShape(Capsule())
+//                        .buttonStyle(.borderedProminent)
+//                    }
                 }
-                .font(.title)
-                
-                Button {
-                    viewModel.state.showAddFoodSheet = (
-                        isVisible: true,
-                        screenType: .base
-                    )
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.green)
-                }
-                .font(.title)
-                .padding(.trailing, -25)
             }
         }
-        .listStyle(.sidebar)
         .overlay {
             if viewModel.state.foodsConsumed.isEmpty {
                 ContentUnavailableView(label: {
@@ -107,6 +113,27 @@ struct DashboardView: View {
                 AddFoodSheetView(withBarcodeScan: true)
             }
         }
+        
+        Button {
+            // override in 'highPriorityGesture'
+        } label: {
+            BaseImage(
+                imageName: .plusCircle,
+                imageSize: .extraLarge
+            )
+        }
+        .simultaneousGesture(
+                LongPressGesture()
+                    .onEnded { _ in
+                        print("Loooong")
+                    }
+            )
+            .highPriorityGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        print("Tap")
+                    }
+            )
     }
 }
 
