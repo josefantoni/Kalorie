@@ -22,7 +22,7 @@ struct BaseButton: View {
 
     let style: BaseButtonStyle
     let imageName: BaseImageName
-    let imageSize: BaseFontWeight
+    let imageSize: CGFloat
     let imageWeight: Font.Weight
     let action: () -> Void
     
@@ -32,7 +32,7 @@ struct BaseButton: View {
     init(
         style: BaseButtonStyle,
         imageName: BaseImageName,
-        imageSize: BaseFontWeight = .basic,
+        imageSize: CGFloat = .basic,
         imageWeight: Font.Weight = .thin,
         action: @escaping () -> Void
     ) {

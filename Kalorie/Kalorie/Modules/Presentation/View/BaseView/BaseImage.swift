@@ -14,7 +14,7 @@ struct BaseImage: View {
     // MARK: - Properties
 
     let imageName: BaseImageName
-    let imageSize: BaseFontWeight
+    let imageSize: CGFloat
     let imageWeight: Font.Weight
     
     
@@ -22,7 +22,7 @@ struct BaseImage: View {
 
     init(
         imageName: BaseImageName,
-        imageSize: BaseFontWeight = .basic,
+        imageSize: CGFloat = .basic,
         imageWeight: Font.Weight = .thin
     ) {
         self.imageName = imageName
@@ -35,7 +35,7 @@ struct BaseImage: View {
 
     var body: some View {
         Image(systemName: imageName.rawValue)
-            .font(.system(size: imageSize.rawValue))
+            .font(.system(size: imageSize))
             .fontWeight(imageWeight)
     }
 }

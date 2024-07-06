@@ -18,7 +18,7 @@
 		8642A7882C3030B000624A02 /* BaseImageName.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8642A7872C3030B000624A02 /* BaseImageName.swift */; };
 		8642A78B2C3030E200624A02 /* BaseButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8642A7892C3030E200624A02 /* BaseButton.swift */; };
 		8642A78C2C3030E200624A02 /* BaseImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8642A78A2C3030E200624A02 /* BaseImage.swift */; };
-		8642A78D2C30311700624A02 /* BaseFontWeight.swift in Sources */ = {isa = PBXBuildFile; fileRef = 867C2F6D2C30300C001241B6 /* BaseFontWeight.swift */; };
+		8642A78D2C30311700624A02 /* CGFloat+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 867C2F6D2C30300C001241B6 /* CGFloat+Extension.swift */; };
 		8642A7922C303F9D00624A02 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8642A7912C303F9D00624A02 /* View+Extension.swift */; };
 		8647A1882C2205BE00F2787D /* AddFoodSheetViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8647A1872C2205BE00F2787D /* AddFoodSheetViewModel.swift */; };
 		8648D3302C1A0F8A009152DA /* MealType+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8648D32C2C1A0F8A009152DA /* MealType+CoreDataProperties.swift */; };
@@ -97,7 +97,7 @@
 		8675926B2C16DAE8005F143D /* MealTypeSheetView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MealTypeSheetView.swift; sourceTree = "<group>"; };
 		8675926D2C16DAE8005F143D /* FoodItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoodItemView.swift; sourceTree = "<group>"; };
 		8675926F2C16DAE8005F143D /* MealTypeItemView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MealTypeItemView.swift; sourceTree = "<group>"; };
-		867C2F6D2C30300C001241B6 /* BaseFontWeight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseFontWeight.swift; sourceTree = "<group>"; };
+		867C2F6D2C30300C001241B6 /* CGFloat+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGFloat+Extension.swift"; sourceTree = "<group>"; };
 		8684E5C22C375A8D007B2B91 /* BaseDoubleTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BaseDoubleTextField.swift; path = ../../../../../../../../BaseDoubleTextField.swift; sourceTree = "<group>"; };
 		8684E5C42C375AB9007B2B91 /* BaseStringTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BaseStringTextField.swift; path = ../../../../../../../../BaseStringTextField.swift; sourceTree = "<group>"; };
 		868FF3672C1DC7E100128B0A /* TimeInterval+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TimeInterval+Extension.swift"; sourceTree = "<group>"; };
@@ -333,7 +333,6 @@
 		867C2F6B2C303006001241B6 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				867C2F6D2C30300C001241B6 /* BaseFontWeight.swift */,
 				8642A7872C3030B000624A02 /* BaseImageName.swift */,
 			);
 			path = Helpers;
@@ -350,6 +349,7 @@
 		86CE28E12C19D6EB000ACC92 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				867C2F6D2C30300C001241B6 /* CGFloat+Extension.swift */,
 				86CE28E22C19D71D000ACC92 /* Date+Extension.swift */,
 				8648D33F2C1A323B009152DA /* Int+Extension.swift */,
 				868FF3672C1DC7E100128B0A /* TimeInterval+Extension.swift */,
@@ -542,7 +542,7 @@
 				8684E5C52C375AB9007B2B91 /* BaseStringTextField.swift in Sources */,
 				86FAD5DF2C1A08A80087F199 /* FoodIConsumed+CoreDataClass.swift in Sources */,
 				8648D3302C1A0F8A009152DA /* MealType+CoreDataProperties.swift in Sources */,
-				8642A78D2C30311700624A02 /* BaseFontWeight.swift in Sources */,
+				8642A78D2C30311700624A02 /* CGFloat+Extension.swift in Sources */,
 				8648D3322C1A0F8A009152DA /* FoodConsumed+CoreDataProperties.swift in Sources */,
 				86FAD5E12C1A08A80087F199 /* MealType+CoreDataClass.swift in Sources */,
 				86E53C7E2C2C5EF90081E20F /* Model.xcdatamodeld in Sources */,

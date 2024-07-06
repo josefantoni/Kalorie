@@ -209,6 +209,7 @@ struct AddFoodSheetView: View {
                 Text("Přidat")
                     .frame(maxWidth: .infinity)
                     .frame(height: 35)
+                    .font(.system(size: .basic, weight: .bold))
             }
             .padding([.leading, .trailing], -20)
             .buttonStyle(.borderedProminent)
