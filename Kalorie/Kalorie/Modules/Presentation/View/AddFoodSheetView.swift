@@ -39,11 +39,12 @@ struct AddFoodSheetView: View {
                         addFoodItem
                     } else {
                         addCustomFoodItem
+                            .rotation3DEffect(Angle(degrees: 180), axis: (x: 0, y: 1.0, z: 0))
                     }
                     startDataScannerIfPossible
                 }
                 .rotation3DEffect(
-                    .degrees(viewModel.state.isAddNewItemVisible ? 360 : 0),
+                    .degrees(viewModel.state.isAddNewItemVisible ? 180 : 0),
                     axis: (x: 0, y: 1, z: 0)
                 )
                 .animation(.default, value: viewModel.state.isAddNewItemVisible)
@@ -77,13 +78,16 @@ struct AddFoodSheetView: View {
             .toolbar {
                 dismissButton
             }
+            .background(
+                Color(.secondarySystemBackground)
+            )
         }
     }
     
     @ViewBuilder @MainActor var startDataScannerIfPossible: some View {
         if viewModel.state.isScannerVisible && DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
             ZStack(alignment: .bottom) {
-//                DataScannerRepresentable(shouldStartScanning: $viewModel.state.isScannerVisible, scannedCode: $viewModel.state.scannedCode)
+                DataScannerRepresentable(shouldStartScanning: $viewModel.state.isScannerVisible, scannedCode: $viewModel.state.scannedCode)
             }
         }
     }
@@ -130,8 +134,11 @@ struct AddFoodSheetView: View {
     }
     
     var addCustomFoodItem: some View {
-        VStack {
-            List {
+        List {
+            Section(
+                header: Text("Rozvržení jídel"),
+                footer: footerView
+            ) {
                 BaseStringTextField(
                     placeholder: "321321...12345",
                     title: "Čárový kód potraviny",
@@ -174,32 +181,40 @@ struct AddFoodSheetView: View {
                     title: "Sůl",
                     weight: $viewModel.state.salt
                 )
-                Button {
-                    do {
-                        try viewModel.createNewFoodRecord(
-                            id: viewModel.state.scannedCode,
-                            name: viewModel.state.name,
-                            weightOfProduct: viewModel.state.weightOfProduct,
-                            caloriesPerHundredGrams: viewModel.state.caloriesPerHundredGrams,
-                            fat: viewModel.state.fat,
-                            fatUnsaturatedFattyAcids: viewModel.state.fatUnsaturatedFattyAcids,
-                            carbohydrate: viewModel.state.carbohydrate,
-                            carbohydratePureSugar: viewModel.state.carbohydratePureSugar,
-                            protein: viewModel.state.protein,
-                            salt: viewModel.state.salt
-                        )
-                    } catch let error {
-                        viewModel.createNewFoodRecordErrorHandler(error)
-                    }
-                } label: {
-                    Text("Přidat")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                }
-                .background(.blue)
-                .padding(.top, 0)
             }
         }
+    }
+    
+    @ViewBuilder var footerView: some View {
+        HStack {
+            Button {
+                do {
+                    try viewModel.createNewFoodRecord(
+                        id: viewModel.state.scannedCode,
+                        name: viewModel.state.name,
+                        weightOfProduct: viewModel.state.weightOfProduct,
+                        caloriesPerHundredGrams: viewModel.state.caloriesPerHundredGrams,
+                        fat: viewModel.state.fat,
+                        fatUnsaturatedFattyAcids: viewModel.state.fatUnsaturatedFattyAcids,
+                        carbohydrate: viewModel.state.carbohydrate,
+                        carbohydratePureSugar: viewModel.state.carbohydratePureSugar,
+                        protein: viewModel.state.protein,
+                        salt: viewModel.state.salt
+                    )
+                    dismiss()
+                } catch let error {
+                    viewModel.createNewFoodRecordErrorHandler(error)
+                }
+            } label: {
+                Text("Přidat")
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 35)
+                    .font(.system(size: .basic, weight: .bold))
+            }
+            .padding([.leading, .trailing], -20)
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(.top)
     }
 }
 

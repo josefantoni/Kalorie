@@ -19,7 +19,7 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
     // MARK: - Properties
     
     @Binding var shouldStartScanning: Bool
-    @Binding var scannedCode: String?
+    @Binding var scannedCode: String
     var coordinator: Coordinator?
     
     // MARK: - Nested class

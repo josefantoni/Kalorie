@@ -84,7 +84,7 @@ struct MealTypeSheetView: View {
                 VStack {
                     TextField("Druhá večeře nebo přesnídávka", text: $viewModel.state.newMealName)
                         .padding([.leading, .trailing], 20)
-                        .font(.system(size: 20))
+                        .font(.system(size: .basic))
                         .padding(.top, 20)
                         .padding(.bottom, 10)
                         .focused($focusedField, equals: .newMealName)
@@ -109,7 +109,7 @@ struct MealTypeSheetView: View {
                     }
                     .padding([.leading, .trailing], 20)
                     .padding(.top, 10)
-                    .font(.system(size: 20))
+                    .font(.system(size: .basic))
                 }
                 .padding(.bottom, 20)
                 .background(.white)
@@ -134,7 +134,7 @@ struct MealTypeSheetView: View {
                 .background(.blue)
                 .frame(maxWidth: .infinity)
                 .padding(.top, -10)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: .basic, weight: .bold))
             }
             .cornerRadius(10)
             .overlay(
