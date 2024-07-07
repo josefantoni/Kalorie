@@ -15,36 +15,33 @@ struct BaseDoubleTextField: View {
 
     var title: String
     @Binding var weight: Double
-    let action: () -> Void
 
     
     // MARK: - Body
 
     var body: some View {
-        Button(action: action) {
-            HStack {
-                Text(title)
-                    .font(
-                        .system(
-                            size: .smallPlus
-                        )
+        HStack {
+            Text(title)
+                .font(
+                    .system(
+                        size: .smallPlus
                     )
-                    .frame(
-                        maxWidth: .infinity,
-                        alignment: .leading
-                    )
+                )
+                .frame(
+                    maxWidth: .infinity,
+                    alignment: .leading
+                )
 
-                TextField("0", value: $weight, formatter: formatter)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(
-                        width: 100,
-                        alignment: .center
-                    )
-                Text("g")
-                    .frame(alignment: .trailing)
-                    .padding([.leading, .trailing], 8)
-            }
+            TextField("0", value: $weight, formatter: formatter)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .frame(
+                    width: 100,
+                    alignment: .center
+                )
+            Text("g")
+                .frame(alignment: .trailing)
+                .padding([.leading, .trailing], 8)
         }
     }
     

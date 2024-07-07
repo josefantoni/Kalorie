@@ -16,21 +16,18 @@ struct BaseStringTextField: View {
     let placeholder: String
     let title: String
     @Binding var text: String
-    let action: () -> Void
+
     
     // MARK: - Body
 
     var body: some View {
-        Button(action: 
-        ) {
-            HStack {
-                Text(title)
-                    .font(.system(size: .smallPlus))
-                TextField(placeholder, text: $text)
-                    .keyboardType(.numberPad)
-                    .frame(maxWidth: .infinity)
-                    .multilineTextAlignment(.center)
-            }
+        HStack {
+            Text(title)
+                .font(.system(size: .smallPlus))
+            TextField(placeholder, text: $text)
+                .keyboardType(.numberPad)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
         }
     }
 }
