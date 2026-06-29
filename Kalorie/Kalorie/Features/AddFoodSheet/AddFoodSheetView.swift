@@ -28,19 +28,22 @@ struct AddFoodSheetView: View {
         NavigationView {
             VStack(spacing: 0) {
                 ZStack {
-                    if !viewModel.isAddNewItemVisible {
-                        addFoodItem
-                    } else {
-                        addCustomFoodItem
-                            .rotation3DEffect(Angle(degrees: 180), axis: (x: 0, y: 1.0, z: 0))
+                    ZStack {
+                        if !viewModel.isAddNewItemVisible {
+                            addFoodItem
+                        } else {
+                            addCustomFoodItem
+                                .rotation3DEffect(Angle(degrees: 180), axis: (x: 0, y: 1.0, z: 0))
+                        }
                     }
+                    .rotation3DEffect(
+                        .degrees(viewModel.isAddNewItemVisible ? 180 : 0),
+                        axis: (x: 0, y: 1, z: 0)
+                    )
+                    .animation(.default, value: viewModel.isAddNewItemVisible)
+
                     startDataScannerIfPossible
                 }
-                .rotation3DEffect(
-                    .degrees(viewModel.isAddNewItemVisible ? 180 : 0),
-                    axis: (x: 0, y: 1, z: 0)
-                )
-                .animation(.default, value: viewModel.isAddNewItemVisible)
             }
             .safeAreaInset(edge: VerticalEdge.bottom) {
                 HStack {
