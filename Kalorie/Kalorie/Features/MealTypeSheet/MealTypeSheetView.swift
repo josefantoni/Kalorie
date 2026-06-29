@@ -53,6 +53,12 @@ struct MealTypeSheetView: View {
             .toolbar {
                 dismissButton
             }
+            .alert(isPresented: $viewModel.showingAlert) {
+                Alert(
+                    title: Text(viewModel.alertTitle),
+                    dismissButton: Alert.Button.default(Text("Dobrá"))
+                )
+            }
         }
     }
 
@@ -110,12 +116,6 @@ struct MealTypeSheetView: View {
                     Text("Vytvořit")
                         .padding()
                         .frame(maxWidth: .infinity)
-                }
-                .alert(isPresented: $viewModel.showingAlert) {
-                    Alert(
-                        title: Text(viewModel.alertTitle),
-                        dismissButton: Alert.Button.default(Text("Dobrá"))
-                    )
                 }
                 .foregroundColor(.white)
                 .background(.blue)
