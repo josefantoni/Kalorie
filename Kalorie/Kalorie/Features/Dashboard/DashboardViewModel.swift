@@ -38,6 +38,10 @@ final class DashboardViewModel: ObservableObject {
 
     @MainActor
     func onAppear() async {
+        let today = Date.now
+        if !Calendar.current.isDate(selectedDay, inSameDayAs: today) {
+            selectedDay = today
+        }
         state = .loading
         do {
             if UserDefaults.standard.object(forKey: "FirstOpen") == nil {
