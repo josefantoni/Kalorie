@@ -67,7 +67,7 @@ final class MealTypeSheetViewModel: ObservableObject {
         let mealType = mealTypes[index]
         do {
             try await deleteMealType(mealType)
-            mealTypes.remove(at: index)
+            mealTypes.removeAll { $0.id == mealType.id }
         } catch {
             alertTitle = "Nastala chyba při mazání"
             showingAlert = true
