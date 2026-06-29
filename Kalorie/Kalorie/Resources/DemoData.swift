@@ -8,7 +8,6 @@
 import Foundation
 import CoreData
 
-
 enum DemoData {
     
     // MARK: - Properties
@@ -26,7 +25,6 @@ enum DemoData {
         return startTime
     }
 
-    
     // MARK: - Functions
     
     static func demoMeals(on context: NSManagedObjectContext) -> [MealType] {

@@ -1,0 +1,18 @@
+//
+//  LoadingState.swift
+//  Kalorie
+//
+//  Created by Josef Antoni on 29.06.2026.
+//
+
+import Foundation
+
+enum LoadingState<T> {
+    case loading
+    case loaded(T)
+    case error(Error?)
+}
+
+extension LoadingState where T == Void {
+    static let loaded: LoadingState<Void> = .loaded(())
+}
