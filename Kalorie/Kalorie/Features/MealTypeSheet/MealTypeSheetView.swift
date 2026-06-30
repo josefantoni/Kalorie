@@ -36,7 +36,7 @@ struct MealTypeSheetView: View {
                         header: Text(L10n.MealTypeSheet.sectionMealLayout),
                         footer: footerView
                             .padding([.leading, .trailing], -20)
-                            .padding([.top], 20)
+                            .padding(.top, 20)
                     ) {
                         ForEach($viewModel.mealTypes, id: \.id, editActions: .move) { mealType in
                             MealTypeItemView(mealType.wrappedValue)
@@ -132,15 +132,14 @@ struct MealTypeSheetView: View {
     }
 
     var dismissButton: ToolbarItem<(), some View> {
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(placement: .topBarLeading) {
             BaseButton(
                 style: .plain,
                 imageName: .close,
-                imageSize: .basicPlus
+                imageSize: .basic
             ) {
                 dismiss()
             }
-            .padding(.top, 10)
         }
     }
 }
