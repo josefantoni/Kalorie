@@ -65,6 +65,27 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         }
     }
 
+    func test_createMealType_wrappingExistingSlot_throwsTimeConflictError() async throws {
+        let (sut, _) = makeSUT()
+        let existing = MealTypeDomain(
+            id: 1,
+            name: "Snídaně",
+            startTime: makeDate(hour: 9, minute: 0),
+            endTime: makeDate(hour: 12, minute: 0)
+        )
+        do {
+            _ = try await sut(
+                name: "Mega snídaně",
+                startTime: makeDate(hour: 7, minute: 0),
+                endTime: makeDate(hour: 14, minute: 0),
+                existingMealTypes: [existing]
+            )
+            XCTFail("Expected timeConflict error")
+        } catch CreateMealTypeError.timeConflict {
+            // pass
+        }
+    }
+
     func test_createMealType_withValidInput_persistsAndReturnsMealType() async throws {
         let (sut, _) = makeSUT()
         let existing = MealTypeDomain(

@@ -42,8 +42,7 @@ struct CreateMealTypeUseCase: CreateMealTypeUseCaseProtocol {
             throw CreateMealTypeError.duplicateName
         }
         guard !existingMealTypes.contains(where: {
-            startTime.isBetween($0.startTime, $0.endTime) ||
-            endTime.isBetween($0.startTime, $0.endTime)
+            startTime < $0.endTime && endTime > $0.startTime
         }) else {
             throw CreateMealTypeError.timeConflict
         }
