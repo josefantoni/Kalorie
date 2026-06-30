@@ -44,9 +44,9 @@ final class DashboardViewModel: ObservableObject {
         }
         state = .loading
         do {
-            if UserDefaults.standard.object(forKey: "FirstOpen") == nil {
+            if UserDefaults.standard.object(forKey: Constants.UserDefaultsKeys.firstOpen) == nil {
                 mealTypes = try await setupDefaultMeals()
-                UserDefaults.standard.set(true, forKey: "FirstOpen")
+                UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKeys.firstOpen)
             } else {
                 mealTypes = try await fetchMealTypes()
             }

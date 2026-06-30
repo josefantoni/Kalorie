@@ -27,12 +27,21 @@ struct KalorieApp: App {
     // MARK: - Properties
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @State private var isStoreLoaded = false
 
     // MARK: - Body
 
     var body: some Scene {
         WindowGroup {
-            DashboardConfigurator().createView()
+            if isStoreLoaded {
+                DashboardConfigurator().createView()
+            } else {
+                Color.clear
+                    .task {
+                        await PersistentContainer.load()
+                        isStoreLoaded = true
+                    }
+            }
         }
     }
 }

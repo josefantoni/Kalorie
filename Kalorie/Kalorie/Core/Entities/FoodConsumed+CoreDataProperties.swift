@@ -13,7 +13,7 @@ import CoreData
 extension FoodConsumed {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<FoodConsumed> {
-        return NSFetchRequest<FoodConsumed>(entityName: "FoodConsumed")
+        return NSFetchRequest<FoodConsumed>(entityName: Constants.CoreData.EntityName.foodConsumed)
     }
 
     @NSManaged public var calories: Int16
