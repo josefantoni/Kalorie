@@ -28,7 +28,7 @@ struct FetchMealTypesUseCase: FetchMealTypesUseCaseProtocol {
 
     func callAsFunction() async throws -> [MealTypeDomain] {
         try await context.perform {
-            let request = NSFetchRequest<MealType>(entityName: "MealType")
+            let request = NSFetchRequest<MealType>(entityName: Constants.CoreData.EntityName.mealType)
             return try self.context.fetch(request).map {
                 MealTypeDomain(
                     id: Int($0.id),

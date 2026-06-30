@@ -28,7 +28,7 @@ struct FetchFoodsConsumedUseCase: FetchFoodsConsumedUseCaseProtocol {
 
     func callAsFunction(for date: Date) async throws -> [FoodConsumedDomain] {
         try await context.perform {
-            let request = NSFetchRequest<FoodConsumed>(entityName: "FoodConsumed")
+            let request = NSFetchRequest<FoodConsumed>(entityName: Constants.CoreData.EntityName.foodConsumed)
             return try self.context.fetch(request).map {
                 FoodConsumedDomain(
                     id: $0.id ?? "",

@@ -28,7 +28,7 @@ struct DeleteMealTypeUseCase: DeleteMealTypeUseCaseProtocol {
 
     func callAsFunction(_ mealType: MealTypeDomain) async throws {
         try await context.perform {
-            let request = NSFetchRequest<MealType>(entityName: "MealType")
+            let request = NSFetchRequest<MealType>(entityName: Constants.CoreData.EntityName.mealType)
             request.predicate = NSPredicate(format: "id == %d", mealType.id)
             if let found = try self.context.fetch(request).first {
                 self.context.delete(found)

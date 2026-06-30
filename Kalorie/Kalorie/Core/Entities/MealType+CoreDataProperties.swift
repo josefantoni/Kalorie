@@ -13,7 +13,7 @@ import CoreData
 extension MealType {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<MealType> {
-        return NSFetchRequest<MealType>(entityName: "MealType")
+        return NSFetchRequest<MealType>(entityName: Constants.CoreData.EntityName.mealType)
     }
 
     @NSManaged public var endTime: TimeInterval
