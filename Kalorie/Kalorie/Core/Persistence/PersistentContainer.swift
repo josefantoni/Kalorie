@@ -12,13 +12,20 @@ enum PersistentContainer {
 
     // MARK: - Properties
 
-    static let shared: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "Model")
-        container.loadPersistentStores { _, error in
-            if let error = error as NSError? {
-                fatalError("Error loading data: \(error)")
+    static let shared: NSPersistentContainer = NSPersistentContainer(name: Constants.CoreData.modelName)
+
+    // MARK: - Functions
+
+    static func load() async {
+        await withCheckedContinuation { continuation in
+            Task.detached(priority: .userInitiated) {
+                shared.loadPersistentStores { _, error in
+                    if let error = error as NSError? {
+                        fatalError("Error loading data: \(error)")
+                    }
+                    continuation.resume()
+                }
             }
         }
-        return container
-    }()
+    }
 }
