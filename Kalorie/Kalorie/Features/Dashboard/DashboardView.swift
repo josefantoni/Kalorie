@@ -78,18 +78,6 @@ struct DashboardView: View {
                 imageSize: .extraLarge
             )
         }
-        .simultaneousGesture(
-            LongPressGesture()
-                .onEnded { _ in
-                    print("Loooong")
-                }
-        )
-        .highPriorityGesture(
-            TapGesture()
-                .onEnded { _ in
-                    print("Tap")
-                }
-        )
         .task { await viewModel.onAppear() }
     }
 }
