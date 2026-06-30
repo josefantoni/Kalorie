@@ -50,10 +50,24 @@
 			);
 			target = 860C154D2C10B01B0062D6E7 /* Kalorie */;
 		};
+		8670867D2FF3ADC800E5A085 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Localization/L10n.swift,
+			);
+			target = 860C155E2C10B01C0062D6E7 /* KalorieTests */;
+		};
+		8670867E2FF3ADC800E5A085 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Localization/L10n.swift,
+			);
+			target = 860C15682C10B01C0062D6E7 /* KalorieUITests */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		867083F92FF2C03A00E5A085 /* Kalorie */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (8670842B2FF2C03B00E5A085 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Kalorie; sourceTree = "<group>"; };
+		867083F92FF2C03A00E5A085 /* Kalorie */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (8670842B2FF2C03B00E5A085 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 8670867D2FF3ADC800E5A085 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 8670867E2FF3ADC800E5A085 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Kalorie; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */

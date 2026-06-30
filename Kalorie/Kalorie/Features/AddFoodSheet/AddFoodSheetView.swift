@@ -65,7 +65,7 @@ struct AddFoodSheetView: View {
             .alert(isPresented: $viewModel.isAlertVisible) {
                 Alert(
                     title: Text(viewModel.alertTitle),
-                    dismissButton: Alert.Button.default(Text("Dobrá"))
+                    dismissButton: Alert.Button.default(Text(L10n.Common.ok))
                 )
             }
             .task { await viewModel.onAppear() }
@@ -106,7 +106,7 @@ struct AddFoodSheetView: View {
         List {
             Section {
                 HStack {
-                    TextField("Vyhledávané jídlo", text: $viewModel.searchText)
+                    TextField(L10n.AddFood.searchPlaceholder, text: $viewModel.searchText)
                     BaseButton(
                         style: .plain,
                         imageName: .barCode,
@@ -116,13 +116,13 @@ struct AddFoodSheetView: View {
                             viewModel.isAddNewItemVisible.toggle()
                             viewModel.isScannerVisible.toggle()
                         } else {
-                            viewModel.alertTitle = "Povolte v nastavení fotoaparát, nemůžeme bez něj skenovat čárový kód. 🙁"
+                            viewModel.alertTitle = L10n.AddFood.cameraPermissionAlert
                             viewModel.isAlertVisible.toggle()
                         }
                     }
                 }
             }
-            Section(header: Text("Vyhledaná jídla")) {
+            Section(header: Text(L10n.AddFood.sectionSearchResults)) {
                 ForEach(viewModel.foodsFiltered, id: \.id) {
                     Text($0.name)
                 }
@@ -133,49 +133,49 @@ struct AddFoodSheetView: View {
     var addCustomFoodItem: some View {
         List {
             Section(
-                header: Text("Rozvržení jídel"),
+                header: Text(L10n.AddFood.sectionNewItem),
                 footer: footerView
             ) {
                 BaseStringTextField(
-                    placeholder: "321321...12345",
-                    title: "Čárový kód potraviny",
+                    placeholder: L10n.AddFood.fieldBarcodePlaceholder,
+                    title: L10n.AddFood.fieldBarcodeTitle,
                     text: $viewModel.formInput.scannedCode
                 )
                 BaseStringTextField(
-                    placeholder: "Tvaroh nízkotučný",
-                    title: "Název potraviny",
+                    placeholder: L10n.AddFood.fieldNamePlaceholder,
+                    title: L10n.AddFood.fieldNameTitle,
                     text: $viewModel.formInput.name
                 )
                 BaseDoubleTextField(
-                    title: "Hmotnost",
+                    title: L10n.AddFood.fieldWeight,
                     weight: $viewModel.formInput.weightOfProduct
                 )
                 BaseDoubleTextField(
-                    title: "Kalorie na 100 gramů",
+                    title: L10n.AddFood.fieldCaloriesPer100g,
                     weight: $viewModel.formInput.caloriesPerHundredGrams
                 )
                 BaseDoubleTextField(
-                    title: "Bílkoviny",
+                    title: L10n.AddFood.fieldProtein,
                     weight: $viewModel.formInput.protein
                 )
                 BaseDoubleTextField(
-                    title: "Sacharidy",
+                    title: L10n.AddFood.fieldCarbs,
                     weight: $viewModel.formInput.carbohydrate
                 )
                 BaseDoubleTextField(
-                    title: "z toho cukry",
+                    title: L10n.AddFood.fieldCarbsSugar,
                     weight: $viewModel.formInput.carbohydratePureSugar
                 )
                 BaseDoubleTextField(
-                    title: "Tuky",
+                    title: L10n.AddFood.fieldFat,
                     weight: $viewModel.formInput.fat
                 )
                 BaseDoubleTextField(
-                    title: "z toho nenasycené",
+                    title: L10n.AddFood.fieldFatUnsaturated,
                     weight: $viewModel.formInput.fatUnsaturatedFattyAcids
                 )
                 BaseDoubleTextField(
-                    title: "Sůl",
+                    title: L10n.AddFood.fieldSalt,
                     weight: $viewModel.formInput.salt
                 )
             }
@@ -194,7 +194,7 @@ struct AddFoodSheetView: View {
                     }
                 }
             } label: {
-                Text("Přidat")
+                Text(L10n.AddFood.buttonAdd)
                     .frame(maxWidth: .infinity)
                     .frame(height: 35)
                     .font(.system(size: .basic, weight: .bold))

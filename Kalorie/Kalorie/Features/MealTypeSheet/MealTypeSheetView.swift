@@ -33,7 +33,7 @@ struct MealTypeSheetView: View {
             VStack(spacing: 0) {
                 List {
                     Section(
-                        header: Text("Rozvržení jídel"),
+                        header: Text(L10n.MealTypeSheet.sectionMealLayout),
                         footer: footerView
                             .padding([.leading, .trailing], -20)
                             .padding([.top], 20)
@@ -56,7 +56,7 @@ struct MealTypeSheetView: View {
             .alert(isPresented: $viewModel.showingAlert) {
                 Alert(
                     title: Text(viewModel.alertTitle),
-                    dismissButton: Alert.Button.default(Text("Dobrá"))
+                    dismissButton: Alert.Button.default(Text(L10n.Common.ok))
                 )
             }
         }
@@ -77,7 +77,7 @@ struct MealTypeSheetView: View {
         } else {
             VStack {
                 VStack {
-                    TextField("Druhá večeře nebo přesnídávka", text: $viewModel.newMealName)
+                    TextField(L10n.MealTypeSheet.fieldNewMealPlaceholder, text: $viewModel.newMealName)
                         .padding([.leading, .trailing], 20)
                         .font(.system(size: .basic))
                         .padding(.top, 20)
@@ -86,7 +86,7 @@ struct MealTypeSheetView: View {
                     Divider()
 
                     HStack {
-                        DatePicker("Od", selection: $viewModel.newMealStart, displayedComponents: .hourAndMinute)
+                        DatePicker(L10n.MealTypeSheet.datePickerFrom, selection: $viewModel.newMealStart, displayedComponents: .hourAndMinute)
                             .datePickerStyle(GraphicalDatePickerStyle())
                             .onChange(of: viewModel.newMealStart) {
                                 if viewModel.newMealStart >= viewModel.newMealEnd {
@@ -94,7 +94,7 @@ struct MealTypeSheetView: View {
                                 }
                             }
                         Divider()
-                        DatePicker("Do", selection: $viewModel.newMealEnd, displayedComponents: .hourAndMinute)
+                        DatePicker(L10n.MealTypeSheet.datePickerTo, selection: $viewModel.newMealEnd, displayedComponents: .hourAndMinute)
                             .datePickerStyle(CompactDatePickerStyle())
                             .onChange(of: viewModel.newMealEnd) {
                                 if viewModel.newMealStart >= viewModel.newMealEnd {
@@ -113,7 +113,7 @@ struct MealTypeSheetView: View {
                     Task { await viewModel.onCreateMealType() }
                     focusedField = nil
                 } label: {
-                    Text("Vytvořit")
+                    Text(L10n.MealTypeSheet.buttonCreate)
                         .padding()
                         .frame(maxWidth: .infinity)
                 }

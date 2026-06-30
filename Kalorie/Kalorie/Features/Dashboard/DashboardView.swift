@@ -30,7 +30,7 @@ struct DashboardView: View {
             Button {
                 viewModel.showMealTypeSheet.toggle()
             } label: {
-                Text("rozvržení jídel")
+                Text(L10n.Dashboard.buttonMealLayout)
             }
             .sheet(isPresented: $viewModel.showMealTypeSheet, onDismiss: {
                 Task { await viewModel.onAppear() }
@@ -45,7 +45,7 @@ struct DashboardView: View {
                 FoodConsumedView(food.wrappedValue)
             } header: {
                 VStack {
-                    Text("Ostatní nezařazená jídla")
+                    Text(L10n.Dashboard.sectionUnassignedFoods)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .font(.subheadline)
                         .padding(.leading, -5)
@@ -55,12 +55,12 @@ struct DashboardView: View {
         .overlay {
             if viewModel.foodsConsumed.isEmpty {
                 ContentUnavailableView(label: {
-                    Label("Žádné záznamy jídel", systemImage: "list.bullet.rectangle.portrait")
+                    Label(L10n.Dashboard.emptyTitle, systemImage: "list.bullet.rectangle.portrait")
                         .padding()
                 }, description: {
-                    Text("Ještě jste dnes nic nesnědli, přidejme nějaké jídlo")
+                    Text(L10n.Dashboard.emptyDescription)
                 }, actions: {
-                    Button("Přidat jídlo") {
+                    Button(L10n.Dashboard.emptyAddFood) {
                         viewModel.showAddFoodSheet.toggle()
                     }
                 })

@@ -33,7 +33,13 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
             }
             var endTime = startTime.withAddedHours(hours: 3)
             var id = 0
-            let mealNames = ["Snídaně", "Druhá snídaně", "Oběd", "Svačina", "Večeře"]
+            let mealNames = [
+                L10n.DefaultMeals.breakfast,
+                L10n.DefaultMeals.secondBreakfast,
+                L10n.DefaultMeals.lunch,
+                L10n.DefaultMeals.snack,
+                L10n.DefaultMeals.dinner
+            ]
             var domains: [MealTypeDomain] = []
 
             for mealName in mealNames {

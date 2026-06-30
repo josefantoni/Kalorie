@@ -49,16 +49,16 @@ final class MealTypeSheetViewModel: ObservableObject {
             isAddFormVisible = false
             newMealName = ""
         } catch CreateMealTypeError.emptyName {
-            alertTitle = "Zadejte jméno jídla"
+            alertTitle = L10n.MealTypeSheet.errorEmptyName
             showingAlert = true
         } catch CreateMealTypeError.duplicateName {
-            alertTitle = "Jméno jídla musí být unikátní"
+            alertTitle = L10n.MealTypeSheet.errorDuplicateName
             showingAlert = true
         } catch CreateMealTypeError.timeConflict {
-            alertTitle = "Zadaný čas se překrývá s jinou kategorií jídla"
+            alertTitle = L10n.MealTypeSheet.errorTimeConflict
             showingAlert = true
         } catch {
-            alertTitle = "Nastala nečekaná chyba"
+            alertTitle = L10n.MealTypeSheet.errorUnexpected
             showingAlert = true
         }
     }
@@ -69,7 +69,7 @@ final class MealTypeSheetViewModel: ObservableObject {
             try await deleteMealType(mealType)
             mealTypes.removeAll { $0.id == mealType.id }
         } catch {
-            alertTitle = "Nastala chyba při mazání"
+            alertTitle = L10n.MealTypeSheet.errorDeleteError
             showingAlert = true
         }
     }

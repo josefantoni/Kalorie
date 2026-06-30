@@ -91,15 +91,15 @@ final class AddFoodSheetViewModel: ObservableObject {
     func onCreateFoodItemErrorHandler(_ error: Error) {
         switch error as? CreateFoodItemError {
         case .invalidCode:
-            alertTitle = "Neplatný čárový kód"
+            alertTitle = L10n.AddFood.errorInvalidCode
         case .invalidName:
-            alertTitle = "Překontrolujte zadaný název"
+            alertTitle = L10n.AddFood.errorInvalidName
         case .invalidCalories:
-            alertTitle = "Kalorie musí být větší než nula"
+            alertTitle = L10n.AddFood.errorInvalidCalories
         case .invalidWeight:
-            alertTitle = "Hmotnost musí být větší než nula"
+            alertTitle = L10n.AddFood.errorInvalidWeight
         case nil:
-            alertTitle = "Nastala neznámá chyba"
+            alertTitle = L10n.Common.errorUnknown
         }
         isAlertVisible = true
     }
