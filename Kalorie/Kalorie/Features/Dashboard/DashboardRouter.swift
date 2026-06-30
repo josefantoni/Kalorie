@@ -9,13 +9,28 @@ import Foundation
 
 struct DashboardRouter {
 
+    // MARK: - Properties
+
+    private let mealTypeSheetConfigurator: MealTypeSheetConfigurator
+    private let addFoodSheetConfigurator: AddFoodSheetConfigurator
+
+    // MARK: - Init
+
+    init(
+        mealTypeSheetConfigurator: MealTypeSheetConfigurator,
+        addFoodSheetConfigurator: AddFoodSheetConfigurator
+    ) {
+        self.mealTypeSheetConfigurator = mealTypeSheetConfigurator
+        self.addFoodSheetConfigurator = addFoodSheetConfigurator
+    }
+
     // MARK: - Functions
 
     func makeMealTypeSheetView(mealTypes: [MealTypeDomain]) -> MealTypeSheetView {
-        MealTypeSheetConfigurator().createView(mealTypes: mealTypes)
+        mealTypeSheetConfigurator.createView(mealTypes: mealTypes)
     }
 
     func makeAddFoodSheetView(withBarcodeScan: Bool = false) -> AddFoodSheetView {
-        AddFoodSheetConfigurator().createView(withBarcodeScan: withBarcodeScan)
+        addFoodSheetConfigurator.createView(withBarcodeScan: withBarcodeScan)
     }
 }
