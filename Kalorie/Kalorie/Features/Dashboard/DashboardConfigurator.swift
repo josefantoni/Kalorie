@@ -19,7 +19,10 @@ struct DashboardConfigurator {
                 fetchFoodsConsumed: FetchFoodsConsumedUseCase(context: context),
                 setupDefaultMeals: SetupDefaultMealsUseCase(context: context)
             ),
-            router: DashboardRouter()
+            router: DashboardRouter(
+                mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
+                addFoodSheetConfigurator: AddFoodSheetConfigurator()
+            )
         )
     }
 }
