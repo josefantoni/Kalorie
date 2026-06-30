@@ -1,5 +1,5 @@
 //
-//  KalorieTests.swift
+//  CreateMealTypeUseCaseTests.swift
 //  KalorieTests
 //
 //  Created by Josef Antoni on 05.06.2024.
