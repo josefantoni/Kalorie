@@ -35,6 +35,7 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published var isScannerVisible: Bool
     @Published var isAlertVisible = false
     @Published var alertTitle = ""
+    @Published private(set) var shouldDismiss = false
 
     var foodsFiltered: [FoodItemDomain] {
         if searchText.isEmpty {
@@ -71,7 +72,8 @@ final class AddFoodSheetViewModel: ObservableObject {
         }
     }
 
-    func onCreateFoodItem() async throws -> FoodItemDomain {
+    @MainActor
+    func onCreateFoodItem() async {
         let item = FoodItemDomain(
             id: formInput.scannedCode,
             name: formInput.name,
@@ -85,22 +87,23 @@ final class AddFoodSheetViewModel: ObservableObject {
             protein: formInput.protein,
             salt: formInput.salt
         )
-        return try await createFoodItem(item)
-    }
-
-    func onCreateFoodItemErrorHandler(_ error: Error) {
-        switch error as? CreateFoodItemError {
-        case .invalidCode:
-            alertTitle = L10n.AddFood.errorInvalidCode
-        case .invalidName:
-            alertTitle = L10n.AddFood.errorInvalidName
-        case .invalidCalories:
-            alertTitle = L10n.AddFood.errorInvalidCalories
-        case .invalidWeight:
-            alertTitle = L10n.AddFood.errorInvalidWeight
-        case nil:
-            alertTitle = L10n.Common.errorUnknown
+        do {
+            _ = try await createFoodItem(item)
+            shouldDismiss = true
+        } catch {
+            switch error as? CreateFoodItemError {
+            case .invalidCode:
+                alertTitle = L10n.AddFood.errorInvalidCode
+            case .invalidName:
+                alertTitle = L10n.AddFood.errorInvalidName
+            case .invalidCalories:
+                alertTitle = L10n.AddFood.errorInvalidCalories
+            case .invalidWeight:
+                alertTitle = L10n.AddFood.errorInvalidWeight
+            case nil:
+                alertTitle = L10n.Common.errorUnknown
+            }
+            isAlertVisible = true
         }
-        isAlertVisible = true
     }
 }

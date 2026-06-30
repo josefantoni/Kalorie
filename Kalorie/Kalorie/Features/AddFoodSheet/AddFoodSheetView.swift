@@ -69,6 +69,9 @@ struct AddFoodSheetView: View {
                 )
             }
             .task { await viewModel.onAppear() }
+            .onChange(of: viewModel.shouldDismiss) { newValue in
+                if newValue { dismiss() }
+            }
             .toolbar {
                 DismissToolbarItem()
             }
@@ -172,14 +175,7 @@ struct AddFoodSheetView: View {
     @ViewBuilder var footerView: some View {
         HStack {
             Button {
-                Task {
-                    do {
-                        _ = try await viewModel.onCreateFoodItem()
-                        dismiss()
-                    } catch {
-                        viewModel.onCreateFoodItemErrorHandler(error)
-                    }
-                }
+                Task { await viewModel.onCreateFoodItem() }
             } label: {
                 Text(L10n.AddFood.buttonAdd)
                     .frame(maxWidth: .infinity)
