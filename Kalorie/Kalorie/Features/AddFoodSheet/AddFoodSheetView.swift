@@ -28,7 +28,7 @@ struct AddFoodSheetView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 ZStack {
-                    ZStack {
+                    Group {
                         if !viewModel.isAddNewItemVisible {
                             addFoodItem
                         } else {
@@ -81,7 +81,7 @@ struct AddFoodSheetView: View {
 
     // MARK: - Functions
 
-    @ViewBuilder @MainActor var startDataScannerIfPossible: some View {
+    @ViewBuilder var startDataScannerIfPossible: some View {
         if viewModel.isScannerVisible && DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
             ZStack(alignment: .bottom) {
                 DataScannerRepresentable(
