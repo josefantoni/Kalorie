@@ -70,7 +70,7 @@ struct AddFoodSheetView: View {
             }
             .task { await viewModel.onAppear() }
             .toolbar {
-                dismissButton
+                DismissToolbarItem()
             }
             .background(Color(.secondarySystemBackground))
         }
@@ -86,19 +86,6 @@ struct AddFoodSheetView: View {
                     scannedCode: $viewModel.formInput.scannedCode
                 )
             }
-        }
-    }
-
-    var dismissButton: ToolbarItem<(), some View> {
-        ToolbarItem(placement: .topBarTrailing) {
-            BaseButton(
-                style: .plain,
-                imageName: .close,
-                imageSize: .basicPlus
-            ) {
-                dismiss()
-            }
-            .padding(.top, 10)
         }
     }
 

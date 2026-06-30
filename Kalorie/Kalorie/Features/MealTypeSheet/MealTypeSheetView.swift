@@ -14,7 +14,6 @@ struct MealTypeSheetView: View {
 
     @ObservedObject var viewModel: MealTypeSheetViewModel
     @FocusState private var focusedField: Field?
-    @Environment(\.dismiss) var dismiss
 
     private enum Field: Int, CaseIterable {
         case newMealName
@@ -51,7 +50,7 @@ struct MealTypeSheetView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             .toolbar {
-                dismissButton
+                DismissToolbarItem()
             }
             .alert(isPresented: $viewModel.showingAlert) {
                 Alert(
@@ -131,17 +130,6 @@ struct MealTypeSheetView: View {
         }
     }
 
-    var dismissButton: ToolbarItem<(), some View> {
-        ToolbarItem(placement: .topBarLeading) {
-            BaseButton(
-                style: .plain,
-                imageName: .close,
-                imageSize: .basic
-            ) {
-                dismiss()
-            }
-        }
-    }
 }
 
 // MARK: - Preview
