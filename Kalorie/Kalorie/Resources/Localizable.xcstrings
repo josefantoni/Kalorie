@@ -690,6 +690,23 @@
         }
       }
     },
+    "mealTypeSheet_error_durationTooShort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimální délka jídla je 30 minut"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimum meal duration is 30 minutes"
+          }
+        }
+      }
+    },
     "mealTypeSheet_error_emptyName" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -713,30 +730,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alespoň jednou denně by se chtělo najíst   🍳😉"
+            "value" : "Alespoň jednou denně by se chtělo najíst 🍳😉"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "You should eat at least once a day 🍳😉"
-          }
-        }
-      }
-    },
-    "mealTypeSheet_error_durationTooShort" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Minimální délka jídla je 30 minut"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Minimum meal duration is 30 minutes"
           }
         }
       }
@@ -781,13 +781,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Druhá večeře nebo přesnídávka"
+            "value" : "Jedna snad, ale co druhá snídaně … 🧐?"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Late dinner or morning snack"
+            "value" : "What about second breakfast … 🧐?"
           }
         }
       }

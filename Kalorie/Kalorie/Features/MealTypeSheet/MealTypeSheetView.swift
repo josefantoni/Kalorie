@@ -116,7 +116,7 @@ struct MealTypeSheetView: View {
                 VStack {
                     TextField(L10n.MealTypeSheet.fieldNewMealPlaceholder, text: $viewModel.newMealName)
                         .padding(.horizontal, 20)
-                        .font(.system(size: .basic))
+                        .font(.system(size: .smallPlus))
                         .padding(.top, 20)
                         .padding(.bottom, 10)
                         .focused($focusedField, equals: .newMealName)
