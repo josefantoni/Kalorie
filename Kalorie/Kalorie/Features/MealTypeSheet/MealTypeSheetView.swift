@@ -37,7 +37,7 @@ struct MealTypeSheetView: View {
                         footer: Group {
                             if editMode == .active {
                                 footerView
-                                    .padding([.leading, .trailing], -20)
+                                    .padding(.horizontal, -14)
                                     .padding(.top, 20)
                             }
                         }
@@ -115,7 +115,7 @@ struct MealTypeSheetView: View {
             VStack {
                 VStack {
                     TextField(L10n.MealTypeSheet.fieldNewMealPlaceholder, text: $viewModel.newMealName)
-                        .padding([.leading, .trailing], 20)
+                        .padding(.horizontal, 20)
                         .font(.system(size: .basic))
                         .padding(.top, 20)
                         .padding(.bottom, 10)
@@ -139,7 +139,7 @@ struct MealTypeSheetView: View {
                                 }
                             }
                     }
-                    .padding([.leading, .trailing], 20)
+                    .padding(.horizontal, 20)
                     .padding(.top, 10)
                     .font(.system(size: .basic))
                 }
