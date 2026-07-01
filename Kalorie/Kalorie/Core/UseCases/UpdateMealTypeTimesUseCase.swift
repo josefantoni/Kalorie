@@ -8,7 +8,7 @@
 import Foundation
 
 protocol UpdateMealTypeTimesUseCaseProtocol {
-    func callAsFunction(_ mealType: MealTypeDomain) async throws
+    func callAsFunction(_ mealTypes: [MealTypeDomain]) async throws
 }
 
 struct UpdateMealTypeTimesUseCase: UpdateMealTypeTimesUseCaseProtocol {
@@ -27,15 +27,20 @@ struct UpdateMealTypeTimesUseCase: UpdateMealTypeTimesUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ mealType: MealTypeDomain) async throws {
+    func callAsFunction(_ mealTypes: [MealTypeDomain]) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let dto = MealTypeDTO(
-            id: mealType.id,
-            name: mealType.name,
-            startTime: mealType.startTime.timeIntervalSince1970,
-            endTime: mealType.endTime.timeIntervalSince1970
-        )
-        try await dataProvider.setAsync(dto, id: "\(mealType.id)", in: Constants.Firestore.mealTypes(userId: userId))
+        let dtos = mealTypes.map { mealType in
+            (
+                item: MealTypeDTO(
+                    id: mealType.id,
+                    name: mealType.name,
+                    startTime: mealType.startTime.timeIntervalSince1970,
+                    endTime: mealType.endTime.timeIntervalSince1970
+                ),
+                id: "\(mealType.id)"
+            )
+        }
+        try await dataProvider.batchSetAsync(dtos, in: Constants.Firestore.mealTypes(userId: userId))
     }
 }
 
@@ -43,5 +48,5 @@ struct UpdateMealTypeTimesUseCaseFake: UpdateMealTypeTimesUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ mealType: MealTypeDomain) async throws {}
+    func callAsFunction(_ mealTypes: [MealTypeDomain]) async throws {}
 }

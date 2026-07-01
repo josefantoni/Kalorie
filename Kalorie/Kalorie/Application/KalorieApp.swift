@@ -34,7 +34,7 @@ struct KalorieApp: App {
     var body: some Scene {
         WindowGroup {
             switch authState.state {
-            case .loading:
+            case .idle, .loading:
                 ProgressView()
             case .loaded:
                 DashboardConfigurator().createView()

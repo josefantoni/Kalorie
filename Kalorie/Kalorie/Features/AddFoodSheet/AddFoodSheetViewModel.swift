@@ -27,7 +27,7 @@ final class AddFoodSheetViewModel: ObservableObject {
 
     // MARK: - Properties
 
-    @Published private(set) var state: LoadingState<Void> = .loading
+    @Published private(set) var state: LoadingState<Void> = .idle
     @Published var availableFoodItems: [FoodItemDomain] = []
     @Published var searchText = ""
     @Published var formInput = FoodItemFormInput()
