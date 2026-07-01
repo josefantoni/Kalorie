@@ -111,14 +111,11 @@ final class MealTypeSheetViewModel: ObservableObject {
     func onSaveReorder() async {
         state = .loading
         defer { state = .loaded }
-        for mealType in mealTypes {
-            do {
-                try await updateMealTypeTimes(mealType)
-            } catch {
-                alertTitle = L10n.MealTypeSheet.errorUnexpected
-                showingAlert = true
-                return
-            }
+        do {
+            try await updateMealTypeTimes(mealTypes)
+        } catch {
+            alertTitle = L10n.MealTypeSheet.errorUnexpected
+            showingAlert = true
         }
     }
 
