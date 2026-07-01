@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CoreData
 
 protocol FetchFoodsConsumedUseCaseProtocol {
     func callAsFunction(for date: Date) async throws -> [FoodConsumedDomain]
@@ -16,30 +15,32 @@ struct FetchFoodsConsumedUseCase: FetchFoodsConsumedUseCaseProtocol {
 
     // MARK: - Properties
 
-    private let context: NSManagedObjectContext
+    private let dataProvider: any FirestoreDataProviderProtocol
+    private let authProvider: any AuthProviderProtocol
 
     // MARK: - Init
 
-    init(context: NSManagedObjectContext) {
-        self.context = context
+    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+        self.dataProvider = dataProvider
+        self.authProvider = authProvider
     }
 
     // MARK: - Functions
 
     func callAsFunction(for date: Date) async throws -> [FoodConsumedDomain] {
-        try await context.perform {
-            let request = NSFetchRequest<FoodConsumed>(entityName: Constants.CoreData.EntityName.foodConsumed)
-            return try self.context.fetch(request).map {
+        guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
+        let dtos: [FoodConsumedDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.foodConsumed(userId: userId))
+        return dtos
+            .filter { Calendar.current.isDate(Date(timeIntervalSince1970: $0.date), inSameDayAs: date) }
+            .map {
                 FoodConsumedDomain(
-                    id: $0.id ?? "",
-                    name: $0.name ?? "",
+                    id: $0.id,
+                    name: $0.name,
                     weight: $0.weight,
-                    date: $0.date.toDate,
-                    calories: Int($0.calories),
-                    mealTypeId: $0.mealType.map { Int($0.id) }
+                    date: Date(timeIntervalSince1970: $0.date),
+                    calories: $0.calories
                 )
             }
-        }
     }
 }
 

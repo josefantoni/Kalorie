@@ -50,7 +50,7 @@ struct CreateFoodItemUseCase: CreateFoodItemUseCaseProtocol {
             protein: item.protein,
             salt: item.salt
         )
-        try await dataProvider.saveAsync(dto, to: "food_items")
+        try await dataProvider.saveAsync(dto, to: Constants.Firestore.foodItems)
         return item
     }
 }

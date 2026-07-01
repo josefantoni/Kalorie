@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		86186DAC2C2C63B500176E09 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 86186DAB2C2C63B500176E09 /* FirebaseFirestore */; };
+		864EAE1B2FF4043900D0C4AE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 864EAE1A2FF4043900D0C4AE /* FirebaseAuth */; };
 		86C775E32C2A6E1600FC4493 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 86C775E22C2A6E1600FC4493 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
@@ -69,6 +70,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				86C775E32C2A6E1600FC4493 /* FirebaseFirestore in Frameworks */,
+				864EAE1B2FF4043900D0C4AE /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,6 +141,7 @@
 			name = Kalorie;
 			packageProductDependencies = (
 				86C775E22C2A6E1600FC4493 /* FirebaseFirestore */,
+				864EAE1A2FF4043900D0C4AE /* FirebaseAuth */,
 			);
 			productName = Kalorie;
 			productReference = 860C154E2C10B01B0062D6E7 /* Kalorie.app */;
@@ -680,6 +683,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		864EAE1A2FF4043900D0C4AE /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
 		};
 		86C775E22C2A6E1600FC4493 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;

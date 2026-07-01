@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import CoreData
 @testable import Kalorie
 
 final class CreateMealTypeUseCaseTests: XCTestCase {
@@ -106,19 +105,10 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func makeSUT() -> (sut: CreateMealTypeUseCase, context: NSManagedObjectContext) {
-        let context = makeInMemoryContext()
-        let sut = CreateMealTypeUseCase(context: context)
-        return (sut, context)
-    }
-
-    private func makeInMemoryContext() -> NSManagedObjectContext {
-        let container = NSPersistentContainer(name: "Model")
-        let description = NSPersistentStoreDescription()
-        description.type = NSInMemoryStoreType
-        container.persistentStoreDescriptions = [description]
-        container.loadPersistentStores { _, _ in }
-        return container.viewContext
+    private func makeSUT() -> (sut: CreateMealTypeUseCase, dataProvider: FirestoreDataProviderFake) {
+        let dataProvider = FirestoreDataProviderFake()
+        let sut = CreateMealTypeUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake())
+        return (sut, dataProvider)
     }
 
     private func makeDate(hour: Int, minute: Int) -> Date {

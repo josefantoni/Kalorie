@@ -9,16 +9,10 @@ import Foundation
 
 enum Constants {
 
-    enum CoreData {
-        static let modelName = "Model"
-
-        enum EntityName {
-            static let mealType = "MealType"
-            static let foodConsumed = "FoodConsumed"
-        }
+    enum Firestore {
+        static let foodItems = "food_items"
+        static func mealTypes(userId: String) -> String { "users/\(userId)/mealTypes" }
+        static func foodConsumed(userId: String) -> String { "users/\(userId)/foodConsumed" }
     }
 
-    enum UserDefaultsKeys {
-        static let firstOpen = "FirstOpen"
-    }
 }

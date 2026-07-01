@@ -1,19 +1,19 @@
 //
-//  FoodConsumedDomain.swift
+//  FoodConsumedDTO.swift
 //  Kalorie
 //
-//  Created by Josef Antoni on 29.06.2026.
+//  Created by Josef Antoni on 30.06.2026.
 //
 
 import Foundation
 
-struct FoodConsumedDomain {
+struct FoodConsumedDTO: Codable {
 
     // MARK: - Properties
 
     let id: String
     let name: String
     let weight: Double
-    let date: Date
+    let date: TimeInterval
     let calories: Int
 }
