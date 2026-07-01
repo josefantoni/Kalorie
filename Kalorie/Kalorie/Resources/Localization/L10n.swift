@@ -13,6 +13,11 @@ enum L10n {
         static var errorUnknown: String { String(localized: "common_error_unknown") }
     }
 
+    enum Auth {
+        static var errorSignInFailed: String { String(localized: "auth_error_signInFailed") }
+        static var buttonRetry: String { String(localized: "auth_button_retry") }
+    }
+
     enum Dashboard {
         static var buttonMealLayout: String { String(localized: "dashboard_button_mealLayout") }
         static var sectionUnassignedFoods: String { String(localized: "dashboard_section_unassignedFoods") }
@@ -54,7 +59,9 @@ enum L10n {
         static var errorEmptyName: String { String(localized: "mealTypeSheet_error_emptyName") }
         static var errorDuplicateName: String { String(localized: "mealTypeSheet_error_duplicateName") }
         static var errorTimeConflict: String { String(localized: "mealTypeSheet_error_timeConflict") }
+        static var errorDurationTooShort: String { String(localized: "mealTypeSheet_error_durationTooShort") }
         static var errorDeleteError: String { String(localized: "mealTypeSheet_error_deleteError") }
+        static var errorLastMealType: String { String(localized: "mealTypeSheet_error_lastMealType") }
         static var errorUnexpected: String { String(localized: "mealTypeSheet_error_unexpected") }
     }
 

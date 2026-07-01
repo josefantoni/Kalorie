@@ -12,8 +12,9 @@ struct MealTypeSheetView: View {
 
     // MARK: - Properties
 
-    @ObservedObject var viewModel: MealTypeSheetViewModel
+    @StateObject var viewModel: MealTypeSheetViewModel
     @FocusState private var focusedField: Field?
+    @State private var editMode: EditMode = .inactive
 
     private enum Field: Int, CaseIterable {
         case newMealName
@@ -22,7 +23,7 @@ struct MealTypeSheetView: View {
     // MARK: - Init
 
     init(viewModel: MealTypeSheetViewModel) {
-        self.viewModel = viewModel
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     // MARK: - Body
@@ -33,25 +34,62 @@ struct MealTypeSheetView: View {
                 List {
                     Section(
                         header: Text(L10n.MealTypeSheet.sectionMealLayout),
-                        footer: footerView
-                            .padding([.leading, .trailing], -20)
-                            .padding(.top, 20)
+                        footer: Group {
+                            if editMode == .active {
+                                footerView
+                                    .padding([.leading, .trailing], -20)
+                                    .padding(.top, 20)
+                            }
+                        }
                     ) {
-                        ForEach($viewModel.mealTypes, id: \.id, editActions: .move) { mealType in
+                        ForEach($viewModel.mealTypes, id: \.id) { mealType in
                             MealTypeItemView(mealType.wrappedValue)
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        if let index = viewModel.mealTypes.firstIndex(where: { $0.id == mealType.wrappedValue.id }) {
+                                            Task { await viewModel.onDelete(at: index) }
+                                        }
+                                    } label: {
+                                        Image(systemName: "trash")
+                                    }
+                                }
                         }
                         .onDelete { indexSet in
                             if let index = indexSet.first {
                                 Task { await viewModel.onDelete(at: index) }
                             }
                         }
+                        .onMove { from, to in
+                            viewModel.onMove(from: from, to: to)
+                        }
                     }
                 }
+                .environment(\.editMode, $editMode)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             .toolbar {
-                DismissToolbarItem()
+                if editMode == .inactive {
+                    DismissToolbarItem()
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            withAnimation { editMode = .active }
+                        } label: {
+                            Image(systemName: "pencil")
+                        }
+                    }
+                } else {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            withAnimation { editMode = .inactive }
+                            Task { await viewModel.onSaveReorder() }
+                        } label: {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
             }
+            .loader(viewModel.state.isLoading)
+            .interactiveDismissDisabled(editMode == .active)
             .alert(isPresented: $viewModel.showingAlert) {
                 Alert(
                     title: Text(viewModel.alertTitle),
@@ -106,7 +144,7 @@ struct MealTypeSheetView: View {
                     .font(.system(size: .basic))
                 }
                 .padding(.bottom, 20)
-                .background(.white)
+                .background(Color(.secondarySystemBackground))
 
                 Button {
                     Task { await viewModel.onCreateMealType() }
@@ -116,7 +154,7 @@ struct MealTypeSheetView: View {
                         .padding()
                         .frame(maxWidth: .infinity)
                 }
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .background(.blue)
                 .frame(maxWidth: .infinity)
                 .padding(.top, -10)
@@ -135,5 +173,24 @@ struct MealTypeSheetView: View {
 // MARK: - Preview
 
 #Preview {
-    MealTypeSheetConfigurator().createView(mealTypes: [])
+    MealTypeSheetConfigurator().createView(mealTypes: [
+        MealTypeDomain(
+            id: 0,
+            name: L10n.DefaultMeals.breakfast,
+            startTime: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: .now) ?? .now,
+            endTime: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now
+        ),
+        MealTypeDomain(
+            id: 1,
+            name: L10n.DefaultMeals.lunch,
+            startTime: Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: .now) ?? .now,
+            endTime: Calendar.current.date(bySettingHour: 14, minute: 0, second: 0, of: .now) ?? .now
+        ),
+        MealTypeDomain(
+            id: 2,
+            name: L10n.DefaultMeals.dinner,
+            startTime: Calendar.current.date(bySettingHour: 18, minute: 0, second: 0, of: .now) ?? .now,
+            endTime: Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: .now) ?? .now
+        )
+    ])
 }

@@ -11,4 +11,5 @@ enum CreateMealTypeError: Error {
     case emptyName
     case duplicateName
     case timeConflict
+    case durationTooShort
 }

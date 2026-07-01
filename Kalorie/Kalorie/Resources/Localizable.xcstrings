@@ -364,6 +364,40 @@
         }
       }
     },
+    "auth_button_retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zkusit znovu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        }
+      }
+    },
+    "auth_error_signInFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodařilo se přihlásit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in failed"
+          }
+        }
+      }
+    },
     "common_error_unknown" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -669,6 +703,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enter a meal name"
+          }
+        }
+      }
+    },
+    "mealTypeSheet_error_lastMealType" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alespoň jednou denně by se chtělo najíst   🍳😉"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You should eat at least once a day 🍳😉"
+          }
+        }
+      }
+    },
+    "mealTypeSheet_error_durationTooShort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimální délka jídla je 30 minut"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimum meal duration is 30 minutes"
           }
         }
       }
