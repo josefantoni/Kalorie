@@ -68,12 +68,16 @@ final class AddFoodSheetViewModel: ObservableObject {
             availableFoodItems = try await fetchFoodItems()
             state = .loaded
         } catch {
-            state = .error(error)
+            alertTitle = L10n.Common.errorUnknown
+            isAlertVisible = true
+            state = .loaded
         }
     }
 
     @MainActor
     func onCreateFoodItem() async {
+        state = .loading
+        defer { state = .loaded }
         let item = FoodItemDomain(
             id: formInput.scannedCode,
             name: formInput.name,

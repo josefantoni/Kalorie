@@ -16,3 +16,10 @@ enum LoadingState<T> {
 extension LoadingState where T == Void {
     static let loaded: LoadingState<Void> = .loaded(())
 }
+
+extension LoadingState {
+    var isLoading: Bool {
+        if case .loading = self { return true }
+        return false
+    }
+}

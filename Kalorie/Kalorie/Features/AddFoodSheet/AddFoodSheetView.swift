@@ -62,6 +62,7 @@ struct AddFoodSheetView: View {
                     .padding([.trailing, .bottom], 15)
                 }
             }
+            .loader(viewModel.state.isLoading)
             .alert(isPresented: $viewModel.isAlertVisible) {
                 Alert(
                     title: Text(viewModel.alertTitle),
@@ -69,8 +70,8 @@ struct AddFoodSheetView: View {
                 )
             }
             .task { await viewModel.onAppear() }
-            .onChange(of: viewModel.shouldDismiss) { newValue in
-                if newValue { dismiss() }
+            .onChange(of: viewModel.shouldDismiss) {
+                if viewModel.shouldDismiss { dismiss() }
             }
             .toolbar {
                 DismissToolbarItem()

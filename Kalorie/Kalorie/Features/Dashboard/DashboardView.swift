@@ -13,6 +13,7 @@ struct DashboardView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: DashboardViewModel
+    @State private var pulseAnimation = false
     let router: DashboardRouter
 
     // MARK: - Init
@@ -53,32 +54,61 @@ struct DashboardView: View {
             }
         }
         .overlay {
-            if viewModel.foodsConsumed.isEmpty {
-                ContentUnavailableView(label: {
-                    Label(L10n.Dashboard.emptyTitle, systemImage: "list.bullet.rectangle.portrait")
-                        .padding()
-                }, description: {
-                    Text(L10n.Dashboard.emptyDescription)
-                }, actions: {
-                    Button(L10n.Dashboard.emptyAddFood) {
-                        viewModel.showAddFoodSheet.toggle()
-                    }
-                })
-                .padding()
+            if viewModel.foodsConsumed.isEmpty && !viewModel.state.isLoading {
+                emptyStateView
             }
         }
+        .loader(viewModel.state.isLoading)
         .sheet(isPresented: $viewModel.showAddFoodSheet) {
             router.makeAddFoodSheetView()
         }
-
-        Button {
-        } label: {
-            BaseImage(
-                imageName: .plusCircle,
-                imageSize: .extraLarge
-            )
+        .alert(viewModel.alertTitle, isPresented: $viewModel.showingAlert) {
+            Button(L10n.Common.ok) {}
         }
         .task { await viewModel.onAppear() }
+
+        if !viewModel.foodsConsumed.isEmpty {
+            Button {
+            } label: {
+                BaseImage(
+                    imageName: .plusCircle,
+                    imageSize: .extraLarge
+                )
+            }
+        }
+    }
+
+    // MARK: - Functions
+
+    private var emptyStateView: some View {
+        VStack(spacing: 25) {
+            Label {
+                Text(L10n.Dashboard.emptyTitle)
+            } icon: {
+                Image(systemName: "list.bullet.rectangle.portrait")
+            }
+            .font(.title2)
+
+            Text(L10n.Dashboard.emptyDescription)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .padding(.bottom)
+
+            Button(L10n.Dashboard.emptyAddFood) {
+                viewModel.showAddFoodSheet.toggle()
+            }
+            .buttonStyle(.borderedProminent)
+            .scaleEffect(pulseAnimation ? 1.2 : 1.0)
+            .animation(.easeInOut(duration: 0.7), value: pulseAnimation)
+        }
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(3))
+                pulseAnimation = true
+                try? await Task.sleep(for: .seconds(0.7))
+                pulseAnimation = false
+            }
+        }
     }
 }
 
