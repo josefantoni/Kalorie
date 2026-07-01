@@ -12,12 +12,13 @@ struct DashboardConfigurator {
     // MARK: - Functions
 
     func createView() -> DashboardView {
-        let context = PersistentContainer.shared.viewContext
+        let dataProvider = FirestoreDataProvider()
+        let authProvider = AuthProvider()
         return DashboardView(
             viewModel: DashboardViewModel(
-                fetchMealTypes: FetchMealTypesUseCase(context: context),
-                fetchFoodsConsumed: FetchFoodsConsumedUseCase(context: context),
-                setupDefaultMeals: SetupDefaultMealsUseCase(context: context)
+                fetchMealTypes: FetchMealTypesUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchFoodsConsumed: FetchFoodsConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                setupDefaultMeals: SetupDefaultMealsUseCase(dataProvider: dataProvider, authProvider: authProvider)
             ),
             router: DashboardRouter(
                 mealTypeSheetConfigurator: MealTypeSheetConfigurator(),

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CoreData
 
 protocol FetchMealTypesUseCaseProtocol {
     func callAsFunction() async throws -> [MealTypeDomain]
@@ -16,28 +15,31 @@ struct FetchMealTypesUseCase: FetchMealTypesUseCaseProtocol {
 
     // MARK: - Properties
 
-    private let context: NSManagedObjectContext
+    private let dataProvider: any FirestoreDataProviderProtocol
+    private let authProvider: any AuthProviderProtocol
 
     // MARK: - Init
 
-    init(context: NSManagedObjectContext) {
-        self.context = context
+    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+        self.dataProvider = dataProvider
+        self.authProvider = authProvider
     }
 
     // MARK: - Functions
 
     func callAsFunction() async throws -> [MealTypeDomain] {
-        try await context.perform {
-            let request = NSFetchRequest<MealType>(entityName: Constants.CoreData.EntityName.mealType)
-            return try self.context.fetch(request).map {
+        guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
+        let dtos: [MealTypeDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.mealTypes(userId: userId))
+        return dtos
+            .map {
                 MealTypeDomain(
-                    id: Int($0.id),
-                    name: $0.name ?? "",
-                    startTime: $0.startTime.toDate,
-                    endTime: $0.endTime.toDate
+                    id: $0.id,
+                    name: $0.name,
+                    startTime: Date(timeIntervalSince1970: $0.startTime),
+                    endTime: Date(timeIntervalSince1970: $0.endTime)
                 )
             }
-        }
+            .sorted { $0.startTime < $1.startTime }
     }
 }
 

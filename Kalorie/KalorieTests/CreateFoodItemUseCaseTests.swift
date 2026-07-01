@@ -84,7 +84,10 @@ final class FirestoreDataProviderFake: FirestoreDataProviderProtocol {
 
     // MARK: - Functions
 
-    func loadAsync<T: Decodable>(_ collection: String) async throws -> [T] { [] }
+    func loadAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
 
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
+    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
+    func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
+    func deleteAsync(id: String, from collection: String) async throws {}
 }

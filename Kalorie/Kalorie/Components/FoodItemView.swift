@@ -45,8 +45,7 @@ struct FoodConsumedView: View {
             name: "Jogurt bílý",
             weight: 200,
             date: .now,
-            calories: 140,
-            mealTypeId: nil
+            calories: 140
         )
     )
 }

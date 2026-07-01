@@ -17,6 +17,8 @@ final class DashboardViewModel: ObservableObject {
     @Published var selectedDay = Date.now
     @Published var showMealTypeSheet = false
     @Published var showAddFoodSheet = false
+    @Published var showingAlert = false
+    @Published var alertTitle = ""
 
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let fetchFoodsConsumed: any FetchFoodsConsumedUseCaseProtocol
@@ -44,16 +46,17 @@ final class DashboardViewModel: ObservableObject {
         }
         state = .loading
         do {
-            if UserDefaults.standard.object(forKey: Constants.UserDefaultsKeys.firstOpen) == nil {
-                mealTypes = try await setupDefaultMeals()
-                UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKeys.firstOpen)
-            } else {
-                mealTypes = try await fetchMealTypes()
+            var types = try await fetchMealTypes()
+            if types.isEmpty {
+                types = try await setupDefaultMeals()
             }
+            mealTypes = types
             foodsConsumed = try await fetchFoodsConsumed(for: selectedDay)
             state = .loaded
         } catch {
-            state = .error(error)
+            alertTitle = L10n.Common.errorUnknown
+            showingAlert = true
+            state = .loaded
         }
     }
 }

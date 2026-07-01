@@ -27,20 +27,28 @@ struct KalorieApp: App {
     // MARK: - Properties
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @State private var isStoreLoaded = false
+    @StateObject private var authState = AuthStateObserver()
 
     // MARK: - Body
 
     var body: some Scene {
         WindowGroup {
-            if isStoreLoaded {
+            switch authState.state {
+            case .loading:
+                ProgressView()
+            case .loaded:
                 DashboardConfigurator().createView()
-            } else {
-                Color.clear
-                    .task {
-                        await PersistentContainer.load()
-                        isStoreLoaded = true
-                    }
+            case .error(let error):
+                VStack(spacing: 16) {
+                    Text(L10n.Auth.errorSignInFailed)
+                        .font(.headline)
+                    Text(error?.localizedDescription ?? L10n.Common.errorUnknown)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                    Button(L10n.Auth.buttonRetry) { authState.retry() }
+                }
             }
         }
     }

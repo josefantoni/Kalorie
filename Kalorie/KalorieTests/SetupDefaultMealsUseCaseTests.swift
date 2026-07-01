@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import CoreData
 @testable import Kalorie
 
 final class SetupDefaultMealsUseCaseTests: XCTestCase {
@@ -19,14 +18,10 @@ final class SetupDefaultMealsUseCaseTests: XCTestCase {
         XCTAssertEqual(result.count, 5)
     }
 
-    func test_setupDefaultMeals_persistsFiveMealTypesToContext() async throws {
-        let (sut, context) = makeSUT()
+    func test_setupDefaultMeals_persistsFiveMealTypesToDataProvider() async throws {
+        let (sut, dataProvider) = makeSUT()
         _ = try await sut()
-
-        let request = NSFetchRequest<MealType>(entityName: Constants.CoreData.EntityName.mealType)
-        let persisted = try context.fetch(request)
-
-        XCTAssertEqual(persisted.count, 5)
+        XCTAssertEqual(dataProvider.batchSavedCount, 5)
     }
 
     func test_setupDefaultMeals_assignsSequentialIdsStartingFromZero() async throws {
@@ -38,18 +33,26 @@ final class SetupDefaultMealsUseCaseTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func makeSUT() -> (sut: SetupDefaultMealsUseCase, context: NSManagedObjectContext) {
-        let context = makeInMemoryContext()
-        let sut = SetupDefaultMealsUseCase(context: context)
-        return (sut, context)
+    private func makeSUT() -> (sut: SetupDefaultMealsUseCase, dataProvider: SetupDefaultMealsDataProviderFake) {
+        let dataProvider = SetupDefaultMealsDataProviderFake()
+        let sut = SetupDefaultMealsUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake())
+        return (sut, dataProvider)
     }
+}
 
-    private func makeInMemoryContext() -> NSManagedObjectContext {
-        let container = NSPersistentContainer(name: "Model")
-        let description = NSPersistentStoreDescription()
-        description.type = NSInMemoryStoreType
-        container.persistentStoreDescriptions = [description]
-        container.loadPersistentStores { _, _ in }
-        return container.viewContext
+private final class SetupDefaultMealsDataProviderFake: FirestoreDataProviderProtocol {
+
+    // MARK: - Properties
+
+    var batchSavedCount = 0
+
+    // MARK: - Functions
+
+    func loadAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
+    func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
+    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
+    func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {
+        batchSavedCount = items.count
     }
+    func deleteAsync(id: String, from collection: String) async throws {}
 }

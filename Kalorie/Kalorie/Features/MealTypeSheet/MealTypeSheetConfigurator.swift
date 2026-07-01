@@ -12,12 +12,14 @@ struct MealTypeSheetConfigurator {
     // MARK: - Functions
 
     func createView(mealTypes: [MealTypeDomain]) -> MealTypeSheetView {
-        let context = PersistentContainer.shared.viewContext
+        let dataProvider = FirestoreDataProvider()
+        let authProvider = AuthProvider()
         return MealTypeSheetView(
             viewModel: MealTypeSheetViewModel(
                 mealTypes: mealTypes,
-                createMealType: CreateMealTypeUseCase(context: context),
-                deleteMealType: DeleteMealTypeUseCase(context: context)
+                createMealType: CreateMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                deleteMealType: DeleteMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                updateMealTypeTimes: UpdateMealTypeTimesUseCase(dataProvider: dataProvider, authProvider: authProvider)
             )
         )
     }

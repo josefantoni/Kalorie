@@ -1,17 +1,17 @@
 //
-//  DeleteMealTypeUseCase.swift
+//  UpdateMealTypeTimesUseCase.swift
 //  Kalorie
 //
-//  Created by Josef Antoni on 29.06.2026.
+//  Created by Josef Antoni on 30.06.2026.
 //
 
 import Foundation
 
-protocol DeleteMealTypeUseCaseProtocol {
+protocol UpdateMealTypeTimesUseCaseProtocol {
     func callAsFunction(_ mealType: MealTypeDomain) async throws
 }
 
-struct DeleteMealTypeUseCase: DeleteMealTypeUseCaseProtocol {
+struct UpdateMealTypeTimesUseCase: UpdateMealTypeTimesUseCaseProtocol {
 
     // MARK: - Properties
 
@@ -29,11 +29,17 @@ struct DeleteMealTypeUseCase: DeleteMealTypeUseCaseProtocol {
 
     func callAsFunction(_ mealType: MealTypeDomain) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        try await dataProvider.deleteAsync(id: "\(mealType.id)", from: Constants.Firestore.mealTypes(userId: userId))
+        let dto = MealTypeDTO(
+            id: mealType.id,
+            name: mealType.name,
+            startTime: mealType.startTime.timeIntervalSince1970,
+            endTime: mealType.endTime.timeIntervalSince1970
+        )
+        try await dataProvider.setAsync(dto, id: "\(mealType.id)", in: Constants.Firestore.mealTypes(userId: userId))
     }
 }
 
-struct DeleteMealTypeUseCaseFake: DeleteMealTypeUseCaseProtocol {
+struct UpdateMealTypeTimesUseCaseFake: UpdateMealTypeTimesUseCaseProtocol {
 
     // MARK: - Functions
 

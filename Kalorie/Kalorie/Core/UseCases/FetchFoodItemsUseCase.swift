@@ -26,7 +26,7 @@ struct FetchFoodItemsUseCase: FetchFoodItemsUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction() async throws -> [FoodItemDomain] {
-        let dtos: [FoodItemDTO] = try await dataProvider.loadAsync("food_items")
+        let dtos: [FoodItemDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.foodItems)
         return dtos.map {
             FoodItemDomain(
                 id: $0.id,

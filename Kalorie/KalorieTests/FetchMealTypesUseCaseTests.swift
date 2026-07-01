@@ -6,50 +6,60 @@
 //
 
 import XCTest
-import CoreData
 @testable import Kalorie
 
 final class FetchMealTypesUseCaseTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_fetchMealTypes_withEmptyContext_returnsEmptyArray() async throws {
+    func test_fetchMealTypes_withEmptyProvider_returnsEmptyArray() async throws {
         let (sut, _) = makeSUT()
         let result = try await sut()
         XCTAssertTrue(result.isEmpty)
     }
 
-    func test_fetchMealTypes_withPersistedMealTypes_returnsAll() async throws {
-        let (sut, context) = makeSUT()
-        _ = MealType(id: 0, name: "Snídaně", startTime: makeDate(hour: 6), endTime: makeDate(hour: 9), context: context)
-        _ = MealType(id: 1, name: "Oběd", startTime: makeDate(hour: 12), endTime: makeDate(hour: 14), context: context)
-        try context.save()
+    func test_fetchMealTypes_returnsMappedAndSortedDomains() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedMealTypes = [
+            MealTypeDTO(id: 1, name: "Oběd", startTime: makeDate(hour: 12).timeIntervalSince1970, endTime: makeDate(hour: 14).timeIntervalSince1970),
+            MealTypeDTO(id: 0, name: "Snídaně", startTime: makeDate(hour: 6).timeIntervalSince1970, endTime: makeDate(hour: 9).timeIntervalSince1970)
+        ]
 
         let result = try await sut()
 
         XCTAssertEqual(result.count, 2)
-        XCTAssertTrue(result.contains(where: { $0.name == "Snídaně" }))
-        XCTAssertTrue(result.contains(where: { $0.name == "Oběd" }))
+        XCTAssertEqual(result[0].name, "Snídaně")
+        XCTAssertEqual(result[1].name, "Oběd")
     }
 
     // MARK: - Helpers
 
-    private func makeSUT() -> (sut: FetchMealTypesUseCase, context: NSManagedObjectContext) {
-        let context = makeInMemoryContext()
-        let sut = FetchMealTypesUseCase(context: context)
-        return (sut, context)
-    }
-
-    private func makeInMemoryContext() -> NSManagedObjectContext {
-        let container = NSPersistentContainer(name: "Model")
-        let description = NSPersistentStoreDescription()
-        description.type = NSInMemoryStoreType
-        container.persistentStoreDescriptions = [description]
-        container.loadPersistentStores { _, _ in }
-        return container.viewContext
+    private func makeSUT() -> (sut: FetchMealTypesUseCase, dataProvider: FirestoreDataProviderStub) {
+        let dataProvider = FirestoreDataProviderStub()
+        let sut = FetchMealTypesUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake())
+        return (sut, dataProvider)
     }
 
     private func makeDate(hour: Int) -> Date {
         Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date()) ?? Date()
     }
+}
+
+final class FirestoreDataProviderStub: FirestoreDataProviderProtocol {
+
+    // MARK: - Properties
+
+    var stubbedMealTypes: [MealTypeDTO] = []
+    var deletedId: String?
+
+    // MARK: - Functions
+
+    func loadAsync<T: Decodable>(from collection: String) async throws -> [T] {
+        stubbedMealTypes.compactMap { $0 as? T }
+    }
+
+    func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
+    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
+    func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
+    func deleteAsync(id: String, from collection: String) async throws { deletedId = id }
 }

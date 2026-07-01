@@ -91,7 +91,6 @@ opt_in_rules:
 - colon
 - comma
 - compiler_protocol_init
-- conditional_returns_on_newline
 - contains_over_first_not_nil
 - control_statement
 - convenience_type
@@ -136,7 +135,7 @@ opt_in_rules:
 - multiline_parameters_brackets
 - opening_brace
 - operator_usage_whitespace
-- operator_whitespace
+- function_name_whitespace
 - private_action
 - private_outlet
 - private_over_fileprivate
@@ -144,7 +143,7 @@ opt_in_rules:
 - redundant_discardable_let
 - redundant_nil_coalescing
 - redundant_objc_attribute
-- redundant_optional_initialization
+- implicit_optional_initialization
 - redundant_set_access_control
 - redundant_type_annotation
 - redundant_void_return
@@ -229,13 +228,13 @@ mark: warning
 multiline_arguments_brackets: warning
 multiline_literal_brackets: warning
 multiline_parameters_brackets: warning
-operator_whitespace: warning
+function_name_whitespace: warning
 private_action: warning
 protocol_property_accessors_order: warning
 redundant_discardable_let: warning
 redundant_nil_coalescing: warning
 redundant_objc_attribute: warning
-redundant_optional_initialization: warning
+implicit_optional_initialization: warning
 redundant_set_access_control: warning
 redundant_type_annotation: warning
 redundant_void_return: warning
