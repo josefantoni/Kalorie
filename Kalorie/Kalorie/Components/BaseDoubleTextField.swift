@@ -39,7 +39,7 @@ struct BaseDoubleTextField: View {
                 )
             Text("g")
                 .frame(alignment: .trailing)
-                .padding([.leading, .trailing], 8)
+                .padding(.horizontal, 8)
         }
     }
     
