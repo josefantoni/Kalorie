@@ -1,5 +1,26 @@
-Under developing right now :)
+# Kalorie
 
-This iOS application will be calories and macros calculator. On the appstore there are several apps with this functionality, but they have one in common, they contain many unnecessary features.
-They are made to sell somekind of fitness plans for users. This app be simple and Offline friendly. Simple means one thing -> data perservation and statistics what user did ate. It will be needed
-to create REST API storage, where new foods and its cal/macros will be stored. User's most often eaten foods will be stored localy for quicker and easier tracking.
+iOS app for tracking calories and macros. Built it because existing apps are bloated with features I don't need.
+
+## What it does
+
+- Log food with calories, protein, carbs, fat
+- Barcode scanner for adding foods
+- Customisable meal types with drag-to-reorder
+- Synced via Firestore so data persists across devices
+
+## Stack
+
+SwiftUI, Firebase (Firestore + Auth), XCTest, GitHub Actions
+
+## Architecture
+
+MVVM with a UseCase layer. Each use case is a `struct` with `callAsFunction`, injected via protocol. Dependencies wired through `Configurator` structs at the call site.
+
+```
+View → ViewModel → UseCase → FirestoreDataProvider
+```
+
+## Status
+
+Work in progress.
