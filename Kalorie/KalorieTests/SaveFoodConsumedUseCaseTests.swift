@@ -15,7 +15,7 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
     func test_saveFoodConsumed_whenNotAuthenticated_throwsAuthError() async throws {
         let (sut, _) = makeSUT(userId: nil)
         do {
-            try await sut(makeItem(), date: .now)
+            try await sut(makeItem(), grams: 100, date: .now)
             XCTFail("Expected notAuthenticated error")
         } catch AuthError.notAuthenticated {
             // pass
@@ -24,19 +24,19 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
 
     func test_saveFoodConsumed_savesToUserSpecificCollection() async throws {
         let (sut, dataProvider) = makeSUT(userId: "user-123")
-        try await sut(makeItem(), date: .now)
+        try await sut(makeItem(), grams: 100, date: .now)
         XCTAssertEqual(dataProvider.savedToCollection, "users/user-123/foodConsumed")
     }
 
     func test_saveFoodConsumed_calculatesCaloriesFromWeightAndCaloriesPer100g() async throws {
         let (sut, dataProvider) = makeSUT()
-        try await sut(makeItem(weight: 200, caloriesPerHundredGrams: 100), date: .now)
+        try await sut(makeItem(caloriesPerHundredGrams: 100), grams: 200, date: .now)
         XCTAssertEqual(dataProvider.savedDTO?.calories, 200)
     }
 
     func test_saveFoodConsumed_storesCorrectNameAndWeight() async throws {
         let (sut, dataProvider) = makeSUT()
-        try await sut(makeItem(czName: "Tvaroh", engName: "Cottage cheese", weight: 150), date: .now)
+        try await sut(makeItem(czName: "Tvaroh", engName: "Cottage cheese"), grams: 150, date: .now)
         XCTAssertEqual(dataProvider.savedDTO?.czName, "Tvaroh")
         XCTAssertEqual(dataProvider.savedDTO?.engName, "Cottage cheese")
         XCTAssertEqual(dataProvider.savedDTO?.weight, 150)

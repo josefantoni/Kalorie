@@ -41,6 +41,8 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published var isAlertVisible = false
     @Published var alertTitle = ""
     @Published private(set) var shouldDismiss = false
+    @Published var isPushedToQuantityView = false
+    @Published private(set) var selectedFoodItem: FoodItemDomain?
 
     private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
     private let createFoodItem: any CreateFoodItemUseCaseProtocol
@@ -90,18 +92,19 @@ final class AddFoodSheetViewModel: ObservableObject {
         externalFoodItems = (try? await searchFoodExternally(query: searchText)) ?? []
     }
 
-    @MainActor
-    func onSelectFoodItem(_ item: FoodItemDomain) async {
-        guard !state.isLoading else { return }
-        state = .loading
-        defer { state = .loaded }
-        do {
-            try await saveFoodConsumed(item, date: selectedDate)
-            onFoodSaved()
-            shouldDismiss = true
-        } catch {
-            alertTitle = L10n.Common.errorUnknown
-            isAlertVisible = true
+    func onSelectFoodItem(_ item: FoodItemDomain) {
+        selectedFoodItem = item
+        isPushedToQuantityView = true
+    }
+
+    func makeQuantityViewModel(for item: FoodItemDomain) -> FoodQuantityViewModel {
+        FoodQuantityViewModel(
+            item: item,
+            saveFoodConsumed: saveFoodConsumed,
+            selectedDate: selectedDate
+        ) { [weak self] in
+            self?.onFoodSaved()
+            self?.shouldDismiss = true
         }
     }
 

@@ -55,6 +55,11 @@ struct AddFoodSheetView: View {
             .onChange(of: viewModel.shouldDismiss) {
                 if viewModel.shouldDismiss { dismiss() }
             }
+            .navigationDestination(isPresented: $viewModel.isPushedToQuantityView) {
+                if let item = viewModel.selectedFoodItem {
+                    FoodQuantityView(viewModel: viewModel.makeQuantityViewModel(for: item))
+                }
+            }
             .toolbar {
                 DismissToolbarItem()
                 ToolbarItem(placement: .topBarTrailing) {
@@ -111,7 +116,7 @@ struct AddFoodSheetView: View {
                 ForEach(viewModel.localFoodItems, id: \.id) { item in
                     Text(item.displayName)
                         .onTapGesture {
-                            Task { await viewModel.onSelectFoodItem(item) }
+                            viewModel.onSelectFoodItem(item)
                         }
                 }
             }
@@ -124,7 +129,7 @@ struct AddFoodSheetView: View {
                         ForEach(viewModel.externalFoodItems, id: \.id) { item in
                             Text(item.displayName)
                                 .onTapGesture {
-                                    Task { await viewModel.onSelectFoodItem(item) }
+                                    viewModel.onSelectFoodItem(item)
                                 }
                         }
                     }

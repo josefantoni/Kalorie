@@ -30,7 +30,7 @@ struct BaseDoubleTextField: View {
                     alignment: .leading
                 )
 
-            TextField("0", value: $weight, formatter: formatter)
+            TextField("0", value: $weight, formatter: NumberFormatter.decimal)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .frame(
@@ -42,11 +42,4 @@ struct BaseDoubleTextField: View {
                 .padding(.horizontal, 8)
         }
     }
-    
-    let formatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.zeroSymbol = ""
-        return formatter
-    }()
 }
