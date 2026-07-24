@@ -54,6 +54,20 @@ enum L10n {
         static var errorInvalidWeight: String { String(localized: "addFood_error_invalidWeight") }
     }
 
+    enum FoodQuantity {
+        static var sectionNutrition: String { String(localized: "foodQuantity_section_nutrition") }
+        static var unitPortions: String { String(localized: "foodQuantity_unit_portions") }
+        static var unitGrams: String { String(localized: "foodQuantity_unit_grams") }
+        static var inputPortions: String { String(localized: "foodQuantity_input_portions") }
+        static var inputGrams: String { String(localized: "foodQuantity_input_grams") }
+        static var buttonAdd: String { String(localized: "foodQuantity_button_add") }
+        static var calories: String { String(localized: "foodQuantity_macro_calories") }
+        static var protein: String { String(localized: "foodQuantity_macro_protein") }
+        static var carbs: String { String(localized: "foodQuantity_macro_carbs") }
+        static var fat: String { String(localized: "foodQuantity_macro_fat") }
+        static var fiber: String { String(localized: "foodQuantity_macro_fiber") }
+    }
+
     enum MealTypeSheet {
         static var sectionMealLayout: String { String(localized: "mealTypeSheet_section_mealLayout") }
         static var fieldNewMealPlaceholder: String { String(localized: "mealTypeSheet_field_newMeal_placeholder") }

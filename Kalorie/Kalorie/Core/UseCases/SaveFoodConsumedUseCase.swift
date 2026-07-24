@@ -8,7 +8,7 @@
 import Foundation
 
 protocol SaveFoodConsumedUseCaseProtocol {
-    func callAsFunction(_ item: FoodItemDomain, date: Date) async throws
+    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws
 }
 
 struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
@@ -27,14 +27,14 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, date: Date) async throws {
+    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let calories = Int(item.caloriesPerHundredGrams * item.weight / 100)
+        let calories = Int(item.caloriesPerHundredGrams * grams / 100)
         let dto = FoodConsumedDTO(
             id: item.id,
             czName: item.czName,
             engName: item.engName,
-            weight: item.weight,
+            weight: grams,
             date: date.timeIntervalSince1970,
             calories: calories
         )
@@ -46,5 +46,5 @@ struct SaveFoodConsumedUseCaseFake: SaveFoodConsumedUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, date: Date) async throws {}
+    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws {}
 }
