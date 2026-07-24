@@ -41,12 +41,14 @@ struct DashboardView: View {
         }
         .padding(.trailing)
 
-        List($viewModel.foodsConsumed, id: \.id, editActions: .move) { food in
-            Section {
-                FoodConsumedView(food.wrappedValue)
-            } header: {
-                VStack {
-                    Text(L10n.Dashboard.sectionUnassignedFoods)
+        List {
+            ForEach(Array(viewModel.groupedFoods.enumerated()), id: \.offset) { _, group in
+                Section {
+                    ForEach(group.foods, id: \.id) { food in
+                        FoodConsumedView(food)
+                    }
+                } header: {
+                    Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .font(.subheadline)
                         .padding(.leading, -5)
