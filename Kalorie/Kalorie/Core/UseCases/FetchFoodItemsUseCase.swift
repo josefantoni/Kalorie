@@ -30,14 +30,18 @@ struct FetchFoodItemsUseCase: FetchFoodItemsUseCaseProtocol {
         return dtos.map {
             FoodItemDomain(
                 id: $0.id,
-                name: $0.name,
+                czName: $0.czName,
+                engName: $0.engName,
                 weight: $0.weight,
                 date: $0.date.toDate,
+                energyKJ: $0.energyKJ ?? 0,
                 caloriesPerHundredGrams: $0.caloriesPerHundredGrams,
                 fat: $0.fat,
+                fatSaturated: $0.fatSaturated ?? 0,
                 fatUnsaturatedFattyAcids: $0.fatUnsaturatedFattyAcids,
                 carbohydrate: $0.carbohydrate,
                 carbohydratePureSugar: $0.carbohydratePureSugar,
+                fiber: $0.fiber ?? 0,
                 protein: $0.protein,
                 salt: $0.salt
             )

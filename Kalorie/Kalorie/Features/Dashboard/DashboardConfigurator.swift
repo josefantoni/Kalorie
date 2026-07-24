@@ -22,7 +22,7 @@ struct DashboardConfigurator {
             ),
             router: DashboardRouter(
                 mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
-                addFoodSheetConfigurator: AddFoodSheetConfigurator()
+                addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider)
             )
         )
     }

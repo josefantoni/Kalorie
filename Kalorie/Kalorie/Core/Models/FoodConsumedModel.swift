@@ -7,12 +7,13 @@
 
 import Foundation
 
-struct FoodConsumedDomain {
+struct FoodConsumedDomain: BilingualNamed {
 
     // MARK: - Properties
 
     let id: String
-    let name: String
+    let czName: String
+    let engName: String
     let weight: Double
     let date: Date
     let calories: Int

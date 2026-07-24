@@ -20,13 +20,13 @@ final class FetchFoodItemsUseCaseTests: XCTestCase {
 
     func test_fetchFoodItems_whenProviderReturnsItems_returnsMappedDomains() async throws {
         let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedDTOs = [makeDTO(id: "A123", name: "Tvaroh", caloriesPerHundredGrams: 80)]
+        dataProvider.stubbedDTOs = [makeDTO(id: "A123", czName: "Tvaroh", caloriesPerHundredGrams: 80)]
 
         let result = try await sut()
 
         XCTAssertEqual(result.count, 1)
         XCTAssertEqual(result[0].id, "A123")
-        XCTAssertEqual(result[0].name, "Tvaroh")
+        XCTAssertEqual(result[0].czName, "Tvaroh")
         XCTAssertEqual(result[0].caloriesPerHundredGrams, 80)
     }
 
@@ -40,12 +40,15 @@ final class FetchFoodItemsUseCaseTests: XCTestCase {
 
     private func makeDTO(
         id: String = "12345678",
-        name: String = "Tvaroh",
+        czName: String = "Tvaroh",
         caloriesPerHundredGrams: Double = 80
     ) -> FoodItemDTO {
         FoodItemDTO(
             id: id,
-            name: name,
+            czName: czName,
+            engName: "",
+            czNameLowercase: czName.lowercased(),
+            engNameLowercase: "",
             weight: 100,
             date: Date.now.timeIntervalSince1970,
             caloriesPerHundredGrams: caloriesPerHundredGrams,
@@ -70,6 +73,9 @@ private final class FetchFoodItemsDataProviderFake: FirestoreDataProviderProtoco
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T] {
         stubbedDTOs.compactMap { $0 as? T }
     }
+
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
+    func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
 
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}

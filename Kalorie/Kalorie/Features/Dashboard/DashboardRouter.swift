@@ -30,7 +30,7 @@ struct DashboardRouter {
         mealTypeSheetConfigurator.createView(mealTypes: mealTypes)
     }
 
-    func makeAddFoodSheetView(withBarcodeScan: Bool = false) -> AddFoodSheetView {
-        addFoodSheetConfigurator.createView(withBarcodeScan: withBarcodeScan)
+    func makeAddFoodSheetView(for date: Date, onFoodSaved: @escaping () -> Void = {}, withBarcodeScan: Bool = false) -> AddFoodSheetView {
+        addFoodSheetConfigurator.createView(date: date, onFoodSaved: onFoodSaved, withBarcodeScan: withBarcodeScan)
     }
 }
