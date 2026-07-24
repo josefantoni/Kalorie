@@ -52,6 +52,7 @@ enum L10n {
         static var errorInvalidName: String { String(localized: "addFood_error_invalidName") }
         static var errorInvalidCalories: String { String(localized: "addFood_error_invalidCalories") }
         static var errorInvalidWeight: String { String(localized: "addFood_error_invalidWeight") }
+        static var errorBarcodeNotFound: String { String(localized: "addFood_error_barcodeNotFound") }
     }
 
     enum FoodQuantity {
@@ -66,6 +67,7 @@ enum L10n {
         static var carbs: String { String(localized: "foodQuantity_macro_carbs") }
         static var fat: String { String(localized: "foodQuantity_macro_fat") }
         static var fiber: String { String(localized: "foodQuantity_macro_fiber") }
+        static var errorInvalidQuantity: String { String(localized: "foodQuantity_error_invalidQuantity") }
     }
 
     enum MealTypeSheet {

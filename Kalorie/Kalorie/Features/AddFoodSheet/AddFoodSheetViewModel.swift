@@ -43,11 +43,15 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published private(set) var shouldDismiss = false
     @Published var isPushedToQuantityView = false
     @Published private(set) var selectedFoodItem: FoodItemDomain?
+    @Published var lastScannedBarcode = ""
+    @Published private(set) var isBarcodeSearchLoading = false
 
     private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
     private let createFoodItem: any CreateFoodItemUseCaseProtocol
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
     private let searchFoodExternally: any SearchFoodExternallyUseCaseProtocol
+    private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
+    private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
     private let selectedDate: Date
     private let onFoodSaved: () -> Void
 
@@ -58,6 +62,8 @@ final class AddFoodSheetViewModel: ObservableObject {
         createFoodItem: any CreateFoodItemUseCaseProtocol,
         saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol,
         searchFoodExternally: any SearchFoodExternallyUseCaseProtocol,
+        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
+        fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
         selectedDate: Date,
         onFoodSaved: @escaping () -> Void = {},
         isScannerVisible: Bool = false
@@ -67,11 +73,39 @@ final class AddFoodSheetViewModel: ObservableObject {
         self.createFoodItem = createFoodItem
         self.saveFoodConsumed = saveFoodConsumed
         self.searchFoodExternally = searchFoodExternally
+        self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
+        self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
         self.selectedDate = selectedDate
         self.onFoodSaved = onFoodSaved
     }
 
     // MARK: - Functions
+
+    func onScannerButtonTapped() {
+        isAddNewItemVisible = false
+        isScannerVisible.toggle()
+    }
+
+    @MainActor
+    func onBarcodeScanned() async {
+        let barcode = lastScannedBarcode
+        guard !barcode.isEmpty else { return }
+        lastScannedBarcode = ""
+        isBarcodeSearchLoading = true
+        defer { isBarcodeSearchLoading = false }
+        if let local = try? await fetchFoodItemByBarcode(barcode: barcode) {
+            isScannerVisible = false
+            onSelectFoodItem(local)
+            return
+        }
+        if let external = try? await fetchFoodByBarcodeExternally(barcode: barcode) {
+            isScannerVisible = false
+            onSelectFoodItem(external)
+            return
+        }
+        alertTitle = L10n.AddFood.errorBarcodeNotFound
+        isAlertVisible = true
+    }
 
     @MainActor
     func onSearchTextChanged() async {

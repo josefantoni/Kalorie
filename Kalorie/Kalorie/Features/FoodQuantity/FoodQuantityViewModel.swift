@@ -71,6 +71,11 @@ final class FoodQuantityViewModel: ObservableObject {
     @MainActor
     func onConfirm() async {
         guard !state.isLoading else { return }
+        guard grams > 0 else {
+            alertTitle = L10n.FoodQuantity.errorInvalidQuantity
+            isAlertVisible = true
+            return
+        }
         state = .loading
         defer { state = .loaded }
         do {
