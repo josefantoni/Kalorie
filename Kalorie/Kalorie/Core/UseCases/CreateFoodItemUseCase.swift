@@ -34,19 +34,25 @@ struct CreateFoodItemUseCase: CreateFoodItemUseCaseProtocol {
 
     func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemDomain {
         guard !item.id.isEmpty && item.id.allSatisfy({ $0.isNumber }) else { throw CreateFoodItemError.invalidCode }
-        guard !item.name.isEmpty else { throw CreateFoodItemError.invalidName }
+        guard !item.czName.isEmpty else { throw CreateFoodItemError.invalidName }
         guard item.caloriesPerHundredGrams > 0 else { throw CreateFoodItemError.invalidCalories }
         guard item.weight > 0 else { throw CreateFoodItemError.invalidWeight }
         let dto = FoodItemDTO(
             id: item.id,
-            name: item.name,
+            czName: item.czName,
+            engName: item.engName,
+            czNameLowercase: item.czName.lowercased(),
+            engNameLowercase: item.engName.lowercased(),
             weight: item.weight,
             date: item.date.timeIntervalSince1970,
+            energyKJ: item.energyKJ,
             caloriesPerHundredGrams: item.caloriesPerHundredGrams,
             fat: item.fat,
+            fatSaturated: item.fatSaturated,
             fatUnsaturatedFattyAcids: item.fatUnsaturatedFattyAcids,
             carbohydrate: item.carbohydrate,
             carbohydratePureSugar: item.carbohydratePureSugar,
+            fiber: item.fiber,
             protein: item.protein,
             salt: item.salt
         )

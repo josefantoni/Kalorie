@@ -9,14 +9,29 @@ import Foundation
 
 struct AddFoodSheetConfigurator {
 
+    // MARK: - Properties
+
+    private let dataProvider: any FirestoreDataProviderProtocol
+    private let authProvider: any AuthProviderProtocol
+
+    // MARK: - Init
+
+    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+        self.dataProvider = dataProvider
+        self.authProvider = authProvider
+    }
+
     // MARK: - Functions
 
-    func createView(withBarcodeScan: Bool = false) -> AddFoodSheetView {
-        let dataProvider = FirestoreDataProvider()
-        return AddFoodSheetView(
+    func createView(date: Date, onFoodSaved: @escaping () -> Void = {}, withBarcodeScan: Bool = false) -> AddFoodSheetView {
+        AddFoodSheetView(
             viewModel: AddFoodSheetViewModel(
-                fetchFoodItems: FetchFoodItemsUseCase(dataProvider: dataProvider),
+                searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
                 createFoodItem: CreateFoodItemUseCase(dataProvider: dataProvider),
+                saveFoodConsumed: SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                searchFoodExternally: SearchFoodExternallyUseCase(),
+                selectedDate: date,
+                onFoodSaved: onFoodSaved,
                 isScannerVisible: withBarcodeScan
             )
         )

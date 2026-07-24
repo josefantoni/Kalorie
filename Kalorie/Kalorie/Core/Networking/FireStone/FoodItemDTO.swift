@@ -12,14 +12,20 @@ public struct FoodItemDTO: Codable {
     // MARK: - Properties
     
     var id: String
-    var name: String
+    var czName: String
+    var engName: String
+    var czNameLowercase: String
+    var engNameLowercase: String
     var weight: Double
     var date: TimeInterval
+    var energyKJ: Double?
     var caloriesPerHundredGrams: Double
     var fat: Double
+    var fatSaturated: Double?
     var fatUnsaturatedFattyAcids: Double
     var carbohydrate: Double
     var carbohydratePureSugar: Double
+    var fiber: Double?
     var protein: Double
     var salt: Double
     
@@ -31,8 +37,14 @@ public struct FoodItemDTO: Codable {
     // MARK: - Coding keys
     
     enum CodingKeys: String, CodingKey {
-        case id, name, weight, date, fat, carbohydrate, protein, salt
+        case id, weight, date, fat, carbohydrate, protein, salt, fiber
+        case czName = "cz_name"
+        case engName = "eng_name"
+        case czNameLowercase = "cz_name_lowercase"
+        case engNameLowercase = "eng_name_lowercase"
+        case energyKJ = "energy_kj"
         case caloriesPerHundredGrams = "calories_per_hundred_grams"
+        case fatSaturated = "fat_saturated"
         case fatUnsaturatedFattyAcids = "fat_unsaturated_fatty_acids"
         case carbohydratePureSugar = "carbohydrate_pure_sugar"
     }

@@ -160,6 +160,23 @@
         }
       }
     },
+    "addFood_field_energyKJ" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energie (kJ) na 100 g"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energy (kJ) per 100g"
+          }
+        }
+      }
+    },
     "addFood_field_carbs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -194,6 +211,23 @@
         }
       }
     },
+    "addFood_field_fiber" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vláknina"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fibre"
+          }
+        }
+      }
+    },
     "addFood_field_fat" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -207,6 +241,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fat"
+          }
+        }
+      }
+    },
+    "addFood_field_fatSaturated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho nasycené"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "of which saturates"
           }
         }
       }
@@ -343,6 +394,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Meal layout"
+          }
+        }
+      }
+    },
+    "addFood_section_externalResults" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Online výsledky"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Online results"
           }
         }
       }

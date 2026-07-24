@@ -30,17 +30,21 @@ enum L10n {
         static var searchPlaceholder: String { String(localized: "addFood_search_placeholder") }
         static var cameraPermissionAlert: String { String(localized: "addFood_camera_permissionAlert") }
         static var sectionSearchResults: String { String(localized: "addFood_section_searchResults") }
+        static var sectionExternalResults: String { String(localized: "addFood_section_externalResults") }
         static var sectionNewItem: String { String(localized: "addFood_section_newItem") }
         static var fieldBarcodeTitle: String { String(localized: "addFood_field_barcode_title") }
         static var fieldBarcodePlaceholder: String { String(localized: "addFood_field_barcode_placeholder") }
         static var fieldNameTitle: String { String(localized: "addFood_field_name_title") }
         static var fieldNamePlaceholder: String { String(localized: "addFood_field_name_placeholder") }
         static var fieldWeight: String { String(localized: "addFood_field_weight") }
+        static var fieldEnergyKJ: String { String(localized: "addFood_field_energyKJ") }
         static var fieldCaloriesPer100g: String { String(localized: "addFood_field_caloriesPer100g") }
         static var fieldProtein: String { String(localized: "addFood_field_protein") }
         static var fieldCarbs: String { String(localized: "addFood_field_carbs") }
         static var fieldCarbsSugar: String { String(localized: "addFood_field_carbsSugar") }
+        static var fieldFiber: String { String(localized: "addFood_field_fiber") }
         static var fieldFat: String { String(localized: "addFood_field_fat") }
+        static var fieldFatSaturated: String { String(localized: "addFood_field_fatSaturated") }
         static var fieldFatUnsaturated: String { String(localized: "addFood_field_fatUnsaturated") }
         static var fieldSalt: String { String(localized: "addFood_field_salt") }
         static var buttonAdd: String { String(localized: "addFood_button_add") }

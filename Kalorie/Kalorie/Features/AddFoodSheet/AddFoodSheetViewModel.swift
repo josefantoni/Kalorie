@@ -14,11 +14,14 @@ struct FoodItemFormInput {
     var scannedCode = ""
     var name = ""
     var weightOfProduct: Double = 0
+    var energyKJ: Double = 0
     var caloriesPerHundredGrams: Double = 0
     var fat: Double = 0
+    var fatSaturated: Double = 0
     var fatUnsaturatedFattyAcids: Double = 0
     var carbohydrate: Double = 0
     var carbohydratePureSugar: Double = 0
+    var fiber: Double = 0
     var protein: Double = 0
     var salt: Double = 0
 }
@@ -28,7 +31,9 @@ final class AddFoodSheetViewModel: ObservableObject {
     // MARK: - Properties
 
     @Published private(set) var state: LoadingState<Void> = .idle
-    @Published var availableFoodItems: [FoodItemDomain] = []
+    @Published var localFoodItems: [FoodItemDomain] = []
+    @Published var externalFoodItems: [FoodItemDomain] = []
+    @Published private(set) var isExternalSearchLoading = false
     @Published var searchText = ""
     @Published var formInput = FoodItemFormInput()
     @Published var isAddNewItemVisible = false
@@ -37,40 +42,66 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published var alertTitle = ""
     @Published private(set) var shouldDismiss = false
 
-    var foodsFiltered: [FoodItemDomain] {
-        if searchText.isEmpty {
-            return availableFoodItems
-        }
-        return availableFoodItems.filter { $0.name.lowercased().contains(searchText.lowercased()) }
-    }
-
-    private let fetchFoodItems: any FetchFoodItemsUseCaseProtocol
+    private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
     private let createFoodItem: any CreateFoodItemUseCaseProtocol
+    private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
+    private let searchFoodExternally: any SearchFoodExternallyUseCaseProtocol
+    private let selectedDate: Date
+    private let onFoodSaved: () -> Void
 
     // MARK: - Init
 
     init(
-        fetchFoodItems: any FetchFoodItemsUseCaseProtocol,
+        searchFoodItems: any SearchFoodItemsUseCaseProtocol,
         createFoodItem: any CreateFoodItemUseCaseProtocol,
+        saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol,
+        searchFoodExternally: any SearchFoodExternallyUseCaseProtocol,
+        selectedDate: Date,
+        onFoodSaved: @escaping () -> Void = {},
         isScannerVisible: Bool = false
     ) {
         self.isScannerVisible = isScannerVisible
-        self.fetchFoodItems = fetchFoodItems
+        self.searchFoodItems = searchFoodItems
         self.createFoodItem = createFoodItem
+        self.saveFoodConsumed = saveFoodConsumed
+        self.searchFoodExternally = searchFoodExternally
+        self.selectedDate = selectedDate
+        self.onFoodSaved = onFoodSaved
     }
 
     // MARK: - Functions
 
     @MainActor
-    func onAppear() async {
+    func onSearchTextChanged() async {
+        guard !searchText.isEmpty else {
+            localFoodItems = []
+            externalFoodItems = []
+            return
+        }
+        try? await Task.sleep(for: .milliseconds(300))
+        guard !Task.isCancelled else { return }
+        localFoodItems = (try? await searchFoodItems(query: searchText)) ?? []
+        guard localFoodItems.isEmpty && searchText.count >= 3 else {
+            externalFoodItems = []
+            return
+        }
+        isExternalSearchLoading = true
+        defer { isExternalSearchLoading = false }
+        externalFoodItems = (try? await searchFoodExternally(query: searchText)) ?? []
+    }
+
+    @MainActor
+    func onSelectFoodItem(_ item: FoodItemDomain) async {
+        guard !state.isLoading else { return }
         state = .loading
+        defer { state = .loaded }
         do {
-            availableFoodItems = try await fetchFoodItems()
-            state = .loaded
+            try await saveFoodConsumed(item, date: selectedDate)
+            onFoodSaved()
+            shouldDismiss = true
         } catch {
             alertTitle = L10n.Common.errorUnknown
             isAlertVisible = true
-            state = .loaded
         }
     }
 
@@ -80,14 +111,18 @@ final class AddFoodSheetViewModel: ObservableObject {
         defer { state = .loaded }
         let item = FoodItemDomain(
             id: formInput.scannedCode,
-            name: formInput.name,
+            czName: formInput.name,
+            engName: "",
             weight: formInput.weightOfProduct,
             date: .now,
+            energyKJ: formInput.energyKJ,
             caloriesPerHundredGrams: formInput.caloriesPerHundredGrams,
             fat: formInput.fat,
+            fatSaturated: formInput.fatSaturated,
             fatUnsaturatedFattyAcids: formInput.fatUnsaturatedFattyAcids,
             carbohydrate: formInput.carbohydrate,
             carbohydratePureSugar: formInput.carbohydratePureSugar,
+            fiber: formInput.fiber,
             protein: formInput.protein,
             salt: formInput.salt
         )

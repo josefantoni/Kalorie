@@ -25,7 +25,7 @@ struct FoodConsumedView: View {
     var body: some View {
         HStack {
             Text(foodConsumed.date.formatDateStyle(with: "HH:mm"))
-            Text(foodConsumed.name)
+            Text(foodConsumed.displayName)
             Spacer()
             VStack {
                 Text("\(foodConsumed.calories) kcal")
@@ -42,7 +42,8 @@ struct FoodConsumedView: View {
     FoodConsumedView(
         FoodConsumedDomain(
             id: "1",
-            name: "Jogurt bílý",
+            czName: "Jogurt bílý",
+            engName: "White yoghurt",
             weight: 200,
             date: .now,
             calories: 140

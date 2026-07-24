@@ -53,6 +53,7 @@ struct DashboardView: View {
                 }
             }
         }
+        .refreshable { await viewModel.onAppear() }
         .overlay {
             if viewModel.foodsConsumed.isEmpty && !viewModel.state.isLoading {
                 emptyStateView
@@ -60,7 +61,10 @@ struct DashboardView: View {
         }
         .loader(viewModel.state.isLoading)
         .sheet(isPresented: $viewModel.showAddFoodSheet) {
-            router.makeAddFoodSheetView()
+            router.makeAddFoodSheetView(
+                for: viewModel.selectedDay,
+                onFoodSaved: { Task { await viewModel.onAppear() } }
+            )
         }
         .alert(viewModel.alertTitle, isPresented: $viewModel.showingAlert) {
             Button(L10n.Common.ok) {}
@@ -69,6 +73,7 @@ struct DashboardView: View {
 
         if !viewModel.foodsConsumed.isEmpty {
             Button {
+                viewModel.showAddFoodSheet.toggle()
             } label: {
                 BaseImage(
                     imageName: .plusCircle,

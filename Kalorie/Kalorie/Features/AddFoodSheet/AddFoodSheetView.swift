@@ -13,13 +13,13 @@ struct AddFoodSheetView: View {
 
     // MARK: - Properties
 
-    @ObservedObject var viewModel: AddFoodSheetViewModel
+    @StateObject var viewModel: AddFoodSheetViewModel
     @Environment(\.dismiss) var dismiss
 
     // MARK: - Init
 
     init(viewModel: AddFoodSheetViewModel) {
-        self.viewModel = viewModel
+        self._viewModel = StateObject(wrappedValue: viewModel)
     }
 
     // MARK: - Body
@@ -40,26 +40,8 @@ struct AddFoodSheetView: View {
                         .degrees(viewModel.isAddNewItemVisible ? 180 : 0),
                         axis: (x: 0, y: 1, z: 0)
                     )
-                    .animation(.default, value: viewModel.isAddNewItemVisible)
 
                     startDataScannerIfPossible
-                }
-            }
-            .safeAreaInset(edge: VerticalEdge.bottom) {
-                HStack {
-                    Spacer()
-                    Button {
-                        viewModel.isAddNewItemVisible.toggle()
-                    } label: {
-                        BaseImage(
-                            imageName: .carrotFill,
-                            imageSize: .mediumPlus
-                        )
-                        .padding(.all, 5)
-                    }
-                    .clipShape(Circle())
-                    .buttonStyle(.borderedProminent)
-                    .padding([.trailing, .bottom], 15)
                 }
             }
             .loader(viewModel.state.isLoading)
@@ -69,12 +51,24 @@ struct AddFoodSheetView: View {
                     dismissButton: Alert.Button.default(Text(L10n.Common.ok))
                 )
             }
-            .task { await viewModel.onAppear() }
+            .task(id: viewModel.searchText) { await viewModel.onSearchTextChanged() }
             .onChange(of: viewModel.shouldDismiss) {
                 if viewModel.shouldDismiss { dismiss() }
             }
             .toolbar {
                 DismissToolbarItem()
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        withAnimation { viewModel.isAddNewItemVisible.toggle() }
+                    } label: {
+                        BaseImage(
+                            imageName: .carrotFill,
+                            imageSize: 17
+                        )
+                    }
+                    .clipShape(Circle())
+                    .buttonStyle(.borderedProminent)
+                }
             }
             .background(Color(.secondarySystemBackground))
         }
@@ -104,7 +98,7 @@ struct AddFoodSheetView: View {
                         imageSize: .medium
                     ) {
                         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-                            viewModel.isAddNewItemVisible.toggle()
+                            withAnimation { viewModel.isAddNewItemVisible.toggle() }
                             viewModel.isScannerVisible.toggle()
                         } else {
                             viewModel.alertTitle = L10n.AddFood.cameraPermissionAlert
@@ -114,84 +108,121 @@ struct AddFoodSheetView: View {
                 }
             }
             Section(header: Text(L10n.AddFood.sectionSearchResults)) {
-                ForEach(viewModel.foodsFiltered, id: \.id) {
-                    Text($0.name)
+                ForEach(viewModel.localFoodItems, id: \.id) { item in
+                    Text(item.displayName)
+                        .onTapGesture {
+                            Task { await viewModel.onSelectFoodItem(item) }
+                        }
+                }
+            }
+            if viewModel.localFoodItems.isEmpty && !viewModel.searchText.isEmpty {
+                Section(header: Text(L10n.AddFood.sectionExternalResults)) {
+                    if viewModel.isExternalSearchLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        ForEach(viewModel.externalFoodItems, id: \.id) { item in
+                            Text(item.displayName)
+                                .onTapGesture {
+                                    Task { await viewModel.onSelectFoodItem(item) }
+                                }
+                        }
+                    }
                 }
             }
         }
     }
 
     var addCustomFoodItem: some View {
-        List {
-            Section(
-                header: Text(L10n.AddFood.sectionNewItem),
-                footer: footerView
-            ) {
-                BaseStringTextField(
-                    placeholder: L10n.AddFood.fieldBarcodePlaceholder,
-                    title: L10n.AddFood.fieldBarcodeTitle,
-                    text: $viewModel.formInput.scannedCode
-                )
-                BaseStringTextField(
-                    placeholder: L10n.AddFood.fieldNamePlaceholder,
-                    title: L10n.AddFood.fieldNameTitle,
-                    text: $viewModel.formInput.name
-                )
-                BaseDoubleTextField(
-                    title: L10n.AddFood.fieldWeight,
-                    weight: $viewModel.formInput.weightOfProduct
-                )
-                BaseDoubleTextField(
-                    title: L10n.AddFood.fieldCaloriesPer100g,
-                    weight: $viewModel.formInput.caloriesPerHundredGrams
-                )
-                BaseDoubleTextField(
-                    title: L10n.AddFood.fieldProtein,
-                    weight: $viewModel.formInput.protein
-                )
-                BaseDoubleTextField(
-                    title: L10n.AddFood.fieldCarbs,
-                    weight: $viewModel.formInput.carbohydrate
-                )
-                BaseDoubleTextField(
-                    title: L10n.AddFood.fieldCarbsSugar,
-                    weight: $viewModel.formInput.carbohydratePureSugar
-                )
-                BaseDoubleTextField(
-                    title: L10n.AddFood.fieldFat,
-                    weight: $viewModel.formInput.fat
-                )
-                BaseDoubleTextField(
-                    title: L10n.AddFood.fieldFatUnsaturated,
-                    weight: $viewModel.formInput.fatUnsaturatedFattyAcids
-                )
-                BaseDoubleTextField(
-                    title: L10n.AddFood.fieldSalt,
-                    weight: $viewModel.formInput.salt
-                )
+        VStack(spacing: 0) {
+            List {
+                Section(header: Text(L10n.AddFood.sectionNewItem)) {
+                    BaseStringTextField(
+                        placeholder: L10n.AddFood.fieldBarcodePlaceholder,
+                        title: L10n.AddFood.fieldBarcodeTitle,
+                        text: $viewModel.formInput.scannedCode
+                    )
+                    BaseStringTextField(
+                        placeholder: L10n.AddFood.fieldNamePlaceholder,
+                        title: L10n.AddFood.fieldNameTitle,
+                        text: $viewModel.formInput.name
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldWeight,
+                        weight: $viewModel.formInput.weightOfProduct
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldEnergyKJ,
+                        weight: $viewModel.formInput.energyKJ
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldCaloriesPer100g,
+                        weight: $viewModel.formInput.caloriesPerHundredGrams
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldProtein,
+                        weight: $viewModel.formInput.protein
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldCarbs,
+                        weight: $viewModel.formInput.carbohydrate
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldCarbsSugar,
+                        weight: $viewModel.formInput.carbohydratePureSugar
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldFiber,
+                        weight: $viewModel.formInput.fiber
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldFat,
+                        weight: $viewModel.formInput.fat
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldFatSaturated,
+                        weight: $viewModel.formInput.fatSaturated
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldFatUnsaturated,
+                        weight: $viewModel.formInput.fatUnsaturatedFattyAcids
+                    )
+                    BaseDoubleTextField(
+                        title: L10n.AddFood.fieldSalt,
+                        weight: $viewModel.formInput.salt
+                    )
+                }
             }
+            addButton
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .background(Color(.secondarySystemBackground))
         }
     }
 
-    @ViewBuilder var footerView: some View {
-        HStack {
-            Button {
-                Task { await viewModel.onCreateFoodItem() }
-            } label: {
-                Text(L10n.AddFood.buttonAdd)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 35)
-                    .font(.system(size: .basic, weight: .bold))
-            }
-            .padding(.horizontal, -20)
-            .buttonStyle(.borderedProminent)
+    var addButton: some View {
+        Button {
+            Task { await viewModel.onCreateFoodItem() }
+        } label: {
+            Text(L10n.AddFood.buttonAdd)
+                .frame(maxWidth: .infinity)
+                .frame(height: 35)
+                .font(.system(size: .basic, weight: .bold))
         }
-        .padding(.top)
+        .buttonStyle(.borderedProminent)
     }
 }
 
 // MARK: - Preview
 
 #Preview {
-    AddFoodSheetConfigurator().createView()
+    AddFoodSheetView(
+        viewModel: AddFoodSheetViewModel(
+            searchFoodItems: SearchFoodItemsUseCaseFake(),
+            createFoodItem: CreateFoodItemUseCaseFake(),
+            saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
+            searchFoodExternally: SearchFoodExternallyUseCaseFake(),
+            selectedDate: .now
+        )
+    )
 }

@@ -29,18 +29,24 @@ struct FetchFoodsConsumedUseCase: FetchFoodsConsumedUseCaseProtocol {
 
     func callAsFunction(for date: Date) async throws -> [FoodConsumedDomain] {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let dtos: [FoodConsumedDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.foodConsumed(userId: userId))
-        return dtos
-            .filter { Calendar.current.isDate(Date(timeIntervalSince1970: $0.date), inSameDayAs: date) }
-            .map {
-                FoodConsumedDomain(
-                    id: $0.id,
-                    name: $0.name,
-                    weight: $0.weight,
-                    date: Date(timeIntervalSince1970: $0.date),
-                    calories: $0.calories
-                )
-            }
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        let startOfNextDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay.addingTimeInterval(Constants.Time.secondsPerDay)
+        let dtos: [FoodConsumedDTO] = try await dataProvider.loadAsync(
+            from: Constants.Firestore.foodConsumed(userId: userId),
+            where: "date",
+            isGreaterThanOrEqualTo: startOfDay.timeIntervalSince1970,
+            isLessThan: startOfNextDay.timeIntervalSince1970
+        )
+        return dtos.map {
+            FoodConsumedDomain(
+                id: $0.id,
+                czName: $0.czName,
+                engName: $0.engName,
+                weight: $0.weight,
+                date: Date(timeIntervalSince1970: $0.date),
+                calories: $0.calories
+            )
+        }
     }
 }
 

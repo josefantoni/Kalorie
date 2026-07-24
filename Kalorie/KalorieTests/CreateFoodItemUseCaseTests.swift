@@ -46,7 +46,7 @@ final class CreateFoodItemUseCaseTests: XCTestCase {
         let (sut, _) = makeSUT()
         let item = makeItem()
         let result = try await sut(item)
-        XCTAssertEqual(result.name, item.name)
+        XCTAssertEqual(result.czName, item.czName)
         XCTAssertEqual(result.caloriesPerHundredGrams, item.caloriesPerHundredGrams)
     }
 
@@ -66,14 +66,18 @@ final class CreateFoodItemUseCaseTests: XCTestCase {
     ) -> FoodItemDomain {
         FoodItemDomain(
             id: id,
-            name: name,
+            czName: name,
+            engName: "Cottage cheese",
             weight: weight,
             date: .now,
+            energyKJ: 335,
             caloriesPerHundredGrams: caloriesPerHundredGrams,
             fat: 0.5,
+            fatSaturated: 0.3,
             fatUnsaturatedFattyAcids: 0.2,
             carbohydrate: 4,
             carbohydratePureSugar: 3,
+            fiber: 0,
             protein: 13,
             salt: 0.1
         )
@@ -85,6 +89,8 @@ final class FirestoreDataProviderFake: FirestoreDataProviderProtocol {
     // MARK: - Functions
 
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
+    func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
 
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
