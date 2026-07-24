@@ -30,6 +30,8 @@ struct AddFoodSheetConfigurator {
                 createFoodItem: CreateFoodItemUseCase(dataProvider: dataProvider),
                 saveFoodConsumed: SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 searchFoodExternally: SearchFoodExternallyUseCase(),
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
+                fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
                 selectedDate: date,
                 onFoodSaved: onFoodSaved,
                 isScannerVisible: withBarcodeScan

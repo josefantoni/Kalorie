@@ -52,6 +52,7 @@ struct AddFoodSheetView: View {
                 )
             }
             .task(id: viewModel.searchText) { await viewModel.onSearchTextChanged() }
+            .task(id: viewModel.lastScannedBarcode) { await viewModel.onBarcodeScanned() }
             .onChange(of: viewModel.shouldDismiss) {
                 if viewModel.shouldDismiss { dismiss() }
             }
@@ -83,11 +84,16 @@ struct AddFoodSheetView: View {
 
     @ViewBuilder var startDataScannerIfPossible: some View {
         if viewModel.isScannerVisible && DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-            ZStack(alignment: .bottom) {
+            ZStack {
                 DataScannerRepresentable(
-                    shouldStartScanning: $viewModel.isScannerVisible,
-                    scannedCode: $viewModel.formInput.scannedCode
+                    scannedCode: $viewModel.lastScannedBarcode,
+                    isSearching: viewModel.isBarcodeSearchLoading
                 )
+                if viewModel.isBarcodeSearchLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(.ultraThinMaterial)
+                }
             }
         }
     }
@@ -103,8 +109,7 @@ struct AddFoodSheetView: View {
                         imageSize: .medium
                     ) {
                         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-                            withAnimation { viewModel.isAddNewItemVisible.toggle() }
-                            viewModel.isScannerVisible.toggle()
+                            viewModel.onScannerButtonTapped()
                         } else {
                             viewModel.alertTitle = L10n.AddFood.cameraPermissionAlert
                             viewModel.isAlertVisible.toggle()
@@ -227,6 +232,8 @@ struct AddFoodSheetView: View {
             createFoodItem: CreateFoodItemUseCaseFake(),
             saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
             searchFoodExternally: SearchFoodExternallyUseCaseFake(),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
+            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
             selectedDate: .now
         )
     )

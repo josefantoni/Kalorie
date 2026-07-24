@@ -12,6 +12,7 @@ protocol FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T]
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T]
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T]
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T?
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws
@@ -64,6 +65,23 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
                 .getDocuments()
             let result: [T] = try snapshot.documents.compactMap { try $0.data(as: T.self) }
             log("✅ GET \(collection) → \(result.count) items")
+            return result
+        } catch {
+            log("❌ GET \(collection): \(error)")
+            throw error
+        }
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? {
+        log("🚀 GET \(collection) WHERE \(field) == '\(value)'")
+        do {
+            let snapshot = try await Firestore.firestore()
+                .collection(collection)
+                .whereField(field, isEqualTo: value)
+                .limit(to: 1)
+                .getDocuments()
+            let result: T? = try snapshot.documents.first.flatMap { try $0.data(as: T.self) }
+            log("✅ GET \(collection) WHERE \(field) == '\(value)' → \(result == nil ? "nil" : "found")")
             return result
         } catch {
             log("❌ GET \(collection): \(error)")

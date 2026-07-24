@@ -9,51 +9,39 @@ import Foundation
 import SwiftUI
 import VisionKit
 
-enum ScannerErrorType: Error {
-    case notFound
-}
-
 struct DataScannerRepresentable: UIViewControllerRepresentable {
-    
+
     // MARK: - Properties
-    
-    @Binding var shouldStartScanning: Bool
+
     @Binding var scannedCode: String
-    var coordinator: Coordinator?
-    
+    let isSearching: Bool
+
     // MARK: - Nested class
-    
+
     class Coordinator: NSObject, DataScannerViewControllerDelegate {
         var parent: DataScannerRepresentable
-        
+
         init(_ parent: DataScannerRepresentable) {
             self.parent = parent
         }
-        
+
         func dataScanner(_ dataScanner: DataScannerViewController, didUpdate updatedItems: [RecognizedItem], allItems: [RecognizedItem]) {
-            guard let item = allItems.first else {
-                // TODO: log something went wrong
-                return
-            }
+            guard let item = allItems.first else { return }
             switch item {
             case .barcode(let barcode):
                 if let code = barcode.payloadStringValue {
                     parent.scannedCode = code
-                    parent.shouldStartScanning = false
-                    parent.coordinator = nil
                 } else {
-                    // TODO: payload empty throw?
                     assertionFailure("Barcode recognized but payloadStringValue is nil")
                 }
             default:
-                // TODO: alert with msg 'only barcode?'
                 assertionFailure("Unexpected recognized item type: \(item)")
             }
         }
     }
-    
+
     // MARK: - Functions
-    
+
     func makeUIViewController(context: Context) -> DataScannerViewController {
         let dataScannerVC = DataScannerViewController(
             recognizedDataTypes: [.barcode()],
@@ -64,20 +52,18 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
             isGuidanceEnabled: true,
             isHighlightingEnabled: true
         )
-        
         dataScannerVC.delegate = context.coordinator
-        
         return dataScannerVC
     }
-    
+
     func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {
-        do {
-            try uiViewController.startScanning()
-        } catch {
-            print("Error while scanning barcode")
+        if isSearching {
+            uiViewController.stopScanning()
+        } else {
+            try? uiViewController.startScanning()
         }
     }
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }

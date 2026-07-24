@@ -125,6 +125,23 @@
         }
       }
     },
+    "addFood_error_barcodeNotFound" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravina s tímto čárovým kódem nebyla nalezena"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No food found for this barcode"
+          }
+        }
+      }
+    },
     "addFood_field_barcode_placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -682,6 +699,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Snack"
+          }
+        }
+      }
+    },
+    "foodQuantity_error_invalidQuantity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Množství musí být větší než nula"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount must be greater than zero"
           }
         }
       }

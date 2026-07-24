@@ -14,6 +14,14 @@ struct OpenFoodFactsResponseDTO: Decodable {
     let products: [OpenFoodFactsProductDTO]
 }
 
+struct OpenFoodFactsBarcodeResponseDTO: Decodable {
+
+    // MARK: - Properties
+
+    let status: Int
+    let product: OpenFoodFactsProductDTO?
+}
+
 struct OpenFoodFactsProductDTO: Decodable {
 
     // MARK: - Properties
