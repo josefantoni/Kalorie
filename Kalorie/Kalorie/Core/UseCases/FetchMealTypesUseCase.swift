@@ -47,8 +47,16 @@ struct FetchMealTypesUseCase: FetchMealTypesUseCaseProtocol {
 #if DEBUG
 struct FetchMealTypesUseCaseFake: FetchMealTypesUseCaseProtocol {
 
+    // MARK: - Properties
+
+    var stubbedTypes: [MealTypeDomain] = []
+    var shouldThrow = false
+
     // MARK: - Functions
 
-    func callAsFunction() async throws -> [MealTypeDomain] { [] }
+    func callAsFunction() async throws -> [MealTypeDomain] {
+        if shouldThrow { throw URLError(.unknown) }
+        return stubbedTypes
+    }
 }
 #endif

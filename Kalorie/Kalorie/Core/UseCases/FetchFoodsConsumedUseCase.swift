@@ -53,8 +53,16 @@ struct FetchFoodsConsumedUseCase: FetchFoodsConsumedUseCaseProtocol {
 #if DEBUG
 struct FetchFoodsConsumedUseCaseFake: FetchFoodsConsumedUseCaseProtocol {
 
+    // MARK: - Properties
+
+    var stubbedFoods: [FoodConsumedDomain] = []
+    var shouldThrow = false
+
     // MARK: - Functions
 
-    func callAsFunction(for date: Date) async throws -> [FoodConsumedDomain] { [] }
+    func callAsFunction(for date: Date) async throws -> [FoodConsumedDomain] {
+        if shouldThrow { throw URLError(.unknown) }
+        return stubbedFoods
+    }
 }
 #endif
