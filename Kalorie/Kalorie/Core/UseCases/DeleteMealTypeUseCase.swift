@@ -33,9 +33,11 @@ struct DeleteMealTypeUseCase: DeleteMealTypeUseCaseProtocol {
     }
 }
 
+#if DEBUG
 struct DeleteMealTypeUseCaseFake: DeleteMealTypeUseCaseProtocol {
 
     // MARK: - Functions
 
     func callAsFunction(_ mealType: MealTypeDomain) async throws {}
 }
+#endif

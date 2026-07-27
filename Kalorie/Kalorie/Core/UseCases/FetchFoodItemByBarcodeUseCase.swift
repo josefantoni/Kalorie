@@ -53,6 +53,7 @@ struct FetchFoodItemByBarcodeUseCase: FetchFoodItemByBarcodeUseCaseProtocol {
     }
 }
 
+#if DEBUG
 struct FetchFoodItemByBarcodeUseCaseFake: FetchFoodItemByBarcodeUseCaseProtocol {
 
     // MARK: - Properties
@@ -63,3 +64,4 @@ struct FetchFoodItemByBarcodeUseCaseFake: FetchFoodItemByBarcodeUseCaseProtocol 
 
     func callAsFunction(barcode: String) async throws -> FoodItemDomain? { stubbedItem }
 }
+#endif

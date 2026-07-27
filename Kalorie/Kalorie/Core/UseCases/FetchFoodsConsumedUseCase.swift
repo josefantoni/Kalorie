@@ -50,9 +50,11 @@ struct FetchFoodsConsumedUseCase: FetchFoodsConsumedUseCaseProtocol {
     }
 }
 
+#if DEBUG
 struct FetchFoodsConsumedUseCaseFake: FetchFoodsConsumedUseCaseProtocol {
 
     // MARK: - Functions
 
     func callAsFunction(for date: Date) async throws -> [FoodConsumedDomain] { [] }
 }
+#endif

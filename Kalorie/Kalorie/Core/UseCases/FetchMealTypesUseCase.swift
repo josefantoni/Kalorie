@@ -44,9 +44,11 @@ struct FetchMealTypesUseCase: FetchMealTypesUseCaseProtocol {
     }
 }
 
+#if DEBUG
 struct FetchMealTypesUseCaseFake: FetchMealTypesUseCaseProtocol {
 
     // MARK: - Functions
 
     func callAsFunction() async throws -> [MealTypeDomain] { [] }
 }
+#endif

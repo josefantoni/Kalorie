@@ -25,9 +25,11 @@ struct AuthProvider: AuthProviderProtocol {
     }
 }
 
+#if DEBUG
 struct AuthProviderFake: AuthProviderProtocol {
 
     // MARK: - Properties
 
     var userId: String? = "test-user-id"
 }
+#endif

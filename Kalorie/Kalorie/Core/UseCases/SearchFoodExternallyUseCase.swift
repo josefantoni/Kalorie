@@ -68,9 +68,11 @@ struct SearchFoodExternallyUseCase: SearchFoodExternallyUseCaseProtocol {
 
 }
 
+#if DEBUG
 struct SearchFoodExternallyUseCaseFake: SearchFoodExternallyUseCaseProtocol {
 
     // MARK: - Functions
 
     func callAsFunction(query: String) async throws -> [FoodItemDomain] { [] }
 }
+#endif

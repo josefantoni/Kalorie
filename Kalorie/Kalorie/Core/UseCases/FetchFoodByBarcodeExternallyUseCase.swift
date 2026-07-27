@@ -76,6 +76,7 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
 
 }
 
+#if DEBUG
 struct FetchFoodByBarcodeExternallyUseCaseFake: FetchFoodByBarcodeExternallyUseCaseProtocol {
 
     // MARK: - Properties
@@ -86,3 +87,4 @@ struct FetchFoodByBarcodeExternallyUseCaseFake: FetchFoodByBarcodeExternallyUseC
 
     func callAsFunction(barcode: String) async throws -> FoodItemDomain? { stubbedItem }
 }
+#endif
