@@ -31,6 +31,8 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
             URLQueryItem(name: "fields", value: "code,product_name,product_name_cs,product_name_en,nutriments")
         ]
         guard let url = components.url else { throw FetchFoodByBarcodeExternallyError.invalidURL }
+        // URLSession is used directly — OpenFoodFacts is plain HTTP, not Firestore, so FirestoreDataProviderProtocol doesn't apply.
+        // The trade-off: fakes can only stub the return value, not assert which URL was called.
         let (data, _) = try await URLSession.shared.data(from: url)
         let response = try JSONDecoder().decode(OpenFoodFactsBarcodeResponseDTO.self, from: data)
         guard response.status == 1, let product = response.product else { return nil }
@@ -40,6 +42,8 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
     // MARK: - Private
 
     private func mapToDomain(_ product: OpenFoodFactsProductDTO) -> FoodItemDomain? {
+        // Reject products missing calories or name — a partial item would show 0 kcal in the UI,
+        // which is worse than "not found". The caller treats nil as product not found.
         guard
             let nutriments = product.nutriments,
             let kcal = nutriments.energyKcal100g,
@@ -47,14 +51,14 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
             let rawName = product.productNameCs ?? product.productNameEn ?? product.productName,
             !rawName.isEmpty
         else { return nil }
-        let displayName = decodeHTMLEntities(rawName)
+        let displayName = rawName.decodingHTMLEntities()
         let fat = nutriments.fat100g ?? 0
         let saturatedFat = nutriments.saturatedFat100g ?? 0
         let rawOriginalName = product.productNameEn ?? product.productName ?? rawName
         return FoodItemDomain(
             id: product.code,
             czName: displayName,
-            engName: decodeHTMLEntities(rawOriginalName),
+            engName: rawOriginalName.decodingHTMLEntities(),
             weight: 100,
             date: .now,
             energyKJ: nutriments.energyKJ100g ?? 0,
@@ -70,17 +74,6 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
         )
     }
 
-    private func decodeHTMLEntities(_ string: String) -> String {
-        var result = string
-        let entities: [(String, String)] = [
-            ("&amp;", "&"), ("&quot;", "\""), ("&lt;", "<"),
-            ("&gt;", ">"), ("&apos;", "'"), ("&#39;", "'"), ("&nbsp;", " ")
-        ]
-        for (entity, replacement) in entities {
-            result = result.replacingOccurrences(of: entity, with: replacement)
-        }
-        return result
-    }
 }
 
 struct FetchFoodByBarcodeExternallyUseCaseFake: FetchFoodByBarcodeExternallyUseCaseProtocol {

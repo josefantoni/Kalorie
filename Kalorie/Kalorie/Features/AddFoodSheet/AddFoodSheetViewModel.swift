@@ -43,6 +43,7 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published private(set) var shouldDismiss = false
     @Published var isPushedToQuantityView = false
     @Published private(set) var selectedFoodItem: FoodItemDomain?
+    @Published private(set) var selectedQuantityViewModel: FoodQuantityViewModel?
     @Published var lastScannedBarcode = ""
     @Published private(set) var isBarcodeSearchLoading = false
 
@@ -83,7 +84,7 @@ final class AddFoodSheetViewModel: ObservableObject {
 
     func onScannerButtonTapped() {
         isAddNewItemVisible = false
-        isScannerVisible.toggle()
+        isScannerVisible = true
     }
 
     @MainActor
@@ -126,13 +127,11 @@ final class AddFoodSheetViewModel: ObservableObject {
         externalFoodItems = (try? await searchFoodExternally(query: searchText)) ?? []
     }
 
+    @MainActor
     func onSelectFoodItem(_ item: FoodItemDomain) {
+        guard !isPushedToQuantityView else { return }
         selectedFoodItem = item
-        isPushedToQuantityView = true
-    }
-
-    func makeQuantityViewModel(for item: FoodItemDomain) -> FoodQuantityViewModel {
-        FoodQuantityViewModel(
+        selectedQuantityViewModel = FoodQuantityViewModel(
             item: item,
             saveFoodConsumed: saveFoodConsumed,
             selectedDate: selectedDate
@@ -140,6 +139,7 @@ final class AddFoodSheetViewModel: ObservableObject {
             self?.onFoodSaved()
             self?.shouldDismiss = true
         }
+        isPushedToQuantityView = true
     }
 
     @MainActor

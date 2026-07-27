@@ -52,13 +52,16 @@ struct AddFoodSheetView: View {
                 )
             }
             .task(id: viewModel.searchText) { await viewModel.onSearchTextChanged() }
-            .task(id: viewModel.lastScannedBarcode) { await viewModel.onBarcodeScanned() }
+            .onChange(of: viewModel.lastScannedBarcode) { _, newValue in
+                guard !newValue.isEmpty else { return }
+                Task { await viewModel.onBarcodeScanned() }
+            }
             .onChange(of: viewModel.shouldDismiss) {
                 if viewModel.shouldDismiss { dismiss() }
             }
             .navigationDestination(isPresented: $viewModel.isPushedToQuantityView) {
-                if let item = viewModel.selectedFoodItem {
-                    FoodQuantityView(viewModel: viewModel.makeQuantityViewModel(for: item))
+                if let vm = viewModel.selectedQuantityViewModel {
+                    FoodQuantityView(viewModel: vm)
                 }
             }
             .toolbar {

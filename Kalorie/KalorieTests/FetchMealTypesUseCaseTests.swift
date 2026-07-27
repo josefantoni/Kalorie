@@ -21,8 +21,8 @@ final class FetchMealTypesUseCaseTests: XCTestCase {
     func test_fetchMealTypes_returnsMappedAndSortedDomains() async throws {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedMealTypes = [
-            MealTypeDTO(id: 1, name: "Oběd", startTime: makeDate(hour: 12).timeIntervalSince1970, endTime: makeDate(hour: 14).timeIntervalSince1970),
-            MealTypeDTO(id: 0, name: "Snídaně", startTime: makeDate(hour: 6).timeIntervalSince1970, endTime: makeDate(hour: 9).timeIntervalSince1970)
+            MealTypeDTO(id: 1, name: "Oběd", startMinutes: 12 * 60, endMinutes: 14 * 60),
+            MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 6 * 60, endMinutes: 9 * 60)
         ]
 
         let result = try await sut()
@@ -30,6 +30,20 @@ final class FetchMealTypesUseCaseTests: XCTestCase {
         XCTAssertEqual(result.count, 2)
         XCTAssertEqual(result[0].name, "Snídaně")
         XCTAssertEqual(result[1].name, "Oběd")
+    }
+
+    func test_fetchMealTypes_whenProviderThrowsDecodingError_throwsError() async {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedError = DecodingError.dataCorrupted(
+            DecodingError.Context(codingPath: [], debugDescription: "test")
+        )
+
+        do {
+            _ = try await sut()
+            XCTFail("Expected DecodingError to be thrown")
+        } catch is DecodingError {
+            // pass
+        }
     }
 
     // MARK: - Helpers
@@ -50,12 +64,14 @@ final class FirestoreDataProviderStub: FirestoreDataProviderProtocol {
     // MARK: - Properties
 
     var stubbedMealTypes: [MealTypeDTO] = []
+    var stubbedError: Error?
     var deletedId: String?
 
     // MARK: - Functions
 
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T] {
-        stubbedMealTypes.compactMap { $0 as? T }
+        if let error = stubbedError { throw error }
+        return stubbedMealTypes.compactMap { $0 as? T }
     }
 
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }

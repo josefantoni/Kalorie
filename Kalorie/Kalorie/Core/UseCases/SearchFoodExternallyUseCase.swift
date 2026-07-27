@@ -43,14 +43,14 @@ struct SearchFoodExternallyUseCase: SearchFoodExternallyUseCaseProtocol {
             let rawName = product.productNameCs ?? product.productNameEn ?? product.productName,
             !rawName.isEmpty
         else { return nil }
-        let displayName = decodeHTMLEntities(rawName)
+        let displayName = rawName.decodingHTMLEntities()
         let fat = nutriments.fat100g ?? 0
         let saturatedFat = nutriments.saturatedFat100g ?? 0
         let rawOriginalName = product.productNameEn ?? product.productName ?? rawName
         return FoodItemDomain(
             id: product.code,
             czName: displayName,
-            engName: decodeHTMLEntities(rawOriginalName),
+            engName: rawOriginalName.decodingHTMLEntities(),
             weight: 100,
             date: .now,
             energyKJ: nutriments.energyKJ100g ?? 0,
@@ -66,17 +66,6 @@ struct SearchFoodExternallyUseCase: SearchFoodExternallyUseCaseProtocol {
         )
     }
 
-    private func decodeHTMLEntities(_ string: String) -> String {
-        var result = string
-        let entities: [(String, String)] = [
-            ("&amp;", "&"), ("&quot;", "\""), ("&lt;", "<"),
-            ("&gt;", ">"), ("&apos;", "'"), ("&#39;", "'"), ("&nbsp;", " ")
-        ]
-        for (entity, replacement) in entities {
-            result = result.replacingOccurrences(of: entity, with: replacement)
-        }
-        return result
-    }
 }
 
 struct SearchFoodExternallyUseCaseFake: SearchFoodExternallyUseCaseProtocol {
