@@ -29,13 +29,16 @@ struct UpdateMealTypeTimesUseCase: UpdateMealTypeTimesUseCaseProtocol {
 
     func callAsFunction(_ mealTypes: [MealTypeDomain]) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
+        let cal = Calendar.current
         let dtos = mealTypes.map { mealType in
-            (
+            let startMinutes = cal.component(.hour, from: mealType.startTime) * 60 + cal.component(.minute, from: mealType.startTime)
+            let endMinutes = cal.component(.hour, from: mealType.endTime) * 60 + cal.component(.minute, from: mealType.endTime)
+            return (
                 item: MealTypeDTO(
                     id: mealType.id,
                     name: mealType.name,
-                    startTime: mealType.startTime.timeIntervalSince1970,
-                    endTime: mealType.endTime.timeIntervalSince1970
+                    startMinutes: startMinutes,
+                    endMinutes: endMinutes
                 ),
                 id: "\(mealType.id)"
             )

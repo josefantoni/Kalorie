@@ -20,6 +20,7 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
 
     class Coordinator: NSObject, DataScannerViewControllerDelegate {
         var parent: DataScannerRepresentable
+        private var lastDeliveredCode: String?
 
         init(_ parent: DataScannerRepresentable) {
             self.parent = parent
@@ -30,6 +31,8 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
             switch item {
             case .barcode(let barcode):
                 if let code = barcode.payloadStringValue {
+                    guard code != lastDeliveredCode else { return }
+                    lastDeliveredCode = code
                     parent.scannedCode = code
                 } else {
                     assertionFailure("Barcode recognized but payloadStringValue is nil")

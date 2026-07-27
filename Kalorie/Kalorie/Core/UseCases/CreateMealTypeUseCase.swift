@@ -52,11 +52,14 @@ struct CreateMealTypeUseCase: CreateMealTypeUseCaseProtocol {
         }
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let newId = (existingMealTypes.map { $0.id }.max() ?? -1) + 1
+        let cal = Calendar.current
+        let startMinutes = cal.component(.hour, from: startTime) * 60 + cal.component(.minute, from: startTime)
+        let endMinutes = cal.component(.hour, from: endTime) * 60 + cal.component(.minute, from: endTime)
         let dto = MealTypeDTO(
             id: newId,
             name: name,
-            startTime: startTime.timeIntervalSince1970,
-            endTime: endTime.timeIntervalSince1970
+            startMinutes: startMinutes,
+            endMinutes: endMinutes
         )
         try await dataProvider.setAsync(dto, id: "\(newId)", in: Constants.Firestore.mealTypes(userId: userId))
         return MealTypeDomain(id: newId, name: name, startTime: startTime, endTime: endTime)

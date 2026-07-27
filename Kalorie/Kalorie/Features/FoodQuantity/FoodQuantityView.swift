@@ -11,13 +11,7 @@ struct FoodQuantityView: View {
 
     // MARK: - Properties
 
-    @StateObject var viewModel: FoodQuantityViewModel
-
-    // MARK: - Init
-
-    init(viewModel: FoodQuantityViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel)
-    }
+    @ObservedObject var viewModel: FoodQuantityViewModel
 
     // MARK: - Body
 
@@ -55,19 +49,12 @@ struct FoodQuantityView: View {
 
     // MARK: - Functions
 
-    private let formatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.zeroSymbol = ""
-        return f
-    }()
-
     var quantityRow: some View {
         HStack {
             Text(L10n.FoodQuantity.inputGrams)
                 .font(.system(size: .smallPlus))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            TextField("1", value: $viewModel.quantity, formatter: formatter)
+            TextField("1", value: $viewModel.quantity, formatter: NumberFormatter.decimal)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .frame(width: 60)

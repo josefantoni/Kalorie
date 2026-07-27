@@ -64,6 +64,7 @@ final class FoodQuantityViewModel: ObservableObject {
 
     // MARK: - Functions
 
+    @MainActor
     func onUnitChanged() {
         quantity = unit.defaultQuantity
     }

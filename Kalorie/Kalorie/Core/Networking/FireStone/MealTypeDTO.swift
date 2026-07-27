@@ -13,6 +13,6 @@ struct MealTypeDTO: Codable {
 
     let id: Int
     let name: String
-    let startTime: TimeInterval
-    let endTime: TimeInterval
+    let startMinutes: Int
+    let endMinutes: Int
 }
