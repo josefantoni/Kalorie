@@ -42,9 +42,11 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
     }
 }
 
+#if DEBUG
 struct SaveFoodConsumedUseCaseFake: SaveFoodConsumedUseCaseProtocol {
 
     // MARK: - Functions
 
     func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws {}
 }
+#endif

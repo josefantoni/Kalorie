@@ -61,9 +61,11 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
     }
 }
 
+#if DEBUG
 struct SetupDefaultMealsUseCaseFake: SetupDefaultMealsUseCaseProtocol {
 
     // MARK: - Functions
 
     func callAsFunction() async throws -> [MealTypeDomain] { [] }
 }
+#endif

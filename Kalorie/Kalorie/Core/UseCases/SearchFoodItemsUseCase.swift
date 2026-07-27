@@ -65,9 +65,11 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
     }
 }
 
+#if DEBUG
 struct SearchFoodItemsUseCaseFake: SearchFoodItemsUseCaseProtocol {
 
     // MARK: - Functions
 
     func callAsFunction(query: String) async throws -> [FoodItemDomain] { [] }
 }
+#endif

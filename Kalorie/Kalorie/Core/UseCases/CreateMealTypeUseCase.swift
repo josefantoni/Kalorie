@@ -66,6 +66,7 @@ struct CreateMealTypeUseCase: CreateMealTypeUseCaseProtocol {
     }
 }
 
+#if DEBUG
 struct CreateMealTypeUseCaseFake: CreateMealTypeUseCaseProtocol {
 
     // MARK: - Functions
@@ -79,3 +80,4 @@ struct CreateMealTypeUseCaseFake: CreateMealTypeUseCaseProtocol {
         MealTypeDomain(id: 0, name: name, startTime: startTime, endTime: endTime)
     }
 }
+#endif

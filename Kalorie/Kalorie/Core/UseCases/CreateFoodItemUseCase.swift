@@ -68,6 +68,7 @@ struct CreateFoodItemUseCase: CreateFoodItemUseCaseProtocol {
     }
 }
 
+#if DEBUG
 struct CreateFoodItemUseCaseFake: CreateFoodItemUseCaseProtocol {
 
     // MARK: - Functions
@@ -76,3 +77,4 @@ struct CreateFoodItemUseCaseFake: CreateFoodItemUseCaseProtocol {
         item
     }
 }
+#endif
