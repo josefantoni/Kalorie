@@ -99,9 +99,15 @@ final class AddFoodSheetViewModel: ObservableObject {
             onSelectFoodItem(local)
             return
         }
-        if let external = try? await fetchFoodByBarcodeExternally(barcode: barcode) {
-            isScannerVisible = false
-            onSelectFoodItem(external)
+        do {
+            if let external = try await fetchFoodByBarcodeExternally(barcode: barcode) {
+                isScannerVisible = false
+                onSelectFoodItem(external)
+                return
+            }
+        } catch {
+            alertTitle = L10n.AddFood.errorLoadFailed
+            isAlertVisible = true
             return
         }
         alertTitle = L10n.AddFood.errorBarcodeNotFound
@@ -120,14 +126,25 @@ final class AddFoodSheetViewModel: ObservableObject {
         } catch {
             return
         }
-        localFoodItems = (try? await searchFoodItems(query: searchText)) ?? []
+        do {
+            localFoodItems = try await searchFoodItems(query: searchText)
+        } catch {
+            alertTitle = L10n.AddFood.errorLoadFailed
+            isAlertVisible = true
+            return
+        }
         guard localFoodItems.isEmpty && searchText.count >= 3 else {
             externalFoodItems = []
             return
         }
         isExternalSearchLoading = true
         defer { isExternalSearchLoading = false }
-        externalFoodItems = (try? await searchFoodExternally(query: searchText)) ?? []
+        do {
+            externalFoodItems = try await searchFoodExternally(query: searchText)
+        } catch {
+            alertTitle = L10n.AddFood.errorLoadFailed
+            isAlertVisible = true
+        }
     }
 
     @MainActor

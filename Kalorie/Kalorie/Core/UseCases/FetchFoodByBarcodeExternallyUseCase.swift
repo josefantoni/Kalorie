@@ -82,9 +82,13 @@ struct FetchFoodByBarcodeExternallyUseCaseFake: FetchFoodByBarcodeExternallyUseC
     // MARK: - Properties
 
     var stubbedItem: FoodItemDomain?
+    var shouldThrow = false
 
     // MARK: - Functions
 
-    func callAsFunction(barcode: String) async throws -> FoodItemDomain? { stubbedItem }
+    func callAsFunction(barcode: String) async throws -> FoodItemDomain? {
+        if shouldThrow { throw FetchFoodByBarcodeExternallyError.invalidURL }
+        return stubbedItem
+    }
 }
 #endif
