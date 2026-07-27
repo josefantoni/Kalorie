@@ -115,8 +115,11 @@ final class AddFoodSheetViewModel: ObservableObject {
             externalFoodItems = []
             return
         }
-        try? await Task.sleep(for: .milliseconds(300))
-        guard !Task.isCancelled else { return }
+        do {
+            try await Task.sleep(for: .milliseconds(300))
+        } catch {
+            return
+        }
         localFoodItems = (try? await searchFoodItems(query: searchText)) ?? []
         guard localFoodItems.isEmpty && searchText.count >= 3 else {
             externalFoodItems = []
