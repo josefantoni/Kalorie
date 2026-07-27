@@ -94,11 +94,10 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     // MARK: - onSelectFoodItem
 
     @MainActor
-    func test_onSelectFoodItem_setsQuantityViewModelAndNavigates() {
+    func test_onSelectFoodItem_setsSelectedFoodItemAndNavigates() {
         let sut = makeSUT()
         sut.onSelectFoodItem(makeFoodItem(id: "abc"))
-        XCTAssertNotNil(sut.selectedQuantityViewModel)
-        XCTAssertEqual(sut.selectedQuantityViewModel?.item.id, "abc")
+        XCTAssertEqual(sut.selectedFoodItem?.id, "abc")
         XCTAssertTrue(sut.isPushedToQuantityView)
     }
 
@@ -107,7 +106,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         let sut = makeSUT()
         sut.onSelectFoodItem(makeFoodItem(id: "A"))
         sut.onSelectFoodItem(makeFoodItem(id: "B"))
-        XCTAssertEqual(sut.selectedQuantityViewModel?.item.id, "A")
+        XCTAssertEqual(sut.selectedFoodItem?.id, "A")
         XCTAssertTrue(sut.isPushedToQuantityView)
     }
 
@@ -123,11 +122,9 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         AddFoodSheetViewModel(
             searchFoodItems: searchFoodItems,
             createFoodItem: CreateFoodItemUseCaseFake(),
-            saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
             searchFoodExternally: searchFoodExternally,
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
-            selectedDate: .now,
             isScannerVisible: isScannerVisible
         )
     }

@@ -42,17 +42,14 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published private(set) var shouldDismiss = false
     @Published var isPushedToQuantityView = false
     @Published private(set) var selectedFoodItem: FoodItemDomain?
-    @Published private(set) var selectedQuantityViewModel: FoodQuantityViewModel?
     @Published var lastScannedBarcode = ""
     @Published private(set) var isBarcodeSearchLoading = false
 
     private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
     private let createFoodItem: any CreateFoodItemUseCaseProtocol
-    private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
     private let searchFoodExternally: any SearchFoodExternallyUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
-    private let selectedDate: Date
     private let onFoodSaved: () -> Void
 
     // MARK: - Init
@@ -60,22 +57,18 @@ final class AddFoodSheetViewModel: ObservableObject {
     init(
         searchFoodItems: any SearchFoodItemsUseCaseProtocol,
         createFoodItem: any CreateFoodItemUseCaseProtocol,
-        saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol,
         searchFoodExternally: any SearchFoodExternallyUseCaseProtocol,
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
-        selectedDate: Date,
         onFoodSaved: @escaping () -> Void = {},
         isScannerVisible: Bool = false
     ) {
         self.isScannerVisible = isScannerVisible
         self.searchFoodItems = searchFoodItems
         self.createFoodItem = createFoodItem
-        self.saveFoodConsumed = saveFoodConsumed
         self.searchFoodExternally = searchFoodExternally
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
-        self.selectedDate = selectedDate
         self.onFoodSaved = onFoodSaved
     }
 
@@ -146,15 +139,12 @@ final class AddFoodSheetViewModel: ObservableObject {
     func onSelectFoodItem(_ item: FoodItemDomain) {
         guard !isPushedToQuantityView else { return }
         selectedFoodItem = item
-        selectedQuantityViewModel = FoodQuantityViewModel(
-            item: item,
-            saveFoodConsumed: saveFoodConsumed,
-            selectedDate: selectedDate
-        ) { [weak self] in
-            self?.onFoodSaved()
-            self?.shouldDismiss = true
-        }
         isPushedToQuantityView = true
+    }
+
+    func onFoodConsumedSaved() {
+        onFoodSaved()
+        shouldDismiss = true
     }
 
     @MainActor
