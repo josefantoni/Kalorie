@@ -68,8 +68,15 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
 #if DEBUG
 struct SearchFoodItemsUseCaseFake: SearchFoodItemsUseCaseProtocol {
 
+    // MARK: - Properties
+
+    var shouldThrow = false
+
     // MARK: - Functions
 
-    func callAsFunction(query: String) async throws -> [FoodItemDomain] { [] }
+    func callAsFunction(query: String) async throws -> [FoodItemDomain] {
+        if shouldThrow { throw NSError(domain: "SearchFoodItemsUseCaseFake", code: 0) }
+        return []
+    }
 }
 #endif

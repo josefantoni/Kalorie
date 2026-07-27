@@ -71,8 +71,15 @@ struct SearchFoodExternallyUseCase: SearchFoodExternallyUseCaseProtocol {
 #if DEBUG
 struct SearchFoodExternallyUseCaseFake: SearchFoodExternallyUseCaseProtocol {
 
+    // MARK: - Properties
+
+    var shouldThrow = false
+
     // MARK: - Functions
 
-    func callAsFunction(query: String) async throws -> [FoodItemDomain] { [] }
+    func callAsFunction(query: String) async throws -> [FoodItemDomain] {
+        if shouldThrow { throw SearchFoodExternallyError.invalidURL }
+        return []
+    }
 }
 #endif

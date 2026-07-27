@@ -43,6 +43,8 @@ final class FetchMealTypesUseCaseTests: XCTestCase {
             XCTFail("Expected DecodingError to be thrown")
         } catch is DecodingError {
             // pass
+        } catch {
+            XCTFail("Expected DecodingError but got \(error)")
         }
     }
 

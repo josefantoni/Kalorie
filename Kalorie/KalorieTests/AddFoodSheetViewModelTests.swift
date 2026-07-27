@@ -69,6 +69,32 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isScannerVisible)
     }
 
+    func test_onBarcodeScanned_whenExternalFails_showsLoadFailedAlert() async {
+        let sut = makeSUT(fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(shouldThrow: true))
+        sut.lastScannedBarcode = "8594004428464"
+        await sut.onBarcodeScanned()
+        XCTAssertTrue(sut.isAlertVisible)
+        XCTAssertEqual(sut.alertTitle, L10n.AddFood.errorLoadFailed)
+    }
+
+    // MARK: - onSearchTextChanged
+
+    func test_onSearchTextChanged_whenLocalSearchFails_showsLoadFailedAlert() async {
+        let sut = makeSUT(searchFoodItems: SearchFoodItemsUseCaseFake(shouldThrow: true))
+        sut.searchText = "tvaroh"
+        await sut.onSearchTextChanged()
+        XCTAssertTrue(sut.isAlertVisible)
+        XCTAssertEqual(sut.alertTitle, L10n.AddFood.errorLoadFailed)
+    }
+
+    func test_onSearchTextChanged_whenExternalSearchFails_showsLoadFailedAlert() async {
+        let sut = makeSUT(searchFoodExternally: SearchFoodExternallyUseCaseFake(shouldThrow: true))
+        sut.searchText = "tvaroh"
+        await sut.onSearchTextChanged()
+        XCTAssertTrue(sut.isAlertVisible)
+        XCTAssertEqual(sut.alertTitle, L10n.AddFood.errorLoadFailed)
+    }
+
     // MARK: - onSelectFoodItem
 
     @MainActor
@@ -92,15 +118,17 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     // MARK: - Helpers
 
     private func makeSUT(
+        searchFoodItems: any SearchFoodItemsUseCaseProtocol = SearchFoodItemsUseCaseFake(),
+        searchFoodExternally: any SearchFoodExternallyUseCaseProtocol = SearchFoodExternallyUseCaseFake(),
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         isScannerVisible: Bool = false
     ) -> AddFoodSheetViewModel {
         AddFoodSheetViewModel(
-            searchFoodItems: SearchFoodItemsUseCaseFake(),
+            searchFoodItems: searchFoodItems,
             createFoodItem: CreateFoodItemUseCaseFake(),
             saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
-            searchFoodExternally: SearchFoodExternallyUseCaseFake(),
+            searchFoodExternally: searchFoodExternally,
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             selectedDate: .now,
