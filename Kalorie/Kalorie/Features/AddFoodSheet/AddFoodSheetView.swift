@@ -15,11 +15,16 @@ struct AddFoodSheetView: View {
 
     @StateObject var viewModel: AddFoodSheetViewModel
     @Environment(\.dismiss) var dismiss
+    private let makeFoodQuantityView: (FoodItemDomain, @escaping () -> Void) -> FoodQuantityView
 
     // MARK: - Init
 
-    init(viewModel: AddFoodSheetViewModel) {
+    init(
+        viewModel: AddFoodSheetViewModel,
+        makeFoodQuantityView: @escaping (FoodItemDomain, @escaping () -> Void) -> FoodQuantityView
+    ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
+        self.makeFoodQuantityView = makeFoodQuantityView
     }
 
     // MARK: - Body
@@ -60,8 +65,8 @@ struct AddFoodSheetView: View {
                 if viewModel.shouldDismiss { dismiss() }
             }
             .navigationDestination(isPresented: $viewModel.isPushedToQuantityView) {
-                if let vm = viewModel.selectedQuantityViewModel {
-                    FoodQuantityView(viewModel: vm)
+                if let item = viewModel.selectedFoodItem {
+                    makeFoodQuantityView(item, viewModel.onFoodConsumedSaved)
                 }
             }
             .toolbar {
@@ -232,11 +237,19 @@ struct AddFoodSheetView: View {
         viewModel: AddFoodSheetViewModel(
             searchFoodItems: SearchFoodItemsUseCaseFake(),
             createFoodItem: CreateFoodItemUseCaseFake(),
-            saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
             searchFoodExternally: SearchFoodExternallyUseCaseFake(),
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
-            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
-            selectedDate: .now
-        )
+            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake()
+        ),
+        makeFoodQuantityView: { item, onSaved in
+            FoodQuantityView(
+                viewModel: FoodQuantityViewModel(
+                    item: item,
+                    saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
+                    selectedDate: .now,
+                    onSaved: onSaved
+                )
+            )
+        }
     )
 }

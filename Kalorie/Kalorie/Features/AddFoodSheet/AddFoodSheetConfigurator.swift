@@ -28,14 +28,22 @@ struct AddFoodSheetConfigurator {
             viewModel: AddFoodSheetViewModel(
                 searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
                 createFoodItem: CreateFoodItemUseCase(dataProvider: dataProvider),
-                saveFoodConsumed: SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 searchFoodExternally: SearchFoodExternallyUseCase(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
-                selectedDate: date,
                 onFoodSaved: onFoodSaved,
                 isScannerVisible: withBarcodeScan
-            )
+            ),
+            makeFoodQuantityView: { [self] item, onSaved in
+                FoodQuantityView(
+                    viewModel: FoodQuantityViewModel(
+                        item: item,
+                        saveFoodConsumed: SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                        selectedDate: date,
+                        onSaved: onSaved
+                    )
+                )
+            }
         )
     }
 }
