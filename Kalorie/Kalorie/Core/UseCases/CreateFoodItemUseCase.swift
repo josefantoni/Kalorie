@@ -12,6 +12,7 @@ enum CreateFoodItemError: Error {
     case invalidName
     case invalidCalories
     case invalidWeight
+    case itemAlreadyExists
 }
 
 protocol CreateFoodItemUseCaseProtocol {
@@ -37,6 +38,12 @@ struct CreateFoodItemUseCase: CreateFoodItemUseCaseProtocol {
         guard !item.czName.isEmpty else { throw CreateFoodItemError.invalidName }
         guard item.caloriesPerHundredGrams > 0 else { throw CreateFoodItemError.invalidCalories }
         guard item.weight > 0 else { throw CreateFoodItemError.invalidWeight }
+        let existing: FoodItemDTO? = try await dataProvider.loadAsync(
+            from: Constants.Firestore.foodItems,
+            where: "id",
+            isEqualTo: item.id
+        )
+        guard existing == nil else { throw CreateFoodItemError.itemAlreadyExists }
         let dto = FoodItemDTO(
             id: item.id,
             czName: item.czName,

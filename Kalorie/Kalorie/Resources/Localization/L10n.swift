@@ -53,6 +53,7 @@ enum L10n {
         static var errorInvalidCalories: String { String(localized: "addFood_error_invalidCalories") }
         static var errorInvalidWeight: String { String(localized: "addFood_error_invalidWeight") }
         static var errorBarcodeNotFound: String { String(localized: "addFood_error_barcodeNotFound") }
+        static var errorItemAlreadyExists: String { String(localized: "addFood_error_itemAlreadyExists") }
     }
 
     enum FoodQuantity {
