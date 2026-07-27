@@ -176,6 +176,8 @@ final class AddFoodSheetViewModel: ObservableObject {
                 alertTitle = L10n.AddFood.errorInvalidCalories
             case .invalidWeight:
                 alertTitle = L10n.AddFood.errorInvalidWeight
+            case .itemAlreadyExists:
+                alertTitle = L10n.AddFood.errorItemAlreadyExists
             case nil:
                 alertTitle = L10n.Common.errorUnknown
             }
