@@ -45,8 +45,14 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
 #if DEBUG
 struct SaveFoodConsumedUseCaseFake: SaveFoodConsumedUseCaseProtocol {
 
+    // MARK: - Properties
+
+    var shouldThrow = false
+
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws {}
+    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws {
+        if shouldThrow { throw URLError(.unknown) }
+    }
 }
 #endif

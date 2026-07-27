@@ -36,8 +36,14 @@ struct DeleteMealTypeUseCase: DeleteMealTypeUseCaseProtocol {
 #if DEBUG
 struct DeleteMealTypeUseCaseFake: DeleteMealTypeUseCaseProtocol {
 
+    // MARK: - Properties
+
+    var shouldThrow = false
+
     // MARK: - Functions
 
-    func callAsFunction(_ mealType: MealTypeDomain) async throws {}
+    func callAsFunction(_ mealType: MealTypeDomain) async throws {
+        if shouldThrow { throw URLError(.unknown) }
+    }
 }
 #endif
