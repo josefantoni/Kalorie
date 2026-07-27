@@ -17,8 +17,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var selectedDay = Date.now
     @Published var showMealTypeSheet = false
     @Published var showAddFoodSheet = false
-    @Published var showingAlert = false
-    @Published var alertTitle = ""
+    @Published var alertItem: AlertItem?
 
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let fetchFoodsConsumed: any FetchFoodsConsumedUseCaseProtocol
@@ -60,8 +59,8 @@ final class DashboardViewModel: ObservableObject {
     private func foodFallsIn(mealType: MealTypeDomain, food: FoodConsumedDomain) -> Bool {
         let calendar = Calendar.current
         func minutes(from date: Date) -> Int {
-            let c = calendar.dateComponents([.hour, .minute], from: date)
-            return (c.hour ?? 0) * 60 + (c.minute ?? 0)
+            let components = calendar.dateComponents([.hour, .minute], from: date)
+            return (components.hour ?? 0) * 60 + (components.minute ?? 0)
         }
         let foodMinutes = minutes(from: food.date)
         return foodMinutes >= minutes(from: mealType.startTime) && foodMinutes < minutes(from: mealType.endTime)
@@ -83,8 +82,7 @@ final class DashboardViewModel: ObservableObject {
             foodsConsumed = try await fetchFoodsConsumed(for: selectedDay)
             state = .loaded
         } catch {
-            alertTitle = L10n.Common.errorUnknown
-            showingAlert = true
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
             state = .loaded
         }
     }

@@ -31,7 +31,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         let sut = makeSUT()
         sut.lastScannedBarcode = ""
         await sut.onBarcodeScanned()
-        XCTAssertFalse(sut.isAlertVisible)
+        XCTAssertNil(sut.alertItem)
         XCTAssertFalse(sut.isBarcodeSearchLoading)
     }
 
@@ -39,8 +39,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         let sut = makeSUT()
         sut.lastScannedBarcode = "8594004428464"
         await sut.onBarcodeScanned()
-        XCTAssertTrue(sut.isAlertVisible)
-        XCTAssertEqual(sut.alertTitle, L10n.AddFood.errorBarcodeNotFound)
+        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorBarcodeNotFound)
     }
 
     func test_onBarcodeScanned_whenNotFound_stopsLoading() async {
@@ -57,7 +56,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         await sut.onBarcodeScanned()
         XCTAssertTrue(sut.isPushedToQuantityView)
         XCTAssertFalse(sut.isScannerVisible)
-        XCTAssertFalse(sut.isAlertVisible)
+        XCTAssertNil(sut.alertItem)
     }
 
     func test_onBarcodeScanned_whenExternalFound_navigatesToQuantityView() async {
@@ -73,8 +72,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         let sut = makeSUT(fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(shouldThrow: true))
         sut.lastScannedBarcode = "8594004428464"
         await sut.onBarcodeScanned()
-        XCTAssertTrue(sut.isAlertVisible)
-        XCTAssertEqual(sut.alertTitle, L10n.AddFood.errorLoadFailed)
+        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorLoadFailed)
     }
 
     // MARK: - onSearchTextChanged
@@ -83,16 +81,14 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         let sut = makeSUT(searchFoodItems: SearchFoodItemsUseCaseFake(shouldThrow: true))
         sut.searchText = "tvaroh"
         await sut.onSearchTextChanged()
-        XCTAssertTrue(sut.isAlertVisible)
-        XCTAssertEqual(sut.alertTitle, L10n.AddFood.errorLoadFailed)
+        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorLoadFailed)
     }
 
     func test_onSearchTextChanged_whenExternalSearchFails_showsLoadFailedAlert() async {
         let sut = makeSUT(searchFoodExternally: SearchFoodExternallyUseCaseFake(shouldThrow: true))
         sut.searchText = "tvaroh"
         await sut.onSearchTextChanged()
-        XCTAssertTrue(sut.isAlertVisible)
-        XCTAssertEqual(sut.alertTitle, L10n.AddFood.errorLoadFailed)
+        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorLoadFailed)
     }
 
     // MARK: - onSelectFoodItem

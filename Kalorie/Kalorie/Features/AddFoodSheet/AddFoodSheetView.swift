@@ -45,9 +45,9 @@ struct AddFoodSheetView: View {
                 }
             }
             .loader(viewModel.state.isLoading)
-            .alert(isPresented: $viewModel.isAlertVisible) {
+            .alert(item: $viewModel.alertItem) { item in
                 Alert(
-                    title: Text(viewModel.alertTitle),
+                    title: Text(item.title),
                     dismissButton: Alert.Button.default(Text(L10n.Common.ok))
                 )
             }
@@ -114,8 +114,7 @@ struct AddFoodSheetView: View {
                         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
                             viewModel.onScannerButtonTapped()
                         } else {
-                            viewModel.alertTitle = L10n.AddFood.cameraPermissionAlert
-                            viewModel.isAlertVisible.toggle()
+                            viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
                         }
                     }
                 }

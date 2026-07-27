@@ -38,8 +38,7 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published var formInput = FoodItemFormInput()
     @Published var isAddNewItemVisible = false
     @Published var isScannerVisible: Bool
-    @Published var isAlertVisible = false
-    @Published var alertTitle = ""
+    @Published var alertItem: AlertItem?
     @Published private(set) var shouldDismiss = false
     @Published var isPushedToQuantityView = false
     @Published private(set) var selectedFoodItem: FoodItemDomain?
@@ -106,12 +105,10 @@ final class AddFoodSheetViewModel: ObservableObject {
                 return
             }
         } catch {
-            alertTitle = L10n.AddFood.errorLoadFailed
-            isAlertVisible = true
+            alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
             return
         }
-        alertTitle = L10n.AddFood.errorBarcodeNotFound
-        isAlertVisible = true
+        alertItem = AlertItem(title: L10n.AddFood.errorBarcodeNotFound)
     }
 
     @MainActor
@@ -129,8 +126,7 @@ final class AddFoodSheetViewModel: ObservableObject {
         do {
             localFoodItems = try await searchFoodItems(query: searchText)
         } catch {
-            alertTitle = L10n.AddFood.errorLoadFailed
-            isAlertVisible = true
+            alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
             return
         }
         guard localFoodItems.isEmpty && searchText.count >= 3 else {
@@ -142,8 +138,7 @@ final class AddFoodSheetViewModel: ObservableObject {
         do {
             externalFoodItems = try await searchFoodExternally(query: searchText)
         } catch {
-            alertTitle = L10n.AddFood.errorLoadFailed
-            isAlertVisible = true
+            alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
         }
     }
 
@@ -189,19 +184,18 @@ final class AddFoodSheetViewModel: ObservableObject {
         } catch {
             switch error as? CreateFoodItemError {
             case .invalidCode:
-                alertTitle = L10n.AddFood.errorInvalidCode
+                alertItem = AlertItem(title: L10n.AddFood.errorInvalidCode)
             case .invalidName:
-                alertTitle = L10n.AddFood.errorInvalidName
+                alertItem = AlertItem(title: L10n.AddFood.errorInvalidName)
             case .invalidCalories:
-                alertTitle = L10n.AddFood.errorInvalidCalories
+                alertItem = AlertItem(title: L10n.AddFood.errorInvalidCalories)
             case .invalidWeight:
-                alertTitle = L10n.AddFood.errorInvalidWeight
+                alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
             case .itemAlreadyExists:
-                alertTitle = L10n.AddFood.errorItemAlreadyExists
+                alertItem = AlertItem(title: L10n.AddFood.errorItemAlreadyExists)
             case nil:
-                alertTitle = L10n.Common.errorUnknown
+                alertItem = AlertItem(title: L10n.Common.errorUnknown)
             }
-            isAlertVisible = true
         }
     }
 }

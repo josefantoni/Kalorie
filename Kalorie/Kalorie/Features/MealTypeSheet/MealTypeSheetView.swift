@@ -90,9 +90,9 @@ struct MealTypeSheetView: View {
             }
             .loader(viewModel.state.isLoading)
             .interactiveDismissDisabled(editMode == .active)
-            .alert(isPresented: $viewModel.showingAlert) {
+            .alert(item: $viewModel.alertItem) { item in
                 Alert(
-                    title: Text(viewModel.alertTitle),
+                    title: Text(item.title),
                     dismissButton: Alert.Button.default(Text(L10n.Common.ok))
                 )
             }

@@ -17,8 +17,7 @@ final class MealTypeSheetViewModel: ObservableObject {
     @Published var newMealStart = Date.now
     @Published var newMealEnd = Date.now
     @Published var isAddFormVisible = false
-    @Published var showingAlert = false
-    @Published var alertTitle = ""
+    @Published var alertItem: AlertItem?
 
     private let createMealType: any CreateMealTypeUseCaseProtocol
     private let deleteMealType: any DeleteMealTypeUseCaseProtocol
@@ -56,28 +55,22 @@ final class MealTypeSheetViewModel: ObservableObject {
             isAddFormVisible = false
             newMealName = ""
         } catch CreateMealTypeError.emptyName {
-            alertTitle = L10n.MealTypeSheet.errorEmptyName
-            showingAlert = true
+            alertItem = AlertItem(title: L10n.MealTypeSheet.errorEmptyName)
         } catch CreateMealTypeError.duplicateName {
-            alertTitle = L10n.MealTypeSheet.errorDuplicateName
-            showingAlert = true
+            alertItem = AlertItem(title: L10n.MealTypeSheet.errorDuplicateName)
         } catch CreateMealTypeError.timeConflict {
-            alertTitle = L10n.MealTypeSheet.errorTimeConflict
-            showingAlert = true
+            alertItem = AlertItem(title: L10n.MealTypeSheet.errorTimeConflict)
         } catch CreateMealTypeError.durationTooShort {
-            alertTitle = L10n.MealTypeSheet.errorDurationTooShort
-            showingAlert = true
+            alertItem = AlertItem(title: L10n.MealTypeSheet.errorDurationTooShort)
         } catch {
-            alertTitle = L10n.MealTypeSheet.errorUnexpected
-            showingAlert = true
+            alertItem = AlertItem(title: L10n.MealTypeSheet.errorUnexpected)
         }
     }
 
     @MainActor
     func onDelete(at index: Int) async {
         guard mealTypes.count > 1 else {
-            alertTitle = L10n.MealTypeSheet.errorLastMealType
-            showingAlert = true
+            alertItem = AlertItem(title: L10n.MealTypeSheet.errorLastMealType)
             return
         }
         state = .loading
@@ -87,8 +80,7 @@ final class MealTypeSheetViewModel: ObservableObject {
             try await deleteMealType(mealType)
             mealTypes.removeAll { $0.id == mealType.id }
         } catch {
-            alertTitle = L10n.MealTypeSheet.errorDeleteError
-            showingAlert = true
+            alertItem = AlertItem(title: L10n.MealTypeSheet.errorDeleteError)
         }
     }
 
@@ -114,8 +106,7 @@ final class MealTypeSheetViewModel: ObservableObject {
         do {
             try await updateMealTypeTimes(mealTypes)
         } catch {
-            alertTitle = L10n.MealTypeSheet.errorUnexpected
-            showingAlert = true
+            alertItem = AlertItem(title: L10n.MealTypeSheet.errorUnexpected)
         }
     }
 
