@@ -63,13 +63,15 @@ struct DashboardView: View {
         }
         .loader(viewModel.state.isLoading)
         .sheet(isPresented: $viewModel.showAddFoodSheet) {
-            router.makeAddFoodSheetView(
-                for: viewModel.selectedDay,
-                onFoodSaved: { Task { await viewModel.onAppear() } }
-            )
+            router.makeAddFoodSheetView(for: viewModel.selectedDay) {
+                Task { await viewModel.onAppear() }
+            }
         }
-        .alert(viewModel.alertTitle, isPresented: $viewModel.showingAlert) {
-            Button(L10n.Common.ok) {}
+        .alert(item: $viewModel.alertItem) { item in
+            Alert(
+                title: Text(item.title),
+                dismissButton: .default(Text(L10n.Common.ok))
+            )
         }
         .task { await viewModel.onAppear() }
 

@@ -33,8 +33,7 @@ final class FoodQuantityViewModel: ObservableObject {
     @Published var unit: FoodQuantityUnit = .portions
     @Published var quantity: Double = 1
     @Published private(set) var state: LoadingState<Void> = .idle
-    @Published var isAlertVisible = false
-    @Published private(set) var alertTitle = ""
+    @Published var alertItem: AlertItem?
 
     let item: FoodItemDomain
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
@@ -73,8 +72,7 @@ final class FoodQuantityViewModel: ObservableObject {
     func onConfirm() async {
         guard !state.isLoading else { return }
         guard grams > 0 else {
-            alertTitle = L10n.FoodQuantity.errorInvalidQuantity
-            isAlertVisible = true
+            alertItem = AlertItem(title: L10n.FoodQuantity.errorInvalidQuantity)
             return
         }
         state = .loading
@@ -83,8 +81,7 @@ final class FoodQuantityViewModel: ObservableObject {
             try await saveFoodConsumed(item, grams: grams, date: selectedDate)
             onSaved()
         } catch {
-            alertTitle = L10n.Common.errorUnknown
-            isAlertVisible = true
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
         }
     }
 }

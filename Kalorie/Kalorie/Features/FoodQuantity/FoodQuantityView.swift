@@ -32,9 +32,9 @@ struct FoodQuantityView: View {
         .navigationTitle(viewModel.item.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .loader(viewModel.state.isLoading)
-        .alert(isPresented: $viewModel.isAlertVisible) {
+        .alert(item: $viewModel.alertItem) { item in
             Alert(
-                title: Text(viewModel.alertTitle),
+                title: Text(item.title),
                 dismissButton: .default(Text(L10n.Common.ok))
             )
         }
