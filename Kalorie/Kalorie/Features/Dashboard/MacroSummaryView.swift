@@ -94,8 +94,8 @@ struct MacroSummaryView: View {
             if pct >= 8 {
                 let midAngle = startAngle + .degrees(180 * value / total)
                 let textCenter = CGPoint(
-                    x: center.x + midRadius * cos(midAngle.radians),
-                    y: center.y + midRadius * sin(midAngle.radians)
+                    x: center.x + midRadius * CGFloat(cos(midAngle.radians)),
+                    y: center.y + midRadius * CGFloat(sin(midAngle.radians))
                 )
                 context.draw(
                     Text("\(pct)%")
