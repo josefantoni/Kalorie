@@ -27,91 +27,100 @@ struct DashboardView: View {
     // MARK: - Body
 
     var body: some View {
-        HStack {
-            Spacer()
-            Button {
-                viewModel.showMealTypeSheet.toggle()
-            } label: {
-                Text(L10n.Dashboard.buttonMealLayout)
+        NavigationStack {
+            List {
+                if !viewModel.foodsConsumed.isEmpty {
+                    MacroSummaryView(macros: viewModel.dailyMacros)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+
+                ForEach(Array(viewModel.groupedFoods.enumerated()), id: \.offset) { index, group in
+                    Section {
+                        ForEach(group.foods, id: \.id) { food in
+                            FoodConsumedView(food)
+                        }
+                    } header: {
+                        HStack(spacing: 4) {
+                            Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
+                            Spacer()
+                            Button {
+                                macroPopoverIndex = index
+                            } label: {
+                                Image(systemName: "info.circle")
+                                    .font(.title2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .popover(isPresented: Binding(
+                                get: { macroPopoverIndex == index },
+                                set: { if !$0 { macroPopoverIndex = nil } }
+                            )) {
+                                MealSectionMacroView(
+                                    name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
+                                    foods: group.foods
+                                )
+                                .presentationCompactAdaptation(.popover)
+                            }
+                        }
+                        .font(.subheadline)
+                        .padding(.leading, -5)
+                    }
+                }
+            }
+            .refreshable { await viewModel.onAppear() }
+            .overlay {
+                if viewModel.foodsConsumed.isEmpty && !viewModel.state.isLoading {
+                    emptyStateView
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                if !viewModel.foodsConsumed.isEmpty {
+                    HStack {
+                        Spacer()
+                        Button {
+                            viewModel.showAddFoodSheet.toggle()
+                        } label: {
+                            Image(systemName: BaseImageName.plus.rawValue)
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .padding(20)
+                        }
+                        .glassEffect(.regular.tint(.accentColor), in: .circle)
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 8)
+                    }
+                }
+            }
+            .loader(viewModel.state.isLoading)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        viewModel.showMealTypeSheet.toggle()
+                    } label: {
+                        Text(L10n.Dashboard.buttonMealLayout)
+                    }
+                }
             }
             .sheet(isPresented: $viewModel.showMealTypeSheet) {
                 router.makeMealTypeSheetView(mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onMealTypesChanged() }
                 }
             }
-        }
-        .padding(.trailing)
-
-        List {
-            if !viewModel.foodsConsumed.isEmpty {
-                MacroSummaryView(macros: viewModel.dailyMacros)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-            }
-
-            ForEach(Array(viewModel.groupedFoods.enumerated()), id: \.offset) { index, group in
-                Section {
-                    ForEach(group.foods, id: \.id) { food in
-                        FoodConsumedView(food)
-                    }
-                } header: {
-                    HStack(spacing: 4) {
-                        Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
-                        Spacer()
-                        Button {
-                            macroPopoverIndex = index
-                        } label: {
-                            Image(systemName: "info.circle")
-                                .font(.title2)
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .popover(isPresented: Binding(
-                            get: { macroPopoverIndex == index },
-                            set: { if !$0 { macroPopoverIndex = nil } }
-                        )) {
-                            MealSectionMacroView(
-                                name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
-                                foods: group.foods
-                            )
-                            .presentationCompactAdaptation(.popover)
-                        }
-                    }
-                    .font(.subheadline)
-                    .padding(.leading, -5)
+            .sheet(isPresented: $viewModel.showAddFoodSheet) {
+                router.makeAddFoodSheetView(for: viewModel.selectedDay) {
+                    Task { await viewModel.onAppear() }
                 }
             }
-        }
-        .refreshable { await viewModel.onAppear() }
-        .overlay {
-            if viewModel.foodsConsumed.isEmpty && !viewModel.state.isLoading {
-                emptyStateView
-            }
-        }
-        .loader(viewModel.state.isLoading)
-        .sheet(isPresented: $viewModel.showAddFoodSheet) {
-            router.makeAddFoodSheetView(for: viewModel.selectedDay) {
-                Task { await viewModel.onAppear() }
-            }
-        }
-        .alert(item: $viewModel.alertItem) { item in
-            Alert(
-                title: Text(item.title),
-                dismissButton: .default(Text(L10n.Common.ok))
-            )
-        }
-        .task { await viewModel.onAppear() }
-
-        if !viewModel.foodsConsumed.isEmpty {
-            Button {
-                viewModel.showAddFoodSheet.toggle()
-            } label: {
-                BaseImage(
-                    imageName: .plusCircle,
-                    imageSize: .extraLarge
+            .alert(item: $viewModel.alertItem) { item in
+                Alert(
+                    title: Text(item.title),
+                    dismissButton: .default(Text(L10n.Common.ok))
                 )
             }
+            .task { await viewModel.onAppear() }
         }
     }
 
@@ -166,9 +175,51 @@ struct DashboardView: View {
             MealTypeDomain(id: 1, name: "Oběd", startTime: time(hour: 11), endTime: time(hour: 14))
         ]),
         fetchFoodsConsumed: FetchFoodsConsumedUseCaseFake(stubbedFoods: [
-            FoodConsumedDomain(id: "1", czName: "Ovesné vločky", engName: "Oats", weight: 80, date: time(hour: 8), calories: 295, protein: 10, carbohydrate: 52, carbohydrateSugar: 8, fat: 5, fatUnsaturated: 2, fiber: 6, salt: 0.1),
-            FoodConsumedDomain(id: "2", czName: "Kuřecí prsa", engName: "Chicken breast", weight: 150, date: time(hour: 12), calories: 165, protein: 31, carbohydrate: 0, carbohydrateSugar: 0, fat: 3.5, fatUnsaturated: 1.2, fiber: 0, salt: 0.2),
-            FoodConsumedDomain(id: "3", czName: "Rýže", engName: "Rice", weight: 200, date: time(hour: 12), calories: 260, protein: 5, carbohydrate: 57, carbohydrateSugar: 0.4, fat: 0.4, fatUnsaturated: 0.2, fiber: 1, salt: 0)
+            FoodConsumedDomain(
+                id: "1",
+                czName: "Ovesné vločky",
+                engName: "Oats",
+                weight: 80,
+                date: time(hour: 8),
+                calories: 295,
+                protein: 10,
+                carbohydrate: 52,
+                carbohydrateSugar: 8,
+                fat: 5,
+                fatUnsaturated: 2,
+                fiber: 6,
+                salt: 0.1
+            ),
+            FoodConsumedDomain(
+                id: "2",
+                czName: "Kuřecí prsa",
+                engName: "Chicken breast",
+                weight: 150,
+                date: time(hour: 12),
+                calories: 165,
+                protein: 31,
+                carbohydrate: 0,
+                carbohydrateSugar: 0,
+                fat: 3.5,
+                fatUnsaturated: 1.2,
+                fiber: 0,
+                salt: 0.2
+            ),
+            FoodConsumedDomain(
+                id: "3",
+                czName: "Rýže",
+                engName: "Rice",
+                weight: 200,
+                date: time(hour: 12),
+                calories: 260,
+                protein: 5,
+                carbohydrate: 57,
+                carbohydrateSugar: 0.4,
+                fat: 0.4,
+                fatUnsaturated: 0.2,
+                fiber: 1,
+                salt: 0
+            )
         ]),
         setupDefaultMeals: SetupDefaultMealsUseCaseFake()
     )
