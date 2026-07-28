@@ -106,6 +106,7 @@ final class AddFoodSheetViewModel: ObservableObject {
 
     @MainActor
     func onSearchTextChanged() async {
+        guard !isPushedToQuantityView else { return }
         guard !searchText.isEmpty else {
             localFoodItems = []
             externalFoodItems = []
