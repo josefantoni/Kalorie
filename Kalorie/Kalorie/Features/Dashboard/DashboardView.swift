@@ -33,10 +33,11 @@ struct DashboardView: View {
             } label: {
                 Text(L10n.Dashboard.buttonMealLayout)
             }
-            .sheet(isPresented: $viewModel.showMealTypeSheet, onDismiss: {
-                Task { await viewModel.onAppear() }
-            }) {
-                router.makeMealTypeSheetView(mealTypes: viewModel.mealTypes)
+            .sheet(isPresented: $viewModel.showMealTypeSheet) {
+                router.makeMealTypeSheetView(
+                    mealTypes: viewModel.mealTypes,
+                    onMealTypesChanged: { Task { await viewModel.onMealTypesChanged() } }
+                )
             }
         }
         .padding(.trailing)

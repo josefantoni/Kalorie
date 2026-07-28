@@ -26,8 +26,8 @@ struct DashboardRouter {
 
     // MARK: - Functions
 
-    func makeMealTypeSheetView(mealTypes: [MealTypeDomain]) -> MealTypeSheetView {
-        mealTypeSheetConfigurator.createView(mealTypes: mealTypes)
+    func makeMealTypeSheetView(mealTypes: [MealTypeDomain], onMealTypesChanged: @escaping () -> Void = {}) -> MealTypeSheetView {
+        mealTypeSheetConfigurator.createView(mealTypes: mealTypes, onMealTypesChanged: onMealTypesChanged)
     }
 
     func makeAddFoodSheetView(for date: Date, onFoodSaved: @escaping () -> Void = {}, withBarcodeScan: Bool = false) -> AddFoodSheetView {
