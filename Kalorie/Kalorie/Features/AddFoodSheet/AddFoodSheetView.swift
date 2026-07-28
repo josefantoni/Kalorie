@@ -124,16 +124,15 @@ struct AddFoodSheetView: View {
                     }
                 }
             }
-            Section(header: Text(L10n.AddFood.sectionSearchResults)) {
-                ForEach(viewModel.localFoodItems, id: \.id) { item in
-                    Text(item.displayName)
-                        .onTapGesture {
-                            viewModel.onSelectFoodItem(item)
-                        }
-                }
-            }
-            if viewModel.localFoodItems.isEmpty && !viewModel.searchText.isEmpty {
-                Section(header: Text(L10n.AddFood.sectionExternalResults)) {
+            Section(header: Text(L10n.AddFood.sectionExternalResults)) {
+                if !viewModel.localFoodItems.isEmpty {
+                    ForEach(viewModel.localFoodItems, id: \.id) { item in
+                        Text(item.displayName)
+                            .onTapGesture {
+                                viewModel.onSelectFoodItem(item)
+                            }
+                    }
+                } else if !viewModel.searchText.isEmpty {
                     if viewModel.isExternalSearchLoading {
                         ProgressView()
                             .frame(maxWidth: .infinity)
