@@ -77,20 +77,18 @@ struct DashboardView: View {
             }
             .safeAreaInset(edge: .bottom) {
                 if !viewModel.foodsConsumed.isEmpty {
-                    HStack {
-                        Spacer()
-                        Button {
-                            viewModel.showAddFoodSheet.toggle()
-                        } label: {
-                            Image(systemName: BaseImageName.plus.rawValue)
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .padding(20)
-                        }
-                        .glassEffect(.regular.tint(.accentColor), in: .circle)
-                        .padding(.trailing, 20)
-                        .padding(.bottom, 8)
+                    Button {
+                        viewModel.showAddFoodSheet.toggle()
+                    } label: {
+                        Image(systemName: BaseImageName.plus.rawValue)
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .padding(20)
                     }
+                    .background(Color.accentColor)
+                    .clipShape(.circle)
+                    .padding(.bottom, 8)
                 }
             }
             .loader(viewModel.state.isLoading)
