@@ -14,7 +14,13 @@
         }
       }
     },
+    "%lld" : {
+
+    },
     "%lld kcal" : {
+
+    },
+    "%lld%%" : {
 
     },
     "0" : {
@@ -53,6 +59,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Please enable camera access in settings to scan barcodes. 🙁"
+          }
+        }
+      }
+    },
+    "addFood_error_barcodeNotFound" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravina s tímto čárovým kódem nebyla nalezena"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No food found for this barcode"
           }
         }
       }
@@ -125,19 +148,19 @@
         }
       }
     },
-    "addFood_error_barcodeNotFound" : {
+    "addFood_error_itemAlreadyExists" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Potravina s tímto čárovým kódem nebyla nalezena"
+            "value" : "Potravina s tímto čárovým kódem již v databázi existuje"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No food found for this barcode"
+            "value" : "A food item with this barcode already exists in the database"
           }
         }
       }
@@ -155,23 +178,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to load results. Please try again."
-          }
-        }
-      }
-    },
-    "addFood_error_itemAlreadyExists" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Potravina s tímto čárovým kódem již v databázi existuje"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A food item with this barcode already exists in the database"
           }
         }
       }
@@ -737,23 +743,6 @@
         }
       }
     },
-    "foodQuantity_error_invalidQuantity" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Množství musí být větší než nula"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Amount must be greater than zero"
-          }
-        }
-      }
-    },
     "foodQuantity_button_add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -767,6 +756,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add"
+          }
+        }
+      }
+    },
+    "foodQuantity_error_invalidQuantity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Množství musí být větší než nula"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount must be greater than zero"
           }
         }
       }
@@ -942,6 +948,9 @@
       }
     },
     "g" : {
+
+    },
+    "kcal" : {
 
     },
     "mealTypeSheet_button_create" : {

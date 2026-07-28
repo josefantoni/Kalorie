@@ -7,6 +7,17 @@
 
 import Foundation
 
+struct DailyMacros {
+    let calories: Int
+    let protein: Double
+    let carbs: Double
+    let carbohydrateSugar: Double
+    let fat: Double
+    let fatUnsaturated: Double
+    let fiber: Double
+    let salt: Double
+}
+
 final class DashboardViewModel: ObservableObject {
 
     // MARK: - Properties
@@ -36,6 +47,19 @@ final class DashboardViewModel: ObservableObject {
     }
 
     // MARK: - Functions
+
+    var dailyMacros: DailyMacros {
+        DailyMacros(
+            calories: foodsConsumed.reduce(0) { $0 + $1.calories },
+            protein: foodsConsumed.reduce(0) { $0 + $1.protein },
+            carbs: foodsConsumed.reduce(0) { $0 + $1.carbohydrate },
+            carbohydrateSugar: foodsConsumed.reduce(0) { $0 + $1.carbohydrateSugar },
+            fat: foodsConsumed.reduce(0) { $0 + $1.fat },
+            fatUnsaturated: foodsConsumed.reduce(0) { $0 + $1.fatUnsaturated },
+            fiber: foodsConsumed.reduce(0) { $0 + $1.fiber },
+            salt: foodsConsumed.reduce(0) { $0 + $1.salt }
+        )
+    }
 
     var groupedFoods: [(mealType: MealTypeDomain?, foods: [FoodConsumedDomain])] {
         var result: [(mealType: MealTypeDomain?, foods: [FoodConsumedDomain])] = []

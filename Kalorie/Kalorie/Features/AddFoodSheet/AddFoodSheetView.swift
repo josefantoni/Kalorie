@@ -239,16 +239,15 @@ struct AddFoodSheetView: View {
             searchFoodExternally: SearchFoodExternallyUseCaseFake(),
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
             fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake()
-        ),
-        makeFoodQuantityView: { item, onSaved in
-            FoodQuantityView(
-                viewModel: FoodQuantityViewModel(
-                    item: item,
-                    saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
-                    selectedDate: .now,
-                    onSaved: onSaved
-                )
+        )
+    ) { item, onSaved in
+        FoodQuantityView(
+            viewModel: FoodQuantityViewModel(
+                item: item,
+                saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
+                selectedDate: .now,
+                onSaved: onSaved
             )
-        }
-    )
+        )
+    }
 }

@@ -46,7 +46,14 @@ struct FoodConsumedView: View {
             engName: "White yoghurt",
             weight: 200,
             date: .now,
-            calories: 140
+            calories: 140,
+            protein: 8,
+            carbohydrate: 16,
+            carbohydrateSugar: 12,
+            fat: 3.5,
+            fatUnsaturated: 1.2,
+            fiber: 0,
+            salt: 0.1
         )
     )
 }

@@ -33,17 +33,16 @@ struct AddFoodSheetConfigurator {
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
                 onFoodSaved: onFoodSaved,
                 isScannerVisible: withBarcodeScan
-            ),
-            makeFoodQuantityView: { [self] item, onSaved in
-                FoodQuantityView(
-                    viewModel: FoodQuantityViewModel(
-                        item: item,
-                        saveFoodConsumed: SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                        selectedDate: date,
-                        onSaved: onSaved
-                    )
+            )
+        ) { [self] item, onSaved in
+            FoodQuantityView(
+                viewModel: FoodQuantityViewModel(
+                    item: item,
+                    saveFoodConsumed: SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                    selectedDate: date,
+                    onSaved: onSaved
                 )
-            }
-        )
+            )
+        }
     }
 }
