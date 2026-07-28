@@ -86,4 +86,18 @@ final class DashboardViewModel: ObservableObject {
             state = .loaded
         }
     }
+
+    @MainActor
+    func onMealTypesChanged() async {
+        do {
+            var types = try await fetchMealTypes()
+            if types.isEmpty {
+                types = try await setupDefaultMeals()
+            }
+            mealTypes = types
+            foodsConsumed = try await fetchFoodsConsumed(for: selectedDay)
+        } catch {
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+        }
+    }
 }

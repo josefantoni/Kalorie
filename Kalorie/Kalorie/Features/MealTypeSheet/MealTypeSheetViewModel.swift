@@ -19,6 +19,7 @@ final class MealTypeSheetViewModel: ObservableObject {
     @Published var isAddFormVisible = false
     @Published var alertItem: AlertItem?
 
+    private let onMealTypesChanged: () -> Void
     private let createMealType: any CreateMealTypeUseCaseProtocol
     private let deleteMealType: any DeleteMealTypeUseCaseProtocol
     private let updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol
@@ -27,11 +28,13 @@ final class MealTypeSheetViewModel: ObservableObject {
 
     init(
         mealTypes: [MealTypeDomain],
+        onMealTypesChanged: @escaping () -> Void = {},
         createMealType: any CreateMealTypeUseCaseProtocol,
         deleteMealType: any DeleteMealTypeUseCaseProtocol,
         updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol
     ) {
         self.mealTypes = mealTypes
+        self.onMealTypesChanged = onMealTypesChanged
         self.createMealType = createMealType
         self.deleteMealType = deleteMealType
         self.updateMealTypeTimes = updateMealTypeTimes
@@ -54,6 +57,7 @@ final class MealTypeSheetViewModel: ObservableObject {
             mealTypes.sort { $0.startTime < $1.startTime }
             isAddFormVisible = false
             newMealName = ""
+            onMealTypesChanged()
         } catch CreateMealTypeError.emptyName {
             alertItem = AlertItem(title: L10n.MealTypeSheet.errorEmptyName)
         } catch CreateMealTypeError.duplicateName {
@@ -79,6 +83,7 @@ final class MealTypeSheetViewModel: ObservableObject {
         do {
             try await deleteMealType(mealType)
             mealTypes.removeAll { $0.id == mealType.id }
+            onMealTypesChanged()
         } catch {
             alertItem = AlertItem(title: L10n.MealTypeSheet.errorDeleteError)
         }
@@ -105,6 +110,7 @@ final class MealTypeSheetViewModel: ObservableObject {
         defer { state = .loaded }
         do {
             try await updateMealTypeTimes(mealTypes)
+            onMealTypesChanged()
         } catch {
             alertItem = AlertItem(title: L10n.MealTypeSheet.errorUnexpected)
         }

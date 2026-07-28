@@ -11,12 +11,13 @@ struct MealTypeSheetConfigurator {
 
     // MARK: - Functions
 
-    func createView(mealTypes: [MealTypeDomain]) -> MealTypeSheetView {
+    func createView(mealTypes: [MealTypeDomain], onMealTypesChanged: @escaping () -> Void = {}) -> MealTypeSheetView {
         let dataProvider = FirestoreDataProvider()
         let authProvider = AuthProvider()
         return MealTypeSheetView(
             viewModel: MealTypeSheetViewModel(
                 mealTypes: mealTypes,
+                onMealTypesChanged: onMealTypesChanged,
                 createMealType: CreateMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteMealType: DeleteMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 updateMealTypeTimes: UpdateMealTypeTimesUseCase(dataProvider: dataProvider, authProvider: authProvider)
