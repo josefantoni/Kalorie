@@ -44,7 +44,14 @@ struct FetchFoodsConsumedUseCase: FetchFoodsConsumedUseCaseProtocol {
                 engName: $0.engName,
                 weight: $0.weight,
                 date: Date(timeIntervalSince1970: $0.date),
-                calories: $0.calories
+                calories: $0.calories,
+                protein: $0.protein,
+                carbohydrate: $0.carbohydrate,
+                carbohydrateSugar: $0.carbohydrateSugar,
+                fat: $0.fat,
+                fatUnsaturated: $0.fatUnsaturated,
+                fiber: $0.fiber,
+                salt: $0.salt
             )
         }
     }

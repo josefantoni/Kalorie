@@ -14,6 +14,7 @@ struct DashboardView: View {
 
     @StateObject var viewModel: DashboardViewModel
     @State private var pulseAnimation = false
+    @State private var macroPopoverIndex: Int?
     let router: DashboardRouter
 
     // MARK: - Init
@@ -34,25 +35,51 @@ struct DashboardView: View {
                 Text(L10n.Dashboard.buttonMealLayout)
             }
             .sheet(isPresented: $viewModel.showMealTypeSheet) {
-                router.makeMealTypeSheetView(
-                    mealTypes: viewModel.mealTypes,
-                    onMealTypesChanged: { Task { await viewModel.onMealTypesChanged() } }
-                )
+                router.makeMealTypeSheetView(mealTypes: viewModel.mealTypes) {
+                    Task { await viewModel.onMealTypesChanged() }
+                }
             }
         }
         .padding(.trailing)
 
         List {
-            ForEach(Array(viewModel.groupedFoods.enumerated()), id: \.offset) { _, group in
+            if !viewModel.foodsConsumed.isEmpty {
+                MacroSummaryView(macros: viewModel.dailyMacros)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+
+            ForEach(Array(viewModel.groupedFoods.enumerated()), id: \.offset) { index, group in
                 Section {
                     ForEach(group.foods, id: \.id) { food in
                         FoodConsumedView(food)
                     }
                 } header: {
-                    Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .font(.subheadline)
-                        .padding(.leading, -5)
+                    HStack(spacing: 4) {
+                        Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
+                        Spacer()
+                        Button {
+                            macroPopoverIndex = index
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .font(.title2)
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .popover(isPresented: Binding(
+                            get: { macroPopoverIndex == index },
+                            set: { if !$0 { macroPopoverIndex = nil } }
+                        )) {
+                            MealSectionMacroView(
+                                name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
+                                foods: group.foods
+                            )
+                            .presentationCompactAdaptation(.popover)
+                        }
+                    }
+                    .font(.subheadline)
+                    .padding(.leading, -5)
                 }
             }
         }
@@ -126,4 +153,33 @@ struct DashboardView: View {
 
 #Preview {
     DashboardConfigurator().createView()
+}
+
+#Preview {
+    let cal = Calendar.current
+    let now = Date.now
+    func time(hour: Int) -> Date { cal.date(bySettingHour: hour, minute: 0, second: 0, of: now) ?? now }
+
+    let viewModel = DashboardViewModel(
+        fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [
+            MealTypeDomain(id: 0, name: "Snídaně", startTime: time(hour: 7), endTime: time(hour: 10)),
+            MealTypeDomain(id: 1, name: "Oběd", startTime: time(hour: 11), endTime: time(hour: 14))
+        ]),
+        fetchFoodsConsumed: FetchFoodsConsumedUseCaseFake(stubbedFoods: [
+            FoodConsumedDomain(id: "1", czName: "Ovesné vločky", engName: "Oats", weight: 80, date: time(hour: 8), calories: 295, protein: 10, carbohydrate: 52, carbohydrateSugar: 8, fat: 5, fatUnsaturated: 2, fiber: 6, salt: 0.1),
+            FoodConsumedDomain(id: "2", czName: "Kuřecí prsa", engName: "Chicken breast", weight: 150, date: time(hour: 12), calories: 165, protein: 31, carbohydrate: 0, carbohydrateSugar: 0, fat: 3.5, fatUnsaturated: 1.2, fiber: 0, salt: 0.2),
+            FoodConsumedDomain(id: "3", czName: "Rýže", engName: "Rice", weight: 200, date: time(hour: 12), calories: 260, protein: 5, carbohydrate: 57, carbohydrateSugar: 0.4, fat: 0.4, fatUnsaturated: 0.2, fiber: 1, salt: 0)
+        ]),
+        setupDefaultMeals: SetupDefaultMealsUseCaseFake()
+    )
+
+    let dataProvider = FirestoreDataProvider()
+    let authProvider = AuthProvider()
+    return DashboardView(
+        viewModel: viewModel,
+        router: DashboardRouter(
+            mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
+            addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider)
+        )
+    )
 }

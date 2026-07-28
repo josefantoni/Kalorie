@@ -148,6 +148,20 @@ final class DashboardViewModelTests: XCTestCase {
         let cal = Calendar.current
         let base = Date.now
         let date = cal.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
-        return FoodConsumedDomain(id: id, czName: "Jídlo", engName: "Food", weight: 100, date: date, calories: 200)
+        return FoodConsumedDomain(
+            id: id,
+            czName: "Jídlo",
+            engName: "Food",
+            weight: 100,
+            date: date,
+            calories: 200,
+            protein: 10,
+            carbohydrate: 20,
+            carbohydrateSugar: 5,
+            fat: 5,
+            fatUnsaturated: 2,
+            fiber: 1,
+            salt: 0.2
+        )
     }
 }

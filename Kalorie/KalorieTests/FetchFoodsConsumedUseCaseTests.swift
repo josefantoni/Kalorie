@@ -21,8 +21,36 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
     func test_fetchFoodsConsumed_withStubbedItems_returnsAll() async throws {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedDTOs = [
-            FoodConsumedDTO(id: "1", czName: "Vejce", engName: "Egg", weight: 100, date: Date.now.timeIntervalSince1970, calories: 150),
-            FoodConsumedDTO(id: "2", czName: "Chléb", engName: "", weight: 50, date: Date.now.timeIntervalSince1970, calories: 120)
+            FoodConsumedDTO(
+                id: "1",
+                czName: "Vejce",
+                engName: "Egg",
+                weight: 100,
+                date: Date.now.timeIntervalSince1970,
+                calories: 150,
+                protein: 0,
+                carbohydrate: 0,
+                carbohydrateSugar: 0,
+                fat: 0,
+                fatUnsaturated: 0,
+                fiber: 0,
+                salt: 0
+            ),
+            FoodConsumedDTO(
+                id: "2",
+                czName: "Chléb",
+                engName: "",
+                weight: 50,
+                date: Date.now.timeIntervalSince1970,
+                calories: 120,
+                protein: 0,
+                carbohydrate: 0,
+                carbohydrateSugar: 0,
+                fat: 0,
+                fatUnsaturated: 0,
+                fiber: 0,
+                salt: 0
+            )
         ]
 
         let result = try await sut(for: .now)
@@ -36,8 +64,36 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
         let (sut, dataProvider) = makeSUT()
         let yesterday = try XCTUnwrap(Calendar.current.date(byAdding: .day, value: -1, to: .now))
         dataProvider.stubbedDTOs = [
-            FoodConsumedDTO(id: "1", czName: "Vejce", engName: "Egg", weight: 100, date: Date.now.timeIntervalSince1970, calories: 150),
-            FoodConsumedDTO(id: "2", czName: "Včerejší chléb", engName: "", weight: 50, date: yesterday.timeIntervalSince1970, calories: 120)
+            FoodConsumedDTO(
+                id: "1",
+                czName: "Vejce",
+                engName: "Egg",
+                weight: 100,
+                date: Date.now.timeIntervalSince1970,
+                calories: 150,
+                protein: 0,
+                carbohydrate: 0,
+                carbohydrateSugar: 0,
+                fat: 0,
+                fatUnsaturated: 0,
+                fiber: 0,
+                salt: 0
+            ),
+            FoodConsumedDTO(
+                id: "2",
+                czName: "Včerejší chléb",
+                engName: "",
+                weight: 50,
+                date: yesterday.timeIntervalSince1970,
+                calories: 120,
+                protein: 0,
+                carbohydrate: 0,
+                carbohydrateSugar: 0,
+                fat: 0,
+                fatUnsaturated: 0,
+                fiber: 0,
+                salt: 0
+            )
         ]
 
         let result = try await sut(for: .now)

@@ -17,4 +17,11 @@ struct FoodConsumedDomain: BilingualNamed {
     let weight: Double
     let date: Date
     let calories: Int
+    let protein: Double
+    let carbohydrate: Double
+    let carbohydrateSugar: Double
+    let fat: Double
+    let fatUnsaturated: Double
+    let fiber: Double
+    let salt: Double
 }

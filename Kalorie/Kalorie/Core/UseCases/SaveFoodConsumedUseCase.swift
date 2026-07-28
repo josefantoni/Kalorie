@@ -29,14 +29,21 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
 
     func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let calories = Int(item.caloriesPerHundredGrams * grams / 100)
+        let ratio = grams / 100
         let dto = FoodConsumedDTO(
             id: item.id,
             czName: item.czName,
             engName: item.engName,
             weight: grams,
             date: date.timeIntervalSince1970,
-            calories: calories
+            calories: Int(item.caloriesPerHundredGrams * ratio),
+            protein: item.protein * ratio,
+            carbohydrate: item.carbohydrate * ratio,
+            carbohydrateSugar: item.carbohydratePureSugar * ratio,
+            fat: item.fat * ratio,
+            fatUnsaturated: item.fatUnsaturatedFattyAcids * ratio,
+            fiber: item.fiber * ratio,
+            salt: item.salt * ratio
         )
         try await dataProvider.saveAsync(dto, to: Constants.Firestore.foodConsumed(userId: userId))
     }
