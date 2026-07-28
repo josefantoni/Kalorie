@@ -19,6 +19,7 @@ enum L10n {
     }
 
     enum Dashboard {
+        static var navigationTitle: String { String(localized: "dashboard_navigation_title") }
         static var buttonMealLayout: String { String(localized: "dashboard_button_mealLayout") }
         static var sectionUnassignedFoods: String { String(localized: "dashboard_section_unassignedFoods") }
         static var emptyTitle: String { String(localized: "dashboard_empty_title") }

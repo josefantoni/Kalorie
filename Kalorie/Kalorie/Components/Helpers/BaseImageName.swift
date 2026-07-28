@@ -8,9 +8,10 @@
 import Foundation
 
 enum BaseImageName: String {
-    
+
     case close = "xmark"
     case barCode = "barcode.viewfinder"
+    case plus = "plus"
     case plusCircle = "plus.circle"
     case carrotFill = "carrot.fill"
 }
