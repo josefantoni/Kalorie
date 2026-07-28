@@ -45,6 +45,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
                 .whereField(field, isGreaterThanOrEqualTo: lowerBound)
                 .whereField(field, isLessThan: upperBound)
                 .getDocuments()
+            snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
             let result: [T] = try snapshot.documents.compactMap { try $0.data(as: T.self) }
             log("✅ GET \(collection) → \(result.count) items")
             return result
@@ -63,6 +64,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
                 .whereField(field, isLessThan: prefix + "\u{f8ff}")
                 .limit(to: limit)
                 .getDocuments()
+            snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
             let result: [T] = try snapshot.documents.compactMap { try $0.data(as: T.self) }
             log("✅ GET \(collection) → \(result.count) items")
             return result
@@ -80,6 +82,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
                 .whereField(field, isEqualTo: value)
                 .limit(to: 1)
                 .getDocuments()
+            snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
             let result: T? = try snapshot.documents.first.flatMap { try $0.data(as: T.self) }
             log("✅ GET \(collection) WHERE \(field) == '\(value)' → \(result == nil ? "nil" : "found")")
             return result
