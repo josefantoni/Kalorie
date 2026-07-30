@@ -24,6 +24,10 @@ enum L10n {
         static var sectionUnassignedFoods: String { String(localized: "dashboard_section_unassignedFoods") }
         static var emptyTitle: String { String(localized: "dashboard_empty_title") }
         static var emptyDescription: String { String(localized: "dashboard_empty_description") }
+        static var emptyTitlePast: String { String(localized: "dashboard_empty_title_past") }
+        static var emptyDescriptionPast: String { String(localized: "dashboard_empty_description_past") }
+        static var emptyTitleFuture: String { String(localized: "dashboard_empty_title_future") }
+        static var emptyDescriptionFuture: String { String(localized: "dashboard_empty_description_future") }
         static var emptyAddFood: String { String(localized: "dashboard_empty_addFood") }
     }
 
@@ -58,11 +62,16 @@ enum L10n {
         static var errorLoadFailed: String { String(localized: "addFood_error_loadFailed") }
     }
 
+    enum FoodConsumedDetail {
+        static var labelTime: String { String(localized: "foodConsumedDetail_label_time") }
+        static var buttonSave: String { String(localized: "foodConsumedDetail_button_save") }
+    }
+
     enum FoodQuantity {
         static var sectionNutrition: String { String(localized: "foodQuantity_section_nutrition") }
-        static var unitPortions: String { String(localized: "foodQuantity_unit_portions") }
+        static var unitHundredGrams: String { String(localized: "foodQuantity_unit_hundredGrams") }
         static var unitGrams: String { String(localized: "foodQuantity_unit_grams") }
-        static var inputPortions: String { String(localized: "foodQuantity_input_portions") }
+        static var inputHundredGrams: String { String(localized: "foodQuantity_input_portions") }
         static var inputGrams: String { String(localized: "foodQuantity_input_grams") }
         static var buttonAdd: String { String(localized: "foodQuantity_button_add") }
         static var calories: String { String(localized: "foodQuantity_macro_calories") }

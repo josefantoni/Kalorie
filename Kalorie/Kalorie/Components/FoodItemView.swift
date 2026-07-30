@@ -24,7 +24,7 @@ struct FoodConsumedView: View {
 
     var body: some View {
         HStack {
-            Text(foodConsumed.date.formatDateStyle(with: "HH:mm"))
+            Text(String(format: "%.0f g", foodConsumed.weight))
             Text(foodConsumed.displayName)
             Spacer()
             VStack {

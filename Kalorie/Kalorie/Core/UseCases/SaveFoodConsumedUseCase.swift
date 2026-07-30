@@ -31,7 +31,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let ratio = grams / 100
         let dto = FoodConsumedDTO(
-            id: item.id,
+            id: UUID().uuidString,
             czName: item.czName,
             engName: item.engName,
             weight: grams,

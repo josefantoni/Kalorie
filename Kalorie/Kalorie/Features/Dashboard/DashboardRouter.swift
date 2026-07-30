@@ -13,15 +13,18 @@ struct DashboardRouter {
 
     private let mealTypeSheetConfigurator: MealTypeSheetConfigurator
     private let addFoodSheetConfigurator: AddFoodSheetConfigurator
+    private let foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator
 
     // MARK: - Init
 
     init(
         mealTypeSheetConfigurator: MealTypeSheetConfigurator,
-        addFoodSheetConfigurator: AddFoodSheetConfigurator
+        addFoodSheetConfigurator: AddFoodSheetConfigurator,
+        foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator
     ) {
         self.mealTypeSheetConfigurator = mealTypeSheetConfigurator
         self.addFoodSheetConfigurator = addFoodSheetConfigurator
+        self.foodConsumedDetailConfigurator = foodConsumedDetailConfigurator
     }
 
     // MARK: - Functions
@@ -32,5 +35,9 @@ struct DashboardRouter {
 
     func makeAddFoodSheetView(for date: Date, onFoodSaved: @escaping () -> Void = {}, withBarcodeScan: Bool = false) -> AddFoodSheetView {
         addFoodSheetConfigurator.createView(date: date, onFoodSaved: onFoodSaved, withBarcodeScan: withBarcodeScan)
+    }
+
+    func makeFoodConsumedDetailView(food: FoodConsumedDomain, onFoodUpdated: @escaping () -> Void = {}) -> FoodConsumedDetailView {
+        foodConsumedDetailConfigurator.createView(food: food, onFoodUpdated: onFoodUpdated)
     }
 }

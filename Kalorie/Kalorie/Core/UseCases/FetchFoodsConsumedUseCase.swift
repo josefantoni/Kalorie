@@ -37,23 +37,7 @@ struct FetchFoodsConsumedUseCase: FetchFoodsConsumedUseCaseProtocol {
             isGreaterThanOrEqualTo: startOfDay.timeIntervalSince1970,
             isLessThan: startOfNextDay.timeIntervalSince1970
         )
-        return dtos.map {
-            FoodConsumedDomain(
-                id: $0.id,
-                czName: $0.czName,
-                engName: $0.engName,
-                weight: $0.weight,
-                date: Date(timeIntervalSince1970: $0.date),
-                calories: $0.calories,
-                protein: $0.protein,
-                carbohydrate: $0.carbohydrate,
-                carbohydrateSugar: $0.carbohydrateSugar,
-                fat: $0.fat,
-                fatUnsaturated: $0.fatUnsaturated,
-                fiber: $0.fiber,
-                salt: $0.salt
-            )
-        }
+        return dtos.map { $0.asDomain() }
     }
 }
 

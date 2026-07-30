@@ -11,7 +11,16 @@ struct FoodQuantityView: View {
 
     // MARK: - Properties
 
-    @ObservedObject var viewModel: FoodQuantityViewModel
+    @StateObject private var viewModel: FoodQuantityViewModel
+    @FocusState private var isQuantityFocused: Bool
+    @State private var quantityText = "1"
+
+    // MARK: - Init
+
+    init(viewModel: FoodQuantityViewModel) {
+        self._viewModel = StateObject(wrappedValue: viewModel)
+        self._quantityText = State(initialValue: String(Int(viewModel.quantity)))
+    }
 
     // MARK: - Body
 
@@ -41,6 +50,7 @@ struct FoodQuantityView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(L10n.FoodQuantity.buttonAdd) {
+                    isQuantityFocused = false
                     Task { await viewModel.onConfirm() }
                 }
             }
@@ -54,17 +64,37 @@ struct FoodQuantityView: View {
             Text(L10n.FoodQuantity.inputGrams)
                 .font(.system(size: .smallPlus))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            TextField("1", value: $viewModel.quantity, formatter: NumberFormatter.decimal)
+            TextField("1", text: $quantityText)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .frame(width: 60)
+                .focused($isQuantityFocused)
+                .onChange(of: quantityText) { _, text in
+                    var seenSeparator = false
+                    let sanitized = String(text.filter { char in
+                        if char == "." || char == "," {
+                            if seenSeparator { return false }
+                            seenSeparator = true
+                            return true
+                        }
+                        return char.isNumber
+                    })
+                    if sanitized != text {
+                        quantityText = sanitized
+                    }
+                    let normalized = sanitized.replacingOccurrences(of: ",", with: ".")
+                    if let value = Double(normalized) {
+                        viewModel.quantity = value
+                    }
+                }
             Picker("", selection: $viewModel.unit) {
-                Text(L10n.FoodQuantity.unitPortions).tag(FoodQuantityUnit.portions)
                 Text(L10n.FoodQuantity.unitGrams).tag(FoodQuantityUnit.grams)
+                Text(L10n.FoodQuantity.unitHundredGrams).tag(FoodQuantityUnit.hundredGrams)
             }
             .pickerStyle(.menu)
-            .onChange(of: viewModel.unit) {
-                viewModel.onUnitChanged()
+            .onChange(of: viewModel.unit) { oldUnit, newUnit in
+                viewModel.onUnitChanged(from: oldUnit, to: newUnit)
+                quantityText = String(Int(viewModel.quantity))
             }
         }
     }

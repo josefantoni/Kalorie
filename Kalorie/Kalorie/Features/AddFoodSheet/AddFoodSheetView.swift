@@ -14,6 +14,7 @@ struct AddFoodSheetView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: AddFoodSheetViewModel
+    @State private var flipAngle: Double = 0
     @Environment(\.dismiss) var dismiss
     private let makeFoodQuantityView: (FoodItemDomain, @escaping () -> Void) -> FoodQuantityView
 
@@ -38,13 +39,9 @@ struct AddFoodSheetView: View {
                             addFoodItem
                         } else {
                             addCustomFoodItem
-                                .rotation3DEffect(Angle(degrees: 180), axis: (x: 0, y: 1.0, z: 0))
                         }
                     }
-                    .rotation3DEffect(
-                        .degrees(viewModel.isAddNewItemVisible ? 180 : 0),
-                        axis: (x: 0, y: 1, z: 0)
-                    )
+                    .rotation3DEffect(.degrees(flipAngle), axis: (x: 0, y: 1, z: 0))
 
                     startDataScannerIfPossible
                 }
@@ -73,7 +70,15 @@ struct AddFoodSheetView: View {
                 DismissToolbarItem()
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        withAnimation { viewModel.isAddNewItemVisible.toggle() }
+                        let target = !viewModel.isAddNewItemVisible
+                        withAnimation(.easeIn(duration: 0.2)) {
+                            flipAngle = 90
+                        } completion: {
+                            viewModel.isAddNewItemVisible = target
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                flipAngle = 0
+                            }
+                        }
                     } label: {
                         BaseImage(
                             imageName: .carrotFill,
@@ -124,16 +129,16 @@ struct AddFoodSheetView: View {
                     }
                 }
             }
-            Section(header: Text(L10n.AddFood.sectionExternalResults)) {
-                if !viewModel.localFoodItems.isEmpty {
-                    ForEach(viewModel.localFoodItems, id: \.id) { item in
-                        Text(item.displayName)
-                            .onTapGesture {
-                                viewModel.onSelectFoodItem(item)
-                            }
-                    }
-                } else if !viewModel.searchText.isEmpty {
-                    if viewModel.isExternalSearchLoading {
+            if !viewModel.localFoodItems.isEmpty || !viewModel.searchText.isEmpty {
+                Section(header: Text(L10n.AddFood.sectionExternalResults)) {
+                    if !viewModel.localFoodItems.isEmpty {
+                        ForEach(viewModel.localFoodItems, id: \.id) { item in
+                            Text(item.displayName)
+                                .onTapGesture {
+                                    viewModel.onSelectFoodItem(item)
+                                }
+                        }
+                    } else if viewModel.isExternalSearchLoading {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                     } else {

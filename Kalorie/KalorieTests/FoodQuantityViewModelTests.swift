@@ -12,16 +12,16 @@ final class FoodQuantityViewModelTests: XCTestCase {
 
     // MARK: - grams
 
-    func test_grams_withOnePortionUnit_is100() {
+    func test_grams_withOneHundredGramUnit_is100() {
         let sut = makeSUT()
-        sut.unit = .portions
+        sut.unit = .hundredGrams
         sut.quantity = 1
         XCTAssertEqual(sut.grams, 100)
     }
 
-    func test_grams_withTwoPortions_is200() {
+    func test_grams_withTwoHundredGrams_is200() {
         let sut = makeSUT()
-        sut.unit = .portions
+        sut.unit = .hundredGrams
         sut.quantity = 2
         XCTAssertEqual(sut.grams, 200)
     }
@@ -42,29 +42,28 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.scaledCalories, 500)
     }
 
-    func test_scaledCalories_withOnePortionOf200kcalItem_is200() {
+    func test_scaledCalories_withOneHundredGramOf200kcalItem_is200() {
         let sut = makeSUT(item: makeFoodItem(caloriesPerHundredGrams: 200))
-        sut.unit = .portions
+        sut.unit = .hundredGrams
         sut.quantity = 1
         XCTAssertEqual(sut.scaledCalories, 200)
     }
 
     // MARK: - onUnitChanged
 
-    @MainActor
-    func test_onUnitChanged_toGrams_resetsQuantityTo100() {
+    func test_onUnitChanged_toGrams_convertsQuantity() {
         let sut = makeSUT()
-        sut.unit = .grams
-        sut.onUnitChanged()
+        sut.quantity = 1
+        sut.onUnitChanged(from: .hundredGrams, to: .grams)
         XCTAssertEqual(sut.quantity, 100)
     }
 
-    @MainActor
-    func test_onUnitChanged_toPortions_resetsQuantityTo1() {
+    func test_onUnitChanged_toHundredGrams_convertsQuantity() {
         let sut = makeSUT()
-        sut.unit = .portions
-        sut.onUnitChanged()
-        XCTAssertEqual(sut.quantity, 1)
+        sut.unit = .grams
+        sut.quantity = 200
+        sut.onUnitChanged(from: .grams, to: .hundredGrams)
+        XCTAssertEqual(sut.quantity, 2)
     }
 
     // MARK: - onConfirm
@@ -117,12 +116,16 @@ final class FoodQuantityViewModelTests: XCTestCase {
         saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol = SaveFoodConsumedUseCaseFake(),
         onSaved: @escaping () -> Void = {}
     ) -> FoodQuantityViewModel {
-        FoodQuantityViewModel(
+        let sut = FoodQuantityViewModel(
             item: item ?? makeFoodItem(),
             saveFoodConsumed: saveFoodConsumed,
             selectedDate: .now,
             onSaved: onSaved
         )
+        addTeardownBlock { [weak sut] in
+            XCTAssertNil(sut, "FoodQuantityViewModel leaked — potential retain cycle")
+        }
+        return sut
     }
 
     private func makeFoodItem(caloriesPerHundredGrams: Double = 100) -> FoodItemDomain {

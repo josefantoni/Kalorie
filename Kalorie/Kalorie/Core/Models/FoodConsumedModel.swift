@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FoodConsumedDomain: BilingualNamed {
+struct FoodConsumedDomain: BilingualNamed, Hashable {
 
     // MARK: - Properties
 
@@ -24,4 +24,26 @@ struct FoodConsumedDomain: BilingualNamed {
     let fatUnsaturated: Double
     let fiber: Double
     let salt: Double
+}
+
+struct ScaledMacros {
+    let calories: Int
+    let protein: Double
+    let carbohydrate: Double
+    let carbohydrateSugar: Double
+    let fat: Double
+    let fatUnsaturated: Double
+    let fiber: Double
+    let salt: Double
+
+    init(food: FoodConsumedDomain, ratio: Double) {
+        calories = Int((Double(food.calories) * ratio).rounded())
+        protein = food.protein * ratio
+        carbohydrate = food.carbohydrate * ratio
+        carbohydrateSugar = food.carbohydrateSugar * ratio
+        fat = food.fat * ratio
+        fatUnsaturated = food.fatUnsaturated * ratio
+        fiber = food.fiber * ratio
+        salt = food.salt * ratio
+    }
 }
