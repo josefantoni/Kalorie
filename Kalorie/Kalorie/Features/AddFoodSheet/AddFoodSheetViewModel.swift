@@ -120,7 +120,6 @@ final class AddFoodSheetViewModel: ObservableObject {
         do {
             localFoodItems = try await searchFoodItems(query: searchText)
         } catch {
-            alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
             return
         }
         guard localFoodItems.isEmpty && searchText.count >= 3 else {

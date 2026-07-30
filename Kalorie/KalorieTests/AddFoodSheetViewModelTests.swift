@@ -77,11 +77,12 @@ final class AddFoodSheetViewModelTests: XCTestCase {
 
     // MARK: - onSearchTextChanged
 
-    func test_onSearchTextChanged_whenLocalSearchFails_showsLoadFailedAlert() async {
+    func test_onSearchTextChanged_whenLocalSearchFails_localItemsAreEmptyAndNoAlert() async {
         let sut = makeSUT(searchFoodItems: SearchFoodItemsUseCaseFake(shouldThrow: true))
         sut.searchText = "tvaroh"
         await sut.onSearchTextChanged()
-        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorLoadFailed)
+        XCTAssertTrue(sut.localFoodItems.isEmpty)
+        XCTAssertNil(sut.alertItem)
     }
 
     func test_onSearchTextChanged_whenExternalSearchFails_externalItemsAreEmptyAndNoAlert() async {
