@@ -126,14 +126,18 @@ final class DashboardViewModelTests: XCTestCase {
 
     private func makeSUT(
         fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
-        fetchFoodsConsumed: any FetchFoodsConsumedUseCaseProtocol = FetchFoodsConsumedUseCaseFake(),
+        fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol = FetchFoodsConsumedForMonthUseCaseFake(),
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol = SetupDefaultMealsUseCaseFake()
     ) -> DashboardViewModel {
-        DashboardViewModel(
+        let sut = DashboardViewModel(
             fetchMealTypes: fetchMealTypes,
-            fetchFoodsConsumed: fetchFoodsConsumed,
+            fetchFoodsConsumedForMonth: fetchFoodsConsumedForMonth,
             setupDefaultMeals: setupDefaultMeals
         )
+        addTeardownBlock { [weak sut] in
+            XCTAssertNil(sut, "DashboardViewModel leaked — potential retain cycle")
+        }
+        return sut
     }
 
     private func makeMealType(id: Int, hour: Int, endHour: Int, minute: Int = 0) -> MealTypeDomain {

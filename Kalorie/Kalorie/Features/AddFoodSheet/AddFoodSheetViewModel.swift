@@ -132,7 +132,7 @@ final class AddFoodSheetViewModel: ObservableObject {
         do {
             externalFoodItems = try await searchFoodExternally(query: searchText)
         } catch {
-            alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
+            externalFoodItems = []
         }
     }
 

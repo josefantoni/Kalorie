@@ -34,4 +34,24 @@ struct FoodConsumedDTO: Codable {
         case carbohydrateSugar = "carbohydrate_sugar"
         case fatUnsaturated = "fat_unsaturated"
     }
+
+    // MARK: - Functions
+
+    func asDomain() -> FoodConsumedDomain {
+        FoodConsumedDomain(
+            id: id,
+            czName: czName,
+            engName: engName,
+            weight: weight,
+            date: Date(timeIntervalSince1970: date),
+            calories: calories,
+            protein: protein,
+            carbohydrate: carbohydrate,
+            carbohydrateSugar: carbohydrateSugar,
+            fat: fat,
+            fatUnsaturated: fatUnsaturated,
+            fiber: fiber,
+            salt: salt
+        )
+    }
 }

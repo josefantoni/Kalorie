@@ -39,7 +39,9 @@ struct DashboardView: View {
                 ForEach(Array(viewModel.groupedFoods.enumerated()), id: \.offset) { index, group in
                     Section {
                         ForEach(group.foods, id: \.id) { food in
-                            FoodConsumedView(food)
+                            NavigationLink(value: food) {
+                                FoodConsumedView(food)
+                            }
                         }
                     } header: {
                         HStack(spacing: 4) {
@@ -69,11 +71,26 @@ struct DashboardView: View {
                     }
                 }
             }
-            .refreshable { await viewModel.onAppear() }
+            .refreshable { await viewModel.onRefresh() }
+            .navigationDestination(for: FoodConsumedDomain.self) { food in
+                router.makeFoodConsumedDetailView(food: food) {
+                    Task { await viewModel.onFoodConsumedUpdated() }
+                }
+            }
             .overlay {
                 if viewModel.foodsConsumed.isEmpty && !viewModel.state.isLoading {
                     emptyStateView
                 }
+            }
+            .safeAreaInset(edge: .top) {
+                DayPickerView(
+                    selectedDay: $viewModel.selectedDay,
+                    activeDays: viewModel.activeDaysInMonth,
+                    onDayChanged: { day in Task { await viewModel.onDayChanged(day) } },
+                    onTapSelectedDay: { viewModel.showCalendarSheet = true }
+                )
+                .padding(.horizontal)
+                .padding(.top, 8)
             }
             .safeAreaInset(edge: .bottom) {
                 if !viewModel.foodsConsumed.isEmpty {
@@ -109,8 +126,16 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $viewModel.showAddFoodSheet) {
                 router.makeAddFoodSheetView(for: viewModel.selectedDay) {
-                    Task { await viewModel.onAppear() }
+                    Task { await viewModel.onFoodConsumedUpdated() }
                 }
+            }
+            .sheet(isPresented: $viewModel.showCalendarSheet) {
+                MonthCalendarView(
+                    selectedDay: viewModel.selectedDay,
+                    activeDays: viewModel.activeDaysInMonth,
+                    onDaySelected: { day in Task { await viewModel.onDaySelected(day) } },
+                    onMonthChanged: { month in Task { await viewModel.onCalendarMonthChanged(to: month) } }
+                )
             }
             .alert(item: $viewModel.alertItem) { item in
                 Alert(
@@ -124,18 +149,35 @@ struct DashboardView: View {
 
     // MARK: - Functions
 
+    private enum SelectedDayKind {
+        case past, today, future
+    }
+
+    private var selectedDayKind: SelectedDayKind {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(viewModel.selectedDay) {
+            return .today
+        } else if viewModel.selectedDay < Date.now {
+            return .past
+        } else {
+            return .future
+        }
+    }
+
     private var emptyStateView: some View {
-        VStack(spacing: 25) {
+        let kind = selectedDayKind
+        return VStack(spacing: 25) {
             Label {
-                Text(L10n.Dashboard.emptyTitle)
+                Text(kind == .today ? L10n.Dashboard.emptyTitle : kind == .past ? L10n.Dashboard.emptyTitlePast : L10n.Dashboard.emptyTitleFuture)
             } icon: {
                 Image(systemName: "list.bullet.rectangle.portrait")
             }
             .font(.title2)
 
-            Text(L10n.Dashboard.emptyDescription)
+            Text(kind == .today ? L10n.Dashboard.emptyDescription : kind == .past ? L10n.Dashboard.emptyDescriptionPast : L10n.Dashboard.emptyDescriptionFuture)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
                 .padding(.bottom)
 
             Button(L10n.Dashboard.emptyAddFood) {
@@ -172,7 +214,7 @@ struct DashboardView: View {
             MealTypeDomain(id: 0, name: "Snídaně", startTime: time(hour: 7), endTime: time(hour: 10)),
             MealTypeDomain(id: 1, name: "Oběd", startTime: time(hour: 11), endTime: time(hour: 14))
         ]),
-        fetchFoodsConsumed: FetchFoodsConsumedUseCaseFake(stubbedFoods: [
+        fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [
             FoodConsumedDomain(
                 id: "1",
                 czName: "Ovesné vločky",
@@ -228,7 +270,8 @@ struct DashboardView: View {
         viewModel: viewModel,
         router: DashboardRouter(
             mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
-            addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider)
+            addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
+            foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider)
         )
     )
 }

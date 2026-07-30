@@ -28,21 +28,26 @@ final class DashboardViewModel: ObservableObject {
     @Published var selectedDay = Date.now
     @Published var showMealTypeSheet = false
     @Published var showAddFoodSheet = false
+    @Published var showCalendarSheet = false
     @Published var alertItem: AlertItem?
+    @Published private(set) var activeDaysInMonth: Set<Int> = []
+
+    private var monthCache: [String: [FoodConsumedDomain]] = [:]
+    private var cachedMonthKeys: Set<String> = []
 
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
-    private let fetchFoodsConsumed: any FetchFoodsConsumedUseCaseProtocol
+    private let fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol
     private let setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol
 
     // MARK: - Init
 
     init(
         fetchMealTypes: any FetchMealTypesUseCaseProtocol,
-        fetchFoodsConsumed: any FetchFoodsConsumedUseCaseProtocol,
+        fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol,
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol
     ) {
         self.fetchMealTypes = fetchMealTypes
-        self.fetchFoodsConsumed = fetchFoodsConsumed
+        self.fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth
         self.setupDefaultMeals = setupDefaultMeals
     }
 
@@ -80,6 +85,90 @@ final class DashboardViewModel: ObservableObject {
         return result
     }
 
+    @MainActor
+    func onAppear() async {
+        selectedDay = Date.now
+        state = .loading
+        do {
+            try await refreshMealTypes()
+            try await loadMonth(for: selectedDay)
+            foodsConsumed = foodsFromCache(for: selectedDay)
+            state = .loaded
+        } catch {
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            state = .loaded
+        }
+    }
+
+    @MainActor
+    func onRefresh() async {
+        do {
+            try await refreshMealTypes()
+            invalidateCache(for: selectedDay)
+            try await loadMonth(for: selectedDay)
+            foodsConsumed = foodsFromCache(for: selectedDay)
+        } catch {
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+        }
+    }
+
+    @MainActor
+    func onFoodConsumedUpdated() async {
+        do {
+            invalidateCache(for: selectedDay)
+            try await loadMonth(for: selectedDay)
+            foodsConsumed = foodsFromCache(for: selectedDay)
+        } catch {
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+        }
+    }
+
+    @MainActor
+    func onMealTypesChanged() async {
+        do {
+            try await refreshMealTypes()
+        } catch {
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+        }
+    }
+
+    @MainActor
+    func onDayChanged(_ date: Date) async {
+        await loadFoods(for: date)
+    }
+
+    @MainActor
+    func onDaySelected(_ date: Date) async {
+        selectedDay = date
+        showCalendarSheet = false
+        await loadFoods(for: date)
+    }
+
+    @MainActor
+    func onCalendarMonthChanged(to month: Date) async {
+        let key = monthCacheKey(for: month)
+        if cachedMonthKeys.contains(key) {
+            activeDaysInMonth = computeActiveDays(for: month)
+        } else {
+            do {
+                try await loadMonth(for: month)
+            } catch {
+                alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            }
+        }
+    }
+
+    // MARK: - Private
+
+    @MainActor
+    private func refreshMealTypes() async throws {
+        var types = try await fetchMealTypes()
+        if types.isEmpty {
+            types = try await setupDefaultMeals()
+        }
+        mealTypes = types
+    }
+
     private func foodFallsIn(mealType: MealTypeDomain, food: FoodConsumedDomain) -> Bool {
         let calendar = Calendar.current
         func minutes(from date: Date) -> Int {
@@ -91,37 +180,65 @@ final class DashboardViewModel: ObservableObject {
     }
 
     @MainActor
-    func onAppear() async {
-        let today = Date.now
-        if !Calendar.current.isDate(selectedDay, inSameDayAs: today) {
-            selectedDay = today
-        }
-        state = .loading
-        do {
-            var types = try await fetchMealTypes()
-            if types.isEmpty {
-                types = try await setupDefaultMeals()
+    private func loadFoods(for date: Date) async {
+        let key = monthCacheKey(for: date)
+        if cachedMonthKeys.contains(key) {
+            foodsConsumed = foodsFromCache(for: date)
+            activeDaysInMonth = computeActiveDays(for: date)
+        } else {
+            do {
+                try await loadMonth(for: date)
+                foodsConsumed = foodsFromCache(for: date)
+            } catch {
+                alertItem = AlertItem(title: L10n.Common.errorUnknown)
             }
-            mealTypes = types
-            foodsConsumed = try await fetchFoodsConsumed(for: selectedDay)
-            state = .loaded
-        } catch {
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
-            state = .loaded
         }
     }
 
     @MainActor
-    func onMealTypesChanged() async {
-        do {
-            var types = try await fetchMealTypes()
-            if types.isEmpty {
-                types = try await setupDefaultMeals()
-            }
-            mealTypes = types
-            foodsConsumed = try await fetchFoodsConsumed(for: selectedDay)
-        } catch {
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+    private func loadMonth(for date: Date) async throws {
+        let foods = try await fetchFoodsConsumedForMonth(for: date)
+        populateCache(with: foods, for: date)
+        activeDaysInMonth = computeActiveDays(for: date)
+    }
+
+    private func monthCacheKey(for date: Date) -> String {
+        date.formatDateStyle(with: "yyyy-MM")
+    }
+
+    private func dayCacheKey(for date: Date) -> String {
+        date.formatDateStyle(with: "yyyy-MM-dd")
+    }
+
+    private func populateCache(with foods: [FoodConsumedDomain], for month: Date) {
+        let key = monthCacheKey(for: month)
+        monthCache = monthCache.filter { !$0.key.hasPrefix(key) }
+        cachedMonthKeys.insert(key)
+        for food in foods {
+            let dayKey = dayCacheKey(for: food.date)
+            monthCache[dayKey, default: []].append(food)
         }
+    }
+
+    private func foodsFromCache(for date: Date) -> [FoodConsumedDomain] {
+        monthCache[dayCacheKey(for: date)] ?? []
+    }
+
+    private func computeActiveDays(for month: Date) -> Set<Int> {
+        let key = monthCacheKey(for: month)
+        var result = Set<Int>()
+        for (dayKey, foods) in monthCache where dayKey.hasPrefix(key) && !foods.isEmpty {
+            let parts = dayKey.split(separator: "-")
+            if parts.count == 3, let day = Int(parts[2]) {
+                result.insert(day)
+            }
+        }
+        return result
+    }
+
+    private func invalidateCache(for date: Date) {
+        let key = monthCacheKey(for: date)
+        monthCache = monthCache.filter { !$0.key.hasPrefix(key) }
+        cachedMonthKeys.remove(key)
     }
 }

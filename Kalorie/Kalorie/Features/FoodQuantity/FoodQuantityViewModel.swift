@@ -8,20 +8,13 @@
 import Foundation
 
 enum FoodQuantityUnit: CaseIterable {
-    case portions
+    case hundredGrams
     case grams
 
     var gramsPerUnit: Double {
         switch self {
-        case .portions: return 100
+        case .hundredGrams: return 100
         case .grams: return 1
-        }
-    }
-
-    var defaultQuantity: Double {
-        switch self {
-        case .portions: return 1
-        case .grams: return 100
         }
     }
 }
@@ -30,7 +23,7 @@ final class FoodQuantityViewModel: ObservableObject {
 
     // MARK: - Properties
 
-    @Published var unit: FoodQuantityUnit = .portions
+    @Published var unit: FoodQuantityUnit = .hundredGrams
     @Published var quantity: Double = 1
     @Published private(set) var state: LoadingState<Void> = .idle
     @Published var alertItem: AlertItem?
@@ -63,9 +56,9 @@ final class FoodQuantityViewModel: ObservableObject {
 
     // MARK: - Functions
 
-    @MainActor
-    func onUnitChanged() {
-        quantity = unit.defaultQuantity
+    func onUnitChanged(from oldUnit: FoodQuantityUnit, to newUnit: FoodQuantityUnit) {
+        let currentGrams = quantity * oldUnit.gramsPerUnit
+        quantity = max(1, (currentGrams / newUnit.gramsPerUnit).rounded())
     }
 
     @MainActor
