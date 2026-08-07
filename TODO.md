@@ -36,3 +36,40 @@ The app works with three kinds of data. The distinction matters for the items be
   higher
 - [ ] **Rank search results by frequency** — order manual search results by how often the user has
   logged each food, so the most used ones come first
+
+## Documenting what already exists
+
+Everything except authentication was built before `docs/` existed, so there is no written
+baseline to judge a change against — no way to tell "this is a documented decision" from "this
+is stale and needs fixing". The authentication review is the precedent: it found a stale TODO
+entry, a security-rules regression that made the food catalogue unreadable, and a duplicate
+document bug, none of which were visible without reading the area as a whole.
+
+Each area below produces an architecture entry, backfilled ADRs for decisions still in effect,
+and audit findings — **not** a design doc. See `docs/README.md` → *Documenting code that already
+exists*.
+
+Ordered by payoff. The rule of thumb is to analyse an area just before changing it, so items 1
+and 2 come first because planned features land there.
+
+- [ ] **1. Data layer and Firestore model** — `FirestoreDataProvider`, DTOs, domain models,
+  `Constants.Firestore`, security rules. Highest leverage: it is the `Backend` contract every
+  client shares, everything else depends on it, and both bugs found so far lived here. Open
+  questions to settle: numeric `mealTypes` IDs as a cross-platform hazard, the one-shot
+  `getDocuments()` read model, and whether `foodItems` needs an index strategy as the catalogue
+  grows.
+- [ ] **2. Food search and catalogue** — `SearchFoodItemsUseCase`, barcode scanning,
+  OpenFoodFacts integration, `CreateFoodItemUseCase`. Do this before the moderation flow and the
+  favourites/ranking features, all of which land here. Open questions: prefix search vs. a real
+  index, behaviour when the external API is unavailable, and where the boundary between the
+  shared catalogue and user submissions should sit.
+- [ ] **3. Dashboard and meal types** — day/month views, macro aggregation, meal grouping by time
+  range. Already patched twice for multi-device (`ConfirmMealTypesEmptyUseCase`, foreground
+  refresh) without the area being reviewed as a whole. Open questions: `monthCache` invalidation,
+  and what happens to a food entry that falls outside every meal's time range.
+- [ ] **4. Food entry flow** — `AddFoodSheet`, `FoodQuantity`, `FoodConsumedDetail`. Lower
+  priority: fewer planned changes, and the recent duplicate-document fix already covered the
+  riskiest part.
+- [ ] **5. Cross-cutting concerns** — error handling and alert presentation, localization,
+  `Components/`. Worth doing only if a pattern here starts causing friction; there is no pending
+  feature that depends on it.
