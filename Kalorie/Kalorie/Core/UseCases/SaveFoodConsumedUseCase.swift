@@ -45,7 +45,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
             fiber: item.fiber * ratio,
             salt: item.salt * ratio
         )
-        try await dataProvider.saveAsync(dto, to: Constants.Firestore.foodConsumed(userId: userId))
+        try await dataProvider.setAsync(dto, id: dto.id, in: Constants.Firestore.foodConsumed(userId: userId))
     }
 }
 
