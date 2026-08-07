@@ -77,7 +77,7 @@ struct MacroDonutView: View {
                     y: center.y + midRadius * CGFloat(sin(midAngle.radians))
                 )
                 context.draw(
-                    Text("\(pct)%")
+                    Text(Double(pct) / 100, format: .percent.precision(.fractionLength(0)))
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(.white),
                     at: textCenter
