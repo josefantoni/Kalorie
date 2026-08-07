@@ -84,6 +84,7 @@ private final class BarcodeDataProviderFake: FirestoreDataProviderProtocol {
     // MARK: - Functions
 
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
+    func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
 

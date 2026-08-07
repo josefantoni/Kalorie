@@ -10,6 +10,7 @@ import FirebaseFirestore
 
 protocol FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T]
+    func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T]
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T]
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T]
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T?
@@ -33,6 +34,20 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return result
         } catch {
             log("❌ GET \(collection): \(error)")
+            throw error
+        }
+    }
+
+    func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] {
+        log("🚀 GET \(collection) (server)")
+        do {
+            let snapshot = try await Firestore.firestore().collection(collection).getDocuments(source: .server)
+            snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
+            let result: [T] = try snapshot.documents.compactMap { try $0.data(as: T.self) }
+            log("✅ GET \(collection) (server) → \(result.count) items")
+            return result
+        } catch {
+            log("❌ GET \(collection) (server): \(error)")
             throw error
         }
     }

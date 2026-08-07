@@ -26,6 +26,7 @@ disabled_rules:
 - no_fallthrough_only
 - no_grouping_extension
 - notification_center_detachment
+- opening_brace
 - nslocalizedstring_key
 - nslocalizedstring_require_bundle
 - object_literal
@@ -133,7 +134,6 @@ opt_in_rules:
 - multiline_literal_brackets
 - multiline_parameters
 - multiline_parameters_brackets
-- opening_brace
 - operator_usage_whitespace
 - function_name_whitespace
 - private_action

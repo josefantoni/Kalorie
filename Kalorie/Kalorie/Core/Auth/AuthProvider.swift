@@ -14,6 +14,8 @@ enum AuthError: Error {
 
 protocol AuthProviderProtocol {
     var userId: String? { get }
+    var isAnonymous: Bool { get }
+    var displayName: String? { get }
 }
 
 struct AuthProvider: AuthProviderProtocol {
@@ -23,6 +25,14 @@ struct AuthProvider: AuthProviderProtocol {
     var userId: String? {
         Auth.auth().currentUser?.uid
     }
+
+    var isAnonymous: Bool {
+        Auth.auth().currentUser?.isAnonymous ?? true
+    }
+
+    var displayName: String? {
+        Auth.auth().currentUser?.displayName
+    }
 }
 
 #if DEBUG
@@ -31,5 +41,7 @@ struct AuthProviderFake: AuthProviderProtocol {
     // MARK: - Properties
 
     var userId: String? = "test-user-id"
+    var isAnonymous = true
+    var displayName: String?
 }
 #endif

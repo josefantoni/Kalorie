@@ -15,6 +15,7 @@ struct DashboardView: View {
     @StateObject var viewModel: DashboardViewModel
     @State private var pulseAnimation = false
     @State private var macroPopoverIndex: Int?
+    @Environment(\.scenePhase) private var scenePhase
     let router: DashboardRouter
 
     // MARK: - Init
@@ -111,6 +112,13 @@ struct DashboardView: View {
             .loader(viewModel.state.isLoading)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        viewModel.showAccountSheet.toggle()
+                    } label: {
+                        Image(systemName: "person.circle")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         viewModel.showMealTypeSheet.toggle()
@@ -129,6 +137,9 @@ struct DashboardView: View {
                     Task { await viewModel.onFoodConsumedUpdated() }
                 }
             }
+            .sheet(isPresented: $viewModel.showAccountSheet) {
+                router.makeAccountView()
+            }
             .sheet(isPresented: $viewModel.showCalendarSheet) {
                 MonthCalendarView(
                     selectedDay: viewModel.selectedDay,
@@ -144,6 +155,11 @@ struct DashboardView: View {
                 )
             }
             .task { await viewModel.onAppear() }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    Task { await viewModel.onRefresh() }
+                }
+            }
         }
     }
 
@@ -201,7 +217,7 @@ struct DashboardView: View {
 // MARK: - Preview
 
 #Preview {
-    DashboardConfigurator().createView()
+    DashboardConfigurator().createView(mergeStatusReporting: MergeStatusReportingFake())
 }
 
 #Preview {
@@ -261,7 +277,8 @@ struct DashboardView: View {
                 salt: 0
             )
         ]),
-        setupDefaultMeals: SetupDefaultMealsUseCaseFake()
+        setupDefaultMeals: SetupDefaultMealsUseCaseFake(),
+        confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseFake()
     )
 
     let dataProvider = FirestoreDataProvider()
@@ -271,7 +288,8 @@ struct DashboardView: View {
         router: DashboardRouter(
             mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
             addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
-            foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider)
+            foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
+            accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: MergeStatusReportingFake())
         )
     )
 }
