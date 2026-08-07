@@ -72,6 +72,10 @@ struct DayPickerView: View {
                     Circle()
                         .fill(Color.accentColor)
                         .frame(width: 36, height: 36)
+                } else if calendar.isDateInToday(date) {
+                    Circle()
+                        .stroke(Color.accentColor, lineWidth: 1.5)
+                        .frame(width: 36, height: 36)
                 }
                 Text("\(calendar.component(.day, from: date))")
                     .font(isSelected ? .headline : .body)
