@@ -28,6 +28,12 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedToCollection, "users/user-123/foodConsumed")
     }
 
+    func test_saveFoodConsumed_setsDocumentIdToMatchDTOId() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeItem(), grams: 100, date: .now)
+        XCTAssertEqual(dataProvider.savedDocumentId, dataProvider.savedDTO?.id)
+    }
+
     func test_saveFoodConsumed_calculatesCaloriesFromWeightAndCaloriesPer100g() async throws {
         let (sut, dataProvider) = makeSUT()
         try await sut(makeItem(caloriesPerHundredGrams: 100), grams: 200, date: .now)
@@ -83,6 +89,7 @@ private final class SaveFoodConsumedDataProviderFake: FirestoreDataProviderProto
 
     var savedToCollection: String?
     var savedDTO: FoodConsumedDTO?
+    var savedDocumentId: String?
 
     // MARK: - Functions
 
@@ -91,12 +98,14 @@ private final class SaveFoodConsumedDataProviderFake: FirestoreDataProviderProto
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
 
-    func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {
+    func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
+
+    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
         savedToCollection = collection
         savedDTO = item as? FoodConsumedDTO
+        savedDocumentId = id
     }
 
-    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
     func deleteAsync(id: String, from collection: String) async throws {}
 }
