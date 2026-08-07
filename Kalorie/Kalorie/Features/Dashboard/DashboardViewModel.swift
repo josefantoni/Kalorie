@@ -29,6 +29,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var showMealTypeSheet = false
     @Published var showAddFoodSheet = false
     @Published var showCalendarSheet = false
+    @Published var showAccountSheet = false
     @Published var alertItem: AlertItem?
     @Published private(set) var activeDaysInMonth: Set<Int> = []
 
@@ -38,17 +39,20 @@ final class DashboardViewModel: ObservableObject {
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol
     private let setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol
+    private let confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol
 
     // MARK: - Init
 
     init(
         fetchMealTypes: any FetchMealTypesUseCaseProtocol,
         fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol,
-        setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol
+        setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol,
+        confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol
     ) {
         self.fetchMealTypes = fetchMealTypes
         self.fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth
         self.setupDefaultMeals = setupDefaultMeals
+        self.confirmMealTypesEmpty = confirmMealTypesEmpty
     }
 
     // MARK: - Functions
@@ -163,7 +167,10 @@ final class DashboardViewModel: ObservableObject {
     @MainActor
     private func refreshMealTypes() async throws {
         var types = try await fetchMealTypes()
-        if types.isEmpty {
+        if
+            types.isEmpty,
+            try await confirmMealTypesEmpty()
+        {
             types = try await setupDefaultMeals()
         }
         mealTypes = types

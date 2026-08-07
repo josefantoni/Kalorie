@@ -15,6 +15,7 @@ enum Constants {
 
     enum Firestore {
         static let foodItems = "foodItems"
+        static let users = "users"
         static func mealTypes(userId: String) -> String { "users/\(userId)/mealTypes" }
         static func foodConsumed(userId: String) -> String { "users/\(userId)/foodConsumed" }
     }

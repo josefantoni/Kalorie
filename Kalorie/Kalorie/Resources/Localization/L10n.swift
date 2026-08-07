@@ -16,6 +16,21 @@ enum L10n {
     enum Auth {
         static var errorSignInFailed: String { String(localized: "auth_error_signInFailed") }
         static var buttonRetry: String { String(localized: "auth_button_retry") }
+        static var mergingMessage: String { String(localized: "auth_mergingMessage") }
+    }
+
+    enum Account {
+        static var navigationTitle: String { String(localized: "account_navigationTitle") }
+        static var anonymousDescription: String { String(localized: "account_anonymous_description") }
+        static var buttonSignOut: String { String(localized: "account_button_signOut") }
+        static var buttonDeleteAccount: String { String(localized: "account_button_deleteAccount") }
+        static var errorSignInFailed: String { String(localized: "account_error_signInFailed") }
+        static var errorSignOutFailed: String { String(localized: "account_error_signOutFailed") }
+        static var errorDeleteFailed: String { String(localized: "account_error_deleteFailed") }
+        static var errorDeleteRequiresRecentLogin: String { String(localized: "account_error_deleteRequiresRecentLogin") }
+        static var signedInDefaultName: String { String(localized: "account_signedIn_defaultName") }
+        static var alertDeleteConfirmTitle: String { String(localized: "account_alert_deleteConfirmTitle") }
+        static var alertDeleteConfirmMessage: String { String(localized: "account_alert_deleteConfirmMessage") }
     }
 
     enum Dashboard {

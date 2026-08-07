@@ -122,17 +122,31 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.alertItem)
     }
 
+    @MainActor
+    func test_onAppear_whenMealTypesEmptyButNotConfirmedByServer_doesNotCallSetupDefaultMeals() async {
+        let sut = makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: []),
+            setupDefaultMeals: SetupDefaultMealsUseCaseFake(stubbedTypes: [makeMealType(id: 0, hour: 8, endHour: 12)]),
+            confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseFake(stubbedError: URLError(.notConnectedToInternet))
+        )
+        await sut.onAppear()
+        XCTAssertTrue(sut.mealTypes.isEmpty)
+        XCTAssertNotNil(sut.alertItem)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
         fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol = FetchFoodsConsumedForMonthUseCaseFake(),
-        setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol = SetupDefaultMealsUseCaseFake()
+        setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol = SetupDefaultMealsUseCaseFake(),
+        confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult: true)
     ) -> DashboardViewModel {
         let sut = DashboardViewModel(
             fetchMealTypes: fetchMealTypes,
             fetchFoodsConsumedForMonth: fetchFoodsConsumedForMonth,
-            setupDefaultMeals: setupDefaultMeals
+            setupDefaultMeals: setupDefaultMeals,
+            confirmMealTypesEmpty: confirmMealTypesEmpty
         )
         addTeardownBlock { [weak sut] in
             XCTAssertNil(sut, "DashboardViewModel leaked — potential retain cycle")
