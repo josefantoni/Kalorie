@@ -29,6 +29,27 @@ implementation notes to it turns earlier sections into lies — "what is missing
 that now exist, "decisions to make" describes decisions already made. If the design turned out
 wrong, write a new ADR that supersedes it; do not rewrite history.
 
+### Documenting code that already exists
+
+Most of the app was written before this process existed. Documenting it retroactively is worth
+doing, but **not as a design doc** — a design doc argues for a plan, and writing one for code
+that already ships produces a fiction that pretends the outcome was foreseen. Retroactive work
+splits into three real outputs:
+
+| Output | What it is | Where |
+|---|---|---|
+| **Architecture overview** | A description of what exists: layers, data model, how a feature is wired. Living — updated when the structure changes. | `docs/ARCHITECTURE.md` |
+| **Backfilled ADRs** | Decisions already in effect that a reader could plausibly undo by accident. Written with their real rationale, not a reconstructed one. | `docs/adr/` |
+| **Audit findings** | Bugs, inconsistencies, stale assumptions the review turned up. | `TODO.md`, or fixed straight away |
+
+Two rules keep this from becoming busywork:
+
+- **Analyse an area just before you change it**, not speculatively. That is when the findings
+  feed a real decision instead of a document nobody reads.
+- **If the reason for a decision cannot be reconstructed, say so** rather than inventing one.
+  "This was inherited and nobody remembers why" is a legitimate ADR context, and it is the one
+  that tells the next reader the decision is safe to revisit.
+
 ## Platform scope
 
 The project targets iOS today, but the backend is shared and an Android client is a realistic
