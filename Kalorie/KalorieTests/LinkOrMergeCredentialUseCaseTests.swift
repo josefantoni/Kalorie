@@ -46,6 +46,22 @@ final class LinkOrMergeCredentialUseCaseTests: XCTestCase {
         XCTAssertEqual(migrateAnonymousData.migrateCallCount, 0)
     }
 
+    func test_callAsFunction_whenEmailAlreadyInUse_throwsAccountExistsWithAnotherProvider() async {
+        let (sut, authCommandProvider, migrateAnonymousData) = makeSUT()
+        authCommandProvider.linkError = makeEmailAlreadyInUseError()
+
+        do {
+            try await sut(credential: makeCredential())
+            XCTFail("Expected error to be thrown")
+        } catch LinkOrMergeCredentialError.accountExistsWithAnotherProvider {
+            // pass
+        } catch {
+            XCTFail("Expected accountExistsWithAnotherProvider, got \(error)")
+        }
+
+        XCTAssertEqual(migrateAnonymousData.migrateCallCount, 0, "emailAlreadyInUse steers to Apple, it does not merge")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
@@ -67,5 +83,9 @@ final class LinkOrMergeCredentialUseCaseTests: XCTestCase {
 
     private func makeCredentialAlreadyInUseError() -> NSError {
         NSError(domain: AuthErrorDomain, code: AuthErrorCode.credentialAlreadyInUse.rawValue)
+    }
+
+    private func makeEmailAlreadyInUseError() -> NSError {
+        NSError(domain: AuthErrorDomain, code: AuthErrorCode.emailAlreadyInUse.rawValue)
     }
 }

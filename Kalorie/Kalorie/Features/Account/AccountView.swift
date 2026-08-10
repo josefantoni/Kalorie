@@ -39,6 +39,15 @@ struct AccountView: View {
                         .frame(height: 44)
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
+
+                        Button {
+                            Task { await viewModel.onSignInWithGoogleTapped() }
+                        } label: {
+                            Label(L10n.Account.buttonSignInWithGoogle, image: .googleLogo)
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
                     } else {
                         Text(viewModel.displayName ?? L10n.Account.signedInDefaultName)
                             .font(.headline)
@@ -90,6 +99,7 @@ extension AccountViewModel.State: Equatable {}
             authProvider: AuthProviderFake(isAnonymous: true),
             signOut: SignOutUseCaseFake(),
             signInWithApple: SignInWithAppleUseCaseFake(),
+            signInWithGoogle: SignInWithGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
         )
@@ -102,6 +112,7 @@ extension AccountViewModel.State: Equatable {}
             authProvider: AuthProviderFake(isAnonymous: false, displayName: "Josef Antoni"),
             signOut: SignOutUseCaseFake(),
             signInWithApple: SignInWithAppleUseCaseFake(),
+            signInWithGoogle: SignInWithGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
         )

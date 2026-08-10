@@ -6,6 +6,7 @@
 //
 
 import AuthenticationServices
+import GoogleSignIn
 import XCTest
 @testable import Kalorie
 
@@ -85,11 +86,68 @@ final class AccountViewModelTests: XCTestCase {
         XCTAssertEqual(mergeStatusReporting.endMergeCallCount, 0)
     }
 
+    @MainActor
+    func test_onSignInWithGoogleTapped_whenSucceeds_showsNoAlertAndReturnsToIdle() async {
+        let sut = makeSUT()
+
+        await sut.onSignInWithGoogleTapped()
+
+        XCTAssertNil(sut.alertItem)
+        XCTAssertEqual(sut.state, .idle)
+    }
+
+    @MainActor
+    func test_onSignInWithGoogleTapped_whenAccountExistsWithAnotherProvider_showsSpecificAlert() async {
+        let sut = makeSUT(
+            signInWithGoogle: SignInWithGoogleUseCaseFake(errorToThrow: LinkOrMergeCredentialError.accountExistsWithAnotherProvider)
+        )
+
+        await sut.onSignInWithGoogleTapped()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorAccountExistsWithApple)
+    }
+
+    @MainActor
+    func test_onSignInWithGoogleTapped_whenCancelled_showsNoAlertAndReturnsToIdle() async {
+        let sut = makeSUT(
+            signInWithGoogle: SignInWithGoogleUseCaseFake(errorToThrow: makeGoogleSignInError(.canceled))
+        )
+
+        await sut.onSignInWithGoogleTapped()
+
+        XCTAssertNil(sut.alertItem, "uživatel zrušil dialog sám — nejde o chybu, kterou je třeba hlásit")
+        XCTAssertEqual(sut.state, .idle, "zrušení nesmí nechat viewModel v .linking stavu")
+    }
+
+    @MainActor
+    func test_onSignInWithGoogleTapped_whenFailsWithOtherError_showsAlert() async {
+        let sut = makeSUT(signInWithGoogle: SignInWithGoogleUseCaseFake(errorToThrow: URLError(.unknown)))
+
+        await sut.onSignInWithGoogleTapped()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorSignInFailed)
+    }
+
+    @MainActor
+    func test_onSignInWithGoogleTapped_whenCancelled_stillReportsMergeBeginAndEnd() async {
+        let mergeStatusReporting = MergeStatusReportingFake()
+        let sut = makeSUT(
+            signInWithGoogle: SignInWithGoogleUseCaseFake(errorToThrow: makeGoogleSignInError(.canceled)),
+            mergeStatusReporting: mergeStatusReporting
+        )
+
+        await sut.onSignInWithGoogleTapped()
+
+        XCTAssertEqual(mergeStatusReporting.beginMergeCallCount, 1, "narozdíl od Apple flow tady beginMerge už proběhlo, než přišla informace o zrušení")
+        XCTAssertEqual(mergeStatusReporting.endMergeCallCount, 1)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         authProvider: any AuthProviderProtocol = AuthProviderFake(),
         signOut: any SignOutUseCaseProtocol = SignOutUseCaseFake(),
+        signInWithGoogle: any SignInWithGoogleUseCaseProtocol = SignInWithGoogleUseCaseFake(),
         deleteAccount: any DeleteAccountUseCaseProtocol = DeleteAccountUseCaseFake(),
         mergeStatusReporting: any MergeStatusReporting = MergeStatusReportingFake()
     ) -> AccountViewModel {
@@ -97,6 +155,7 @@ final class AccountViewModelTests: XCTestCase {
             authProvider: authProvider,
             signOut: signOut,
             signInWithApple: SignInWithAppleUseCaseFake(),
+            signInWithGoogle: signInWithGoogle,
             deleteAccount: deleteAccount,
             mergeStatusReporting: mergeStatusReporting
         )
@@ -108,5 +167,9 @@ final class AccountViewModelTests: XCTestCase {
 
     private func makeAuthorizationError(_ code: ASAuthorizationError.Code) -> NSError {
         NSError(domain: ASAuthorizationError.errorDomain, code: code.rawValue)
+    }
+
+    private func makeGoogleSignInError(_ code: GIDSignInError.Code) -> NSError {
+        NSError(domain: GIDSignInError.errorDomain, code: code.rawValue)
     }
 }

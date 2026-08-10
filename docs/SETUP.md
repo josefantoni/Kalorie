@@ -23,7 +23,16 @@ are required.
 | Setting | Where | Notes |
 |---|---|---|
 | Apple sign-in provider | Authentication → Sign-in method → Apple | Must be enabled before Apple credentials are accepted. |
+| Google sign-in provider | Authentication → Sign-in method → Google | Must be enabled before Google credentials are accepted — turning it on is what adds `CLIENT_ID` and `REVERSED_CLIENT_ID` to `GoogleService-Info.plist`; without those keys the Google SDK cannot be configured at all. |
+| User account linking | Authentication → Settings → User account linking | Must stay on **One account per email address** (the default). [ADR 0006](adr/0006-google-sign-in-identity-collisions.md) depends on it: switching to *multiple accounts* silently disables the collision warning in every client and makes silent account splitting unconditional. Do not change without superseding that record. |
 | Anonymous provider | Authentication → Sign-in method → Anonymous | Already enabled; the app depends on it for the signed-out mode (see [ADR 0001](adr/0001-anonymous-firebase-auth-as-device-identity.md)). |
+
+Google sign-in needs **no** new Xcode capability and no Apple Developer portal change. The client
+ID is read at runtime from `FirebaseApp.app()?.options.clientID`, so `GIDClientID` is deliberately
+**not** added to Info.plist — the value stays in `GoogleService-Info.plist` only. The one place it
+is duplicated is the `CFBundleURLTypes` URL scheme in `Kalorie/Resources/Info.plist`, which must
+match `REVERSED_CLIENT_ID` exactly; if the Firebase project is ever replaced, that scheme has to
+be updated by hand along with the plist and the CI secret.
 
 ## Firestore security rules
 

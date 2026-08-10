@@ -144,6 +144,7 @@ understanding why.
 | # | Title | Status | Scope |
 |---|---|---|---|
 | [0001](design/0001-user-authentication.md) | User authentication | Implemented | Backend, Cross-platform, iOS |
+| [0002](design/0002-google-sign-in.md) | Google sign-in as a second provider | Implemented | Cross-platform, iOS |
 
 ### Decision records
 
@@ -153,3 +154,5 @@ understanding why.
 | [0002](adr/0002-merge-anonymous-data-before-switching-accounts.md) | Merge anonymous data before switching accounts | Accepted | Cross-platform |
 | [0003](adr/0003-separate-auth-command-provider.md) | Separate auth command provider from read-only auth provider | Accepted | iOS |
 | [0004](adr/0004-migrate-usecase-exposes-two-methods.md) | MigrateAnonymousDataUseCase exposes two methods | Accepted | iOS |
+| [0005](adr/0005-no-shared-sign-in-provider-abstraction.md) | Each sign-in provider gets its own use case, with no shared abstraction | Accepted | iOS |
+| [0006](adr/0006-google-sign-in-identity-collisions.md) | A user reaching an existing account through the other provider is steered to it, with no override | Accepted | Cross-platform |
