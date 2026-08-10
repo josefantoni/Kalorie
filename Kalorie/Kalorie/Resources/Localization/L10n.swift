@@ -23,8 +23,10 @@ enum L10n {
         static var navigationTitle: String { String(localized: "account_navigationTitle") }
         static var anonymousDescription: String { String(localized: "account_anonymous_description") }
         static var buttonSignOut: String { String(localized: "account_button_signOut") }
+        static var buttonSignInWithGoogle: String { String(localized: "account_button_signInWithGoogle") }
         static var buttonDeleteAccount: String { String(localized: "account_button_deleteAccount") }
         static var errorSignInFailed: String { String(localized: "account_error_signInFailed") }
+        static var errorAccountExistsWithApple: String { String(localized: "account_error_accountExistsWithApple") }
         static var errorSignOutFailed: String { String(localized: "account_error_signOutFailed") }
         static var errorDeleteFailed: String { String(localized: "account_error_deleteFailed") }
         static var errorDeleteRequiresRecentLogin: String { String(localized: "account_error_deleteRequiresRecentLogin") }

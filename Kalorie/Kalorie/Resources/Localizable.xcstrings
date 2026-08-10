@@ -84,6 +84,23 @@
         }
       }
     },
+    "account_button_signInWithGoogle": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Přihlásit se přes Google"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Google"
+          }
+        }
+      }
+    },
     "account_button_signOut": {
       "extractionState": "manual",
       "localizations": {
@@ -97,6 +114,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sign out"
+          }
+        }
+      }
+    },
+    "account_error_accountExistsWithApple": {
+      "extractionState": "manual",
+      "localizations": {
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them."
           }
         }
       }
@@ -192,13 +226,13 @@
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Přihlášen/a přes Apple ID"
+            "value": "Přihlášen/a"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signed in with Apple"
+            "value": "Signed in"
           }
         }
       }

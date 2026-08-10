@@ -8,6 +8,10 @@
 import FirebaseAuth
 import Foundation
 
+enum LinkOrMergeCredentialError: Error {
+    case accountExistsWithAnotherProvider
+}
+
 protocol LinkOrMergeCredentialUseCaseProtocol {
     func callAsFunction(credential: AuthCredential) async throws
 }
@@ -39,9 +43,14 @@ struct LinkOrMergeCredentialUseCase: LinkOrMergeCredentialUseCaseProtocol {
         do {
             try await authCommandProvider.link(with: credential)
         } catch {
+            guard let nsError = error as NSError? else { throw error }
+
+            if nsError.code == AuthErrorCode.emailAlreadyInUse.rawValue {
+                throw LinkOrMergeCredentialError.accountExistsWithAnotherProvider
+            }
+
             guard
                 let anonymousUserId,
-                let nsError = error as NSError?,
                 nsError.code == AuthErrorCode.credentialAlreadyInUse.rawValue
             else { throw error }
 

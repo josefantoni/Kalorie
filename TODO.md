@@ -21,6 +21,13 @@ The app works with three kinds of data. The distinction matters for the items be
   in the device-bound anonymous mode. See
   [docs/design/0001-user-authentication.md](docs/design/0001-user-authentication.md).
   *Remaining: out-of-band configuration — see [docs/SETUP.md](docs/SETUP.md).*
+- [x] **Google sign-in** — a second provider alongside Apple, reusing the existing link-first /
+  merge-on-conflict path. Apple sign-in stays, both because Guideline 4.8 requires it and because
+  it is the recommended provider when a user already has an Apple-linked account. See
+  [docs/design/0002-google-sign-in.md](docs/design/0002-google-sign-in.md).
+  *Remaining: on-device QA checklist (fresh-install merge, second-device merge, cancellation,
+  account chooser after sign-out) — see the Outcome section of
+  [docs/design/0002-google-sign-in.md](docs/design/0002-google-sign-in.md).*
 - [ ] **Prompt to sign in** — the account screen is only reachable from the toolbar icon; add an
   unobtrusive prompt after the first logged meal so users on a second device sign in early
 - [ ] **User-submitted food** — the user photographs the packaging, fills in macros and calories,

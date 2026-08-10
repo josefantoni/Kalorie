@@ -4,5 +4,14 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Prosím povolte využití kamery pro skenování čárových kódů potravin</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.376413444277-e8ntk3s3dc68mkmue8p9ise5pgcu8ofr</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -48,9 +48,17 @@ struct AccountConfigurator {
                 authProvider: authProvider,
                 signOut: SignOutUseCase(
                     authCommandProvider: authCommandProvider,
-                    snapshotStore: snapshotStore
+                    snapshotStore: snapshotStore,
+                    googleSessionProvider: GoogleSessionProvider()
                 ),
                 signInWithApple: SignInWithAppleUseCase(
+                    linkOrMergeCredential: linkOrMergeCredential,
+                    authCommandProvider: authCommandProvider,
+                    dataProvider: dataProvider,
+                    authProvider: authProvider
+                ),
+                signInWithGoogle: SignInWithGoogleUseCase(
+                    googleSignInProvider: GoogleSignInProvider(),
                     linkOrMergeCredential: linkOrMergeCredential,
                     authCommandProvider: authCommandProvider,
                     dataProvider: dataProvider,

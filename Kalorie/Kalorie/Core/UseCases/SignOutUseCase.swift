@@ -17,15 +17,18 @@ struct SignOutUseCase: SignOutUseCaseProtocol {
 
     private let authCommandProvider: any AuthCommandProviderProtocol
     private let snapshotStore: any PendingMergeSnapshotStoreProtocol
+    private let googleSessionProvider: any GoogleSessionProviderProtocol
 
     // MARK: - Init
 
     init(
         authCommandProvider: any AuthCommandProviderProtocol,
-        snapshotStore: any PendingMergeSnapshotStoreProtocol
+        snapshotStore: any PendingMergeSnapshotStoreProtocol,
+        googleSessionProvider: any GoogleSessionProviderProtocol
     ) {
         self.authCommandProvider = authCommandProvider
         self.snapshotStore = snapshotStore
+        self.googleSessionProvider = googleSessionProvider
     }
 
     // MARK: - Functions
@@ -37,6 +40,7 @@ struct SignOutUseCase: SignOutUseCaseProtocol {
     func callAsFunction() throws {
         try snapshotStore.delete()
         try authCommandProvider.signOut()
+        googleSessionProvider.clearSession()
     }
 }
 

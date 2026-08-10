@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseCore
+import GoogleSignIn
 
 class AppDelegate: NSObject, UIApplicationDelegate {
 
@@ -52,6 +53,7 @@ struct KalorieApp: App {
                         }
                     }
                     .allowsHitTesting(!authState.isMerging)
+                    .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
             case .error(let error):
                 VStack(spacing: 16) {
                     Text(L10n.Auth.errorSignInFailed)
