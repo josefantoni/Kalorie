@@ -38,11 +38,21 @@ The app works with three kinds of data. The distinction matters for the items be
   photo) to approve or reject; approving publishes the item to the shared `foodItems` catalogue.
   Requires a maintainer role (Firebase custom claims) and matching security rules — once done,
   direct client writes to `foodItems` get disabled.
-- [ ] **Favourite foods** — before the user starts typing in the search field, show a "Favourites"
-  section ordered by how often they have logged each food; more frequently logged foods rank
-  higher
+- [ ] **`food_item_id` on `foodConsumed`** — a logged entry currently keeps no reference to the
+  catalogue item it came from, which blocks favouriting from the Dashboard and any other feature
+  that needs to get back to the source item. Add it as a **required** field, written on create and
+  preserved on update; no optional, no backfill. Existing development documents get deleted, which
+  is only acceptable before first release — do it now rather than after. Prerequisite for
+  *Favourite foods*; details in
+  [docs/design/0003-favourite-foods.md](docs/design/0003-favourite-foods.md).
+- [ ] **Favourite foods** — the user explicitly marks any number of foods as favourite, from the
+  food detail either before logging it or afterwards from the Dashboard; before
+  they start typing in the search field, show a "Favourites" section with those foods, most
+  recently marked first, and once they type, put the matching favourites at the top of the
+  results. See [docs/design/0003-favourite-foods.md](docs/design/0003-favourite-foods.md).
 - [ ] **Rank search results by frequency** — order manual search results by how often the user has
-  logged each food, so the most used ones come first
+  logged each food, so the most used ones come first. Distinct from favourites above: this one is
+  derived, not chosen, and the user cannot remove an entry from it.
 
 ## Documenting what already exists
 
