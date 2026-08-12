@@ -44,6 +44,7 @@ struct FoodQuantityView: View {
                     FavouriteButton(isFavourite: viewModel.isFavourite) {
                         Task { await viewModel.onFavouriteToggled() }
                     }
+                    .disabled(viewModel.isTogglingFavourite)
                     Spacer()
                 }
             }

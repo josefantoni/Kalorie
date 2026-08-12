@@ -19,7 +19,7 @@ enum FoodQuantityUnit: CaseIterable {
     }
 }
 
-final class FoodQuantityViewModel: ObservableObject {
+final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
 
     // MARK: - Properties
 
@@ -27,7 +27,8 @@ final class FoodQuantityViewModel: ObservableObject {
     @Published var quantity: Double = 1
     @Published private(set) var state: LoadingState<Void> = .idle
     @Published var alertItem: AlertItem?
-    @Published private(set) var isFavourite: Bool
+    @Published var isFavourite: Bool
+    @Published var isTogglingFavourite = false
 
     let item: FoodItemDomain
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
@@ -75,18 +76,14 @@ final class FoodQuantityViewModel: ObservableObject {
 
     @MainActor
     func onFavouriteToggled() async {
-        let newValue = !isFavourite
-        isFavourite = newValue
-        do {
-            if newValue {
-                try await addFavouriteFood(item)
-            } else {
-                try await removeFavouriteFood(id: item.id)
-            }
-            onFavouriteChanged(item.id, newValue)
-        } catch {
-            isFavourite = !newValue
-            alertItem = AlertItem(title: L10n.AddFood.errorFavouriteFailed)
+        let itemId = item.id
+        await toggleFavourite(
+            item: item,
+            removalId: itemId,
+            addFavouriteFood: addFavouriteFood,
+            removeFavouriteFood: removeFavouriteFood
+        ) { [weak self] newValue in
+            self?.onFavouriteChanged(itemId, newValue)
         }
     }
 

@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class FoodConsumedDetailViewModel: ObservableObject {
+final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
 
     // MARK: - Properties
 
@@ -15,7 +15,8 @@ final class FoodConsumedDetailViewModel: ObservableObject {
     @Published private(set) var state: LoadingState<Void> = .idle
     @Published private(set) var showCheckmark = false
     @Published var alertItem: AlertItem?
-    @Published private(set) var isFavourite = false
+    @Published var isFavourite = false
+    @Published var isTogglingFavourite = false
     @Published private(set) var catalogueItem: FoodItemDomain?
 
     let food: FoodConsumedDomain
@@ -28,7 +29,7 @@ final class FoodConsumedDetailViewModel: ObservableObject {
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let onFoodUpdated: () -> Void
 
-    var canToggleFavourite: Bool { isFavourite || catalogueItem != nil }
+    var canToggleFavourite: Bool { !isTogglingFavourite && (isFavourite || catalogueItem != nil) }
 
     // MARK: - Init
 
@@ -69,19 +70,12 @@ final class FoodConsumedDetailViewModel: ObservableObject {
 
     @MainActor
     func onFavouriteToggled() async {
-        let newValue = !isFavourite
-        isFavourite = newValue
-        do {
-            if newValue {
-                guard let catalogueItem else { return }
-                try await addFavouriteFood(catalogueItem)
-            } else {
-                try await removeFavouriteFood(id: food.foodItemId)
-            }
-        } catch {
-            isFavourite = !newValue
-            alertItem = AlertItem(title: L10n.AddFood.errorFavouriteFailed)
-        }
+        await toggleFavourite(
+            item: catalogueItem,
+            removalId: food.foodItemId,
+            addFavouriteFood: addFavouriteFood,
+            removeFavouriteFood: removeFavouriteFood
+        )
     }
 
     @MainActor

@@ -38,6 +38,18 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem)
     }
 
+    @MainActor
+    func test_onFavouriteToggled_whenNotFavouriteAndCatalogueItemMissing_revertsAndShowsAlert() async {
+        let sut = makeSUT(fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: nil))
+        await sut.onAppear()
+        XCTAssertFalse(sut.isFavourite)
+
+        await sut.onFavouriteToggled()
+
+        XCTAssertFalse(sut.isFavourite, "adding needs the catalogue item, so a missing snapshot must not leave the toggle stuck on")
+        XCTAssertNotNil(sut.alertItem)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
