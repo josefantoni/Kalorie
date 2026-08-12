@@ -8,8 +8,27 @@
 import Foundation
 
 struct PendingMergeSnapshot: Codable {
+
+    // MARK: - Properties
+
     let sourceAnonymousUserId: String
     let foodConsumed: [FoodConsumedDTO]
+    let favouriteFoods: [FavouriteFoodDTO]
+
+    // MARK: - Init
+
+    init(sourceAnonymousUserId: String, foodConsumed: [FoodConsumedDTO], favouriteFoods: [FavouriteFoodDTO]) {
+        self.sourceAnonymousUserId = sourceAnonymousUserId
+        self.foodConsumed = foodConsumed
+        self.favouriteFoods = favouriteFoods
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        sourceAnonymousUserId = try container.decode(String.self, forKey: .sourceAnonymousUserId)
+        foodConsumed = try container.decode([FoodConsumedDTO].self, forKey: .foodConsumed)
+        favouriteFoods = try container.decodeIfPresent([FavouriteFoodDTO].self, forKey: .favouriteFoods) ?? []
+    }
 }
 
 protocol PendingMergeSnapshotStoreProtocol {

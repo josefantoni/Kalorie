@@ -31,16 +31,21 @@ struct AddFoodSheetConfigurator {
                 searchFoodExternally: SearchFoodExternallyUseCase(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
+                fetchFavouriteFoods: FetchFavouriteFoodsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 onFoodSaved: onFoodSaved,
                 isScannerVisible: withBarcodeScan
             )
-        ) { [self] item, onSaved in
+        ) { [self] item, isFavourite, onSaved, onFavouriteChanged in
             FoodQuantityView(
                 viewModel: FoodQuantityViewModel(
                     item: item,
                     saveFoodConsumed: SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
                     selectedDate: date,
-                    onSaved: onSaved
+                    isFavourite: isFavourite,
+                    addFavouriteFood: AddFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                    removeFavouriteFood: RemoveFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                    onSaved: onSaved,
+                    onFavouriteChanged: onFavouriteChanged
                 )
             )
         }

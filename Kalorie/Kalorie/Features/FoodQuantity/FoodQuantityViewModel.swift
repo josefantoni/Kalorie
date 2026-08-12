@@ -27,11 +27,15 @@ final class FoodQuantityViewModel: ObservableObject {
     @Published var quantity: Double = 1
     @Published private(set) var state: LoadingState<Void> = .idle
     @Published var alertItem: AlertItem?
+    @Published private(set) var isFavourite: Bool
 
     let item: FoodItemDomain
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
+    private let addFavouriteFood: any AddFavouriteFoodUseCaseProtocol
+    private let removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol
     private let selectedDate: Date
     private let onSaved: () -> Void
+    private let onFavouriteChanged: (String, Bool) -> Void
 
     var grams: Double { quantity * unit.gramsPerUnit }
     var scaledCalories: Int { Int(item.caloriesPerHundredGrams * grams / 100) }
@@ -46,12 +50,20 @@ final class FoodQuantityViewModel: ObservableObject {
         item: FoodItemDomain,
         saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol,
         selectedDate: Date,
-        onSaved: @escaping () -> Void
+        isFavourite: Bool,
+        addFavouriteFood: any AddFavouriteFoodUseCaseProtocol,
+        removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol,
+        onSaved: @escaping () -> Void,
+        onFavouriteChanged: @escaping (String, Bool) -> Void
     ) {
         self.item = item
         self.saveFoodConsumed = saveFoodConsumed
         self.selectedDate = selectedDate
+        self.isFavourite = isFavourite
+        self.addFavouriteFood = addFavouriteFood
+        self.removeFavouriteFood = removeFavouriteFood
         self.onSaved = onSaved
+        self.onFavouriteChanged = onFavouriteChanged
     }
 
     // MARK: - Functions
@@ -59,6 +71,23 @@ final class FoodQuantityViewModel: ObservableObject {
     func onUnitChanged(from oldUnit: FoodQuantityUnit, to newUnit: FoodQuantityUnit) {
         let currentGrams = quantity * oldUnit.gramsPerUnit
         quantity = max(1, (currentGrams / newUnit.gramsPerUnit).rounded())
+    }
+
+    @MainActor
+    func onFavouriteToggled() async {
+        let newValue = !isFavourite
+        isFavourite = newValue
+        do {
+            if newValue {
+                try await addFavouriteFood(item)
+            } else {
+                try await removeFavouriteFood(id: item.id)
+            }
+            onFavouriteChanged(item.id, newValue)
+        } catch {
+            isFavourite = !newValue
+            alertItem = AlertItem(title: L10n.AddFood.errorFavouriteFailed)
+        }
     }
 
     @MainActor

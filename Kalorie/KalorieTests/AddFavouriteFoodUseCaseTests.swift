@@ -1,5 +1,5 @@
 //
-//  UpdateFoodConsumedUseCaseTests.swift
+//  AddFavouriteFoodUseCaseTests.swift
 //  KalorieTests
 //
 //  Created by Josef Antoni on 12.08.2026.
@@ -8,60 +8,65 @@
 import XCTest
 @testable import Kalorie
 
-final class UpdateFoodConsumedUseCaseTests: XCTestCase {
+final class AddFavouriteFoodUseCaseTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_updateFoodConsumed_whenWeightChanges_preservesFoodItemId() async throws {
-        let (sut, dataProvider) = makeSUT()
-        try await sut(makeFood(foodItemId: "12345", weight: 100), newWeight: 200)
-        XCTAssertEqual(dataProvider.savedDTO?.foodItemId, "12345")
-    }
-
-    func test_updateFoodConsumed_whenNotAuthenticated_throwsAuthError() async throws {
+    func test_addFavouriteFood_whenNotAuthenticated_throwsAuthError() async throws {
         let (sut, _) = makeSUT(userId: nil)
         do {
-            try await sut(makeFood(), newWeight: 200)
+            try await sut(makeItem())
             XCTFail("Expected notAuthenticated error")
         } catch AuthError.notAuthenticated {
             // pass
         }
     }
 
+    func test_addFavouriteFood_setsDocumentIdToBarcode() async throws {
+        let (sut, dataProvider) = makeSUT(userId: "user-123")
+        try await sut(makeItem(id: "12345"))
+        XCTAssertEqual(dataProvider.savedToCollection, "users/user-123/favouriteFoods")
+        XCTAssertEqual(dataProvider.savedDocumentId, "12345")
+        XCTAssertEqual(dataProvider.savedDTO?.id, "12345")
+    }
+
     // MARK: - Helpers
 
-    private func makeSUT(userId: String? = "test-user") -> (sut: UpdateFoodConsumedUseCase, dataProvider: UpdateFoodConsumedDataProviderFake) {
-        let dataProvider = UpdateFoodConsumedDataProviderFake()
+    private func makeSUT(userId: String? = "test-user") -> (sut: AddFavouriteFoodUseCase, dataProvider: AddFavouriteFoodDataProviderFake) {
+        let dataProvider = AddFavouriteFoodDataProviderFake()
         let authProvider = AuthProviderFake(userId: userId)
-        let sut = UpdateFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
+        let sut = AddFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider)
         return (sut, dataProvider)
     }
 
-    private func makeFood(foodItemId: String = "12345", weight: Double = 100) -> FoodConsumedDomain {
-        FoodConsumedDomain(
-            id: "1",
-            foodItemId: foodItemId,
+    private func makeItem(id: String = "12345") -> FoodItemDomain {
+        FoodItemDomain(
+            id: id,
             czName: "Vejce",
             engName: "Egg",
-            weight: weight,
+            weight: 100,
             date: .now,
-            calories: 155,
-            protein: 13,
-            carbohydrate: 1,
-            carbohydrateSugar: 0,
+            energyKJ: 648,
+            caloriesPerHundredGrams: 155,
             fat: 10,
-            fatUnsaturated: 3,
+            fatSaturated: 3,
+            fatUnsaturatedFattyAcids: 3,
+            carbohydrate: 1,
+            carbohydratePureSugar: 0,
             fiber: 0,
+            protein: 13,
             salt: 0.3
         )
     }
 }
 
-private final class UpdateFoodConsumedDataProviderFake: FirestoreDataProviderProtocol {
+private final class AddFavouriteFoodDataProviderFake: FirestoreDataProviderProtocol {
 
     // MARK: - Properties
 
-    var savedDTO: FoodConsumedDTO?
+    var savedToCollection: String?
+    var savedDTO: FavouriteFoodDTO?
+    var savedDocumentId: String?
 
     // MARK: - Functions
 
@@ -75,7 +80,9 @@ private final class UpdateFoodConsumedDataProviderFake: FirestoreDataProviderPro
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
 
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
-        savedDTO = item as? FoodConsumedDTO
+        savedToCollection = collection
+        savedDTO = item as? FavouriteFoodDTO
+        savedDocumentId = id
     }
 
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}

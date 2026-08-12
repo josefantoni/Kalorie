@@ -94,6 +94,8 @@ private final class BarcodeDataProviderFake: FirestoreDataProviderProtocol {
         return stubbedDTO as? T
     }
 
+    func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
+
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}

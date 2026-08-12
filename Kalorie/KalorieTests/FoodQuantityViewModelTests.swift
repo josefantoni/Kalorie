@@ -114,13 +114,21 @@ final class FoodQuantityViewModelTests: XCTestCase {
     private func makeSUT(
         item: FoodItemDomain? = nil,
         saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol = SaveFoodConsumedUseCaseFake(),
-        onSaved: @escaping () -> Void = {}
+        isFavourite: Bool = false,
+        addFavouriteFood: any AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
+        removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
+        onSaved: @escaping () -> Void = {},
+        onFavouriteChanged: @escaping (String, Bool) -> Void = { _, _ in }
     ) -> FoodQuantityViewModel {
         let sut = FoodQuantityViewModel(
             item: item ?? makeFoodItem(),
             saveFoodConsumed: saveFoodConsumed,
             selectedDate: .now,
-            onSaved: onSaved
+            isFavourite: isFavourite,
+            addFavouriteFood: addFavouriteFood,
+            removeFavouriteFood: removeFavouriteFood,
+            onSaved: onSaved,
+            onFavouriteChanged: onFavouriteChanged
         )
         addTeardownBlock { [weak sut] in
             XCTAssertNil(sut, "FoodQuantityViewModel leaked — potential retain cycle")

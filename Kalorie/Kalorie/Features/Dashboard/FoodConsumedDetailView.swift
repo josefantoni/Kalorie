@@ -83,10 +83,24 @@ struct FoodConsumedDetailView: View {
                     Text(String(format: "%.2f g", macros.salt))
                 }
             }
+
+            Section {
+                HStack {
+                    Spacer()
+                    FavouriteButton(isFavourite: viewModel.isFavourite) {
+                        Task { await viewModel.onFavouriteToggled() }
+                    }
+                    .disabled(!viewModel.canToggleFavourite)
+                    Spacer()
+                }
+            }
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
         }
         .navigationTitle(viewModel.food.displayName)
         .navigationBarTitleDisplayMode(.large)
         .loader(viewModel.state.isLoading)
+        .task { await viewModel.onAppear() }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -136,7 +150,11 @@ struct FoodConsumedDetailView: View {
                     fiber: 6,
                     salt: 0.1
                 ),
-                updateFoodConsumed: UpdateFoodConsumedUseCaseFake()
+                updateFoodConsumed: UpdateFoodConsumedUseCaseFake(),
+                isFavouriteFood: IsFavouriteFoodUseCaseFake(),
+                addFavouriteFood: AddFavouriteFoodUseCaseFake(),
+                removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake()
             ) {}
         )
     }

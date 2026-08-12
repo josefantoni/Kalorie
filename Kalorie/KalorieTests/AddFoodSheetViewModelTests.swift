@@ -119,6 +119,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         searchFoodExternally: any SearchFoodExternallyUseCaseProtocol = SearchFoodExternallyUseCaseFake(),
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
+        fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol = FetchFavouriteFoodsUseCaseFake(),
         isScannerVisible: Bool = false
     ) -> AddFoodSheetViewModel {
         AddFoodSheetViewModel(
@@ -127,6 +128,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             searchFoodExternally: searchFoodExternally,
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
+            fetchFavouriteFoods: fetchFavouriteFoods,
             isScannerVisible: isScannerVisible
         )
     }

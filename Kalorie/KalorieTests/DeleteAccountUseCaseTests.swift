@@ -13,6 +13,17 @@ final class DeleteAccountUseCaseTests: XCTestCase {
 
     // MARK: - Tests
 
+    func test_callAsFunction_deletesFavouriteFoodsAsPrivacyObligation() async throws {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedFavouriteFoods = [makeFavourite(id: "fav1")]
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
+
+        try await sut()
+
+        XCTAssertTrue(log.entries.dropLast().contains("deleteFavourite:fav1"), "Firestore does not cascade — favourites are user data and must not survive account deletion as orphans")
+    }
+
     func test_callAsFunction_deletesFirestoreDataBeforeDeletingAuthAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
@@ -128,6 +139,29 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             salt: 1
         )
     }
+
+    private func makeFavourite(id: String) -> FavouriteFoodDTO {
+        FavouriteFoodDTO(
+            item: FoodItemDomain(
+                id: id,
+                czName: "Test",
+                engName: "Test",
+                weight: 100,
+                date: .now,
+                energyKJ: 400,
+                caloriesPerHundredGrams: 100,
+                fat: 1,
+                fatSaturated: 1,
+                fatUnsaturatedFattyAcids: 1,
+                carbohydrate: 1,
+                carbohydratePureSugar: 1,
+                fiber: 1,
+                protein: 1,
+                salt: 1
+            ),
+            favouritedAt: .now
+        )
+    }
 }
 
 private final class OperationLog {
@@ -142,6 +176,7 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     private let log: OperationLog
     var stubbedMealTypes: [MealTypeDTO] = []
     var stubbedFoodConsumed: [FoodConsumedDTO] = []
+    var stubbedFavouriteFoods: [FavouriteFoodDTO] = []
     private(set) var deletedIds: [String] = []
 
     // MARK: - Init
@@ -156,6 +191,9 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
         if collection.hasSuffix("mealTypes") {
             return stubbedMealTypes.compactMap { $0 as? T }
         }
+        if collection.hasSuffix("favouriteFoods") {
+            return stubbedFavouriteFoods.compactMap { $0 as? T }
+        }
         return stubbedFoodConsumed.compactMap { $0 as? T }
     }
 
@@ -163,6 +201,7 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
+    func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
@@ -171,6 +210,8 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
         deletedIds.append(id)
         if collection.hasSuffix("mealTypes") {
             log.record("deleteMealType:\(id)")
+        } else if collection.hasSuffix("favouriteFoods") {
+            log.record("deleteFavourite:\(id)")
         } else if collection.hasSuffix("foodConsumed") {
             log.record("deleteFood:\(id)")
         } else {

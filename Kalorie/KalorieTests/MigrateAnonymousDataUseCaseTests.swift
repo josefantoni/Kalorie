@@ -13,6 +13,15 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
 
     // MARK: - migrate
 
+    func test_migrate_carriesFavouriteFoodsThroughWithSameLifecycleAsFoodConsumed() async throws {
+        let (sut, dataProvider, _, _) = makeSUT()
+        dataProvider.stubbedFavouriteFoods = [makeFavourite(id: "fav1")]
+
+        try await sut.migrate(fromAnonymousUserId: "anon-1", credential: makeCredential())
+
+        XCTAssertEqual(dataProvider.batchSavedFavouriteFoodIds, ["fav1"], "an anonymous user's favourites must survive sign-in exactly like their logged food")
+    }
+
     func test_migrate_signsInWithCredentialAfterSavingSnapshot() async throws {
         let (sut, dataProvider, authCommandProvider, snapshotStore) = makeSUT()
         dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
@@ -56,7 +65,7 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
 
     func test_resumeIfNeeded_whenStillOnSourceUid_discardsSnapshotWithoutWriting() async throws {
         let (sut, dataProvider, _, snapshotStore) = makeSUT(currentUserId: "anon-1")
-        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [makeFood(id: "f1")])
+        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [makeFood(id: "f1")], favouriteFoods: [])
 
         try await sut.resumeIfNeeded()
 
@@ -66,7 +75,7 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
 
     func test_resumeIfNeeded_whenAlreadyOnTargetUid_finishesWriteAndCleansUp() async throws {
         let (sut, dataProvider, _, snapshotStore) = makeSUT(currentUserId: "target-1")
-        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [makeFood(id: "f1")])
+        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [makeFood(id: "f1")], favouriteFoods: [])
 
         try await sut.resumeIfNeeded()
 
@@ -118,6 +127,29 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
             salt: 1
         )
     }
+
+    private func makeFavourite(id: String) -> FavouriteFoodDTO {
+        FavouriteFoodDTO(
+            item: FoodItemDomain(
+                id: id,
+                czName: "Test",
+                engName: "Test",
+                weight: 100,
+                date: .now,
+                energyKJ: 400,
+                caloriesPerHundredGrams: 100,
+                fat: 1,
+                fatSaturated: 1,
+                fatUnsaturatedFattyAcids: 1,
+                carbohydrate: 1,
+                carbohydratePureSugar: 1,
+                fiber: 1,
+                protein: 1,
+                salt: 1
+            ),
+            favouritedAt: .now
+        )
+    }
 }
 
 private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProtocol {
@@ -125,23 +157,33 @@ private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProto
     // MARK: - Properties
 
     var stubbedFoodConsumed: [FoodConsumedDTO] = []
+    var stubbedFavouriteFoods: [FavouriteFoodDTO] = []
     private(set) var batchSavedItemCount = 0
+    private(set) var batchSavedFavouriteFoodIds: [String] = []
 
     // MARK: - Functions
 
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T] {
-        stubbedFoodConsumed.compactMap { $0 as? T }
+        if collection.contains("favouriteFoods") {
+            return stubbedFavouriteFoods.compactMap { $0 as? T }
+        }
+        return stubbedFoodConsumed.compactMap { $0 as? T }
     }
 
     func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
+    func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
 
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {
-        batchSavedItemCount = items.count
+        if collection.contains("favouriteFoods") {
+            batchSavedFavouriteFoodIds = items.map(\.id)
+        } else {
+            batchSavedItemCount = items.count
+        }
     }
 
     func deleteAsync(id: String, from collection: String) async throws {}
