@@ -44,13 +44,26 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published private(set) var selectedFoodItem: FoodItemDomain?
     @Published var lastScannedBarcode = ""
     @Published private(set) var isBarcodeSearchLoading = false
+    @Published private(set) var favouriteFoods: [FoodItemDomain] = []
+    @Published private(set) var favouriteIds: Set<String> = []
 
     private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
     private let createFoodItem: any CreateFoodItemUseCaseProtocol
     private let searchFoodExternally: any SearchFoodExternallyUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
+    private let fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol
     private let onFoodSaved: () -> Void
+
+    var displayedResults: [FoodItemDomain] {
+        let query = searchText.lowercased()
+        guard !query.isEmpty else { return localFoodItems }
+        let matchingFavourites = favouriteFoods.filter {
+            $0.czName.lowercased().hasPrefix(query) || $0.engName.lowercased().hasPrefix(query)
+        }
+        let matchingIds = Set(matchingFavourites.map(\.id))
+        return matchingFavourites + localFoodItems.filter { !matchingIds.contains($0.id) }
+    }
 
     // MARK: - Init
 
@@ -60,6 +73,7 @@ final class AddFoodSheetViewModel: ObservableObject {
         searchFoodExternally: any SearchFoodExternallyUseCaseProtocol,
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
+        fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol,
         onFoodSaved: @escaping () -> Void = {},
         isScannerVisible: Bool = false
     ) {
@@ -69,6 +83,7 @@ final class AddFoodSheetViewModel: ObservableObject {
         self.searchFoodExternally = searchFoodExternally
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
+        self.fetchFavouriteFoods = fetchFavouriteFoods
         self.onFoodSaved = onFoodSaved
     }
 
@@ -122,7 +137,7 @@ final class AddFoodSheetViewModel: ObservableObject {
         } catch {
             return
         }
-        guard localFoodItems.isEmpty && searchText.count >= 3 else {
+        guard displayedResults.isEmpty && searchText.count >= 3 else {
             externalFoodItems = []
             return
         }
@@ -145,6 +160,27 @@ final class AddFoodSheetViewModel: ObservableObject {
     func onFoodConsumedSaved() {
         onFoodSaved()
         shouldDismiss = true
+    }
+
+    @MainActor
+    func onAppear() async {
+        guard let items = try? await fetchFavouriteFoods() else { return }
+        favouriteFoods = items
+        favouriteIds = Set(items.map(\.id))
+    }
+
+    func isFavourite(_ item: FoodItemDomain) -> Bool {
+        favouriteIds.contains(item.id)
+    }
+
+    func onFavouriteChanged(id: String, isFavourite: Bool, item: FoodItemDomain) {
+        favouriteFoods.removeAll { $0.id == id }
+        if isFavourite {
+            favouriteIds.insert(id)
+            favouriteFoods.insert(item, at: 0)
+        } else {
+            favouriteIds.remove(id)
+        }
     }
 
     @MainActor

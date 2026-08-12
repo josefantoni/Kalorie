@@ -11,6 +11,7 @@ enum L10n {
     enum Common {
         static var ok: String { String(localized: "common_ok") }
         static var errorUnknown: String { String(localized: "common_error_unknown") }
+        static var buttonFavourite: String { String(localized: "common_button_favourite") }
     }
 
     enum Auth {
@@ -53,6 +54,7 @@ enum L10n {
         static var cameraPermissionAlert: String { String(localized: "addFood_camera_permissionAlert") }
         static var sectionSearchResults: String { String(localized: "addFood_section_searchResults") }
         static var sectionExternalResults: String { String(localized: "addFood_section_externalResults") }
+        static var sectionFavourites: String { String(localized: "addFood_section_favourites") }
         static var sectionNewItem: String { String(localized: "addFood_section_newItem") }
         static var fieldBarcodeTitle: String { String(localized: "addFood_field_barcode_title") }
         static var fieldBarcodePlaceholder: String { String(localized: "addFood_field_barcode_placeholder") }
@@ -77,6 +79,7 @@ enum L10n {
         static var errorBarcodeNotFound: String { String(localized: "addFood_error_barcodeNotFound") }
         static var errorItemAlreadyExists: String { String(localized: "addFood_error_itemAlreadyExists") }
         static var errorLoadFailed: String { String(localized: "addFood_error_loadFailed") }
+        static var errorFavouriteFailed: String { String(localized: "addFood_error_favouriteFailed") }
     }
 
     enum FoodConsumedDetail {

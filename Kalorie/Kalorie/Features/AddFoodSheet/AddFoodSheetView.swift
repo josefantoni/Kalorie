@@ -16,13 +16,13 @@ struct AddFoodSheetView: View {
     @StateObject var viewModel: AddFoodSheetViewModel
     @State private var flipAngle: Double = 0
     @Environment(\.dismiss) var dismiss
-    private let makeFoodQuantityView: (FoodItemDomain, @escaping () -> Void) -> FoodQuantityView
+    private let makeFoodQuantityView: (FoodItemDomain, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
 
     // MARK: - Init
 
     init(
         viewModel: AddFoodSheetViewModel,
-        makeFoodQuantityView: @escaping (FoodItemDomain, @escaping () -> Void) -> FoodQuantityView
+        makeFoodQuantityView: @escaping (FoodItemDomain, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeFoodQuantityView = makeFoodQuantityView
@@ -53,6 +53,7 @@ struct AddFoodSheetView: View {
                     dismissButton: Alert.Button.default(Text(L10n.Common.ok))
                 )
             }
+            .task { await viewModel.onAppear() }
             .task(id: viewModel.searchText) { await viewModel.onSearchTextChanged() }
             .onChange(of: viewModel.lastScannedBarcode) { _, newValue in
                 guard !newValue.isEmpty else { return }
@@ -63,7 +64,9 @@ struct AddFoodSheetView: View {
             }
             .navigationDestination(isPresented: $viewModel.isPushedToQuantityView) {
                 if let item = viewModel.selectedFoodItem {
-                    makeFoodQuantityView(item, viewModel.onFoodConsumedSaved)
+                    makeFoodQuantityView(item, viewModel.isFavourite(item), viewModel.onFoodConsumedSaved) { id, isFavourite in
+                        viewModel.onFavouriteChanged(id: id, isFavourite: isFavourite, item: item)
+                    }
                 }
             }
             .toolbar {
@@ -129,11 +132,21 @@ struct AddFoodSheetView: View {
                     }
                 }
             }
-            if !viewModel.localFoodItems.isEmpty || !viewModel.searchText.isEmpty {
+            if viewModel.searchText.isEmpty && !viewModel.favouriteFoods.isEmpty {
+                Section(header: Text(L10n.AddFood.sectionFavourites)) {
+                    ForEach(viewModel.favouriteFoods, id: \.id) { item in
+                        FoodItemRow(item: item, isFavourite: true)
+                            .onTapGesture {
+                                viewModel.onSelectFoodItem(item)
+                            }
+                    }
+                }
+            }
+            if !viewModel.displayedResults.isEmpty || !viewModel.searchText.isEmpty {
                 Section(header: Text(L10n.AddFood.sectionExternalResults)) {
-                    if !viewModel.localFoodItems.isEmpty {
-                        ForEach(viewModel.localFoodItems, id: \.id) { item in
-                            Text(item.displayName)
+                    if !viewModel.displayedResults.isEmpty {
+                        ForEach(viewModel.displayedResults, id: \.id) { item in
+                            FoodItemRow(item: item, isFavourite: viewModel.isFavourite(item))
                                 .onTapGesture {
                                     viewModel.onSelectFoodItem(item)
                                 }
@@ -243,15 +256,20 @@ struct AddFoodSheetView: View {
             createFoodItem: CreateFoodItemUseCaseFake(),
             searchFoodExternally: SearchFoodExternallyUseCaseFake(),
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
-            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake()
+            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
+            fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake()
         )
-    ) { item, onSaved in
+    ) { item, isFavourite, onSaved, onFavouriteChanged in
         FoodQuantityView(
             viewModel: FoodQuantityViewModel(
                 item: item,
                 saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
                 selectedDate: .now,
-                onSaved: onSaved
+                isFavourite: isFavourite,
+                addFavouriteFood: AddFavouriteFoodUseCaseFake(),
+                removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
+                onSaved: onSaved,
+                onFavouriteChanged: onFavouriteChanged
             )
         )
     }

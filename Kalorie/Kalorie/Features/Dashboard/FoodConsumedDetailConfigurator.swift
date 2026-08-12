@@ -28,6 +28,10 @@ struct FoodConsumedDetailConfigurator {
             viewModel: FoodConsumedDetailViewModel(
                 food: food,
                 updateFoodConsumed: UpdateFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                isFavouriteFood: IsFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                addFavouriteFood: AddFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                removeFavouriteFood: RemoveFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 onFoodUpdated: onFoodUpdated
             )
         )

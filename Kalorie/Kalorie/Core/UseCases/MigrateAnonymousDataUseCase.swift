@@ -40,7 +40,8 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
 
     func migrate(fromAnonymousUserId sourceUserId: String, credential: AuthCredential) async throws {
         let foodConsumed: [FoodConsumedDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.foodConsumed(userId: sourceUserId))
-        let snapshot = PendingMergeSnapshot(sourceAnonymousUserId: sourceUserId, foodConsumed: foodConsumed)
+        let favouriteFoods: [FavouriteFoodDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.favouriteFoods(userId: sourceUserId))
+        let snapshot = PendingMergeSnapshot(sourceAnonymousUserId: sourceUserId, foodConsumed: foodConsumed, favouriteFoods: favouriteFoods)
         try snapshotStore.save(snapshot)
 
         try await authCommandProvider.signIn(with: credential)
@@ -65,6 +66,8 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let items = snapshot.foodConsumed.map { (item: $0, id: $0.id) }
         try await dataProvider.batchSetAsync(items, in: Constants.Firestore.foodConsumed(userId: userId))
+        let favourites = snapshot.favouriteFoods.map { (item: $0, id: $0.id) }
+        try await dataProvider.batchSetAsync(favourites, in: Constants.Firestore.favouriteFoods(userId: userId))
         try snapshotStore.delete()
     }
 }

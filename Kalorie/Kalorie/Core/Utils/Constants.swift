@@ -18,6 +18,7 @@ enum Constants {
         static let users = "users"
         static func mealTypes(userId: String) -> String { "users/\(userId)/mealTypes" }
         static func foodConsumed(userId: String) -> String { "users/\(userId)/foodConsumed" }
+        static func favouriteFoods(userId: String) -> String { "users/\(userId)/favouriteFoods" }
     }
 
 }

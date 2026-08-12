@@ -130,6 +130,7 @@ private final class FetchFoodsConsumedDataProviderFake: FirestoreDataProviderPro
     func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
+    func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
 
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] {
         stubbedDTOs

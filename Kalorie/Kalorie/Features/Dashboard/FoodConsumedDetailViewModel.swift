@@ -15,24 +15,40 @@ final class FoodConsumedDetailViewModel: ObservableObject {
     @Published private(set) var state: LoadingState<Void> = .idle
     @Published private(set) var showCheckmark = false
     @Published var alertItem: AlertItem?
+    @Published private(set) var isFavourite = false
+    @Published private(set) var catalogueItem: FoodItemDomain?
 
     let food: FoodConsumedDomain
 
     private var savedWeight: Double
     private let updateFoodConsumed: any UpdateFoodConsumedUseCaseProtocol
+    private let isFavouriteFood: any IsFavouriteFoodUseCaseProtocol
+    private let addFavouriteFood: any AddFavouriteFoodUseCaseProtocol
+    private let removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol
+    private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let onFoodUpdated: () -> Void
+
+    var canToggleFavourite: Bool { isFavourite || catalogueItem != nil }
 
     // MARK: - Init
 
     init(
         food: FoodConsumedDomain,
         updateFoodConsumed: any UpdateFoodConsumedUseCaseProtocol,
+        isFavouriteFood: any IsFavouriteFoodUseCaseProtocol,
+        addFavouriteFood: any AddFavouriteFoodUseCaseProtocol,
+        removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol,
+        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         onFoodUpdated: @escaping () -> Void
     ) {
         self.food = food
         self.weight = food.weight
         self.savedWeight = food.weight
         self.updateFoodConsumed = updateFoodConsumed
+        self.isFavouriteFood = isFavouriteFood
+        self.addFavouriteFood = addFavouriteFood
+        self.removeFavouriteFood = removeFavouriteFood
+        self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.onFoodUpdated = onFoodUpdated
     }
 
@@ -44,6 +60,29 @@ final class FoodConsumedDetailViewModel: ObservableObject {
     }
 
     var hasWeightChanged: Bool { weight != savedWeight }
+
+    @MainActor
+    func onAppear() async {
+        isFavourite = (try? await isFavouriteFood(id: food.foodItemId)) ?? false
+        catalogueItem = try? await fetchFoodItemByBarcode(barcode: food.foodItemId)
+    }
+
+    @MainActor
+    func onFavouriteToggled() async {
+        let newValue = !isFavourite
+        isFavourite = newValue
+        do {
+            if newValue {
+                guard let catalogueItem else { return }
+                try await addFavouriteFood(catalogueItem)
+            } else {
+                try await removeFavouriteFood(id: food.foodItemId)
+            }
+        } catch {
+            isFavourite = !newValue
+            alertItem = AlertItem(title: L10n.AddFood.errorFavouriteFailed)
+        }
+    }
 
     @MainActor
     func onSave() async {

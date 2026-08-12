@@ -37,6 +37,18 @@ struct FoodQuantityView: View {
                 macroRow(label: L10n.FoodQuantity.fat, value: formatted(viewModel.scaledFat), suffix: "g")
                 macroRow(label: L10n.FoodQuantity.fiber, value: formatted(viewModel.scaledFiber), suffix: "g")
             }
+
+            Section {
+                HStack {
+                    Spacer()
+                    FavouriteButton(isFavourite: viewModel.isFavourite) {
+                        Task { await viewModel.onFavouriteToggled() }
+                    }
+                    Spacer()
+                }
+            }
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
         }
         .navigationTitle(viewModel.item.displayName)
         .navigationBarTitleDisplayMode(.inline)
@@ -138,8 +150,12 @@ struct FoodQuantityView: View {
                     salt: 0.3
                 ),
                 saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
-                selectedDate: .now
-            ) {}
+                selectedDate: .now,
+                isFavourite: false,
+                addFavouriteFood: AddFavouriteFoodUseCaseFake(),
+                removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
+                onSaved: {}
+            ) { _, _ in }
         )
     }
 }

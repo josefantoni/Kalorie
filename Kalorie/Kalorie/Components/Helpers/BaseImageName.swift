@@ -14,4 +14,6 @@ enum BaseImageName: String {
     case plus = "plus"
     case plusCircle = "plus.circle"
     case carrotFill = "carrot.fill"
+    case heart = "heart"
+    case heartFill = "heart.fill"
 }
