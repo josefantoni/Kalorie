@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 struct DailyMacros {
     let calories: Int
@@ -16,6 +17,50 @@ struct DailyMacros {
     let fatUnsaturated: Double
     let fiber: Double
     let salt: Double
+
+    init(
+        calories: Int,
+        protein: Double,
+        carbs: Double,
+        carbohydrateSugar: Double,
+        fat: Double,
+        fatUnsaturated: Double,
+        fiber: Double,
+        salt: Double
+    ) {
+        self.calories = calories
+        self.protein = protein
+        self.carbs = carbs
+        self.carbohydrateSugar = carbohydrateSugar
+        self.fat = fat
+        self.fatUnsaturated = fatUnsaturated
+        self.fiber = fiber
+        self.salt = salt
+    }
+
+    init(foods: [FoodConsumedDomain]) {
+        let macros = foods.map {
+            Macros(
+                calories: Int32($0.calories),
+                protein: $0.protein,
+                carbohydrate: $0.carbohydrate,
+                carbohydrateSugar: $0.carbohydrateSugar,
+                fat: $0.fat,
+                fatUnsaturated: $0.fatUnsaturated,
+                fiber: $0.fiber,
+                salt: $0.salt
+            )
+        }
+        let total = MacrosKt.total(macros)
+        calories = Int(total.calories)
+        protein = total.protein
+        carbs = total.carbohydrate
+        carbohydrateSugar = total.carbohydrateSugar
+        fat = total.fat
+        fatUnsaturated = total.fatUnsaturated
+        fiber = total.fiber
+        salt = total.salt
+    }
 }
 
 final class DashboardViewModel: ObservableObject {
@@ -57,18 +102,7 @@ final class DashboardViewModel: ObservableObject {
 
     // MARK: - Functions
 
-    var dailyMacros: DailyMacros {
-        DailyMacros(
-            calories: foodsConsumed.reduce(0) { $0 + $1.calories },
-            protein: foodsConsumed.reduce(0) { $0 + $1.protein },
-            carbs: foodsConsumed.reduce(0) { $0 + $1.carbohydrate },
-            carbohydrateSugar: foodsConsumed.reduce(0) { $0 + $1.carbohydrateSugar },
-            fat: foodsConsumed.reduce(0) { $0 + $1.fat },
-            fatUnsaturated: foodsConsumed.reduce(0) { $0 + $1.fatUnsaturated },
-            fiber: foodsConsumed.reduce(0) { $0 + $1.fiber },
-            salt: foodsConsumed.reduce(0) { $0 + $1.salt }
-        )
-    }
+    var dailyMacros: DailyMacros { DailyMacros(foods: foodsConsumed) }
 
     var groupedFoods: [(mealType: MealTypeDomain?, foods: [FoodConsumedDomain])] {
         var result: [(mealType: MealTypeDomain?, foods: [FoodConsumedDomain])] = []

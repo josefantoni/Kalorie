@@ -50,6 +50,14 @@ The app works with three kinds of data. The distinction matters for the items be
   they start typing in the search field, show a "Favourites" section with those foods, most
   recently marked first, and once they type, put the matching favourites at the top of the
   results. See [docs/design/0003-favourite-foods.md](docs/design/0003-favourite-foods.md).
+- [ ] **Shared macro calculation module (KMP)** — macro scaling and summation is reimplemented at
+  five call sites, two of which round calories differently, so the same food at the same weight
+  persists a different value depending on whether it was logged or edited. Extract it into a
+  Kotlin Multiplatform module consuming only `Double`/`Int`, with the Swift `ScaledMacros` and
+  `DailyMacros` kept as adapters so no other call site changes. Deliberately the smallest useful
+  module: it is both a real de-duplication and the probe for whether KMP is worth carrying in this
+  project. **Prerequisite: the Gradle build must not run inside iCloud Drive.** See
+  [docs/design/0004-shared-macro-calculation-module.md](docs/design/0004-shared-macro-calculation-module.md).
 - [ ] **Rank search results by frequency** — order manual search results by how often the user has
   logged each food, so the most used ones come first. Distinct from favourites above: this one is
   derived, not chosen, and the user cannot remove an entry from it.

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 struct FoodConsumedDomain: BilingualNamed, Hashable {
 
@@ -38,13 +39,23 @@ struct ScaledMacros {
     let salt: Double
 
     init(food: FoodConsumedDomain, ratio: Double) {
-        calories = Int((Double(food.calories) * ratio).rounded())
-        protein = food.protein * ratio
-        carbohydrate = food.carbohydrate * ratio
-        carbohydrateSugar = food.carbohydrateSugar * ratio
-        fat = food.fat * ratio
-        fatUnsaturated = food.fatUnsaturated * ratio
-        fiber = food.fiber * ratio
-        salt = food.salt * ratio
+        let scaled = Macros(
+            calories: Int32(food.calories),
+            protein: food.protein,
+            carbohydrate: food.carbohydrate,
+            carbohydrateSugar: food.carbohydrateSugar,
+            fat: food.fat,
+            fatUnsaturated: food.fatUnsaturated,
+            fiber: food.fiber,
+            salt: food.salt
+        ).scaled(factor: ratio)
+        calories = Int(scaled.calories)
+        protein = scaled.protein
+        carbohydrate = scaled.carbohydrate
+        carbohydrateSugar = scaled.carbohydrateSugar
+        fat = scaled.fat
+        fatUnsaturated = scaled.fatUnsaturated
+        fiber = scaled.fiber
+        salt = scaled.salt
     }
 }

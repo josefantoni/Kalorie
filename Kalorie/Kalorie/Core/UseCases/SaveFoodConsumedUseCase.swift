@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 protocol SaveFoodConsumedUseCaseProtocol {
     func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws
@@ -30,6 +31,16 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
     func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let ratio = grams / 100
+        let scaled = Macros(
+            calories: Int32(item.caloriesPerHundredGrams.rounded()),
+            protein: item.protein,
+            carbohydrate: item.carbohydrate,
+            carbohydrateSugar: item.carbohydratePureSugar,
+            fat: item.fat,
+            fatUnsaturated: item.fatUnsaturatedFattyAcids,
+            fiber: item.fiber,
+            salt: item.salt
+        ).scaled(factor: ratio)
         let dto = FoodConsumedDTO(
             id: UUID().uuidString,
             foodItemId: item.id,
@@ -37,14 +48,14 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
             engName: item.engName,
             weight: grams,
             date: date.timeIntervalSince1970,
-            calories: Int((item.caloriesPerHundredGrams * ratio).rounded()),
-            protein: item.protein * ratio,
-            carbohydrate: item.carbohydrate * ratio,
-            carbohydrateSugar: item.carbohydratePureSugar * ratio,
-            fat: item.fat * ratio,
-            fatUnsaturated: item.fatUnsaturatedFattyAcids * ratio,
-            fiber: item.fiber * ratio,
-            salt: item.salt * ratio
+            calories: Int(scaled.calories),
+            protein: scaled.protein,
+            carbohydrate: scaled.carbohydrate,
+            carbohydrateSugar: scaled.carbohydrateSugar,
+            fat: scaled.fat,
+            fatUnsaturated: scaled.fatUnsaturated,
+            fiber: scaled.fiber,
+            salt: scaled.salt
         )
         try await dataProvider.setAsync(dto, id: dto.id, in: Constants.Firestore.foodConsumed(userId: userId))
     }
