@@ -34,6 +34,7 @@ struct UpdateFoodConsumedUseCase: UpdateFoodConsumedUseCaseProtocol {
         let scaled = ScaledMacros(food: food, ratio: ratio)
         let dto = FoodConsumedDTO(
             id: food.id,
+            foodItemId: food.foodItemId,
             czName: food.czName,
             engName: food.engName,
             weight: newWeight,

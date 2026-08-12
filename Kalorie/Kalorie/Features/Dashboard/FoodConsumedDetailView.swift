@@ -122,6 +122,7 @@ struct FoodConsumedDetailView: View {
             viewModel: FoodConsumedDetailViewModel(
                 food: FoodConsumedDomain(
                     id: "1",
+                    foodItemId: "1",
                     czName: "Ovesné vločky",
                     engName: "Oats",
                     weight: 80,

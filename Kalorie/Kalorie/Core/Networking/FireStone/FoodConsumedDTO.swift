@@ -12,6 +12,7 @@ struct FoodConsumedDTO: Codable {
     // MARK: - Properties
 
     let id: String
+    let foodItemId: String
     let czName: String
     let engName: String
     let weight: Double
@@ -29,6 +30,7 @@ struct FoodConsumedDTO: Codable {
 
     enum CodingKeys: String, CodingKey {
         case id, weight, date, calories, protein, carbohydrate, fat, fiber, salt
+        case foodItemId = "food_item_id"
         case czName = "cz_name"
         case engName = "eng_name"
         case carbohydrateSugar = "carbohydrate_sugar"
@@ -40,6 +42,7 @@ struct FoodConsumedDTO: Codable {
     func asDomain() -> FoodConsumedDomain {
         FoodConsumedDomain(
             id: id,
+            foodItemId: foodItemId,
             czName: czName,
             engName: engName,
             weight: weight,

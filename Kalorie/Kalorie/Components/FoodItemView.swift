@@ -42,6 +42,7 @@ struct FoodConsumedView: View {
     FoodConsumedView(
         FoodConsumedDomain(
             id: "1",
+            foodItemId: "1",
             czName: "Jogurt bílý",
             engName: "White yoghurt",
             weight: 200,

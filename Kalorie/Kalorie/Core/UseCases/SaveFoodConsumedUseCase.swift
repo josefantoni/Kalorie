@@ -32,6 +32,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
         let ratio = grams / 100
         let dto = FoodConsumedDTO(
             id: UUID().uuidString,
+            foodItemId: item.id,
             czName: item.czName,
             engName: item.engName,
             weight: grams,

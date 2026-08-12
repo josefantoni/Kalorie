@@ -70,6 +70,7 @@ final class PendingMergeSnapshotStoreTests: XCTestCase {
             foodConsumed: foodIds.map { id in
                 FoodConsumedDTO(
                     id: id,
+                    foodItemId: id,
                     czName: "Test",
                     engName: "Test",
                     weight: 100,
