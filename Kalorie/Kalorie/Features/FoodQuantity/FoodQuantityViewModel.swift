@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 enum FoodQuantityUnit: CaseIterable {
     case hundredGrams
@@ -39,11 +40,25 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     private let onFavouriteChanged: (String, Bool) -> Void
 
     var grams: Double { quantity * unit.gramsPerUnit }
-    var scaledCalories: Int { Int((item.caloriesPerHundredGrams * grams / 100).rounded()) }
-    var scaledProtein: Double { item.protein * grams / 100 }
-    var scaledCarbohydrate: Double { item.carbohydrate * grams / 100 }
-    var scaledFat: Double { item.fat * grams / 100 }
-    var scaledFiber: Double { item.fiber * grams / 100 }
+
+    private var scaledMacros: Macros {
+        Macros(
+            calories: Int32(item.caloriesPerHundredGrams.rounded()),
+            protein: item.protein,
+            carbohydrate: item.carbohydrate,
+            carbohydrateSugar: item.carbohydratePureSugar,
+            fat: item.fat,
+            fatUnsaturated: item.fatUnsaturatedFattyAcids,
+            fiber: item.fiber,
+            salt: item.salt
+        ).scaled(factor: grams / 100)
+    }
+
+    var scaledCalories: Int { Int(scaledMacros.calories) }
+    var scaledProtein: Double { scaledMacros.protein }
+    var scaledCarbohydrate: Double { scaledMacros.carbohydrate }
+    var scaledFat: Double { scaledMacros.fat }
+    var scaledFiber: Double { scaledMacros.fiber }
 
     // MARK: - Init
 
