@@ -1,6 +1,6 @@
 # Design: Favourite foods
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Scope:** Backend, Cross-platform, iOS
 - **Date:** 2026-08-10
 
