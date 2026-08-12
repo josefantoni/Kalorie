@@ -12,6 +12,7 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
     // MARK: - Properties
 
     let id: String
+    let foodItemId: String
     let czName: String
     let engName: String
     let weight: Double

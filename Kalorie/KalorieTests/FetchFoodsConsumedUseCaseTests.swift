@@ -23,6 +23,7 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
         dataProvider.stubbedDTOs = [
             FoodConsumedDTO(
                 id: "1",
+                foodItemId: "1",
                 czName: "Vejce",
                 engName: "Egg",
                 weight: 100,
@@ -38,6 +39,7 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
             ),
             FoodConsumedDTO(
                 id: "2",
+                foodItemId: "2",
                 czName: "Chléb",
                 engName: "",
                 weight: 50,
@@ -66,6 +68,7 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
         dataProvider.stubbedDTOs = [
             FoodConsumedDTO(
                 id: "1",
+                foodItemId: "1",
                 czName: "Vejce",
                 engName: "Egg",
                 weight: 100,
@@ -81,6 +84,7 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
             ),
             FoodConsumedDTO(
                 id: "2",
+                foodItemId: "2",
                 czName: "Včerejší chléb",
                 engName: "",
                 weight: 50,

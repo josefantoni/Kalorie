@@ -103,6 +103,7 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
     private func makeFood(id: String) -> FoodConsumedDTO {
         FoodConsumedDTO(
             id: id,
+            foodItemId: id,
             czName: "Test",
             engName: "Test",
             weight: 100,

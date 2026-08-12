@@ -168,6 +168,7 @@ final class DashboardViewModelTests: XCTestCase {
         let date = cal.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
         return FoodConsumedDomain(
             id: id,
+            foodItemId: id,
             czName: "Jídlo",
             engName: "Food",
             weight: 100,
