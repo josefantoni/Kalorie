@@ -6,15 +6,21 @@
 //
 
 import Foundation
+import MealKit
 
 extension Date {
-    
+
     // MARK: - Properties
-    
+
     var tupledTime: (String, String) {
         let hour = Calendar.current.component(.hour, from: self).makeDoubleDigit
         let minute = Calendar.current.component(.minute, from: self).makeDoubleDigit
         return (hour, minute)
+    }
+
+    var minutesSinceMidnight: Int32 {
+        let components = Calendar.current.dateComponents([.hour, .minute], from: self)
+        return MealWindowsKt.minutesSinceMidnight(hour: Int32(components.hour ?? 0), minute: Int32(components.minute ?? 0))
     }
 
     // MARK: - Function

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MealKit
 
 protocol CreateMealTypeUseCaseProtocol {
     func callAsFunction(
@@ -42,24 +43,28 @@ struct CreateMealTypeUseCase: CreateMealTypeUseCaseProtocol {
         guard !existingMealTypes.contains(where: { $0.name == name }) else {
             throw CreateMealTypeError.duplicateName
         }
-        guard endTime.timeIntervalSince(startTime) >= 30 * 60 else {
+        let startMinutes = startTime.minutesSinceMidnight
+        let endMinutes = endTime.minutesSinceMidnight
+        guard MealWindowsKt.isMealWindowLongEnough(startMinutes: startMinutes, endMinutes: endMinutes, minimumDurationMinutes: 30) else {
             throw CreateMealTypeError.durationTooShort
         }
         guard !existingMealTypes.contains(where: {
-            startTime < $0.endTime && endTime > $0.startTime
+            MealWindowsKt.mealWindowsOverlap(
+                startMinutes: startMinutes,
+                endMinutes: endMinutes,
+                otherStartMinutes: $0.startTime.minutesSinceMidnight,
+                otherEndMinutes: $0.endTime.minutesSinceMidnight
+            )
         }) else {
             throw CreateMealTypeError.timeConflict
         }
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let newId = (existingMealTypes.map { $0.id }.max() ?? -1) + 1
-        let cal = Calendar.current
-        let startMinutes = cal.component(.hour, from: startTime) * 60 + cal.component(.minute, from: startTime)
-        let endMinutes = cal.component(.hour, from: endTime) * 60 + cal.component(.minute, from: endTime)
         let dto = MealTypeDTO(
             id: newId,
             name: name,
-            startMinutes: startMinutes,
-            endMinutes: endMinutes
+            startMinutes: Int(startMinutes),
+            endMinutes: Int(endMinutes)
         )
         try await dataProvider.setAsync(dto, id: "\(newId)", in: Constants.Firestore.mealTypes(userId: userId))
         return MealTypeDomain(id: newId, name: name, startTime: startTime, endTime: endTime)

@@ -43,12 +43,14 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
         var dtos: [(item: MealTypeDTO, id: String)] = []
         var domains: [MealTypeDomain] = []
 
-        let cal = Calendar.current
         for (id, mealName) in mealNames.enumerated() {
-            let startMinutes = cal.component(.hour, from: startTime) * 60 + cal.component(.minute, from: startTime)
-            let endMinutes = cal.component(.hour, from: endTime) * 60 + cal.component(.minute, from: endTime)
             dtos.append((
-                item: MealTypeDTO(id: id, name: mealName, startMinutes: startMinutes, endMinutes: endMinutes),
+                item: MealTypeDTO(
+                    id: id,
+                    name: mealName,
+                    startMinutes: Int(startTime.minutesSinceMidnight),
+                    endMinutes: Int(endTime.minutesSinceMidnight)
+                ),
                 id: "\(id)"
             ))
             domains.append(MealTypeDomain(id: id, name: mealName, startTime: startTime, endTime: endTime))
