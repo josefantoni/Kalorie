@@ -6,17 +6,10 @@
 //
 
 import Foundation
+import TextKit
 
 extension String {
     func decodingHTMLEntities() -> String {
-        var result = self
-        let entities: [(String, String)] = [
-            ("&amp;", "&"), ("&quot;", "\""), ("&lt;", "<"),
-            ("&gt;", ">"), ("&apos;", "'"), ("&#39;", "'"), ("&nbsp;", " ")
-        ]
-        for (entity, replacement) in entities {
-            result = result.replacingOccurrences(of: entity, with: replacement)
-        }
-        return result
+        HtmlEntitiesKt.decodeHtmlEntities(input: self)
     }
 }
