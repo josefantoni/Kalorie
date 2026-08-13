@@ -13,6 +13,8 @@
 		86C775E32C2A6E1600FC4493 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 86C775E22C2A6E1600FC4493 /* FirebaseFirestore */; };
 		721DCA1D2D414EEBC74AC528 /* MacroKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F33A3B2218AFA5E33204F9B /* MacroKit.xcframework */; };
 		E6C0BF6417AFBF06AE2C644A /* MacroKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F33A3B2218AFA5E33204F9B /* MacroKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D25725F186D3199499A6CD75 /* MealKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EF9A4CE03DFBCE693EF2F49 /* MealKit.xcframework */; };
+		5FF00AFAED788D95DB7057D3 /* MealKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2EF9A4CE03DFBCE693EF2F49 /* MealKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +42,7 @@
 			dstSubfolderSpec = 10;
 			files = (
 				E6C0BF6417AFBF06AE2C644A /* MacroKit.xcframework in Embed Frameworks */,
+				5FF00AFAED788D95DB7057D3 /* MealKit.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -51,6 +54,7 @@
 		860C155F2C10B01C0062D6E7 /* KalorieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KalorieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		860C15692C10B01C0062D6E7 /* KalorieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KalorieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F33A3B2218AFA5E33204F9B /* MacroKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MacroKit.xcframework; path = "../MacroKit/build/XCFrameworks/release/MacroKit.xcframework"; sourceTree = "<group>"; };
+		2EF9A4CE03DFBCE693EF2F49 /* MealKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MealKit.xcframework; path = "../MealKit/build/XCFrameworks/release/MealKit.xcframework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -91,6 +95,7 @@
 				864EAE1B2FF4043900D0C4AE /* FirebaseAuth in Frameworks */,
 				1A778558922BDCEE5A8C47CB /* GoogleSignIn in Frameworks */,
 				721DCA1D2D414EEBC74AC528 /* MacroKit.xcframework in Frameworks */,
+				D25725F186D3199499A6CD75 /* MealKit.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,6 +141,7 @@
 			isa = PBXGroup;
 			children = (
 				3F33A3B2218AFA5E33204F9B /* MacroKit.xcframework */,
+				2EF9A4CE03DFBCE693EF2F49 /* MealKit.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -148,6 +154,7 @@
 			buildConfigurationList = 860C15732C10B01C0062D6E7 /* Build configuration list for PBXNativeTarget "Kalorie" */;
 			buildPhases = (
 				2E2687C131B4C44553A5A89E /* Build MacroKit (Gradle) */,
+				699B3BE6FFA2B83A508CC13A /* Build MealKit (Gradle) */,
 				860C154A2C10B01B0062D6E7 /* Sources */,
 				860C154B2C10B01B0062D6E7 /* Frameworks */,
 				1607450784FF2995A1BE09C6 /* Embed Frameworks */,
@@ -306,6 +313,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\ncd \"$SRCROOT/../MacroKit\"\n./gradlew assembleMacroKitReleaseXCFramework\n";
+			showEnvVarsInLog = 0;
+		};
+		699B3BE6FFA2B83A508CC13A /* Build MealKit (Gradle) */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build MealKit (Gradle)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\ncd \"$SRCROOT/../MealKit\"\n./gradlew assembleMealKitReleaseXCFramework\n";
 			showEnvVarsInLog = 0;
 		};
 		86FFA1D52C145EC0000D53AA /* ShellScript */ = {

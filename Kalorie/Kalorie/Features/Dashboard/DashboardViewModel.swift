@@ -7,6 +7,7 @@
 
 import Foundation
 import MacroKit
+import MealKit
 
 struct DailyMacros {
     let calories: Int
@@ -211,13 +212,11 @@ final class DashboardViewModel: ObservableObject {
     }
 
     private func foodFallsIn(mealType: MealTypeDomain, food: FoodConsumedDomain) -> Bool {
-        let calendar = Calendar.current
-        func minutes(from date: Date) -> Int {
-            let components = calendar.dateComponents([.hour, .minute], from: date)
-            return (components.hour ?? 0) * 60 + (components.minute ?? 0)
-        }
-        let foodMinutes = minutes(from: food.date)
-        return foodMinutes >= minutes(from: mealType.startTime) && foodMinutes < minutes(from: mealType.endTime)
+        MealWindowsKt.isMinuteWithinWindow(
+            minutes: food.date.minutesSinceMidnight,
+            startMinutes: mealType.startTime.minutesSinceMidnight,
+            endMinutes: mealType.endTime.minutesSinceMidnight
+        )
     }
 
     @MainActor
