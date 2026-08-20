@@ -85,6 +85,17 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         }
     }
 
+    func test_createMealType_wrappingMidnight_isNotRejectedAsTooShort() async throws {
+        let (sut, _) = makeSUT()
+        let result = try await sut(
+            name: "Půlnoční svačina",
+            startTime: makeDate(hour: 23, minute: 50),
+            endTime: makeDate(hour: 0, minute: 20),
+            existingMealTypes: []
+        )
+        XCTAssertEqual(result.name, "Půlnoční svačina")
+    }
+
     func test_createMealType_withValidInput_persistsAndReturnsMealType() async throws {
         let (sut, _) = makeSUT()
         let existing = MealTypeDomain(

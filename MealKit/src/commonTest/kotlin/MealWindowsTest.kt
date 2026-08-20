@@ -51,4 +51,41 @@ class MealWindowsTest {
     fun isMealWindowLongEnough_belowMinimum_returnsFalse() {
         assertFalse(isMealWindowLongEnough(startMinutes = 480, endMinutes = 500, minimumDurationMinutes = 30))
     }
+
+    @Test
+    fun isMealWindowLongEnough_wrapsMidnight_countsBothSides() {
+        // 23:50 -> 00:20 is 30 minutes, not a negative duration.
+        assertTrue(isMealWindowLongEnough(startMinutes = 1430, endMinutes = 20, minimumDurationMinutes = 30))
+    }
+
+    @Test
+    fun isMealWindowLongEnough_wrapsMidnight_belowMinimum_returnsFalse() {
+        assertFalse(isMealWindowLongEnough(startMinutes = 1430, endMinutes = 10, minimumDurationMinutes = 30))
+    }
+
+    @Test
+    fun isMinuteWithinWindow_wrapsMidnight_beforeMidnight_isIncluded() {
+        assertTrue(isMinuteWithinWindow(minutes = 1430, startMinutes = 1380, endMinutes = 60))
+    }
+
+    @Test
+    fun isMinuteWithinWindow_wrapsMidnight_afterMidnight_isIncluded() {
+        assertTrue(isMinuteWithinWindow(minutes = 30, startMinutes = 1380, endMinutes = 60))
+    }
+
+    @Test
+    fun isMinuteWithinWindow_wrapsMidnight_outsideWindow_isExcluded() {
+        assertFalse(isMinuteWithinWindow(minutes = 720, startMinutes = 1380, endMinutes = 60))
+    }
+
+    @Test
+    fun mealWindowsOverlap_wrapsMidnight_overlapsWindowAfterMidnight_returnsTrue() {
+        // 23:50 -> 00:20 overlaps 00:00 -> 00:10.
+        assertTrue(mealWindowsOverlap(startMinutes = 1430, endMinutes = 20, otherStartMinutes = 0, otherEndMinutes = 10))
+    }
+
+    @Test
+    fun mealWindowsOverlap_wrapsMidnight_disjointFromLaterWindow_returnsFalse() {
+        assertFalse(mealWindowsOverlap(startMinutes = 1430, endMinutes = 20, otherStartMinutes = 60, otherEndMinutes = 120))
+    }
 }
