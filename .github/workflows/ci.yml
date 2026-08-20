@@ -11,8 +11,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Write GoogleService-Info.plist
         run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" | base64 --decode > Kalorie/Kalorie/Resources/GoogleService-Info.plist
+
+      - name: Build KMP XCFrameworks
+        run: |
+          for module in MacroKit MealKit TextKit; do
+            SRCROOT="$GITHUB_WORKSPACE/Kalorie" ./scripts/build-kmp-framework.sh "$module"
+          done
 
       - name: Run tests
         run: |
