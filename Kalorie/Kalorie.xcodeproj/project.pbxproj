@@ -319,7 +319,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\ncd \"$SRCROOT/../MacroKit\"\n./gradlew assembleMacroKitReleaseXCFramework\n";
+			shellScript = "\"$SRCROOT/../scripts/build-kmp-framework.sh\" MacroKit\n";
 			showEnvVarsInLog = 0;
 		};
 		699B3BE6FFA2B83A508CC13A /* Build MealKit (Gradle) */ = {
@@ -339,7 +339,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\ncd \"$SRCROOT/../MealKit\"\n./gradlew assembleMealKitReleaseXCFramework\n";
+			shellScript = "\"$SRCROOT/../scripts/build-kmp-framework.sh\" MealKit\n";
 			showEnvVarsInLog = 0;
 		};
 		D806D7FB58FCD57680B786FC /* Build TextKit (Gradle) */ = {
@@ -359,7 +359,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\ncd \"$SRCROOT/../TextKit\"\n./gradlew assembleTextKitReleaseXCFramework\n";
+			shellScript = "\"$SRCROOT/../scripts/build-kmp-framework.sh\" TextKit\n";
 			showEnvVarsInLog = 0;
 		};
 		86FFA1D52C145EC0000D53AA /* ShellScript */ = {
