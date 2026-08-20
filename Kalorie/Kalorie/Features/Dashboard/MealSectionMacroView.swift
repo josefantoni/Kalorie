@@ -19,6 +19,7 @@ struct MealSectionMacroView: View {
     // MARK: - Body
 
     var body: some View {
+        let macros = macros
         VStack(alignment: .leading, spacing: 8) {
             Text(name)
                 .font(.headline)

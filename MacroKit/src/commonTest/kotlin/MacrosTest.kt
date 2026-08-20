@@ -49,6 +49,16 @@ class MacrosTest {
     }
 
     @Test
+    fun scaledCalories_roundsTheProductOnce_notTheRateFirst() {
+        assertEquals(200, scaledCalories(caloriesPerHundredGrams = 133.6, ratio = 1.5))
+    }
+
+    @Test
+    fun scaledCalories_withIntegerRate_matchesSimpleMultiplication() {
+        assertEquals(400, scaledCalories(caloriesPerHundredGrams = 200.0, ratio = 2.0))
+    }
+
+    @Test
     fun total_ofEmptyList_returnsZeroMacros() {
         val result = emptyList<Macros>().total()
         assertEquals(0, result.calories)

@@ -11,6 +11,9 @@ data class Macros(
     val salt: Double,
 )
 
+fun scaledCalories(caloriesPerHundredGrams: Double, ratio: Double): Int =
+    (caloriesPerHundredGrams * ratio).roundToInt()
+
 fun Macros.scaled(factor: Double): Macros = Macros(
     calories = (calories * factor).roundToInt(),
     protein = protein * factor,
