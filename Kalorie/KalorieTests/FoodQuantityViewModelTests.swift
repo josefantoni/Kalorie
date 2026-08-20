@@ -56,6 +56,13 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.scaledCalories, 200)
     }
 
+    func test_scaledCalories_whenCaloriesPerHundredGramsIsFractional_roundsOnce() {
+        let sut = makeSUT(item: makeFoodItem(caloriesPerHundredGrams: 133.6))
+        sut.unit = .grams
+        sut.quantity = 150
+        XCTAssertEqual(sut.scaledCalories, 200)
+    }
+
     // MARK: - onUnitChanged
 
     func test_onUnitChanged_toGrams_convertsQuantity() {

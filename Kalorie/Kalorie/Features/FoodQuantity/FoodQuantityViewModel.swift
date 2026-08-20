@@ -41,9 +41,11 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
 
     var grams: Double { quantity * unit.gramsPerUnit }
 
+    // calories is scaled separately below: caloriesPerHundredGrams is fractional, and rounding
+    // it here before .scaled() would round twice instead of once.
     private var scaledMacros: Macros {
         Macros(
-            calories: Int32(item.caloriesPerHundredGrams.rounded()),
+            calories: 0,
             protein: item.protein,
             carbohydrate: item.carbohydrate,
             carbohydrateSugar: item.carbohydratePureSugar,
@@ -54,7 +56,9 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         ).scaled(factor: grams / 100)
     }
 
-    var scaledCalories: Int { Int(scaledMacros.calories) }
+    var scaledCalories: Int {
+        Int(MacrosKt.scaledCalories(caloriesPerHundredGrams: item.caloriesPerHundredGrams, ratio: grams / 100))
+    }
     var scaledProtein: Double { scaledMacros.protein }
     var scaledCarbohydrate: Double { scaledMacros.carbohydrate }
     var scaledFat: Double { scaledMacros.fat }
