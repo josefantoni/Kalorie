@@ -81,6 +81,15 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertEqual(groups[1].mealType?.id, 1)
     }
 
+    func test_groupedFoods_wrappingMealType_includesFoodAfterMidnight() {
+        let sut = makeSUT()
+        sut.mealTypes = [makeMealType(id: 0, hour: 23, endHour: 1)]
+        sut.foodsConsumed = [makeFood(id: "f1", hour: 0, minute: 30)]
+        let groups = sut.groupedFoods
+        XCTAssertEqual(groups.count, 1)
+        XCTAssertEqual(groups[0].mealType?.id, 0)
+    }
+
     func test_groupedFoods_mealTypeWithNoMatchingFoods_isOmitted() {
         let sut = makeSUT()
         sut.mealTypes = [
