@@ -38,19 +38,19 @@ The app works with three kinds of data. The distinction matters for the items be
   photo) to approve or reject; approving publishes the item to the shared `foodItems` catalogue.
   Requires a maintainer role (Firebase custom claims) and matching security rules — once done,
   direct client writes to `foodItems` get disabled.
-- [ ] **`food_item_id` on `foodConsumed`** — a logged entry currently keeps no reference to the
+- [x] **`food_item_id` on `foodConsumed`** — a logged entry currently keeps no reference to the
   catalogue item it came from, which blocks favouriting from the Dashboard and any other feature
   that needs to get back to the source item. Add it as a **required** field, written on create and
   preserved on update; no optional, no backfill. Existing development documents get deleted, which
   is only acceptable before first release — do it now rather than after. Prerequisite for
   *Favourite foods*; details in
   [docs/design/0003-favourite-foods.md](docs/design/0003-favourite-foods.md).
-- [ ] **Favourite foods** — the user explicitly marks any number of foods as favourite, from the
+- [x] **Favourite foods** — the user explicitly marks any number of foods as favourite, from the
   food detail either before logging it or afterwards from the Dashboard; before
   they start typing in the search field, show a "Favourites" section with those foods, most
   recently marked first, and once they type, put the matching favourites at the top of the
   results. See [docs/design/0003-favourite-foods.md](docs/design/0003-favourite-foods.md).
-- [ ] **Shared macro calculation module (KMP)** — macro scaling and summation is reimplemented at
+- [x] **Shared macro calculation module (KMP)** — macro scaling and summation is reimplemented at
   five call sites, two of which round calories differently, so the same food at the same weight
   persists a different value depending on whether it was logged or edited. Extract it into a
   Kotlin Multiplatform module consuming only `Double`/`Int`, with the Swift `ScaledMacros` and
@@ -58,6 +58,12 @@ The app works with three kinds of data. The distinction matters for the items be
   module: it is both a real de-duplication and the probe for whether KMP is worth carrying in this
   project. **Prerequisite: the Gradle build must not run inside iCloud Drive.** See
   [docs/design/0004-shared-macro-calculation-module.md](docs/design/0004-shared-macro-calculation-module.md).
+- [x] **Meal-window arithmetic and HTML entity decoding (KMP)** — two further small, pure
+  duplications found while extracting the macro module: minutes-since-midnight range/overlap
+  arithmetic reimplemented across `DashboardViewModel` and the meal-type use cases, and HTML entity
+  decoding duplicated across the OpenFoodFacts parsing call sites. Extracted into two more
+  independent KMP modules, `MealKit` and `TextKit`, mirroring `MacroKit`'s structure. See
+  [docs/design/0005-meal-window-and-html-entity-decoding.md](docs/design/0005-meal-window-and-html-entity-decoding.md).
 - [ ] **Rank search results by frequency** — order manual search results by how often the user has
   logged each food, so the most used ones come first. Distinct from favourites above: this one is
   derived, not chosen, and the user cannot remove an entry from it.
