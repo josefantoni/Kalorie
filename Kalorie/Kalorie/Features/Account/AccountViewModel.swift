@@ -25,8 +25,6 @@ final class AccountViewModel: ObservableObject {
     @Published var alertItem: AlertItem?
     @Published var showDeleteConfirmation = false
 
-    private var currentNonce: String?
-
     private let authProvider: any AuthProviderProtocol
     private let signOut: any SignOutUseCaseProtocol
     private let signInWithApple: any SignInWithAppleUseCaseProtocol
@@ -65,37 +63,20 @@ final class AccountViewModel: ObservableObject {
         }
     }
 
-    func onSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
-        let nonce = NonceGenerator.randomNonceString()
-        currentNonce = nonce
-        request.requestedScopes = [.fullName, .email]
-        request.nonce = NonceGenerator.sha256(nonce)
-    }
-
     @MainActor
-    func onSignInCompletion(_ result: Result<ASAuthorization, Error>) async {
-        guard
-            case .success(let authorization) = result,
-            let nonce = currentNonce
-        else {
-            if
-                case .failure(let error) = result,
-                (error as? ASAuthorizationError)?.code != .canceled
-            {
-                alertItem = AlertItem(title: L10n.Account.errorSignInFailed)
-            }
-            return
-        }
-
+    func onSignInWithAppleTapped() async {
         state = .linking
         mergeStatusReporting.beginMerge()
+        defer {
+            mergeStatusReporting.endMerge()
+            state = .idle
+        }
         do {
-            try await signInWithApple(authorization: authorization, nonce: nonce)
+            try await signInWithApple()
+        } catch let error as ASAuthorizationError where error.code == .canceled {
         } catch {
             alertItem = AlertItem(title: L10n.Account.errorSignInFailed)
         }
-        mergeStatusReporting.endMerge()
-        state = .idle
     }
 
     @MainActor

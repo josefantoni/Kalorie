@@ -23,7 +23,12 @@ struct AddFoodSheetConfigurator {
 
     // MARK: - Functions
 
-    func createView(date: Date, onFoodSaved: @escaping () -> Void = {}, withBarcodeScan: Bool = false) -> AddFoodSheetView {
+    func createView(
+        date: Date,
+        onFoodSaved: @escaping () -> Void = {},
+        onCreateMealRequested: @escaping () -> Void = {},
+        withBarcodeScan: Bool = false
+    ) -> AddFoodSheetView {
         AddFoodSheetView(
             viewModel: AddFoodSheetViewModel(
                 searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
@@ -32,10 +37,12 @@ struct AddFoodSheetConfigurator {
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
                 fetchFavouriteFoods: FetchFavouriteFoodsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchMyCreatedMeals: FetchMyCreatedMealsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 onFoodSaved: onFoodSaved,
+                onCreateMealRequested: onCreateMealRequested,
                 isScannerVisible: withBarcodeScan
             )
-        ) { [self] item, isFavourite, onSaved, onFavouriteChanged in
+        ) { [self] item, isFavourite, isMyCreatedMeal, onSaved, onFavouriteChanged in
             FoodQuantityView(
                 viewModel: FoodQuantityViewModel(
                     item: item,
@@ -45,7 +52,9 @@ struct AddFoodSheetConfigurator {
                     addFavouriteFood: AddFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                     removeFavouriteFood: RemoveFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                     onSaved: onSaved,
-                    onFavouriteChanged: onFavouriteChanged
+                    onFavouriteChanged: onFavouriteChanged,
+                    quantity: isMyCreatedMeal ? item.weight : 1,
+                    unit: isMyCreatedMeal ? .grams : .hundredGrams
                 )
             )
         }

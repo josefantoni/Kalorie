@@ -27,7 +27,7 @@ final class SignOutUseCaseTests: XCTestCase {
 
     func test_callAsFunction_discardsPendingMergeSnapshot() throws {
         let (sut, _, snapshotStore, _) = makeSUT()
-        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [], favouriteFoods: [])
+        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [], favouriteFoods: [], myCreatedMeals: [])
 
         try sut()
 
@@ -36,7 +36,7 @@ final class SignOutUseCaseTests: XCTestCase {
 
     func test_callAsFunction_discardsSnapshotBeforeSigningOut() {
         let (sut, authCommandProvider, snapshotStore, _) = makeSUT()
-        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [], favouriteFoods: [])
+        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [], favouriteFoods: [], myCreatedMeals: [])
         authCommandProvider.signOutError = URLError(.unknown)
 
         XCTAssertThrowsError(try sut())

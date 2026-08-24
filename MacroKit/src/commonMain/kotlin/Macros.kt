@@ -25,6 +25,13 @@ fun Macros.scaled(factor: Double): Macros = Macros(
     salt = salt * factor,
 )
 
+fun weightedMeanPerHundredGrams(values: List<Double>, grams: List<Double>): Double {
+    val totalGrams = grams.sum()
+    if (totalGrams == 0.0) return 0.0
+    val weightedSum = values.indices.sumOf { values[it] * grams[it] }
+    return weightedSum / totalGrams
+}
+
 fun List<Macros>.total(): Macros = fold(
     Macros(
         calories = 0,

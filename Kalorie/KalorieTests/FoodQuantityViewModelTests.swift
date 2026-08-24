@@ -63,6 +63,20 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.scaledCalories, 200)
     }
 
+    // MARK: - init defaults
+
+    func test_init_withoutQuantityOrUnit_defaultsToOneHundredGram() {
+        let sut = makeSUT()
+        XCTAssertEqual(sut.quantity, 1)
+        XCTAssertEqual(sut.unit, .hundredGrams)
+    }
+
+    func test_init_withExplicitQuantityAndUnit_usesThemInsteadOfTheDefault() {
+        let sut = makeSUT(quantity: 340, unit: .grams)
+        XCTAssertEqual(sut.quantity, 340)
+        XCTAssertEqual(sut.unit, .grams)
+    }
+
     // MARK: - onUnitChanged
 
     func test_onUnitChanged_toGrams_convertsQuantity() {
@@ -132,7 +146,9 @@ final class FoodQuantityViewModelTests: XCTestCase {
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
         onSaved: @escaping () -> Void = {},
-        onFavouriteChanged: @escaping (String, Bool) -> Void = { _, _ in }
+        onFavouriteChanged: @escaping (String, Bool) -> Void = { _, _ in },
+        quantity: Double = 1,
+        unit: FoodQuantityUnit = .hundredGrams
     ) -> FoodQuantityViewModel {
         let sut = FoodQuantityViewModel(
             item: item ?? makeFoodItem(),
@@ -142,7 +158,9 @@ final class FoodQuantityViewModelTests: XCTestCase {
             addFavouriteFood: addFavouriteFood,
             removeFavouriteFood: removeFavouriteFood,
             onSaved: onSaved,
-            onFavouriteChanged: onFavouriteChanged
+            onFavouriteChanged: onFavouriteChanged,
+            quantity: quantity,
+            unit: unit
         )
         addTeardownBlock { [weak sut] in
             XCTAssertNil(sut, "FoodQuantityViewModel leaked — potential retain cycle")

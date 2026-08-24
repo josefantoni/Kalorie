@@ -71,12 +71,13 @@ struct SearchFoodItemsUseCaseFake: SearchFoodItemsUseCaseProtocol {
     // MARK: - Properties
 
     var shouldThrow = false
+    var stubbedItems: [FoodItemDomain] = []
 
     // MARK: - Functions
 
     func callAsFunction(query: String) async throws -> [FoodItemDomain] {
         if shouldThrow { throw NSError(domain: "SearchFoodItemsUseCaseFake", code: 0) }
-        return []
+        return stubbedItems
     }
 }
 #endif

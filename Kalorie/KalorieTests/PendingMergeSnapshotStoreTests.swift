@@ -85,7 +85,8 @@ final class PendingMergeSnapshotStoreTests: XCTestCase {
                     salt: 1
                 )
             },
-            favouriteFoods: []
+            favouriteFoods: [],
+            myCreatedMeals: []
         )
     }
 }

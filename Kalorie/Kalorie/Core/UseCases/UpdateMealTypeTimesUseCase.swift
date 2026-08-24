@@ -47,8 +47,14 @@ struct UpdateMealTypeTimesUseCase: UpdateMealTypeTimesUseCaseProtocol {
 #if DEBUG
 struct UpdateMealTypeTimesUseCaseFake: UpdateMealTypeTimesUseCaseProtocol {
 
+    // MARK: - Properties
+
+    var shouldThrow = false
+
     // MARK: - Functions
 
-    func callAsFunction(_ mealTypes: [MealTypeDomain]) async throws {}
+    func callAsFunction(_ mealTypes: [MealTypeDomain]) async throws {
+        if shouldThrow { throw URLError(.unknown) }
+    }
 }
 #endif

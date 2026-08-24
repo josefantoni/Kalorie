@@ -16,13 +16,13 @@ struct AddFoodSheetView: View {
     @StateObject var viewModel: AddFoodSheetViewModel
     @State private var flipAngle: Double = 0
     @Environment(\.dismiss) var dismiss
-    private let makeFoodQuantityView: (FoodItemDomain, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
+    private let makeFoodQuantityView: (FoodItemDomain, Bool, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
 
     // MARK: - Init
 
     init(
         viewModel: AddFoodSheetViewModel,
-        makeFoodQuantityView: @escaping (FoodItemDomain, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
+        makeFoodQuantityView: @escaping (FoodItemDomain, Bool, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeFoodQuantityView = makeFoodQuantityView
@@ -64,7 +64,7 @@ struct AddFoodSheetView: View {
             }
             .navigationDestination(isPresented: $viewModel.isPushedToQuantityView) {
                 if let item = viewModel.selectedFoodItem {
-                    makeFoodQuantityView(item, viewModel.isFavourite(item), viewModel.onFoodConsumedSaved) { id, isFavourite in
+                    makeFoodQuantityView(item, viewModel.isFavourite(item), viewModel.isMyCreatedMeal(item), viewModel.onFoodConsumedSaved) { id, isFavourite in
                         viewModel.onFavouriteChanged(id: id, isFavourite: isFavourite, item: item)
                     }
                 }
@@ -118,7 +118,7 @@ struct AddFoodSheetView: View {
         List {
             Section {
                 HStack {
-                    TextField(L10n.AddFood.searchPlaceholder, text: $viewModel.searchText)
+                    TextField(viewModel.searchPlaceholder, text: $viewModel.searchText)
                     BaseButton(
                         style: .plain,
                         imageName: .barCode,
@@ -129,6 +129,16 @@ struct AddFoodSheetView: View {
                         } else {
                             viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
                         }
+                    }
+                }
+            }
+            if viewModel.searchText.isEmpty && !viewModel.myCreatedMeals.isEmpty {
+                Section(header: Text(L10n.AddFood.sectionMyCreatedMeals)) {
+                    ForEach(viewModel.myCreatedMeals, id: \.id) { meal in
+                        FoodItemRow(item: meal.asFoodItem(), isFavourite: false)
+                            .onTapGesture {
+                                viewModel.onSelectFoodItem(meal.asFoodItem())
+                            }
                     }
                 }
             }
@@ -164,6 +174,17 @@ struct AddFoodSheetView: View {
                     }
                 }
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                viewModel.onCreateMealButtonTapped()
+            } label: {
+                Text(L10n.AddFood.buttonCreateMeal)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+            }
+            .glassEffect(.regular, in: .capsule)
+            .padding(.bottom, 8)
         }
     }
 
@@ -257,9 +278,10 @@ struct AddFoodSheetView: View {
             searchFoodExternally: SearchFoodExternallyUseCaseFake(),
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
             fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
-            fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake()
+            fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(),
+            fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake()
         )
-    ) { item, isFavourite, onSaved, onFavouriteChanged in
+    ) { item, isFavourite, isMyCreatedMeal, onSaved, onFavouriteChanged in
         FoodQuantityView(
             viewModel: FoodQuantityViewModel(
                 item: item,
@@ -269,7 +291,9 @@ struct AddFoodSheetView: View {
                 addFavouriteFood: AddFavouriteFoodUseCaseFake(),
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
                 onSaved: onSaved,
-                onFavouriteChanged: onFavouriteChanged
+                onFavouriteChanged: onFavouriteChanged,
+                quantity: isMyCreatedMeal ? item.weight : 1,
+                unit: isMyCreatedMeal ? .grams : .hundredGrams
             )
         )
     }

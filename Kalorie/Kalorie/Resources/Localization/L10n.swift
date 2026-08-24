@@ -12,6 +12,8 @@ enum L10n {
         static var ok: String { String(localized: "common_ok") }
         static var errorUnknown: String { String(localized: "common_error_unknown") }
         static var buttonFavourite: String { String(localized: "common_button_favourite") }
+        static var buttonYes: String { String(localized: "common_button_yes") }
+        static var buttonNo: String { String(localized: "common_button_no") }
     }
 
     enum Auth {
@@ -24,8 +26,13 @@ enum L10n {
         static var navigationTitle: String { String(localized: "account_navigationTitle") }
         static var anonymousDescription: String { String(localized: "account_anonymous_description") }
         static var buttonSignOut: String { String(localized: "account_button_signOut") }
+        static var buttonSignInWithApple: String { String(localized: "account_button_signInWithApple") }
         static var buttonSignInWithGoogle: String { String(localized: "account_button_signInWithGoogle") }
         static var buttonDeleteAccount: String { String(localized: "account_button_deleteAccount") }
+        static var dataAttribution: String { String(localized: "account_dataAttribution") }
+        static var dataAttributionLinkTitle: String { String(localized: "account_dataAttribution_linkTitle") }
+        static var signInProviderApple: String { String(localized: "account_signInProvider_apple") }
+        static var signInProviderGoogle: String { String(localized: "account_signInProvider_google") }
         static var errorSignInFailed: String { String(localized: "account_error_signInFailed") }
         static var errorAccountExistsWithApple: String { String(localized: "account_error_accountExistsWithApple") }
         static var errorSignOutFailed: String { String(localized: "account_error_signOutFailed") }
@@ -50,11 +57,26 @@ enum L10n {
     }
 
     enum AddFood {
-        static var searchPlaceholder: String { String(localized: "addFood_search_placeholder") }
+        static func searchPlaceholder(example: String) -> String {
+            String(format: String(localized: "addFood_search_placeholder"), example)
+        }
+        static var searchExamples: [String] {
+            [
+                String(localized: "addFood_search_example_01"),
+                String(localized: "addFood_search_example_02"),
+                String(localized: "addFood_search_example_03"),
+                String(localized: "addFood_search_example_04"),
+                String(localized: "addFood_search_example_05"),
+                String(localized: "addFood_search_example_06"),
+                String(localized: "addFood_search_example_07"),
+                String(localized: "addFood_search_example_08")
+            ]
+        }
         static var cameraPermissionAlert: String { String(localized: "addFood_camera_permissionAlert") }
         static var sectionSearchResults: String { String(localized: "addFood_section_searchResults") }
         static var sectionExternalResults: String { String(localized: "addFood_section_externalResults") }
         static var sectionFavourites: String { String(localized: "addFood_section_favourites") }
+        static var sectionMyCreatedMeals: String { String(localized: "addFood_section_myCreatedMeals") }
         static var sectionNewItem: String { String(localized: "addFood_section_newItem") }
         static var fieldBarcodeTitle: String { String(localized: "addFood_field_barcode_title") }
         static var fieldBarcodePlaceholder: String { String(localized: "addFood_field_barcode_placeholder") }
@@ -80,6 +102,22 @@ enum L10n {
         static var errorItemAlreadyExists: String { String(localized: "addFood_error_itemAlreadyExists") }
         static var errorLoadFailed: String { String(localized: "addFood_error_loadFailed") }
         static var errorFavouriteFailed: String { String(localized: "addFood_error_favouriteFailed") }
+        static var buttonCreateMeal: String { String(localized: "addFood_button_createMeal") }
+    }
+
+    enum MyCreatedMeal {
+        static var titleNew: String { String(localized: "myCreatedMeal_title_new") }
+        static var titleEdit: String { String(localized: "myCreatedMeal_title_edit") }
+        static var fieldNameTitle: String { String(localized: "myCreatedMeal_field_nameTitle") }
+        static var fieldNamePlaceholder: String { String(localized: "myCreatedMeal_field_namePlaceholder") }
+        static var sectionIngredients: String { String(localized: "myCreatedMeal_section_ingredients") }
+        static var confirmCreate: String { String(localized: "myCreatedMeal_confirm_create") }
+        static var confirmUpdate: String { String(localized: "myCreatedMeal_confirm_update") }
+        static var confirmDelete: String { String(localized: "myCreatedMeal_confirm_delete") }
+        static var errorSaveFailed: String { String(localized: "myCreatedMeal_error_saveFailed") }
+        static var errorDeleteFailed: String { String(localized: "myCreatedMeal_error_deleteFailed") }
+        static var listTitle: String { String(localized: "myCreatedMeal_list_title") }
+        static var listEmpty: String { String(localized: "myCreatedMeal_list_empty") }
     }
 
     enum FoodConsumedDetail {
@@ -108,6 +146,8 @@ enum L10n {
         static var datePickerFrom: String { String(localized: "mealTypeSheet_datePicker_from") }
         static var datePickerTo: String { String(localized: "mealTypeSheet_datePicker_to") }
         static var buttonCreate: String { String(localized: "mealTypeSheet_button_create") }
+        static var buttonEdit: String { String(localized: "mealTypeSheet_button_edit") }
+        static var buttonEditDone: String { String(localized: "mealTypeSheet_button_editDone") }
         static var errorEmptyName: String { String(localized: "mealTypeSheet_error_emptyName") }
         static var errorDuplicateName: String { String(localized: "mealTypeSheet_error_duplicateName") }
         static var errorTimeConflict: String { String(localized: "mealTypeSheet_error_timeConflict") }

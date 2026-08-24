@@ -74,4 +74,36 @@ class MacrosTest {
         assertEquals(150, result.calories)
         assertEquals(15.0, result.protein)
     }
+
+    @Test
+    fun weightedMeanPerHundredGrams_withEqualGrams_isTheSimpleAverage() {
+        val result = weightedMeanPerHundredGrams(values = listOf(100.0, 200.0), grams = listOf(50.0, 50.0))
+        assertEquals(150.0, result)
+    }
+
+    @Test
+    fun weightedMeanPerHundredGrams_weighsByGrams_notByCount() {
+        // 300 g at 100 kcal/100g plus 100 g at 500 kcal/100g must not average to 300; a naive
+        // mean over the two per-100g values would silently ignore the actual composed weight.
+        val result = weightedMeanPerHundredGrams(values = listOf(100.0, 500.0), grams = listOf(300.0, 100.0))
+        assertEquals(200.0, result)
+    }
+
+    @Test
+    fun weightedMeanPerHundredGrams_withZeroTotalGrams_returnsZero() {
+        val result = weightedMeanPerHundredGrams(values = listOf(100.0, 200.0), grams = listOf(0.0, 0.0))
+        assertEquals(0.0, result)
+    }
+
+    @Test
+    fun weightedMeanPerHundredGrams_withEmptyLists_returnsZero() {
+        val result = weightedMeanPerHundredGrams(values = emptyList(), grams = emptyList())
+        assertEquals(0.0, result)
+    }
+
+    @Test
+    fun weightedMeanPerHundredGrams_withSingleIngredient_returnsItsOwnValue() {
+        val result = weightedMeanPerHundredGrams(values = listOf(133.6), grams = listOf(42.0))
+        assertEquals(133.6, result)
+    }
 }

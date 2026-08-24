@@ -75,6 +75,7 @@ final class SignInWithAppleUseCaseTests: XCTestCase {
         let authCommandProvider = AuthCommandProviderFake()
         let dataProvider = SignInWithAppleDataProviderFake()
         let sut = SignInWithAppleUseCase(
+            appleSignInProvider: AppleSignInProviderFake(),
             linkOrMergeCredential: LinkOrMergeCredentialUseCaseFake(),
             authCommandProvider: authCommandProvider,
             dataProvider: dataProvider,

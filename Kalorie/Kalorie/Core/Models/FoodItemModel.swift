@@ -27,3 +27,45 @@ struct FoodItemDomain: BilingualNamed {
     let protein: Double
     let salt: Double
 }
+
+extension FoodItemDomain {
+
+    // MARK: - Properties
+
+    var nutrition: FoodNutritionValues {
+        FoodNutritionValues(
+            energyKJ: energyKJ,
+            caloriesPerHundredGrams: caloriesPerHundredGrams,
+            fat: fat,
+            fatSaturated: fatSaturated,
+            fatUnsaturatedFattyAcids: fatUnsaturatedFattyAcids,
+            carbohydrate: carbohydrate,
+            carbohydratePureSugar: carbohydratePureSugar,
+            fiber: fiber,
+            protein: protein,
+            salt: salt
+        )
+    }
+
+    // MARK: - Init
+
+    init(id: String, czName: String, engName: String, weight: Double, date: Date, nutrition: FoodNutritionValues) {
+        self.init(
+            id: id,
+            czName: czName,
+            engName: engName,
+            weight: weight,
+            date: date,
+            energyKJ: nutrition.energyKJ,
+            caloriesPerHundredGrams: nutrition.caloriesPerHundredGrams,
+            fat: nutrition.fat,
+            fatSaturated: nutrition.fatSaturated,
+            fatUnsaturatedFattyAcids: nutrition.fatUnsaturatedFattyAcids,
+            carbohydrate: nutrition.carbohydrate,
+            carbohydratePureSugar: nutrition.carbohydratePureSugar,
+            fiber: nutrition.fiber,
+            protein: nutrition.protein,
+            salt: nutrition.salt
+        )
+    }
+}

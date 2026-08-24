@@ -25,7 +25,7 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
         else { throw FetchFoodByBarcodeExternallyError.invalidURL }
         var components = URLComponents()
         components.scheme = "https"
-        components.host = "world.openfoodfacts.org"
+        components.host = Constants.OpenFoodFacts.host
         components.percentEncodedPath = "/api/v2/product/\(encodedBarcode)"
         components.queryItems = [
             URLQueryItem(name: "fields", value: "code,product_name,product_name_cs,product_name_en,nutriments")

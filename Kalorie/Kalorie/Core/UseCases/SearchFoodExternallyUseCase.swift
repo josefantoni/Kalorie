@@ -20,7 +20,7 @@ struct SearchFoodExternallyUseCase: SearchFoodExternallyUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction(query: String) async throws -> [FoodItemDomain] {
-        var components = URLComponents(string: "https://world.openfoodfacts.org/cgi/search.pl")
+        var components = URLComponents(string: "https://\(Constants.OpenFoodFacts.host)/cgi/search.pl")
         components?.queryItems = [
             URLQueryItem(name: "search_terms", value: query),
             URLQueryItem(name: "json", value: "1"),
@@ -74,12 +74,13 @@ struct SearchFoodExternallyUseCaseFake: SearchFoodExternallyUseCaseProtocol {
     // MARK: - Properties
 
     var shouldThrow = false
+    var stubbedItems: [FoodItemDomain] = []
 
     // MARK: - Functions
 
     func callAsFunction(query: String) async throws -> [FoodItemDomain] {
         if shouldThrow { throw SearchFoodExternallyError.invalidURL }
-        return []
+        return stubbedItems
     }
 }
 #endif

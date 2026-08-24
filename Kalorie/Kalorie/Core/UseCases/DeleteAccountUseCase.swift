@@ -56,6 +56,11 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
             try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.favouriteFoods(userId: userId))
         }
 
+        let myCreatedMeals: [MyCreatedMealDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.myCreatedMeals(userId: userId))
+        for dto in myCreatedMeals {
+            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.myCreatedMeals(userId: userId))
+        }
+
         try? await dataProvider.deleteAsync(id: userId, from: Constants.Firestore.users)
 
         do {
