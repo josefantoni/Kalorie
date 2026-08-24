@@ -123,8 +123,9 @@ struct DashboardView: View {
                     Button {
                         viewModel.showMealTypeSheet.toggle()
                     } label: {
-                        Text(L10n.Dashboard.buttonMealLayout)
+                        Image(systemName: "list.bullet.circle")
                     }
+                    .accessibilityLabel(L10n.Dashboard.buttonMealLayout)
                 }
             }
             .sheet(isPresented: $viewModel.showMealTypeSheet) {
@@ -133,12 +134,21 @@ struct DashboardView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showAddFoodSheet) {
-                router.makeAddFoodSheetView(for: viewModel.selectedDay) {
+                viewModel.onAddFoodSheetDismissed()
+            } content: {
+                router.makeAddFoodSheetView(for: viewModel.selectedDay, onFoodSaved: {
                     Task { await viewModel.onFoodConsumedUpdated() }
+                }) {
+                    viewModel.onCreateMealRequested()
                 }
             }
             .sheet(isPresented: $viewModel.showAccountSheet) {
                 router.makeAccountView()
+            }
+            .sheet(isPresented: $viewModel.showMyCreatedMealEditor) {
+                NavigationStack {
+                    router.makeMyCreatedMealEditorView()
+                }
             }
             .sheet(isPresented: $viewModel.showCalendarSheet) {
                 MonthCalendarView(
@@ -292,7 +302,8 @@ struct DashboardView: View {
             mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
             addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
             foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
-            accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: MergeStatusReportingFake())
+            accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: MergeStatusReportingFake()),
+            myCreatedMealEditorConfigurator: MyCreatedMealEditorConfigurator(dataProvider: dataProvider, authProvider: authProvider)
         )
     )
 }

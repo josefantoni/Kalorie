@@ -24,6 +24,17 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertTrue(log.entries.dropLast().contains("deleteFavourite:fav1"), "Firestore does not cascade — favourites are user data and must not survive account deletion as orphans")
     }
 
+    func test_callAsFunction_deletesMyCreatedMealsAsPrivacyObligation() async throws {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedMyCreatedMeals = [makeMeal(id: "meal1")]
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
+
+        try await sut()
+
+        XCTAssertTrue(log.entries.dropLast().contains("deleteMeal:meal1"), "Firestore does not cascade — created meals are user data and must not survive account deletion as orphans")
+    }
+
     func test_callAsFunction_deletesFirestoreDataBeforeDeletingAuthAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
@@ -162,6 +173,37 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             favouritedAt: .now
         )
     }
+
+    private func makeMeal(id: String) -> MyCreatedMealDTO {
+        MyCreatedMealDTO(
+            meal: MyCreatedMealDomain(
+                id: id,
+                name: "Test",
+                ingredients: [
+                    MyCreatedMealIngredientDomain(
+                        foodItemId: "12345",
+                        czName: "Test",
+                        engName: "Test",
+                        grams: 50,
+                        nutrition: FoodNutritionValues(
+                            energyKJ: 400,
+                            caloriesPerHundredGrams: 100,
+                            fat: 1,
+                            fatSaturated: 1,
+                            fatUnsaturatedFattyAcids: 1,
+                            carbohydrate: 1,
+                            carbohydratePureSugar: 1,
+                            fiber: 1,
+                            protein: 1,
+                            salt: 1
+                        )
+                    )
+                ],
+                createdAt: .now,
+                updatedAt: .now
+            )
+        )
+    }
 }
 
 private final class OperationLog {
@@ -177,6 +219,7 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     var stubbedMealTypes: [MealTypeDTO] = []
     var stubbedFoodConsumed: [FoodConsumedDTO] = []
     var stubbedFavouriteFoods: [FavouriteFoodDTO] = []
+    var stubbedMyCreatedMeals: [MyCreatedMealDTO] = []
     private(set) var deletedIds: [String] = []
 
     // MARK: - Init
@@ -193,6 +236,9 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
         }
         if collection.hasSuffix("favouriteFoods") {
             return stubbedFavouriteFoods.compactMap { $0 as? T }
+        }
+        if collection.hasSuffix("myCreatedMeals") {
+            return stubbedMyCreatedMeals.compactMap { $0 as? T }
         }
         return stubbedFoodConsumed.compactMap { $0 as? T }
     }
@@ -212,6 +258,8 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
             log.record("deleteMealType:\(id)")
         } else if collection.hasSuffix("favouriteFoods") {
             log.record("deleteFavourite:\(id)")
+        } else if collection.hasSuffix("myCreatedMeals") {
+            log.record("deleteMeal:\(id)")
         } else if collection.hasSuffix("foodConsumed") {
             log.record("deleteFood:\(id)")
         } else {

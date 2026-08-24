@@ -46,6 +46,8 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published private(set) var isBarcodeSearchLoading = false
     @Published private(set) var favouriteFoods: [FoodItemDomain] = []
     @Published private(set) var favouriteIds: Set<String> = []
+    @Published private(set) var myCreatedMeals: [MyCreatedMealDomain] = []
+    let searchPlaceholder: String
 
     private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
     private let createFoodItem: any CreateFoodItemUseCaseProtocol
@@ -53,16 +55,24 @@ final class AddFoodSheetViewModel: ObservableObject {
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
     private let fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol
+    private let fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol
     private let onFoodSaved: () -> Void
+    private let onCreateMealRequested: () -> Void
 
     var displayedResults: [FoodItemDomain] {
         let query = searchText.lowercased()
         guard !query.isEmpty else { return localFoodItems }
+        let matchingMeals = myCreatedMeals
+            .map { $0.asFoodItem() }
+            .filter { $0.czName.lowercased().hasPrefix(query) }
         let matchingFavourites = favouriteFoods.filter {
             $0.czName.lowercased().hasPrefix(query) || $0.engName.lowercased().hasPrefix(query)
         }
-        let matchingIds = Set(matchingFavourites.map(\.id))
-        return matchingFavourites + localFoodItems.filter { !matchingIds.contains($0.id) }
+        let mealIds = Set(matchingMeals.map(\.id))
+        let matchingFavouritesFiltered = matchingFavourites.filter { !mealIds.contains($0.id) }
+        let matchingIds = mealIds.union(matchingFavouritesFiltered.map(\.id))
+        return matchingMeals + matchingFavouritesFiltered
+            + localFoodItems.filter { !matchingIds.contains($0.id) }
     }
 
     // MARK: - Init
@@ -74,7 +84,9 @@ final class AddFoodSheetViewModel: ObservableObject {
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
         fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol,
+        fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol,
         onFoodSaved: @escaping () -> Void = {},
+        onCreateMealRequested: @escaping () -> Void = {},
         isScannerVisible: Bool = false
     ) {
         self.isScannerVisible = isScannerVisible
@@ -84,7 +96,11 @@ final class AddFoodSheetViewModel: ObservableObject {
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
         self.fetchFavouriteFoods = fetchFavouriteFoods
+        self.fetchMyCreatedMeals = fetchMyCreatedMeals
         self.onFoodSaved = onFoodSaved
+        self.onCreateMealRequested = onCreateMealRequested
+        let example = L10n.AddFood.searchExamples.randomElement() ?? ""
+        self.searchPlaceholder = L10n.AddFood.searchPlaceholder(example: example)
     }
 
     // MARK: - Functions
@@ -162,15 +178,30 @@ final class AddFoodSheetViewModel: ObservableObject {
         shouldDismiss = true
     }
 
+    func onCreateMealButtonTapped() {
+        onCreateMealRequested()
+        shouldDismiss = true
+    }
+
     @MainActor
     func onAppear() async {
-        guard let items = try? await fetchFavouriteFoods() else { return }
-        favouriteFoods = items
-        favouriteIds = Set(items.map(\.id))
+        async let favourites = try? fetchFavouriteFoods()
+        async let meals = try? fetchMyCreatedMeals()
+        if let items = await favourites {
+            favouriteFoods = items
+            favouriteIds = Set(items.map(\.id))
+        }
+        if let items = await meals {
+            myCreatedMeals = items
+        }
     }
 
     func isFavourite(_ item: FoodItemDomain) -> Bool {
         favouriteIds.contains(item.id)
+    }
+
+    func isMyCreatedMeal(_ item: FoodItemDomain) -> Bool {
+        myCreatedMeals.contains { $0.id == item.id }
     }
 
     func onFavouriteChanged(id: String, isFavourite: Bool, item: FoodItemDomain) {

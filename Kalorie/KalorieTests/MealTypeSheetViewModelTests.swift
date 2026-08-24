@@ -46,6 +46,60 @@ final class MealTypeSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.mealTypes[2].startTime, meal2.startTime)
     }
 
+    @MainActor
+    func test_onMove_setsHasPendingReorder() {
+        let meal0 = makeMealType(id: 0, name: "A", hour: 8, endHour: 12)
+        let meal1 = makeMealType(id: 1, name: "B", hour: 12, endHour: 16)
+        let sut = makeSUT(mealTypes: [meal0, meal1])
+
+        XCTAssertFalse(sut.hasPendingReorder)
+        sut.onMove(from: IndexSet(integer: 0), to: 2)
+        XCTAssertTrue(sut.hasPendingReorder)
+    }
+
+    // MARK: - onSaveReorder
+
+    @MainActor
+    func test_onSaveReorder_afterMove_clearsHasPendingReorder() async {
+        let meal0 = makeMealType(id: 0, name: "A", hour: 8, endHour: 12)
+        let meal1 = makeMealType(id: 1, name: "B", hour: 12, endHour: 16)
+        let sut = makeSUT(mealTypes: [meal0, meal1])
+        sut.onMove(from: IndexSet(integer: 0), to: 2)
+
+        await sut.onSaveReorder()
+
+        XCTAssertFalse(sut.hasPendingReorder)
+    }
+
+    @MainActor
+    func test_onSaveReorder_whenUseCaseFails_stillClearsHasPendingReorder() async {
+        let meal0 = makeMealType(id: 0, name: "A", hour: 8, endHour: 12)
+        let meal1 = makeMealType(id: 1, name: "B", hour: 12, endHour: 16)
+        let sut = makeSUT(
+            mealTypes: [meal0, meal1],
+            updateMealTypeTimes: UpdateMealTypeTimesUseCaseFake(shouldThrow: true)
+        )
+        sut.onMove(from: IndexSet(integer: 0), to: 2)
+
+        await sut.onSaveReorder()
+
+        XCTAssertFalse(sut.hasPendingReorder)
+        XCTAssertNotNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onSaveReorder_withoutPendingReorder_doesNotInvokeUseCase() async {
+        let meal0 = makeMealType(id: 0, name: "A", hour: 8, endHour: 12)
+        let sut = makeSUT(
+            mealTypes: [meal0],
+            updateMealTypeTimes: UpdateMealTypeTimesUseCaseFake(shouldThrow: true)
+        )
+
+        await sut.onSaveReorder()
+
+        XCTAssertNil(sut.alertItem, "a delete-only edit session has nothing to persist, so Done must be able to close the sheet without a failing network call")
+    }
+
     // MARK: - onDelete
 
     @MainActor

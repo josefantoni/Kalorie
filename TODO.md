@@ -14,8 +14,10 @@ The app works with three kinds of data. The distinction matters for the items be
 ## Planned features
 
 - [ ] **Data export** — export consumed food for a chosen interval to PDF or Excel
-- [ ] **Own daily meals** — let a user compose a meal they eat regularly instead of entering the
-  ingredients every day; visible only to that user, not subject to approval
+- [x] **Own daily meals** — the user composes a meal from catalogue foods with gram amounts, names
+  it and saves it privately; it appears in the add-food sheet's search like any other food, and
+  logging it writes one aggregate entry whose macros come from the meal's gram-weighted density.
+  See [docs/design/0006-own-daily-meals.md](docs/design/0006-own-daily-meals.md).
 - [x] **User authentication** — optional Apple ID sign-in so a user keeps their data across a
   device change and can use the app on both an iPhone and an iPad. Signed-out users keep working
   in the device-bound anonymous mode. See
@@ -67,6 +69,12 @@ The app works with three kinds of data. The distinction matters for the items be
 - [ ] **Rank search results by frequency** — order manual search results by how often the user has
   logged each food, so the most used ones come first. Distinct from favourites above: this one is
   derived, not chosen, and the user cannot remove an entry from it.
+- [ ] **Package/portion weight and quick-add gram amounts** — `FoodQuantityView` currently only
+  offers 1g/100g. Two related pieces: (1) a food item can carry a known package/portion weight
+  (e.g. a muesli bar is 33g, a Pepsi can is 80g) that shows up as a selectable unit; (2) per-user
+  "frequently added weights" — gram amounts the user logs often for a given food (e.g. 50g oats
+  almost daily, one slice of bread) — surfaced as quick-add options, likely derived from
+  `foodConsumed` history rather than manually maintained.
 
 ## Documenting what already exists
 

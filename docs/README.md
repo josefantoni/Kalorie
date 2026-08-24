@@ -148,6 +148,7 @@ understanding why.
 | [0003](design/0003-favourite-foods.md) | Favourite foods | Implemented | Backend, Cross-platform, iOS |
 | [0004](design/0004-shared-macro-calculation-module.md) | Shared macro calculation module (Kotlin Multiplatform) | Implemented | Cross-platform, iOS |
 | [0005](design/0005-meal-window-and-html-entity-decoding.md) | Meal-window arithmetic and HTML entity decoding (Kotlin Multiplatform) | Implemented | Cross-platform, iOS |
+| [0006](design/0006-own-daily-meals.md) | My created meals | Implemented | Backend, Cross-platform, iOS |
 
 ### Decision records
 

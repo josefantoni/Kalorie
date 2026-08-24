@@ -29,7 +29,8 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let onFoodUpdated: () -> Void
 
-    var canToggleFavourite: Bool { !isTogglingFavourite && (isFavourite || catalogueItem != nil) }
+    var canShowFavouriteButton: Bool { isFavourite || catalogueItem != nil }
+    var canToggleFavourite: Bool { !isTogglingFavourite && canShowFavouriteButton }
 
     // MARK: - Init
 

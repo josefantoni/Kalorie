@@ -58,32 +58,46 @@ final class AccountViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onSignInCompletion_whenCancelled_showsNoAlert() async {
+    func test_onSignInWithAppleTapped_whenSucceeds_showsNoAlertAndReturnsToIdle() async {
         let sut = makeSUT()
 
-        await sut.onSignInCompletion(.failure(makeAuthorizationError(.canceled)))
+        await sut.onSignInWithAppleTapped()
 
-        XCTAssertNil(sut.alertItem, "uživatel zrušil dialog sám — nejde o chybu, kterou je třeba hlásit")
+        XCTAssertNil(sut.alertItem)
+        XCTAssertEqual(sut.state, .idle)
     }
 
     @MainActor
-    func test_onSignInCompletion_whenFailsWithOtherError_showsAlert() async {
-        let sut = makeSUT()
+    func test_onSignInWithAppleTapped_whenCancelled_showsNoAlertAndReturnsToIdle() async {
+        let sut = makeSUT(signInWithApple: SignInWithAppleUseCaseFake(errorToThrow: makeAuthorizationError(.canceled)))
 
-        await sut.onSignInCompletion(.failure(makeAuthorizationError(.failed)))
+        await sut.onSignInWithAppleTapped()
+
+        XCTAssertNil(sut.alertItem, "uživatel zrušil dialog sám — nejde o chybu, kterou je třeba hlásit")
+        XCTAssertEqual(sut.state, .idle, "zrušení nesmí nechat viewModel v .linking stavu")
+    }
+
+    @MainActor
+    func test_onSignInWithAppleTapped_whenFailsWithOtherError_showsAlert() async {
+        let sut = makeSUT(signInWithApple: SignInWithAppleUseCaseFake(errorToThrow: makeAuthorizationError(.failed)))
+
+        await sut.onSignInWithAppleTapped()
 
         XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorSignInFailed)
     }
 
     @MainActor
-    func test_onSignInCompletion_whenCancelled_doesNotReportMerge() async {
+    func test_onSignInWithAppleTapped_whenCancelled_stillReportsMergeBeginAndEnd() async {
         let mergeStatusReporting = MergeStatusReportingFake()
-        let sut = makeSUT(mergeStatusReporting: mergeStatusReporting)
+        let sut = makeSUT(
+            signInWithApple: SignInWithAppleUseCaseFake(errorToThrow: makeAuthorizationError(.canceled)),
+            mergeStatusReporting: mergeStatusReporting
+        )
 
-        await sut.onSignInCompletion(.failure(makeAuthorizationError(.canceled)))
+        await sut.onSignInWithAppleTapped()
 
-        XCTAssertEqual(mergeStatusReporting.beginMergeCallCount, 0, "zrušený dialog nikdy nedosáhl signInWithApple, není co reportovat")
-        XCTAssertEqual(mergeStatusReporting.endMergeCallCount, 0)
+        XCTAssertEqual(mergeStatusReporting.beginMergeCallCount, 1, "narozdíl od dřívějšího chování už beginMerge proběhlo, než přišla informace o zrušení")
+        XCTAssertEqual(mergeStatusReporting.endMergeCallCount, 1)
     }
 
     @MainActor
@@ -147,6 +161,7 @@ final class AccountViewModelTests: XCTestCase {
     private func makeSUT(
         authProvider: any AuthProviderProtocol = AuthProviderFake(),
         signOut: any SignOutUseCaseProtocol = SignOutUseCaseFake(),
+        signInWithApple: any SignInWithAppleUseCaseProtocol = SignInWithAppleUseCaseFake(),
         signInWithGoogle: any SignInWithGoogleUseCaseProtocol = SignInWithGoogleUseCaseFake(),
         deleteAccount: any DeleteAccountUseCaseProtocol = DeleteAccountUseCaseFake(),
         mergeStatusReporting: any MergeStatusReporting = MergeStatusReportingFake()
@@ -154,7 +169,7 @@ final class AccountViewModelTests: XCTestCase {
         let sut = AccountViewModel(
             authProvider: authProvider,
             signOut: signOut,
-            signInWithApple: SignInWithAppleUseCaseFake(),
+            signInWithApple: signInWithApple,
             signInWithGoogle: signInWithGoogle,
             deleteAccount: deleteAccount,
             mergeStatusReporting: mergeStatusReporting

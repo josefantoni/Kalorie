@@ -84,18 +84,20 @@ struct FoodConsumedDetailView: View {
                 }
             }
 
-            Section {
-                HStack {
-                    Spacer()
-                    FavouriteButton(isFavourite: viewModel.isFavourite) {
-                        Task { await viewModel.onFavouriteToggled() }
+            if viewModel.canShowFavouriteButton {
+                Section {
+                    HStack {
+                        Spacer()
+                        FavouriteButton(isFavourite: viewModel.isFavourite) {
+                            Task { await viewModel.onFavouriteToggled() }
+                        }
+                        .disabled(!viewModel.canToggleFavourite)
+                        Spacer()
                     }
-                    .disabled(!viewModel.canToggleFavourite)
-                    Spacer()
                 }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             }
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
         }
         .navigationTitle(viewModel.food.displayName)
         .navigationBarTitleDisplayMode(.large)

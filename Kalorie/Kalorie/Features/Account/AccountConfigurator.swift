@@ -52,6 +52,7 @@ struct AccountConfigurator {
                     googleSessionProvider: GoogleSessionProvider()
                 ),
                 signInWithApple: SignInWithAppleUseCase(
+                    appleSignInProvider: AppleSignInProvider(),
                     linkOrMergeCredential: linkOrMergeCredential,
                     authCommandProvider: authCommandProvider,
                     dataProvider: dataProvider,

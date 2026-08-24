@@ -15,6 +15,7 @@ struct DashboardRouter {
     private let addFoodSheetConfigurator: AddFoodSheetConfigurator
     private let foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator
     private let accountConfigurator: AccountConfigurator
+    private let myCreatedMealEditorConfigurator: MyCreatedMealEditorConfigurator
 
     // MARK: - Init
 
@@ -22,12 +23,14 @@ struct DashboardRouter {
         mealTypeSheetConfigurator: MealTypeSheetConfigurator,
         addFoodSheetConfigurator: AddFoodSheetConfigurator,
         foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator,
-        accountConfigurator: AccountConfigurator
+        accountConfigurator: AccountConfigurator,
+        myCreatedMealEditorConfigurator: MyCreatedMealEditorConfigurator
     ) {
         self.mealTypeSheetConfigurator = mealTypeSheetConfigurator
         self.addFoodSheetConfigurator = addFoodSheetConfigurator
         self.foodConsumedDetailConfigurator = foodConsumedDetailConfigurator
         self.accountConfigurator = accountConfigurator
+        self.myCreatedMealEditorConfigurator = myCreatedMealEditorConfigurator
     }
 
     // MARK: - Functions
@@ -36,8 +39,22 @@ struct DashboardRouter {
         mealTypeSheetConfigurator.createView(mealTypes: mealTypes, onMealTypesChanged: onMealTypesChanged)
     }
 
-    func makeAddFoodSheetView(for date: Date, onFoodSaved: @escaping () -> Void = {}, withBarcodeScan: Bool = false) -> AddFoodSheetView {
-        addFoodSheetConfigurator.createView(date: date, onFoodSaved: onFoodSaved, withBarcodeScan: withBarcodeScan)
+    func makeAddFoodSheetView(
+        for date: Date,
+        onFoodSaved: @escaping () -> Void = {},
+        onCreateMealRequested: @escaping () -> Void = {},
+        withBarcodeScan: Bool = false
+    ) -> AddFoodSheetView {
+        addFoodSheetConfigurator.createView(
+            date: date,
+            onFoodSaved: onFoodSaved,
+            onCreateMealRequested: onCreateMealRequested,
+            withBarcodeScan: withBarcodeScan
+        )
+    }
+
+    func makeMyCreatedMealEditorView(existingMeal: MyCreatedMealDomain? = nil, onSaved: @escaping () -> Void = {}) -> MyCreatedMealEditorView {
+        myCreatedMealEditorConfigurator.createView(existingMeal: existingMeal, onSaved: onSaved)
     }
 
     func makeFoodConsumedDetailView(food: FoodConsumedDomain, onFoodUpdated: @escaping () -> Void = {}) -> FoodConsumedDetailView {

@@ -76,9 +76,11 @@ final class DashboardViewModel: ObservableObject {
     @Published var showAddFoodSheet = false
     @Published var showCalendarSheet = false
     @Published var showAccountSheet = false
+    @Published var showMyCreatedMealEditor = false
     @Published var alertItem: AlertItem?
     @Published private(set) var activeDaysInMonth: Set<Int> = []
 
+    private var isMyCreatedMealEditorPending = false
     private var monthCache: [String: [FoodConsumedDomain]] = [:]
     private var cachedMonthKeys: Set<String> = []
 
@@ -160,6 +162,16 @@ final class DashboardViewModel: ObservableObject {
         } catch {
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
         }
+    }
+
+    func onCreateMealRequested() {
+        isMyCreatedMealEditorPending = true
+    }
+
+    func onAddFoodSheetDismissed() {
+        guard isMyCreatedMealEditorPending else { return }
+        isMyCreatedMealEditorPending = false
+        showMyCreatedMealEditor = true
     }
 
     @MainActor

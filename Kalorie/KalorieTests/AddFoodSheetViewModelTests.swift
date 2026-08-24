@@ -112,6 +112,30 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isPushedToQuantityView)
     }
 
+    // MARK: - displayedResults
+
+    @MainActor
+    func test_displayedResults_hoistsMatchingCreatedMealsAboveFavouritesAndCatalog() async {
+        let sut = makeSUT(
+            fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(stubbedItems: [makeFoodItem(id: "fav", czName: "Ovar")]),
+            fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "meal", name: "Ovesná kaše")])
+        )
+        await sut.onAppear()
+        sut.localFoodItems = [makeFoodItem(id: "cat", czName: "Ovoce")]
+        sut.searchText = "ov"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["meal", "fav", "cat"])
+    }
+
+    // MARK: - isMyCreatedMeal
+
+    @MainActor
+    func test_isMyCreatedMeal_afterOnAppear_returnsTrueForKnownMealId() async {
+        let sut = makeSUT(fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "meal", name: "Kaše")]))
+        await sut.onAppear()
+        XCTAssertTrue(sut.isMyCreatedMeal(makeFoodItem(id: "meal")))
+        XCTAssertFalse(sut.isMyCreatedMeal(makeFoodItem(id: "other")))
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
@@ -120,6 +144,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol = FetchFavouriteFoodsUseCaseFake(),
+        fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol = FetchMyCreatedMealsUseCaseFake(),
         isScannerVisible: Bool = false
     ) -> AddFoodSheetViewModel {
         AddFoodSheetViewModel(
@@ -129,14 +154,15 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             fetchFavouriteFoods: fetchFavouriteFoods,
+            fetchMyCreatedMeals: fetchMyCreatedMeals,
             isScannerVisible: isScannerVisible
         )
     }
 
-    private func makeFoodItem(id: String = "test-id") -> FoodItemDomain {
+    private func makeFoodItem(id: String = "test-id", czName: String = "Tvaroh") -> FoodItemDomain {
         FoodItemDomain(
             id: id,
-            czName: "Tvaroh",
+            czName: czName,
             engName: "Cottage cheese",
             weight: 100,
             date: .now,
@@ -150,6 +176,35 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             fiber: 0,
             protein: 13,
             salt: 0.1
+        )
+    }
+
+    private func makeMeal(id: String, name: String) -> MyCreatedMealDomain {
+        MyCreatedMealDomain(
+            id: id,
+            name: name,
+            ingredients: [
+                MyCreatedMealIngredientDomain(
+                    foodItemId: "12345",
+                    czName: "Ovesné vločky",
+                    engName: "Oats",
+                    grams: 50,
+                    nutrition: FoodNutritionValues(
+                        energyKJ: 648,
+                        caloriesPerHundredGrams: 155,
+                        fat: 10,
+                        fatSaturated: 3,
+                        fatUnsaturatedFattyAcids: 3,
+                        carbohydrate: 1,
+                        carbohydratePureSugar: 0,
+                        fiber: 0,
+                        protein: 13,
+                        salt: 0.3
+                    )
+                )
+            ],
+            createdAt: .now,
+            updatedAt: .now
         )
     }
 }

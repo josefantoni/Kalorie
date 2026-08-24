@@ -13,6 +13,7 @@ final class MealTypeSheetViewModel: ObservableObject {
 
     @Published private(set) var state: LoadingState<Void> = .loaded
     @Published var mealTypes: [MealTypeDomain]
+    @Published private(set) var hasPendingReorder = false
     @Published var newMealName = ""
     @Published var newMealStart = Date.now
     @Published var newMealEnd = Date.now
@@ -102,11 +103,14 @@ final class MealTypeSheetViewModel: ObservableObject {
                 endTime: endTime
             )
         }
+        hasPendingReorder = true
     }
 
     @MainActor
     func onSaveReorder() async {
+        guard hasPendingReorder else { return }
         state = .loading
+        hasPendingReorder = false
         defer { state = .loaded }
         do {
             try await updateMealTypeTimes(mealTypes)

@@ -24,8 +24,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
 
     // MARK: - Properties
 
-    @Published var unit: FoodQuantityUnit = .hundredGrams
-    @Published var quantity: Double = 1
+    @Published var unit: FoodQuantityUnit
+    @Published var quantity: Double
     @Published private(set) var state: LoadingState<Void> = .idle
     @Published var alertItem: AlertItem?
     @Published var isFavourite: Bool
@@ -74,7 +74,9 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol,
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol,
         onSaved: @escaping () -> Void,
-        onFavouriteChanged: @escaping (String, Bool) -> Void
+        onFavouriteChanged: @escaping (String, Bool) -> Void,
+        quantity: Double = 1,
+        unit: FoodQuantityUnit = .hundredGrams
     ) {
         self.item = item
         self.saveFoodConsumed = saveFoodConsumed
@@ -84,6 +86,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         self.removeFavouriteFood = removeFavouriteFood
         self.onSaved = onSaved
         self.onFavouriteChanged = onFavouriteChanged
+        self.quantity = quantity
+        self.unit = unit
     }
 
     // MARK: - Functions

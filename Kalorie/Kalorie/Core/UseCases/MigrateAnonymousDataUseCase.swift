@@ -39,9 +39,15 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
     // MARK: - Functions
 
     func migrate(fromAnonymousUserId sourceUserId: String, credential: AuthCredential) async throws {
-        let foodConsumed: [FoodConsumedDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.foodConsumed(userId: sourceUserId))
-        let favouriteFoods: [FavouriteFoodDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.favouriteFoods(userId: sourceUserId))
-        let snapshot = PendingMergeSnapshot(sourceAnonymousUserId: sourceUserId, foodConsumed: foodConsumed, favouriteFoods: favouriteFoods)
+        async let foodConsumed: [FoodConsumedDTO] = dataProvider.loadAsync(from: Constants.Firestore.foodConsumed(userId: sourceUserId))
+        async let favouriteFoods: [FavouriteFoodDTO] = dataProvider.loadAsync(from: Constants.Firestore.favouriteFoods(userId: sourceUserId))
+        async let myCreatedMeals: [MyCreatedMealDTO] = dataProvider.loadAsync(from: Constants.Firestore.myCreatedMeals(userId: sourceUserId))
+        let snapshot = PendingMergeSnapshot(
+            sourceAnonymousUserId: sourceUserId,
+            foodConsumed: try await foodConsumed,
+            favouriteFoods: try await favouriteFoods,
+            myCreatedMeals: try await myCreatedMeals
+        )
         try snapshotStore.save(snapshot)
 
         try await authCommandProvider.signIn(with: credential)
@@ -68,6 +74,8 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
         try await dataProvider.batchSetAsync(items, in: Constants.Firestore.foodConsumed(userId: userId))
         let favourites = snapshot.favouriteFoods.map { (item: $0, id: $0.id) }
         try await dataProvider.batchSetAsync(favourites, in: Constants.Firestore.favouriteFoods(userId: userId))
+        let meals = snapshot.myCreatedMeals.map { (item: $0, id: $0.id) }
+        try await dataProvider.batchSetAsync(meals, in: Constants.Firestore.myCreatedMeals(userId: userId))
         try snapshotStore.delete()
     }
 }
