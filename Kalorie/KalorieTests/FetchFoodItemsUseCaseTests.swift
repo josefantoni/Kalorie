@@ -30,6 +30,17 @@ final class FetchFoodItemsUseCaseTests: XCTestCase {
         XCTAssertEqual(result[0].caloriesPerHundredGrams, 80)
     }
 
+    func test_fetchFoodItems_whenEnergyKJMissing_computesItFromMacrosInsteadOfZero() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDTOs = [makeDTO(fat: 10, carbohydrate: 20, protein: 5)]
+
+        let result = try await sut()
+
+        // 10g fat + 20g carbohydrate + 5g protein = 370 + 340 + 85 = 795 kJ — a missing source
+        // value must not silently read as 0 kJ for a food that clearly has energy.
+        XCTAssertEqual(result[0].energyKJ, 795)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: FetchFoodItemsUseCase, dataProvider: FetchFoodItemsDataProviderFake) {
@@ -41,7 +52,10 @@ final class FetchFoodItemsUseCaseTests: XCTestCase {
     private func makeDTO(
         id: String = "12345678",
         czName: String = "Tvaroh",
-        caloriesPerHundredGrams: Double = 80
+        caloriesPerHundredGrams: Double = 80,
+        fat: Double = 0.5,
+        carbohydrate: Double = 4,
+        protein: Double = 13
     ) -> FoodItemDTO {
         FoodItemDTO(
             id: id,
@@ -52,11 +66,11 @@ final class FetchFoodItemsUseCaseTests: XCTestCase {
             weight: 100,
             date: Date.now.timeIntervalSince1970,
             caloriesPerHundredGrams: caloriesPerHundredGrams,
-            fat: 0.5,
+            fat: fat,
             fatUnsaturatedFattyAcids: 0.2,
-            carbohydrate: 4,
+            carbohydrate: carbohydrate,
             carbohydratePureSugar: 3,
-            protein: 13,
+            protein: protein,
             salt: 0.1
         )
     }

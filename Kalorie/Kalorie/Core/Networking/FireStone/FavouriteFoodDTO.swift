@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 struct FavouriteFoodDTO: Codable {
 
@@ -72,7 +73,7 @@ struct FavouriteFoodDTO: Codable {
             engName: engName,
             weight: weight,
             date: Date(timeIntervalSince1970: date),
-            energyKJ: energyKJ ?? 0,
+            energyKJ: energyKJ ?? MacrosKt.energyKJFromMacros(fat: fat, carbohydrate: carbohydrate, protein: protein),
             caloriesPerHundredGrams: caloriesPerHundredGrams,
             fat: fat,
             fatSaturated: fatSaturated ?? 0,

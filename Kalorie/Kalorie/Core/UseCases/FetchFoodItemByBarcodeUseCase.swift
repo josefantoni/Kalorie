@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 protocol FetchFoodItemByBarcodeUseCaseProtocol {
     func callAsFunction(barcode: String) async throws -> FoodItemDomain?
@@ -39,7 +40,7 @@ struct FetchFoodItemByBarcodeUseCase: FetchFoodItemByBarcodeUseCaseProtocol {
             engName: dto.engName,
             weight: dto.weight,
             date: dto.date.toDate,
-            energyKJ: dto.energyKJ ?? 0,
+            energyKJ: dto.energyKJ ?? MacrosKt.energyKJFromMacros(fat: dto.fat, carbohydrate: dto.carbohydrate, protein: dto.protein),
             caloriesPerHundredGrams: dto.caloriesPerHundredGrams,
             fat: dto.fat,
             fatSaturated: dto.fatSaturated ?? 0,
