@@ -42,6 +42,28 @@ splits into three real outputs:
 | **Backfilled ADRs** | Decisions already in effect that a reader could plausibly undo by accident. Written with their real rationale, not a reconstructed one. | `docs/adr/` |
 | **Audit findings** | Bugs, inconsistencies, stale assumptions the review turned up. | `TODO.md`, or fixed straight away |
 
+### Search the docs before you claim something
+
+The same rule this project applies to code — *search first, never open a file just to look
+around* — applies here. Before writing an ADR, an audit finding, or any statement about how
+something works and why, grep for the identifiers involved:
+
+```
+grep -rl "food_item_id" docs/
+```
+
+**Frozen means do not edit, not do not read.** A decision recorded in a shipped design doc is
+still in force, and writing "nobody considered this" or "this needs deciding" about one is wrong
+even when the code really is broken. [ARCHITECTURE.md](ARCHITECTURE.md) is the entry point: each
+section opens with a **Read first:** line naming the ADRs and design docs for that area, so one
+section is the whole reading list and nothing else has to be opened.
+
+Two consequences worth stating:
+
+- A conflict between the code and a design doc is a **finding**. The design doc is not corrected.
+- If a design doc already accepts a risk and names its mitigation, a finding about it is not
+  void — but it must say so and narrow to what genuinely remains.
+
 Two rules keep this from becoming busywork:
 
 - **Analyse an area just before you change it**, not speculatively. That is when the findings
@@ -139,6 +161,12 @@ understanding why.
 
 ## Index
 
+### Architecture
+
+| Document | Covers |
+|---|---|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Living description of what exists, area by area. Currently: data layer and Firestore model; food search and catalogue; dashboard and meal types; food entry flow; cross-cutting concerns. |
+
 ### Design docs
 
 | # | Title | Status | Scope |
@@ -161,3 +189,15 @@ understanding why.
 | [0005](adr/0005-no-shared-sign-in-provider-abstraction.md) | Each sign-in provider gets its own use case, with no shared abstraction | Accepted | iOS |
 | [0006](adr/0006-google-sign-in-identity-collisions.md) | A user reaching an existing account through the other provider is steered to it, with no override | Accepted | Cross-platform |
 | [0007](adr/0007-derive-missing-energy-kj-from-macros.md) | Missing energyKJ is derived from macros, not defaulted to 0 | Accepted | Cross-platform |
+| [0008](adr/0008-dates-as-epoch-seconds-not-firestore-timestamp.md) | Dates are stored as epoch seconds, not as a Firestore `Timestamp` | Accepted | Backend, Cross-platform |
+| [0009](adr/0009-denormalised-nutrition-snapshots.md) | Nutrition values are denormalised into every collection that references a food | Accepted | Backend, Cross-platform |
+| [0010](adr/0010-client-assigned-integer-meal-type-ids.md) | Meal type IDs are integers assigned by the client | Accepted | Backend, Cross-platform |
+| [0011](adr/0011-foodItems-writable-by-any-authenticated-client.md) | `foodItems` is writable by any authenticated client, pending the moderation flow | Accepted | Backend |
+| [0012](adr/0012-external-food-is-surfaced-never-imported.md) | OpenFoodFacts results are surfaced to the user, never imported into the catalogue | Accepted | Cross-platform |
+| [0013](adr/0013-prefix-search-over-lowercased-name-fields.md) | Catalogue search is a Firestore prefix range over pre-lowercased name fields | Accepted | Backend, Cross-platform |
+| [0014](adr/0014-meal-assignment-by-time-of-day-only.md) | A food is assigned to a meal by time of day alone, never by calendar date | Accepted | Cross-platform |
+| [0015](adr/0015-dashboard-caches-a-month-and-derives-the-day.md) | The Dashboard fetches a whole month and derives every day view from it | Accepted | iOS |
+| [0016](adr/0016-logged-entries-rescale-from-their-own-stored-values.md) | A logged entry is rescaled from its own stored values, never from the catalogue | Accepted | Cross-platform |
+| [0017](adr/0017-optimistic-favourite-toggle-shared-by-protocol-extension.md) | Favourite toggling is an optimistic protocol extension, not a use case | Accepted | iOS |
+| [0018](adr/0018-per-feature-error-alerts-with-no-global-handler.md) | Errors are presented per feature as a dismissible alert, with no global handler | Accepted | iOS |
+| [0019](adr/0019-l10n-enum-over-the-string-catalogue.md) | Localized strings are reached through a hand-written `L10n` enum | Accepted | iOS |
