@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 struct MyCreatedMealIngredientDTO: Codable {
 
@@ -15,14 +16,14 @@ struct MyCreatedMealIngredientDTO: Codable {
     let czName: String
     let engName: String
     let grams: Double
-    let energyKJ: Double
+    let energyKJ: Double?
     let caloriesPerHundredGrams: Double
     let fat: Double
-    let fatSaturated: Double
+    let fatSaturated: Double?
     let fatUnsaturatedFattyAcids: Double
     let carbohydrate: Double
     let carbohydratePureSugar: Double
-    let fiber: Double
+    let fiber: Double?
     let protein: Double
     let salt: Double
 
@@ -68,14 +69,14 @@ struct MyCreatedMealIngredientDTO: Codable {
             engName: engName,
             grams: grams,
             nutrition: FoodNutritionValues(
-                energyKJ: energyKJ,
+                energyKJ: energyKJ ?? MacrosKt.energyKJFromMacros(fat: fat, carbohydrate: carbohydrate, protein: protein),
                 caloriesPerHundredGrams: caloriesPerHundredGrams,
                 fat: fat,
-                fatSaturated: fatSaturated,
+                fatSaturated: fatSaturated ?? 0,
                 fatUnsaturatedFattyAcids: fatUnsaturatedFattyAcids,
                 carbohydrate: carbohydrate,
                 carbohydratePureSugar: carbohydratePureSugar,
-                fiber: fiber,
+                fiber: fiber ?? 0,
                 protein: protein,
                 salt: salt
             )

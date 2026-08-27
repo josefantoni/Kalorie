@@ -25,6 +25,15 @@ fun Macros.scaled(factor: Double): Macros = Macros(
     salt = salt * factor,
 )
 
+private const val KILOJOULES_PER_GRAM_FAT = 37.0
+private const val KILOJOULES_PER_GRAM_CARBOHYDRATE = 17.0
+private const val KILOJOULES_PER_GRAM_PROTEIN = 17.0
+
+// EU Regulation 1169/2011, Annex XIV general conversion factors — used when a source's own
+// energy value is missing, so a food is never displayed at 0 kJ despite having real macros.
+fun energyKJFromMacros(fat: Double, carbohydrate: Double, protein: Double): Double =
+    fat * KILOJOULES_PER_GRAM_FAT + carbohydrate * KILOJOULES_PER_GRAM_CARBOHYDRATE + protein * KILOJOULES_PER_GRAM_PROTEIN
+
 fun weightedMeanPerHundredGrams(values: List<Double>, grams: List<Double>): Double {
     val totalGrams = grams.sum()
     if (totalGrams == 0.0) return 0.0

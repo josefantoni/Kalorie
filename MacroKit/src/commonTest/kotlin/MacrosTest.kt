@@ -76,6 +76,20 @@ class MacrosTest {
     }
 
     @Test
+    fun energyKJFromMacros_computesFromAtwaterFactors() {
+        // 10g fat + 20g carbohydrate + 5g protein, by EU Regulation 1169/2011 general factors
+        // (37 kJ/g fat, 17 kJ/g carbohydrate, 17 kJ/g protein) = 370 + 340 + 85 = 795 kJ.
+        val result = energyKJFromMacros(fat = 10.0, carbohydrate = 20.0, protein = 5.0)
+        assertEquals(795.0, result)
+    }
+
+    @Test
+    fun energyKJFromMacros_withNoMacros_isZero() {
+        val result = energyKJFromMacros(fat = 0.0, carbohydrate = 0.0, protein = 0.0)
+        assertEquals(0.0, result)
+    }
+
+    @Test
     fun weightedMeanPerHundredGrams_withEqualGrams_isTheSimpleAverage() {
         val result = weightedMeanPerHundredGrams(values = listOf(100.0, 200.0), grams = listOf(50.0, 50.0))
         assertEquals(150.0, result)

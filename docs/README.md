@@ -160,3 +160,4 @@ understanding why.
 | [0004](adr/0004-migrate-usecase-exposes-two-methods.md) | MigrateAnonymousDataUseCase exposes two methods | Accepted | iOS |
 | [0005](adr/0005-no-shared-sign-in-provider-abstraction.md) | Each sign-in provider gets its own use case, with no shared abstraction | Accepted | iOS |
 | [0006](adr/0006-google-sign-in-identity-collisions.md) | A user reaching an existing account through the other provider is steered to it, with no override | Accepted | Cross-platform |
+| [0007](adr/0007-derive-missing-energy-kj-from-macros.md) | Missing energyKJ is derived from macros, not defaulted to 0 | Accepted | Cross-platform |

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 enum FetchFoodByBarcodeExternallyError: Error {
     case invalidURL
@@ -54,6 +55,8 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
         let displayName = rawName.decodingHTMLEntities()
         let fat = nutriments.fat100g ?? 0
         let saturatedFat = nutriments.saturatedFat100g ?? 0
+        let carbohydrate = nutriments.carbohydrates100g ?? 0
+        let protein = nutriments.proteins100g ?? 0
         let rawOriginalName = product.productNameEn ?? product.productName ?? rawName
         return FoodItemDomain(
             id: product.code,
@@ -61,15 +64,15 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
             engName: rawOriginalName.decodingHTMLEntities(),
             weight: 100,
             date: .now,
-            energyKJ: nutriments.energyKJ100g ?? 0,
+            energyKJ: nutriments.energyKJ100g ?? MacrosKt.energyKJFromMacros(fat: fat, carbohydrate: carbohydrate, protein: protein),
             caloriesPerHundredGrams: kcal,
             fat: fat,
             fatSaturated: saturatedFat,
             fatUnsaturatedFattyAcids: max(0, fat - saturatedFat),
-            carbohydrate: nutriments.carbohydrates100g ?? 0,
+            carbohydrate: carbohydrate,
             carbohydratePureSugar: nutriments.sugars100g ?? 0,
             fiber: nutriments.fiber100g ?? 0,
-            protein: nutriments.proteins100g ?? 0,
+            protein: protein,
             salt: nutriments.salt100g ?? 0
         )
     }

@@ -42,6 +42,17 @@ final class FetchFoodItemByBarcodeUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.lastQueriedValue, "1234567890")
     }
 
+    func test_fetchByBarcode_whenEnergyKJMissing_computesItFromMacrosInsteadOfZero() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDTO = makeDTO(fat: 10, carbohydrate: 20, protein: 5)
+
+        let result = try await sut(barcode: "8594004428464")
+
+        // 10g fat + 20g carbohydrate + 5g protein = 370 + 340 + 85 = 795 kJ — a missing source
+        // value must not silently read as 0 kJ for a food that clearly has energy.
+        XCTAssertEqual(result?.energyKJ, 795)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: FetchFoodItemByBarcodeUseCase, dataProvider: BarcodeDataProviderFake) {
@@ -52,7 +63,10 @@ final class FetchFoodItemByBarcodeUseCaseTests: XCTestCase {
 
     private func makeDTO(
         id: String = "8594004428464",
-        czName: String = "Tvaroh"
+        czName: String = "Tvaroh",
+        fat: Double = 0.5,
+        carbohydrate: Double = 4,
+        protein: Double = 13
     ) -> FoodItemDTO {
         FoodItemDTO(
             id: id,
@@ -63,11 +77,11 @@ final class FetchFoodItemByBarcodeUseCaseTests: XCTestCase {
             weight: 100,
             date: Date.now.timeIntervalSince1970,
             caloriesPerHundredGrams: 80,
-            fat: 0.5,
+            fat: fat,
             fatUnsaturatedFattyAcids: 0.2,
-            carbohydrate: 4,
+            carbohydrate: carbohydrate,
             carbohydratePureSugar: 3,
-            protein: 13,
+            protein: protein,
             salt: 0.1
         )
     }
