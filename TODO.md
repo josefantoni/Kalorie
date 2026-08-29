@@ -603,16 +603,22 @@ been fixed.
   `Kalorie/Kalorie/Features/Dashboard/FoodConsumedDetailView.swift:65`,
   `Kalorie/Kalorie/Features/Dashboard/MealSectionMacroView.swift:33`
 
-- [ ] **A5-7 — UI literals are leaking into the string catalogue.** `Text`, `Button` and
+- [x] **A5-7 — UI literals are leaking into the string catalogue.** `Text`, `Button` and
   `accessibilityLabel` take a `LocalizedStringKey`, so every literal handed to them becomes a
   catalogue entry. `Localizable.xcstrings` holds 133 keys against 121 `String(localized:)` calls;
   the difference is `""`, `"0"`, `"1"`, `"100"`, `"g"`, `"kcal"`, `"%lld"`, `"%lld g"` and
-  `"%lld kcal"`. Two of the harvested entries are real interpolated formats and are marked `new`
+  `"%lld kcal"`. Two of the harvested entries were real interpolated formats and were marked `new`
   in Czech with **no English translation at all**:
-  `"%@ %@"` from `FoodQuantityView.swift:120` and `"%@, %@"` from the accessibility label at
-  `FoodItemRow.swift:31` — which also interpolates an already-localized string into a key, so it
-  is localized twice. Genuinely untranslatable literals belong in `Text(verbatim:)`, which the
-  project uses nowhere.
+  `"%@ %@"` from `FoodQuantityView.swift:120` — fixed by A5-6's `macroRow` rework, which now
+  passes the already-formatted value through `Text(verbatim:)` — and `"%@, %@"` from the
+  accessibility label at `FoodItemRow.swift:31`, which also interpolated an already-localized
+  string into a key, so it was localized twice; that call site now builds a `Text(verbatim:)`
+  directly instead of relying on the `accessibilityLabel(_ key: LocalizedStringKey)` overload.
+  Both dead entries were removed from `Localizable.xcstrings`. The remaining stray entries
+  (`""`, `"0"`, `"1"`, `"100"`, `"g"`, `"kcal"`, `"%lld"`, `"%lld g"`, `"%lld kcal"`) are harmless
+  catalogue noise from genuinely untranslatable literals (digit placeholders, unit symbols) rather
+  than mistranslations — worth a follow-up pass to `Text(verbatim:)` them, but out of scope here
+  since none of them ships broken or duplicated text.
 
 ### Naming
 
