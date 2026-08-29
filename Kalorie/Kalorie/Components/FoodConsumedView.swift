@@ -1,5 +1,5 @@
 //
-//  FoodConsumed.swift
+//  FoodConsumedView.swift
 //  Kalorie
 //
 //  Created by Josef Antoni on 05.06.2024.
