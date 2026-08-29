@@ -30,12 +30,12 @@ struct MealSectionMacroView: View {
                 .padding(.vertical, 4)
 
             Divider()
-            macroRow(label: L10n.FoodQuantity.protein, value: String(format: "%.1f g", macros.protein))
-            macroRow(label: L10n.FoodQuantity.carbs, value: String(format: "%.1f g", macros.carbs))
-            macroRow(label: L10n.AddFood.fieldCarbsSugar, value: String(format: "%.1f g", macros.carbohydrateSugar), indented: true)
-            macroRow(label: L10n.FoodQuantity.fat, value: String(format: "%.1f g", macros.fat))
-            macroRow(label: L10n.AddFood.fieldFatUnsaturated, value: String(format: "%.1f g", macros.fatUnsaturated), indented: true)
-            macroRow(label: L10n.AddFood.fieldFiber, value: String(format: "%.1f g", macros.fiber))
+            macroRow(label: L10n.FoodQuantity.protein, value: macros.protein.formattedGrams())
+            macroRow(label: L10n.FoodQuantity.carbs, value: macros.carbs.formattedGrams())
+            macroRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar.formattedGrams(), indented: true)
+            macroRow(label: L10n.FoodQuantity.fat, value: macros.fat.formattedGrams())
+            macroRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated.formattedGrams(), indented: true)
+            macroRow(label: L10n.AddFood.fieldFiber, value: macros.fiber.formattedGrams())
         }
         .padding()
         .frame(minWidth: 200)

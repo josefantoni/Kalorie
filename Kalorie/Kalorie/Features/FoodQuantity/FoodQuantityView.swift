@@ -31,11 +31,11 @@ struct FoodQuantityView: View {
             }
 
             Section(header: Text(L10n.FoodQuantity.sectionNutrition)) {
-                macroRow(label: L10n.FoodQuantity.calories, value: "\(viewModel.scaledCalories)", suffix: "kcal")
-                macroRow(label: L10n.FoodQuantity.protein, value: formatted(viewModel.scaledProtein), suffix: "g")
-                macroRow(label: L10n.FoodQuantity.carbs, value: formatted(viewModel.scaledCarbohydrate), suffix: "g")
-                macroRow(label: L10n.FoodQuantity.fat, value: formatted(viewModel.scaledFat), suffix: "g")
-                macroRow(label: L10n.FoodQuantity.fiber, value: formatted(viewModel.scaledFiber), suffix: "g")
+                macroRow(label: L10n.FoodQuantity.calories, value: "\(viewModel.scaledCalories) kcal")
+                macroRow(label: L10n.FoodQuantity.protein, value: viewModel.scaledProtein.formattedGrams())
+                macroRow(label: L10n.FoodQuantity.carbs, value: viewModel.scaledCarbohydrate.formattedGrams())
+                macroRow(label: L10n.FoodQuantity.fat, value: viewModel.scaledFat.formattedGrams())
+                macroRow(label: L10n.FoodQuantity.fiber, value: viewModel.scaledFiber.formattedGrams())
             }
 
             Section {
@@ -112,18 +112,14 @@ struct FoodQuantityView: View {
         }
     }
 
-    func macroRow(label: String, value: String, suffix: String) -> some View {
+    func macroRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
                 .font(.system(size: .smallPlus))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text("\(value) \(suffix)")
+            Text(verbatim: value)
                 .foregroundStyle(.secondary)
         }
-    }
-
-    func formatted(_ value: Double) -> String {
-        String(format: "%.1f", value)
     }
 }
 

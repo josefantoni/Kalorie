@@ -63,7 +63,7 @@ struct MacroSummaryView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Text(String(format: "%.1f g", value))
+            Text(value.formattedGrams())
                 .font(.subheadline.bold())
         }
     }
@@ -80,7 +80,7 @@ struct MacroSummaryView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             Spacer()
-            Text(String(format: "%.1f g", value))
+            Text(value.formattedGrams())
                 .font(.caption.bold())
         }
     }
