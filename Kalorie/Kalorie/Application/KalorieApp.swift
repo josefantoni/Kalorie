@@ -46,6 +46,9 @@ struct KalorieApp: App {
                 ProgressView()
             case .loaded:
                 DashboardConfigurator().createView(mergeStatusReporting: authState)
+                    // Forces a full rebuild on every auth transition so no view model is reused
+                    // across users. Side effect: it also resets the Dashboard's transient state,
+                    // including the selected day, back to today on sign-in/sign-out.
                     .id(authState.userId)
                     .overlay {
                         if authState.isMerging {
