@@ -622,9 +622,3 @@ been fixed.
   wrong, they are swapped in the reader's head. Against the project's own
   `[Feature][Type].swift` rule. Pure rename.
   `Kalorie/Kalorie/Components/FoodItemView.swift:11`
-
-- [ ] **A5-9 — `.id(authState.userId)` rebuilds the Dashboard on every auth transition.** This is
-  correct and deliberate — it is what stops one user's view models from being reused for another
-  — but it is also the mechanism behind **A3-8**: signing in or out silently returns the user to
-  today. Worth a comment at the call site, since the connection is invisible from either end.
-  `Kalorie/Kalorie/Application/KalorieApp.swift:49`
