@@ -94,6 +94,31 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.quantity, 2)
     }
 
+    func test_onUnitChanged_toHundredGrams_keepsFraction() {
+        let sut = makeSUT()
+        sut.unit = .grams
+        sut.quantity = 150
+        sut.onUnitChanged(from: .grams, to: .hundredGrams)
+        XCTAssertEqual(sut.quantity, 1.5)
+    }
+
+    func test_onUnitChanged_toHundredGrams_belowFiftyGrams_doesNotFloorToOne() {
+        let sut = makeSUT()
+        sut.unit = .grams
+        sut.quantity = 20
+        sut.onUnitChanged(from: .grams, to: .hundredGrams)
+        XCTAssertEqual(sut.quantity, 0.2)
+    }
+
+    func test_onUnitChanged_toHundredGramsAndBack_roundTripsExactly() {
+        let sut = makeSUT()
+        sut.unit = .grams
+        sut.quantity = 150
+        sut.onUnitChanged(from: .grams, to: .hundredGrams)
+        sut.onUnitChanged(from: .hundredGrams, to: .grams)
+        XCTAssertEqual(sut.quantity, 150)
+    }
+
     // MARK: - onConfirm
 
     @MainActor

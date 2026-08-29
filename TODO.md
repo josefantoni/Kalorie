@@ -86,7 +86,6 @@ area produced are listed below.
 Findings are grouped by area and numbered `A<area>-<n>`. Nothing in them has been fixed — each
 is a decision still to make. The ones most worth settling before the next feature lands:
 
-- **A4-1** — the unit picker silently changes the amount being logged.
 - **A3-3** — foods logged after picking a day in the calendar land at midnight, outside every meal.
 - **A1-2** — account deletion destroys the data before the step that can fail.
 - **A2-1** — entries logged from OpenFoodFacts carry a `food_item_id` that points nowhere, which
@@ -440,15 +439,13 @@ been fixed.
 
 ### The amount being logged is not always the amount the user chose
 
-- [ ] **A4-1 — Switching the unit picker changes the quantity.** `onUnitChanged` converts the
-  current gram amount into the new unit and then rounds it to a whole number with a floor of 1.
-  For grams that is right; for the 100 g unit it destroys the fraction. Entering `150` g and
-  switching the picker to *100 g* gives `150 / 100 = 1.5`, rounded to **2**, i.e. 200 g — and
-  switching back now reads 200 g, so the original value is unrecoverable. Below 50 g it is worse:
-  `20` g becomes `0.2`, floored to `1`, i.e. **100 g**, a five-fold increase from one tap on a
-  picker. The view compounds it by rewriting the text field as `String(Int(quantity))`, which
-  truncates again. Keep the fractional value and format it for display instead.
-  `Kalorie/Kalorie/Features/FoodQuantity/FoodQuantityViewModel.swift:95`
+- [x] **A4-1 — Switching the unit picker changes the quantity.** Fixed: `onUnitChanged` now only
+  divides — no `.rounded()`, no floor of 1 — so `quantity` keeps full fractional precision and a
+  150 g ⇄ 100 g round-trip is exact. The view's text field is repopulated through a new
+  `FoodQuantityView.formattedQuantity`, which trims to at most 2 decimal places for display
+  without touching the underlying `Double`.
+  `Kalorie/Kalorie/Features/FoodQuantity/FoodQuantityViewModel.swift:95`,
+  `Kalorie/Kalorie/Features/FoodQuantity/FoodQuantityView.swift:formattedQuantity`
 
 - [ ] **A4-2 — Clearing the quantity field silently keeps the previous amount.** The field binds
   a `String`, and `viewModel.quantity` is only updated when `Double(normalized)` succeeds. Select

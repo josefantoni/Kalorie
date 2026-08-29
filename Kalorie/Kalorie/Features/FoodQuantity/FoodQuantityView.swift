@@ -19,7 +19,7 @@ struct FoodQuantityView: View {
 
     init(viewModel: FoodQuantityViewModel) {
         self._viewModel = StateObject(wrappedValue: viewModel)
-        self._quantityText = State(initialValue: String(Int(viewModel.quantity)))
+        self._quantityText = State(initialValue: Self.formattedQuantity(viewModel.quantity))
     }
 
     // MARK: - Body
@@ -107,7 +107,7 @@ struct FoodQuantityView: View {
             .pickerStyle(.menu)
             .onChange(of: viewModel.unit) { oldUnit, newUnit in
                 viewModel.onUnitChanged(from: oldUnit, to: newUnit)
-                quantityText = String(Int(viewModel.quantity))
+                quantityText = Self.formattedQuantity(viewModel.quantity)
             }
         }
     }
@@ -120,6 +120,17 @@ struct FoodQuantityView: View {
             Text(verbatim: value)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    static func formattedQuantity(_ value: Double) -> String {
+        var text = String(format: "%.2f", value)
+        while text.hasSuffix("0") {
+            text.removeLast()
+        }
+        if text.hasSuffix(".") {
+            text.removeLast()
+        }
+        return text
     }
 }
 

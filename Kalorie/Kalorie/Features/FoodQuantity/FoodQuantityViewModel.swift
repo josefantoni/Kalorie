@@ -94,7 +94,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
 
     func onUnitChanged(from oldUnit: FoodQuantityUnit, to newUnit: FoodQuantityUnit) {
         let currentGrams = quantity * oldUnit.gramsPerUnit
-        quantity = max(1, (currentGrams / newUnit.gramsPerUnit).rounded())
+        quantity = currentGrams / newUnit.gramsPerUnit
     }
 
     @MainActor
