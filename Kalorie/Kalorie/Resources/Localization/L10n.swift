@@ -55,6 +55,8 @@ enum L10n {
         static var emptyTitleFuture: String { String(localized: "dashboard_empty_title_future") }
         static var emptyDescriptionFuture: String { String(localized: "dashboard_empty_description_future") }
         static var emptyAddFood: String { String(localized: "dashboard_empty_addFood") }
+        static var confirmDeleteFood: String { String(localized: "dashboard_confirm_deleteFood") }
+        static var errorDeleteFailed: String { String(localized: "dashboard_error_deleteFailed") }
     }
 
     enum AddFood {

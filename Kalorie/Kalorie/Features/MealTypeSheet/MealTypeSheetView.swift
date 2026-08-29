@@ -109,11 +109,6 @@ struct MealTypeSheetView: View {
                                     }
                                 }
                         }
-                        .onDelete { indexSet in
-                            if let index = indexSet.first {
-                                Task { await viewModel.onDelete(at: index) }
-                            }
-                        }
                         .onMove { from, to in
                             viewModel.onMove(from: from, to: to)
                         }

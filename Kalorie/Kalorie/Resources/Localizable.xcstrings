@@ -1178,6 +1178,23 @@
         }
       }
     },
+    "dashboard_confirm_deleteFood" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smazat tento záznam jídla?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this food entry?"
+          }
+        }
+      }
+    },
     "dashboard_empty_addFood" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1293,6 +1310,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No food eaten."
+          }
+        }
+      }
+    },
+    "dashboard_error_deleteFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravinu se nepodařilo smazat"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not delete the food"
           }
         }
       }
