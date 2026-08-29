@@ -35,8 +35,16 @@ struct MyCreatedMealEditorView: View {
                     Section(header: Text(L10n.MyCreatedMeal.sectionIngredients)) {
                         ForEach($viewModel.ingredients) { $draft in
                             ingredientRow($draft)
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        if let index = viewModel.ingredients.firstIndex(where: { $0.id == draft.id }) {
+                                            viewModel.onDeleteIngredient(at: IndexSet(integer: index))
+                                        }
+                                    } label: {
+                                        Image(systemName: "trash")
+                                    }
+                                }
                         }
-                        .onDelete { viewModel.onDeleteIngredient(at: $0) }
                     }
                 }
 

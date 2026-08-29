@@ -78,16 +78,19 @@ final class DashboardViewModel: ObservableObject {
     @Published var showAccountSheet = false
     @Published var showMyCreatedMealEditor = false
     @Published var alertItem: AlertItem?
+    @Published var isDeleteConfirmationVisible = false
     @Published private(set) var activeDaysInMonth: Set<Int> = []
 
     private var isMyCreatedMealEditorPending = false
     private var monthCache: [String: [FoodConsumedDomain]] = [:]
     private var cachedMonthKeys: Set<String> = []
+    private var foodPendingDeletion: FoodConsumedDomain?
 
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol
     private let setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol
     private let confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol
+    private let deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
 
     // MARK: - Init
 
@@ -95,12 +98,14 @@ final class DashboardViewModel: ObservableObject {
         fetchMealTypes: any FetchMealTypesUseCaseProtocol,
         fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol,
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol,
-        confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol
+        confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol,
+        deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
     ) {
         self.fetchMealTypes = fetchMealTypes
         self.fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth
         self.setupDefaultMeals = setupDefaultMeals
         self.confirmMealTypesEmpty = confirmMealTypesEmpty
+        self.deleteFoodConsumed = deleteFoodConsumed
     }
 
     // MARK: - Functions
@@ -166,6 +171,25 @@ final class DashboardViewModel: ObservableObject {
 
     func onCreateMealRequested() {
         isMyCreatedMealEditorPending = true
+    }
+
+    func onDeleteRequested(_ food: FoodConsumedDomain) {
+        foodPendingDeletion = food
+        isDeleteConfirmationVisible = true
+    }
+
+    @MainActor
+    func onDeleteConfirmed() async {
+        guard let food = foodPendingDeletion else { return }
+        foodPendingDeletion = nil
+        do {
+            try await deleteFoodConsumed(id: food.id)
+            invalidateCache(for: selectedDay)
+            try await loadMonth(for: selectedDay)
+            foodsConsumed = foodsFromCache(for: selectedDay)
+        } catch {
+            alertItem = AlertItem(title: L10n.Dashboard.errorDeleteFailed)
+        }
     }
 
     func onAddFoodSheetDismissed() {

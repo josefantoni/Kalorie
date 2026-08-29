@@ -143,19 +143,69 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.alertItem)
     }
 
+    // MARK: - delete
+
+    @MainActor
+    func test_onDeleteRequested_showsConfirmation() {
+        let sut = makeSUT()
+        XCTAssertFalse(sut.isDeleteConfirmationVisible)
+        sut.onDeleteRequested(makeFood(id: "f1", hour: 8))
+        XCTAssertTrue(sut.isDeleteConfirmationVisible)
+    }
+
+    @MainActor
+    func test_onDeleteConfirmed_withoutPendingRequest_doesNothing() async {
+        let sut = makeSUT()
+        sut.foodsConsumed = [makeFood(id: "f1", hour: 8)]
+
+        await sut.onDeleteConfirmed()
+
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f1"])
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onDeleteConfirmed_whenDeleteSucceeds_reloadsFoodsFromServer() async {
+        let remaining = makeFood(id: "f2", hour: 9)
+        let toDelete = makeFood(id: "f1", hour: 8)
+        let sut = makeSUT(fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [remaining]))
+        sut.foodsConsumed = [toDelete, remaining]
+
+        sut.onDeleteRequested(toDelete)
+        await sut.onDeleteConfirmed()
+
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f2"], "a confirmed delete must refetch the day so the removed entry disappears")
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onDeleteConfirmed_whenDeleteFails_showsAlertAndKeepsExistingFoods() async {
+        let existing = makeFood(id: "f1", hour: 8)
+        let sut = makeSUT(deleteFoodConsumed: DeleteFoodConsumedUseCaseFake(shouldThrow: true))
+        sut.foodsConsumed = [existing]
+
+        sut.onDeleteRequested(existing)
+        await sut.onDeleteConfirmed()
+
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f1"], "a failed delete must not silently drop the entry from the list")
+        XCTAssertNotNil(sut.alertItem)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
         fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol = FetchFoodsConsumedForMonthUseCaseFake(),
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol = SetupDefaultMealsUseCaseFake(),
-        confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult: true)
+        confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult: true),
+        deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake()
     ) -> DashboardViewModel {
         let sut = DashboardViewModel(
             fetchMealTypes: fetchMealTypes,
             fetchFoodsConsumedForMonth: fetchFoodsConsumedForMonth,
             setupDefaultMeals: setupDefaultMeals,
-            confirmMealTypesEmpty: confirmMealTypesEmpty
+            confirmMealTypesEmpty: confirmMealTypesEmpty,
+            deleteFoodConsumed: deleteFoodConsumed
         )
         addTeardownBlock { [weak sut] in
             XCTAssertNil(sut, "DashboardViewModel leaked — potential retain cycle")

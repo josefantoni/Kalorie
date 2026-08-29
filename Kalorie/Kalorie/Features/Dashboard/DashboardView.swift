@@ -43,6 +43,13 @@ struct DashboardView: View {
                             NavigationLink(value: food) {
                                 FoodConsumedView(food)
                             }
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    viewModel.onDeleteRequested(food)
+                                } label: {
+                                    Image(systemName: "trash")
+                                }
+                            }
                         }
                     } header: {
                         HStack(spacing: 4) {
@@ -163,6 +170,12 @@ struct DashboardView: View {
                     title: Text(item.title),
                     dismissButton: .default(Text(L10n.Common.ok))
                 )
+            }
+            .alert(L10n.Dashboard.confirmDeleteFood, isPresented: $viewModel.isDeleteConfirmationVisible) {
+                Button(L10n.Common.buttonNo, role: .cancel) {}
+                Button(L10n.Common.buttonYes, role: .destructive) {
+                    Task { await viewModel.onDeleteConfirmed() }
+                }
             }
             .task { await viewModel.onAppear() }
             .onChange(of: scenePhase) { _, newPhase in
@@ -291,7 +304,8 @@ struct DashboardView: View {
             )
         ]),
         setupDefaultMeals: SetupDefaultMealsUseCaseFake(),
-        confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseFake()
+        confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseFake(),
+        deleteFoodConsumed: DeleteFoodConsumedUseCaseFake()
     )
 
     let dataProvider = FirestoreDataProvider()

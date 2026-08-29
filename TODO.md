@@ -86,7 +86,6 @@ area produced are listed below.
 Findings are grouped by area and numbered `A<area>-<n>`. Nothing in them has been fixed — each
 is a decision still to make. The ones most worth settling before the next feature lands:
 
-- **A3-1** — a logged food entry cannot be deleted at all.
 - **A4-1** — the unit picker silently changes the amount being logged.
 - **A3-3** — foods logged after picking a day in the calendar land at midnight, outside every meal.
 - **A1-2** — account deletion destroys the data before the step that can fail.
@@ -354,18 +353,15 @@ been fixed.
 
 ## Audit findings — 3. Dashboard and meal types
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3. Nothing here has
-been fixed.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3.
 
 ### Missing capabilities that turn small mistakes into permanent ones
 
-- [ ] **A3-1 — A logged food entry cannot be deleted.** There is no `DeleteFoodConsumed` use
-  case anywhere in the project; the only code that removes a `foodConsumed` document is
-  `DeleteAccountUseCase`. The Dashboard list has no `.onDelete`, and `FoodConsumedDetailViewModel`
-  exposes only `weight`. So a food logged by mistake — the wrong product, the wrong day, a
-  double tap — is in the user's history forever, and the closest thing to a fix is setting its
-  weight to a small number. This is the single largest gap the review found: it is not a bug in
-  anything, it is a missing operation that every other operation assumes exists.
+- [x] **A3-1 — A logged food entry cannot be deleted.** Fixed: `DeleteFoodConsumedUseCase`
+  removes the `foodConsumed` document, and the Dashboard list row now has a destructive swipe
+  action (with a confirm/cancel alert) that calls it and refetches the day.
+  `Kalorie/Kalorie/Core/UseCases/DeleteFoodConsumedUseCase.swift`,
+  `Kalorie/Kalorie/Features/Dashboard/DashboardViewModel.swift:onDeleteRequested`
 
 - [ ] **A3-2 — A logged entry's time and date cannot be changed either.**
   `UpdateFoodConsumedUseCase` takes `(food, newWeight)` and rewrites the document with
