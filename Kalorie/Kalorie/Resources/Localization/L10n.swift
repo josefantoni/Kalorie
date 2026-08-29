@@ -14,6 +14,7 @@ enum L10n {
         static var buttonFavourite: String { String(localized: "common_button_favourite") }
         static var buttonYes: String { String(localized: "common_button_yes") }
         static var buttonNo: String { String(localized: "common_button_no") }
+        static var unitGrams: String { String(localized: "common_unit_grams") }
     }
 
     enum Auth {

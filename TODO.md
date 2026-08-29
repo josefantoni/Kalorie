@@ -593,7 +593,7 @@ been fixed.
 
 ### Localization and formatting
 
-- [ ] **A5-6 — Macro values bypass localization entirely.** `String(format: "%.1f g", …)` appears
+- [x] **A5-6 — Macro values bypass localization entirely.** `String(format: "%.1f g", …)` appears
   at seventeen call sites across five files. Two consequences: the decimal separator is always a
   dot, so a Czech user types "1,5" into a field and reads "1.5" back out of the summary; and the
   unit is inside the format string, so "g" cannot be translated and cannot be swapped for

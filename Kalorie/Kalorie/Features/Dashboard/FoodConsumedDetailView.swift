@@ -62,25 +62,25 @@ struct FoodConsumedDetailView: View {
                     Text("\(macros.calories) kcal")
                 }
                 LabeledContent(L10n.FoodQuantity.protein) {
-                    Text(String(format: "%.1f g", macros.protein))
+                    Text(macros.protein.formattedGrams())
                 }
                 LabeledContent(L10n.FoodQuantity.carbs) {
-                    Text(String(format: "%.1f g", macros.carbohydrate))
+                    Text(macros.carbohydrate.formattedGrams())
                 }
                 LabeledContent(L10n.AddFood.fieldCarbsSugar) {
-                    Text(String(format: "%.1f g", macros.carbohydrateSugar))
+                    Text(macros.carbohydrateSugar.formattedGrams())
                 }
                 LabeledContent(L10n.FoodQuantity.fat) {
-                    Text(String(format: "%.1f g", macros.fat))
+                    Text(macros.fat.formattedGrams())
                 }
                 LabeledContent(L10n.AddFood.fieldFatUnsaturated) {
-                    Text(String(format: "%.1f g", macros.fatUnsaturated))
+                    Text(macros.fatUnsaturated.formattedGrams())
                 }
                 LabeledContent(L10n.FoodQuantity.fiber) {
-                    Text(String(format: "%.1f g", macros.fiber))
+                    Text(macros.fiber.formattedGrams())
                 }
                 LabeledContent(L10n.AddFood.fieldSalt) {
-                    Text(String(format: "%.2f g", macros.salt))
+                    Text(macros.salt.formattedGrams(fractionDigits: 2))
                 }
             }
 
