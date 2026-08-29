@@ -590,12 +590,3 @@ been fixed.
   and `loadFoods` each end in `alertItem = AlertItem(title: L10n.Common.errorUnknown)`. A user who
   is offline, a user whose security rules changed and a user hitting a decoding bug all get the
   same sentence. At minimum, offline should be distinguishable from everything else.
-
-### Naming
-
-- [ ] **A5-8 — `FoodConsumedView` lives in `FoodItemView.swift`.** The file name, the type name
-  and the header comment (`FoodConsumed.swift`) all disagree, and the file sits next to
-  `FoodItemRow.swift`, which *does* render a `FoodItemDomain` — so the two names are not just
-  wrong, they are swapped in the reader's head. Against the project's own
-  `[Feature][Type].swift` rule. Pure rename.
-  `Kalorie/Kalorie/Components/FoodItemView.swift:11`
