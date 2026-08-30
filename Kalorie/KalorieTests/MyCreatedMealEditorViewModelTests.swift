@@ -307,6 +307,7 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
     private func makeFoodItem(id: String = "12345") -> FoodItemDomain {
         FoodItemDomain(
             id: id,
+            kind: .catalogue,
             czName: "Ovesné vločky",
             engName: "Oats",
             weight: 100,

@@ -201,7 +201,7 @@ final class AddFoodSheetViewModel: ObservableObject {
     }
 
     func isMyCreatedMeal(_ item: FoodItemDomain) -> Bool {
-        myCreatedMeals.contains { $0.id == item.id }
+        item.kind == .createdMeal
     }
 
     func onFavouriteChanged(id: String, isFavourite: Bool, item: FoodItemDomain) {
@@ -220,6 +220,7 @@ final class AddFoodSheetViewModel: ObservableObject {
         defer { state = .loaded }
         let item = FoodItemDomain(
             id: formInput.scannedCode,
+            kind: .catalogue,
             czName: formInput.name,
             engName: "",
             weight: formInput.weightOfProduct,

@@ -157,6 +157,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         FoodConsumedDTO(
             id: id,
             foodItemId: id,
+            foodItemKind: .catalogue,
             czName: "Test",
             engName: "Test",
             weight: 100,
@@ -176,6 +177,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         FavouriteFoodDTO(
             item: FoodItemDomain(
                 id: id,
+                kind: .catalogue,
                 czName: "Test",
                 engName: "Test",
                 weight: 100,

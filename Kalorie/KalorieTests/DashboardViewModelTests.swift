@@ -228,6 +228,7 @@ final class DashboardViewModelTests: XCTestCase {
         return FoodConsumedDomain(
             id: id,
             foodItemId: id,
+            foodItemKind: .catalogue,
             czName: "Jídlo",
             engName: "Food",
             weight: 100,

@@ -52,6 +52,7 @@ final class FetchFavouriteFoodsUseCaseTests: XCTestCase {
         FavouriteFoodDTO(
             item: FoodItemDomain(
                 id: id,
+                kind: .catalogue,
                 czName: czName,
                 engName: "",
                 weight: 100,

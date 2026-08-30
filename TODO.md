@@ -86,8 +86,6 @@ area produced are listed below.
 Findings are grouped by area and numbered `A<area>-<n>`. Nothing in them has been fixed — each
 is a decision still to make. The ones most worth settling before the next feature lands:
 
-- **A2-1** — entries logged from OpenFoodFacts carry a `food_item_id` that points nowhere, which
-  blocks *Rank search results by frequency*.
 - **A5-1** — a release build has nowhere to report an error to.
 
 
@@ -221,7 +219,7 @@ been fixed.
 
 ### Correctness
 
-- [ ] **A2-1 — `food_item_id` resolves to nothing for most entries, and the condition for fixing
+- [x] **A2-1 — `food_item_id` resolves to nothing for most entries, and the condition for fixing
   that has now been met.** `SaveFoodConsumedUseCase` always stores `food_item_id: item.id`, but
   three of the four ways a food is chosen produce an id that is not in `foodItems`: an
   OpenFoodFacts search result, an OpenFoodFacts barcode lookup (neither is ever imported —

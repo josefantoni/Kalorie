@@ -47,6 +47,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
         let dto = FoodConsumedDTO(
             id: UUID().uuidString,
             foodItemId: item.id,
+            foodItemKind: item.kind,
             czName: item.czName,
             engName: item.engName,
             weight: grams,

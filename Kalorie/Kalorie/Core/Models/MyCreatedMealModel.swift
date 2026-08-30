@@ -42,6 +42,7 @@ extension MyCreatedMealDomain {
         }
         return FoodItemDomain(
             id: id,
+            kind: .createdMeal,
             czName: name,
             engName: "",
             weight: totalGrams,

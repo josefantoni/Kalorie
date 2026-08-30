@@ -36,6 +36,7 @@ struct FetchFoodItemByBarcodeUseCase: FetchFoodItemByBarcodeUseCaseProtocol {
         guard let dto else { return nil }
         return FoodItemDomain(
             id: dto.id,
+            kind: .catalogue,
             czName: dto.czName,
             engName: dto.engName,
             weight: dto.weight,

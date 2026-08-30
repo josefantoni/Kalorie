@@ -71,6 +71,7 @@ final class PendingMergeSnapshotStoreTests: XCTestCase {
                 FoodConsumedDTO(
                     id: id,
                     foodItemId: id,
+                    foodItemKind: .catalogue,
                     czName: "Test",
                     engName: "Test",
                     weight: 100,

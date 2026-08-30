@@ -139,6 +139,7 @@ struct FoodConsumedDetailView: View {
                 food: FoodConsumedDomain(
                     id: "1",
                     foodItemId: "1",
+                    foodItemKind: .catalogue,
                     czName: "Ovesné vločky",
                     engName: "Oats",
                     weight: 80,

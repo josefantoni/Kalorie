@@ -126,14 +126,22 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.displayedResults.map(\.id), ["meal", "fav", "cat"])
     }
 
+    @MainActor
+    func test_displayedResults_createdMeal_hasCreatedMealKind() async {
+        let sut = makeSUT(fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "meal", name: "Ovesná kaše")]))
+        await sut.onAppear()
+        sut.searchText = "ov"
+        XCTAssertEqual(sut.displayedResults.first(where: { $0.id == "meal" })?.kind, .createdMeal)
+    }
+
     // MARK: - isMyCreatedMeal
 
     @MainActor
-    func test_isMyCreatedMeal_afterOnAppear_returnsTrueForKnownMealId() async {
-        let sut = makeSUT(fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "meal", name: "Kaše")]))
-        await sut.onAppear()
-        XCTAssertTrue(sut.isMyCreatedMeal(makeFoodItem(id: "meal")))
-        XCTAssertFalse(sut.isMyCreatedMeal(makeFoodItem(id: "other")))
+    func test_isMyCreatedMeal_returnsTrueOnlyForCreatedMealKind() {
+        let sut = makeSUT()
+        XCTAssertTrue(sut.isMyCreatedMeal(makeFoodItem(kind: .createdMeal)))
+        XCTAssertFalse(sut.isMyCreatedMeal(makeFoodItem(kind: .catalogue)))
+        XCTAssertFalse(sut.isMyCreatedMeal(makeFoodItem(kind: .external)))
     }
 
     // MARK: - Helpers
@@ -159,9 +167,10 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         )
     }
 
-    private func makeFoodItem(id: String = "test-id", czName: String = "Tvaroh") -> FoodItemDomain {
+    private func makeFoodItem(id: String = "test-id", czName: String = "Tvaroh", kind: FoodItemKind = .catalogue) -> FoodItemDomain {
         FoodItemDomain(
             id: id,
+            kind: kind,
             czName: czName,
             engName: "Cottage cheese",
             weight: 100,

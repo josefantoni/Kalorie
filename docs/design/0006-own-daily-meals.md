@@ -303,11 +303,22 @@ The two values cannot collide: `CreateFoodItemUseCase.swift:37` requires a catal
 non-empty run of digits, and a `UUID().uuidString` always contains hyphens and letters. Opening a
 logged meal's detail screen therefore costs two Firestore reads that are guaranteed to miss.
 
-**No discriminator field for v1.** A `food_item_kind` on `FoodConsumedDTO` would make the two wasted
-reads avoidable and the semantics explicit, at the price of a required field on an existing
-document — the migration 0003 already paid for once — plus a branch in every construction site, to
-save two reads on a screen the user opens deliberately. Revisit if a second consumer of
-`food_item_id` appears; flagged in *Risks* rather than pre-built.
+**Update — the discriminator now exists.** This section originally deferred a `food_item_kind`
+field, with an explicit revisit condition: "if a second consumer of `food_item_id` appears." That
+consumer arrived as *Rank search results by frequency* (`TODO.md` **A2-1**), which needs to group
+logged entries by origin and cannot do so on an id that may be a catalogue barcode, an
+uncatalogued OpenFoodFacts barcode, or a meal UUID. `FoodItemDomain.kind` /
+`FoodConsumedDTO.foodItemKind` (`FoodItemKind`: `.catalogue` / `.external` / `.createdMeal`) now
+carries this explicitly, set once at selection time and threaded through unchanged. The same field
+was added to `FavouriteFoodDTO`, since a favourite can originate from either a catalogue or an
+external item and would otherwise reintroduce the same ambiguity one hop upstream.
+`FoodConsumedDetailViewModel.onAppear()` now gates the two reads separately, not by one combined
+`== .catalogue` check: the catalogue lookup (`fetchFoodItemByBarcode`) only ever runs for
+`.catalogue`, since `.external` and `.createdMeal` are both a guaranteed miss against `foodItems`.
+The favourite lookup (`isFavouriteFood`) runs for `.catalogue` **and** `.external` — favouriting
+queries the separate `favouriteFoods` collection by id and doesn't care where the id came from
+(ADR 0012's *"favourites ... still work on external items"*) — and is skipped only for
+`.createdMeal`, matching the "cannot be favourited from the Dashboard" degradation above.
 
 ### Security rules
 
@@ -875,7 +886,7 @@ logged meal.
 | `canSave` and the use case's validation drift | The button enables for a meal the use case then rejects, or disables for one it would accept | One shared predicate, and a test that drives both from the same cases. Listed as an intent-carrying test above |
 | Confirmation on every save | Iterative editing costs two taps per save, which is felt most while fixing a single gram value | Accepted by decision. If it grates, the narrower rule is to confirm on create and on destructive edits only |
 | The composition validity rule is documented, not extracted | An Android client implements it differently and writes meals iOS considers malformed — a 0.5 g ingredient, or an untrimmed name | Accepted deliberately: the failure is a sloppy meal, not a wrong macro, because the density is shared through MacroKit and computes correctly regardless. The rule is written out in *Shared logic (KMP)* and is the first thing to extract when the Android client starts |
-| `food_item_id` is no longer always a catalogue barcode | A future consumer written against the old meaning silently mis-resolves | Both current readers already use `try?` and handle the miss. Recorded under *Cross-cutting*; the `food_item_kind` discriminator is the escape hatch if a third consumer appears |
+| `food_item_id` is no longer always a catalogue barcode | A future consumer written against the old meaning silently mis-resolves | Resolved: `food_item_kind` (added for A2-1) makes the origin explicit instead of relying on id-shape inference |
 | Two guaranteed-miss Firestore reads when opening a logged meal's detail | Wasted round trips | Small and bounded — the screen is opened deliberately, one entry at a time. The favourite button is hidden rather than shown-disabled, so the reads have no visible UI cost beyond the round trip itself |
 | The management section is buried inside the meal-layout sheet | A user never finds out their meals can be edited or deleted, and re-creates one to fix a gram value | Accepted: it sits above *Rozvržení jídel*, a sheet the user already opens to manage how their day is organised — the same mental model as managing composed meals. If it proves too hidden, the cheap escalation is a *Vlastní jídla* row in the add-food sheet's section footer, not a third Dashboard toolbar item |
 | Two screens can now write the same meal | The editor pushed from the section and a stale section behind it disagree after a save | The section reloads on the editor's save callback, the same `onSaved` pattern `AddFoodSheetViewModel.onFoodConsumedSaved()` already uses. Worth one view-model test per direction (save, delete) |

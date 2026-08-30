@@ -27,6 +27,7 @@ final class IsFavouriteFoodUseCaseTests: XCTestCase {
         dataProvider.stubbedDTO = FavouriteFoodDTO(
             item: FoodItemDomain(
                 id: "12345",
+                kind: .catalogue,
                 czName: "Vejce",
                 engName: "Egg",
                 weight: 100,

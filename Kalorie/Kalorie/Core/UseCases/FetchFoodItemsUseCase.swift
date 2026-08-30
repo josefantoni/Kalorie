@@ -31,6 +31,7 @@ struct FetchFoodItemsUseCase: FetchFoodItemsUseCaseProtocol {
         return dtos.map {
             FoodItemDomain(
                 id: $0.id,
+                kind: .catalogue,
                 czName: $0.czName,
                 engName: $0.engName,
                 weight: $0.weight,

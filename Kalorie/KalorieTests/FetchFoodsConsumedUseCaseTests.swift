@@ -24,6 +24,7 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
             FoodConsumedDTO(
                 id: "1",
                 foodItemId: "1",
+                foodItemKind: .catalogue,
                 czName: "Vejce",
                 engName: "Egg",
                 weight: 100,
@@ -40,6 +41,7 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
             FoodConsumedDTO(
                 id: "2",
                 foodItemId: "2",
+                foodItemKind: .catalogue,
                 czName: "Chléb",
                 engName: "",
                 weight: 50,
@@ -69,6 +71,7 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
             FoodConsumedDTO(
                 id: "1",
                 foodItemId: "1",
+                foodItemKind: .catalogue,
                 czName: "Vejce",
                 engName: "Egg",
                 weight: 100,
@@ -85,6 +88,7 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
             FoodConsumedDTO(
                 id: "2",
                 foodItemId: "2",
+                foodItemKind: .catalogue,
                 czName: "Včerejší chléb",
                 engName: "",
                 weight: 50,

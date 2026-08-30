@@ -30,6 +30,12 @@ final class AddFavouriteFoodUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedDTO?.id, "12345")
     }
 
+    func test_addFavouriteFood_storesTheItemsKindAsFoodItemKind() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeItem(kind: .external))
+        XCTAssertEqual(dataProvider.savedDTO?.foodItemKind, .external)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(userId: String? = "test-user") -> (sut: AddFavouriteFoodUseCase, dataProvider: AddFavouriteFoodDataProviderFake) {
@@ -39,9 +45,10 @@ final class AddFavouriteFoodUseCaseTests: XCTestCase {
         return (sut, dataProvider)
     }
 
-    private func makeItem(id: String = "12345") -> FoodItemDomain {
+    private func makeItem(id: String = "12345", kind: FoodItemKind = .catalogue) -> FoodItemDomain {
         FoodItemDomain(
             id: id,
+            kind: kind,
             czName: "Vejce",
             engName: "Egg",
             weight: 100,

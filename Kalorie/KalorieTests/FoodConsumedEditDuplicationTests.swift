@@ -34,6 +34,7 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
     private func makeItem() -> FoodItemDomain {
         FoodItemDomain(
             id: "12345",
+            kind: .catalogue,
             czName: "Vejce",
             engName: "Egg",
             weight: 100,
