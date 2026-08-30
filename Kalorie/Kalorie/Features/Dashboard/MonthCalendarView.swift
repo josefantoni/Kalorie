@@ -135,6 +135,14 @@ struct MonthCalendarView: View {
     private func selectDay(_ day: Int) {
         var components = calendar.dateComponents([.year, .month], from: displayedMonth)
         components.day = day
+        guard let dayOnly = calendar.date(from: components) else { return }
+
+        let timeSource = calendar.isDateInToday(dayOnly) ? Date.now : selectedDay
+        let timeComponents = calendar.dateComponents([.hour, .minute, .second], from: timeSource)
+        components.hour = timeComponents.hour
+        components.minute = timeComponents.minute
+        components.second = timeComponents.second
+
         guard let date = calendar.date(from: components) else { return }
         onDaySelected(date)
     }
