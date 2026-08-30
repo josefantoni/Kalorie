@@ -86,7 +86,6 @@ area produced are listed below.
 Findings are grouped by area and numbered `A<area>-<n>`. Nothing in them has been fixed — each
 is a decision still to make. The ones most worth settling before the next feature lands:
 
-- **A3-3** — foods logged after picking a day in the calendar land at midnight, outside every meal.
 - **A1-2** — account deletion destroys the data before the step that can fail.
 - **A2-1** — entries logged from OpenFoodFacts carry a `food_item_id` that points nowhere, which
   blocks *Rank search results by frequency*.
@@ -372,17 +371,12 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3.
 
 ### Correctness
 
-- [ ] **A3-3 — Foods logged after picking a day from the calendar land at midnight, outside
-  every meal.** `MonthCalendarView.selectDay` rebuilds the date from year/month/day components
-  only, so `selectedDay` becomes local **00:00**. `DashboardView` passes `selectedDay` straight
-  through to `FoodQuantityViewModel.selectedDate` and on to `SaveFoodConsumedUseCase`, so the
-  entry is stored at minute 0 — which the default meal layout (05:00–20:00) does not cover. The
-  food appears in the *unassigned* section at the bottom of the day, and by A3-1 and A3-2 it can
-  neither be moved nor removed. It is also **sticky**: `DayPickerView` steps with
-  `calendar.date(byAdding: .day, …)`, which preserves the time of day, so every day reached after
-  one calendar pick keeps logging at midnight until the app is relaunched. The fix is to carry a
-  sensible time onto a calendar-picked day — the current time for today, midday or the previous
-  `selectedDay`'s time for any other day.
+- [x] **A3-3 — Foods logged after picking a day from the calendar land at midnight, outside
+  every meal.** Fixed: `MonthCalendarView.selectDay` now carries a sensible time onto the
+  picked day instead of leaving it at local 00:00 — the current time when the picked day is
+  today, otherwise the time of day already held by `selectedDay`. Because `DayPickerView` steps
+  with `calendar.date(byAdding: .day, …)`, which preserves time of day, that sensible time then
+  carries forward through day-by-day navigation too.
   `Kalorie/Kalorie/Features/Dashboard/MonthCalendarView.swift:135`
 
 - [ ] **A3-4 — Overlapping meal windows list and count the same food twice.** `groupedFoods`
