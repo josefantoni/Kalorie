@@ -13,6 +13,10 @@ enum Constants {
         static let secondsPerDay: TimeInterval = 24 * 60 * 60
     }
 
+    enum Auth {
+        static let recentLoginThreshold: TimeInterval = 4 * 60
+    }
+
     enum OpenFoodFacts {
         static let host = "world.openfoodfacts.org"
         static let baseURL = URL(string: "https://\(host)")

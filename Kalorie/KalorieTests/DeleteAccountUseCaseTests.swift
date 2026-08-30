@@ -82,6 +82,27 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         }
     }
 
+    func test_callAsFunction_whenLastSignInIsStale_throwsBeforeDeletingAnyData() async {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedMealTypes = [MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 0, endMinutes: 60)]
+        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        let sut = DeleteAccountUseCase(
+            dataProvider: dataProvider,
+            authProvider: AuthProviderFake(lastSignInDate: Date().addingTimeInterval(-10 * 60)),
+            authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log)
+        )
+
+        do {
+            try await sut()
+            XCTFail("Expected DeleteAccountError.requiresRecentLogin to be thrown")
+        } catch DeleteAccountError.requiresRecentLogin {
+            XCTAssertTrue(log.entries.isEmpty, "A stale session must be rejected before any data is deleted, otherwise the account survives but its history does not")
+        } catch {
+            XCTFail("Expected requiresRecentLogin but got \(error)")
+        }
+    }
+
     func test_callAsFunction_whenRequiresRecentLogin_throwsTypedError() async {
         let log = OperationLog()
         let authCommandProvider = DeleteAccountAuthCommandProviderFake(log: log)

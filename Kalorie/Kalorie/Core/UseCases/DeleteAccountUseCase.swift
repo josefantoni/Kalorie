@@ -41,6 +41,13 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
     func callAsFunction() async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
 
+        if
+            let lastSignInDate = authProvider.lastSignInDate,
+            Date().timeIntervalSince(lastSignInDate) > Constants.Auth.recentLoginThreshold
+        {
+            throw DeleteAccountError.requiresRecentLogin
+        }
+
         let mealTypes: [MealTypeDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.mealTypes(userId: userId))
         for dto in mealTypes {
             try await dataProvider.deleteAsync(id: "\(dto.id)", from: Constants.Firestore.mealTypes(userId: userId))

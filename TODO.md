@@ -86,7 +86,6 @@ area produced are listed below.
 Findings are grouped by area and numbered `A<area>-<n>`. Nothing in them has been fixed — each
 is a decision still to make. The ones most worth settling before the next feature lands:
 
-- **A1-2** — account deletion destroys the data before the step that can fail.
 - **A2-1** — entries logged from OpenFoodFacts carry a `food_item_id` that points nowhere, which
   blocks *Rank search results by frequency*.
 - **A5-1** — a release build has nowhere to report an error to.
@@ -106,15 +105,6 @@ been fixed; each item is a decision still to make.
   user has an iPhone and an iPad, which is the case authentication was built for. Fix is either
   UUID document IDs (see ADR 0010, which is safe to revisit) or a transaction.
   `Kalorie/Kalorie/Core/UseCases/CreateMealTypeUseCase.swift:62`
-
-- [ ] **A1-2 — Account deletion destroys the data before it can fail.**
-  `DeleteAccountUseCase` deletes every subcollection document, then the profile document, and
-  only then calls `deleteCurrentUser()`. When Firebase answers `requiresRecentLogin` — which is
-  the *normal* answer for a session older than a few minutes — the user gets an alert asking
-  them to sign in again, but their food history, favourites and meals are already gone and the
-  account still exists. The order must be inverted, or the auth deletion re-checked up front.
-  `Kalorie/Kalorie/Core/UseCases/DeleteAccountUseCase.swift:44`,
-  `Kalorie/Kalorie/Features/Account/AccountViewModel.swift:105`
 
 - [ ] **A1-3 — Anonymous-data merge breaks past 500 entries.** `MigrateAnonymousDataUseCase`
   reads whole collections with the unfiltered `loadAsync(from:)` and hands them to
