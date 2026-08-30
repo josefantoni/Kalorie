@@ -16,6 +16,7 @@ protocol AuthProviderProtocol {
     var userId: String? { get }
     var isAnonymous: Bool { get }
     var displayName: String? { get }
+    var lastSignInDate: Date? { get }
 }
 
 struct AuthProvider: AuthProviderProtocol {
@@ -33,6 +34,10 @@ struct AuthProvider: AuthProviderProtocol {
     var displayName: String? {
         Auth.auth().currentUser?.displayName
     }
+
+    var lastSignInDate: Date? {
+        Auth.auth().currentUser?.metadata.lastSignInDate
+    }
 }
 
 #if DEBUG
@@ -43,5 +48,6 @@ struct AuthProviderFake: AuthProviderProtocol {
     var userId: String? = "test-user-id"
     var isAnonymous = true
     var displayName: String?
+    var lastSignInDate: Date? = .now
 }
 #endif
