@@ -122,6 +122,7 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
         FoodConsumedDTO(
             id: id,
             foodItemId: id,
+            foodItemKind: .catalogue,
             czName: "Test",
             engName: "Test",
             weight: 100,
@@ -141,6 +142,7 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
         FavouriteFoodDTO(
             item: FoodItemDomain(
                 id: id,
+                kind: .catalogue,
                 czName: "Test",
                 engName: "Test",
                 weight: 100,

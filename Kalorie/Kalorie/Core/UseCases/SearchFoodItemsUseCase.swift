@@ -47,6 +47,7 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
             .map { dto in
                 FoodItemDomain(
                     id: dto.id,
+                    kind: .catalogue,
                     czName: dto.czName,
                     engName: dto.engName,
                     weight: dto.weight,

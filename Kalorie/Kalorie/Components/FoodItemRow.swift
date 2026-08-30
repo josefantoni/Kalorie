@@ -42,6 +42,7 @@ struct FoodItemRow: View {
         FoodItemRow(
             item: FoodItemDomain(
                 id: "1",
+                kind: .catalogue,
                 czName: "Vejce",
                 engName: "Egg",
                 weight: 100,
@@ -62,6 +63,7 @@ struct FoodItemRow: View {
         FoodItemRow(
             item: FoodItemDomain(
                 id: "2",
+                kind: .catalogue,
                 czName: "Chléb",
                 engName: "Bread",
                 weight: 100,

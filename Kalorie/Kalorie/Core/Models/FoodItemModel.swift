@@ -7,11 +7,18 @@
 
 import Foundation
 
+enum FoodItemKind: String, Codable {
+    case catalogue
+    case external
+    case createdMeal = "created_meal"
+}
+
 struct FoodItemDomain: BilingualNamed {
 
     // MARK: - Properties
 
     let id: String
+    let kind: FoodItemKind
     let czName: String
     let engName: String
     let weight: Double
@@ -49,9 +56,18 @@ extension FoodItemDomain {
 
     // MARK: - Init
 
-    init(id: String, czName: String, engName: String, weight: Double, date: Date, nutrition: FoodNutritionValues) {
+    init(
+        id: String,
+        kind: FoodItemKind,
+        czName: String,
+        engName: String,
+        weight: Double,
+        date: Date,
+        nutrition: FoodNutritionValues
+    ) {
         self.init(
             id: id,
+            kind: kind,
             czName: czName,
             engName: engName,
             weight: weight,

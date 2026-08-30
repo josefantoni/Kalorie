@@ -66,6 +66,7 @@ final class CreateFoodItemUseCaseTests: XCTestCase {
     ) -> FoodItemDomain {
         FoodItemDomain(
             id: id,
+            kind: .catalogue,
             czName: name,
             engName: "Cottage cheese",
             weight: weight,

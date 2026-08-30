@@ -60,6 +60,7 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
         let rawOriginalName = product.productNameEn ?? product.productName ?? rawName
         return FoodItemDomain(
             id: product.code,
+            kind: .external,
             czName: displayName,
             engName: rawOriginalName.decodingHTMLEntities(),
             weight: 100,

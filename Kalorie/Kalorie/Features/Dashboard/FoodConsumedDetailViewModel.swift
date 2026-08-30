@@ -65,8 +65,12 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
 
     @MainActor
     func onAppear() async {
-        isFavourite = (try? await isFavouriteFood(id: food.foodItemId)) ?? false
-        catalogueItem = try? await fetchFoodItemByBarcode(barcode: food.foodItemId)
+        if food.foodItemKind != .createdMeal {
+            isFavourite = (try? await isFavouriteFood(id: food.foodItemId)) ?? false
+        }
+        if food.foodItemKind == .catalogue {
+            catalogueItem = try? await fetchFoodItemByBarcode(barcode: food.foodItemId)
+        }
     }
 
     @MainActor

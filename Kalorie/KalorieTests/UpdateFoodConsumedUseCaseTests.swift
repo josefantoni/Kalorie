@@ -18,6 +18,12 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedDTO?.foodItemId, "12345")
     }
 
+    func test_updateFoodConsumed_whenWeightChanges_preservesFoodItemKind() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeFood(weight: 100, kind: .createdMeal), newWeight: 200)
+        XCTAssertEqual(dataProvider.savedDTO?.foodItemKind, .createdMeal)
+    }
+
     func test_updateFoodConsumed_whenNotAuthenticated_throwsAuthError() async throws {
         let (sut, _) = makeSUT(userId: nil)
         do {
@@ -37,10 +43,15 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         return (sut, dataProvider)
     }
 
-    private func makeFood(foodItemId: String = "12345", weight: Double = 100) -> FoodConsumedDomain {
+    private func makeFood(
+        foodItemId: String = "12345",
+        weight: Double = 100,
+        kind: FoodItemKind = .catalogue
+    ) -> FoodConsumedDomain {
         FoodConsumedDomain(
             id: "1",
             foodItemId: foodItemId,
+            foodItemKind: kind,
             czName: "Vejce",
             engName: "Egg",
             weight: weight,

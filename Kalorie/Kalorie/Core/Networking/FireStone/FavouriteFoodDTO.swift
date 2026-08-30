@@ -13,6 +13,7 @@ struct FavouriteFoodDTO: Codable {
     // MARK: - Properties
 
     let id: String
+    let foodItemKind: FoodItemKind
     let czName: String
     let engName: String
     let weight: Double
@@ -41,12 +42,14 @@ struct FavouriteFoodDTO: Codable {
         case fatUnsaturatedFattyAcids = "fat_unsaturated_fatty_acids"
         case carbohydratePureSugar = "carbohydrate_pure_sugar"
         case favouritedAt = "favourited_at"
+        case foodItemKind = "food_item_kind"
     }
 
     // MARK: - Init
 
     init(item: FoodItemDomain, favouritedAt: Date) {
         id = item.id
+        foodItemKind = item.kind
         czName = item.czName
         engName = item.engName
         weight = item.weight
@@ -69,6 +72,7 @@ struct FavouriteFoodDTO: Codable {
     func asDomain() -> FoodItemDomain {
         FoodItemDomain(
             id: id,
+            kind: foodItemKind,
             czName: czName,
             engName: engName,
             weight: weight,

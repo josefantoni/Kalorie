@@ -35,6 +35,7 @@ struct UpdateFoodConsumedUseCase: UpdateFoodConsumedUseCaseProtocol {
         let dto = FoodConsumedDTO(
             id: food.id,
             foodItemId: food.foodItemId,
+            foodItemKind: food.foodItemKind,
             czName: food.czName,
             engName: food.engName,
             weight: newWeight,

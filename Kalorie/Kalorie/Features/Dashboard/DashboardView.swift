@@ -257,6 +257,7 @@ struct DashboardView: View {
             FoodConsumedDomain(
                 id: "1",
                 foodItemId: "1",
+                foodItemKind: .catalogue,
                 czName: "Ovesné vločky",
                 engName: "Oats",
                 weight: 80,
@@ -273,6 +274,7 @@ struct DashboardView: View {
             FoodConsumedDomain(
                 id: "2",
                 foodItemId: "2",
+                foodItemKind: .catalogue,
                 czName: "Kuřecí prsa",
                 engName: "Chicken breast",
                 weight: 150,
@@ -289,6 +291,7 @@ struct DashboardView: View {
             FoodConsumedDomain(
                 id: "3",
                 foodItemId: "3",
+                foodItemKind: .catalogue,
                 czName: "Rýže",
                 engName: "Rice",
                 weight: 200,

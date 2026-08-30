@@ -142,6 +142,7 @@ struct FoodQuantityView: View {
             viewModel: FoodQuantityViewModel(
                 item: FoodItemDomain(
                     id: "1",
+                    kind: .catalogue,
                     czName: "Vejce",
                     engName: "Egg",
                     weight: 100,

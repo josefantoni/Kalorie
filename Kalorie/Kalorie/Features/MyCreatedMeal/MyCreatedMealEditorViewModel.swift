@@ -89,6 +89,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
             MyCreatedMealIngredientDraft(
                 item: FoodItemDomain(
                     id: ingredient.foodItemId,
+                    kind: .catalogue,
                     czName: ingredient.czName,
                     engName: ingredient.engName,
                     weight: ingredient.grams,

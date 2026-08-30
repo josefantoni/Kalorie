@@ -196,6 +196,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
     private func makeFoodItem(caloriesPerHundredGrams: Double = 100) -> FoodItemDomain {
         FoodItemDomain(
             id: "test",
+            kind: .catalogue,
             czName: "Tvaroh",
             engName: "Cottage cheese",
             weight: 100,

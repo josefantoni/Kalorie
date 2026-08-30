@@ -60,6 +60,12 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedDTO?.weight, 150)
     }
 
+    func test_saveFoodConsumed_storesTheItemsKindAsFoodItemKind() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeItem(kind: .external), grams: 100, date: .now)
+        XCTAssertEqual(dataProvider.savedDTO?.foodItemKind, .external)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(userId: String? = "test-user") -> (sut: SaveFoodConsumedUseCase, dataProvider: SaveFoodConsumedDataProviderFake) {
@@ -73,10 +79,12 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
         czName: String = "Vejce",
         engName: String = "Egg",
         weight: Double = 100,
-        caloriesPerHundredGrams: Double = 155
+        caloriesPerHundredGrams: Double = 155,
+        kind: FoodItemKind = .catalogue
     ) -> FoodItemDomain {
         FoodItemDomain(
             id: "12345",
+            kind: kind,
             czName: czName,
             engName: engName,
             weight: weight,

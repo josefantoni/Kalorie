@@ -50,7 +50,56 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.alertItem)
     }
 
+    @MainActor
+    func test_onAppear_whenFoodItemKindIsExternal_stillChecksFavouriteButSkipsCatalogueLookup() async {
+        let sut = makeSUT(
+            food: makeFood(kind: .external),
+            isFavouriteFood: IsFavouriteFoodUseCaseFake(stubbedResult: true),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeCatalogueItem())
+        )
+
+        await sut.onAppear()
+
+        XCTAssertTrue(sut.isFavourite, "an external item is favouritable via its own id, independent of the catalogue")
+        XCTAssertTrue(sut.canShowFavouriteButton)
+    }
+
+    @MainActor
+    func test_onAppear_whenFoodItemKindIsCreatedMeal_skipsFavouriteAndCatalogueLookups() async {
+        let sut = makeSUT(
+            food: makeFood(kind: .createdMeal),
+            isFavouriteFood: IsFavouriteFoodUseCaseFake(stubbedResult: true),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeCatalogueItem())
+        )
+
+        await sut.onAppear()
+
+        XCTAssertFalse(sut.isFavourite, "a created meal has no catalogue counterpart to favourite, so the Dashboard never offers it")
+        XCTAssertFalse(sut.canShowFavouriteButton)
+    }
+
     // MARK: - Helpers
+
+    private func makeCatalogueItem() -> FoodItemDomain {
+        FoodItemDomain(
+            id: "12345",
+            kind: .catalogue,
+            czName: "Ovesné vločky",
+            engName: "Oats",
+            weight: 80,
+            date: .now,
+            energyKJ: 1500,
+            caloriesPerHundredGrams: 370,
+            fat: 7,
+            fatSaturated: 1,
+            fatUnsaturatedFattyAcids: 6,
+            carbohydrate: 65,
+            carbohydratePureSugar: 1,
+            fiber: 10,
+            protein: 13,
+            salt: 0
+        )
+    }
 
     private func makeSUT(
         food: FoodConsumedDomain? = nil,
@@ -76,10 +125,11 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         return sut
     }
 
-    private func makeFood(foodItemId: String = "12345") -> FoodConsumedDomain {
+    private func makeFood(foodItemId: String = "12345", kind: FoodItemKind = .catalogue) -> FoodConsumedDomain {
         FoodConsumedDomain(
             id: "1",
             foodItemId: foodItemId,
+            foodItemKind: kind,
             czName: "Ovesné vločky",
             engName: "Oats",
             weight: 80,
