@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseFirestore
+import OSLog
 
 protocol FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T]
@@ -34,7 +35,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ GET \(collection) → \(result.count) items")
             return result
         } catch {
-            log("❌ GET \(collection): \(error)")
+            logFailure("❌ GET \(collection)", error: error)
             throw error
         }
     }
@@ -48,7 +49,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ GET \(collection) (server) → \(result.count) items")
             return result
         } catch {
-            log("❌ GET \(collection) (server): \(error)")
+            logFailure("❌ GET \(collection) (server)", error: error)
             throw error
         }
     }
@@ -66,7 +67,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ GET \(collection) → \(result.count) items")
             return result
         } catch {
-            log("❌ GET \(collection): \(error)")
+            logFailure("❌ GET \(collection)", error: error)
             throw error
         }
     }
@@ -85,7 +86,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ GET \(collection) → \(result.count) items")
             return result
         } catch {
-            log("❌ GET \(collection): \(error)")
+            logFailure("❌ GET \(collection)", error: error)
             throw error
         }
     }
@@ -103,7 +104,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ GET \(collection) WHERE \(field) == '\(value)' → \(result == nil ? "nil" : "found")")
             return result
         } catch {
-            log("❌ GET \(collection): \(error)")
+            logFailure("❌ GET \(collection)", error: error)
             throw error
         }
     }
@@ -121,7 +122,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ GET \(collection) → \(result.count) items")
             return result
         } catch {
-            log("❌ GET \(collection): \(error)")
+            logFailure("❌ GET \(collection)", error: error)
             throw error
         }
     }
@@ -133,7 +134,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             try await Firestore.firestore().collection(collection).addDocument(data: data)
             log("✅ POST \(collection)")
         } catch {
-            log("❌ POST \(collection): \(error)")
+            logFailure("❌ POST \(collection)", error: error)
             throw error
         }
     }
@@ -145,7 +146,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             try await Firestore.firestore().collection(collection).document(id).setData(data)
             log("✅ SET \(id) → \(collection)")
         } catch {
-            log("❌ SET \(id) → \(collection): \(error)")
+            logFailure("❌ SET \(id) → \(collection)", error: error)
             throw error
         }
     }
@@ -162,7 +163,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             try await batch.commit()
             log("✅ BATCH SET \(items.count) items → \(collection)")
         } catch {
-            log("❌ BATCH SET \(collection): \(error)")
+            logFailure("❌ BATCH SET \(collection)", error: error)
             throw error
         }
     }
@@ -173,14 +174,20 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             try await Firestore.firestore().collection(collection).document(id).delete()
             log("✅ DELETE \(id) from \(collection)")
         } catch {
-            log("❌ DELETE \(id) from \(collection): \(error)")
+            logFailure("❌ DELETE \(id) from \(collection)", error: error)
             throw error
         }
     }
 }
 
+private let logger = Log.logger("firestore")
+
 private func log(_ message: String) {
     #if DEBUG
     print(message)
     #endif
+}
+
+private func logFailure(_ message: String, error: Error) {
+    logger.error("\(message): \(String(describing: error), privacy: .public)")
 }

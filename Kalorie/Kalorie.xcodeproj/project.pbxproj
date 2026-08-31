@@ -17,6 +17,7 @@
 		B74120D8222DF1130D4F05B1 /* TextKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AE53F7D212EDE430F92DF1C /* TextKit.xcframework */; };
 		D25725F186D3199499A6CD75 /* MealKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EF9A4CE03DFBCE693EF2F49 /* MealKit.xcframework */; };
 		E6C0BF6417AFBF06AE2C644A /* MacroKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F33A3B2218AFA5E33204F9B /* MacroKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		EC5634EF5F520D783DDC6BB5 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 0D59EE77D1F2615EF379053B /* FirebaseCrashlytics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,6 +98,7 @@
 			files = (
 				86C775E32C2A6E1600FC4493 /* FirebaseFirestore in Frameworks */,
 				864EAE1B2FF4043900D0C4AE /* FirebaseAuth in Frameworks */,
+				EC5634EF5F520D783DDC6BB5 /* FirebaseCrashlytics in Frameworks */,
 				1A778558922BDCEE5A8C47CB /* GoogleSignIn in Frameworks */,
 				721DCA1D2D414EEBC74AC528 /* MacroKit.xcframework in Frameworks */,
 				D25725F186D3199499A6CD75 /* MealKit.xcframework in Frameworks */,
@@ -167,6 +169,7 @@
 				1607450784FF2995A1BE09C6 /* Embed Frameworks */,
 				860C154C2C10B01B0062D6E7 /* Resources */,
 				86FFA1D52C145EC0000D53AA /* ShellScript */,
+				45E26B9E7E9951DC883D439E /* Upload Crashlytics dSYMs */,
 			);
 			buildRules = (
 			);
@@ -179,6 +182,7 @@
 			packageProductDependencies = (
 				86C775E22C2A6E1600FC4493 /* FirebaseFirestore */,
 				864EAE1A2FF4043900D0C4AE /* FirebaseAuth */,
+				0D59EE77D1F2615EF379053B /* FirebaseCrashlytics */,
 				F70D6FBB69C5989404ADDFD7 /* GoogleSignIn */,
 			);
 			productName = Kalorie;
@@ -320,6 +324,30 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"$SRCROOT/../scripts/build-kmp-framework.sh\" MacroKit\n";
+			showEnvVarsInLog = 0;
+		};
+		45E26B9E7E9951DC883D439E /* Upload Crashlytics dSYMs */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+				"$(DWARF_DSYM_FOLDER_PATH)/$(DWARF_DSYM_FILE_NAME)",
+			);
+			name = "Upload Crashlytics dSYMs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
 			showEnvVarsInLog = 0;
 		};
 		699B3BE6FFA2B83A508CC13A /* Build MealKit (Gradle) */ = {
@@ -786,6 +814,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0D59EE77D1F2615EF379053B /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
 		86186DAB2C2C63B500176E09 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
