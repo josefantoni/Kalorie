@@ -54,6 +54,14 @@ firebase emulators:start
 and the failure only shows up at runtime. When adding a collection to `Constants.Firestore`, add
 a matching rule block in the same change.
 
+## Crashlytics
+
+No Firebase Console toggle is needed — unlike the Auth providers above, Crashlytics activates
+itself on the first symbol/crash upload. Confirm it shows up in the console after the first
+Release build that ships with the `FirebaseCrashlytics` product and the dSYM-upload Run Script
+phase (see [design doc 0007](design/0007-crash-reporting-and-logging.md)). Collection is enabled
+in Release and disabled in `DEBUG` (`AppDelegate.application(_:didFinishLaunchingWithOptions:)`).
+
 ## CI
 
 `.github/workflows` runs `xcodebuild test` on pull requests against `main`. It writes

@@ -86,7 +86,8 @@ area produced are listed below.
 Findings are grouped by area and numbered `A<area>-<n>`. Nothing in them has been fixed — each
 is a decision still to make. The ones most worth settling before the next feature lands:
 
-- **A5-1** — a release build has nowhere to report an error to.
+- **A5-1** — a release build has nowhere to report an error to. Design:
+  [docs/design/0007-crash-reporting-and-logging.md](docs/design/0007-crash-reporting-and-logging.md).
 
 
 ## Audit findings — 1. Data layer and Firestore model
@@ -533,7 +534,8 @@ been fixed.
   sees "unknown error" and nobody else sees anything. Every other finding in this audit becomes
   much harder to confirm in the field because of this one. Firebase is already a dependency, so
   adding Crashlytics with non-fatal error recording is a small change with a large payoff — and
-  it should land **before** first release, not after the first support request.
+  it should land **before** first release, not after the first support request. Design:
+  [docs/design/0007-crash-reporting-and-logging.md](docs/design/0007-crash-reporting-and-logging.md).
 
 - [ ] **A5-2 — Errors are discarded at the point they are caught.** Thirteen `try? await` call
   sites drop errors entirely, and the `catch` blocks that do run bind the error only to map it to
