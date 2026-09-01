@@ -34,7 +34,10 @@ struct CreateFoodItemUseCase: CreateFoodItemUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemDomain {
-        guard !item.id.isEmpty && item.id.allSatisfy({ $0.isNumber }) else { throw CreateFoodItemError.invalidCode }
+        guard
+            item.id.allSatisfy({ $0.isASCII && $0.isNumber }),
+            [8, 12, 13].contains(item.id.count)
+        else { throw CreateFoodItemError.invalidCode }
         guard !item.czName.isEmpty else { throw CreateFoodItemError.invalidName }
         guard item.caloriesPerHundredGrams > 0 else { throw CreateFoodItemError.invalidCalories }
         guard item.weight > 0 else { throw CreateFoodItemError.invalidWeight }

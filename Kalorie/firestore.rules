@@ -12,7 +12,7 @@ service cloud.firestore {
 
     match /foodItems/{itemId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null && itemId.matches('[0-9]{8}|[0-9]{12}|[0-9]{13}');
     }
   }
 }

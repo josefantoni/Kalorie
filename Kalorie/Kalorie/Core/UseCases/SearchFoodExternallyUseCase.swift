@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import MacroKit
 
 enum SearchFoodExternallyError: Error {
     case invalidURL
@@ -31,43 +30,7 @@ struct SearchFoodExternallyUseCase: SearchFoodExternallyUseCaseProtocol {
         guard let url = components?.url else { throw SearchFoodExternallyError.invalidURL }
         let (data, _) = try await URLSession.shared.data(from: url)
         let response = try JSONDecoder().decode(OpenFoodFactsResponseDTO.self, from: data)
-        return response.products.compactMap(mapToDomain)
-    }
-
-    // MARK: - Private
-
-    private func mapToDomain(_ product: OpenFoodFactsProductDTO) -> FoodItemDomain? {
-        guard
-            let nutriments = product.nutriments,
-            let kcal = nutriments.energyKcal100g,
-            kcal > 0,
-            let rawName = product.productNameCs ?? product.productNameEn ?? product.productName,
-            !rawName.isEmpty
-        else { return nil }
-        let displayName = rawName.decodingHTMLEntities()
-        let fat = nutriments.fat100g ?? 0
-        let saturatedFat = nutriments.saturatedFat100g ?? 0
-        let carbohydrate = nutriments.carbohydrates100g ?? 0
-        let protein = nutriments.proteins100g ?? 0
-        let rawOriginalName = product.productNameEn ?? product.productName ?? rawName
-        return FoodItemDomain(
-            id: product.code,
-            kind: .external,
-            czName: displayName,
-            engName: rawOriginalName.decodingHTMLEntities(),
-            weight: 100,
-            date: .now,
-            energyKJ: nutriments.energyKJ100g ?? MacrosKt.energyKJFromMacros(fat: fat, carbohydrate: carbohydrate, protein: protein),
-            caloriesPerHundredGrams: kcal,
-            fat: fat,
-            fatSaturated: saturatedFat,
-            fatUnsaturatedFattyAcids: max(0, fat - saturatedFat),
-            carbohydrate: carbohydrate,
-            carbohydratePureSugar: nutriments.sugars100g ?? 0,
-            fiber: nutriments.fiber100g ?? 0,
-            protein: protein,
-            salt: nutriments.salt100g ?? 0
-        )
+        return response.products.compactMap { $0.asDomain() }
     }
 
 }

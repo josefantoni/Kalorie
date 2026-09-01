@@ -22,6 +22,26 @@ final class CreateFoodItemUseCaseTests: XCTestCase {
         }
     }
 
+    func test_createFoodItem_withCodeOfInvalidLength_throwsInvalidCodeError() async throws {
+        let (sut, _) = makeSUT()
+        do {
+            _ = try await sut(makeItem(id: "123456789"))
+            XCTFail("Expected invalidCode error")
+        } catch CreateFoodItemError.invalidCode {
+            // pass
+        }
+    }
+
+    func test_createFoodItem_withNonASCIIDigits_throwsInvalidCodeError() async throws {
+        let (sut, _) = makeSUT()
+        do {
+            _ = try await sut(makeItem(id: "١٢٣٤٥٦٧٨"))
+            XCTFail("Expected invalidCode error")
+        } catch CreateFoodItemError.invalidCode {
+            // pass
+        }
+    }
+
     func test_createFoodItem_withEmptyName_throwsInvalidNameError() async throws {
         let (sut, _) = makeSUT()
         do {
