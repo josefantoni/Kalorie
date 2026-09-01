@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 struct OpenFoodFactsResponseDTO: Decodable {
 
@@ -40,6 +41,44 @@ struct OpenFoodFactsProductDTO: Decodable {
         case productNameEn = "product_name_en"
         case productName = "product_name"
         case nutriments
+    }
+
+    // MARK: - Functions
+
+    func asDomain() -> FoodItemDomain? {
+        // Reject products missing calories or name — a partial item would show 0 kcal in the UI,
+        // which is worse than "not found". Callers treat nil as product not found.
+        guard
+            let nutriments,
+            let kcal = nutriments.energyKcal100g,
+            kcal > 0,
+            let rawName = productNameCs ?? productNameEn ?? productName,
+            !rawName.isEmpty
+        else { return nil }
+        let displayName = rawName.decodingHTMLEntities()
+        let fat = nutriments.fat100g ?? 0
+        let saturatedFat = nutriments.saturatedFat100g ?? 0
+        let carbohydrate = nutriments.carbohydrates100g ?? 0
+        let protein = nutriments.proteins100g ?? 0
+        let rawOriginalName = productNameEn ?? productName ?? rawName
+        return FoodItemDomain(
+            id: code,
+            kind: .external,
+            czName: displayName,
+            engName: rawOriginalName.decodingHTMLEntities(),
+            weight: 100,
+            date: .now,
+            energyKJ: nutriments.energyKJ100g ?? MacrosKt.energyKJFromMacros(fat: fat, carbohydrate: carbohydrate, protein: protein),
+            caloriesPerHundredGrams: kcal,
+            fat: fat,
+            fatSaturated: saturatedFat,
+            fatUnsaturatedFattyAcids: max(0, fat - saturatedFat),
+            carbohydrate: carbohydrate,
+            carbohydratePureSugar: nutriments.sugars100g ?? 0,
+            fiber: nutriments.fiber100g ?? 0,
+            protein: protein,
+            salt: nutriments.salt100g ?? 0
+        )
     }
 }
 

@@ -69,6 +69,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
             do {
                 isFavourite = try await isFavouriteFood(id: food.foodItemId)
             } catch {
+                isFavourite = false
                 Log.warning(error, category: Constants.LogCategory.dashboard)
             }
         }
@@ -76,6 +77,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
             do {
                 catalogueItem = try await fetchFoodItemByBarcode(barcode: food.foodItemId)
             } catch {
+                catalogueItem = nil
                 Log.warning(error, category: Constants.LogCategory.dashboard)
             }
         }

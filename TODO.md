@@ -313,29 +313,20 @@ been fixed.
 
 ### Duplication and dead code
 
-- [ ] **A2-6 — `mapToDomain` is duplicated verbatim across the two external use cases.** 32
-  identical lines in `SearchFoodExternallyUseCase` and `FetchFoodByBarcodeExternallyUseCase`,
-  including the rejection rules, the name-preference chain, the `max(0, fat - saturatedFat)`
-  derivation and every `?? 0`. Exactly the shape that produced
-  [ADR 0004](docs/design/0004-shared-macro-calculation-module.md) and 0005 — except this one is
-  not pure arithmetic (it decodes JSON-shaped optionals), so it belongs in a shared Swift type
-  rather than in a KMP module. Any fix to A2-5's error handling or to the
-  `?? 0` defaults has to be made twice today.
+- [x] **A2-6 — `mapToDomain` is duplicated verbatim across the two external use cases.** Fixed:
+  the mapping moved to `OpenFoodFactsProductDTO.asDomain()`, following the same convention every
+  other DTO already uses. `SearchFoodExternallyUseCase` and `FetchFoodByBarcodeExternallyUseCase`
+  now just call it.
+  `Kalorie/Kalorie/Core/Networking/OpenFoodFacts/OpenFoodFactsProductDTO.swift`
 
-- [ ] **A2-7 — `FetchFoodItemsUseCase` is dead code, and expensive dead code.** No callers
-  anywhere outside its own file and its fake. It loads the *entire* `foodItems` collection with
-  the unfiltered `loadAsync(from:)`, which is the one read the catalogue is designed to avoid.
-  Delete it, or it will eventually be called by someone who assumes it is cheap.
-  `Kalorie/Kalorie/Core/UseCases/FetchFoodItemsUseCase.swift`
+- [x] **A2-7 — `FetchFoodItemsUseCase` is dead code, and expensive dead code.** Fixed: deleted,
+  along with its fake and test — it had no callers outside its own file.
 
-- [ ] **A2-11 — Barcode validation accepts things that are not barcodes.**
-  `item.id.allSatisfy { $0.isNumber }` is true for any Unicode number character, so Arabic-Indic
-  digits and even "½" pass, and there is no length check at all — EAN-8, UPC-A and EAN-13 are 8,
-  12 and 13 digits. Since the id becomes the document key in a globally shared collection, this
-  is also the input surface [ADR 0011](docs/adr/0011-foodItems-writable-by-any-authenticated-client.md)
-  leaves unguarded. `isASCII && isNumber` plus a length whitelist is a two-line fix; mirroring it
-  in the security rule is the durable one.
-  `Kalorie/Kalorie/Core/UseCases/CreateFoodItemUseCase.swift:37`
+- [x] **A2-11 — Barcode validation accepts things that are not barcodes.** Fixed:
+  `CreateFoodItemUseCase` now requires `isASCII && isNumber` plus a length in `{8, 12, 13}`
+  (EAN-8/UPC-A/EAN-13). The same length/digit check is mirrored in the `foodItems` write rule.
+  `Kalorie/Kalorie/Core/UseCases/CreateFoodItemUseCase.swift:37`,
+  `Kalorie/firestore.rules:15`
 
 
 ## Audit findings — 3. Dashboard and meal types
@@ -522,8 +513,23 @@ been fixed.
 
 ## Audit findings — 5. Cross-cutting concerns
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 5. Nothing here has
-been fixed.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 5.
+
+### Nothing that fails in production leaves a trace
+
+- [x] **A5-1 — There is no logging, crash reporting or analytics in the project.** Fixed:
+  Crashlytics and structured logging (`Log.error` / `Log.warning` / `Log.info`, category-tagged)
+  added per
+  [docs/design/0007-crash-reporting-and-logging.md](docs/design/0007-crash-reporting-and-logging.md).
+
+- [x] **A5-2 — Errors are discarded at the point they are caught.** Fixed: every `try?` and
+  `catch` site that discarded a real loss now logs at the point it is caught — `Log.error` for a
+  genuine loss (`saveProfileIfNeeded`, `DeleteAccountUseCase`'s profile-document delete,
+  `AuthStateObserver`'s pending-merge resume, every ViewModel catch that maps to an alert),
+  `Log.warning` for the "legitimate silent enrichment" sites design 0007 names explicitly
+  (favourite/created-meal prefetch, the barcode-lookup local-cache fallback, the
+  favourite/catalogue-item enrichment in `FoodConsumedDetailViewModel`). Behaviour for the user is
+  unchanged, only now traceable.
 
 ### Error presentation
 
