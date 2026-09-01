@@ -14,22 +14,6 @@ The app works with three kinds of data. The distinction matters for the items be
 ## Planned features
 
 - [ ] **Data export** — export consumed food for a chosen interval to PDF or Excel
-- [x] **Own daily meals** — the user composes a meal from catalogue foods with gram amounts, names
-  it and saves it privately; it appears in the add-food sheet's search like any other food, and
-  logging it writes one aggregate entry whose macros come from the meal's gram-weighted density.
-  See [docs/design/0006-own-daily-meals.md](docs/design/0006-own-daily-meals.md).
-- [x] **User authentication** — optional Apple ID sign-in so a user keeps their data across a
-  device change and can use the app on both an iPhone and an iPad. Signed-out users keep working
-  in the device-bound anonymous mode. See
-  [docs/design/0001-user-authentication.md](docs/design/0001-user-authentication.md).
-  *Remaining: out-of-band configuration — see [docs/SETUP.md](docs/SETUP.md).*
-- [x] **Google sign-in** — a second provider alongside Apple, reusing the existing link-first /
-  merge-on-conflict path. Apple sign-in stays, both because Guideline 4.8 requires it and because
-  it is the recommended provider when a user already has an Apple-linked account. See
-  [docs/design/0002-google-sign-in.md](docs/design/0002-google-sign-in.md).
-  *Remaining: on-device QA checklist (fresh-install merge, second-device merge, cancellation,
-  account chooser after sign-out) — see the Outcome section of
-  [docs/design/0002-google-sign-in.md](docs/design/0002-google-sign-in.md).*
 - [ ] **Prompt to sign in** — the account screen is only reachable from the toolbar icon; add an
   unobtrusive prompt after the first logged meal so users on a second device sign in early
 - [ ] **User-submitted food** — the user photographs the packaging, fills in macros and calories,
@@ -40,32 +24,6 @@ The app works with three kinds of data. The distinction matters for the items be
   photo) to approve or reject; approving publishes the item to the shared `foodItems` catalogue.
   Requires a maintainer role (Firebase custom claims) and matching security rules — once done,
   direct client writes to `foodItems` get disabled.
-- [x] **`food_item_id` on `foodConsumed`** — a logged entry currently keeps no reference to the
-  catalogue item it came from, which blocks favouriting from the Dashboard and any other feature
-  that needs to get back to the source item. Add it as a **required** field, written on create and
-  preserved on update; no optional, no backfill. Existing development documents get deleted, which
-  is only acceptable before first release — do it now rather than after. Prerequisite for
-  *Favourite foods*; details in
-  [docs/design/0003-favourite-foods.md](docs/design/0003-favourite-foods.md).
-- [x] **Favourite foods** — the user explicitly marks any number of foods as favourite, from the
-  food detail either before logging it or afterwards from the Dashboard; before
-  they start typing in the search field, show a "Favourites" section with those foods, most
-  recently marked first, and once they type, put the matching favourites at the top of the
-  results. See [docs/design/0003-favourite-foods.md](docs/design/0003-favourite-foods.md).
-- [x] **Shared macro calculation module (KMP)** — macro scaling and summation is reimplemented at
-  five call sites, two of which round calories differently, so the same food at the same weight
-  persists a different value depending on whether it was logged or edited. Extract it into a
-  Kotlin Multiplatform module consuming only `Double`/`Int`, with the Swift `ScaledMacros` and
-  `DailyMacros` kept as adapters so no other call site changes. Deliberately the smallest useful
-  module: it is both a real de-duplication and the probe for whether KMP is worth carrying in this
-  project. **Prerequisite: the Gradle build must not run inside iCloud Drive.** See
-  [docs/design/0004-shared-macro-calculation-module.md](docs/design/0004-shared-macro-calculation-module.md).
-- [x] **Meal-window arithmetic and HTML entity decoding (KMP)** — two further small, pure
-  duplications found while extracting the macro module: minutes-since-midnight range/overlap
-  arithmetic reimplemented across `DashboardViewModel` and the meal-type use cases, and HTML entity
-  decoding duplicated across the OpenFoodFacts parsing call sites. Extracted into two more
-  independent KMP modules, `MealKit` and `TextKit`, mirroring `MacroKit`'s structure. See
-  [docs/design/0005-meal-window-and-html-entity-decoding.md](docs/design/0005-meal-window-and-html-entity-decoding.md).
 - [ ] **Rank search results by frequency** — order manual search results by how often the user has
   logged each food, so the most used ones come first. Distinct from favourites above: this one is
   derived, not chosen, and the user cannot remove an entry from it.
@@ -83,11 +41,8 @@ read as a whole and written up: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) des
 exists, `docs/adr/0008`–`0019` record the decisions still in effect, and the audit findings each
 area produced are listed below.
 
-Findings are grouped by area and numbered `A<area>-<n>`. Nothing in them has been fixed — each
-is a decision still to make. The ones most worth settling before the next feature lands:
-
-- **A5-1** — a release build has nowhere to report an error to. Design:
-  [docs/design/0007-crash-reporting-and-logging.md](docs/design/0007-crash-reporting-and-logging.md).
+Findings are grouped by area and numbered `A<area>-<n>`. Each is a decision still to make unless
+marked `[x]`.
 
 
 ## Audit findings — 1. Data layer and Firestore model
@@ -220,27 +175,6 @@ been fixed.
 
 ### Correctness
 
-- [x] **A2-1 — `food_item_id` resolves to nothing for most entries, and the condition for fixing
-  that has now been met.** `SaveFoodConsumedUseCase` always stores `food_item_id: item.id`, but
-  three of the four ways a food is chosen produce an id that is not in `foodItems`: an
-  OpenFoodFacts search result, an OpenFoodFacts barcode lookup (neither is ever imported —
-  [ADR 0012](docs/adr/0012-external-food-is-surfaced-never-imported.md)), and a logged created
-  meal, whose id is a UUID.
-
-  The third case is documented and deliberate:
-  [design 0006](docs/design/0006-own-daily-meals.md) → *What `food_item_id` means now* states the
-  cost, accepts it, and defers a `food_item_kind` discriminator with an explicit condition —
-  *"revisit if a second consumer of `food_item_id` appears"*. **That consumer is *Rank search
-  results by frequency***, which has to group logged entries by the food they came from and
-  cannot do it on an id that may be a barcode, a barcode not in the catalogue, or a meal UUID,
-  with nothing to tell them apart.
-
-  So this is not a new discovery, it is the arrival of a trigger the design already named. The
-  decision to take: add the discriminator 0006 deferred, or make the external cases resolvable by
-  importing them (which reopens ADR 0012). **Settle it before the ranking feature is designed**,
-  because it determines what that feature can group by.
-  `Kalorie/Kalorie/Core/UseCases/SaveFoodConsumedUseCase.swift:49`
-
 - [ ] **A2-2 — The duplicate check before a catalogue write can read a stale cache.**
   `CreateFoodItemUseCase` queries `where "id" == item.id` through `loadAsync`, which uses
   Firestore's default source and is therefore served from the offline cache when the server is
@@ -311,35 +245,13 @@ been fixed.
   data denormalised into the query. Constraint, not a bug; recorded so the feature is not
   designed around a false assumption.
 
-### Duplication and dead code
-
-- [x] **A2-6 — `mapToDomain` is duplicated verbatim across the two external use cases.** Fixed:
-  the mapping moved to `OpenFoodFactsProductDTO.asDomain()`, following the same convention every
-  other DTO already uses. `SearchFoodExternallyUseCase` and `FetchFoodByBarcodeExternallyUseCase`
-  now just call it.
-  `Kalorie/Kalorie/Core/Networking/OpenFoodFacts/OpenFoodFactsProductDTO.swift`
-
-- [x] **A2-7 — `FetchFoodItemsUseCase` is dead code, and expensive dead code.** Fixed: deleted,
-  along with its fake and test — it had no callers outside its own file.
-
-- [x] **A2-11 — Barcode validation accepts things that are not barcodes.** Fixed:
-  `CreateFoodItemUseCase` now requires `isASCII && isNumber` plus a length in `{8, 12, 13}`
-  (EAN-8/UPC-A/EAN-13). The same length/digit check is mirrored in the `foodItems` write rule.
-  `Kalorie/Kalorie/Core/UseCases/CreateFoodItemUseCase.swift:37`,
-  `Kalorie/firestore.rules:15`
-
 
 ## Audit findings — 3. Dashboard and meal types
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3. Nothing here has
+been fixed.
 
 ### Missing capabilities that turn small mistakes into permanent ones
-
-- [x] **A3-1 — A logged food entry cannot be deleted.** Fixed: `DeleteFoodConsumedUseCase`
-  removes the `foodConsumed` document, and the Dashboard list row now has a destructive swipe
-  action (with a confirm/cancel alert) that calls it and refetches the day.
-  `Kalorie/Kalorie/Core/UseCases/DeleteFoodConsumedUseCase.swift`,
-  `Kalorie/Kalorie/Features/Dashboard/DashboardViewModel.swift:onDeleteRequested`
 
 - [ ] **A3-2 — A logged entry's time and date cannot be changed either.**
   `UpdateFoodConsumedUseCase` takes `(food, newWeight)` and rewrites the document with
@@ -350,14 +262,6 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3.
   `Kalorie/Kalorie/Core/UseCases/UpdateFoodConsumedUseCase.swift:41`
 
 ### Correctness
-
-- [x] **A3-3 — Foods logged after picking a day from the calendar land at midnight, outside
-  every meal.** Fixed: `MonthCalendarView.selectDay` now carries a sensible time onto the
-  picked day instead of leaving it at local 00:00 — the current time when the picked day is
-  today, otherwise the time of day already held by `selectedDay`. Because `DayPickerView` steps
-  with `calendar.date(byAdding: .day, …)`, which preserves time of day, that sensible time then
-  carries forward through day-by-day navigation too.
-  `Kalorie/Kalorie/Features/Dashboard/MonthCalendarView.swift:135`
 
 - [ ] **A3-4 — Overlapping meal windows list and count the same food twice.** `groupedFoods`
   filters *all* of `foodsConsumed` for each meal window; `assignedIds` is only consulted
@@ -412,14 +316,6 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 4. N
 been fixed.
 
 ### The amount being logged is not always the amount the user chose
-
-- [x] **A4-1 — Switching the unit picker changes the quantity.** Fixed: `onUnitChanged` now only
-  divides — no `.rounded()`, no floor of 1 — so `quantity` keeps full fractional precision and a
-  150 g ⇄ 100 g round-trip is exact. The view's text field is repopulated through a new
-  `FoodQuantityView.formattedQuantity`, which trims to at most 2 decimal places for display
-  without touching the underlying `Double`.
-  `Kalorie/Kalorie/Features/FoodQuantity/FoodQuantityViewModel.swift:95`,
-  `Kalorie/Kalorie/Features/FoodQuantity/FoodQuantityView.swift:formattedQuantity`
 
 - [ ] **A4-2 — Clearing the quantity field silently keeps the previous amount.** The field binds
   a `String`, and `viewModel.quantity` is only updated when `Double(normalized)` succeeds. Select
@@ -513,23 +409,8 @@ been fixed.
 
 ## Audit findings — 5. Cross-cutting concerns
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 5.
-
-### Nothing that fails in production leaves a trace
-
-- [x] **A5-1 — There is no logging, crash reporting or analytics in the project.** Fixed:
-  Crashlytics and structured logging (`Log.error` / `Log.warning` / `Log.info`, category-tagged)
-  added per
-  [docs/design/0007-crash-reporting-and-logging.md](docs/design/0007-crash-reporting-and-logging.md).
-
-- [x] **A5-2 — Errors are discarded at the point they are caught.** Fixed: every `try?` and
-  `catch` site that discarded a real loss now logs at the point it is caught — `Log.error` for a
-  genuine loss (`saveProfileIfNeeded`, `DeleteAccountUseCase`'s profile-document delete,
-  `AuthStateObserver`'s pending-merge resume, every ViewModel catch that maps to an alert),
-  `Log.warning` for the "legitimate silent enrichment" sites design 0007 names explicitly
-  (favourite/created-meal prefetch, the barcode-lookup local-cache fallback, the
-  favourite/catalogue-item enrichment in `FoodConsumedDetailViewModel`). Behaviour for the user is
-  unchanged, only now traceable.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 5. Nothing here has
+been fixed.
 
 ### Error presentation
 
