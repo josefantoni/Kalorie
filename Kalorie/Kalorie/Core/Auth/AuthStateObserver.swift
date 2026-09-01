@@ -78,7 +78,11 @@ final class AuthStateObserver: ObservableObject, MergeStatusReporting {
         guard !hasAttemptedPendingMergeResume else { return }
         hasAttemptedPendingMergeResume = true
         beginMerge()
-        try? await resumePendingMerge.resumeIfNeeded()
+        do {
+            try await resumePendingMerge.resumeIfNeeded()
+        } catch {
+            Log.error(error, category: Constants.LogCategory.auth)
+        }
         endMerge()
     }
 

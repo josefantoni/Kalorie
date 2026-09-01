@@ -63,12 +63,20 @@ struct SignInWithAppleUseCase: SignInWithAppleUseCaseProtocol {
         guard name != nil || email != nil else { return }
 
         if let name {
-            try? await authCommandProvider.updateDisplayName(name)
+            do {
+                try await authCommandProvider.updateDisplayName(name)
+            } catch {
+                Log.error(error, category: Constants.LogCategory.auth)
+            }
         }
 
         if let userId = authProvider.userId {
             let dto = UserProfileDTO(displayName: name, email: email)
-            try? await dataProvider.setAsync(dto, id: userId, in: Constants.Firestore.users)
+            do {
+                try await dataProvider.setAsync(dto, id: userId, in: Constants.Firestore.users)
+            } catch {
+                Log.error(error, category: Constants.LogCategory.auth)
+            }
         }
     }
 }

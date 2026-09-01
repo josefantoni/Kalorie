@@ -42,6 +42,7 @@ extension FavouriteToggling {
             }
             onToggled?(newValue)
         } catch {
+            Log.error(error, category: Constants.LogCategory.favourites)
             isFavourite = !newValue
             alertItem = AlertItem(title: L10n.AddFood.errorFavouriteFailed)
         }

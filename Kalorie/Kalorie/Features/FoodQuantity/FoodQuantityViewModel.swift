@@ -123,6 +123,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
             try await saveFoodConsumed(item, grams: grams, date: selectedDate)
             onSaved()
         } catch {
+            Log.error(error, category: Constants.LogCategory.foodQuantity)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
         }
     }

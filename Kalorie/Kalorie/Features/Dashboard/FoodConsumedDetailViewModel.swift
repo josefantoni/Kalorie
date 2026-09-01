@@ -66,10 +66,18 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     @MainActor
     func onAppear() async {
         if food.foodItemKind != .createdMeal {
-            isFavourite = (try? await isFavouriteFood(id: food.foodItemId)) ?? false
+            do {
+                isFavourite = try await isFavouriteFood(id: food.foodItemId)
+            } catch {
+                Log.warning(error, category: Constants.LogCategory.dashboard)
+            }
         }
         if food.foodItemKind == .catalogue {
-            catalogueItem = try? await fetchFoodItemByBarcode(barcode: food.foodItemId)
+            do {
+                catalogueItem = try await fetchFoodItemByBarcode(barcode: food.foodItemId)
+            } catch {
+                Log.warning(error, category: Constants.LogCategory.dashboard)
+            }
         }
     }
 
@@ -99,6 +107,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
             try? await Task.sleep(for: .seconds(2))
             showCheckmark = false
         } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
             state = .loaded
         }

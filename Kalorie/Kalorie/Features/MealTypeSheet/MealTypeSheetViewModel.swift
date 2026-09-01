@@ -68,6 +68,7 @@ final class MealTypeSheetViewModel: ObservableObject {
         } catch CreateMealTypeError.durationTooShort {
             alertItem = AlertItem(title: L10n.MealTypeSheet.errorDurationTooShort)
         } catch {
+            Log.error(error, category: Constants.LogCategory.mealTypeSheet)
             alertItem = AlertItem(title: L10n.MealTypeSheet.errorUnexpected)
         }
     }
@@ -86,6 +87,7 @@ final class MealTypeSheetViewModel: ObservableObject {
             mealTypes.removeAll { $0.id == mealType.id }
             onMealTypesChanged()
         } catch {
+            Log.error(error, category: Constants.LogCategory.mealTypeSheet)
             alertItem = AlertItem(title: L10n.MealTypeSheet.errorDeleteError)
         }
     }
@@ -116,6 +118,7 @@ final class MealTypeSheetViewModel: ObservableObject {
             try await updateMealTypeTimes(mealTypes)
             onMealTypesChanged()
         } catch {
+            Log.error(error, category: Constants.LogCategory.mealTypeSheet)
             alertItem = AlertItem(title: L10n.MealTypeSheet.errorUnexpected)
         }
     }

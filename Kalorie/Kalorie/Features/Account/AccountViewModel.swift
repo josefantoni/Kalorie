@@ -59,6 +59,7 @@ final class AccountViewModel: ObservableObject {
         do {
             try signOut()
         } catch {
+            Log.error(error, category: Constants.LogCategory.account)
             alertItem = AlertItem(title: L10n.Account.errorSignOutFailed)
         }
     }
@@ -75,6 +76,7 @@ final class AccountViewModel: ObservableObject {
             try await signInWithApple()
         } catch let error as ASAuthorizationError where error.code == .canceled {
         } catch {
+            Log.error(error, category: Constants.LogCategory.account)
             alertItem = AlertItem(title: L10n.Account.errorSignInFailed)
         }
     }
@@ -93,6 +95,7 @@ final class AccountViewModel: ObservableObject {
             alertItem = AlertItem(title: L10n.Account.errorAccountExistsWithApple)
         } catch let error as NSError where error.code == GIDSignInError.canceled.rawValue {
         } catch {
+            Log.error(error, category: Constants.LogCategory.account)
             alertItem = AlertItem(title: L10n.Account.errorSignInFailed)
         }
     }
@@ -105,6 +108,7 @@ final class AccountViewModel: ObservableObject {
         } catch DeleteAccountError.requiresRecentLogin {
             alertItem = AlertItem(title: L10n.Account.errorDeleteRequiresRecentLogin)
         } catch {
+            Log.error(error, category: Constants.LogCategory.account)
             alertItem = AlertItem(title: L10n.Account.errorDeleteFailed)
         }
         state = .idle
