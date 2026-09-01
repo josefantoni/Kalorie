@@ -117,10 +117,14 @@ final class AddFoodSheetViewModel: ObservableObject {
         lastScannedBarcode = ""
         isBarcodeSearchLoading = true
         defer { isBarcodeSearchLoading = false }
-        if let local = try? await fetchFoodItemByBarcode(barcode: barcode) {
-            isScannerVisible = false
-            onSelectFoodItem(local)
-            return
+        do {
+            if let local = try await fetchFoodItemByBarcode(barcode: barcode) {
+                isScannerVisible = false
+                onSelectFoodItem(local)
+                return
+            }
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.addFoodSheet)
         }
         do {
             if let external = try await fetchFoodByBarcodeExternally(barcode: barcode) {
@@ -129,6 +133,7 @@ final class AddFoodSheetViewModel: ObservableObject {
                 return
             }
         } catch {
+            Log.error(error, category: Constants.LogCategory.addFoodSheet)
             alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
             return
         }
@@ -185,14 +190,19 @@ final class AddFoodSheetViewModel: ObservableObject {
 
     @MainActor
     func onAppear() async {
-        async let favourites = try? fetchFavouriteFoods()
-        async let meals = try? fetchMyCreatedMeals()
-        if let items = await favourites {
+        async let favourites = fetchFavouriteFoods()
+        async let meals = fetchMyCreatedMeals()
+        do {
+            let items = try await favourites
             favouriteFoods = items
             favouriteIds = Set(items.map(\.id))
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.addFoodSheet)
         }
-        if let items = await meals {
-            myCreatedMeals = items
+        do {
+            myCreatedMeals = try await meals
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.addFoodSheet)
         }
     }
 
@@ -240,6 +250,7 @@ final class AddFoodSheetViewModel: ObservableObject {
             _ = try await createFoodItem(item)
             shouldDismiss = true
         } catch {
+            Log.error(error, category: Constants.LogCategory.addFoodSheet)
             switch error as? CreateFoodItemError {
             case .invalidCode:
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidCode)

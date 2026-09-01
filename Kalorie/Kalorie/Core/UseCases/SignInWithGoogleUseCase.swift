@@ -50,13 +50,21 @@ struct SignInWithGoogleUseCase: SignInWithGoogleUseCaseProtocol {
         guard displayName != nil || email != nil else { return }
 
         if let displayName {
-            try? await authCommandProvider.updateDisplayName(displayName)
+            do {
+                try await authCommandProvider.updateDisplayName(displayName)
+            } catch {
+                Log.error(error, category: Constants.LogCategory.auth)
+            }
         }
 
         guard let userId = authProvider.userId else { return }
 
         let dto = UserProfileDTO(displayName: displayName, email: email)
-        try? await dataProvider.setAsync(dto, id: userId, in: Constants.Firestore.users)
+        do {
+            try await dataProvider.setAsync(dto, id: userId, in: Constants.Firestore.users)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.auth)
+        }
     }
 }
 

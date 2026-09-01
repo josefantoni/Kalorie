@@ -22,6 +22,18 @@ enum Constants {
         static let baseURL = URL(string: "https://\(host)")
     }
 
+    enum LogCategory {
+        static let firestore = "firestore"
+        static let auth = "auth"
+        static let account = "account"
+        static let favourites = "favourites"
+        static let foodQuantity = "foodQuantity"
+        static let mealTypeSheet = "mealTypeSheet"
+        static let addFoodSheet = "addFoodSheet"
+        static let dashboard = "dashboard"
+        static let myCreatedMeal = "myCreatedMeal"
+    }
+
     enum Firestore {
         static let foodItems = "foodItems"
         static let users = "users"

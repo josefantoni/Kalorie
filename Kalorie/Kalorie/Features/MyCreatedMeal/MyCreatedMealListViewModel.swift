@@ -53,6 +53,7 @@ final class MyCreatedMealListViewModel: ObservableObject {
         do {
             try await deleteMyCreatedMeal(id: meal.id)
         } catch {
+            Log.error(error, category: Constants.LogCategory.myCreatedMeal)
             if let index { meals.insert(meal, at: min(index, meals.count)) }
             alertItem = AlertItem(title: L10n.MyCreatedMeal.errorDeleteFailed)
         }
@@ -66,6 +67,7 @@ final class MyCreatedMealListViewModel: ObservableObject {
         do {
             meals = try await fetchMyCreatedMeals()
         } catch {
+            Log.error(error, category: Constants.LogCategory.myCreatedMeal)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
         }
         state = .loaded

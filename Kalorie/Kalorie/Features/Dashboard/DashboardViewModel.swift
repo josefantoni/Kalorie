@@ -141,6 +141,7 @@ final class DashboardViewModel: ObservableObject {
             foodsConsumed = foodsFromCache(for: selectedDay)
             state = .loaded
         } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
             state = .loaded
         }
@@ -154,6 +155,7 @@ final class DashboardViewModel: ObservableObject {
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
         } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
         }
     }
@@ -165,6 +167,7 @@ final class DashboardViewModel: ObservableObject {
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
         } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
         }
     }
@@ -188,6 +191,7 @@ final class DashboardViewModel: ObservableObject {
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
         } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Dashboard.errorDeleteFailed)
         }
     }
@@ -203,6 +207,7 @@ final class DashboardViewModel: ObservableObject {
         do {
             try await refreshMealTypes()
         } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
         }
     }
@@ -228,6 +233,7 @@ final class DashboardViewModel: ObservableObject {
             do {
                 try await loadMonth(for: month)
             } catch {
+                Log.error(error, category: Constants.LogCategory.dashboard)
                 alertItem = AlertItem(title: L10n.Common.errorUnknown)
             }
         }
@@ -266,6 +272,7 @@ final class DashboardViewModel: ObservableObject {
                 try await loadMonth(for: date)
                 foodsConsumed = foodsFromCache(for: date)
             } catch {
+                Log.error(error, category: Constants.LogCategory.dashboard)
                 alertItem = AlertItem(title: L10n.Common.errorUnknown)
             }
         }

@@ -180,7 +180,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
     }
 }
 
-private let logger = Log.logger("firestore")
+private let logger = Log.logger(Constants.LogCategory.firestore)
 
 private func log(_ message: String) {
     #if DEBUG

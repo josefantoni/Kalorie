@@ -525,26 +525,6 @@ been fixed.
 From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 5. Nothing here has
 been fixed.
 
-### Nothing that fails in production leaves a trace
-
-- [ ] **A5-1 — There is no logging, crash reporting or analytics in the project.** No
-  Crashlytics, no `os.Logger`, no `OSLog` — the single diagnostic in the codebase is `print`
-  inside `FirestoreDataProvider`, wrapped in `#if DEBUG`. In a release build a Firestore
-  permission denial, a decoding failure and a network timeout are all equally invisible: the user
-  sees "unknown error" and nobody else sees anything. Every other finding in this audit becomes
-  much harder to confirm in the field because of this one. Firebase is already a dependency, so
-  adding Crashlytics with non-fatal error recording is a small change with a large payoff — and
-  it should land **before** first release, not after the first support request. Design:
-  [docs/design/0007-crash-reporting-and-logging.md](docs/design/0007-crash-reporting-and-logging.md).
-
-- [ ] **A5-2 — Errors are discarded at the point they are caught.** Thirteen `try? await` call
-  sites drop errors entirely, and the `catch` blocks that do run bind the error only to map it to
-  a string, then let it go. Some of the `try?` uses are legitimate — optional enrichment such as
-  `fetchFavouriteFoods()` on appear, where failing quietly is the right behaviour — but some are
-  not: `saveProfileIfNeeded` silently loses a user's display name, and `DeleteAccountUseCase`
-  swallows the failure to delete the profile document. Once A5-1 exists, the fix is one logging
-  call per `catch`, not a change of convention.
-
 ### Error presentation
 
 - [ ] **A5-3 — Two error-presentation conventions coexist.** The auth root renders

@@ -148,10 +148,14 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
         lastScannedBarcode = ""
         isBarcodeSearchLoading = true
         defer { isBarcodeSearchLoading = false }
-        if let local = try? await fetchFoodItemByBarcode(barcode: barcode) {
-            isScannerVisible = false
-            scannedIngredientId = onSelectSearchResult(local)
-            return
+        do {
+            if let local = try await fetchFoodItemByBarcode(barcode: barcode) {
+                isScannerVisible = false
+                scannedIngredientId = onSelectSearchResult(local)
+                return
+            }
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.myCreatedMeal)
         }
         do {
             if let external = try await fetchFoodByBarcodeExternally(barcode: barcode) {
@@ -160,6 +164,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
                 return
             }
         } catch {
+            Log.error(error, category: Constants.LogCategory.myCreatedMeal)
             alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
             return
         }
@@ -215,6 +220,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
             onSaved()
             shouldDismiss = true
         } catch {
+            Log.error(error, category: Constants.LogCategory.myCreatedMeal)
             alertItem = AlertItem(title: L10n.MyCreatedMeal.errorSaveFailed)
         }
     }
