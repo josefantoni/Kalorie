@@ -115,6 +115,7 @@ struct AccountView: View {
             .alert(item: $viewModel.alertItem) { item in
                 Alert(
                     title: Text(item.title),
+                    message: item.message.map(Text.init),
                     dismissButton: .default(Text(L10n.Common.ok))
                 )
             }
@@ -128,6 +129,17 @@ struct AccountView: View {
                 }
             } message: {
                 Text(L10n.Account.alertDeleteConfirmMessage)
+            }
+            .alert(
+                L10n.Account.alertReauthenticateTitle,
+                isPresented: $viewModel.isReauthenticateAlertVisible
+            ) {
+                Button(L10n.Common.buttonCancel, role: .cancel) {}
+                Button(L10n.Account.buttonReauthenticate) {
+                    Task { await viewModel.onReauthenticateConfirmed() }
+                }
+            } message: {
+                Text(L10n.Account.errorDeleteRequiresRecentLogin)
             }
         }
     }
@@ -145,6 +157,7 @@ extension AccountViewModel.State: Equatable {}
             signInWithApple: SignInWithAppleUseCaseFake(),
             signInWithGoogle: SignInWithGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
+            reauthenticate: ReauthenticateUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
         )
     )
@@ -158,6 +171,7 @@ extension AccountViewModel.State: Equatable {}
             signInWithApple: SignInWithAppleUseCaseFake(),
             signInWithGoogle: SignInWithGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
+            reauthenticate: ReauthenticateUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
         )
     )

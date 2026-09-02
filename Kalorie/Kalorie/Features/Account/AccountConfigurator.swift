@@ -70,6 +70,12 @@ struct AccountConfigurator {
                     authProvider: authProvider,
                     authCommandProvider: authCommandProvider
                 ),
+                reauthenticate: ReauthenticateUseCase(
+                    appleSignInProvider: AppleSignInProvider(),
+                    googleSignInProvider: GoogleSignInProvider(),
+                    authCommandProvider: authCommandProvider,
+                    authProvider: authProvider
+                ),
                 mergeStatusReporting: mergeStatusReporting
             )
         )

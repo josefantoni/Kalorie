@@ -44,10 +44,11 @@ final class AccountViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onDeleteAccountConfirmed_whenRequiresRecentLogin_showsSpecificAlert() async {
-        let sut = makeSUT(deleteAccount: DeleteAccountUseCaseFake(errorToThrow: DeleteAccountError.requiresRecentLogin))
+    func test_onDeleteAccountConfirmed_whenRequiresRecentLogin_showsReauthenticateAlert() async {
+        let sut = makeSUT(deleteAccount: DeleteAccountUseCaseFake(errorToThrow: DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: false)))
         await sut.onDeleteAccountConfirmed()
-        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorDeleteRequiresRecentLogin)
+        XCTAssertTrue(sut.isReauthenticateAlertVisible, "the user must get a way to actually sign in again, not just a dead-end alert")
+        XCTAssertNil(sut.alertItem)
     }
 
     @MainActor
@@ -156,6 +157,53 @@ final class AccountViewModelTests: XCTestCase {
         XCTAssertEqual(mergeStatusReporting.endMergeCallCount, 1)
     }
 
+    @MainActor
+    func test_onReauthenticateConfirmed_whenSucceeds_retriesDeleteAndClearsAlert() async {
+        let deleteAccount = SequencedDeleteAccountUseCaseFake()
+        deleteAccount.errorToThrow = DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: true)
+        let sut = makeSUT(deleteAccount: deleteAccount, reauthenticate: ReauthenticateUseCaseFake())
+        await sut.onDeleteAccountConfirmed()
+        XCTAssertTrue(sut.isReauthenticateAlertVisible)
+
+        deleteAccount.errorToThrow = nil
+        await sut.onReauthenticateConfirmed()
+
+        XCTAssertEqual(deleteAccount.callCount, 2, "a successful re-login must retry the delete, not just dismiss")
+        XCTAssertEqual(deleteAccount.receivedSkipDataWipe, [false, true], "the retry must skip re-wiping data the first attempt already deleted")
+        XCTAssertNil(sut.alertItem)
+        XCTAssertEqual(sut.state, .idle)
+    }
+
+    @MainActor
+    func test_onReauthenticateConfirmed_whenReauthFails_showsAlertAndReturnsToIdle() async {
+        let sut = makeSUT(reauthenticate: ReauthenticateUseCaseFake(errorToThrow: URLError(.unknown)))
+
+        await sut.onReauthenticateConfirmed()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorSignInFailed)
+        XCTAssertEqual(sut.state, .idle)
+    }
+
+    @MainActor
+    func test_onReauthenticateConfirmed_whenAppleCancelled_showsNoAlertAndReturnsToIdle() async {
+        let sut = makeSUT(reauthenticate: ReauthenticateUseCaseFake(errorToThrow: makeAuthorizationError(.canceled)))
+
+        await sut.onReauthenticateConfirmed()
+
+        XCTAssertNil(sut.alertItem, "the user cancelled the dialog themselves — not an error worth reporting")
+        XCTAssertEqual(sut.state, .idle)
+    }
+
+    @MainActor
+    func test_onReauthenticateConfirmed_whenGoogleCancelled_showsNoAlertAndReturnsToIdle() async {
+        let sut = makeSUT(reauthenticate: ReauthenticateUseCaseFake(errorToThrow: makeGoogleSignInError(.canceled)))
+
+        await sut.onReauthenticateConfirmed()
+
+        XCTAssertNil(sut.alertItem, "the user cancelled the dialog themselves — not an error worth reporting")
+        XCTAssertEqual(sut.state, .idle)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
@@ -164,6 +212,7 @@ final class AccountViewModelTests: XCTestCase {
         signInWithApple: any SignInWithAppleUseCaseProtocol = SignInWithAppleUseCaseFake(),
         signInWithGoogle: any SignInWithGoogleUseCaseProtocol = SignInWithGoogleUseCaseFake(),
         deleteAccount: any DeleteAccountUseCaseProtocol = DeleteAccountUseCaseFake(),
+        reauthenticate: any ReauthenticateUseCaseProtocol = ReauthenticateUseCaseFake(),
         mergeStatusReporting: any MergeStatusReporting = MergeStatusReportingFake()
     ) -> AccountViewModel {
         let sut = AccountViewModel(
@@ -172,6 +221,7 @@ final class AccountViewModelTests: XCTestCase {
             signInWithApple: signInWithApple,
             signInWithGoogle: signInWithGoogle,
             deleteAccount: deleteAccount,
+            reauthenticate: reauthenticate,
             mergeStatusReporting: mergeStatusReporting
         )
         addTeardownBlock { [weak sut] in
@@ -186,5 +236,17 @@ final class AccountViewModelTests: XCTestCase {
 
     private func makeGoogleSignInError(_ code: GIDSignInError.Code) -> NSError {
         NSError(domain: GIDSignInError.errorDomain, code: code.rawValue)
+    }
+}
+
+private final class SequencedDeleteAccountUseCaseFake: DeleteAccountUseCaseProtocol {
+    private(set) var callCount = 0
+    private(set) var receivedSkipDataWipe: [Bool] = []
+    var errorToThrow: Error?
+
+    func callAsFunction(skipDataWipe: Bool) async throws {
+        callCount += 1
+        receivedSkipDataWipe.append(skipDataWipe)
+        if let errorToThrow { throw errorToThrow }
     }
 }

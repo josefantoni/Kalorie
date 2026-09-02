@@ -6,6 +6,7 @@
 //
 
 import AuthenticationServices
+import FirebaseAuth
 import Foundation
 import UIKit
 
@@ -16,8 +17,7 @@ enum AppleSignInError: Error {
 }
 
 struct AppleSignInResult {
-    let identityToken: String
-    let rawNonce: String
+    let credential: AuthCredential
     let fullName: PersonNameComponents?
     let email: String?
 }
@@ -94,8 +94,11 @@ extension AppleSignInProvider: ASAuthorizationControllerDelegate {
         }
 
         continuation.resume(returning: AppleSignInResult(
-            identityToken: idTokenString,
-            rawNonce: rawNonce,
+            credential: OAuthProvider.appleCredential(
+                withIDToken: idTokenString,
+                rawNonce: rawNonce,
+                fullName: credential.fullName
+            ),
             fullName: credential.fullName,
             email: credential.email
         ))
@@ -129,13 +132,17 @@ struct AppleSignInProviderFake: AppleSignInProviderProtocol {
 
     // MARK: - Properties
 
-    var result = AppleSignInResult(identityToken: "fake-identity-token", rawNonce: "fake-nonce", fullName: nil, email: nil)
+    var result: AppleSignInResult
     var errorToThrow: Error?
 
     // MARK: - Init
 
     nonisolated init(
-        result: AppleSignInResult = AppleSignInResult(identityToken: "fake-identity-token", rawNonce: "fake-nonce", fullName: nil, email: nil),
+        result: AppleSignInResult = AppleSignInResult(
+            credential: OAuthProvider.appleCredential(withIDToken: "fake-identity-token", rawNonce: "fake-nonce", fullName: nil),
+            fullName: nil,
+            email: nil
+        ),
         errorToThrow: Error? = nil
     ) {
         self.result = result

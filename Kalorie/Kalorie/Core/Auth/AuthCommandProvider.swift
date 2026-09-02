@@ -11,6 +11,7 @@ import FirebaseAuth
 protocol AuthCommandProviderProtocol {
     func link(with credential: AuthCredential) async throws
     func signIn(with credential: AuthCredential) async throws
+    func reauthenticate(with credential: AuthCredential) async throws
     func signOut() throws
     func updateDisplayName(_ name: String) async throws
     func deleteCurrentUser() async throws
@@ -27,6 +28,11 @@ struct AuthCommandProvider: AuthCommandProviderProtocol {
 
     func signIn(with credential: AuthCredential) async throws {
         _ = try await Auth.auth().signIn(with: credential)
+    }
+
+    func reauthenticate(with credential: AuthCredential) async throws {
+        guard let user = Auth.auth().currentUser else { throw AuthError.notAuthenticated }
+        _ = try await user.reauthenticate(with: credential)
     }
 
     func signOut() throws {
@@ -53,10 +59,12 @@ final class AuthCommandProviderFake: AuthCommandProviderProtocol {
 
     var linkError: Error?
     var signInError: Error?
+    var reauthenticateError: Error?
     var signOutError: Error?
     var deleteError: Error?
     private(set) var linkCallCount = 0
     private(set) var signInCallCount = 0
+    private(set) var reauthenticateCallCount = 0
     private(set) var signOutCallCount = 0
     private(set) var updateDisplayNameCallCount = 0
     private(set) var deleteCallCount = 0
@@ -71,6 +79,11 @@ final class AuthCommandProviderFake: AuthCommandProviderProtocol {
     func signIn(with credential: AuthCredential) async throws {
         signInCallCount += 1
         if let signInError { throw signInError }
+    }
+
+    func reauthenticate(with credential: AuthCredential) async throws {
+        reauthenticateCallCount += 1
+        if let reauthenticateError { throw reauthenticateError }
     }
 
     func signOut() throws {
