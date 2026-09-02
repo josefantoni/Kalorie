@@ -142,7 +142,7 @@ final class DashboardViewModel: ObservableObject {
             state = .loaded
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            alertItem = unknownErrorAlertItem(for: error)
             state = .loaded
         }
     }
@@ -156,7 +156,7 @@ final class DashboardViewModel: ObservableObject {
             foodsConsumed = foodsFromCache(for: selectedDay)
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            alertItem = unknownErrorAlertItem(for: error)
         }
     }
 
@@ -168,7 +168,7 @@ final class DashboardViewModel: ObservableObject {
             foodsConsumed = foodsFromCache(for: selectedDay)
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            alertItem = unknownErrorAlertItem(for: error)
         }
     }
 
@@ -208,7 +208,7 @@ final class DashboardViewModel: ObservableObject {
             try await refreshMealTypes()
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            alertItem = unknownErrorAlertItem(for: error)
         }
     }
 
@@ -234,12 +234,24 @@ final class DashboardViewModel: ObservableObject {
                 try await loadMonth(for: month)
             } catch {
                 Log.error(error, category: Constants.LogCategory.dashboard)
-                alertItem = AlertItem(title: L10n.Common.errorUnknown)
+                alertItem = unknownErrorAlertItem(for: error)
             }
         }
     }
 
     // MARK: - Private
+
+    private func isOffline(_ error: Error) -> Bool {
+        (error as? FirestoreDataProviderError) == .unreachable
+    }
+
+    private func unknownErrorAlertItem(for error: Error) -> AlertItem {
+        if isOffline(error) {
+            AlertItem(title: L10n.Common.errorOffline, message: L10n.Common.errorOfflineMessage)
+        } else {
+            AlertItem(title: L10n.Common.errorUnknown, message: L10n.Common.errorUnknownMessage)
+        }
+    }
 
     @MainActor
     private func refreshMealTypes() async throws {
@@ -273,7 +285,7 @@ final class DashboardViewModel: ObservableObject {
                 foodsConsumed = foodsFromCache(for: date)
             } catch {
                 Log.error(error, category: Constants.LogCategory.dashboard)
-                alertItem = AlertItem(title: L10n.Common.errorUnknown)
+                alertItem = unknownErrorAlertItem(for: error)
             }
         }
     }

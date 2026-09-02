@@ -132,6 +132,23 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onAppear_whenFetchFailsOffline_showsOfflineAlert() async {
+        let offlineError = FirestoreDataProviderError.unreachable
+        let sut = makeSUT(fetchMealTypes: FetchMealTypesUseCaseFake(shouldThrow: true, errorToThrow: offlineError))
+        await sut.onAppear()
+        XCTAssertEqual(sut.alertItem?.title, L10n.Common.errorOffline, "a Firestore unavailable error must be distinguishable from any other failure")
+        XCTAssertEqual(sut.alertItem?.message, L10n.Common.errorOfflineMessage, "the offline alert must tell the user what to do about it, not only what happened")
+    }
+
+    @MainActor
+    func test_onAppear_whenFetchFailsWithOtherError_showsUnknownErrorAlert() async {
+        let sut = makeSUT(fetchMealTypes: FetchMealTypesUseCaseFake(shouldThrow: true, errorToThrow: URLError(.unknown)))
+        await sut.onAppear()
+        XCTAssertEqual(sut.alertItem?.title, L10n.Common.errorUnknown, "a non-offline error must not be mistaken for offline")
+        XCTAssertEqual(sut.alertItem?.message, L10n.Common.errorUnknownMessage, "the unknown-error alert must carry a body line too, so AlertItem.message has a producer")
+    }
+
+    @MainActor
     func test_onAppear_whenMealTypesEmptyButNotConfirmedByServer_doesNotCallSetupDefaultMeals() async {
         let sut = makeSUT(
             fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: []),

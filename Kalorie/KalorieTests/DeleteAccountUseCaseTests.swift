@@ -96,14 +96,15 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         do {
             try await sut()
             XCTFail("Expected DeleteAccountError.requiresRecentLogin to be thrown")
-        } catch DeleteAccountError.requiresRecentLogin {
+        } catch DeleteAccountError.requiresRecentLogin(let dataAlreadyDeleted) {
             XCTAssertTrue(log.entries.isEmpty, "A stale session must be rejected before any data is deleted, otherwise the account survives but its history does not")
+            XCTAssertFalse(dataAlreadyDeleted, "nothing was deleted yet, so a retry must not skip the wipe")
         } catch {
             XCTFail("Expected requiresRecentLogin but got \(error)")
         }
     }
 
-    func test_callAsFunction_whenRequiresRecentLogin_throwsTypedError() async {
+    func test_callAsFunction_whenRequiresRecentLogin_throwsTypedErrorFlaggingDataAlreadyDeleted() async {
         let log = OperationLog()
         let authCommandProvider = DeleteAccountAuthCommandProviderFake(log: log)
         authCommandProvider.deleteError = NSError(domain: AuthErrorDomain, code: AuthErrorCode.requiresRecentLogin.rawValue)
@@ -116,11 +117,23 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         do {
             try await sut()
             XCTFail("Expected DeleteAccountError.requiresRecentLogin to be thrown")
-        } catch DeleteAccountError.requiresRecentLogin {
-            // pass
+        } catch DeleteAccountError.requiresRecentLogin(let dataAlreadyDeleted) {
+            XCTAssertTrue(dataAlreadyDeleted, "the wipe already ran by the time deleteCurrentUser() is reached, so a retry must skip it")
         } catch {
             XCTFail("Expected requiresRecentLogin but got \(error)")
         }
+    }
+
+    func test_callAsFunction_whenSkipDataWipeIsTrue_doesNotReReadAlreadyWipedCollections() async throws {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedMealTypes = [MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 0, endMinutes: 60)]
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
+
+        try await sut(skipDataWipe: true)
+
+        XCTAssertTrue(dataProvider.deletedIds.isEmpty, "a retry that already wiped the data must not re-read and re-delete it")
+        XCTAssertEqual(log.entries, ["deleteCurrentUser"])
     }
 
     func test_callAsFunction_whenDeleteFailsWithOtherError_propagatesError() async {
@@ -308,6 +321,7 @@ private final class DeleteAccountAuthCommandProviderFake: AuthCommandProviderPro
 
     func link(with credential: AuthCredential) async throws {}
     func signIn(with credential: AuthCredential) async throws {}
+    func reauthenticate(with credential: AuthCredential) async throws {}
     func signOut() throws {}
     func updateDisplayName(_ name: String) async throws {}
 

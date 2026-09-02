@@ -56,6 +56,23 @@
         }
       }
     },
+    "account_alert_reauthenticateTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyžadováno přihlášení"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in required"
+          }
+        }
+      }
+    },
     "account_anonymous_description" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -86,6 +103,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete account"
+          }
+        }
+      }
+    },
+    "account_button_reauthenticate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlásit se znovu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in again"
           }
         }
       }
@@ -215,13 +249,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pro smazání účtu se prosím znovu přihlas přes Apple ID a zkus to znovu."
+            "value" : "Pro smazání účtu se prosím znovu přihlas."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please sign in with Apple again to delete your account, then retry."
+            "value" : "Please sign in again to delete your account."
           }
         }
       }
@@ -1059,6 +1093,23 @@
         }
       }
     },
+    "common_button_cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zrušit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
     "common_button_favourite" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1110,6 +1161,40 @@
         }
       }
     },
+    "common_error_offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodařilo se připojit k serveru."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't reach the server."
+          }
+        }
+      }
+    },
+    "common_error_offline_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zkontroluj připojení k internetu a zkus to znovu."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your connection and try again."
+          }
+        }
+      }
+    },
     "common_error_unknown" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1123,6 +1208,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "An unknown error occurred"
+          }
+        }
+      }
+    },
+    "common_error_unknown_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zkus to prosím za chvíli znovu."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please try again in a moment."
           }
         }
       }

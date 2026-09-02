@@ -9,6 +9,10 @@ import Foundation
 import FirebaseFirestore
 import OSLog
 
+enum FirestoreDataProviderError: Error, Equatable {
+    case unreachable
+}
+
 protocol FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T]
     func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T]
@@ -36,7 +40,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return result
         } catch {
             logFailure("❌ GET \(collection)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 
@@ -50,7 +54,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return result
         } catch {
             logFailure("❌ GET \(collection) (server)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 
@@ -68,7 +72,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return result
         } catch {
             logFailure("❌ GET \(collection)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 
@@ -87,7 +91,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return result
         } catch {
             logFailure("❌ GET \(collection)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 
@@ -105,7 +109,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return result
         } catch {
             logFailure("❌ GET \(collection)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 
@@ -123,7 +127,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return result
         } catch {
             logFailure("❌ GET \(collection)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 
@@ -135,7 +139,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ POST \(collection)")
         } catch {
             logFailure("❌ POST \(collection)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 
@@ -147,7 +151,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ SET \(id) → \(collection)")
         } catch {
             logFailure("❌ SET \(id) → \(collection)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 
@@ -164,7 +168,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ BATCH SET \(items.count) items → \(collection)")
         } catch {
             logFailure("❌ BATCH SET \(collection)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 
@@ -175,7 +179,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ DELETE \(id) from \(collection)")
         } catch {
             logFailure("❌ DELETE \(id) from \(collection)", error: error)
-            throw error
+            throw mapError(error)
         }
     }
 }
@@ -190,4 +194,9 @@ private func log(_ message: String) {
 
 private func logFailure(_ message: String, error: Error) {
     logger.error("\(message): \(String(describing: error), privacy: .public)")
+}
+
+private func mapError(_ error: Error) -> Error {
+    guard error.matches(domain: FirestoreErrorDomain, code: FirestoreErrorCode.unavailable.rawValue) else { return error }
+    return FirestoreDataProviderError.unreachable
 }

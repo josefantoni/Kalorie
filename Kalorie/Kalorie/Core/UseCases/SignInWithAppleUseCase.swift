@@ -5,7 +5,6 @@
 //  Created by Josef Antoni on 07.08.2026.
 //
 
-import FirebaseAuth
 import Foundation
 
 protocol SignInWithAppleUseCaseProtocol {
@@ -42,15 +41,7 @@ struct SignInWithAppleUseCase: SignInWithAppleUseCaseProtocol {
 
     func callAsFunction() async throws {
         let result = try await appleSignInProvider.signIn()
-
-        let credential = OAuthProvider.appleCredential(
-            withIDToken: result.identityToken,
-            rawNonce: result.rawNonce,
-            fullName: result.fullName
-        )
-
-        try await linkOrMergeCredential(credential: credential)
-
+        try await linkOrMergeCredential(credential: result.credential)
         await saveProfileIfNeeded(fullName: result.fullName, email: result.email)
     }
 

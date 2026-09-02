@@ -9,11 +9,11 @@ import FirebaseAuth
 import Foundation
 
 enum DeleteAccountError: Error {
-    case requiresRecentLogin
+    case requiresRecentLogin(dataAlreadyDeleted: Bool)
 }
 
 protocol DeleteAccountUseCaseProtocol {
-    func callAsFunction() async throws
+    func callAsFunction(skipDataWipe: Bool) async throws
 }
 
 struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
@@ -38,16 +38,29 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction() async throws {
+    func callAsFunction(skipDataWipe: Bool = false) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
 
         if
             let lastSignInDate = authProvider.lastSignInDate,
             Date().timeIntervalSince(lastSignInDate) > Constants.Auth.recentLoginThreshold
         {
-            throw DeleteAccountError.requiresRecentLogin
+            throw DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: false)
         }
 
+        if !skipDataWipe {
+            try await wipeFirestoreData(userId: userId)
+        }
+
+        do {
+            try await authCommandProvider.deleteCurrentUser()
+        } catch {
+            guard error.matches(domain: AuthErrorDomain, code: AuthErrorCode.requiresRecentLogin.rawValue) else { throw error }
+            throw DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: true)
+        }
+    }
+
+    private func wipeFirestoreData(userId: String) async throws {
         let mealTypes: [MealTypeDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.mealTypes(userId: userId))
         for dto in mealTypes {
             try await dataProvider.deleteAsync(id: "\(dto.id)", from: Constants.Firestore.mealTypes(userId: userId))
@@ -73,16 +86,6 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         } catch {
             Log.error(error, category: Constants.LogCategory.account)
         }
-
-        do {
-            try await authCommandProvider.deleteCurrentUser()
-        } catch {
-            guard
-                let nsError = error as NSError?,
-                nsError.code == AuthErrorCode.requiresRecentLogin.rawValue
-            else { throw error }
-            throw DeleteAccountError.requiresRecentLogin
-        }
     }
 }
 
@@ -95,7 +98,7 @@ struct DeleteAccountUseCaseFake: DeleteAccountUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction() async throws {
+    func callAsFunction(skipDataWipe: Bool = false) async throws {
         if let errorToThrow { throw errorToThrow }
     }
 }

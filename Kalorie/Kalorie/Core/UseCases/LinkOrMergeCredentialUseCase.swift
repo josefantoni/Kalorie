@@ -43,15 +43,13 @@ struct LinkOrMergeCredentialUseCase: LinkOrMergeCredentialUseCaseProtocol {
         do {
             try await authCommandProvider.link(with: credential)
         } catch {
-            guard let nsError = error as NSError? else { throw error }
-
-            if nsError.code == AuthErrorCode.emailAlreadyInUse.rawValue {
+            if error.matches(domain: AuthErrorDomain, code: AuthErrorCode.emailAlreadyInUse.rawValue) {
                 throw LinkOrMergeCredentialError.accountExistsWithAnotherProvider
             }
 
             guard
                 let anonymousUserId,
-                nsError.code == AuthErrorCode.credentialAlreadyInUse.rawValue
+                error.matches(domain: AuthErrorDomain, code: AuthErrorCode.credentialAlreadyInUse.rawValue)
             else { throw error }
 
             try await migrateAnonymousData.migrate(fromAnonymousUserId: anonymousUserId, credential: credential)

@@ -168,6 +168,7 @@ struct DashboardView: View {
             .alert(item: $viewModel.alertItem) { item in
                 Alert(
                     title: Text(item.title),
+                    message: item.message.map(Text.init),
                     dismissButton: .default(Text(L10n.Common.ok))
                 )
             }

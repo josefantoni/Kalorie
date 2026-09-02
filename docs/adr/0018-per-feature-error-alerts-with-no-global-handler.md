@@ -1,6 +1,8 @@
 # 0018. Errors are presented per feature as a dismissible alert, with no global handler
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0020](0020-alertitem-carries-an-optional-message.md) (the
+  "`AlertItem` carries no message and no actions" bullet in Consequences only — the rest of this
+  record is unchanged)
 - **Scope:** iOS
 - **Date:** 2026-08-27
 

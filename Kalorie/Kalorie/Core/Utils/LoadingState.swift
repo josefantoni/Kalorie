@@ -11,6 +11,8 @@ enum LoadingState<T> {
     case idle
     case loading
     case loaded(T)
+    /// Rendered only by the auth root (`AuthStateObserver`) with a Retry button; features
+    /// report failures through `alertItem` instead. See ADR 0018.
     case error(Error?)
 }
 

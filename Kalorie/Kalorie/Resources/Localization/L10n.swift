@@ -11,9 +11,13 @@ enum L10n {
     enum Common {
         static var ok: String { String(localized: "common_ok") }
         static var errorUnknown: String { String(localized: "common_error_unknown") }
+        static var errorUnknownMessage: String { String(localized: "common_error_unknown_message") }
+        static var errorOffline: String { String(localized: "common_error_offline") }
+        static var errorOfflineMessage: String { String(localized: "common_error_offline_message") }
         static var buttonFavourite: String { String(localized: "common_button_favourite") }
         static var buttonYes: String { String(localized: "common_button_yes") }
         static var buttonNo: String { String(localized: "common_button_no") }
+        static var buttonCancel: String { String(localized: "common_button_cancel") }
         static var unitGrams: String { String(localized: "common_unit_grams") }
     }
 
@@ -30,6 +34,7 @@ enum L10n {
         static var buttonSignInWithApple: String { String(localized: "account_button_signInWithApple") }
         static var buttonSignInWithGoogle: String { String(localized: "account_button_signInWithGoogle") }
         static var buttonDeleteAccount: String { String(localized: "account_button_deleteAccount") }
+        static var buttonReauthenticate: String { String(localized: "account_button_reauthenticate") }
         static var dataAttribution: String { String(localized: "account_dataAttribution") }
         static var dataAttributionLinkTitle: String { String(localized: "account_dataAttribution_linkTitle") }
         static var signInProviderApple: String { String(localized: "account_signInProvider_apple") }
@@ -42,6 +47,7 @@ enum L10n {
         static var signedInDefaultName: String { String(localized: "account_signedIn_defaultName") }
         static var alertDeleteConfirmTitle: String { String(localized: "account_alert_deleteConfirmTitle") }
         static var alertDeleteConfirmMessage: String { String(localized: "account_alert_deleteConfirmMessage") }
+        static var alertReauthenticateTitle: String { String(localized: "account_alert_reauthenticateTitle") }
     }
 
     enum Dashboard {

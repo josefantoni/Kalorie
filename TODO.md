@@ -405,32 +405,3 @@ been fixed.
   discriminator removes those reads entirely. (Both are also equality queries that should be
   document reads — **A1-9**.)
   `Kalorie/Kalorie/Features/Dashboard/FoodConsumedDetailViewModel.swift:67`
-
-
-## Audit findings — 5. Cross-cutting concerns
-
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 5. Nothing here has
-been fixed.
-
-### Error presentation
-
-- [ ] **A5-3 — Two error-presentation conventions coexist.** The auth root renders
-  `LoadingState.error` as a screen with a Retry button; every feature uses a dismiss-only
-  `alertItem`. [ADR 0018](docs/adr/0018-per-feature-error-alerts-with-no-global-handler.md)
-  records why, and the split is defensible — but `LoadingState.error` being unused everywhere
-  except the root means the enum promises a state the features never enter, which reads as an
-  oversight rather than a decision. Either features should use it for load failures (which would
-  give them a retry affordance) or the case should be documented as root-only.
-
-- [ ] **A5-4 — `AlertItem` cannot express an error that needs an action.** It holds an `id` and a
-  `title`, so there is no message line and no second button. `errorDeleteRequiresRecentLogin`
-  therefore tells the user to sign in again and gives them nothing to tap — the one error in the
-  app with an obvious recovery step is the one the type cannot express. Adding an optional
-  message and an optional primary action is backwards-compatible with every existing call site.
-  `Kalorie/Kalorie/Core/Utils/AlertItem.swift:11`
-
-- [ ] **A5-5 — `DashboardViewModel` reports six different failures as "unknown error".**
-  `onAppear`, `onRefresh`, `onFoodConsumedUpdated`, `onMealTypesChanged`, `onCalendarMonthChanged`
-  and `loadFoods` each end in `alertItem = AlertItem(title: L10n.Common.errorUnknown)`. A user who
-  is offline, a user whose security rules changed and a user hitting a decoding bug all get the
-  same sentence. At minimum, offline should be distinguishable from everything else.
