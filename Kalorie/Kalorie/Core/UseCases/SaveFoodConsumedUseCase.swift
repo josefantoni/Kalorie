@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import MacroKit
 
 protocol SaveFoodConsumedUseCaseProtocol {
     func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws
@@ -30,20 +29,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
 
     func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let ratio = grams / 100
-        let calories = MacrosKt.scaledCalories(caloriesPerHundredGrams: item.caloriesPerHundredGrams, ratio: ratio)
-        // calories is scaled separately above: caloriesPerHundredGrams is fractional, and rounding
-        // it here before .scaled() would round twice instead of once.
-        let scaled = Macros(
-            calories: 0,
-            protein: item.protein,
-            carbohydrate: item.carbohydrate,
-            carbohydrateSugar: item.carbohydratePureSugar,
-            fat: item.fat,
-            fatUnsaturated: item.fatUnsaturatedFattyAcids,
-            fiber: item.fiber,
-            salt: item.salt
-        ).scaled(factor: ratio)
+        let scaled = item.scaled(toGrams: grams)
         let dto = FoodConsumedDTO(
             id: UUID().uuidString,
             foodItemId: item.id,
@@ -52,7 +38,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
             engName: item.engName,
             weight: grams,
             date: date.timeIntervalSince1970,
-            calories: Int(calories),
+            calories: scaled.calories,
             protein: scaled.protein,
             carbohydrate: scaled.carbohydrate,
             carbohydrateSugar: scaled.carbohydrateSugar,

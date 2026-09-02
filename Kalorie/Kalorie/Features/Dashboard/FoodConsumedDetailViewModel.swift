@@ -27,6 +27,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     private let addFavouriteFood: any AddFavouriteFoodUseCaseProtocol
     private let removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
+    private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
     private let onFoodUpdated: () -> Void
 
     var canShowFavouriteButton: Bool { isFavourite || catalogueItem != nil }
@@ -41,6 +42,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol,
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol,
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
+        fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
         onFoodUpdated: @escaping () -> Void
     ) {
         self.food = food
@@ -51,6 +53,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
         self.addFavouriteFood = addFavouriteFood
         self.removeFavouriteFood = removeFavouriteFood
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
+        self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
         self.onFoodUpdated = onFoodUpdated
     }
 
@@ -82,9 +85,15 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     }
 
     private func loadCatalogueItem() async -> FoodItemDomain? {
-        guard food.foodItemKind == .catalogue else { return nil }
         do {
-            return try await fetchFoodItemByBarcode(barcode: food.foodItemId)
+            switch food.foodItemKind {
+            case .catalogue:
+                return try await fetchFoodItemByBarcode(barcode: food.foodItemId)
+            case .external:
+                return try await fetchFoodByBarcodeExternally(barcode: food.foodItemId)
+            case .createdMeal:
+                return nil
+            }
         } catch {
             Log.warning(error, category: Constants.LogCategory.dashboard)
             return nil

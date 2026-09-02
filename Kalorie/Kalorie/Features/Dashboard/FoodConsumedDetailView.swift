@@ -158,7 +158,8 @@ struct FoodConsumedDetailView: View {
                 isFavouriteFood: IsFavouriteFoodUseCaseFake(),
                 addFavouriteFood: AddFavouriteFoodUseCaseFake(),
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
-                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake()
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
+                fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake()
             ) {}
         )
     }
