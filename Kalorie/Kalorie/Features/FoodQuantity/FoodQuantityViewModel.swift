@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import MacroKit
 
 enum FoodQuantityUnit: CaseIterable {
     case hundredGrams
@@ -41,24 +40,9 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
 
     var grams: Double { quantity * unit.gramsPerUnit }
 
-    // calories is scaled separately below: caloriesPerHundredGrams is fractional, and rounding
-    // it here before .scaled() would round twice instead of once.
-    private var scaledMacros: Macros {
-        Macros(
-            calories: 0,
-            protein: item.protein,
-            carbohydrate: item.carbohydrate,
-            carbohydrateSugar: item.carbohydratePureSugar,
-            fat: item.fat,
-            fatUnsaturated: item.fatUnsaturatedFattyAcids,
-            fiber: item.fiber,
-            salt: item.salt
-        ).scaled(factor: grams / 100)
-    }
+    private var scaledMacros: ScaledMacros { item.scaled(toGrams: grams) }
 
-    var scaledCalories: Int {
-        Int(MacrosKt.scaledCalories(caloriesPerHundredGrams: item.caloriesPerHundredGrams, ratio: grams / 100))
-    }
+    var scaledCalories: Int { scaledMacros.calories }
     var scaledProtein: Double { scaledMacros.protein }
     var scaledCarbohydrate: Double { scaledMacros.carbohydrate }
     var scaledFat: Double { scaledMacros.fat }

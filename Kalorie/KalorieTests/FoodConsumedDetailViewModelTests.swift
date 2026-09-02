@@ -51,17 +51,33 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onAppear_whenFoodItemKindIsExternal_stillChecksFavouriteButSkipsCatalogueLookup() async {
+    func test_onAppear_whenFoodItemKindIsExternalAndAlreadyFavourite_showsButtonRegardlessOfExternalLookup() async {
         let sut = makeSUT(
             food: makeFood(kind: .external),
             isFavouriteFood: IsFavouriteFoodUseCaseFake(stubbedResult: true),
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeCatalogueItem())
+            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(stubbedItem: nil)
         )
 
         await sut.onAppear()
 
         XCTAssertTrue(sut.isFavourite, "an external item is favouritable via its own id, independent of the catalogue")
-        XCTAssertTrue(sut.canShowFavouriteButton)
+        XCTAssertTrue(sut.canShowFavouriteButton, "already being a favourite must show the button even when the external lookup finds nothing")
+    }
+
+    @MainActor
+    func test_onAppear_whenFoodItemKindIsExternalAndNotYetFavourite_showsFavouriteButtonFromExternalLookup() async {
+        let sut = makeSUT(
+            food: makeFood(kind: .external),
+            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(stubbedItem: makeCatalogueItem())
+        )
+
+        await sut.onAppear()
+
+        XCTAssertFalse(sut.isFavourite)
+        XCTAssertTrue(
+            sut.canShowFavouriteButton,
+            "an OpenFoodFacts item is favouritable before it is favourited too; it has no Firestore catalogue entry to look up, but is resolved via OpenFoodFacts instead"
+        )
     }
 
     @MainActor
@@ -108,6 +124,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
+        fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         onFoodUpdated: @escaping () -> Void = {}
     ) -> FoodConsumedDetailViewModel {
         let sut = FoodConsumedDetailViewModel(
@@ -117,6 +134,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
             addFavouriteFood: addFavouriteFood,
             removeFavouriteFood: removeFavouriteFood,
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
+            fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             onFoodUpdated: onFoodUpdated
         )
         addTeardownBlock { [weak sut] in

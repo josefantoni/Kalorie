@@ -13,6 +13,7 @@ struct BaseDoubleTextField: View {
     // MARK: - Properties
 
     var title: String
+    var unit: String
     @Binding var weight: Double
 
     // MARK: - Body
@@ -37,7 +38,7 @@ struct BaseDoubleTextField: View {
                     width: 100,
                     alignment: .center
                 )
-            Text("g")
+            Text(unit)
                 .frame(alignment: .trailing)
                 .padding(.horizontal, 8)
         }

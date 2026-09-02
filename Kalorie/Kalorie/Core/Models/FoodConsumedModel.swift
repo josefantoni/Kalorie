@@ -59,4 +59,34 @@ struct ScaledMacros {
         fiber = scaled.fiber
         salt = scaled.salt
     }
+
+    init(item: FoodItemDomain, ratio: Double) {
+        // calories is scaled separately below: caloriesPerHundredGrams is fractional, and rounding
+        // it here before .scaled() would round twice instead of once.
+        let calories = MacrosKt.scaledCalories(caloriesPerHundredGrams: item.caloriesPerHundredGrams, ratio: ratio)
+        let scaled = Macros(
+            calories: 0,
+            protein: item.protein,
+            carbohydrate: item.carbohydrate,
+            carbohydrateSugar: item.carbohydratePureSugar,
+            fat: item.fat,
+            fatUnsaturated: item.fatUnsaturatedFattyAcids,
+            fiber: item.fiber,
+            salt: item.salt
+        ).scaled(factor: ratio)
+        self.calories = Int(calories)
+        protein = scaled.protein
+        carbohydrate = scaled.carbohydrate
+        carbohydrateSugar = scaled.carbohydrateSugar
+        fat = scaled.fat
+        fatUnsaturated = scaled.fatUnsaturated
+        fiber = scaled.fiber
+        salt = scaled.salt
+    }
+}
+
+extension FoodItemDomain {
+    func scaled(toGrams grams: Double) -> ScaledMacros {
+        ScaledMacros(item: self, ratio: grams / 100)
+    }
 }

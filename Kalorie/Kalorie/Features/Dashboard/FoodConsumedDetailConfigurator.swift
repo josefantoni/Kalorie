@@ -32,6 +32,7 @@ struct FoodConsumedDetailConfigurator {
                 addFavouriteFood: AddFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 removeFavouriteFood: RemoveFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
+                fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
                 onFoodUpdated: onFoodUpdated
             )
         )
