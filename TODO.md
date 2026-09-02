@@ -396,7 +396,7 @@ been fixed.
   creates, so this is a latent trap rather than a live bug: it should throw.
   `Kalorie/Kalorie/Core/UseCases/UpdateFoodConsumedUseCase.swift:32`
 
-- [ ] **A4-9 — The detail screen makes two round trips where one would do.** `onAppear` awaits
+- [x] **A4-9 — The detail screen makes two round trips where one would do.** `onAppear` awaits
   `isFavouriteFood(id:)` and then `fetchFoodItemByBarcode(barcode:)` sequentially, though neither
   depends on the other; `async let` for both halves the screen's opening latency.
   [Design 0006](docs/design/0006-own-daily-meals.md) already notes the sharper half of this — for

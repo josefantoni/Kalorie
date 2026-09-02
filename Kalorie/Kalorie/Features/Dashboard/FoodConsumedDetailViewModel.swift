@@ -65,21 +65,29 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
 
     @MainActor
     func onAppear() async {
-        if food.foodItemKind != .createdMeal {
-            do {
-                isFavourite = try await isFavouriteFood(id: food.foodItemId)
-            } catch {
-                isFavourite = false
-                Log.warning(error, category: Constants.LogCategory.dashboard)
-            }
+        async let favourite = loadIsFavourite()
+        async let catalogueItem = loadCatalogueItem()
+        isFavourite = await favourite
+        self.catalogueItem = await catalogueItem
+    }
+
+    private func loadIsFavourite() async -> Bool {
+        guard food.foodItemKind != .createdMeal else { return false }
+        do {
+            return try await isFavouriteFood(id: food.foodItemId)
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.dashboard)
+            return false
         }
-        if food.foodItemKind == .catalogue {
-            do {
-                catalogueItem = try await fetchFoodItemByBarcode(barcode: food.foodItemId)
-            } catch {
-                catalogueItem = nil
-                Log.warning(error, category: Constants.LogCategory.dashboard)
-            }
+    }
+
+    private func loadCatalogueItem() async -> FoodItemDomain? {
+        guard food.foodItemKind == .catalogue else { return nil }
+        do {
+            return try await fetchFoodItemByBarcode(barcode: food.foodItemId)
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.dashboard)
+            return nil
         }
     }
 
