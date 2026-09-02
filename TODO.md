@@ -382,7 +382,7 @@ been fixed.
 
 ### Smaller gaps
 
-- [ ] **A4-7 — The detail screen's Save has no re-entrancy guard.**
+- [x] **A4-7 — The detail screen's Save has no re-entrancy guard.**
   `FoodQuantityViewModel.onConfirm` opens with `guard !state.isLoading else { return }`;
   `FoodConsumedDetailViewModel.onSave` has no equivalent. A double tap issues two writes and two
   `onFoodUpdated()` callbacks, so the Dashboard invalidates and refetches the month twice. The

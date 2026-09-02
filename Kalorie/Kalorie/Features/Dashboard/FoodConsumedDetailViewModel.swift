@@ -95,6 +95,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
 
     @MainActor
     func onSave() async {
+        guard !state.isLoading else { return }
         guard weight > 0 else {
             alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
             return
