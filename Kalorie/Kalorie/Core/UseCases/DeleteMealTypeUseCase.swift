@@ -29,7 +29,7 @@ struct DeleteMealTypeUseCase: DeleteMealTypeUseCaseProtocol {
 
     func callAsFunction(_ mealType: MealTypeDomain) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        try await dataProvider.deleteAsync(id: "\(mealType.id)", from: Constants.Firestore.mealTypes(userId: userId))
+        try await dataProvider.deleteAsync(id: mealType.id, from: Constants.Firestore.mealTypes(userId: userId))
     }
 }
 

@@ -66,7 +66,7 @@ is written.
 ```
 foodItems/{barcode}                        shared, global catalogue
 users/{userId}                             profile document (displayName, email)
-users/{userId}/mealTypes/{intId}           the user's meal windows
+users/{userId}/mealTypes/{uuid}            the user's meal windows
 users/{userId}/foodConsumed/{uuid}         logged entries
 users/{userId}/favouriteFoods/{barcode}    explicitly favourited catalogue items
 users/{userId}/myCreatedMeals/{uuid}       user-composed meals
@@ -79,9 +79,9 @@ Document IDs are meaningful, not random:
 
 - `foodItems` and `favouriteFoods` are keyed by the **barcode**, which is also the item's `id`
   field. `CreateFoodItemUseCase` enforces that the id is all digits.
-- `foodConsumed` and `myCreatedMeals` are keyed by a client-generated `UUID().uuidString`.
-- `mealTypes` is keyed by the stringified integer id — see
-  [ADR 0010](adr/0010-client-assigned-integer-meal-type-ids.md).
+- `foodConsumed`, `myCreatedMeals` and `mealTypes` are keyed by a client-generated
+  `UUID().uuidString` — see [ADR 0021](adr/0021-meal-type-ids-are-uuids.md) for `mealTypes`,
+  which used a client-assigned integer until this record.
 
 The `users/{userId}` profile document is written **only** by `SignInWithAppleUseCase` and
 `SignInWithGoogleUseCase`. An anonymous user therefore has subcollections but no parent

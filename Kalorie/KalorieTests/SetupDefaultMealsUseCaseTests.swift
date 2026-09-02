@@ -24,11 +24,12 @@ final class SetupDefaultMealsUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.batchSavedCount, 5)
     }
 
-    func test_setupDefaultMeals_assignsSequentialIdsStartingFromZero() async throws {
+    func test_setupDefaultMeals_assignsDistinctNonEmptyIds() async throws {
         let (sut, _) = makeSUT()
         let result = try await sut()
-        let ids = result.map { $0.id }.sorted()
-        XCTAssertEqual(ids, [0, 1, 2, 3, 4])
+        let ids = Set(result.map { $0.id })
+        XCTAssertEqual(ids.count, 5, "each default meal must get its own id, or setAsync would silently overwrite one with another")
+        XCTAssertTrue(ids.allSatisfy { !$0.isEmpty })
     }
 
     // MARK: - Helpers

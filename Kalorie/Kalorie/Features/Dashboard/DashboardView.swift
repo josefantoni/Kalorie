@@ -251,8 +251,8 @@ struct DashboardView: View {
 
     let viewModel = DashboardViewModel(
         fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [
-            MealTypeDomain(id: 0, name: "Snídaně", startTime: time(hour: 7), endTime: time(hour: 10)),
-            MealTypeDomain(id: 1, name: "Oběd", startTime: time(hour: 11), endTime: time(hour: 14))
+            MealTypeDomain(id: "0", name: "Snídaně", startTime: time(hour: 7), endTime: time(hour: 10)),
+            MealTypeDomain(id: "1", name: "Oběd", startTime: time(hour: 11), endTime: time(hour: 14))
         ]),
         fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [
             FoodConsumedDomain(

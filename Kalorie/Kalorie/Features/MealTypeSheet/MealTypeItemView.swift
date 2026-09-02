@@ -44,7 +44,7 @@ struct MealTypeItemView: View {
 #Preview {
     MealTypeItemView(
         MealTypeDomain(
-            id: 1,
+            id: "1",
             name: "Snídaně",
             startTime: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: .now) ?? .now,
             endTime: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now

@@ -14,7 +14,7 @@ final class DeleteMealTypeUseCaseTests: XCTestCase {
 
     func test_deleteMealType_callsDeleteWithCorrectId() async throws {
         let (sut, dataProvider) = makeSUT()
-        let mealType = MealTypeDomain(id: 42, name: "Oběd", startTime: .now, endTime: .now)
+        let mealType = MealTypeDomain(id: "42", name: "Oběd", startTime: .now, endTime: .now)
 
         try await sut(mealType)
 
@@ -24,7 +24,7 @@ final class DeleteMealTypeUseCaseTests: XCTestCase {
     func test_deleteMealType_withoutAuth_throws() async {
         let dataProvider = FirestoreDataProviderStub()
         let sut = DeleteMealTypeUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake(userId: nil))
-        let mealType = MealTypeDomain(id: 1, name: "Test", startTime: .now, endTime: .now)
+        let mealType = MealTypeDomain(id: "1", name: "Test", startTime: .now, endTime: .now)
 
         do {
             try await sut(mealType)

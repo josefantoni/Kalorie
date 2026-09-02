@@ -25,7 +25,7 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
     func test_createMealType_withDuplicateName_throwsDuplicateNameError() async throws {
         let (sut, _) = makeSUT()
         let existing = MealTypeDomain(
-            id: 1,
+            id: "1",
             name: "Snídaně",
             startTime: makeDate(hour: 6, minute: 0),
             endTime: makeDate(hour: 9, minute: 0)
@@ -46,7 +46,7 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
     func test_createMealType_withTimeConflict_throwsTimeConflictError() async throws {
         let (sut, _) = makeSUT()
         let existing = MealTypeDomain(
-            id: 1,
+            id: "1",
             name: "Snídaně",
             startTime: makeDate(hour: 6, minute: 0),
             endTime: makeDate(hour: 9, minute: 0)
@@ -67,7 +67,7 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
     func test_createMealType_wrappingExistingSlot_throwsTimeConflictError() async throws {
         let (sut, _) = makeSUT()
         let existing = MealTypeDomain(
-            id: 1,
+            id: "1",
             name: "Snídaně",
             startTime: makeDate(hour: 9, minute: 0),
             endTime: makeDate(hour: 12, minute: 0)
@@ -99,7 +99,7 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
     func test_createMealType_withValidInput_persistsAndReturnsMealType() async throws {
         let (sut, _) = makeSUT()
         let existing = MealTypeDomain(
-            id: 1,
+            id: "1",
             name: "Snídaně",
             startTime: makeDate(hour: 6, minute: 0),
             endTime: makeDate(hour: 9, minute: 0)
@@ -111,7 +111,25 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
             existingMealTypes: [existing]
         )
         XCTAssertEqual(result.name, "Oběd")
-        XCTAssertEqual(result.id, 2)
+        XCTAssertFalse(result.id.isEmpty)
+        XCTAssertNotEqual(result.id, existing.id, "a new meal type must never reuse an id already in use, since Firestore's setAsync would silently overwrite that document")
+    }
+
+    func test_createMealType_calledTwiceFromSameExistingSnapshot_assignsDistinctIds() async throws {
+        let (sut, _) = makeSUT()
+        let first = try await sut(
+            name: "Snídaně",
+            startTime: makeDate(hour: 6, minute: 0),
+            endTime: makeDate(hour: 9, minute: 0),
+            existingMealTypes: []
+        )
+        let second = try await sut(
+            name: "Oběd",
+            startTime: makeDate(hour: 11, minute: 0),
+            endTime: makeDate(hour: 13, minute: 0),
+            existingMealTypes: []
+        )
+        XCTAssertNotEqual(first.id, second.id, "two devices creating a meal type from the same stale snapshot must not collide on id and silently overwrite each other")
     }
 
     // MARK: - Helpers

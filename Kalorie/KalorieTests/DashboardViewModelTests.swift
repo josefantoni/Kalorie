@@ -27,7 +27,7 @@ final class DashboardViewModelTests: XCTestCase {
         sut.foodsConsumed = [makeFood(id: "f1", hour: 10)]
         let groups = sut.groupedFoods
         XCTAssertEqual(groups.count, 1)
-        XCTAssertEqual(groups[0].mealType?.id, 0)
+        XCTAssertEqual(groups[0].mealType?.id, "0")
         XCTAssertEqual(groups[0].foods.first?.id, "f1")
     }
 
@@ -37,7 +37,7 @@ final class DashboardViewModelTests: XCTestCase {
         sut.foodsConsumed = [makeFood(id: "f1", hour: 8, minute: 0)]
         let groups = sut.groupedFoods
         XCTAssertEqual(groups.count, 1)
-        XCTAssertEqual(groups[0].mealType?.id, 0)
+        XCTAssertEqual(groups[0].mealType?.id, "0")
     }
 
     func test_groupedFoods_foodAtExactEndTime_isExcluded() {
@@ -77,8 +77,8 @@ final class DashboardViewModelTests: XCTestCase {
         sut.foodsConsumed = [makeFood(id: "early", hour: 9), makeFood(id: "late", hour: 13)]
         let groups = sut.groupedFoods
         XCTAssertEqual(groups.count, 2)
-        XCTAssertEqual(groups[0].mealType?.id, 0)
-        XCTAssertEqual(groups[1].mealType?.id, 1)
+        XCTAssertEqual(groups[0].mealType?.id, "0")
+        XCTAssertEqual(groups[1].mealType?.id, "1")
     }
 
     func test_groupedFoods_wrappingMealType_includesFoodAfterMidnight() {
@@ -87,7 +87,7 @@ final class DashboardViewModelTests: XCTestCase {
         sut.foodsConsumed = [makeFood(id: "f1", hour: 0, minute: 30)]
         let groups = sut.groupedFoods
         XCTAssertEqual(groups.count, 1)
-        XCTAssertEqual(groups[0].mealType?.id, 0)
+        XCTAssertEqual(groups[0].mealType?.id, "0")
     }
 
     func test_groupedFoods_mealTypeWithNoMatchingFoods_isOmitted() {
@@ -99,7 +99,7 @@ final class DashboardViewModelTests: XCTestCase {
         sut.foodsConsumed = [makeFood(id: "f1", hour: 9)]
         let groups = sut.groupedFoods
         XCTAssertEqual(groups.count, 1)
-        XCTAssertEqual(groups[0].mealType?.id, 0)
+        XCTAssertEqual(groups[0].mealType?.id, "0")
     }
 
     // MARK: - onAppear
@@ -235,7 +235,7 @@ final class DashboardViewModelTests: XCTestCase {
         let base = Date.now
         let start = cal.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
         let end = cal.date(bySettingHour: endHour, minute: minute, second: 0, of: base) ?? base
-        return MealTypeDomain(id: id, name: "Meal \(id)", startTime: start, endTime: end)
+        return MealTypeDomain(id: "\(id)", name: "Meal \(id)", startTime: start, endTime: end)
     }
 
     private func makeFood(id: String, hour: Int, minute: Int = 0) -> FoodConsumedDomain {

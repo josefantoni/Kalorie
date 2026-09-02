@@ -59,14 +59,14 @@ struct CreateMealTypeUseCase: CreateMealTypeUseCaseProtocol {
             throw CreateMealTypeError.timeConflict
         }
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let newId = (existingMealTypes.map { $0.id }.max() ?? -1) + 1
+        let newId = UUID().uuidString
         let dto = MealTypeDTO(
             id: newId,
             name: name,
             startMinutes: Int(startMinutes),
             endMinutes: Int(endMinutes)
         )
-        try await dataProvider.setAsync(dto, id: "\(newId)", in: Constants.Firestore.mealTypes(userId: userId))
+        try await dataProvider.setAsync(dto, id: newId, in: Constants.Firestore.mealTypes(userId: userId))
         return MealTypeDomain(id: newId, name: name, startTime: startTime, endTime: endTime)
     }
 }
@@ -82,7 +82,7 @@ struct CreateMealTypeUseCaseFake: CreateMealTypeUseCaseProtocol {
         endTime: Date,
         existingMealTypes: [MealTypeDomain]
     ) async throws -> MealTypeDomain {
-        MealTypeDomain(id: 0, name: name, startTime: startTime, endTime: endTime)
+        MealTypeDomain(id: UUID().uuidString, name: name, startTime: startTime, endTime: endTime)
     }
 }
 #endif

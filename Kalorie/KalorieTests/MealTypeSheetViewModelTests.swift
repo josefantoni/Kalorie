@@ -117,7 +117,7 @@ final class MealTypeSheetViewModelTests: XCTestCase {
         let sut = makeSUT(mealTypes: [meal0, meal1])
         await sut.onDelete(at: 0)
         XCTAssertEqual(sut.mealTypes.count, 1)
-        XCTAssertEqual(sut.mealTypes[0].id, 1)
+        XCTAssertEqual(sut.mealTypes[0].id, "1")
     }
 
     @MainActor
@@ -170,6 +170,6 @@ final class MealTypeSheetViewModelTests: XCTestCase {
         let base = Date.now
         let start = cal.date(bySettingHour: hour, minute: 0, second: 0, of: base) ?? base
         let end = cal.date(bySettingHour: endHour, minute: 0, second: 0, of: base) ?? base
-        return MealTypeDomain(id: id, name: name, startTime: start, endTime: end)
+        return MealTypeDomain(id: "\(id)", name: name, startTime: start, endTime: end)
     }
 }
