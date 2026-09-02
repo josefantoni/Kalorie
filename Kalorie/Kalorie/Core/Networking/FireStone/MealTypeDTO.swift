@@ -11,7 +11,7 @@ struct MealTypeDTO: Codable {
 
     // MARK: - Properties
 
-    let id: Int
+    let id: String
     let name: String
     let startMinutes: Int
     let endMinutes: Int

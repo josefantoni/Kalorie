@@ -47,17 +47,17 @@ marked `[x]`.
 
 ## Audit findings — 1. Data layer and Firestore model
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1. Nothing here has
-been fixed; each item is a decision still to make.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
 
 ### Data loss and correctness
 
-- [ ] **A1-1 — Concurrent meal-type creation silently overwrites.** `CreateMealTypeUseCase`
-  assigns `max(existing.id) + 1` client-side and writes with `setAsync`, which replaces rather
-  than fails. Two devices creating a meal type from the same starting state produce the same id;
-  the second write destroys the first, with no error on either device. Reachable whenever the
-  user has an iPhone and an iPad, which is the case authentication was built for. Fix is either
-  UUID document IDs (see ADR 0010, which is safe to revisit) or a transaction.
+- [x] **A1-1 — Concurrent meal-type creation silently overwrites.** Fixed: meal type identity
+  moved from a client-computed `max(existing.id) + 1` integer to a client-generated
+  `UUID().uuidString`, the same scheme `foodConsumed` and `myCreatedMeals` already used. Two
+  devices creating a meal type from the same starting state now get distinct ids, so `setAsync`
+  can no longer overwrite one with the other. See
+  [ADR 0021](docs/adr/0021-meal-type-ids-are-uuids.md), which supersedes
+  [ADR 0010](docs/adr/0010-client-assigned-integer-meal-type-ids.md).
   `Kalorie/Kalorie/Core/UseCases/CreateMealTypeUseCase.swift:62`
 
 - [ ] **A1-3 — Anonymous-data merge breaks past 500 entries.** `MigrateAnonymousDataUseCase`

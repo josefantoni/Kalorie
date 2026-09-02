@@ -191,7 +191,7 @@ understanding why.
 | [0007](adr/0007-derive-missing-energy-kj-from-macros.md) | Missing energyKJ is derived from macros, not defaulted to 0 | Accepted | Cross-platform |
 | [0008](adr/0008-dates-as-epoch-seconds-not-firestore-timestamp.md) | Dates are stored as epoch seconds, not as a Firestore `Timestamp` | Accepted | Backend, Cross-platform |
 | [0009](adr/0009-denormalised-nutrition-snapshots.md) | Nutrition values are denormalised into every collection that references a food | Accepted | Backend, Cross-platform |
-| [0010](adr/0010-client-assigned-integer-meal-type-ids.md) | Meal type IDs are integers assigned by the client | Accepted | Backend, Cross-platform |
+| [0010](adr/0010-client-assigned-integer-meal-type-ids.md) | Meal type IDs are integers assigned by the client | Superseded | Backend, Cross-platform |
 | [0011](adr/0011-foodItems-writable-by-any-authenticated-client.md) | `foodItems` is writable by any authenticated client, pending the moderation flow | Accepted | Backend |
 | [0012](adr/0012-external-food-is-surfaced-never-imported.md) | OpenFoodFacts results are surfaced to the user, never imported into the catalogue | Accepted | Cross-platform |
 | [0013](adr/0013-prefix-search-over-lowercased-name-fields.md) | Catalogue search is a Firestore prefix range over pre-lowercased name fields | Accepted | Backend, Cross-platform |
@@ -201,3 +201,5 @@ understanding why.
 | [0017](adr/0017-optimistic-favourite-toggle-shared-by-protocol-extension.md) | Favourite toggling is an optimistic protocol extension, not a use case | Accepted | iOS |
 | [0018](adr/0018-per-feature-error-alerts-with-no-global-handler.md) | Errors are presented per feature as a dismissible alert, with no global handler | Accepted | iOS |
 | [0019](adr/0019-l10n-enum-over-the-string-catalogue.md) | Localized strings are reached through a hand-written `L10n` enum | Accepted | iOS |
+| [0020](adr/0020-alertitem-carries-an-optional-message.md) | `AlertItem` carries an optional message alongside its title | Accepted | iOS |
+| [0021](adr/0021-meal-type-ids-are-uuids.md) | Meal type ids are UUIDs, assigned client-side at creation | Accepted | Backend, Cross-platform |

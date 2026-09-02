@@ -20,7 +20,7 @@ final class ConfirmMealTypesEmptyUseCaseTests: XCTestCase {
 
     func test_callAsFunction_whenServerReturnsMealTypes_returnsFalse() async throws {
         let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedMealTypes = [MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 0, endMinutes: 60)]
+        dataProvider.stubbedMealTypes = [MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60)]
         let result = try await sut()
         XCTAssertFalse(result)
     }
@@ -39,7 +39,7 @@ final class ConfirmMealTypesEmptyUseCaseTests: XCTestCase {
 
     func test_callAsFunction_usesServerSourceNotCache() async throws {
         let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedMealTypes = [MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 0, endMinutes: 60)]
+        dataProvider.stubbedMealTypes = [MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60)]
         dataProvider.stubbedCachedMealTypes = []
 
         let result = try await sut()

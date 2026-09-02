@@ -21,8 +21,8 @@ final class FetchMealTypesUseCaseTests: XCTestCase {
     func test_fetchMealTypes_returnsMappedAndSortedDomains() async throws {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedMealTypes = [
-            MealTypeDTO(id: 1, name: "Oběd", startMinutes: 12 * 60, endMinutes: 14 * 60),
-            MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 6 * 60, endMinutes: 9 * 60)
+            MealTypeDTO(id: "1", name: "Oběd", startMinutes: 12 * 60, endMinutes: 14 * 60),
+            MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 6 * 60, endMinutes: 9 * 60)
         ]
 
         let result = try await sut()

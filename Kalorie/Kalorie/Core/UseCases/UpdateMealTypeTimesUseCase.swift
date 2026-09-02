@@ -37,7 +37,7 @@ struct UpdateMealTypeTimesUseCase: UpdateMealTypeTimesUseCaseProtocol {
                     startMinutes: Int(mealType.startTime.minutesSinceMidnight),
                     endMinutes: Int(mealType.endTime.minutesSinceMidnight)
                 ),
-                id: "\(mealType.id)"
+                id: mealType.id
             )
         }
         try await dataProvider.batchSetAsync(dtos, in: Constants.Firestore.mealTypes(userId: userId))

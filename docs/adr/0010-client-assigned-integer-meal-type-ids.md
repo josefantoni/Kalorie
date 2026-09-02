@@ -1,6 +1,8 @@
 # 0010. Meal type IDs are integers assigned by the client
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0021](0021-meal-type-ids-are-uuids.md) (the Decision and the
+  "not safe against concurrent writers" Consequence bullet only — camelCase field names and
+  per-user identity scope are unchanged)
 - **Scope:** Backend, Cross-platform
 - **Date:** 2026-08-27
 

@@ -43,7 +43,8 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
         var dtos: [(item: MealTypeDTO, id: String)] = []
         var domains: [MealTypeDomain] = []
 
-        for (id, mealName) in mealNames.enumerated() {
+        for mealName in mealNames {
+            let id = UUID().uuidString
             dtos.append((
                 item: MealTypeDTO(
                     id: id,
@@ -51,7 +52,7 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
                     startMinutes: Int(startTime.minutesSinceMidnight),
                     endMinutes: Int(endTime.minutesSinceMidnight)
                 ),
-                id: "\(id)"
+                id: id
             ))
             domains.append(MealTypeDomain(id: id, name: mealName, startTime: startTime, endTime: endTime))
             startTime = endTime

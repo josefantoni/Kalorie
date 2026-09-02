@@ -38,7 +38,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_deletesFirestoreDataBeforeDeletingAuthAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedMealTypes = [MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 0, endMinutes: 60)]
+        dataProvider.stubbedMealTypes = [MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60)]
         dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
@@ -53,8 +53,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
         dataProvider.stubbedMealTypes = [
-            MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 0, endMinutes: 60),
-            MealTypeDTO(id: 1, name: "Oběd", startMinutes: 60, endMinutes: 120)
+            MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60),
+            MealTypeDTO(id: "1", name: "Oběd", startMinutes: 60, endMinutes: 120)
         ]
         dataProvider.stubbedFoodConsumed = [makeFood(id: "f1"), makeFood(id: "f2")]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
@@ -85,7 +85,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_whenLastSignInIsStale_throwsBeforeDeletingAnyData() async {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedMealTypes = [MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 0, endMinutes: 60)]
+        dataProvider.stubbedMealTypes = [MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60)]
         dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
         let sut = DeleteAccountUseCase(
             dataProvider: dataProvider,
@@ -127,7 +127,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_whenSkipDataWipeIsTrue_doesNotReReadAlreadyWipedCollections() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedMealTypes = [MealTypeDTO(id: 0, name: "Snídaně", startMinutes: 0, endMinutes: 60)]
+        dataProvider.stubbedMealTypes = [MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60)]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut(skipDataWipe: true)

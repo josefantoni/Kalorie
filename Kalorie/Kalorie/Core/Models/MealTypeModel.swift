@@ -11,7 +11,7 @@ struct MealTypeDomain {
 
     // MARK: - Properties
 
-    let id: Int
+    let id: String
     let name: String
     let startTime: Date
     let endTime: Date
