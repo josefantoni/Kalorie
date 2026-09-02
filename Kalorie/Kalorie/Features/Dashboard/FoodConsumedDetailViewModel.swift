@@ -109,6 +109,9 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
             showCheckmark = true
             try? await Task.sleep(for: .seconds(2))
             showCheckmark = false
+        } catch UpdateFoodConsumedError.invalidWeight {
+            alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
+            state = .loaded
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)

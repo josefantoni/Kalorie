@@ -7,6 +7,10 @@
 
 import Foundation
 
+enum UpdateFoodConsumedError: Error {
+    case invalidWeight
+}
+
 protocol UpdateFoodConsumedUseCaseProtocol {
     func callAsFunction(_ food: FoodConsumedDomain, newWeight: Double) async throws
 }
@@ -29,7 +33,7 @@ struct UpdateFoodConsumedUseCase: UpdateFoodConsumedUseCaseProtocol {
 
     func callAsFunction(_ food: FoodConsumedDomain, newWeight: Double) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        guard food.weight > 0 else { return }
+        guard food.weight > 0 else { throw UpdateFoodConsumedError.invalidWeight }
         let ratio = newWeight / food.weight
         let scaled = ScaledMacros(food: food, ratio: ratio)
         let dto = FoodConsumedDTO(

@@ -34,6 +34,16 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         }
     }
 
+    func test_updateFoodConsumed_whenExistingWeightIsNotPositive_throwsInvalidWeightError() async throws {
+        let (sut, _) = makeSUT()
+        do {
+            try await sut(makeFood(weight: 0), newWeight: 200)
+            XCTFail("Expected invalidWeight error")
+        } catch UpdateFoodConsumedError.invalidWeight {
+            // pass
+        }
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(userId: String? = "test-user") -> (sut: UpdateFoodConsumedUseCase, dataProvider: UpdateFoodConsumedDataProviderFake) {

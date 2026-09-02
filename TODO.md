@@ -389,7 +389,7 @@ been fixed.
   writes themselves are idempotent, which is why this has stayed invisible.
   `Kalorie/Kalorie/Features/Dashboard/FoodConsumedDetailViewModel.swift:83`
 
-- [ ] **A4-8 — A no-op update reports success.** `UpdateFoodConsumedUseCase` opens with
+- [x] **A4-8 — A no-op update reports success.** `UpdateFoodConsumedUseCase` opens with
   `guard food.weight > 0 else { return }` — a silent early return, not a throw. The caller then
   sets `savedWeight`, shows the checkmark and tells the Dashboard to refresh, all for a write that
   never happened. Only reachable for an entry with a non-positive weight, which nothing currently
