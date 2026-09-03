@@ -45,10 +45,12 @@ struct UpdateFoodConsumedUseCase: UpdateFoodConsumedUseCaseProtocol {
             date: food.date.timeIntervalSince1970,
             calories: scaled.calories,
             caloriesPerHundredGrams: food.caloriesPerHundredGrams,
+            energyKJ: scaled.energyKJ,
             protein: scaled.protein,
             carbohydrate: scaled.carbohydrate,
             carbohydrateSugar: scaled.carbohydrateSugar,
             fat: scaled.fat,
+            fatSaturated: scaled.fatSaturated,
             fatUnsaturated: scaled.fatUnsaturated,
             fiber: scaled.fiber,
             salt: scaled.salt

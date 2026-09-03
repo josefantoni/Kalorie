@@ -21,10 +21,12 @@ struct FoodConsumedDTO: Codable {
     let date: TimeInterval
     let calories: Int
     let caloriesPerHundredGrams: Double?
+    let energyKJ: Double?
     let protein: Double
     let carbohydrate: Double
     let carbohydrateSugar: Double
     let fat: Double
+    let fatSaturated: Double?
     let fatUnsaturated: Double
     let fiber: Double
     let salt: Double
@@ -40,6 +42,8 @@ struct FoodConsumedDTO: Codable {
         case carbohydrateSugar = "carbohydrate_sugar"
         case fatUnsaturated = "fat_unsaturated"
         case caloriesPerHundredGrams = "calories_per_hundred_grams"
+        case energyKJ = "energy_kj"
+        case fatSaturated = "fat_saturated"
     }
 
     // MARK: - Functions
@@ -55,10 +59,12 @@ struct FoodConsumedDTO: Codable {
             date: Date(timeIntervalSince1970: date),
             calories: calories,
             caloriesPerHundredGrams: caloriesPerHundredGrams ?? MacrosKt.caloriesPerHundredGrams(calories: Int32(calories), weight: weight),
+            energyKJ: energyKJ ?? MacrosKt.energyKJFromMacros(fat: fat, carbohydrate: carbohydrate, protein: protein),
             protein: protein,
             carbohydrate: carbohydrate,
             carbohydrateSugar: carbohydrateSugar,
             fat: fat,
+            fatSaturated: fatSaturated,
             fatUnsaturated: fatUnsaturated,
             fiber: fiber,
             salt: salt

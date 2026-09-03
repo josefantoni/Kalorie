@@ -48,6 +48,13 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedDTO?.caloriesPerHundredGrams, 155)
     }
 
+    func test_updateFoodConsumed_whenWeightChanges_scalesEnergyKJAndFatSaturated() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeFood(weight: 100, energyKJ: 200, fatSaturated: 4), newWeight: 200)
+        XCTAssertEqual(dataProvider.savedDTO?.energyKJ, 400)
+        XCTAssertEqual(dataProvider.savedDTO?.fatSaturated, 8)
+    }
+
     func test_updateFoodConsumed_whenExistingWeightIsNotPositive_throwsInvalidWeightError() async throws {
         let (sut, _) = makeSUT()
         do {
@@ -72,6 +79,8 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         weight: Double = 100,
         calories: Int = 155,
         caloriesPerHundredGrams: Double = 155,
+        energyKJ: Double = 649,
+        fatSaturated: Double? = 3,
         kind: FoodItemKind = .catalogue
     ) -> FoodConsumedDomain {
         FoodConsumedDomain(
@@ -84,10 +93,12 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
             date: .now,
             calories: calories,
             caloriesPerHundredGrams: caloriesPerHundredGrams,
+            energyKJ: energyKJ,
             protein: 13,
             carbohydrate: 1,
             carbohydrateSugar: 0,
             fat: 10,
+            fatSaturated: fatSaturated,
             fatUnsaturated: 3,
             fiber: 0,
             salt: 0.3

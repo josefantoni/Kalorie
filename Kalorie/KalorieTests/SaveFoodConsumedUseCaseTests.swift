@@ -66,6 +66,13 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedDTO?.weight, 150)
     }
 
+    func test_saveFoodConsumed_scalesEnergyKJAndFatSaturatedToLoggedWeight() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeItem(), grams: 200, date: .now)
+        XCTAssertEqual(dataProvider.savedDTO?.energyKJ, 1296)
+        XCTAssertEqual(dataProvider.savedDTO?.fatSaturated, 6)
+    }
+
     func test_saveFoodConsumed_storesTheItemsKindAsFoodItemKind() async throws {
         let (sut, dataProvider) = makeSUT()
         try await sut(makeItem(kind: .external), grams: 100, date: .now)
