@@ -77,7 +77,7 @@ struct FoodConsumedDetailView: View {
                     Text(macros.fatUnsaturated.formattedGrams())
                 }
                 LabeledContent(L10n.FoodQuantity.fiber) {
-                    Text(macros.fiber.formattedGrams())
+                    Text((macros.fiber ?? 0).formattedGrams())
                 }
                 LabeledContent(L10n.AddFood.fieldSalt) {
                     Text(macros.salt.formattedGrams(fractionDigits: 2))

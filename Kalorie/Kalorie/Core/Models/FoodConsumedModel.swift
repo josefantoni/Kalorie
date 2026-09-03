@@ -28,7 +28,7 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
     let fat: Double
     let fatSaturated: Double?
     let fatUnsaturated: Double
-    let fiber: Double
+    let fiber: Double?
     let salt: Double
 }
 
@@ -41,10 +41,10 @@ struct ScaledMacros {
     let fat: Double
     let fatSaturated: Double?
     let fatUnsaturated: Double
-    let fiber: Double
+    let fiber: Double?
     let salt: Double
 
-    private init(calories: Int, scaled: Macros, energyKJ: Double, fatSaturated: Double?) {
+    private init(calories: Int, scaled: Macros, energyKJ: Double, fatSaturated: Double?, fiber: Double?) {
         self.calories = calories
         self.energyKJ = energyKJ
         protein = scaled.protein
@@ -53,7 +53,7 @@ struct ScaledMacros {
         fat = scaled.fat
         self.fatSaturated = fatSaturated
         fatUnsaturated = scaled.fatUnsaturated
-        fiber = scaled.fiber
+        self.fiber = fiber
         salt = scaled.salt
     }
 
@@ -70,14 +70,15 @@ struct ScaledMacros {
             carbohydrateSugar: food.carbohydrateSugar,
             fat: food.fat,
             fatUnsaturated: food.fatUnsaturated,
-            fiber: food.fiber,
+            fiber: food.fiber ?? 0,
             salt: food.salt
         ).scaled(factor: ratio)
         self.init(
             calories: Int(calories),
             scaled: scaled,
             energyKJ: food.energyKJ * ratio,
-            fatSaturated: food.fatSaturated.map { $0 * ratio }
+            fatSaturated: food.fatSaturated.map { $0 * ratio },
+            fiber: food.fiber.map { $0 * ratio }
         )
     }
 
@@ -99,7 +100,8 @@ struct ScaledMacros {
             calories: Int(calories),
             scaled: scaled,
             energyKJ: item.energyKJ * ratio,
-            fatSaturated: item.fatSaturated.map { $0 * ratio }
+            fatSaturated: item.fatSaturated.map { $0 * ratio },
+            fiber: item.fiber.map { $0 * ratio }
         )
     }
 }

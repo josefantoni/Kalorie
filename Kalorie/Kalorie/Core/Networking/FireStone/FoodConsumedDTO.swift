@@ -28,7 +28,7 @@ struct FoodConsumedDTO: Codable {
     let fat: Double
     let fatSaturated: Double?
     let fatUnsaturated: Double
-    let fiber: Double
+    let fiber: Double?
     let salt: Double
 
     // MARK: - Coding keys
