@@ -12,7 +12,22 @@ service cloud.firestore {
 
     match /foodItems/{itemId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && itemId.matches('[0-9]{8}|[0-9]{12}|[0-9]{13}');
+      allow create, update: if
+        request.auth != null &&
+        itemId.matches('[0-9]{8}|[0-9]{12}|[0-9]{13}') &&
+        request.resource.data.id == itemId &&
+        request.resource.data.weight is number &&
+        request.resource.data.date is number &&
+        request.resource.data.calories_per_hundred_grams is number &&
+        request.resource.data.fat is number &&
+        request.resource.data.fat_unsaturated_fatty_acids is number &&
+        request.resource.data.carbohydrate is number &&
+        request.resource.data.carbohydrate_pure_sugar is number &&
+        request.resource.data.protein is number &&
+        request.resource.data.salt is number &&
+        (!('energy_kj' in request.resource.data) || request.resource.data.energy_kj is number) &&
+        (!('fat_saturated' in request.resource.data) || request.resource.data.fat_saturated is number) &&
+        (!('fiber' in request.resource.data) || request.resource.data.fiber is number);
     }
   }
 }

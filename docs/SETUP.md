@@ -36,12 +36,13 @@ be updated by hand along with the plist and the CI secret.
 
 ## Firestore security rules
 
-Rules are versioned in `Kalorie/firestore.rules` but **the repository is not the source of
-truth for what is live** — they have to be deployed explicitly:
+Rules are versioned in `Kalorie/firestore.rules` and field-index overrides in
+`Kalorie/firestore.indexes.json`, but **the repository is not the source of truth for what is
+live** — they have to be deployed explicitly:
 
 ```sh
 cd Kalorie
-firebase deploy --only firestore:rules
+firebase deploy --only firestore:rules,firestore:indexes
 ```
 
 Test before deploying, either in the Rules Playground in the console or against the emulator:

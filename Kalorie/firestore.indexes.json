@@ -1,0 +1,17 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    { "collectionGroup": "foodItems", "fieldPath": "weight", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "date", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "energy_kj", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "calories_per_hundred_grams", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "fat", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "fat_saturated", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "fat_unsaturated_fatty_acids", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "carbohydrate", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "carbohydrate_pure_sugar", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "fiber", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "protein", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "salt", "indexes": [] }
+  ]
+}
