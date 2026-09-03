@@ -40,6 +40,14 @@ extension MyCreatedMealDomain {
         func density(_ value: (FoodNutritionValues) -> Double) -> Double {
             weightedMeanPerHundredGrams(values: ingredients.map { value($0.nutrition) }, grams: gramsList)
         }
+        func densityOptional(_ value: (FoodNutritionValues) -> Double?) -> Double? {
+            var values: [Double] = []
+            for ingredient in ingredients {
+                guard let resolved = value(ingredient.nutrition) else { return nil }
+                values.append(resolved)
+            }
+            return weightedMeanPerHundredGrams(values: values, grams: gramsList)
+        }
         return FoodItemDomain(
             id: id,
             kind: .createdMeal,
@@ -51,11 +59,11 @@ extension MyCreatedMealDomain {
                 energyKJ: density(\.energyKJ),
                 caloriesPerHundredGrams: density(\.caloriesPerHundredGrams),
                 fat: density(\.fat),
-                fatSaturated: density(\.fatSaturated),
+                fatSaturated: densityOptional(\.fatSaturated),
                 fatUnsaturatedFattyAcids: density(\.fatUnsaturatedFattyAcids),
                 carbohydrate: density(\.carbohydrate),
                 carbohydratePureSugar: density(\.carbohydratePureSugar),
-                fiber: density(\.fiber),
+                fiber: densityOptional(\.fiber),
                 protein: density(\.protein),
                 salt: density(\.salt)
             )

@@ -77,6 +77,23 @@ final class CreateMyCreatedMealUseCaseTests: XCTestCase {
         XCTAssertEqual(loggedCalories, 246)
     }
 
+    func test_asFoodItem_whenAnyIngredientMissingFatSaturatedOrFiber_composedValueIsNilNotZero() async throws {
+        let (sut, _) = makeSUT()
+        let ingredients = [
+            makeIngredient(fatSaturated: 3, fiber: 2),
+            makeIngredient(fatSaturated: nil, fiber: nil)
+        ]
+
+        let meal = try await sut(name: "Míchaná kaše", ingredients: ingredients)
+        let foodItem = meal.asFoodItem()
+
+        // One ingredient's saturated fat / fiber is unknown, so the composed meal's density
+        // cannot be a true weighted mean — it must stay unknown too, not silently treat the
+        // missing ingredient as contributing 0.
+        XCTAssertNil(foodItem.fatSaturated)
+        XCTAssertNil(foodItem.fiber)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(userId: String? = "test-user") -> (sut: CreateMyCreatedMealUseCase, dataProvider: CreateMyCreatedMealDataProviderFake) {
@@ -86,7 +103,12 @@ final class CreateMyCreatedMealUseCaseTests: XCTestCase {
         return (sut, dataProvider)
     }
 
-    private func makeIngredient(caloriesPerHundredGrams: Double = 155, grams: Double = 50) -> MyCreatedMealIngredientDomain {
+    private func makeIngredient(
+        caloriesPerHundredGrams: Double = 155,
+        grams: Double = 50,
+        fatSaturated: Double? = 3,
+        fiber: Double? = 0
+    ) -> MyCreatedMealIngredientDomain {
         MyCreatedMealIngredientDomain(
             foodItemId: "12345",
             czName: "Ovesné vločky",
@@ -96,11 +118,11 @@ final class CreateMyCreatedMealUseCaseTests: XCTestCase {
                 energyKJ: 648,
                 caloriesPerHundredGrams: caloriesPerHundredGrams,
                 fat: 10,
-                fatSaturated: 3,
+                fatSaturated: fatSaturated,
                 fatUnsaturatedFattyAcids: 3,
                 carbohydrate: 1,
                 carbohydratePureSugar: 0,
-                fiber: 0,
+                fiber: fiber,
                 protein: 13,
                 salt: 0.3
             )

@@ -77,16 +77,21 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
   `Kalorie/Kalorie/Core/Networking/FireStone/FirestoreDataProvider.swift:158`,
   `Kalorie/Kalorie/Core/UseCases/MigrateAnonymousDataUseCase.swift:74`
 
-- [ ] **A1-4 — `fat_saturated` and `fiber` fall back to `0`, which is a real value.** Both are
-  optional on read and mapped with `?? 0` in `FoodItemDTO`'s three call sites,
-  `FavouriteFoodDTO.asDomain()` and `MyCreatedMealIngredientDTO.asDomain()`. A missing value and
-  a genuine zero become indistinguishable, and the zero is then persisted into `foodConsumed`
-  and into meal snapshots, where it is permanent. This does not merely resemble the bug
-  [ADR 0007](docs/adr/0007-derive-missing-energy-kj-from-macros.md) fixed for `energy_kj` — it
-  contradicts that record. Its Decision says the new fallback replaces "every existing `?? 0`",
-  and two of them survived inside the very expressions that were edited to fix the third. Unlike
-  `energy_kj` these cannot be derived from the other macros, so the fix is not another fallback:
-  keep them optional through the domain type so a missing value stays missing.
+- [x] **A1-4 — `fat_saturated` and `fiber` fall back to `0`, which is a real value.** Fixed:
+  `FoodNutritionValues.fatSaturated`/`.fiber` and `FoodItemDomain.fatSaturated`/`.fiber` are now
+  `Double?`, matching the DTOs. The `?? 0` fallbacks in `FoodItemDTO`'s three call sites
+  (`SearchFoodItemsUseCase`, `FetchFoodItemByBarcodeUseCase`), `FavouriteFoodDTO.asDomain()` and
+  `MyCreatedMealIngredientDTO.asDomain()` are removed — a missing value now stays `nil` through
+  the domain and round-trips back into a meal snapshot as `nil`, not as a fabricated `0`.
+  `MyCreatedMealDomain.asFoodItem()`'s weighted mean now returns `nil` for a composed meal's
+  `fatSaturated`/`fiber` if any ingredient's own value is unknown, rather than silently averaging
+  a missing ingredient in as `0`.
+  A concrete `Double` is still needed at the one place a value crosses into a schema that has no
+  "unknown" representation: `ScaledMacros.init(item:ratio:)` (`FoodConsumedModel.swift`) falls
+  back to `0` for `fiber` because `FoodConsumedDTO.fiber` is non-optional — that gap belongs to
+  **A1-5**, not this finding. `fatSaturated` never reaches `FoodConsumedDomain` at all, per A1-5.
+  `Kalorie/Kalorie/Core/Models/FoodNutritionValues.swift`,
+  `Kalorie/Kalorie/Core/Models/FoodItemModel.swift`
 
 - [ ] **A1-5 — `foodConsumed` drops `fat_saturated` and `energy_kj` on write.**
   `FoodConsumedDTO` has neither field, so logging a food discards its saturated fat and its

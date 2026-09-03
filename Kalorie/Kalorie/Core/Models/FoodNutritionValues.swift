@@ -14,11 +14,11 @@ struct FoodNutritionValues: Equatable {
     let energyKJ: Double
     let caloriesPerHundredGrams: Double
     let fat: Double
-    let fatSaturated: Double
+    let fatSaturated: Double?
     let fatUnsaturatedFattyAcids: Double
     let carbohydrate: Double
     let carbohydratePureSugar: Double
-    let fiber: Double
+    let fiber: Double?
     let protein: Double
     let salt: Double
 }

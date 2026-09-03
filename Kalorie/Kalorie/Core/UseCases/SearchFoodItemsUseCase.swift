@@ -55,11 +55,11 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
                     energyKJ: dto.energyKJ ?? MacrosKt.energyKJFromMacros(fat: dto.fat, carbohydrate: dto.carbohydrate, protein: dto.protein),
                     caloriesPerHundredGrams: dto.caloriesPerHundredGrams,
                     fat: dto.fat,
-                    fatSaturated: dto.fatSaturated ?? 0,
+                    fatSaturated: dto.fatSaturated,
                     fatUnsaturatedFattyAcids: dto.fatUnsaturatedFattyAcids,
                     carbohydrate: dto.carbohydrate,
                     carbohydratePureSugar: dto.carbohydratePureSugar,
-                    fiber: dto.fiber ?? 0,
+                    fiber: dto.fiber,
                     protein: dto.protein,
                     salt: dto.salt
                 )

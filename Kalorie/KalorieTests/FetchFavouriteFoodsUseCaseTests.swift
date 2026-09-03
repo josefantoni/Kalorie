@@ -39,6 +39,18 @@ final class FetchFavouriteFoodsUseCaseTests: XCTestCase {
         XCTAssertEqual(result.map(\.czName), ["Tvaroh"])
     }
 
+    func test_fetchFavouriteFoods_whenFatSaturatedAndFiberMissingFromStoredDocument_stayNilInsteadOfZero() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDTOs = [try makeDTOMissingFatSaturatedAndFiber(id: "12345", czName: "Tvaroh")]
+
+        let result = try await sut()
+
+        // A document written before these fields existed must not round-trip through the
+        // favourite as a false "this food has none" 0.
+        XCTAssertNil(result.first?.fatSaturated)
+        XCTAssertNil(result.first?.fiber)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(userId: String? = "test-user") -> (sut: FetchFavouriteFoodsUseCase, dataProvider: FetchFavouriteFoodsDataProviderFake) {
@@ -70,6 +82,13 @@ final class FetchFavouriteFoodsUseCaseTests: XCTestCase {
             ),
             favouritedAt: .now
         )
+    }
+
+    private func makeDTOMissingFatSaturatedAndFiber(id: String, czName: String) throws -> FavouriteFoodDTO {
+        var json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(makeDTO(id: id, czName: czName))) as? [String: Any] ?? [:]
+        json.removeValue(forKey: "fat_saturated")
+        json.removeValue(forKey: "fiber")
+        return try JSONDecoder().decode(FavouriteFoodDTO.self, from: JSONSerialization.data(withJSONObject: json))
     }
 }
 

@@ -37,6 +37,18 @@ final class FetchMyCreatedMealsUseCaseTests: XCTestCase {
         XCTAssertEqual(result.map(\.name), ["Kaše"])
     }
 
+    func test_fetchMyCreatedMeals_whenIngredientFatSaturatedAndFiberMissingFromStoredDocument_stayNilInsteadOfZero() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDTOs = [try makeDTOMissingFatSaturatedAndFiber(id: "meal-1", name: "Kaše")]
+
+        let result = try await sut()
+
+        // A meal snapshot written before these fields existed must not round-trip through the
+        // ingredient as a false "this ingredient has none" 0.
+        XCTAssertNil(result.first?.ingredients.first?.nutrition.fatSaturated)
+        XCTAssertNil(result.first?.ingredients.first?.nutrition.fiber)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(userId: String? = "test-user") -> (sut: FetchMyCreatedMealsUseCase, dataProvider: FetchMyCreatedMealsDataProviderFake) {
@@ -48,6 +60,18 @@ final class FetchMyCreatedMealsUseCaseTests: XCTestCase {
 
     private func makeDTO(id: String, name: String) -> MyCreatedMealDTO {
         MyCreatedMealDTO(meal: MyCreatedMealDomain(id: id, name: name, ingredients: [makeIngredient()], createdAt: .now, updatedAt: .now))
+    }
+
+    private func makeDTOMissingFatSaturatedAndFiber(id: String, name: String) throws -> MyCreatedMealDTO {
+        var json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(makeDTO(id: id, name: name))) as? [String: Any] ?? [:]
+        let ingredients = (json["ingredients"] as? [[String: Any]] ?? []).map { ingredient -> [String: Any] in
+            var mutableIngredient = ingredient
+            mutableIngredient.removeValue(forKey: "fat_saturated")
+            mutableIngredient.removeValue(forKey: "fiber")
+            return mutableIngredient
+        }
+        json["ingredients"] = ingredients
+        return try JSONDecoder().decode(MyCreatedMealDTO.self, from: JSONSerialization.data(withJSONObject: json))
     }
 
     private func makeIngredient() -> MyCreatedMealIngredientDomain {

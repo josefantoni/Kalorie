@@ -107,8 +107,9 @@ These are the contract a second client has to match exactly.
   [ADR 0009](adr/0009-denormalised-nutrition-snapshots.md).
 - **Three fields are optional on read** — `energy_kj`, `fat_saturated`, `fiber` — because
   catalogue documents predating them exist. `energy_kj` is derived from macros when absent
-  ([ADR 0007](adr/0007-derive-missing-energy-kj-from-macros.md)); the other two fall back to
-  `0`, which finding **A1-4** flags as unsafe.
+  ([ADR 0007](adr/0007-derive-missing-energy-kj-from-macros.md)); the other two stay optional
+  through `FoodItemDomain`/`FoodNutritionValues` (finding **A1-4**) rather than defaulting to
+  `0`, since neither can be derived from the other macros.
 
 ### 1.4 Per-collection shape
 

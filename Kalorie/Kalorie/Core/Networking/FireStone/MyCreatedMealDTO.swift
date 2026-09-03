@@ -72,11 +72,11 @@ struct MyCreatedMealIngredientDTO: Codable {
                 energyKJ: energyKJ ?? MacrosKt.energyKJFromMacros(fat: fat, carbohydrate: carbohydrate, protein: protein),
                 caloriesPerHundredGrams: caloriesPerHundredGrams,
                 fat: fat,
-                fatSaturated: fatSaturated ?? 0,
+                fatSaturated: fatSaturated,
                 fatUnsaturatedFattyAcids: fatUnsaturatedFattyAcids,
                 carbohydrate: carbohydrate,
                 carbohydratePureSugar: carbohydratePureSugar,
-                fiber: fiber ?? 0,
+                fiber: fiber,
                 protein: protein,
                 salt: salt
             )

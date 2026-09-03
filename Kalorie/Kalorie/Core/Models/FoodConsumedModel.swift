@@ -81,7 +81,7 @@ struct ScaledMacros {
             carbohydrateSugar: item.carbohydratePureSugar,
             fat: item.fat,
             fatUnsaturated: item.fatUnsaturatedFattyAcids,
-            fiber: item.fiber,
+            fiber: item.fiber ?? 0,
             salt: item.salt
         ).scaled(factor: ratio)
         self.init(calories: Int(calories), scaled: scaled)

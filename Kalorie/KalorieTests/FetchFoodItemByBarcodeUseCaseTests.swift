@@ -53,6 +53,18 @@ final class FetchFoodItemByBarcodeUseCaseTests: XCTestCase {
         XCTAssertEqual(result?.energyKJ, 795)
     }
 
+    func test_fetchByBarcode_whenFatSaturatedAndFiberMissing_stayNilInsteadOfZero() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDTO = makeDTO()
+
+        let result = try await sut(barcode: "8594004428464")
+
+        // Unlike energyKJ these have no macro-derived fallback — a missing source value must
+        // stay unknown, not read as a false "this food has none" 0.
+        XCTAssertNil(result?.fatSaturated)
+        XCTAssertNil(result?.fiber)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: FetchFoodItemByBarcodeUseCase, dataProvider: BarcodeDataProviderFake) {
