@@ -49,6 +49,7 @@ struct FoodConsumedView: View {
             weight: 200,
             date: .now,
             calories: 140,
+            caloriesPerHundredGrams: 70,
             protein: 8,
             carbohydrate: 16,
             carbohydrateSugar: 12,

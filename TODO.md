@@ -93,6 +93,11 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
   fields is cheap; backfilling existing entries is not, which argues for doing it before release.
   `Kalorie/Kalorie/Core/Networking/FireStone/FoodConsumedDTO.swift`
 
+  Narrowed: `calories_per_hundred_grams` has since been added (fixing **A4-3**), so the "dividing
+  back introduces drift" half of design 0003's rationale no longer holds — a logged entry now
+  carries its own fractional basis directly. `fat_saturated` and `energy_kj` are still missing;
+  design 0003's workaround is still load-bearing for those two.
+
 - [ ] **A1-6 — Meal types silently disappear on the DST transition day.**
   `FetchMealTypesUseCase` rebuilds each window with `Calendar.date(bySettingHour:minute:…)` on
   *today's* date and `compactMap`s away anything that returns `nil`. On the spring-forward day
@@ -308,37 +313,3 @@ been fixed.
   deliberately does not touch `selectedDay`, an app left open across midnight keeps showing
   yesterday as though it were today, including the "today" highlight in the day picker.
   `Kalorie/Kalorie/Features/Dashboard/DashboardViewModel.swift:130`
-
-
-## Audit findings — 4. Food entry flow
-
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 4. Nothing here has
-been fixed.
-
-### The amount being logged is not always the amount the user chose
-
-- [ ] **A4-2 — Clearing the quantity field silently keeps the previous amount.** The field binds
-  a `String`, and `viewModel.quantity` is only updated when `Double(normalized)` succeeds. Select
-  all, delete, tap Confirm — the field reads empty, `grams > 0` passes on the stale value, and the
-  old amount is logged with no warning. The same gap swallows non-ASCII digits: `char.isNumber`
-  accepts them, so they survive sanitising, `Double` returns `nil`, and the displayed text and the
-  logged amount diverge. An empty field should clear `quantity` and let the existing
-  `errorInvalidQuantity` alert do its job.
-  `Kalorie/Kalorie/Features/FoodQuantity/FoodQuantityView.swift:99`
-
-- [ ] **A4-3 — Editing a weight rescales already-rounded calories.**
-  [ADR 0016](docs/adr/0016-logged-entries-rescale-from-their-own-stored-values.md) explains why
-  the rescale uses the entry's own values, which is right. The cost is that `calories` is an
-  `Int`, so the original rounding error is multiplied by `newWeight / oldWeight`. Invisible at
-  ordinary weights; total at small ones — 1 g of a 33 kcal/100 g food rounds to 0 on logging and
-  stays 0 however the weight is later edited.
-
-  Note what this is *not*. [Design 0004](docs/design/0004-shared-macro-calculation-module.md)
-  found that the two paths rounded differently — logging truncated, editing rounded — and unified
-  them on `roundToInt`. That half is fixed and stays fixed. What remains is the difference in
-  **basis**: logging rounds a fractional per-100 g value once, editing rescales an already-rounded
-  `Int`. 0004 could not touch it, having declared DTO changes a non-goal. A reader of 0004 who
-  believes the log-vs-edit discrepancy is closed is therefore half right. Fix without reopening
-  [ADR 0016](docs/adr/0016-logged-entries-rescale-from-their-own-stored-values.md): store
-  `calories_per_hundred_grams` on `foodConsumed` and rescale from that — the same widening
-  **A1-5** argues for on other grounds.

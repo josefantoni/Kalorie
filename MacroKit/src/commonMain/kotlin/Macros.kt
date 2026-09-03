@@ -14,6 +14,11 @@ data class Macros(
 fun scaledCalories(caloriesPerHundredGrams: Double, ratio: Double): Int =
     (caloriesPerHundredGrams * ratio).roundToInt()
 
+// Derives a per-100g basis for an entry written before caloriesPerHundredGrams was stored, from
+// its already-rounded absolute calories. Used once, at decode time, never to compute a new value.
+fun caloriesPerHundredGrams(calories: Int, weight: Double): Double =
+    if (weight > 0) calories / weight * 100 else 0.0
+
 fun Macros.scaled(factor: Double): Macros = Macros(
     calories = (calories * factor).roundToInt(),
     protein = protein * factor,

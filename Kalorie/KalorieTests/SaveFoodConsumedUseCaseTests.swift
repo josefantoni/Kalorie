@@ -52,6 +52,12 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedDTO?.calories, 200)
     }
 
+    func test_saveFoodConsumed_storesTheItemsCaloriesPerHundredGramsUnscaled() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeItem(caloriesPerHundredGrams: 133.6), grams: 150, date: .now)
+        XCTAssertEqual(dataProvider.savedDTO?.caloriesPerHundredGrams, 133.6)
+    }
+
     func test_saveFoodConsumed_storesCorrectNameAndWeight() async throws {
         let (sut, dataProvider) = makeSUT()
         try await sut(makeItem(czName: "Tvaroh", engName: "Cottage cheese"), grams: 150, date: .now)

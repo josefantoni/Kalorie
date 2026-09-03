@@ -91,15 +91,13 @@ struct FoodQuantityView: View {
                             seenSeparator = true
                             return true
                         }
-                        return char.isNumber
+                        return char.isASCII && char.isNumber
                     })
                     if sanitized != text {
                         quantityText = sanitized
                     }
                     let normalized = sanitized.replacingOccurrences(of: ",", with: ".")
-                    if let value = Double(normalized) {
-                        viewModel.quantity = value
-                    }
+                    viewModel.quantity = Double(normalized) ?? 0
                 }
             Picker("", selection: $viewModel.unit) {
                 Text(L10n.FoodQuantity.unitGrams).tag(FoodQuantityUnit.grams)

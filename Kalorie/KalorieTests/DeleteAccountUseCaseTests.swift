@@ -176,6 +176,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             weight: 100,
             date: Date().timeIntervalSince1970,
             calories: 100,
+            caloriesPerHundredGrams: nil,
             protein: 1,
             carbohydrate: 1,
             carbohydrateSugar: 1,

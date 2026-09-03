@@ -59,6 +59,16 @@ class MacrosTest {
     }
 
     @Test
+    fun caloriesPerHundredGrams_derivesBasisFromAbsoluteCalories() {
+        assertEquals(200.0, caloriesPerHundredGrams(calories = 100, weight = 50.0))
+    }
+
+    @Test
+    fun caloriesPerHundredGrams_withZeroWeight_returnsZero() {
+        assertEquals(0.0, caloriesPerHundredGrams(calories = 100, weight = 0.0))
+    }
+
+    @Test
     fun total_ofEmptyList_returnsZeroMacros() {
         val result = emptyList<Macros>().total()
         assertEquals(0, result.calories)

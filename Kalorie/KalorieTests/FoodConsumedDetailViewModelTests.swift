@@ -153,6 +153,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
             weight: 80,
             date: .now,
             calories: 295,
+            caloriesPerHundredGrams: 368.75,
             protein: 10,
             carbohydrate: 52,
             carbohydrateSugar: 8,

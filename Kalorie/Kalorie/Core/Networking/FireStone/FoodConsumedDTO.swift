@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 struct FoodConsumedDTO: Codable {
 
@@ -19,6 +20,7 @@ struct FoodConsumedDTO: Codable {
     let weight: Double
     let date: TimeInterval
     let calories: Int
+    let caloriesPerHundredGrams: Double?
     let protein: Double
     let carbohydrate: Double
     let carbohydrateSugar: Double
@@ -37,6 +39,7 @@ struct FoodConsumedDTO: Codable {
         case engName = "eng_name"
         case carbohydrateSugar = "carbohydrate_sugar"
         case fatUnsaturated = "fat_unsaturated"
+        case caloriesPerHundredGrams = "calories_per_hundred_grams"
     }
 
     // MARK: - Functions
@@ -51,6 +54,7 @@ struct FoodConsumedDTO: Codable {
             weight: weight,
             date: Date(timeIntervalSince1970: date),
             calories: calories,
+            caloriesPerHundredGrams: caloriesPerHundredGrams ?? MacrosKt.caloriesPerHundredGrams(calories: Int32(calories), weight: weight),
             protein: protein,
             carbohydrate: carbohydrate,
             carbohydrateSugar: carbohydrateSugar,

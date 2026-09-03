@@ -60,8 +60,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     // MARK: - Functions
 
     var scaledMacros: ScaledMacros {
-        let ratio = food.weight > 0 ? weight / food.weight : 1
-        return ScaledMacros(food: food, ratio: ratio)
+        ScaledMacros(food: food, newWeight: weight)
     }
 
     var hasWeightChanged: Bool { weight != savedWeight }

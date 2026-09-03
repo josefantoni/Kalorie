@@ -20,6 +20,7 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
     let weight: Double
     let date: Date
     let calories: Int
+    let caloriesPerHundredGrams: Double
     let protein: Double
     let carbohydrate: Double
     let carbohydrateSugar: Double
@@ -39,9 +40,25 @@ struct ScaledMacros {
     let fiber: Double
     let salt: Double
 
-    init(food: FoodConsumedDomain, ratio: Double) {
+    private init(calories: Int, scaled: Macros) {
+        self.calories = calories
+        protein = scaled.protein
+        carbohydrate = scaled.carbohydrate
+        carbohydrateSugar = scaled.carbohydrateSugar
+        fat = scaled.fat
+        fatUnsaturated = scaled.fatUnsaturated
+        fiber = scaled.fiber
+        salt = scaled.salt
+    }
+
+    init(food: FoodConsumedDomain, newWeight: Double) {
+        // calories is rescaled from the entry's own stored per-100g basis, not from its already-
+        // rounded absolute value — see ADR 0016, which is what removes the compounding rounding
+        // error an edit-after-edit would otherwise accumulate.
+        let ratio = food.weight > 0 ? newWeight / food.weight : 1
+        let calories = MacrosKt.scaledCalories(caloriesPerHundredGrams: food.caloriesPerHundredGrams, ratio: newWeight / 100)
         let scaled = Macros(
-            calories: Int32(food.calories),
+            calories: 0,
             protein: food.protein,
             carbohydrate: food.carbohydrate,
             carbohydrateSugar: food.carbohydrateSugar,
@@ -50,14 +67,7 @@ struct ScaledMacros {
             fiber: food.fiber,
             salt: food.salt
         ).scaled(factor: ratio)
-        calories = Int(scaled.calories)
-        protein = scaled.protein
-        carbohydrate = scaled.carbohydrate
-        carbohydrateSugar = scaled.carbohydrateSugar
-        fat = scaled.fat
-        fatUnsaturated = scaled.fatUnsaturated
-        fiber = scaled.fiber
-        salt = scaled.salt
+        self.init(calories: Int(calories), scaled: scaled)
     }
 
     init(item: FoodItemDomain, ratio: Double) {
@@ -74,14 +84,7 @@ struct ScaledMacros {
             fiber: item.fiber,
             salt: item.salt
         ).scaled(factor: ratio)
-        self.calories = Int(calories)
-        protein = scaled.protein
-        carbohydrate = scaled.carbohydrate
-        carbohydrateSugar = scaled.carbohydrateSugar
-        fat = scaled.fat
-        fatUnsaturated = scaled.fatUnsaturated
-        fiber = scaled.fiber
-        salt = scaled.salt
+        self.init(calories: Int(calories), scaled: scaled)
     }
 }
 

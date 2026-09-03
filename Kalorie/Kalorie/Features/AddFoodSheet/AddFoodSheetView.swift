@@ -205,7 +205,7 @@ struct AddFoodSheetView: View {
                     )
                     BaseDoubleTextField(
                         title: L10n.AddFood.fieldWeight,
-                        unit: "g",
+                        unit: L10n.Common.unitGrams,
                         weight: $viewModel.formInput.weightOfProduct
                     )
                     BaseDoubleTextField(
@@ -220,42 +220,42 @@ struct AddFoodSheetView: View {
                     )
                     BaseDoubleTextField(
                         title: L10n.AddFood.fieldProtein,
-                        unit: "g",
+                        unit: L10n.Common.unitGrams,
                         weight: $viewModel.formInput.protein
                     )
                     BaseDoubleTextField(
                         title: L10n.AddFood.fieldCarbs,
-                        unit: "g",
+                        unit: L10n.Common.unitGrams,
                         weight: $viewModel.formInput.carbohydrate
                     )
                     BaseDoubleTextField(
                         title: L10n.AddFood.fieldCarbsSugar,
-                        unit: "g",
+                        unit: L10n.Common.unitGrams,
                         weight: $viewModel.formInput.carbohydratePureSugar
                     )
                     BaseDoubleTextField(
                         title: L10n.AddFood.fieldFiber,
-                        unit: "g",
+                        unit: L10n.Common.unitGrams,
                         weight: $viewModel.formInput.fiber
                     )
                     BaseDoubleTextField(
                         title: L10n.AddFood.fieldFat,
-                        unit: "g",
+                        unit: L10n.Common.unitGrams,
                         weight: $viewModel.formInput.fat
                     )
                     BaseDoubleTextField(
                         title: L10n.AddFood.fieldFatSaturated,
-                        unit: "g",
+                        unit: L10n.Common.unitGrams,
                         weight: $viewModel.formInput.fatSaturated
                     )
                     BaseDoubleTextField(
                         title: L10n.AddFood.fieldFatUnsaturated,
-                        unit: "g",
+                        unit: L10n.Common.unitGrams,
                         weight: $viewModel.formInput.fatUnsaturatedFattyAcids
                     )
                     BaseDoubleTextField(
                         title: L10n.AddFood.fieldSalt,
-                        unit: "g",
+                        unit: L10n.Common.unitGrams,
                         weight: $viewModel.formInput.salt
                     )
                 }
