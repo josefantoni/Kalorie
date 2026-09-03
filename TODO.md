@@ -60,14 +60,21 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
   [ADR 0010](docs/adr/0010-client-assigned-integer-meal-type-ids.md).
   `Kalorie/Kalorie/Core/UseCases/CreateMealTypeUseCase.swift:62`
 
-- [ ] **A1-3 — Anonymous-data merge breaks past 500 entries.** `MigrateAnonymousDataUseCase`
-  reads whole collections with the unfiltered `loadAsync(from:)` and hands them to
-  `batchSetAsync`, which builds a single Firestore `WriteBatch`. Firestore caps a batch at 500
-  operations. A user who logs six items a day reaches that in about three months, after which
-  signing in fails and the merge never completes. `batchSetAsync` needs chunking; the reads need
-  paging. `DeleteAccountUseCase` has the same unbounded read, though it deletes one at a time so
-  it only gets slow, not broken.
-  `Kalorie/Kalorie/Core/Networking/FireStone/FirestoreDataProvider.swift:153`,
+- [x] **A1-3 — Anonymous-data merge breaks past 500 entries.** Fixed: `batchSetAsync` now
+  splits `items` into chunks of `Constants.Firestore.batchWriteLimit` (500) and commits one
+  `WriteBatch` per chunk, sequentially, instead of building a single batch for the whole array.
+  This is the actual break — Firestore's `WriteBatch` hard-caps at 500 operations, and
+  `MigrateAnonymousDataUseCase` hands it whatever `loadAsync(from:)` returns. The read side was
+  deliberately left unpaginated: `getDocuments()` on a whole collection has no equivalent
+  Firestore cap, and `migrate(fromAnonymousUserId:credential:)` already buffers all three
+  collections into one `PendingMergeSnapshot` written to disk before any write happens (crash
+  recovery), so paging the read would only add round-trips, not reduce memory use.
+  `DeleteAccountUseCase`'s unbounded read is unaffected by this fix — it never used
+  `batchSetAsync` — and stays "slow, not broken" as noted.
+  Chunking trades whole-call atomicity for per-chunk atomicity — see
+  [ARCHITECTURE.md § 1.5](docs/ARCHITECTURE.md#15-the-provider) for which callers that's safe
+  for and which aren't.
+  `Kalorie/Kalorie/Core/Networking/FireStone/FirestoreDataProvider.swift:158`,
   `Kalorie/Kalorie/Core/UseCases/MigrateAnonymousDataUseCase.swift:74`
 
 - [ ] **A1-4 — `fat_saturated` and `fiber` fall back to `0`, which is a real value.** Both are

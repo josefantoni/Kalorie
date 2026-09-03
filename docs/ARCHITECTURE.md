@@ -154,7 +154,7 @@ builder:
 | `loadAsync(from:orderBy:descending:limit:)` | ordered page |
 | `saveAsync(_:to:)` | `addDocument` — Firestore-generated ID |
 | `setAsync(_:id:in:)` | `document(id).setData` — full overwrite |
-| `batchSetAsync(_:in:)` | one `WriteBatch` |
+| `batchSetAsync(_:in:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) items |
 | `deleteAsync(id:from:)` | `document(id).delete()` |
 
 Consequences worth knowing before adding a method:
@@ -170,6 +170,15 @@ Consequences worth knowing before adding a method:
   equality query instead (finding **A1-9**).
 - **`setAsync` replaces the document**, it never merges. Every writer must therefore send every
   field it wants to keep.
+- **`batchSetAsync` is atomic only within a single 500-item chunk, not across the whole call.**
+  Firestore's `WriteBatch` hard-caps at 500 operations, so a call with more items than that
+  splits into several sequential `WriteBatch` commits; if one chunk fails, earlier chunks have
+  already landed and later ones never run. `MigrateAnonymousDataUseCase` is safe under this
+  because every id is a client-generated UUID, so re-running the migrate/resume path after a
+  partial failure just re-writes the same documents. `SetupDefaultMealsUseCase` and
+  `UpdateMealTypeTimesUseCase` call `batchSetAsync` with the user's `mealTypes`, which today
+  never approaches 500 — if that ever changes, the same partial-write risk applies to them
+  without the retry path migration has.
 - **Every method logs its request and full response body under `#if DEBUG`**, via the
   file-private `log(_:)` at the bottom of `FirestoreDataProvider.swift`.
 
