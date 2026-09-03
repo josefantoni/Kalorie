@@ -32,9 +32,11 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
 
     let item: FoodItemDomain
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
+    private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let addFavouriteFood: any AddFavouriteFoodUseCaseProtocol
     private let removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol
     private let selectedDate: Date
+    private var mealTypes: [MealTypeDomain]
     private let onSaved: () -> Void
     private let onFavouriteChanged: (String, Bool) -> Void
 
@@ -53,7 +55,9 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     init(
         item: FoodItemDomain,
         saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol,
+        fetchMealTypes: any FetchMealTypesUseCaseProtocol,
         selectedDate: Date,
+        mealTypes: [MealTypeDomain],
         isFavourite: Bool,
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol,
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol,
@@ -64,7 +68,9 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     ) {
         self.item = item
         self.saveFoodConsumed = saveFoodConsumed
+        self.fetchMealTypes = fetchMealTypes
         self.selectedDate = selectedDate
+        self.mealTypes = mealTypes
         self.isFavourite = isFavourite
         self.addFavouriteFood = addFavouriteFood
         self.removeFavouriteFood = removeFavouriteFood
@@ -104,7 +110,12 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         state = .loading
         defer { state = .loaded }
         do {
-            try await saveFoodConsumed(item, grams: grams, date: selectedDate)
+            do {
+                mealTypes = try await fetchMealTypes()
+            } catch {
+                Log.warning(error, category: Constants.LogCategory.foodQuantity)
+            }
+            try await saveFoodConsumed(item, grams: grams, date: selectedDate, mealTypes: mealTypes)
             onSaved()
         } catch {
             Log.error(error, category: Constants.LogCategory.foodQuantity)

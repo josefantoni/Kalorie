@@ -58,7 +58,8 @@ struct FoodConsumedView: View {
             fatSaturated: 2.2,
             fatUnsaturated: 1.2,
             fiber: 0,
-            salt: 0.1
+            salt: 0.1,
+            mealTypeId: nil
         )
     )
 }

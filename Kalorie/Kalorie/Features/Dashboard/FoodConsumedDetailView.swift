@@ -55,6 +55,23 @@ struct FoodConsumedDetailView: View {
                 LabeledContent(L10n.FoodConsumedDetail.labelTime) {
                     Text(viewModel.food.date, style: .time)
                 }
+                LabeledContent(L10n.FoodConsumedDetail.labelMealType) {
+                    Picker("", selection: Binding(
+                        get: { viewModel.mealTypeId },
+                        set: { newValue in
+                            guard let newValue else { return }
+                            Task { await viewModel.onMealTypeSelected(newValue) }
+                        }
+                    )) {
+                        if viewModel.mealTypeId == nil {
+                            Text(L10n.FoodConsumedDetail.mealTypeUnassigned).tag(String?.none)
+                        }
+                        ForEach(viewModel.mealTypes, id: \.id) { mealType in
+                            Text(mealType.name).tag(String?.some(mealType.id))
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
             }
 
             Section(L10n.FoodQuantity.sectionNutrition) {
@@ -155,9 +172,13 @@ struct FoodConsumedDetailView: View {
                     fatSaturated: 1,
                     fatUnsaturated: 2,
                     fiber: 6,
-                    salt: 0.1
+                    salt: 0.1,
+                    mealTypeId: nil
                 ),
+                mealTypes: [],
                 updateFoodConsumed: UpdateFoodConsumedUseCaseFake(),
+                assignFoodMealType: AssignFoodMealTypeUseCaseFake(),
+                fetchMealTypes: FetchMealTypesUseCaseFake(),
                 isFavouriteFood: IsFavouriteFoodUseCaseFake(),
                 addFavouriteFood: AddFavouriteFoodUseCaseFake(),
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),

@@ -185,7 +185,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             fatSaturated: nil,
             fatUnsaturated: 1,
             fiber: 1,
-            salt: 1
+            salt: 1,
+            mealTypeId: nil
         )
     }
 

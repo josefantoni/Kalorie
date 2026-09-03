@@ -94,6 +94,64 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         XCTAssertFalse(sut.canShowFavouriteButton)
     }
 
+    // MARK: - onMealTypeSelected
+
+    @MainActor
+    func test_onMealTypeSelected_whenAssignSucceeds_updatesMealTypeIdAndNotifiesCaller() async {
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        var didNotify = false
+        let sut = makeSUT(mealTypes: [breakfast]) { didNotify = true }
+        XCTAssertNil(sut.mealTypeId)
+
+        await sut.onMealTypeSelected("breakfast")
+
+        XCTAssertEqual(sut.mealTypeId, "breakfast")
+        XCTAssertTrue(didNotify, "the Dashboard's cache must be invalidated so the entry moves section immediately")
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onMealTypeSelected_whenAssignFails_leavesMealTypeIdUnchangedAndShowsAlert() async {
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let sut = makeSUT(mealTypes: [breakfast], assignFoodMealType: AssignFoodMealTypeUseCaseFake(shouldThrow: true))
+
+        await sut.onMealTypeSelected("breakfast")
+
+        XCTAssertNil(sut.mealTypeId, "a failed write must not optimistically move the entry to a section it was never saved into")
+        XCTAssertNotNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onMealTypeSelected_whenMealTypeWasDeletedSinceScreenOpened_refetchesAndBlocksWithAlertInsteadOfWritingADanglingId() async {
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let food = makeFood(mealTypeId: "lunch")
+        let sut = makeSUT(
+            food: food,
+            mealTypes: [breakfast],
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [])
+        )
+
+        await sut.onMealTypeSelected("breakfast")
+
+        XCTAssertTrue(sut.mealTypes.isEmpty, "the screen must pick up that breakfast was deleted elsewhere instead of trusting its initial snapshot")
+        XCTAssertEqual(sut.food.mealTypeId, "lunch", "an id that no longer exists must never overwrite the food's real pin")
+        XCTAssertNotNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onMealTypeSelected_whenSelectionMatchesTimeResolvedButUnpinnedMealType_stillCreatesPin() async {
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 0, minute: 0), endTime: makeDate(hour: 23, minute: 59))
+        let food = makeFood(mealTypeId: nil)
+        var didNotify = false
+        let sut = makeSUT(food: food, mealTypes: [breakfast]) { didNotify = true }
+        XCTAssertEqual(sut.mealTypeId, "breakfast", "the entry already displays under breakfast by time alone, before any pin exists")
+
+        await sut.onMealTypeSelected("breakfast")
+
+        XCTAssertEqual(sut.food.mealTypeId, "breakfast", "confirming the meal type the entry already resolves to by time must still create an explicit pin")
+        XCTAssertTrue(didNotify)
+    }
+
     // MARK: - Helpers
 
     private func makeCatalogueItem() -> FoodItemDomain {
@@ -119,7 +177,10 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
     private func makeSUT(
         food: FoodConsumedDomain? = nil,
+        mealTypes: [MealTypeDomain] = [],
         updateFoodConsumed: any UpdateFoodConsumedUseCaseProtocol = UpdateFoodConsumedUseCaseFake(),
+        assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol = AssignFoodMealTypeUseCaseFake(),
+        fetchMealTypes: (any FetchMealTypesUseCaseProtocol)? = nil,
         isFavouriteFood: any IsFavouriteFoodUseCaseProtocol = IsFavouriteFoodUseCaseFake(),
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
@@ -129,7 +190,10 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
     ) -> FoodConsumedDetailViewModel {
         let sut = FoodConsumedDetailViewModel(
             food: food ?? makeFood(),
+            mealTypes: mealTypes,
             updateFoodConsumed: updateFoodConsumed,
+            assignFoodMealType: assignFoodMealType,
+            fetchMealTypes: fetchMealTypes ?? FetchMealTypesUseCaseFake(stubbedTypes: mealTypes),
             isFavouriteFood: isFavouriteFood,
             addFavouriteFood: addFavouriteFood,
             removeFavouriteFood: removeFavouriteFood,
@@ -143,7 +207,11 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         return sut
     }
 
-    private func makeFood(foodItemId: String = "12345", kind: FoodItemKind = .catalogue) -> FoodConsumedDomain {
+    private func makeDate(hour: Int, minute: Int) -> Date {
+        Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date()) ?? Date()
+    }
+
+    private func makeFood(foodItemId: String = "12345", kind: FoodItemKind = .catalogue, mealTypeId: String? = nil) -> FoodConsumedDomain {
         FoodConsumedDomain(
             id: "1",
             foodItemId: foodItemId,
@@ -162,7 +230,8 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
             fatSaturated: 1,
             fatUnsaturated: 2,
             fiber: 6,
-            salt: 0.1
+            salt: 0.1,
+            mealTypeId: mealTypeId
         )
     }
 }

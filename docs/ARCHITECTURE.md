@@ -350,7 +350,10 @@ caching and the screen structure.
 **Read first:** [design 0005](design/0005-meal-window-and-html-entity-decoding.md) (the meal-window
 arithmetic and which call sites delegate to `MealKit`),
 [design 0004](design/0004-shared-macro-calculation-module.md) (macro totalling),
-[design 0001](design/0001-user-authentication.md) (why the multi-device meal-type guard exists).
+[design 0001](design/0001-user-authentication.md) (why the multi-device meal-type guard exists),
+[ADR 0022](adr/0022-meal-assignment-may-be-pinned-by-the-user.md) (how a user moves an entry
+between meals without touching its timestamp, and why a new entry is pinned at write time instead
+of starting out unpinned).
 
 ### 3.1 What the Dashboard is
 
@@ -364,22 +367,51 @@ displayed is derived from those by computed properties, so no aggregate is ever 
 
 ### 3.2 Meal assignment
 
-The whole grouping rests on one rule: **a food belongs to a meal window if its time of day falls
-in the window**, with the calendar date playing no part. See
+The base rule is still **a food belongs to a meal window if its time of day falls in the
+window**, with the calendar date playing no part — see
 [ADR 0014](adr/0014-meal-assignment-by-time-of-day-only.md), which is the thing to read before
-changing anything here.
+changing anything here. [ADR 0022](adr/0022-meal-assignment-may-be-pinned-by-the-user.md) layers
+one override on top: a `foodConsumed` document may carry an optional `meal_type_id`, pinning the
+entry to that meal regardless of what its time of day would otherwise select.
 
-`groupedFoods` builds the sections:
+`SaveFoodConsumedUseCase` resolves that window itself at write time — `mealTypes.mealType(at:)`
+— and writes its id as `meal_type_id` immediately, instead of leaving the field absent. An entry
+logged outside every window is still written unpinned; there is nothing to resolve it to. The
+meal-type picker in `FoodConsumedDetailView` only ever moves the pin to another concrete meal
+type — there is no "by time" option to revert to the implicit, time-derived state. Documents that
+predate this field keep `meal_type_id` absent and keep resolving dynamically through the
+fallback described next; they are not migrated.
 
-1. For each meal type in `startTime` order, filter `foodsConsumed` for foods falling in that
-   window. Skip the meal entirely if nothing matches — empty meals are not rendered.
-2. Collect everything that matched *no* window into a trailing section with `mealType: nil`,
-   rendered under `L10n.Dashboard.sectionUnassignedFoods`.
+`groupedFoods` resolves each food to at most one meal type id up front, via
+`mealTypes.resolvedMealTypeId(for:)`: a food **pinned to it** (`mealTypeId` names a meal type that
+still exists) resolves to that pin; otherwise it falls back to `mealType(at:)`, which sorts the
+meal types by `startTime` and returns the first whose window contains the food's time of day.
+Foods are grouped by their resolved id into a dictionary, then `groupedFoods` walks `mealTypes` in
+`startTime` order and emits a section for each one with a non-empty group — a meal type with
+nothing resolved to it is skipped, so empty meals are not rendered. Foods that resolve to no meal
+type at all — outside every window, with no pin or an unresolvable one — collect into a trailing
+section with `mealType: nil`, rendered under `L10n.Dashboard.sectionUnassignedFoods`.
 
-That trailing section is the answer to "what happens to a food outside every meal's range": it
-is shown, labelled, and counted in the day total — but always last, and there is no way to move
-it (finding **A3-2**). Note also that step 1 filters *all* foods, not the not-yet-assigned ones,
-so overlapping windows list the same food twice (finding **A3-4**).
+Overlapping windows list an unpinned food once, in the earliest-starting window that contains it,
+because `mealType(at:)` itself picks exactly one match per lookup — there is no separate
+per-meal-type filter or assigned-tracking involved. A pin bypasses the window search entirely,
+since `resolvedMealTypeId` returns it directly whenever the named meal type still exists.
+
+Within a section, foods are not reordered — they keep the order the month query returned, which
+is by `date`. A pinned entry therefore does not sort to the top of its section; an entry logged at
+22:00 and pinned to breakfast appears after every entry actually logged that morning. This is
+deliberate ([ADR 0022](adr/0022-meal-assignment-may-be-pinned-by-the-user.md) Consequences), not
+an oversight.
+
+The trailing unassigned section is still the answer to "what happens to a food outside every
+meal's range and with no usable pin": it is shown, labelled, and counted in the day total — but
+always last. What ADR 0022 does not reach: the day a food lands on. A pin governs the section
+within a day; the entry's `date` — and therefore which day it appears on — is never touched. An
+entry logged just after midnight for the previous day therefore sits on the wrong day, with no pin
+able to move it. This is an accepted limitation, not tracked as an open finding: editing an
+entry's date/time would add a second axis of state to reconcile against the month cache
+([ADR 0015](adr/0015-dashboard-caches-a-month-and-derives-the-day.md)) for a rare edge case, more
+complexity than the app's day-boundary case warrants.
 
 ### 3.3 Macro aggregation
 
@@ -393,9 +425,10 @@ Two levels, both computed, both delegating to `MacroKit`:
 `MacroKit.total`, and maps back. There are no goals or targets in the app; the summary shows
 totals only.
 
-Because the day total is computed from `foodsConsumed` directly and the sections are computed
-separately, a food double-listed by overlapping windows inflates the section totals but not the
-day total.
+The day total is computed from `foodsConsumed` directly, while the sections are computed
+separately — the two agree only because § 3.2 assigns every food to exactly one section. A
+change there that let a food appear twice would inflate the section totals while leaving the day
+total right, which is how that class of bug stays invisible.
 
 ### 3.4 Meal type lifecycle
 

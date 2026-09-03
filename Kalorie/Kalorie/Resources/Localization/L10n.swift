@@ -131,7 +131,9 @@ enum L10n {
 
     enum FoodConsumedDetail {
         static var labelTime: String { String(localized: "foodConsumedDetail_label_time") }
+        static var labelMealType: String { String(localized: "foodConsumedDetail_label_mealType") }
         static var buttonSave: String { String(localized: "foodConsumedDetail_button_save") }
+        static var mealTypeUnassigned: String { String(localized: "foodConsumedDetail_mealType_unassigned") }
     }
 
     enum FoodQuantity {

@@ -12,6 +12,7 @@ extension Date {
 
     // MARK: - Properties
 
+    @MainActor
     private static var cacheKeyFormatters: [String: DateFormatter] = [:]
 
     var tupledTime: (String, String) {
@@ -33,6 +34,7 @@ extension Date {
         return dateFormatter.string(from: self)
     }
 
+    @MainActor
     func formatCacheKey(with format: String) -> String {
         let formatter: DateFormatter
         if let cached = Self.cacheKeyFormatters[format] {

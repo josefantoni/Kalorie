@@ -7,7 +7,6 @@
 
 import Foundation
 import MacroKit
-import MealKit
 
 struct DailyMacros {
     let calories: Int
@@ -83,9 +82,11 @@ final class DashboardViewModel: ObservableObject {
 
     private var isMyCreatedMealEditorPending = false
     private var isViewingToday = true
+    private var hasCompletedInitialLoad = false
     private var monthCache: [String: [FoodConsumedDomain]] = [:]
     private var cachedMonthKeys: Set<String> = []
     private var foodPendingDeletion: FoodConsumedDomain?
+    private var dayChangeObserver: NSObjectProtocol?
 
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol
@@ -107,6 +108,13 @@ final class DashboardViewModel: ObservableObject {
         self.setupDefaultMeals = setupDefaultMeals
         self.confirmMealTypesEmpty = confirmMealTypesEmpty
         self.deleteFoodConsumed = deleteFoodConsumed
+        observeDayChange()
+    }
+
+    deinit {
+        if let dayChangeObserver {
+            NotificationCenter.default.removeObserver(dayChangeObserver)
+        }
     }
 
     // MARK: - Functions
@@ -114,17 +122,22 @@ final class DashboardViewModel: ObservableObject {
     var dailyMacros: DailyMacros { DailyMacros(foods: foodsConsumed) }
 
     var groupedFoods: [(mealType: MealTypeDomain?, foods: [FoodConsumedDomain])] {
-        var result: [(mealType: MealTypeDomain?, foods: [FoodConsumedDomain])] = []
-        var assignedIds = Set<String>()
+        var foodsByMealTypeId: [String: [FoodConsumedDomain]] = [:]
+        var unassigned: [FoodConsumedDomain] = []
 
-        for mealType in mealTypes.sorted(by: { $0.startTime < $1.startTime }) {
-            let matching = foodsConsumed.filter { !assignedIds.contains($0.id) && foodFallsIn(mealType: mealType, food: $0) }
-            guard !matching.isEmpty else { continue }
-            result.append((mealType: mealType, foods: matching))
-            matching.forEach { assignedIds.insert($0.id) }
+        for food in foodsConsumed {
+            if let resolvedMealTypeId = mealTypes.resolvedMealTypeId(for: food) {
+                foodsByMealTypeId[resolvedMealTypeId, default: []].append(food)
+            } else {
+                unassigned.append(food)
+            }
         }
 
-        let unassigned = foodsConsumed.filter { !assignedIds.contains($0.id) }
+        var result: [(mealType: MealTypeDomain?, foods: [FoodConsumedDomain])] = mealTypes
+            .sorted { $0.startTime < $1.startTime }
+            .compactMap { mealType in
+                foodsByMealTypeId[mealType.id].map { (mealType: mealType, foods: $0) }
+            }
         if !unassigned.isEmpty {
             result.append((mealType: nil, foods: unassigned))
         }
@@ -147,10 +160,12 @@ final class DashboardViewModel: ObservableObject {
             alertItem = unknownErrorAlertItem(for: error)
             state = .loaded
         }
+        hasCompletedInitialLoad = true
     }
 
     @MainActor
     func onRefresh() async {
+        guard hasCompletedInitialLoad else { return }
         do {
             advanceSelectedDayIfNeeded()
             try await refreshMealTypes()
@@ -276,12 +291,14 @@ final class DashboardViewModel: ObservableObject {
         selectedDay = Date.now
     }
 
-    private func foodFallsIn(mealType: MealTypeDomain, food: FoodConsumedDomain) -> Bool {
-        MealWindowsKt.isMinuteWithinWindow(
-            minutes: food.date.minutesSinceMidnight,
-            startMinutes: mealType.startTime.minutesSinceMidnight,
-            endMinutes: mealType.endTime.minutesSinceMidnight
-        )
+    private func observeDayChange() {
+        dayChangeObserver = NotificationCenter.default.addObserver(
+            forName: .NSCalendarDayChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in await self?.onRefresh() }
+        }
     }
 
     @MainActor
@@ -308,14 +325,17 @@ final class DashboardViewModel: ObservableObject {
         activeDaysInMonth = computeActiveDays(for: date)
     }
 
+    @MainActor
     private func monthCacheKey(for date: Date) -> String {
         date.formatCacheKey(with: "yyyy-MM")
     }
 
+    @MainActor
     private func dayCacheKey(for date: Date) -> String {
         date.formatCacheKey(with: "yyyy-MM-dd")
     }
 
+    @MainActor
     private func populateCache(with foods: [FoodConsumedDomain], for month: Date) {
         let key = monthCacheKey(for: month)
         monthCache = monthCache.filter { !$0.key.hasPrefix(key) }
@@ -326,10 +346,12 @@ final class DashboardViewModel: ObservableObject {
         }
     }
 
+    @MainActor
     private func foodsFromCache(for date: Date) -> [FoodConsumedDomain] {
         monthCache[dayCacheKey(for: date)] ?? []
     }
 
+    @MainActor
     private func computeActiveDays(for month: Date) -> Set<Int> {
         let key = monthCacheKey(for: month)
         var result = Set<Int>()
@@ -342,6 +364,7 @@ final class DashboardViewModel: ObservableObject {
         return result
     }
 
+    @MainActor
     private func invalidateCache(for date: Date) {
         let key = monthCacheKey(for: date)
         monthCache = monthCache.filter { !$0.key.hasPrefix(key) }

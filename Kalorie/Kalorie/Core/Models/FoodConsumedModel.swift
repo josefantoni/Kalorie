@@ -30,6 +30,45 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
     let fatUnsaturated: Double
     let fiber: Double?
     let salt: Double
+    let mealTypeId: String?
+
+    func copy(
+        weight: Double? = nil,
+        calories: Int? = nil,
+        caloriesPerHundredGrams: Double? = nil,
+        energyKJ: Double? = nil,
+        protein: Double? = nil,
+        carbohydrate: Double? = nil,
+        carbohydrateSugar: Double? = nil,
+        fat: Double? = nil,
+        fatSaturated: Double?? = nil,
+        fatUnsaturated: Double? = nil,
+        fiber: Double?? = nil,
+        salt: Double? = nil,
+        mealTypeId: String?? = nil
+    ) -> FoodConsumedDomain {
+        FoodConsumedDomain(
+            id: id,
+            foodItemId: foodItemId,
+            foodItemKind: foodItemKind,
+            czName: czName,
+            engName: engName,
+            weight: weight ?? self.weight,
+            date: date,
+            calories: calories ?? self.calories,
+            caloriesPerHundredGrams: caloriesPerHundredGrams ?? self.caloriesPerHundredGrams,
+            energyKJ: energyKJ ?? self.energyKJ,
+            protein: protein ?? self.protein,
+            carbohydrate: carbohydrate ?? self.carbohydrate,
+            carbohydrateSugar: carbohydrateSugar ?? self.carbohydrateSugar,
+            fat: fat ?? self.fat,
+            fatSaturated: fatSaturated ?? self.fatSaturated,
+            fatUnsaturated: fatUnsaturated ?? self.fatUnsaturated,
+            fiber: fiber ?? self.fiber,
+            salt: salt ?? self.salt,
+            mealTypeId: mealTypeId ?? self.mealTypeId
+        )
+    }
 }
 
 struct ScaledMacros {

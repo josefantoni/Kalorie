@@ -169,11 +169,36 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertFalse(onSavedCalled)
     }
 
+    @MainActor
+    func test_onConfirm_usesFreshlyFetchedMealTypesInsteadOfStaleSnapshot() async {
+        let freshMealTypes = [MealTypeDomain(id: "lunch", name: "Lunch", startTime: .now, endTime: .now)]
+        let spy = SaveFoodConsumedUseCaseSpy()
+        let sut = makeSUT(saveFoodConsumed: spy, fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: freshMealTypes))
+        await sut.onConfirm()
+        XCTAssertEqual(
+            spy.capturedMealTypes?.map(\.id),
+            ["lunch"],
+            "onConfirm must resolve the meal-type pin against meal types fetched at save time, not the array captured when the sheet was opened"
+        )
+    }
+
+    @MainActor
+    func test_onConfirm_whenMealTypesRefetchFails_fallsBackToOriginalSnapshot() async {
+        let originalMealTypes = [MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: .now, endTime: .now)]
+        let spy = SaveFoodConsumedUseCaseSpy()
+        let sut = makeSUT(saveFoodConsumed: spy, fetchMealTypes: FetchMealTypesUseCaseFake(shouldThrow: true), mealTypes: originalMealTypes)
+        await sut.onConfirm()
+        XCTAssertEqual(spy.capturedMealTypes?.map(\.id), ["breakfast"], "a failed refetch must fall back to the snapshot captured when the sheet was opened, not discard it")
+        XCTAssertNil(sut.alertItem)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         item: FoodItemDomain? = nil,
         saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol = SaveFoodConsumedUseCaseFake(),
+        fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
+        mealTypes: [MealTypeDomain] = [],
         isFavourite: Bool = false,
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
@@ -185,7 +210,9 @@ final class FoodQuantityViewModelTests: XCTestCase {
         let sut = FoodQuantityViewModel(
             item: item ?? makeFoodItem(),
             saveFoodConsumed: saveFoodConsumed,
+            fetchMealTypes: fetchMealTypes,
             selectedDate: .now,
+            mealTypes: mealTypes,
             isFavourite: isFavourite,
             addFavouriteFood: addFavouriteFood,
             removeFavouriteFood: removeFavouriteFood,
@@ -219,5 +246,18 @@ final class FoodQuantityViewModelTests: XCTestCase {
             protein: 13,
             salt: 0.1
         )
+    }
+}
+
+private final class SaveFoodConsumedUseCaseSpy: SaveFoodConsumedUseCaseProtocol {
+
+    // MARK: - Properties
+
+    private(set) var capturedMealTypes: [MealTypeDomain]?
+
+    // MARK: - Functions
+
+    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypes: [MealTypeDomain]) async throws {
+        capturedMealTypes = mealTypes
     }
 }

@@ -30,6 +30,7 @@ struct FoodConsumedDTO: Codable {
     let fatUnsaturated: Double
     let fiber: Double?
     let salt: Double
+    let mealTypeId: String?
 
     // MARK: - Coding keys
 
@@ -44,6 +45,7 @@ struct FoodConsumedDTO: Codable {
         case caloriesPerHundredGrams = "calories_per_hundred_grams"
         case energyKJ = "energy_kj"
         case fatSaturated = "fat_saturated"
+        case mealTypeId = "meal_type_id"
     }
 
     // MARK: - Functions
@@ -67,7 +69,34 @@ struct FoodConsumedDTO: Codable {
             fatSaturated: fatSaturated,
             fatUnsaturated: fatUnsaturated,
             fiber: fiber,
-            salt: salt
+            salt: salt,
+            mealTypeId: mealTypeId
+        )
+    }
+}
+
+extension FoodConsumedDTO {
+    init(food: FoodConsumedDomain, mealTypeId: String?) {
+        self.init(
+            id: food.id,
+            foodItemId: food.foodItemId,
+            foodItemKind: food.foodItemKind,
+            czName: food.czName,
+            engName: food.engName,
+            weight: food.weight,
+            date: food.date.timeIntervalSince1970,
+            calories: food.calories,
+            caloriesPerHundredGrams: food.caloriesPerHundredGrams,
+            energyKJ: food.energyKJ,
+            protein: food.protein,
+            carbohydrate: food.carbohydrate,
+            carbohydrateSugar: food.carbohydrateSugar,
+            fat: food.fat,
+            fatSaturated: food.fatSaturated,
+            fatUnsaturated: food.fatUnsaturated,
+            fiber: food.fiber,
+            salt: food.salt,
+            mealTypeId: mealTypeId
         )
     }
 }

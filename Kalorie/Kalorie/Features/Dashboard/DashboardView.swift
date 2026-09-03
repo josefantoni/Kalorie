@@ -15,7 +15,6 @@ struct DashboardView: View {
     @StateObject var viewModel: DashboardViewModel
     @State private var pulseAnimation = false
     @State private var macroPopoverIndex: Int?
-    @State private var hasCompletedInitialLoad = false
     @Environment(\.scenePhase) private var scenePhase
     let router: DashboardRouter
 
@@ -82,7 +81,7 @@ struct DashboardView: View {
             }
             .refreshable { await viewModel.onRefresh() }
             .navigationDestination(for: FoodConsumedDomain.self) { food in
-                router.makeFoodConsumedDetailView(food: food) {
+                router.makeFoodConsumedDetailView(food: food, mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onFoodConsumedUpdated() }
                 }
             }
@@ -144,7 +143,7 @@ struct DashboardView: View {
             .sheet(isPresented: $viewModel.showAddFoodSheet) {
                 viewModel.onAddFoodSheetDismissed()
             } content: {
-                router.makeAddFoodSheetView(for: viewModel.selectedDay, onFoodSaved: {
+                router.makeAddFoodSheetView(for: viewModel.selectedDay, mealTypes: viewModel.mealTypes, onFoodSaved: {
                     Task { await viewModel.onFoodConsumedUpdated() }
                 }) {
                     viewModel.onCreateMealRequested()
@@ -181,10 +180,8 @@ struct DashboardView: View {
             }
             .task {
                 await viewModel.onAppear()
-                hasCompletedInitialLoad = true
             }
             .onChange(of: scenePhase) { _, newPhase in
-                guard hasCompletedInitialLoad else { return }
                 if newPhase == .active {
                     Task { await viewModel.onRefresh() }
                 }
@@ -278,7 +275,8 @@ struct DashboardView: View {
                 fatSaturated: 1,
                 fatUnsaturated: 2,
                 fiber: 6,
-                salt: 0.1
+                salt: 0.1,
+                mealTypeId: nil
             ),
             FoodConsumedDomain(
                 id: "2",
@@ -298,7 +296,8 @@ struct DashboardView: View {
                 fatSaturated: 1,
                 fatUnsaturated: 1.2,
                 fiber: 0,
-                salt: 0.2
+                salt: 0.2,
+                mealTypeId: nil
             ),
             FoodConsumedDomain(
                 id: "3",
@@ -318,7 +317,8 @@ struct DashboardView: View {
                 fatSaturated: 0.1,
                 fatUnsaturated: 0.2,
                 fiber: 1,
-                salt: 0
+                salt: 0,
+                mealTypeId: nil
             )
         ]),
         setupDefaultMeals: SetupDefaultMealsUseCaseFake(),

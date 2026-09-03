@@ -18,11 +18,15 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     @Published var isFavourite = false
     @Published var isTogglingFavourite = false
     @Published private(set) var catalogueItem: FoodItemDomain?
+    @Published private(set) var mealTypeId: String?
 
-    let food: FoodConsumedDomain
+    private(set) var food: FoodConsumedDomain
+    @Published private(set) var mealTypes: [MealTypeDomain]
 
     private var savedWeight: Double
     private let updateFoodConsumed: any UpdateFoodConsumedUseCaseProtocol
+    private let assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol
+    private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let isFavouriteFood: any IsFavouriteFoodUseCaseProtocol
     private let addFavouriteFood: any AddFavouriteFoodUseCaseProtocol
     private let removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol
@@ -37,7 +41,10 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
 
     init(
         food: FoodConsumedDomain,
+        mealTypes: [MealTypeDomain],
         updateFoodConsumed: any UpdateFoodConsumedUseCaseProtocol,
+        assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol,
+        fetchMealTypes: any FetchMealTypesUseCaseProtocol,
         isFavouriteFood: any IsFavouriteFoodUseCaseProtocol,
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol,
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol,
@@ -46,9 +53,13 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
         onFoodUpdated: @escaping () -> Void
     ) {
         self.food = food
+        self.mealTypes = mealTypes
         self.weight = food.weight
         self.savedWeight = food.weight
+        self.mealTypeId = mealTypes.resolvedMealTypeId(for: food)
         self.updateFoodConsumed = updateFoodConsumed
+        self.assignFoodMealType = assignFoodMealType
+        self.fetchMealTypes = fetchMealTypes
         self.isFavouriteFood = isFavouriteFood
         self.addFavouriteFood = addFavouriteFood
         self.removeFavouriteFood = removeFavouriteFood
@@ -110,15 +121,41 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     }
 
     @MainActor
+    func onMealTypeSelected(_ mealTypeId: String) async {
+        guard mealTypeId != food.mealTypeId else { return }
+        guard !state.isLoading else { return }
+        state = .loading
+        defer { state = .loaded }
+        if let freshMealTypes = try? await fetchMealTypes() {
+            mealTypes = freshMealTypes
+        }
+        guard mealTypes.contains(where: { $0.id == mealTypeId }) else {
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            return
+        }
+        do {
+            try await assignFoodMealType(food, mealTypeId: mealTypeId)
+            food = food.withMealTypeId(mealTypeId)
+            self.mealTypeId = mealTypeId
+            onFoodUpdated()
+        } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+        }
+    }
+
+    @MainActor
     func onSave() async {
         guard !state.isLoading else { return }
         guard weight > 0 else {
             alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
             return
         }
+        let scaled = scaledMacros
         state = .loading
         do {
             try await updateFoodConsumed(food, newWeight: weight)
+            food = food.withScaledWeight(weight, scaled: scaled)
             savedWeight = weight
             onFoodUpdated()
             state = .loaded
@@ -133,5 +170,27 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
             state = .loaded
         }
+    }
+}
+
+private extension FoodConsumedDomain {
+    func withMealTypeId(_ mealTypeId: String?) -> FoodConsumedDomain {
+        copy(mealTypeId: mealTypeId)
+    }
+
+    func withScaledWeight(_ weight: Double, scaled: ScaledMacros) -> FoodConsumedDomain {
+        copy(
+            weight: weight,
+            calories: scaled.calories,
+            energyKJ: scaled.energyKJ,
+            protein: scaled.protein,
+            carbohydrate: scaled.carbohydrate,
+            carbohydrateSugar: scaled.carbohydrateSugar,
+            fat: scaled.fat,
+            fatSaturated: scaled.fatSaturated,
+            fatUnsaturated: scaled.fatUnsaturated,
+            fiber: scaled.fiber,
+            salt: scaled.salt
+        )
     }
 }

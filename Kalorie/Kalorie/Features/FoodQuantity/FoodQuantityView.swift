@@ -158,7 +158,9 @@ struct FoodQuantityView: View {
                     salt: 0.3
                 ),
                 saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
+                fetchMealTypes: FetchMealTypesUseCaseFake(),
                 selectedDate: .now,
+                mealTypes: [],
                 isFavourite: false,
                 addFavouriteFood: AddFavouriteFoodUseCaseFake(),
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
