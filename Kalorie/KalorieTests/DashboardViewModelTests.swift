@@ -88,6 +88,16 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertEqual(groups[1].mealType?.id, "1")
     }
 
+    func test_groupedFoods_foodInOverlappingWindows_isAssignedToEarlierWindowOnly() {
+        let sut = makeSUT()
+        sut.mealTypes = [makeMealType(id: 0, hour: 8, endHour: 14), makeMealType(id: 1, hour: 12, endHour: 16)]
+        sut.foodsConsumed = [makeFood(id: "f1", hour: 13)]
+        let groups = sut.groupedFoods
+        XCTAssertEqual(groups.count, 1)
+        XCTAssertEqual(groups[0].mealType?.id, "0")
+        XCTAssertEqual(groups[0].foods.map(\.id), ["f1"])
+    }
+
     func test_groupedFoods_wrappingMealType_includesFoodAfterMidnight() {
         let sut = makeSUT()
         sut.mealTypes = [makeMealType(id: 0, hour: 23, endHour: 1)]
