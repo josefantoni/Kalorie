@@ -158,14 +158,17 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {
         do {
             let db = Firestore.firestore()
-            let batch = db.batch()
-            for (item, id) in items {
-                let data = try Firestore.Encoder().encode(item)
-                log("🚀 BATCH SET \(id) → \(collection) body: \(data)")
-                batch.setData(data, forDocument: db.collection(collection).document(id))
+            for chunkStart in stride(from: 0, to: items.count, by: Constants.Firestore.batchWriteLimit) {
+                let chunk = items[chunkStart..<min(chunkStart + Constants.Firestore.batchWriteLimit, items.count)]
+                let batch = db.batch()
+                for (item, id) in chunk {
+                    let data = try Firestore.Encoder().encode(item)
+                    log("🚀 BATCH SET \(id) → \(collection) body: \(data)")
+                    batch.setData(data, forDocument: db.collection(collection).document(id))
+                }
+                try await batch.commit()
+                log("✅ BATCH SET \(chunk.count) items → \(collection)")
             }
-            try await batch.commit()
-            log("✅ BATCH SET \(items.count) items → \(collection)")
         } catch {
             logFailure("❌ BATCH SET \(collection)", error: error)
             throw mapError(error)

@@ -37,6 +37,7 @@ enum Constants {
     enum Firestore {
         static let foodItems = "foodItems"
         static let users = "users"
+        static let batchWriteLimit = 500
         static func mealTypes(userId: String) -> String { "users/\(userId)/mealTypes" }
         static func foodConsumed(userId: String) -> String { "users/\(userId)/foodConsumed" }
         static func favouriteFoods(userId: String) -> String { "users/\(userId)/favouriteFoods" }
