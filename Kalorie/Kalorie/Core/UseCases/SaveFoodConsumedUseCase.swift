@@ -39,6 +39,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
             weight: grams,
             date: date.timeIntervalSince1970,
             calories: scaled.calories,
+            caloriesPerHundredGrams: item.caloriesPerHundredGrams,
             protein: scaled.protein,
             carbohydrate: scaled.carbohydrate,
             carbohydrateSugar: scaled.carbohydrateSugar,

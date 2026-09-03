@@ -251,6 +251,7 @@ final class DashboardViewModelTests: XCTestCase {
             weight: 100,
             date: date,
             calories: 200,
+            caloriesPerHundredGrams: 200,
             protein: 10,
             carbohydrate: 20,
             carbohydrateSugar: 5,

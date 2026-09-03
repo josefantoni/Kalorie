@@ -34,8 +34,7 @@ struct UpdateFoodConsumedUseCase: UpdateFoodConsumedUseCaseProtocol {
     func callAsFunction(_ food: FoodConsumedDomain, newWeight: Double) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         guard food.weight > 0 else { throw UpdateFoodConsumedError.invalidWeight }
-        let ratio = newWeight / food.weight
-        let scaled = ScaledMacros(food: food, ratio: ratio)
+        let scaled = ScaledMacros(food: food, newWeight: newWeight)
         let dto = FoodConsumedDTO(
             id: food.id,
             foodItemId: food.foodItemId,
@@ -45,6 +44,7 @@ struct UpdateFoodConsumedUseCase: UpdateFoodConsumedUseCaseProtocol {
             weight: newWeight,
             date: food.date.timeIntervalSince1970,
             calories: scaled.calories,
+            caloriesPerHundredGrams: food.caloriesPerHundredGrams,
             protein: scaled.protein,
             carbohydrate: scaled.carbohydrate,
             carbohydrateSugar: scaled.carbohydrateSugar,

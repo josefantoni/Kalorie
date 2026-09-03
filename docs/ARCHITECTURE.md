@@ -498,9 +498,10 @@ and lossy for hundred-gram units (finding **A4-1**).
 Two different text-field strategies coexist:
 
 - **`FoodQuantityView`** binds a `String` (`quantityText`) and sanitises it in `onChange`:
-  keep digits, allow at most one `.` or `,`, normalise the comma to a dot, then
-  `Double(normalized)` into `viewModel.quantity`. The view model is only updated when parsing
-  succeeds, so the field and the model can disagree (finding **A4-2**).
+  keep ASCII digits, allow at most one `.` or `,`, normalise the comma to a dot, then
+  `Double(normalized) ?? 0` into `viewModel.quantity`. An empty or unparseable field therefore
+  clears `quantity` to `0` rather than keeping a stale value, and `onConfirm`'s existing
+  `grams > 0` guard shows `errorInvalidQuantity` for it.
 - **`BaseDoubleTextField`**, used by the add-a-new-food form, binds a `Double` through
   `NumberFormatter.decimal` — a shared static with `numberStyle = .decimal` and
   `zeroSymbol = ""`, so an empty field reads as zero and a zero renders as empty. Being a
@@ -516,13 +517,19 @@ and folding it into `Macros.scaled` would round it twice — this is one of the 
 codebase carrying an explanatory comment, and it is there for a reason.
 
 `UpdateFoodConsumedUseCase` scales the *entry's own* stored values by `newWeight / food.weight`
-and never consults the catalogue. Why, and what it costs numerically, is
-[ADR 0016](adr/0016-logged-entries-rescale-from-their-own-stored-values.md).
+and never consults the catalogue. Why is [ADR 0016](adr/0016-logged-entries-rescale-from-their-own-stored-values.md).
 
-Note the asymmetry this creates: the logging path rounds a fractional value once, the editing
-path rescales an already-rounded integer. `FoodConsumedDetailViewModel.scaledMacros` shows the
-editing-path number, so the preview on the detail screen and the preview on the quantity screen
-are not computed the same way for the same food at the same weight.
+`foodConsumed` stores `calories_per_hundred_grams` alongside the absolute `calories` — the
+entry's own fractional snapshot, set once at logging time and never touched by an edit. Both
+paths therefore round a fractional per-100g value exactly once, via
+`MacroKit.scaledCalories(caloriesPerHundredGrams:ratio:)`: logging uses `grams / 100` against the
+catalogue item's value, editing uses `newWeight / 100` against the entry's own stored value. The
+macro `Double` fields are unaffected and keep scaling by `newWeight / food.weight` from their
+absolute stored values, since only `calories` was ever rounded to an `Int`. A document written
+before this field existed decodes `calories_per_hundred_grams` as missing and
+`FoodConsumedDTO.asDomain()` derives it once, from `calories / weight * 100`
+(`MacroKit.caloriesPerHundredGrams(calories:weight:)`) — the same one-time approximation the
+rounded value always implied, just no longer compounding on every subsequent edit.
 
 ### 4.5 The detail screen
 

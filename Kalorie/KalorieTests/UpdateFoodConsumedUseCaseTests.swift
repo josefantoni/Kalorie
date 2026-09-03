@@ -34,6 +34,20 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         }
     }
 
+    func test_updateFoodConsumed_recalculatesCaloriesFromStoredPerHundredGramBasis_avoidingCompoundedRounding() async throws {
+        let (sut, dataProvider) = makeSUT()
+        // 1g of a 33 kcal/100g food logs to 0 kcal (rounds down). Rescaling that rounded 0 by
+        // newWeight/oldWeight would stay 0 forever; rescaling from the stored per-100g basis does not.
+        try await sut(makeFood(weight: 1, calories: 0, caloriesPerHundredGrams: 33), newWeight: 100)
+        XCTAssertEqual(dataProvider.savedDTO?.calories, 33)
+    }
+
+    func test_updateFoodConsumed_preservesCaloriesPerHundredGrams() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeFood(weight: 100, caloriesPerHundredGrams: 155), newWeight: 200)
+        XCTAssertEqual(dataProvider.savedDTO?.caloriesPerHundredGrams, 155)
+    }
+
     func test_updateFoodConsumed_whenExistingWeightIsNotPositive_throwsInvalidWeightError() async throws {
         let (sut, _) = makeSUT()
         do {
@@ -56,6 +70,8 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
     private func makeFood(
         foodItemId: String = "12345",
         weight: Double = 100,
+        calories: Int = 155,
+        caloriesPerHundredGrams: Double = 155,
         kind: FoodItemKind = .catalogue
     ) -> FoodConsumedDomain {
         FoodConsumedDomain(
@@ -66,7 +82,8 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
             engName: "Egg",
             weight: weight,
             date: .now,
-            calories: 155,
+            calories: calories,
+            caloriesPerHundredGrams: caloriesPerHundredGrams,
             protein: 13,
             carbohydrate: 1,
             carbohydrateSugar: 0,
