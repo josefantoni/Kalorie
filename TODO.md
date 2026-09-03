@@ -89,26 +89,26 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
   A concrete `Double` is still needed at the one place a value crosses into a schema that has no
   "unknown" representation: `ScaledMacros.init(item:ratio:)` (`FoodConsumedModel.swift`) falls
   back to `0` for `fiber` because `FoodConsumedDTO.fiber` is non-optional — that gap belongs to
-  **A1-5**, not this finding. `fatSaturated` never reaches `FoodConsumedDomain` at all, per A1-5.
+  **A1-5**, not this finding. `fatSaturated` now reaches `FoodConsumedDomain` as `Double?`, fixed
+  by A1-5.
   `Kalorie/Kalorie/Core/Models/FoodNutritionValues.swift`,
   `Kalorie/Kalorie/Core/Models/FoodItemModel.swift`
 
-- [ ] **A1-5 — `foodConsumed` drops `fat_saturated` and `energy_kj` on write.**
-  `FoodConsumedDTO` has neither field, so logging a food discards its saturated fat and its
-  kilojoule value permanently — the catalogue item still has them, but a logged entry can never
-  recover them. This is not a hypothetical cost:
-  [design 0003](docs/design/0003-favourite-foods.md) rejected reconstructing a per-100 g snapshot
-  from a logged entry *because of these exact three gaps* — "its calories are stored as a rounded
-  `Int`, so dividing back introduces drift, and `energyKJ` and `fatSaturated` are not stored at
-  all" — and had to add `food_item_id` instead. Widening `FoodConsumedDTO` removes the reason for
-  that workaround and unblocks *Data export* exporting a complete nutrition table. Adding the
-  fields is cheap; backfilling existing entries is not, which argues for doing it before release.
-  `Kalorie/Kalorie/Core/Networking/FireStone/FoodConsumedDTO.swift`
-
-  Narrowed: `calories_per_hundred_grams` has since been added (fixing **A4-3**), so the "dividing
-  back introduces drift" half of design 0003's rationale no longer holds — a logged entry now
-  carries its own fractional basis directly. `fat_saturated` and `energy_kj` are still missing;
-  design 0003's workaround is still load-bearing for those two.
+- [x] **A1-5 — `foodConsumed` drops `fat_saturated` and `energy_kj` on write.** Fixed:
+  `FoodConsumedDTO` gains `energy_kj`/`fat_saturated` (both `Double?`, for backward decode of
+  documents written before this change), and `FoodConsumedDomain` carries them as `energyKJ:
+  Double` (falling back to `MacroKit.energyKJFromMacros`, per
+  [ADR 0007](docs/adr/0007-derive-missing-energy-kj-from-macros.md), for the rare pre-migration
+  document with neither) and `fatSaturated: Double?` (cannot be derived, stays optional). Both are
+  scaled linearly with weight in `ScaledMacros`, alongside the existing fat/protein/carbohydrate
+  scaling, and threaded through `SaveFoodConsumedUseCase` and `UpdateFoodConsumedUseCase`.
+  Pre-existing Firestore documents are not backfilled — they decode with `fatSaturated: nil` and a
+  macro-derived `energyKJ` estimate until next re-save, which is an accepted, cheap-to-reach state
+  rather than a migration.
+  design 0003's `food_item_id` workaround stays as-is: it also carries the per-100 g snapshot for
+  favouriting/re-adding a logged entry, which this change doesn't touch.
+  `Kalorie/Kalorie/Core/Networking/FireStone/FoodConsumedDTO.swift`,
+  `Kalorie/Kalorie/Core/Models/FoodConsumedModel.swift`
 
 - [ ] **A1-6 — Meal types silently disappear on the DST transition day.**
   `FetchMealTypesUseCase` rebuilds each window with `Calendar.date(bySettingHour:minute:…)` on

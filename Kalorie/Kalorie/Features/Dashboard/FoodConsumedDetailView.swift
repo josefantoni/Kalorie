@@ -147,10 +147,12 @@ struct FoodConsumedDetailView: View {
                     date: .now,
                     calories: 295,
                     caloriesPerHundredGrams: 368.75,
+                    energyKJ: 1544,
                     protein: 10,
                     carbohydrate: 52,
                     carbohydrateSugar: 8,
                     fat: 5,
+                    fatSaturated: 1,
                     fatUnsaturated: 2,
                     fiber: 6,
                     salt: 0.1

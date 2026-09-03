@@ -50,10 +50,12 @@ struct FoodConsumedView: View {
             date: .now,
             calories: 140,
             caloriesPerHundredGrams: 70,
+            energyKJ: 586,
             protein: 8,
             carbohydrate: 16,
             carbohydrateSugar: 12,
             fat: 3.5,
+            fatSaturated: 2.2,
             fatUnsaturated: 1.2,
             fiber: 0,
             salt: 0.1

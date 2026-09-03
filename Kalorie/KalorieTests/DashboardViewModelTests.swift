@@ -252,10 +252,12 @@ final class DashboardViewModelTests: XCTestCase {
             date: date,
             calories: 200,
             caloriesPerHundredGrams: 200,
+            energyKJ: 837,
             protein: 10,
             carbohydrate: 20,
             carbohydrateSugar: 5,
             fat: 5,
+            fatSaturated: 1,
             fatUnsaturated: 2,
             fiber: 1,
             salt: 0.2
