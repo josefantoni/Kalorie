@@ -31,12 +31,12 @@ struct FetchMealTypesUseCase: FetchMealTypesUseCaseProtocol {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let dtos: [MealTypeDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.mealTypes(userId: userId))
         let calendar = Calendar.current
-        let today = Date.now
+        let dayStart = calendar.startOfDay(for: .now)
         return dtos
             .compactMap { dto -> MealTypeDomain? in
                 guard
-                    let start = calendar.date(bySettingHour: dto.startMinutes / 60, minute: dto.startMinutes % 60, second: 0, of: today),
-                    let end = calendar.date(bySettingHour: dto.endMinutes / 60, minute: dto.endMinutes % 60, second: 0, of: today)
+                    let start = calendar.date(byAdding: .minute, value: dto.startMinutes, to: dayStart),
+                    let end = calendar.date(byAdding: .minute, value: dto.endMinutes, to: dayStart)
                 else { return nil }
                 return MealTypeDomain(id: dto.id, name: dto.name, startTime: start, endTime: end)
             }

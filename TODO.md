@@ -110,7 +110,7 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
   `Kalorie/Kalorie/Core/Networking/FireStone/FoodConsumedDTO.swift`,
   `Kalorie/Kalorie/Core/Models/FoodConsumedModel.swift`
 
-- [ ] **A1-6 — Meal types silently disappear on the DST transition day.**
+- [x] **A1-6 — Meal types silently disappear on the DST transition day.**
   `FetchMealTypesUseCase` rebuilds each window with `Calendar.date(bySettingHour:minute:…)` on
   *today's* date and `compactMap`s away anything that returns `nil`. On the spring-forward day
   the local hour 02:00–02:59 does not exist, so a meal window starting in that hour vanishes from
