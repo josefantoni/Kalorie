@@ -164,25 +164,26 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
 
 ### Security and cost
 
-- [ ] **A1-11 — The `foodItems` rule is wider than the feature that needs it.**
-  [ADR 0011](docs/adr/0011-foodItems-writable-by-any-authenticated-client.md) records why client
-  writes exist and that they go away with the moderation flow. Until then the rule can be
-  narrowed at no cost to the barcode path: allow `create` and `update` but not `delete`, and
-  require `request.resource.data.id == itemId` so a client cannot write a document whose id
-  field disagrees with its key. Field-type validation on the numeric fields is a further cheap
-  win. Do **not** remove write access before the moderation flow ships — that silently breaks
-  barcode scanning.
+- [x] **A1-11 — The `foodItems` rule is wider than the feature that needs it.** Fixed: `write` is
+  split into `allow create, update` — `delete` now falls through to Firestore's default deny, so
+  no client can remove a catalogue entry. The rule also requires
+  `request.resource.data.id == itemId`, so a document's `id` field can no longer disagree with
+  its key, and adds `is number` checks on every numeric field (`weight`, `date`,
+  `calories_per_hundred_grams`, `fat`, `fat_unsaturated_fatty_acids`, `carbohydrate`,
+  `carbohydrate_pure_sugar`, `protein`, `salt`), plus the same check gated on presence for the
+  three fields that are optional on write (`energy_kj`, `fat_saturated`, `fiber`), since
+  `CreateFoodItemUseCase` omits them from the payload when `nil` rather than sending `null` (see
+  **A1-4**). Write access itself is unchanged, per [ADR 0011](docs/adr/0011-foodItems-writable-by-any-authenticated-client.md)
+  — this narrows the shape of an allowed write, it does not remove write access ahead of the
+  moderation flow.
   `Kalorie/firestore.rules:15`
 
-- [ ] **A1-12 — Every `foodItems` field is automatically indexed.** There is no
-  `firestore.indexes.json`, and none is needed — every query the app issues is single-field, so
-  no composite index exists to configure. The consequence is the opposite of the one the open
-  question assumed: Firestore auto-indexes all 17 fields of every catalogue document, both
-  ascending and descending, which is index storage and write amplification on the one collection
-  intended to grow large. Only `cz_name_lowercase`, `eng_name_lowercase` and `id` are ever
-  queried. Adding a `firestore.indexes.json` with `fieldOverrides` that disable indexing on the
-  purely numeric fields is a one-file change, and it puts index configuration under version
-  control — which it is not today.
+- [x] **A1-12 — Every `foodItems` field is automatically indexed.** Fixed: added
+  `Kalorie/firestore.indexes.json` with `fieldOverrides` disabling single-field indexing (both
+  directions) on the twelve purely numeric fields — every field except `id`, `cz_name`,
+  `eng_name`, `cz_name_lowercase` and `eng_name_lowercase`, since only the two lowercase fields
+  and `id` are ever queried. `firebase.json` now points `"indexes"` at the new file, so index
+  configuration is under version control.
 
 
 ## Audit findings — 2. Food search and catalogue

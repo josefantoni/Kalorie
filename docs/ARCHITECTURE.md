@@ -191,14 +191,19 @@ Consequences worth knowing before adding a method:
 
 - `users/{userId}` and everything beneath it: read and write require
   `request.auth.uid == userId`. Anonymous users are authenticated users, so this covers them.
-- `foodItems`: read and write require only `request.auth != null` — see
-  [ADR 0011](adr/0011-foodItems-writable-by-any-authenticated-client.md).
+- `foodItems`: read requires only `request.auth != null`. `create`/`update` additionally require
+  the document id to match the barcode length whitelist, `request.resource.data.id == itemId`,
+  and every numeric field to be `is number` (the three fields optional on write —
+  `energy_kj`, `fat_saturated`, `fiber` — only when present). `delete` is not granted and falls
+  through to Firestore's default deny. See
+  [ADR 0011](adr/0011-foodItems-writable-by-any-authenticated-client.md) for why client writes
+  exist at all.
 - Everything else is denied by Firestore's default.
 
-There is **no `firestore.indexes.json`**. Every query the app issues today is a single-field
-range, equality or order, all of which Firestore indexes automatically, so no composite index
-is configured or needed. The cost of that automatic indexing on the catalogue is finding
-**A1-12**.
+`Kalorie/firestore.indexes.json`, deployed via the same `firebase.json`, disables single-field
+indexing on `foodItems`' numeric fields via `fieldOverrides` — only `cz_name_lowercase`,
+`eng_name_lowercase` and `id` are ever queried, so every other field would otherwise be indexed
+in both directions for no reason.
 
 ---
 
