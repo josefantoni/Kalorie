@@ -63,6 +63,13 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.scaledCalories, 200)
     }
 
+    // MARK: - scaledFiber
+
+    func test_scaledFiber_whenItemsFiberIsUnknown_showsZeroInsteadOfNil() {
+        let sut = makeSUT(item: makeFoodItem(fiber: nil))
+        XCTAssertEqual(sut.scaledFiber, 0)
+    }
+
     // MARK: - init defaults
 
     func test_init_withoutQuantityOrUnit_defaultsToOneHundredGram() {
@@ -193,7 +200,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
         return sut
     }
 
-    private func makeFoodItem(caloriesPerHundredGrams: Double = 100) -> FoodItemDomain {
+    private func makeFoodItem(caloriesPerHundredGrams: Double = 100, fiber: Double? = 0) -> FoodItemDomain {
         FoodItemDomain(
             id: "test",
             kind: .catalogue,
@@ -208,7 +215,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
             fatUnsaturatedFattyAcids: 1,
             carbohydrate: 4,
             carbohydratePureSugar: 3,
-            fiber: 0,
+            fiber: fiber,
             protein: 13,
             salt: 0.1
         )

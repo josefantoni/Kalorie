@@ -10,6 +10,13 @@ import XCTest
 
 final class DashboardViewModelTests: XCTestCase {
 
+    // MARK: - DailyMacros
+
+    func test_dailyMacros_whenAFoodsFiberIsUnknown_showsZeroInsteadOfExcludingIt() {
+        let macros = DailyMacros(foods: [makeFood(id: "1", hour: 8, fiber: nil), makeFood(id: "2", hour: 9, fiber: 3)])
+        XCTAssertEqual(macros.fiber, 3)
+    }
+
     // MARK: - groupedFoods — no foods
 
     func test_groupedFoods_withNoFoodsConsumed_returnsEmpty() {
@@ -238,7 +245,7 @@ final class DashboardViewModelTests: XCTestCase {
         return MealTypeDomain(id: "\(id)", name: "Meal \(id)", startTime: start, endTime: end)
     }
 
-    private func makeFood(id: String, hour: Int, minute: Int = 0) -> FoodConsumedDomain {
+    private func makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1) -> FoodConsumedDomain {
         let cal = Calendar.current
         let base = Date.now
         let date = cal.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
@@ -259,7 +266,7 @@ final class DashboardViewModelTests: XCTestCase {
             fat: 5,
             fatSaturated: 1,
             fatUnsaturated: 2,
-            fiber: 1,
+            fiber: fiber,
             salt: 0.2
         )
     }

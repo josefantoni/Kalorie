@@ -46,7 +46,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     var scaledProtein: Double { scaledMacros.protein }
     var scaledCarbohydrate: Double { scaledMacros.carbohydrate }
     var scaledFat: Double { scaledMacros.fat }
-    var scaledFiber: Double { scaledMacros.fiber }
+    var scaledFiber: Double { scaledMacros.fiber ?? 0 }
 
     // MARK: - Init
 

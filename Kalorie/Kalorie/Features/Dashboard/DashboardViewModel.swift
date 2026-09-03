@@ -48,7 +48,7 @@ struct DailyMacros {
                 carbohydrateSugar: $0.carbohydrateSugar,
                 fat: $0.fat,
                 fatUnsaturated: $0.fatUnsaturated,
-                fiber: $0.fiber,
+                fiber: $0.fiber ?? 0,
                 salt: $0.salt
             )
         }

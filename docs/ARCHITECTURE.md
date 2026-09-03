@@ -124,9 +124,9 @@ weight**, already scaled, not per 100 g; `calories` is an `Int`. `food_item_id` 
 the catalogue entry and is required (no optional, no backfill — see `TODO.md`). This DTO's
 field names diverge from the rest of the model (`carbohydrate_sugar` vs.
 `carbohydrate_pure_sugar`, `fat_unsaturated` vs. `fat_unsaturated_fatty_acids`) — finding
-**A1-8**. It also carries `energy_kj` and `fat_saturated` (fixed by **A1-5**), both optional for
-backward decode of documents written before that fix; `energy_kj` falls back to
-`MacroKit.energyKJFromMacros` when absent, `fat_saturated` stays `nil`.
+**A1-8**. It also carries `energy_kj`, `fat_saturated` and `fiber` (fixed by **A1-5**), all
+optional for backward decode of documents written before that fix; `energy_kj` falls back to
+`MacroKit.energyKJFromMacros` when absent, `fat_saturated` and `fiber` stay `nil`.
 
 **`mealTypes`** (`MealTypeDTO`) — `startMinutes` / `endMinutes` are minutes since midnight
 (0–1439), stored **unrenamed in camelCase**, unlike every other DTO. A window may wrap past
