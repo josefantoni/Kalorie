@@ -13,7 +13,10 @@ The app works with three kinds of data. The distinction matters for the items be
 
 ## Planned features
 
-- [ ] **Data export** — export consumed food for a chosen interval to PDF or Excel
+- [ ] **Data export** — export consumed food for a chosen interval to PDF or Excel. Needs its own
+  memory strategy for walking long intervals (streaming/paging the query) rather than routing
+  through `DashboardViewModel.monthCache`, which caches every loaded month with no eviction and is
+  sized for a single visible dashboard, not an arbitrary export range.
 - [ ] **Prompt to sign in** — the account screen is only reachable from the toolbar icon; add an
   unobtrusive prompt after the first logged meal so users on a second device sign in early
 - [ ] **User-submitted food** — the user photographs the packaging, fills in macros and calories,
@@ -189,8 +192,7 @@ been fixed.
 
 ## Audit findings — 3. Dashboard and meal types
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3. Nothing here has
-been fixed.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3.
 
 ### Missing capabilities that turn small mistakes into permanent ones
 
@@ -225,27 +227,3 @@ been fixed.
   formatter used as a key. Secondary: the formatter is rebuilt on every call, which is once per
   logged food on every month load.
   `Kalorie/Kalorie/Core/Extensions/Date+Extension.swift:28`
-
-### Cost and lifecycle
-
-- [ ] **A3-6 — `monthCache` grows for the life of the process.** `populateCache` evicts only the
-  month it is repopulating, and nothing else ever removes an entry. Paging back through a year in
-  the calendar keeps twelve months of `FoodConsumedDomain` values in memory until the app is
-  killed. Bounded by user behaviour rather than by code, and harmless today, but it is a cache
-  with no eviction policy at all — worth an explicit cap before the *Data export* feature starts
-  walking long intervals.
-  `Kalorie/Kalorie/Features/Dashboard/DashboardViewModel.swift:265`
-
-- [ ] **A3-7 — The month is fetched twice on a cold launch.** `DashboardView` has both
-  `.task { await viewModel.onAppear() }` and `.onChange(of: scenePhase)` firing `onRefresh()`
-  when the phase becomes `.active`, and both run at launch. Two identical month queries, and the
-  second invalidates the cache the first just filled. Cheap to fix by ignoring the first
-  `.active` transition.
-  `Kalorie/Kalorie/Features/Dashboard/DashboardView.swift:167`
-
-- [ ] **A3-8 — The selected day is silently reset, and never advances.** `onAppear` sets
-  `selectedDay = Date.now`, so any re-creation of the Dashboard view drops the user back on
-  today without a word. The mirror image is also true: because `.task` runs once and `onRefresh`
-  deliberately does not touch `selectedDay`, an app left open across midnight keeps showing
-  yesterday as though it were today, including the "today" highlight in the day picker.
-  `Kalorie/Kalorie/Features/Dashboard/DashboardViewModel.swift:130`

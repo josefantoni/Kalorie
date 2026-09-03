@@ -82,6 +82,7 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var activeDaysInMonth: Set<Int> = []
 
     private var isMyCreatedMealEditorPending = false
+    private var isViewingToday = true
     private var monthCache: [String: [FoodConsumedDomain]] = [:]
     private var cachedMonthKeys: Set<String> = []
     private var foodPendingDeletion: FoodConsumedDomain?
@@ -134,6 +135,7 @@ final class DashboardViewModel: ObservableObject {
     @MainActor
     func onAppear() async {
         selectedDay = Date.now
+        isViewingToday = true
         state = .loading
         do {
             try await refreshMealTypes()
@@ -150,6 +152,7 @@ final class DashboardViewModel: ObservableObject {
     @MainActor
     func onRefresh() async {
         do {
+            advanceSelectedDayIfNeeded()
             try await refreshMealTypes()
             invalidateCache(for: selectedDay)
             try await loadMonth(for: selectedDay)
@@ -214,11 +217,13 @@ final class DashboardViewModel: ObservableObject {
 
     @MainActor
     func onDayChanged(_ date: Date) async {
+        isViewingToday = Calendar.current.isDate(date, inSameDayAs: Date.now)
         await loadFoods(for: date)
     }
 
     @MainActor
     func onDaySelected(_ date: Date) async {
+        isViewingToday = Calendar.current.isDate(date, inSameDayAs: Date.now)
         selectedDay = date
         showCalendarSheet = false
         await loadFoods(for: date)
@@ -263,6 +268,12 @@ final class DashboardViewModel: ObservableObject {
             types = try await setupDefaultMeals()
         }
         mealTypes = types
+    }
+
+    private func advanceSelectedDayIfNeeded() {
+        guard isViewingToday else { return }
+        guard !Calendar.current.isDate(selectedDay, inSameDayAs: Date.now) else { return }
+        selectedDay = Date.now
     }
 
     private func foodFallsIn(mealType: MealTypeDomain, food: FoodConsumedDomain) -> Bool {

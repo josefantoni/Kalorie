@@ -15,6 +15,7 @@ struct DashboardView: View {
     @StateObject var viewModel: DashboardViewModel
     @State private var pulseAnimation = false
     @State private var macroPopoverIndex: Int?
+    @State private var hasCompletedInitialLoad = false
     @Environment(\.scenePhase) private var scenePhase
     let router: DashboardRouter
 
@@ -178,8 +179,12 @@ struct DashboardView: View {
                     Task { await viewModel.onDeleteConfirmed() }
                 }
             }
-            .task { await viewModel.onAppear() }
+            .task {
+                await viewModel.onAppear()
+                hasCompletedInitialLoad = true
+            }
             .onChange(of: scenePhase) { _, newPhase in
+                guard hasCompletedInitialLoad else { return }
                 if newPhase == .active {
                     Task { await viewModel.onRefresh() }
                 }
