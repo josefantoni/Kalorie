@@ -118,7 +118,7 @@ final class DashboardViewModel: ObservableObject {
         var assignedIds = Set<String>()
 
         for mealType in mealTypes.sorted(by: { $0.startTime < $1.startTime }) {
-            let matching = foodsConsumed.filter { foodFallsIn(mealType: mealType, food: $0) }
+            let matching = foodsConsumed.filter { !assignedIds.contains($0.id) && foodFallsIn(mealType: mealType, food: $0) }
             guard !matching.isEmpty else { continue }
             result.append((mealType: mealType, foods: matching))
             matching.forEach { assignedIds.insert($0.id) }
@@ -309,11 +309,11 @@ final class DashboardViewModel: ObservableObject {
     }
 
     private func monthCacheKey(for date: Date) -> String {
-        date.formatDateStyle(with: "yyyy-MM")
+        date.formatCacheKey(with: "yyyy-MM")
     }
 
     private func dayCacheKey(for date: Date) -> String {
-        date.formatDateStyle(with: "yyyy-MM-dd")
+        date.formatCacheKey(with: "yyyy-MM-dd")
     }
 
     private func populateCache(with foods: [FoodConsumedDomain], for month: Date) {

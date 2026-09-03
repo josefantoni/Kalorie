@@ -203,27 +203,3 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3.
   of day — this means an entry that lands in the wrong meal section, or in the *unassigned*
   section, can never be moved. The only workaround is to reshape the meal windows around it.
   `Kalorie/Kalorie/Core/UseCases/UpdateFoodConsumedUseCase.swift:41`
-
-### Correctness
-
-- [ ] **A3-4 — Overlapping meal windows list and count the same food twice.** `groupedFoods`
-  filters *all* of `foodsConsumed` for each meal window; `assignedIds` is only consulted
-  afterwards, to build the unassigned bucket. Two overlapping windows therefore both display the
-  food, and both section popovers include it in their totals. The day total stays correct,
-  because it is computed from `foodsConsumed` directly — which makes the discrepancy harder to
-  notice, not easier. `CreateMealTypeUseCase` does reject overlaps, but only against the
-  client's own `existingMealTypes` array, so the multi-device race in **A1-1** produces exactly
-  this state. One-line fix: filter the not-yet-assigned foods instead of all of them.
-  `Kalorie/Kalorie/Features/Dashboard/DashboardViewModel.swift:110`
-
-- [ ] **A3-5 — Cache keys come from an unconfigured `DateFormatter`.**
-  `Date.formatDateStyle` creates a `DateFormatter` with a `dateFormat` but no `locale` and no
-  `calendar`, so both are inherited from `Locale.current`. Lookup is self-consistent and works,
-  but `computeActiveDays` parses the day number back out of the key with `Int(parts[2])` — and
-  under a locale that renders Eastern Arabic digits that returns `nil` for every key, so the
-  month calendar and the day picker show no activity dots at all. Under a non-Gregorian calendar
-  locale the keys are self-consistent but no longer mean what they say. The fix is the standard
-  one: `locale = Locale(identifier: "en_US_POSIX")` and an explicit Gregorian calendar for any
-  formatter used as a key. Secondary: the formatter is rebuilt on every call, which is once per
-  logged food on every month load.
-  `Kalorie/Kalorie/Core/Extensions/Date+Extension.swift:28`

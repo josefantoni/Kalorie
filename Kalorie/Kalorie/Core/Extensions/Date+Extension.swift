@@ -12,6 +12,8 @@ extension Date {
 
     // MARK: - Properties
 
+    private static var cacheKeyFormatters: [String: DateFormatter] = [:]
+
     var tupledTime: (String, String) {
         let hour = Calendar.current.component(.hour, from: self).makeDoubleDigit
         let minute = Calendar.current.component(.minute, from: self).makeDoubleDigit
@@ -29,6 +31,21 @@ extension Date {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = format
         return dateFormatter.string(from: self)
+    }
+
+    func formatCacheKey(with format: String) -> String {
+        let formatter: DateFormatter
+        if let cached = Self.cacheKeyFormatters[format] {
+            formatter = cached
+        } else {
+            formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.calendar = Calendar(identifier: .gregorian)
+            formatter.dateFormat = format
+            Self.cacheKeyFormatters[format] = formatter
+        }
+        formatter.timeZone = .current
+        return formatter.string(from: self)
     }
     
     func withAddedMinutes(minutes: Double) -> Date {
