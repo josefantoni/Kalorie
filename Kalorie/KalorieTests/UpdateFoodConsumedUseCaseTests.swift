@@ -62,6 +62,16 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertNil(dataProvider.savedDTO?.fiber)
     }
 
+    func test_updateFoodConsumed_whenWeightChanges_preservesMealTypePin() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeFood(weight: 100, mealTypeId: "breakfast"), newWeight: 200)
+        XCTAssertEqual(
+            dataProvider.savedDTO?.mealTypeId,
+            "breakfast",
+            "setAsync overwrites the whole document, so a writer that drops meal_type_id would silently unpin the entry on the next weight edit"
+        )
+    }
+
     func test_updateFoodConsumed_whenExistingWeightIsNotPositive_throwsInvalidWeightError() async throws {
         let (sut, _) = makeSUT()
         do {
@@ -89,7 +99,8 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         energyKJ: Double = 649,
         fatSaturated: Double? = 3,
         fiber: Double? = 0,
-        kind: FoodItemKind = .catalogue
+        kind: FoodItemKind = .catalogue,
+        mealTypeId: String? = nil
     ) -> FoodConsumedDomain {
         FoodConsumedDomain(
             id: "1",
@@ -109,7 +120,8 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
             fatSaturated: fatSaturated,
             fatUnsaturated: 3,
             fiber: fiber,
-            salt: 0.3
+            salt: 0.3,
+            mealTypeId: mealTypeId
         )
     }
 }

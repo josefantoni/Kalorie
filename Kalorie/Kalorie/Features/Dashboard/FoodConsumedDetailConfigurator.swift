@@ -23,11 +23,14 @@ struct FoodConsumedDetailConfigurator {
 
     // MARK: - Functions
 
-    func createView(food: FoodConsumedDomain, onFoodUpdated: @escaping () -> Void) -> FoodConsumedDetailView {
+    func createView(food: FoodConsumedDomain, mealTypes: [MealTypeDomain], onFoodUpdated: @escaping () -> Void) -> FoodConsumedDetailView {
         FoodConsumedDetailView(
             viewModel: FoodConsumedDetailViewModel(
                 food: food,
+                mealTypes: mealTypes,
                 updateFoodConsumed: UpdateFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                assignFoodMealType: AssignFoodMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchMealTypes: FetchMealTypesUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 isFavouriteFood: IsFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 addFavouriteFood: AddFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 removeFavouriteFood: RemoveFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),

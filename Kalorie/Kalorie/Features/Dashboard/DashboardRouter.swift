@@ -41,12 +41,14 @@ struct DashboardRouter {
 
     func makeAddFoodSheetView(
         for date: Date,
+        mealTypes: [MealTypeDomain],
         onFoodSaved: @escaping () -> Void = {},
         onCreateMealRequested: @escaping () -> Void = {},
         withBarcodeScan: Bool = false
     ) -> AddFoodSheetView {
         addFoodSheetConfigurator.createView(
             date: date,
+            mealTypes: mealTypes,
             onFoodSaved: onFoodSaved,
             onCreateMealRequested: onCreateMealRequested,
             withBarcodeScan: withBarcodeScan
@@ -57,8 +59,12 @@ struct DashboardRouter {
         myCreatedMealEditorConfigurator.createView(existingMeal: existingMeal, onSaved: onSaved)
     }
 
-    func makeFoodConsumedDetailView(food: FoodConsumedDomain, onFoodUpdated: @escaping () -> Void = {}) -> FoodConsumedDetailView {
-        foodConsumedDetailConfigurator.createView(food: food, onFoodUpdated: onFoodUpdated)
+    func makeFoodConsumedDetailView(
+        food: FoodConsumedDomain,
+        mealTypes: [MealTypeDomain],
+        onFoodUpdated: @escaping () -> Void = {}
+    ) -> FoodConsumedDetailView {
+        foodConsumedDetailConfigurator.createView(food: food, mealTypes: mealTypes, onFoodUpdated: onFoodUpdated)
     }
 
     func makeAccountView() -> AccountView {

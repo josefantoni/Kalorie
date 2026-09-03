@@ -18,7 +18,7 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
         let save = SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
         let update = UpdateFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
 
-        try await save(makeItem(), grams: 100, date: .now)
+        try await save(makeItem(), grams: 100, date: .now, mealTypes: [])
         XCTAssertEqual(dataProvider.documents.count, 1)
 
         let savedDTO = try XCTUnwrap(dataProvider.documents.values.first)
@@ -29,7 +29,91 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
         XCTAssertEqual(dataProvider.documents.count, 1)
     }
 
+    func test_pinThenUpdateWeight_doesNotUnpinTheEntry() async throws {
+        let dataProvider = FirestoreDocumentStoreFake()
+        let authProvider = AuthProviderFake(userId: "user-123")
+        let save = SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
+        let assignMealType = AssignFoodMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider)
+        let update = UpdateFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
+
+        try await save(makeItem(), grams: 100, date: .now, mealTypes: [])
+        let savedFood = try XCTUnwrap(dataProvider.documents.values.first).asDomain()
+
+        try await assignMealType(savedFood, mealTypeId: "breakfast")
+        let pinnedFood = try XCTUnwrap(dataProvider.documents[savedFood.id]).asDomain()
+        XCTAssertEqual(pinnedFood.mealTypeId, "breakfast")
+
+        try await update(pinnedFood, newWeight: 150)
+
+        XCTAssertEqual(
+            dataProvider.documents[savedFood.id]?.mealTypeId,
+            "breakfast",
+            "setAsync rewrites the whole document, so an editor that does not round-trip meal_type_id would silently undo the user's pin"
+        )
+    }
+
+    @MainActor
+    func test_onSaveAfterPin_throughViewModel_keepsThePin() async throws {
+        let dataProvider = FirestoreDocumentStoreFake()
+        let authProvider = AuthProviderFake(userId: "user-123")
+        let save = SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
+        try await save(makeItem(), grams: 100, date: .now, mealTypes: [])
+        let savedFood = try XCTUnwrap(dataProvider.documents.values.first).asDomain()
+        let sut = makeDetailViewModel(food: savedFood, dataProvider: dataProvider, authProvider: authProvider)
+
+        await sut.onMealTypeSelected("breakfast")
+        sut.weight = 150
+        await sut.onSave()
+
+        XCTAssertEqual(
+            dataProvider.documents[savedFood.id]?.mealTypeId,
+            "breakfast",
+            "onSave must round-trip the pin set earlier in the same screen visit, not the stale snapshot passed at init"
+        )
+    }
+
+    @MainActor
+    func test_onMealTypeSelectedAfterSave_throughViewModel_keepsTheUpdatedWeight() async throws {
+        let dataProvider = FirestoreDocumentStoreFake()
+        let authProvider = AuthProviderFake(userId: "user-123")
+        let save = SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
+        try await save(makeItem(), grams: 100, date: .now, mealTypes: [])
+        let savedFood = try XCTUnwrap(dataProvider.documents.values.first).asDomain()
+        let sut = makeDetailViewModel(food: savedFood, dataProvider: dataProvider, authProvider: authProvider)
+
+        sut.weight = 150
+        await sut.onSave()
+        await sut.onMealTypeSelected("breakfast")
+
+        XCTAssertEqual(
+            dataProvider.documents[savedFood.id]?.weight,
+            150,
+            "onMealTypeSelected must round-trip the weight edit saved earlier in the same screen visit, not the stale snapshot passed at init"
+        )
+    }
+
     // MARK: - Helpers
+
+    @MainActor
+    private func makeDetailViewModel(
+        food: FoodConsumedDomain,
+        dataProvider: FirestoreDocumentStoreFake,
+        authProvider: AuthProviderFake
+    ) -> FoodConsumedDetailViewModel {
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: .now, endTime: .now)
+        return FoodConsumedDetailViewModel(
+            food: food,
+            mealTypes: [breakfast],
+            updateFoodConsumed: UpdateFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+            assignFoodMealType: AssignFoodMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [breakfast]),
+            isFavouriteFood: IsFavouriteFoodUseCaseFake(),
+            addFavouriteFood: AddFavouriteFoodUseCaseFake(),
+            removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
+            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake()
+        ) {}
+    }
 
     private func makeItem() -> FoodItemDomain {
         FoodItemDomain(

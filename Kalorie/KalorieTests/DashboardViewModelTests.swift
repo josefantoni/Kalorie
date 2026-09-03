@@ -107,6 +107,61 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertEqual(groups[0].mealType?.id, "0")
     }
 
+    // MARK: - groupedFoods — pinning (ADR 0022)
+
+    func test_groupedFoods_pinnedFood_isAssignedToPinnedMealTypeRegardlessOfTime_andKeepsItsLoggedDate() {
+        let sut = makeSUT()
+        sut.mealTypes = [
+            makeMealType(id: 0, hour: 7, endHour: 10),
+            makeMealType(id: 1, hour: 18, endHour: 21)
+        ]
+        let loggedAt22 = makeFood(id: "f1", hour: 22, mealTypeId: "0")
+        sut.foodsConsumed = [loggedAt22]
+
+        let groups = sut.groupedFoods
+
+        XCTAssertEqual(groups.count, 1)
+        XCTAssertEqual(groups[0].mealType?.id, "0", "a pin must move the entry into its meal section even though 22:00 falls in neither window")
+        XCTAssertEqual(groups[0].foods.first?.date, loggedAt22.date, "the pin must change the section only — the logged timestamp stays untouched")
+    }
+
+    func test_groupedFoods_pinnedFood_overridesAWindowItsOwnTimeWouldOtherwiseFallInto() {
+        let sut = makeSUT()
+        sut.mealTypes = [
+            makeMealType(id: 0, hour: 8, endHour: 12),
+            makeMealType(id: 1, hour: 12, endHour: 16)
+        ]
+        sut.foodsConsumed = [makeFood(id: "f1", hour: 9, mealTypeId: "1")]
+
+        let groups = sut.groupedFoods
+
+        XCTAssertEqual(groups.count, 1)
+        XCTAssertEqual(groups[0].mealType?.id, "1", "the pin must win even when the entry's own time falls inside a different window")
+    }
+
+    func test_groupedFoods_unknownPinnedMealTypeId_fallsBackToWindowAssignment() {
+        let sut = makeSUT()
+        sut.mealTypes = [makeMealType(id: 0, hour: 8, endHour: 12)]
+        sut.foodsConsumed = [makeFood(id: "f1", hour: 9, mealTypeId: "deleted-meal-type")]
+
+        let groups = sut.groupedFoods
+
+        XCTAssertEqual(groups.count, 1)
+        XCTAssertEqual(groups[0].mealType?.id, "0", "a pin naming a meal type that no longer exists must be treated as no pin, not as a dead-end")
+    }
+
+    func test_groupedFoods_unknownPinnedMealTypeId_fallsBackToUnassignedWhenNoWindowMatches() {
+        let sut = makeSUT()
+        sut.mealTypes = [makeMealType(id: 0, hour: 8, endHour: 12)]
+        sut.foodsConsumed = [makeFood(id: "f1", hour: 22, mealTypeId: "deleted-meal-type")]
+
+        let groups = sut.groupedFoods
+
+        XCTAssertEqual(groups.count, 1)
+        XCTAssertNil(groups[0].mealType, "an unresolvable pin with no matching window must land in the unassigned section, not vanish")
+        XCTAssertEqual(groups[0].foods.map(\.id), ["f1"])
+    }
+
     func test_groupedFoods_mealTypeWithNoMatchingFoods_isOmitted() {
         let sut = makeSUT()
         sut.mealTypes = [
@@ -175,6 +230,23 @@ final class DashboardViewModelTests: XCTestCase {
         await sut.onAppear()
         XCTAssertTrue(sut.mealTypes.isEmpty)
         XCTAssertNotNil(sut.alertItem)
+    }
+
+    // MARK: - onRefresh
+
+    @MainActor
+    func test_onRefresh_beforeInitialLoadCompletes_doesNothing() async {
+        let sut = makeSUT(fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [makeMealType(id: 0, hour: 8, endHour: 12)]))
+        await sut.onRefresh()
+        XCTAssertTrue(sut.mealTypes.isEmpty, "a day-change notification racing the cold-launch load must not run its own fetch on top of onAppear's")
+    }
+
+    @MainActor
+    func test_onRefresh_afterInitialLoadCompletes_refetches() async {
+        let sut = makeSUT(fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [makeMealType(id: 0, hour: 8, endHour: 12)]))
+        await sut.onAppear()
+        await sut.onRefresh()
+        XCTAssertFalse(sut.mealTypes.isEmpty)
     }
 
     // MARK: - delete
@@ -255,7 +327,7 @@ final class DashboardViewModelTests: XCTestCase {
         return MealTypeDomain(id: "\(id)", name: "Meal \(id)", startTime: start, endTime: end)
     }
 
-    private func makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1) -> FoodConsumedDomain {
+    private func makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1, mealTypeId: String? = nil) -> FoodConsumedDomain {
         let cal = Calendar.current
         let base = Date.now
         let date = cal.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
@@ -277,7 +349,8 @@ final class DashboardViewModelTests: XCTestCase {
             fatSaturated: 1,
             fatUnsaturated: 2,
             fiber: fiber,
-            salt: 0.2
+            salt: 0.2,
+            mealTypeId: mealTypeId
         )
     }
 }

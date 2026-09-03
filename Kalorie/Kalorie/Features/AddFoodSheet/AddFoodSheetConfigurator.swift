@@ -25,6 +25,7 @@ struct AddFoodSheetConfigurator {
 
     func createView(
         date: Date,
+        mealTypes: [MealTypeDomain],
         onFoodSaved: @escaping () -> Void = {},
         onCreateMealRequested: @escaping () -> Void = {},
         withBarcodeScan: Bool = false
@@ -47,7 +48,9 @@ struct AddFoodSheetConfigurator {
                 viewModel: FoodQuantityViewModel(
                     item: item,
                     saveFoodConsumed: SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                    fetchMealTypes: FetchMealTypesUseCase(dataProvider: dataProvider, authProvider: authProvider),
                     selectedDate: date,
+                    mealTypes: mealTypes,
                     isFavourite: isFavourite,
                     addFavouriteFood: AddFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                     removeFavouriteFood: RemoveFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),

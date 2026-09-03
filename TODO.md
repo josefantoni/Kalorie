@@ -96,30 +96,6 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
   fallback bug is triplicated.
   `Kalorie/Kalorie/Core/Networking/FireStone/FoodItemDTO.swift:32`
 
-### Security and cost
-
-- [x] **A1-11 — The `foodItems` rule is wider than the feature that needs it.** Fixed: `write` is
-  split into `allow create, update` — `delete` now falls through to Firestore's default deny, so
-  no client can remove a catalogue entry. The rule also requires
-  `request.resource.data.id == itemId`, so a document's `id` field can no longer disagree with
-  its key, and adds `is number` checks on every numeric field (`weight`, `date`,
-  `calories_per_hundred_grams`, `fat`, `fat_unsaturated_fatty_acids`, `carbohydrate`,
-  `carbohydrate_pure_sugar`, `protein`, `salt`), plus the same check gated on presence for the
-  three fields that are optional on write (`energy_kj`, `fat_saturated`, `fiber`), since
-  `CreateFoodItemUseCase` omits them from the payload when `nil` rather than sending `null` (see
-  **A1-4**). Write access itself is unchanged, per [ADR 0011](docs/adr/0011-foodItems-writable-by-any-authenticated-client.md)
-  — this narrows the shape of an allowed write, it does not remove write access ahead of the
-  moderation flow.
-  `Kalorie/firestore.rules:15`
-
-- [x] **A1-12 — Every `foodItems` field is automatically indexed.** Fixed: added
-  `Kalorie/firestore.indexes.json` with `fieldOverrides` disabling single-field indexing (both
-  directions) on the twelve purely numeric fields — every field except `id`, `cz_name`,
-  `eng_name`, `cz_name_lowercase` and `eng_name_lowercase`, since only the two lowercase fields
-  and `id` are ever queried. `firebase.json` now points `"indexes"` at the new file, so index
-  configuration is under version control.
-
-
 ## Audit findings — 2. Food search and catalogue
 
 From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. Nothing here has
@@ -188,18 +164,3 @@ been fixed.
   output — it needs either a much larger limit (and the read cost that implies) or the frequency
   data denormalised into the query. Constraint, not a bug; recorded so the feature is not
   designed around a false assumption.
-
-
-## Audit findings — 3. Dashboard and meal types
-
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3.
-
-### Missing capabilities that turn small mistakes into permanent ones
-
-- [ ] **A3-2 — A logged entry's time and date cannot be changed either.**
-  `UpdateFoodConsumedUseCase` takes `(food, newWeight)` and rewrites the document with
-  `date: food.date.timeIntervalSince1970` unchanged. Combined with
-  [ADR 0014](docs/adr/0014-meal-assignment-by-time-of-day-only.md) — meal assignment is by time
-  of day — this means an entry that lands in the wrong meal section, or in the *unassigned*
-  section, can never be moved. The only workaround is to reshape the meal windows around it.
-  `Kalorie/Kalorie/Core/UseCases/UpdateFoodConsumedUseCase.swift:41`

@@ -1,6 +1,8 @@
 # 0014. A food is assigned to a meal by time of day alone, never by calendar date
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0022](0022-meal-assignment-may-be-pinned-by-the-user.md)
+  (the "alone, never by anything else" part of the Decision only — time of day remains how
+  every entry is assigned unless the user has pinned it, and every Consequence below still holds)
 - **Scope:** Cross-platform
 - **Date:** 2026-08-27
 

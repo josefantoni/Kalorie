@@ -298,7 +298,9 @@ struct AddFoodSheetView: View {
             viewModel: FoodQuantityViewModel(
                 item: item,
                 saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
+                fetchMealTypes: FetchMealTypesUseCaseFake(),
                 selectedDate: .now,
+                mealTypes: [],
                 isFavourite: isFavourite,
                 addFavouriteFood: AddFavouriteFoodUseCaseFake(),
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
