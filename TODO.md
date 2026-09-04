@@ -178,14 +178,6 @@ been fixed.
 
 ### Behaviour worth confirming rather than fixing
 
-- [ ] **A2-10 — One matching favourite suppresses the external search entirely.** The gate is
-  `guard displayedResults.isEmpty && searchText.count >= 3`, and `displayedResults` includes
-  favourites and saved meals, not just catalogue hits. So a user whose favourite "Rohlík" matches
-  "roh" never sees OpenFoodFacts results for "roh", however narrow the local match was. Plausibly
-  intended as a cost guard; if so it should be `localFoodItems.isEmpty`, which is what the
-  comment-free code reads as meaning.
-  `Kalorie/Kalorie/Features/AddFoodSheet/AddFoodSheetViewModel.swift:156`
-
 - [ ] **A2-12 — Ranking cannot be added on top of the current search.** Results are capped at
   `limit(10)` per field and Firestore returns them in index order, i.e. alphabetically by the
   matched name. Anything cut by that limit is invisible to a re-sort, so *Rank search results by

@@ -268,8 +268,13 @@ guard displayedResults.isEmpty && searchText.count >= 3 else { … }
 ```
 
 `displayedResults`, not `localFoodItems` — so one matching favourite or one matching saved meal
-suppresses the external search entirely (finding **A2-10**). A failed external search is
-swallowed into an empty list, which the UI cannot tell from "no such product" (finding
+suppresses the external search entirely. This reads like a bug (finding **A2-10**) until you
+check [design 0003](design/0003-favourite-foods.md) §*Favourites first in the search results* and
+[design 0006](design/0006-own-daily-meals.md) §*Search integration*, which both document this as
+deliberate — a local favourite or meal match is treated as sufficient, so the network fallback is
+skipped. [ADR 0012](adr/0012-external-food-is-surfaced-never-imported.md)'s "local search found
+nothing" phrasing is a loose paraphrase of this, not a separate decision. A failed external
+search is swallowed into an empty list, which the UI cannot tell from "no such product" (finding
 **A2-5**).
 
 ### 2.4 OpenFoodFacts integration
