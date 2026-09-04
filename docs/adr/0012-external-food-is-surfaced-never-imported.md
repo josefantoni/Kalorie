@@ -1,6 +1,8 @@
 # 0012. OpenFoodFacts results are surfaced to the user, never imported into the catalogue
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0023](0023-external-search-gate-includes-favourites-and-meals.md)
+  (the Context sentence describing the fallback gate as "run only when the Firestore search
+  returned nothing" — everything else in this record is unchanged)
 - **Scope:** Cross-platform
 - **Date:** 2026-08-27
 
