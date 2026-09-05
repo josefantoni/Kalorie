@@ -94,35 +94,72 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         XCTAssertFalse(sut.canShowFavouriteButton)
     }
 
-    // MARK: - onMealTypeSelected
+    // MARK: - onMealTypeSelected (staging only, no write)
 
     @MainActor
-    func test_onMealTypeSelected_whenAssignSucceeds_updatesMealTypeIdAndNotifiesCaller() async {
+    func test_onMealTypeSelected_stagesTheSelectionWithoutWritingOrEnablingSaveAlone() {
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let sut = makeSUT(mealTypes: [breakfast])
+        XCTAssertNil(sut.mealTypeId)
+
+        sut.onMealTypeSelected("breakfast")
+
+        XCTAssertEqual(sut.mealTypeId, "breakfast", "the picker must reflect the pick immediately, even before Save is tapped")
+        XCTAssertNil(sut.food.mealTypeId, "selecting a meal type must not write anything on its own — only onSave() persists it")
+        XCTAssertTrue(sut.hasChanges, "Save must become enabled the moment a different meal type is picked")
+    }
+
+    @MainActor
+    func test_onMealTypeSelected_reselectingTheAlreadyPinnedValue_doesNotEnableSave() {
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let sut = makeSUT(food: makeFood(mealTypeId: "breakfast"), mealTypes: [breakfast])
+
+        sut.onMealTypeSelected("breakfast")
+
+        XCTAssertFalse(sut.hasChanges, "picking the value that is already pinned is not a pending change")
+    }
+
+    // MARK: - onSave — meal type pin
+
+    @MainActor
+    func test_onSave_whenOnlyMealTypeWasSelected_writesThePinWithoutTouchingWeight() async {
         let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
         var didNotify = false
         let sut = makeSUT(mealTypes: [breakfast]) { didNotify = true }
-        XCTAssertNil(sut.mealTypeId)
+        sut.onMealTypeSelected("breakfast")
 
-        await sut.onMealTypeSelected("breakfast")
+        await sut.onSave()
 
-        XCTAssertEqual(sut.mealTypeId, "breakfast")
-        XCTAssertTrue(didNotify, "the Dashboard's cache must be invalidated so the entry moves section immediately")
+        XCTAssertEqual(sut.food.mealTypeId, "breakfast")
+        XCTAssertTrue(didNotify, "the Dashboard's cache must be invalidated so the entry moves section")
+        XCTAssertNil(sut.alertItem)
+        XCTAssertFalse(sut.hasChanges, "a successful save must clear the pending state")
+    }
+
+    @MainActor
+    func test_onSave_whenNothingWasChanged_doesNothing() async {
+        let sut = makeSUT()
+
+        await sut.onSave()
+
         XCTAssertNil(sut.alertItem)
     }
 
     @MainActor
-    func test_onMealTypeSelected_whenAssignFails_leavesMealTypeIdUnchangedAndShowsAlert() async {
+    func test_onSave_whenAssignFails_leavesMealTypeIdUnchangedAndShowsAlert() async {
         let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
         let sut = makeSUT(mealTypes: [breakfast], assignFoodMealType: AssignFoodMealTypeUseCaseFake(shouldThrow: true))
+        sut.onMealTypeSelected("breakfast")
 
-        await sut.onMealTypeSelected("breakfast")
+        await sut.onSave()
 
-        XCTAssertNil(sut.mealTypeId, "a failed write must not optimistically move the entry to a section it was never saved into")
+        XCTAssertNil(sut.food.mealTypeId, "a failed write must not optimistically move the entry to a section it was never saved into")
         XCTAssertNotNil(sut.alertItem)
+        XCTAssertTrue(sut.hasChanges, "a failed save must leave Save enabled so the user can retry")
     }
 
     @MainActor
-    func test_onMealTypeSelected_whenMealTypeWasDeletedSinceScreenOpened_refetchesAndBlocksWithAlertInsteadOfWritingADanglingId() async {
+    func test_onSave_whenMealTypeWasDeletedSinceScreenOpened_refetchesAndBlocksWithAlertInsteadOfWritingADanglingId() async {
         let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
         let food = makeFood(mealTypeId: "lunch")
         let sut = makeSUT(
@@ -130,8 +167,9 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
             mealTypes: [breakfast],
             fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [])
         )
+        sut.onMealTypeSelected("breakfast")
 
-        await sut.onMealTypeSelected("breakfast")
+        await sut.onSave()
 
         XCTAssertTrue(sut.mealTypes.isEmpty, "the screen must pick up that breakfast was deleted elsewhere instead of trusting its initial snapshot")
         XCTAssertEqual(sut.food.mealTypeId, "lunch", "an id that no longer exists must never overwrite the food's real pin")
@@ -139,17 +177,33 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onMealTypeSelected_whenSelectionMatchesTimeResolvedButUnpinnedMealType_stillCreatesPin() async {
+    func test_onSave_whenSelectionMatchesTimeResolvedButUnpinnedMealType_stillCreatesPin() async {
         let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 0, minute: 0), endTime: makeDate(hour: 23, minute: 59))
         let food = makeFood(mealTypeId: nil)
         var didNotify = false
         let sut = makeSUT(food: food, mealTypes: [breakfast]) { didNotify = true }
         XCTAssertEqual(sut.mealTypeId, "breakfast", "the entry already displays under breakfast by time alone, before any pin exists")
 
-        await sut.onMealTypeSelected("breakfast")
+        sut.onMealTypeSelected("breakfast")
+        await sut.onSave()
 
         XCTAssertEqual(sut.food.mealTypeId, "breakfast", "confirming the meal type the entry already resolves to by time must still create an explicit pin")
         XCTAssertTrue(didNotify)
+    }
+
+    @MainActor
+    func test_onSave_whenBothWeightAndMealTypeChanged_writesBoth() async {
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let sut = makeSUT(mealTypes: [breakfast])
+        sut.weight = 150
+        sut.onMealTypeSelected("breakfast")
+
+        await sut.onSave()
+
+        XCTAssertEqual(sut.food.weight, 150)
+        XCTAssertEqual(sut.food.mealTypeId, "breakfast")
+        XCTAssertFalse(sut.hasChanges)
+        XCTAssertNil(sut.alertItem)
     }
 
     // MARK: - Helpers

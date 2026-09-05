@@ -51,6 +51,11 @@ type — there is no "by time" option to revert to the implicit, time-derived st
 has a window to log into, that assignment is explicit from the start; the user corrects it by
 picking a different meal type, never by clearing it back to absent.
 
+Picking a meal type stages the change rather than writing it — the screen's single Save button
+persists whichever of weight and meal type actually changed, in one tap. An instant per-field
+write was considered and rejected: it left Save enabled or disabled depending on which field you
+looked at, with no single control the user could point to as "the thing that saves this screen."
+
 Documents that predate this field — every `foodConsumed` document written before this decision —
 keep `meal_type_id` absent and keep resolving purely by time of day through the fallback above.
 This is not migrated.

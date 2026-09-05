@@ -24,6 +24,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     @Published private(set) var mealTypes: [MealTypeDomain]
 
     private var savedWeight: Double
+    private var didSelectMealType = false
     private let updateFoodConsumed: any UpdateFoodConsumedUseCaseProtocol
     private let assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
@@ -75,6 +76,8 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     }
 
     var hasWeightChanged: Bool { weight != savedWeight }
+    var hasMealTypeChanged: Bool { didSelectMealType && mealTypeId != food.mealTypeId }
+    var hasChanges: Bool { hasWeightChanged || hasMealTypeChanged }
 
     @MainActor
     func onAppear() async {
@@ -121,27 +124,9 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     }
 
     @MainActor
-    func onMealTypeSelected(_ mealTypeId: String) async {
-        guard mealTypeId != food.mealTypeId else { return }
-        guard !state.isLoading else { return }
-        state = .loading
-        defer { state = .loaded }
-        if let freshMealTypes = try? await fetchMealTypes() {
-            mealTypes = freshMealTypes
-        }
-        guard mealTypes.contains(where: { $0.id == mealTypeId }) else {
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
-            return
-        }
-        do {
-            try await assignFoodMealType(food, mealTypeId: mealTypeId)
-            food = food.withMealTypeId(mealTypeId)
-            self.mealTypeId = mealTypeId
-            onFoodUpdated()
-        } catch {
-            Log.error(error, category: Constants.LogCategory.dashboard)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
-        }
+    func onMealTypeSelected(_ mealTypeId: String) {
+        didSelectMealType = true
+        self.mealTypeId = mealTypeId
     }
 
     @MainActor
@@ -151,12 +136,30 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
             alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
             return
         }
-        let scaled = scaledMacros
+        guard hasChanges else { return }
         state = .loading
+        if hasMealTypeChanged {
+            if let freshMealTypes = try? await fetchMealTypes() {
+                mealTypes = freshMealTypes
+            }
+            guard let mealTypeId, mealTypes.contains(where: { $0.id == mealTypeId }) else {
+                alertItem = AlertItem(title: L10n.Common.errorUnknown)
+                state = .loaded
+                return
+            }
+        }
+        let scaled = scaledMacros
         do {
-            try await updateFoodConsumed(food, newWeight: weight)
-            food = food.withScaledWeight(weight, scaled: scaled)
-            savedWeight = weight
+            if hasWeightChanged {
+                try await updateFoodConsumed(food, newWeight: weight)
+                food = food.withScaledWeight(weight, scaled: scaled)
+                savedWeight = weight
+            }
+            if hasMealTypeChanged, let mealTypeId {
+                try await assignFoodMealType(food, mealTypeId: mealTypeId)
+                food = food.withMealTypeId(mealTypeId)
+                didSelectMealType = false
+            }
             onFoodUpdated()
             state = .loaded
             showCheckmark = true

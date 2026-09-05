@@ -53,7 +53,7 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
     }
 
     @MainActor
-    func test_onSaveAfterPin_throughViewModel_keepsThePin() async throws {
+    func test_onSaveWithPinAndWeightChangedTogether_throughViewModel_writesBoth() async throws {
         let dataProvider = FirestoreDocumentStoreFake()
         let authProvider = AuthProviderFake(userId: "user-123")
         let save = SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
@@ -61,19 +61,20 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
         let savedFood = try XCTUnwrap(dataProvider.documents.values.first).asDomain()
         let sut = makeDetailViewModel(food: savedFood, dataProvider: dataProvider, authProvider: authProvider)
 
-        await sut.onMealTypeSelected("breakfast")
+        sut.onMealTypeSelected("breakfast")
         sut.weight = 150
         await sut.onSave()
 
         XCTAssertEqual(
             dataProvider.documents[savedFood.id]?.mealTypeId,
             "breakfast",
-            "onSave must round-trip the pin set earlier in the same screen visit, not the stale snapshot passed at init"
+            "a single Save covering both fields must persist the pin, not just the weight"
         )
+        XCTAssertEqual(dataProvider.documents[savedFood.id]?.weight, 150)
     }
 
     @MainActor
-    func test_onMealTypeSelectedAfterSave_throughViewModel_keepsTheUpdatedWeight() async throws {
+    func test_secondSaveForMealTypeOnly_throughViewModel_keepsThePreviouslySavedWeight() async throws {
         let dataProvider = FirestoreDocumentStoreFake()
         let authProvider = AuthProviderFake(userId: "user-123")
         let save = SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
@@ -83,12 +84,13 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
 
         sut.weight = 150
         await sut.onSave()
-        await sut.onMealTypeSelected("breakfast")
+        sut.onMealTypeSelected("breakfast")
+        await sut.onSave()
 
         XCTAssertEqual(
             dataProvider.documents[savedFood.id]?.weight,
             150,
-            "onMealTypeSelected must round-trip the weight edit saved earlier in the same screen visit, not the stale snapshot passed at init"
+            "a later Save that only pins a meal type must round-trip the weight saved by an earlier Save in the same screen visit"
         )
     }
 
