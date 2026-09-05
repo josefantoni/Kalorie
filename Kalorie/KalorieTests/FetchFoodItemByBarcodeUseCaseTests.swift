@@ -34,12 +34,12 @@ final class FetchFoodItemByBarcodeUseCaseTests: XCTestCase {
         XCTAssertEqual(result?.caloriesPerHundredGrams, 80)
     }
 
-    func test_fetchByBarcode_queriesCorrectField() async throws {
+    func test_fetchByBarcode_queriesCorrectDocumentId() async throws {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedDTO = makeDTO()
         _ = try await sut(barcode: "1234567890")
-        XCTAssertEqual(dataProvider.lastQueriedField, "id")
-        XCTAssertEqual(dataProvider.lastQueriedValue, "1234567890")
+        XCTAssertEqual(dataProvider.lastQueriedId, "1234567890")
+        XCTAssertEqual(dataProvider.lastQueriedCollection, Constants.Firestore.foodItems)
     }
 
     func test_fetchByBarcode_whenEnergyKJMissing_computesItFromMacrosInsteadOfZero() async throws {
@@ -104,8 +104,8 @@ private final class BarcodeDataProviderFake: FirestoreDataProviderProtocol {
     // MARK: - Properties
 
     var stubbedDTO: FoodItemDTO?
-    var lastQueriedField: String?
-    var lastQueriedValue: String?
+    var lastQueriedId: String?
+    var lastQueriedCollection: String?
 
     // MARK: - Functions
 
@@ -113,10 +113,11 @@ private final class BarcodeDataProviderFake: FirestoreDataProviderProtocol {
     func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
 
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? {
-        lastQueriedField = field
-        lastQueriedValue = value
+    func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? {
+        lastQueriedId = id
+        lastQueriedCollection = collection
         return stubbedDTO as? T
     }
 

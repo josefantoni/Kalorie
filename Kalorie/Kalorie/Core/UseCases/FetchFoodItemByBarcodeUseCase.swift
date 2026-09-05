@@ -29,9 +29,8 @@ struct FetchFoodItemByBarcodeUseCase: FetchFoodItemByBarcodeUseCaseProtocol {
     func callAsFunction(barcode: String) async throws -> FoodItemDomain? {
         guard !barcode.isEmpty else { return nil }
         let dto: FoodItemDTO? = try await dataProvider.loadAsync(
-            from: Constants.Firestore.foodItems,
-            where: "id",
-            isEqualTo: barcode
+            id: barcode,
+            from: Constants.Firestore.foodItems
         )
         guard let dto else { return nil }
         return FoodItemDomain(
