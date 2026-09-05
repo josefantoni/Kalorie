@@ -62,7 +62,10 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
   favourite when tapped, a meal when opened in the editor. Nothing to decide; the only thing
   worth adding is a **trigger**, since there is currently no way to learn that a catalogue item
   was corrected in the first place. Left open as a reminder that the mitigation is designed but
-  not built.
+  not built. The trigger depends on **Maintainer admin panel** above — approval is the only
+  moment a correction is known to have happened, so design the trigger alongside that panel
+  rather than as a standalone doc now. `loadAsync(id:from:)` from A1-9 already makes the re-read
+  itself cheap whenever that lands.
 
 - [ ] **A1-8 — Two field names for the same nutrient.** `foodConsumed` persists
   `carbohydrate_sugar` and `fat_unsaturated`; `foodItems`, `favouriteFoods` and the
@@ -86,15 +89,11 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
   the duplicated field.
   `Kalorie/Kalorie/Core/UseCases/IsFavouriteFoodUseCase.swift:32`,
   `Kalorie/Kalorie/Core/UseCases/CreateFoodItemUseCase.swift:41`
-
-- [ ] **A1-10 — `FoodItemDTO` is the only DTO without a mapping, and carries dead code.**
-  Every other DTO owns its `asDomain()`; `FoodItemDTO`'s mapping is copy-pasted into
-  `SearchFoodItemsUseCase`, `CreateFoodItemUseCase` and `FetchFoodItemByBarcodeUseCase`, which is
-  how A1-4's `?? 0` ended up written three times. It also has a `dictionary` computed property
-  that round-trips through `JSONEncoder` and is referenced nowhere. Its fields are `var` where
-  every other DTO uses `let`. Belongs to area 2 to fix, listed here because it is the reason the
-  fallback bug is triplicated.
-  `Kalorie/Kalorie/Core/Networking/FireStone/FoodItemDTO.swift:32`
+  **Partially done:** `loadAsync(id:from:)` now exists and `IsFavouriteFoodUseCase` /
+  `FetchFoodItemByBarcodeUseCase` use it. `CreateFoodItemUseCase` still runs the equality query —
+  its `document(id).getDocument()` equivalent would read from Firestore's default (offline-capable)
+  source, which keeps the bug in A2-2 while making it look fixed. Left `[ ]` until A2-2 supplies
+  the server-only read this call site actually needs.
 
 ## Audit findings — 2. Food search and catalogue
 
