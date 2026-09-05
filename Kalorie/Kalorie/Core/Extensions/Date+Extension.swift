@@ -12,8 +12,7 @@ extension Date {
 
     // MARK: - Properties
 
-    @MainActor
-    private static var cacheKeyFormatters: [String: DateFormatter] = [:]
+    @MainActor private static var cacheKeyFormatters: [String: DateFormatter] = [:]
 
     var tupledTime: (String, String) {
         let hour = Calendar.current.component(.hour, from: self).makeDoubleDigit
