@@ -197,6 +197,23 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onAppear_calledAgainAfterInitialLoad_doesNotResetSelectedDayOrFoods() async {
+        let sut = makeSUT(fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [makeMealType(id: 0, hour: 8, endHour: 12)]))
+        await sut.onAppear()
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: .now) ?? .now
+        await sut.onDaySelected(yesterday)
+        sut.foodsConsumed = [makeFood(id: "f1", hour: 10)]
+
+        await sut.onAppear()
+
+        XCTAssertTrue(
+            Calendar.current.isDate(sut.selectedDay, inSameDayAs: yesterday),
+            "SwiftUI re-runs .task { onAppear() } when a pushed detail view is popped back to the Dashboard; a second onAppear must not silently jump the user back to today"
+        )
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f1"])
+    }
+
+    @MainActor
     func test_onAppear_whenFetchFails_showsAlert() async {
         let sut = makeSUT(fetchMealTypes: FetchMealTypesUseCaseFake(shouldThrow: true))
         await sut.onAppear()
