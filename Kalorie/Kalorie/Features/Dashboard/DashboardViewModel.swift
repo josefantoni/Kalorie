@@ -147,6 +147,7 @@ final class DashboardViewModel: ObservableObject {
 
     @MainActor
     func onAppear() async {
+        guard !hasCompletedInitialLoad else { return }
         selectedDay = Date.now
         isViewingToday = true
         state = .loading
