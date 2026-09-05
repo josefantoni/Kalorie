@@ -47,25 +47,7 @@ struct CreateFoodItemUseCase: CreateFoodItemUseCaseProtocol {
             isEqualTo: item.id
         )
         guard existing == nil else { throw CreateFoodItemError.itemAlreadyExists }
-        let dto = FoodItemDTO(
-            id: item.id,
-            czName: item.czName,
-            engName: item.engName,
-            czNameLowercase: item.czName.lowercased(),
-            engNameLowercase: item.engName.lowercased(),
-            weight: item.weight,
-            date: item.date.timeIntervalSince1970,
-            energyKJ: item.energyKJ,
-            caloriesPerHundredGrams: item.caloriesPerHundredGrams,
-            fat: item.fat,
-            fatSaturated: item.fatSaturated,
-            fatUnsaturatedFattyAcids: item.fatUnsaturatedFattyAcids,
-            carbohydrate: item.carbohydrate,
-            carbohydratePureSugar: item.carbohydratePureSugar,
-            fiber: item.fiber,
-            protein: item.protein,
-            salt: item.salt
-        )
+        let dto = FoodItemDTO(item: item)
         try await dataProvider.setAsync(dto, id: item.id, in: Constants.Firestore.foodItems)
         return item
     }

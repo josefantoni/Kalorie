@@ -70,6 +70,19 @@ final class CreateFoodItemUseCaseTests: XCTestCase {
         XCTAssertEqual(result.caloriesPerHundredGrams, item.caloriesPerHundredGrams)
     }
 
+    func test_createFoodItem_whenItemAlreadyExists_throwsItemAlreadyExistsAndDoesNotWrite() async throws {
+        let (sut, dataProvider) = makeSUT()
+        let item = makeItem()
+        dataProvider.stubbedExistingDTO = FoodItemDTO(item: item)
+        do {
+            _ = try await sut(item)
+            XCTFail("Expected itemAlreadyExists error")
+        } catch CreateFoodItemError.itemAlreadyExists {
+            // pass
+        }
+        XCTAssertFalse(dataProvider.didWrite)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: CreateFoodItemUseCase, dataProvider: FirestoreDataProviderFake) {
@@ -107,18 +120,23 @@ final class CreateFoodItemUseCaseTests: XCTestCase {
 
 final class FirestoreDataProviderFake: FirestoreDataProviderProtocol {
 
+    // MARK: - Properties
+
+    var stubbedExistingDTO: FoodItemDTO?
+    var didWrite = false
+
     // MARK: - Functions
 
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
     func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { stubbedExistingDTO as? T }
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
 
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
-    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
+    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws { didWrite = true }
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
     func deleteAsync(id: String, from collection: String) async throws {}
 }
