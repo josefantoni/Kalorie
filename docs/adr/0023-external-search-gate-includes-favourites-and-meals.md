@@ -41,8 +41,9 @@ skipped whenever one exists, exactly as designed in 0003 and 0006.
   gate; the rest of ADR 0012 — external results never write to `foodItems`, the dangling
   `food_item_id`, the "fetched again every session, never cached" consequence — is unchanged and
   still in force.
-- `TODO.md`'s A2-10 stays recorded as a downgraded finding ("decided risk, not an open
-  question"), not deleted, since it is what caught this.
+- `TODO.md`'s A2-10 entry has been removed now that this ADR records the decision it prompted —
+  ARCHITECTURE.md § 2.3 keeps the pointer to this ADR for a reader who hits the same "looks like
+  a bug" reaction.
 - A second client implementing the same search screen must gate its own external fallback on the
   full hoisted result list (catalogue + favourites + created meals), not on the catalogue query
   alone.

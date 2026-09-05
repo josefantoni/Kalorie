@@ -108,8 +108,8 @@ These are the contract a second client has to match exactly.
 - **Three fields are optional on read** — `energy_kj`, `fat_saturated`, `fiber` — because
   catalogue documents predating them exist. `energy_kj` is derived from macros when absent
   ([ADR 0007](adr/0007-derive-missing-energy-kj-from-macros.md)); the other two stay optional
-  through `FoodItemDomain`/`FoodNutritionValues` (finding **A1-4**) rather than defaulting to
-  `0`, since neither can be derived from the other macros.
+  through `FoodItemDomain`/`FoodNutritionValues` rather than defaulting to `0`, since neither
+  can be derived from the other macros.
 
 ### 1.4 Per-collection shape
 
@@ -268,14 +268,15 @@ guard displayedResults.isEmpty && searchText.count >= 3 else { … }
 ```
 
 `displayedResults`, not `localFoodItems` — so one matching favourite or one matching saved meal
-suppresses the external search entirely. This reads like a bug (finding **A2-10**) until you
-check [design 0003](design/0003-favourite-foods.md) §*Favourites first in the search results* and
+suppresses the external search entirely. This reads like a bug until you check
+[design 0003](design/0003-favourite-foods.md) §*Favourites first in the search results* and
 [design 0006](design/0006-own-daily-meals.md) §*Search integration*, which both document this as
 deliberate — a local favourite or meal match is treated as sufficient, so the network fallback is
 skipped. [ADR 0012](adr/0012-external-food-is-surfaced-never-imported.md)'s "local search found
-nothing" phrasing is a loose paraphrase of this, not a separate decision. A failed external
-search is swallowed into an empty list, which the UI cannot tell from "no such product" (finding
-**A2-5**).
+nothing" phrasing is a loose paraphrase of this, not a separate decision;
+[ADR 0023](adr/0023-external-search-gate-includes-favourites-and-meals.md) corrects that phrasing
+for a reader who hits the same "looks like a bug" reaction. A failed external search is swallowed
+into an empty list, which the UI cannot tell from "no such product" (finding **A2-5**).
 
 ### 2.4 OpenFoodFacts integration
 
@@ -304,8 +305,8 @@ Mapping OpenFoodFacts → `FoodItemDomain` has a fixed shape:
 - `energy_100g` (kJ) falls back to `MacroKit.energyKJFromMacros`, per
   [ADR 0007](adr/0007-derive-missing-energy-kj-from-macros.md).
 
-This mapping is **duplicated verbatim**, 32 lines, in both external use cases (finding
-**A2-6**).
+This mapping lives in `OpenFoodFactsProductDTO.asDomain()`, following the same convention every
+other DTO uses, and both external use cases call it rather than each carrying their own copy.
 
 ### 2.5 Barcode scanning
 
@@ -338,7 +339,7 @@ field rather than a document read, so it can be served from a stale offline cach
 overwrite through (finding **A2-2**); and `eng_name_lowercase` is written as `""` for every
 manually created item, because the form has no English name field.
 
-`FetchFoodItemsUseCase` loads the entire catalogue and **has no callers** (finding **A2-7**).
+`FetchFoodItemsUseCase`, which loaded the entire catalogue with no callers, has been deleted.
 
 ---
 
@@ -473,17 +474,14 @@ The month-at-a-time caching strategy, its invalidation rule and its costs are re
 What matters at the call sites is that `selectedDay` is not just a day — it is a full `Date`,
 and **its time-of-day is what a newly logged food inherits**. `DashboardView` passes
 `viewModel.selectedDay` into `makeAddFoodSheetView(for:)`, which passes it down to
-`FoodQuantityViewModel.selectedDate`, which hands it to `SaveFoodConsumedUseCase`. The two ways
-of changing the day disagree about what that time should be:
+`FoodQuantityViewModel.selectedDate`, which hands it to `SaveFoodConsumedUseCase`. Both ways of
+changing the day carry over a sensible time of day:
 
 - `DayPickerView` steps with `calendar.date(byAdding: .day, …, to: selectedDay)`, which
   **preserves** the time of day.
-- `MonthCalendarView.selectDay` rebuilds the date from year/month/day components, which
-  **discards** it — the result is local midnight.
-
-Combined with § 3.2, picking a day from the calendar and then logging a food puts that food at
-minute 0, outside every default meal window. That is finding **A3-3**, and it is sticky: the day
-picker preserves the midnight it inherited.
+- `MonthCalendarView.selectDay` rebuilds the date from year/month/day components, then sets its
+  time from `Date.now` if the picked day is today, otherwise from `selectedDay`'s own time — so
+  it never resolves to local midnight.
 
 ### 3.6 Refresh triggers
 
@@ -497,8 +495,9 @@ picker preserves the midnight it inherited.
 | Day changed / picked | `onDayChanged` / `onDaySelected` | cache hit, or load that month |
 | Calendar month paged | `onCalendarMonthChanged` | cache hit, or load that month |
 
-`onAppear` and the `scenePhase` handler both fire on a cold launch, so the month is loaded twice
-(finding **A3-7**).
+`onRefresh` guards against a cold-launch race with `hasCompletedInitialLoad`: the `scenePhase`
+handler and pull-to-refresh both call it, but it is a no-op until `onAppear`'s initial load has
+completed, so the month is never fetched twice on launch.
 
 ---
 
@@ -540,13 +539,12 @@ user's own meals pre-fills `quantity: item.weight, unit: .grams` — the meal's 
 because a saved meal is normally logged whole — while everything else starts at `1 × 100 g`.
 
 The macro preview shown under the input is computed by `scaledMacros` / `scaledCalories` on the
-view model. Those recompute on every keystroke and are never persisted; the values that *are*
-persisted are computed again, independently, inside `SaveFoodConsumedUseCase`. The two blocks
-are identical, comment included (finding **A4-4**).
+view model, which recompute on every keystroke and are never persisted. Both the preview and
+`SaveFoodConsumedUseCase`'s persisted values go through the same
+`FoodItemDomain.scaled(toGrams:)` helper, so the two never diverge.
 
 Unit switching goes through `onUnitChanged(from:to:)`, which converts the current gram amount
-into the new unit and then `.rounded()`s it with a floor of 1. The rounding is right for grams
-and lossy for hundred-gram units (finding **A4-1**).
+into the new unit by dividing, with no rounding — a fractional quantity survives a unit switch.
 
 ### 4.3 Numeric input
 
@@ -561,8 +559,8 @@ Two different text-field strategies coexist:
   `NumberFormatter.decimal` — a shared static with `numberStyle = .decimal` and
   `zeroSymbol = ""`, so an empty field reads as zero and a zero renders as empty. Being a
   `TextField(value:formatter:)`, it commits on end-editing rather than per keystroke. Its unit
-  suffix is a hardcoded `Text("g")` for every field it renders, kJ and kcal included (finding
-  **A4-6**).
+  suffix is an explicit `unit: String` parameter, so energy and calorie fields are labelled
+  correctly instead of defaulting to grams.
 
 ### 4.4 Writing and rescaling
 
@@ -593,12 +591,14 @@ on the server), so `hasWeightChanged` can gate the Save button. `food` itself is
 which is what keeps repeated edits correct: every rescale is computed against the originally
 loaded weight, not against the previous edit.
 
-`onAppear` runs two lookups, sequentially: whether the entry is favourited
-(`IsFavouriteFoodUseCase`) and whether its catalogue item still exists
-(`FetchFoodItemByBarcodeUseCase`). The second is needed because favouriting *adds* a full
-snapshot and therefore needs a `FoodItemDomain` — which is why `canShowFavouriteButton` is
-`isFavourite || catalogueItem != nil` and the button disappears for entries logged from
-OpenFoodFacts (finding **A4-5**).
+`onAppear` runs two lookups concurrently: whether the entry is favourited
+(`IsFavouriteFoodUseCase`) and whether its catalogue item still exists, via
+`loadCatalogueItem()` — which switches on `food.foodItemKind`: `.catalogue` uses
+`FetchFoodItemByBarcodeUseCase`, `.external` uses `FetchFoodByBarcodeExternallyUseCase` against
+OpenFoodFacts, and `.createdMeal` has none. The catalogue item is needed because favouriting
+*adds* a full snapshot and therefore needs a `FoodItemDomain` — `canShowFavouriteButton` is
+`isFavourite || catalogueItem != nil`, so the button resolves correctly for OpenFoodFacts entries
+too, and only stays hidden for a user's own created meals.
 
 After a successful save the screen shows a checkmark for two seconds via `Task.sleep`, then
 clears it.
@@ -634,8 +634,8 @@ branch.
 
 The Dashboard carries `.id(authState.userId)`. That is what guarantees a clean slate when the
 signed-in user changes — every view model below is rebuilt rather than re-pointed at another
-user's data. The cost is that any auth transition also discards the Dashboard's transient state,
-including the selected day (finding **A5-9**).
+user's data. This is deliberate; the accepted cost is that any auth transition also discards the
+Dashboard's transient state, including the selected day.
 
 ### 5.2 Error handling
 
@@ -663,9 +663,10 @@ the error case.
 `View.loader(_:)` is the shared busy indicator — a `ProgressView` overlay plus
 `allowsHitTesting(!isLoading)`, so a loading screen is inert.
 
-**There is no logging, crash reporting or analytics in the project.** The only diagnostic output
-is `print` inside `FirestoreDataProvider`, guarded by `#if DEBUG`. In a release build a caught
-error leaves no trace anywhere (findings **A5-1**, **A5-2**).
+`Log` (`Core/Utils/Log.swift`) wraps Crashlytics and OSLog behind `Log.error` / `Log.warning`,
+categorised via `Constants.LogCategory`. Most `catch` blocks that don't present an alert still
+log through it, so a caught error in a release build reaches Crashlytics even when nothing is
+shown on screen.
 
 ### 5.3 Localization
 
@@ -681,10 +682,10 @@ Two things about the app are Czech-first in ways the catalogue does not cover:
 - `NSCameraUsageDescription` in `Info.plist` is a hardcoded Czech string with no `InfoPlist`
   localisation.
 
-Numbers and units do not go through localisation at all. Macro values are rendered with
-`String(format: "%.1f g", …)` at seventeen call sites across five files: the decimal separator
-is a dot regardless of locale — including in Czech, where the input fields accept and display a
-comma — and the unit is baked into the format string (finding **A5-6**).
+Numbers and units go through `Double.formattedGrams(fractionDigits:)`
+(`Core/Extensions/Double+Extension.swift`), a locale-aware helper that replaced seventeen
+hardcoded `String(format: "%.1f g", …)` call sites across five files — the decimal separator now
+follows the device locale, including the Czech comma.
 
 ### 5.4 Components
 
@@ -700,10 +701,8 @@ comma — and the unit is baked into the format string (finding **A5-6**).
 Every one carries a `#Preview`, which is where most of the project's sample `FoodItemDomain`
 values live.
 
-Two conventions to be aware of when adding to this folder. First, `FoodConsumedView` lives in
-`FoodItemView.swift` — file name, type name and header comment all disagree, against the
-project's own `[Feature][Type].swift` rule (finding **A5-8**). Second, `BaseDoubleTextField`
-hardcodes its unit suffix, which is why it renders "g" next to kilojoules (finding **A4-6**).
+`FoodConsumedView` lives in `FoodConsumedView.swift`, matching the project's own
+`[Feature][Type].swift` rule.
 
 ### 5.5 Extensions
 
@@ -711,9 +710,9 @@ hardcodes its unit suffix, which is why it renders "g" next to kilojoules (findi
 behaviour and are worth knowing about before adding a third:
 
 - `Date+Extension` — `minutesSinceMidnight` (the bridge into `MealKit`, see
-  [ADR 0014](adr/0014-meal-assignment-by-time-of-day-only.md)), `formatDateStyle(with:)` (the
-  Dashboard's cache-key builder, see finding **A5-6**'s sibling **A3-5**), and the
-  `withAddedMinutes` / `withAddedHours` arithmetic the meal sheet uses.
+  [ADR 0014](adr/0014-meal-assignment-by-time-of-day-only.md)), `formatCacheKey(with:)` (the
+  Dashboard's cache-key builder — locale-independent via a cached `en_US_POSIX` formatter per
+  format string), and the `withAddedMinutes` / `withAddedHours` arithmetic the meal sheet uses.
 - `String+Extension` — HTML entity decoding, delegating to `TextKit`.
 
 The rest (`CGFloat`, `Int`, `TimeInterval`, `NumberFormatter`, `UIWindowScene`) are one or two
