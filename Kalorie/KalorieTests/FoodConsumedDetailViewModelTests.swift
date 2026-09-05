@@ -99,8 +99,9 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
     @MainActor
     func test_onMealTypeSelected_stagesTheSelectionWithoutWritingOrEnablingSaveAlone() {
         let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
-        let sut = makeSUT(mealTypes: [breakfast])
-        XCTAssertNil(sut.mealTypeId)
+        let food = makeFood(date: makeDate(hour: 14, minute: 0))
+        let sut = makeSUT(food: food, mealTypes: [breakfast])
+        XCTAssertNil(sut.mealTypeId, "the food's own time falls outside the breakfast window, so nothing should resolve before a pick is made")
 
         sut.onMealTypeSelected("breakfast")
 
@@ -265,7 +266,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date()) ?? Date()
     }
 
-    private func makeFood(foodItemId: String = "12345", kind: FoodItemKind = .catalogue, mealTypeId: String? = nil) -> FoodConsumedDomain {
+    private func makeFood(foodItemId: String = "12345", kind: FoodItemKind = .catalogue, mealTypeId: String? = nil, date: Date = .now) -> FoodConsumedDomain {
         FoodConsumedDomain(
             id: "1",
             foodItemId: foodItemId,
@@ -273,7 +274,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
             czName: "Ovesné vločky",
             engName: "Oats",
             weight: 80,
-            date: .now,
+            date: date,
             calories: 295,
             caloriesPerHundredGrams: 368.75,
             energyKJ: 1544,
