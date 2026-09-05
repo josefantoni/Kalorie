@@ -15,4 +15,10 @@ struct MealTypeDTO: Codable {
     let name: String
     let startMinutes: Int
     let endMinutes: Int
+
+    // MARK: - Coding keys
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, startMinutes, endMinutes
+    }
 }
