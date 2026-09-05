@@ -21,7 +21,7 @@ struct MealTypeDomain {
 extension [MealTypeDomain] {
     func mealType(at date: Date) -> MealTypeDomain? {
         let minutes = date.minutesSinceMidnight
-        return sorted(by: { $0.startTime < $1.startTime }).first {
+        return sorted { $0.startTime < $1.startTime }.first {
             MealWindowsKt.isMinuteWithinWindow(
                 minutes: minutes,
                 startMinutes: $0.startTime.minutesSinceMidnight,
