@@ -379,9 +379,10 @@ entry to that meal regardless of what its time of day would otherwise select.
 — and writes its id as `meal_type_id` immediately, instead of leaving the field absent. An entry
 logged outside every window is still written unpinned; there is nothing to resolve it to. The
 meal-type picker in `FoodConsumedDetailView` only ever moves the pin to another concrete meal
-type — there is no "by time" option to revert to the implicit, time-derived state. Documents that
-predate this field keep `meal_type_id` absent and keep resolving dynamically through the
-fallback described next; they are not migrated.
+type — there is no "by time" option to revert to the implicit, time-derived state. Picking a
+meal type stages the change; the screen's single Save button writes whichever of weight and meal
+type actually changed. Documents that predate this field keep `meal_type_id` absent and keep
+resolving dynamically through the fallback described next; they are not migrated.
 
 `groupedFoods` resolves each food to at most one meal type id up front, via
 `mealTypes.resolvedMealTypeId(for:)`: a food **pinned to it** (`mealTypeId` names a meal type that

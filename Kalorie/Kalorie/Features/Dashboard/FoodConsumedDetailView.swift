@@ -60,7 +60,7 @@ struct FoodConsumedDetailView: View {
                         get: { viewModel.mealTypeId },
                         set: { newValue in
                             guard let newValue else { return }
-                            Task { await viewModel.onMealTypeSelected(newValue) }
+                            viewModel.onMealTypeSelected(newValue)
                         }
                     )) {
                         if viewModel.mealTypeId == nil {
@@ -135,7 +135,7 @@ struct FoodConsumedDetailView: View {
                     }
                 }
                 .animation(.spring(duration: 0.4), value: viewModel.showCheckmark)
-                .disabled(!viewModel.hasWeightChanged || viewModel.state.isLoading)
+                .disabled(!viewModel.hasChanges || viewModel.state.isLoading)
             }
         }
         .alert(item: $viewModel.alertItem) { item in
