@@ -32,6 +32,8 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
     let salt: Double
     let mealTypeId: String?
 
+    // MARK: - Functions
+
     func copy(
         weight: Double? = nil,
         calories: Int? = nil,
