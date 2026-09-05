@@ -6,36 +6,32 @@
 //
 
 import Foundation
+import MacroKit
 
 public struct FoodItemDTO: Codable {
-    
+
     // MARK: - Properties
-    
-    var id: String
-    var czName: String
-    var engName: String
-    var czNameLowercase: String
-    var engNameLowercase: String
-    var weight: Double
-    var date: TimeInterval
-    var energyKJ: Double?
-    var caloriesPerHundredGrams: Double
-    var fat: Double
-    var fatSaturated: Double?
-    var fatUnsaturatedFattyAcids: Double
-    var carbohydrate: Double
-    var carbohydratePureSugar: Double
-    var fiber: Double?
-    var protein: Double
-    var salt: Double
-    
-    var dictionary: [String: Any] {
-        let data = (try? JSONEncoder().encode(self)) ?? Data()
-        return (try? JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any]) ?? [:]
-    }
+
+    let id: String
+    let czName: String
+    let engName: String
+    let czNameLowercase: String
+    let engNameLowercase: String
+    let weight: Double
+    let date: TimeInterval
+    let energyKJ: Double?
+    let caloriesPerHundredGrams: Double
+    let fat: Double
+    let fatSaturated: Double?
+    let fatUnsaturatedFattyAcids: Double
+    let carbohydrate: Double
+    let carbohydratePureSugar: Double
+    let fiber: Double?
+    let protein: Double
+    let salt: Double
 
     // MARK: - Coding keys
-    
+
     enum CodingKeys: String, CodingKey {
         case id, weight, date, fat, carbohydrate, protein, salt, fiber
         case czName = "cz_name"
@@ -47,5 +43,50 @@ public struct FoodItemDTO: Codable {
         case fatSaturated = "fat_saturated"
         case fatUnsaturatedFattyAcids = "fat_unsaturated_fatty_acids"
         case carbohydratePureSugar = "carbohydrate_pure_sugar"
+    }
+
+    // MARK: - Init
+
+    init(item: FoodItemDomain) {
+        id = item.id
+        czName = item.czName
+        engName = item.engName
+        czNameLowercase = item.czName.lowercased()
+        engNameLowercase = item.engName.lowercased()
+        weight = item.weight
+        date = item.date.timeIntervalSince1970
+        energyKJ = item.energyKJ
+        caloriesPerHundredGrams = item.caloriesPerHundredGrams
+        fat = item.fat
+        fatSaturated = item.fatSaturated
+        fatUnsaturatedFattyAcids = item.fatUnsaturatedFattyAcids
+        carbohydrate = item.carbohydrate
+        carbohydratePureSugar = item.carbohydratePureSugar
+        fiber = item.fiber
+        protein = item.protein
+        salt = item.salt
+    }
+
+    // MARK: - Functions
+
+    func asDomain() -> FoodItemDomain {
+        FoodItemDomain(
+            id: id,
+            kind: .catalogue,
+            czName: czName,
+            engName: engName,
+            weight: weight,
+            date: date.toDate,
+            energyKJ: energyKJ ?? MacrosKt.energyKJFromMacros(fat: fat, carbohydrate: carbohydrate, protein: protein),
+            caloriesPerHundredGrams: caloriesPerHundredGrams,
+            fat: fat,
+            fatSaturated: fatSaturated,
+            fatUnsaturatedFattyAcids: fatUnsaturatedFattyAcids,
+            carbohydrate: carbohydrate,
+            carbohydratePureSugar: carbohydratePureSugar,
+            fiber: fiber,
+            protein: protein,
+            salt: salt
+        )
     }
 }

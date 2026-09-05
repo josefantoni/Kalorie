@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import MacroKit
 
 protocol FetchFoodItemByBarcodeUseCaseProtocol {
     func callAsFunction(barcode: String) async throws -> FoodItemDomain?
@@ -32,25 +31,7 @@ struct FetchFoodItemByBarcodeUseCase: FetchFoodItemByBarcodeUseCaseProtocol {
             id: barcode,
             from: Constants.Firestore.foodItems
         )
-        guard let dto else { return nil }
-        return FoodItemDomain(
-            id: dto.id,
-            kind: .catalogue,
-            czName: dto.czName,
-            engName: dto.engName,
-            weight: dto.weight,
-            date: dto.date.toDate,
-            energyKJ: dto.energyKJ ?? MacrosKt.energyKJFromMacros(fat: dto.fat, carbohydrate: dto.carbohydrate, protein: dto.protein),
-            caloriesPerHundredGrams: dto.caloriesPerHundredGrams,
-            fat: dto.fat,
-            fatSaturated: dto.fatSaturated,
-            fatUnsaturatedFattyAcids: dto.fatUnsaturatedFattyAcids,
-            carbohydrate: dto.carbohydrate,
-            carbohydratePureSugar: dto.carbohydratePureSugar,
-            fiber: dto.fiber,
-            protein: dto.protein,
-            salt: dto.salt
-        )
+        return dto?.asDomain()
     }
 }
 

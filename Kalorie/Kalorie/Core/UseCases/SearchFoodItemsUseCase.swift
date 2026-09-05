@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import MacroKit
 
 protocol SearchFoodItemsUseCaseProtocol {
     func callAsFunction(query: String) async throws -> [FoodItemDomain]
@@ -44,26 +43,7 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
         var seen = Set<String>()
         return (nameResults + originalNameResults)
             .filter { seen.insert($0.id).inserted }
-            .map { dto in
-                FoodItemDomain(
-                    id: dto.id,
-                    kind: .catalogue,
-                    czName: dto.czName,
-                    engName: dto.engName,
-                    weight: dto.weight,
-                    date: dto.date.toDate,
-                    energyKJ: dto.energyKJ ?? MacrosKt.energyKJFromMacros(fat: dto.fat, carbohydrate: dto.carbohydrate, protein: dto.protein),
-                    caloriesPerHundredGrams: dto.caloriesPerHundredGrams,
-                    fat: dto.fat,
-                    fatSaturated: dto.fatSaturated,
-                    fatUnsaturatedFattyAcids: dto.fatUnsaturatedFattyAcids,
-                    carbohydrate: dto.carbohydrate,
-                    carbohydratePureSugar: dto.carbohydratePureSugar,
-                    fiber: dto.fiber,
-                    protein: dto.protein,
-                    salt: dto.salt
-                )
-            }
+            .map { $0.asDomain() }
     }
 }
 

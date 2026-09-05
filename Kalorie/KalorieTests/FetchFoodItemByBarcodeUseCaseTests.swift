@@ -44,7 +44,7 @@ final class FetchFoodItemByBarcodeUseCaseTests: XCTestCase {
 
     func test_fetchByBarcode_whenEnergyKJMissing_computesItFromMacrosInsteadOfZero() async throws {
         let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedDTO = makeDTO(fat: 10, carbohydrate: 20, protein: 5)
+        dataProvider.stubbedDTO = try makeDTOMissingEnergyKJ(fat: 10, carbohydrate: 20, protein: 5)
 
         let result = try await sut(barcode: "8594004428464")
 
@@ -81,21 +81,31 @@ final class FetchFoodItemByBarcodeUseCaseTests: XCTestCase {
         protein: Double = 13
     ) -> FoodItemDTO {
         FoodItemDTO(
-            id: id,
-            czName: czName,
-            engName: "Cottage cheese",
-            czNameLowercase: czName.lowercased(),
-            engNameLowercase: "cottage cheese",
-            weight: 100,
-            date: Date.now.timeIntervalSince1970,
-            caloriesPerHundredGrams: 80,
-            fat: fat,
-            fatUnsaturatedFattyAcids: 0.2,
-            carbohydrate: carbohydrate,
-            carbohydratePureSugar: 3,
-            protein: protein,
-            salt: 0.1
+            item: FoodItemDomain(
+                id: id,
+                kind: .catalogue,
+                czName: czName,
+                engName: "Cottage cheese",
+                weight: 100,
+                date: .now,
+                energyKJ: 335,
+                caloriesPerHundredGrams: 80,
+                fat: fat,
+                fatSaturated: nil,
+                fatUnsaturatedFattyAcids: 0.2,
+                carbohydrate: carbohydrate,
+                carbohydratePureSugar: 3,
+                fiber: nil,
+                protein: protein,
+                salt: 0.1
+            )
         )
+    }
+
+    private func makeDTOMissingEnergyKJ(fat: Double, carbohydrate: Double, protein: Double) throws -> FoodItemDTO {
+        var json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(makeDTO(fat: fat, carbohydrate: carbohydrate, protein: protein))) as? [String: Any] ?? [:]
+        json.removeValue(forKey: "energy_kj")
+        return try JSONDecoder().decode(FoodItemDTO.self, from: JSONSerialization.data(withJSONObject: json))
     }
 }
 
