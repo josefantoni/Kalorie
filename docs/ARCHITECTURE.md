@@ -54,9 +54,9 @@ Three kinds of type take part:
 | **Use case** | `Core/UseCases/` | The mapping between the two, plus validation. |
 
 DTO → domain conversion lives on the DTO as `asDomain()`; domain → DTO lives in a DTO `init`.
-`FoodItemDTO` is the exception — it has neither, and its mapping is inlined at each call site
-(`SearchFoodItemsUseCase`, `CreateFoodItemUseCase`, `FetchFoodItemByBarcodeUseCase`). See
-finding **A1-10**.
+Every DTO follows this, `FoodItemDTO` included — `SearchFoodItemsUseCase`, `CreateFoodItemUseCase`
+and `FetchFoodItemByBarcodeUseCase` all go through it rather than each carrying its own copy of
+the mapping.
 
 ### 1.2 Collection layout
 
@@ -100,8 +100,10 @@ These are the contract a second client has to match exactly.
   `Timestamp` and not milliseconds. See
   [ADR 0008](adr/0008-dates-as-epoch-seconds-not-firestore-timestamp.md).
 - **`id` is stored both as the document ID and as a field** inside the document, so a query can
-  filter on it. `IsFavouriteFoodUseCase` and `CreateFoodItemUseCase` both use the field rather
-  than a document read; see finding **A1-9**.
+  filter on it, and because `firestore.rules` checks `request.resource.data.id == itemId` on a
+  `foodItems` write. Single documents are read by key through `loadAsync(id:from:)`;
+  `CreateFoodItemUseCase` is the one caller still querying the field, deliberately — see
+  finding **A1-9**.
 - **Nutrition is denormalised** into every collection that references a food, rather than
   joined from `foodItems` at read time. See
   [ADR 0009](adr/0009-denormalised-nutrition-snapshots.md).
@@ -124,9 +126,9 @@ weight**, already scaled, not per 100 g; `calories` is an `Int`. `food_item_id` 
 the catalogue entry and is required (no optional, no backfill — see `TODO.md`). This DTO's
 field names diverge from the rest of the model (`carbohydrate_sugar` vs.
 `carbohydrate_pure_sugar`, `fat_unsaturated` vs. `fat_unsaturated_fatty_acids`) — finding
-**A1-8**. It also carries `energy_kj`, `fat_saturated` and `fiber` (fixed by **A1-5**), all
-optional for backward decode of documents written before that fix; `energy_kj` falls back to
-`MacroKit.energyKJFromMacros` when absent, `fat_saturated` and `fiber` stay `nil`.
+**A1-8**. It also carries `energy_kj`, `fat_saturated` and `fiber`, all optional so that entries
+logged before those fields were persisted still decode — they were never backfilled; `energy_kj`
+falls back to `MacroKit.energyKJFromMacros` when absent, `fat_saturated` and `fiber` stay `nil`.
 
 **`mealTypes`** (`MealTypeDTO`) — `startMinutes` / `endMinutes` are minutes since midnight
 (0–1439), stored **unrenamed in camelCase**, unlike every other DTO. A window may wrap past
@@ -154,6 +156,7 @@ builder:
 | `loadAsync(from:where:isGreaterThanOrEqualTo:isLessThan:)` | numeric range, used for date windows |
 | `loadAsync(from:where:hasPrefix:limit:)` | range over `[prefix, prefix + )` — prefix search |
 | `loadAsync(from:where:isEqualTo:)` | equality, `limit(1)`, returns `T?` |
+| `loadAsync(id:from:)` | `document(id).getDocument()` — one document by key, returns `T?` |
 | `loadAsync(from:orderBy:descending:limit:)` | ordered page |
 | `saveAsync(_:to:)` | `addDocument` — Firestore-generated ID |
 | `setAsync(_:id:in:)` | `document(id).setData` — full overwrite |
@@ -169,8 +172,10 @@ Consequences worth knowing before adding a method:
   the server is unreachable. `loadFromServerAsync` exists solely so
   `ConfirmMealTypesEmptyUseCase` can tell "this user genuinely has no meal types" from "the
   cache has not been populated yet" before overwriting them with defaults.
-- **There is no read-single-document-by-ID method.** Code that needs one document issues an
-  equality query instead (finding **A1-9**).
+- **A single document is read by `loadAsync(id:from:)`**, which resolves its source the same way
+  every other read does. `CreateFoodItemUseCase` still reaches its one document through an
+  equality query on the `id` field, because the duplicate check it guards needs a server-only
+  read no method offers yet — findings **A1-9** and **A2-2**.
 - **`setAsync` replaces the document**, it never merges. Every writer must therefore send every
   field it wants to keep.
 - **`batchSetAsync` is atomic only within a single 500-item chunk, not across the whole call.**
