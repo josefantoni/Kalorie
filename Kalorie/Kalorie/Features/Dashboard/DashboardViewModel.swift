@@ -262,12 +262,8 @@ final class DashboardViewModel: ObservableObject {
 
     // MARK: - Private
 
-    private func isOffline(_ error: Error) -> Bool {
-        (error as? FirestoreDataProviderError) == .unreachable
-    }
-
     private func unknownErrorAlertItem(for error: Error) -> AlertItem {
-        if isOffline(error) {
+        if error.isFirestoreUnreachable {
             AlertItem(title: L10n.Common.errorOffline, message: L10n.Common.errorOfflineMessage)
         } else {
             AlertItem(title: L10n.Common.errorUnknown, message: L10n.Common.errorUnknownMessage)

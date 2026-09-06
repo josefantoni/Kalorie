@@ -1,6 +1,7 @@
 {
   "indexes": [],
   "fieldOverrides": [
+    { "collectionGroup": "foodItems", "fieldPath": "id", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "weight", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "date", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "energy_kj", "indexes": [] },

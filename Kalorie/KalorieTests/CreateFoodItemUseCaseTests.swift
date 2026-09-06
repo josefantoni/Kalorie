@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import FirebaseFirestore
 @testable import Kalorie
 
 final class CreateFoodItemUseCaseTests: XCTestCase {
@@ -83,6 +84,48 @@ final class CreateFoodItemUseCaseTests: XCTestCase {
         XCTAssertFalse(dataProvider.didWrite)
     }
 
+    func test_createFoodItem_whenServerUnreachable_throwsUnreachableAndDoesNotWrite() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedLoadError = FirestoreDataProviderError.unreachable
+        do {
+            _ = try await sut(makeItem())
+            XCTFail("Expected unreachable error")
+        } catch FirestoreDataProviderError.unreachable {
+            // pass
+        }
+        XCTAssertFalse(dataProvider.didWrite)
+    }
+
+    func test_createFoodItem_whenWriteIsRejectedByRules_andReReadConfirmsDuplicate_throwsItemAlreadyExists() async throws {
+        let (sut, dataProvider) = makeSUT()
+        let item = makeItem()
+        dataProvider.stubbedSetError = NSError(
+            domain: FirestoreErrorDomain,
+            code: FirestoreErrorCode.permissionDenied.rawValue
+        )
+        dataProvider.stubbedConfirmationDTO = FoodItemDTO(item: item)
+        do {
+            _ = try await sut(item)
+            XCTFail("Expected itemAlreadyExists error")
+        } catch CreateFoodItemError.itemAlreadyExists {
+            // pass
+        }
+    }
+
+    func test_createFoodItem_whenWriteIsRejectedByRules_andReReadFindsNothing_rethrowsOriginalError() async throws {
+        let (sut, dataProvider) = makeSUT()
+        let deniedError = NSError(domain: FirestoreErrorDomain, code: FirestoreErrorCode.permissionDenied.rawValue)
+        dataProvider.stubbedSetError = deniedError
+        do {
+            _ = try await sut(makeItem())
+            XCTFail("Expected the original permissionDenied error")
+        } catch CreateFoodItemError.itemAlreadyExists {
+            XCTFail("Should not relabel the failure without confirming a duplicate exists")
+        } catch {
+            XCTAssertEqual(error as NSError, deniedError)
+        }
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: CreateFoodItemUseCase, dataProvider: FirestoreDataProviderFake) {
@@ -123,7 +166,11 @@ final class FirestoreDataProviderFake: FirestoreDataProviderProtocol {
     // MARK: - Properties
 
     var stubbedExistingDTO: FoodItemDTO?
+    var stubbedConfirmationDTO: FoodItemDTO?
+    var stubbedLoadError: Error?
+    var stubbedSetError: Error?
     var didWrite = false
+    private var loadFromServerByIdCallCount = 0
 
     // MARK: - Functions
 
@@ -131,12 +178,20 @@ final class FirestoreDataProviderFake: FirestoreDataProviderProtocol {
     func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { stubbedExistingDTO as? T }
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
+    func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? {
+        if let stubbedLoadError { throw stubbedLoadError }
+        loadFromServerByIdCallCount += 1
+        return (loadFromServerByIdCallCount == 1 ? stubbedExistingDTO : stubbedConfirmationDTO) as? T
+    }
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
 
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
-    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws { didWrite = true }
+    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
+        if let stubbedSetError { throw stubbedSetError }
+        didWrite = true
+    }
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
     func deleteAsync(id: String, from collection: String) async throws {}
 }

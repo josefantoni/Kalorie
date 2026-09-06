@@ -251,6 +251,10 @@ final class AddFoodSheetViewModel: ObservableObject {
             shouldDismiss = true
         } catch {
             Log.error(error, category: Constants.LogCategory.addFoodSheet)
+            guard !error.isFirestoreUnreachable else {
+                alertItem = AlertItem(title: L10n.Common.errorOffline, message: L10n.Common.errorOfflineMessage)
+                return
+            }
             switch error as? CreateFoodItemError {
             case .invalidCode:
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidCode)

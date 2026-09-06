@@ -99,11 +99,10 @@ These are the contract a second client has to match exactly.
 - **Dates are `TimeInterval`** — a `Double` of **seconds** since 1970, not a Firestore
   `Timestamp` and not milliseconds. See
   [ADR 0008](adr/0008-dates-as-epoch-seconds-not-firestore-timestamp.md).
-- **`id` is stored both as the document ID and as a field** inside the document, so a query can
-  filter on it, and because `firestore.rules` checks `request.resource.data.id == itemId` on a
-  `foodItems` write. Single documents are read by key through `loadAsync(id:from:)`;
-  `CreateFoodItemUseCase` is the one caller still querying the field, deliberately — see
-  finding **A1-9**.
+- **`id` is stored both as the document ID and as a field** inside the document, purely because
+  `firestore.rules` checks `request.resource.data.id == itemId` on a `foodItems` write — nothing
+  queries it by equality any more; single documents are read by key through `loadAsync(id:from:)`
+  / `loadFromServerAsync(id:from:)`.
 - **Nutrition is denormalised** into every collection that references a food, rather than
   joined from `foodItems` at read time. See
   [ADR 0009](adr/0009-denormalised-nutrition-snapshots.md).
@@ -157,6 +156,7 @@ builder:
 | `loadAsync(from:where:hasPrefix:limit:)` | range over `[prefix, prefix + )` — prefix search |
 | `loadAsync(from:where:isEqualTo:)` | equality, `limit(1)`, returns `T?` |
 | `loadAsync(id:from:)` | `document(id).getDocument()` — one document by key, returns `T?` |
+| `loadFromServerAsync(id:from:)` | same, `source: .server` — one document, bypasses the offline cache |
 | `loadAsync(from:orderBy:descending:limit:)` | ordered page |
 | `saveAsync(_:to:)` | `addDocument` — Firestore-generated ID |
 | `setAsync(_:id:in:)` | `document(id).setData` — full overwrite |
@@ -173,9 +173,9 @@ Consequences worth knowing before adding a method:
   `ConfirmMealTypesEmptyUseCase` can tell "this user genuinely has no meal types" from "the
   cache has not been populated yet" before overwriting them with defaults.
 - **A single document is read by `loadAsync(id:from:)`**, which resolves its source the same way
-  every other read does. `CreateFoodItemUseCase` still reaches its one document through an
-  equality query on the `id` field, because the duplicate check it guards needs a server-only
-  read no method offers yet — findings **A1-9** and **A2-2**.
+  every other read does. `loadFromServerAsync(id:from:)` is the server-only variant, used where a
+  stale cache hit would be wrong rather than just late — `CreateFoodItemUseCase`'s duplicate check
+  (see § 2.6 below, and finding **A2-2**).
 - **`setAsync` replaces the document**, it never merges. Every writer must therefore send every
   field it wants to keep.
 - **`batchSetAsync` is atomic only within a single 500-item chunk, not across the whole call.**
@@ -339,10 +339,15 @@ non-empty, calories > 0, weight > 0 — then checks for an existing document and
 switches over them exhaustively to pick the alert string; anything unrecognised falls back to
 `L10n.Common.errorUnknown`.
 
-Two things to know before touching it: the existence check is an equality query on the `id`
-field rather than a document read, so it can be served from a stale offline cache and let an
-overwrite through (finding **A2-2**); and `eng_name_lowercase` is written as `""` for every
-manually created item, because the form has no English name field.
+Two things to know before touching it. First, the existence check reads the target document
+straight from the server (`loadFromServerAsync(id:from:)`) rather than the offline-capable
+equality query it used before, and `firestore.rules` independently drops `update` from the
+`foodItems` block, so an overwrite is refused server-side even if the client's read was stale —
+the rule is what actually closes the race, the read is the affordance (finding **A2-2**; the rule
+change is written but not yet deployed to the Firebase project). A `permissionDenied` from
+`setAsync` is re-read and rethrown as `.itemAlreadyExists` rather than assumed, since the same
+denial code can also mean an expired auth session. Second, `eng_name_lowercase` is written as
+`""` for every manually created item, because the form has no English name field.
 
 `FetchFoodItemsUseCase`, which loaded the entire catalogue with no callers, has been deleted.
 

@@ -20,6 +20,7 @@ protocol FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T]
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T?
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T?
+    func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T?
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T]
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws
@@ -127,6 +128,23 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return result
         } catch {
             logFailure("❌ GET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? {
+        log("🚀 GET \(collection)/\(id) (server)")
+        do {
+            let snapshot = try await Firestore.firestore().collection(collection).document(id).getDocument(source: .server)
+            guard snapshot.exists else {
+                log("✅ GET \(collection)/\(id) (server) → nil")
+                return nil
+            }
+            let result = try snapshot.data(as: T.self)
+            log("✅ GET \(collection)/\(id) (server) → found")
+            return result
+        } catch {
+            logFailure("❌ GET \(collection)/\(id) (server)", error: error)
             throw mapError(error)
         }
     }

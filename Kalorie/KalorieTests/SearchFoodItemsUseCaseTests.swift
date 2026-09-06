@@ -110,6 +110,7 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
 
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
+    func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
 
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
