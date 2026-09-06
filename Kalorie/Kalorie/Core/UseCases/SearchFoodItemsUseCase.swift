@@ -27,6 +27,7 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
 
     func callAsFunction(query: String) async throws -> [FoodItemDomain] {
         let lowercasedQuery = query.lowercased()
+        let foldedQuery = lowercasedQuery.foldingDiacritics()
         async let byName: [FoodItemDTO] = dataProvider.loadAsync(
             from: Constants.Firestore.foodItems,
             where: "cz_name_lowercase",
@@ -39,9 +40,23 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
             hasPrefix: lowercasedQuery,
             limit: 10
         )
-        let (nameResults, originalNameResults) = try await (byName, byOriginalName)
+        async let byFoldedName: [FoodItemDTO] = dataProvider.loadAsync(
+            from: Constants.Firestore.foodItems,
+            where: "cz_name_folded",
+            hasPrefix: foldedQuery,
+            limit: 10
+        )
+        async let byFoldedOriginalName: [FoodItemDTO] = dataProvider.loadAsync(
+            from: Constants.Firestore.foodItems,
+            where: "eng_name_folded",
+            hasPrefix: foldedQuery,
+            limit: 10
+        )
+        let (nameResults, originalNameResults, foldedNameResults, foldedOriginalNameResults) = try await (
+            byName, byOriginalName, byFoldedName, byFoldedOriginalName
+        )
         var seen = Set<String>()
-        return (nameResults + originalNameResults)
+        return (nameResults + originalNameResults + foldedNameResults + foldedOriginalNameResults)
             .filter { seen.insert($0.id).inserted }
             .map { $0.asDomain() }
     }

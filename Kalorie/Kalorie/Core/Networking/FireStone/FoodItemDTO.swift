@@ -17,6 +17,8 @@ public struct FoodItemDTO: Codable {
     let engName: String
     let czNameLowercase: String
     let engNameLowercase: String
+    let czNameFolded: String?
+    let engNameFolded: String?
     let weight: Double
     let date: TimeInterval
     let energyKJ: Double?
@@ -38,6 +40,8 @@ public struct FoodItemDTO: Codable {
         case engName = "eng_name"
         case czNameLowercase = "cz_name_lowercase"
         case engNameLowercase = "eng_name_lowercase"
+        case czNameFolded = "cz_name_folded"
+        case engNameFolded = "eng_name_folded"
         case energyKJ = "energy_kj"
         case caloriesPerHundredGrams = "calories_per_hundred_grams"
         case fatSaturated = "fat_saturated"
@@ -53,6 +57,8 @@ public struct FoodItemDTO: Codable {
         engName = item.engName
         czNameLowercase = item.czName.lowercased()
         engNameLowercase = item.engName.lowercased()
+        czNameFolded = item.czName.lowercased().foldingDiacritics()
+        engNameFolded = item.engName.lowercased().foldingDiacritics()
         weight = item.weight
         date = item.date.timeIntervalSince1970
         energyKJ = item.energyKJ
