@@ -1,0 +1,23 @@
+{
+  "sourceLanguage" : "cs",
+  "strings" : {
+    "NSCameraUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prosím povolte využití kamery pro skenování čárových kódů potravin"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please allow camera access to scan food barcodes"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

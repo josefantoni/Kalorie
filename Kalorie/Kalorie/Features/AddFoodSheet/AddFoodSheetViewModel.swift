@@ -110,6 +110,12 @@ final class AddFoodSheetViewModel: ObservableObject {
         isScannerVisible = true
     }
 
+    func onScenePhaseActive(isCameraAvailable: Bool) {
+        guard isScannerVisible, !isCameraAvailable else { return }
+        isScannerVisible = false
+        alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
+    }
+
     @MainActor
     func onBarcodeScanned() async {
         let barcode = lastScannedBarcode

@@ -329,8 +329,14 @@ other DTO uses, and both external use cases call it rather than each carrying th
 `DataScannerRepresentable` wraps VisionKit's `DataScannerViewController`, configured for
 barcodes only, one item at a time, accurate quality. The scanner is mounted inside the sheet's
 `ZStack` whenever `isScannerVisible` **and** `DataScannerViewController.isSupported` **and**
-`.isAvailable` — the last of which is false when camera permission was denied, in which case
-nothing renders and nothing explains why (finding **A2-9**).
+`.isAvailable`. Both permission-denied paths are guarded explicitly rather than left to that `if`
+alone: the scan button in `addFoodItem` checks `isSupported && isAvailable` before ever calling
+`onScannerButtonTapped()`, showing `cameraPermissionAlert` instead when it is not — so
+`isScannerVisible` never becomes `true` while access is denied. If access is revoked *while* the
+scanner is already visible (the app is backgrounded, the user disables the camera permission, then
+returns), `AddFoodSheetView`'s `scenePhase` handler calls
+`AddFoodSheetViewModel.onScenePhaseActive(isCameraAvailable:)` on the transition back to `.active`,
+which closes the scanner and shows the same alert instead of leaving a blank `ZStack`.
 
 The delivery path is deliberately indirect: the coordinator writes into a `@Binding` bound to
 `viewModel.lastScannedBarcode`, and the view's `.onChange` on that property calls
@@ -698,15 +704,16 @@ shown on screen.
 
 One `Localizable.xcstrings` catalogue, source language `cs`, with `en` alongside — reached
 exclusively through the hand-written `L10n` enum, per
-[ADR 0019](adr/0019-l10n-enum-over-the-string-catalogue.md).
+[ADR 0019](adr/0019-l10n-enum-over-the-string-catalogue.md). A second catalogue,
+`InfoPlist.xcstrings`, covers `Info.plist` keys the OS reads directly and that `L10n` cannot
+reach — today just `NSCameraUsageDescription`, matched by key name rather than by going through
+`L10n`.
 
-Two things about the app are Czech-first in ways the catalogue does not cover:
+One thing about the app is Czech-first in a way neither catalogue covers:
 
 - `BilingualNamed.displayName` picks `czName` when the device language is `cs` or `sk`, and
   otherwise `engName` falling back to `czName`. This is data-level localisation — the food's own
-  two names — and it is independent of the string catalogue.
-- `NSCameraUsageDescription` in `Info.plist` is a hardcoded Czech string with no `InfoPlist`
-  localisation.
+  two names — and it is independent of both string catalogues.
 
 Numbers and units go through `Double.formattedGrams(fractionDigits:)`
 (`Core/Extensions/Double+Extension.swift`), a locale-aware helper that replaced seventeen
