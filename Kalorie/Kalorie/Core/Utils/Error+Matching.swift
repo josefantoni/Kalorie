@@ -12,4 +12,8 @@ extension Error {
         let nsError = self as NSError
         return nsError.domain == domain && nsError.code == code
     }
+
+    var isFirestoreUnreachable: Bool {
+        (self as? FirestoreDataProviderError) == .unreachable
+    }
 }

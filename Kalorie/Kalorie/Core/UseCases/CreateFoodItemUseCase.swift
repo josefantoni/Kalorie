@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseFirestore
 
 enum CreateFoodItemError: Error {
     case invalidCode
@@ -41,14 +42,25 @@ struct CreateFoodItemUseCase: CreateFoodItemUseCaseProtocol {
         guard !item.czName.isEmpty else { throw CreateFoodItemError.invalidName }
         guard item.caloriesPerHundredGrams > 0 else { throw CreateFoodItemError.invalidCalories }
         guard item.weight > 0 else { throw CreateFoodItemError.invalidWeight }
-        let existing: FoodItemDTO? = try await dataProvider.loadAsync(
-            from: Constants.Firestore.foodItems,
-            where: "id",
-            isEqualTo: item.id
+        let existing: FoodItemDTO? = try await dataProvider.loadFromServerAsync(
+            id: item.id,
+            from: Constants.Firestore.foodItems
         )
         guard existing == nil else { throw CreateFoodItemError.itemAlreadyExists }
         let dto = FoodItemDTO(item: item)
-        try await dataProvider.setAsync(dto, id: item.id, in: Constants.Firestore.foodItems)
+        do {
+            try await dataProvider.setAsync(dto, id: item.id, in: Constants.Firestore.foodItems)
+        } catch let writeError where writeError.matches(domain: FirestoreErrorDomain, code: FirestoreErrorCode.permissionDenied.rawValue) {
+            // Firestore's rule denial doesn't say why; a duplicate is the expected cause, but an
+            // expired auth session mid-request would also deny with the same code. Re-read to
+            // confirm before relabelling the failure as itemAlreadyExists.
+            let confirmedExisting: FoodItemDTO? = try? await dataProvider.loadFromServerAsync(
+                id: item.id,
+                from: Constants.Firestore.foodItems
+            )
+            guard confirmedExisting != nil else { throw writeError }
+            throw CreateFoodItemError.itemAlreadyExists
+        }
         return item
     }
 }
