@@ -43,6 +43,25 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
         XCTAssertEqual(result.first?.energyKJ, 795)
     }
 
+    func test_search_withQueryMissingDiacritics_matchesFoldedNameField() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Rohlík")]
+
+        let result = try await sut(query: "rohlik")
+
+        XCTAssertEqual(result.map(\.id), ["1"])
+    }
+
+    func test_search_withResultsFromBothLowercaseAndFoldedFields_deduplicatesById() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByCzName = [makeDTO(id: "1", czName: "Rohlík")]
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Rohlík")]
+
+        let result = try await sut(query: "rohlík")
+
+        XCTAssertEqual(result.count, 1)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: SearchFoodItemsUseCase, dataProvider: SearchDataProviderFake) {
@@ -93,6 +112,8 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
 
     var stubbedByCzName: [FoodItemDTO] = []
     var stubbedByEngName: [FoodItemDTO] = []
+    var stubbedByCzNameFolded: [FoodItemDTO] = []
+    var stubbedByEngNameFolded: [FoodItemDTO] = []
 
     // MARK: - Functions
 
@@ -104,6 +125,8 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
         switch field {
         case "cz_name_lowercase": return stubbedByCzName as? [T] ?? []
         case "eng_name_lowercase": return stubbedByEngName as? [T] ?? []
+        case "cz_name_folded": return stubbedByCzNameFolded as? [T] ?? []
+        case "eng_name_folded": return stubbedByEngNameFolded as? [T] ?? []
         default: return []
         }
     }

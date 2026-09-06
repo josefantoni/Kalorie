@@ -82,123 +82,26 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
 
 ## Audit findings — 2. Food search and catalogue
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. A2-2 has a
-client-side fix in place, pending rule deployment; nothing else here has been fixed.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. A2-3's client-side
+fix is in place, pending backfill. Nothing else here has been fixed.
 
 ### Correctness
 
-- [ ] **A2-2 — The duplicate check before a catalogue write can read a stale cache.**
-  `CreateFoodItemUseCase` queries `where "id" == item.id` through `loadAsync`, which uses
-  Firestore's default source and is therefore served from the offline cache when the server is
-  unreachable. A cache that has never seen the document answers "not found", and the following
-  `setAsync` **overwrites** the existing shared catalogue entry with the user's typed values —
-  silently, for every user.
-  `Kalorie/Kalorie/Core/UseCases/CreateFoodItemUseCase.swift:41`
-
-  The window is bounded — when the server is reachable the query is served from it and answers
-  correctly — but the two failure conditions are **correlated, not independent**: being offline
-  also makes the prefix search return nothing, which is what sends the user to the *add a new
-  food* form in the first place. Offline raises both the chance of entering the form and the
-  chance of the guard waving the write through.
-
-  **Decided: both layers. The rule is the invariant, the server read is the affordance; neither
-  alone is enough.**
-
-  1. **`firestore.rules` drops `update` from the `foodItems` block**, keeping `create` with its
-     existing field validation. Firestore matches `create` only when the document does not exist,
-     so founding a new entry still works while overwriting an existing one is refused by the
-     server — regardless of cache state, client version, or a second client that never implements
-     the check. This is the only layer that closes the race: two clients can both read "not
-     found" and both write, and only the server can arbitrate at commit time.
-     `CreateFoodItemUseCase.swift:51` is the only writer to `foodItems`, so nothing legitimate
-     breaks, and maintainer corrections from the console or the Admin SDK bypass rules entirely.
-  2. **The duplicate check becomes a server-only read by document id** — a new
-     `loadFromServerAsync(id:from:)` on `FirestoreDataProviderProtocol` (today's
-     `loadFromServerAsync` takes a collection only). Mostly this is the affordance — it tells the
-     user the food already exists before they fill twelve fields rather than after — but it also
-     covers a case layer 1 cannot: a duplicate created **while offline** is queued locally,
-     accepted by the cache, and only rejected when it reaches the server, at which point Firestore
-     reverts the local mutation and the user, long gone from the form, is never told. Refusing to
-     attempt the write at all when the server cannot be reached turns that silent lost write into
-     an immediate, legible failure.
-
-  **Done (client side):**
-
-  - `FirestoreDataProviderProtocol` gained `loadFromServerAsync(id:from:)`; `CreateFoodItemUseCase`
-    uses it for the duplicate check instead of the offline-capable equality query.
-  - `setAsync`'s `permissionDenied` (a rule-refused overwrite) is caught in `CreateFoodItemUseCase`
-    and rethrown as `CreateFoodItemError.itemAlreadyExists`, right where the other domain errors
-    for this use case already live — not in the shared `mapError`, which stays a transport-level
-    concern and would otherwise mislabel every unrelated permission denial as a duplicate item.
-    `permissionDenied` alone doesn't prove a duplicate, though — an auth session invalidated
-    between the pre-check and the write would deny with the same code — so the catch re-reads the
-    document by id before relabelling; only a confirmed hit becomes `itemAlreadyExists`, otherwise
-    the original error is rethrown.
-  - `AddFoodSheetViewModel.onCreateFoodItem()` checks `error.isFirestoreUnreachable`
-    before the `CreateFoodItemError` switch and shows the existing offline alert
-    (`L10n.Common.errorOffline` / `errorOfflineMessage`) instead of "unknown error".
-    `isFirestoreUnreachable` lives on `Error` in `Error+Matching.swift`, replacing what would
-    otherwise be a second private copy of `DashboardViewModel`'s existing offline check.
-  - `firestore.rules` now grants `create` only on `foodItems` (`update` dropped); the field
-    validation is unchanged.
-  - `firestore.indexes.json` disables the automatic index on `foodItems.id`, since nothing queries
-    it by equality any more.
-  - All 24 `FirestoreDataProviderProtocol` fakes in `KalorieTests/` got the new method.
-    `CreateFoodItemUseCaseTests`' fake now wires `stubbedExistingDTO` to
-    `loadFromServerAsync(id:)`, distinguishes the pre-write check from the post-denial re-read via
-    a second `stubbedConfirmationDTO`, and four new tests cover unreachable, permission-denied
-    confirmed as a duplicate, and permission-denied for another reason. Full suite (298 tests) and
-    the Kalorie target build both pass.
-
-  **Still open — needs a human with the Firebase project, not a code change:**
-
-  - **Deploy the rule.** Editing `firestore.rules` in the repo does not push it; someone with
-    project access runs `firebase deploy --only firestore:rules` (and `--only firestore:indexes`
-    for the index override). Per the sequencing note below, do this only after the client build
-    above has shipped.
-  - **Verify on a real project, by hand**, per the note below — there is no rules emulator/harness
-    in this repo to do it automatically: creating a genuinely new barcode still succeeds, and
-    re-submitting an existing one is refused with the new "item already exists" message rather
-    than "unknown error".
-  - **Verify on device:** whether `setAsync` offline hangs rather than throwing. Firebase fires a
-    write's completion on server acknowledgement, which would mean today's offline form spins
-    indefinitely and the overwrite lands on reconnect. If so, failing fast on the server-only read
-    is a strict improvement to the offline path, not a new restriction. Not reproducible from a
-    unit test or the simulator's default networking.
-
-  Implementation notes (kept for the deploy/verification step above):
-
-  - **The rule change has no automated test and cannot get one cheaply.** There is no emulator
-    config and no rules harness in the repo — `firebase.json` wires up `firestore.rules` and
-    `firestore.indexes.json` and nothing else. So the rule ships verified by hand or not at all.
-    ADR 0011 records that a rule tightening has already silently broken this collection once, on
-    the read side, during the authentication work — that is the failure mode to test for, not a
-    hypothetical.
-  - **Sequencing.** A rules deploy is instant and an app release is not, so the two cannot land
-    atomically. Ship the client first (the `permissionDenied` → `.itemAlreadyExists` mapping is
-    what makes the rule's refusal legible), then deploy the rule. Reversing the order leaves
-    installed clients showing "unknown error" on a duplicate — tolerable pre-release, but pointless.
-
-  **This does not reopen [ADR 0011](docs/adr/0011-foodItems-writable-by-any-authenticated-client.md).**
-  That record decides `foodItems` stays *client-writable* until the moderation flow ships, and
-  warns that hardening the rule on its own breaks the *add a new food* form. Refusing `update`
-  leaves `create` untouched, so the form keeps working and the catalogue keeps growing; what
-  disappears is only the overwrite, which ADR 0011's own Consequences section names as the hole
-  A2-2 tracks. A1-11 already narrowed this rule once after ADR 0011 was written, on the same basis.
-
-  *Cross-reference corrected:* this finding previously cited **A2-11** for the rule option. A2-11
-  was the barcode-validation finding, closed in `daed3e0`. The rule finding was **A1-11**, closed
-  in `2e9a03f`, which split `allow write` into `create, update` and dropped `delete` but kept
-  `update` without recording why — so refusing `update` was never rejected, only never reached.
-  [ADR 0011](docs/adr/0011-foodItems-writable-by-any-authenticated-client.md) still cites A1-11 as
-  open; it is pushed and therefore frozen, so that one reference stays stale.
-
 - [ ] **A2-3 — Search does not fold diacritics, in a Czech-first app.** `cz_name_lowercase` is
   `czName.lowercased()`, so "Rohlík" is stored as "rohlík" and a user typing "rohlik" — which is
-  what most people type — finds nothing. Not a limitation of the prefix approach, just of the
-  folding: writing a diacritics-stripped field alongside the lowercase one and querying that
-  fixes it. Needs a backfill of existing catalogue documents, so it gets more expensive the
-  longer it waits.
+  what most people type — used to find nothing. Fixed for new documents: `FoodItemDTO` and
+  `SearchFoodItemsUseCase` now also write and query `cz_name_folded` / `eng_name_folded` (see
+  ARCHITECTURE § 1.4 and § 2.2). Left open for the one remaining piece:
+
+  **Backfill.** Existing catalogue documents have no `cz_name_folded` / `eng_name_folded` and
+  stay findable only through the exact-diacritics path until someone runs a one-off script
+  (Admin SDK) that reads every `foodItems` document and writes the two new fields. There is no
+  migration tooling in this repo (`scripts/` holds only `build-kmp-framework.sh`) — this needs a
+  human with the Firebase project. Gets more expensive to run the longer the catalogue grows in
+  the meantime.
+
+  A2-4 is untouched by this fix — the prefix-only gap it tracks is separate and structural, not
+  something folding addresses.
   `Kalorie/Kalorie/Core/UseCases/CreateFoodItemUseCase.swift:51`
 
 - [ ] **A2-4 — Search matches prefixes only.** "mléko" does not find "Polotučné mléko", and

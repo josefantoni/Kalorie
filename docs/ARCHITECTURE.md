@@ -118,7 +118,12 @@ These are the contract a second client has to match exactly.
 (`calories_per_hundred_grams`) except `weight`, which is the package weight the entry was read
 from. Carries `cz_name_lowercase` / `eng_name_lowercase`, written by `CreateFoodItemUseCase`
 purely so the prefix-range search in `SearchFoodItemsUseCase` has something case-insensitive to
-range over.
+range over — and `cz_name_folded` / `eng_name_folded` alongside them, additionally
+diacritics-stripped so the same search also matches a query typed without diacritics (finding
+**A2-3**, client side only — existing documents need a backfill to gain these two fields). Both
+new fields are optional on read: documents written before this fix lack them and are still found
+through the plain lowercase fields, which the search still queries
+in parallel.
 
 **`foodConsumed`** (`FoodConsumedDTO`) — one logged entry. Values are **absolute for the logged
 weight**, already scaled, not per 100 g; `calories` is an `Int`. `food_item_id` points back at
@@ -175,7 +180,7 @@ Consequences worth knowing before adding a method:
 - **A single document is read by `loadAsync(id:from:)`**, which resolves its source the same way
   every other read does. `loadFromServerAsync(id:from:)` is the server-only variant, used where a
   stale cache hit would be wrong rather than just late — `CreateFoodItemUseCase`'s duplicate check
-  (see § 2.6 below, and finding **A2-2**).
+  (see § 2.6 below).
 - **`setAsync` replaces the document**, it never merges. Every writer must therefore send every
   field it wants to keep.
 - **`batchSetAsync` is atomic only within a single 500-item chunk, not across the whole call.**
@@ -207,8 +212,8 @@ Consequences worth knowing before adding a method:
 
 `Kalorie/firestore.indexes.json`, deployed via the same `firebase.json`, disables single-field
 indexing on `foodItems`' numeric fields via `fieldOverrides` — only `cz_name_lowercase`,
-`eng_name_lowercase` and `id` are ever queried, so every other field would otherwise be indexed
-in both directions for no reason.
+`eng_name_lowercase`, `cz_name_folded`, `eng_name_folded` and `id` are ever queried, so every
+other field would otherwise be indexed in both directions for no reason.
 
 ---
 
@@ -245,8 +250,14 @@ populate it.
 ### 2.2 Local search
 
 `SearchFoodItemsUseCase` is a case-folded prefix range over `cz_name_lowercase` and
-`eng_name_lowercase`, ten results each, run as two concurrent `async let` queries and
-de-duplicated by id. The mechanics and the limits are recorded in
+`eng_name_lowercase`, plus a diacritics-and-case-folded prefix range over `cz_name_folded` and
+`eng_name_folded` for the same query also stripped of diacritics — four concurrent `async let`
+queries, ten results each, de-duplicated by id. The folded pair is what lets "rohlik" find
+"Rohlík"; the plain lowercase pair stays alongside it so a catalogue document written before the
+fix, and therefore missing the folded fields, is still found. The diacritic fold itself
+(`foldDiacritics`, a Czech accent-to-base character map) lives in KMP `TextKit`, bridged into
+Swift as `String.foldingDiacritics()`, so a second client shares the exact folding rather than
+re-deriving it. The mechanics and the limits are recorded in
 [ADR 0013](adr/0013-prefix-search-over-lowercased-name-fields.md).
 
 Ranking happens **above** the use case, in `AddFoodSheetViewModel.displayedResults`, which is a
@@ -343,10 +354,14 @@ Two things to know before touching it. First, the existence check reads the targ
 straight from the server (`loadFromServerAsync(id:from:)`) rather than the offline-capable
 equality query it used before, and `firestore.rules` independently drops `update` from the
 `foodItems` block, so an overwrite is refused server-side even if the client's read was stale —
-the rule is what actually closes the race, the read is the affordance (finding **A2-2**; the rule
-change is written but not yet deployed to the Firebase project). A `permissionDenied` from
-`setAsync` is re-read and rethrown as `.itemAlreadyExists` rather than assumed, since the same
-denial code can also mean an expired auth session. Second, `eng_name_lowercase` is written as
+the rule is what actually closes the race, the read is the affordance. Both are deployed and
+verified by hand: a genuinely new barcode still succeeds, and re-submitting an existing one is
+refused server-side rather than silently overwritten. A `permissionDenied` from `setAsync` is
+re-read and rethrown as `.itemAlreadyExists` rather than assumed, since the same denial code can
+also mean an expired auth session. Whether an offline `setAsync` hangs rather than throwing
+before reaching this rule is unverified — not reproducible from a unit test or the simulator's
+default networking, and nobody has tried it on a real device yet. Second, `eng_name_lowercase`
+is written as
 `""` for every manually created item, because the form has no English name field.
 
 `FetchFoodItemsUseCase`, which loaded the entire catalogue with no callers, has been deleted.

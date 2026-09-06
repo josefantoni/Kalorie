@@ -12,4 +12,8 @@ extension String {
     func decodingHTMLEntities() -> String {
         HtmlEntitiesKt.decodeHtmlEntities(input: self)
     }
+
+    func foldingDiacritics() -> String {
+        DiacriticFoldingKt.foldDiacritics(input: self)
+    }
 }
