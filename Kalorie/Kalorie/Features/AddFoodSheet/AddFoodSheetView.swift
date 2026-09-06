@@ -16,6 +16,7 @@ struct AddFoodSheetView: View {
     @StateObject var viewModel: AddFoodSheetViewModel
     @State private var flipAngle: Double = 0
     @Environment(\.dismiss) var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     private let makeFoodQuantityView: (FoodItemDomain, Bool, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
 
     // MARK: - Init
@@ -62,6 +63,11 @@ struct AddFoodSheetView: View {
             }
             .onChange(of: viewModel.shouldDismiss) {
                 if viewModel.shouldDismiss { dismiss() }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    viewModel.onScenePhaseActive(isCameraAvailable: DataScannerViewController.isAvailable)
+                }
             }
             .navigationDestination(isPresented: $viewModel.isPushedToQuantityView) {
                 if let item = viewModel.selectedFoodItem {

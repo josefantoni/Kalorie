@@ -83,7 +83,7 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
 ## Audit findings — 2. Food search and catalogue
 
 From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. A2-3's client-side
-fix is in place, pending backfill. Nothing else here has been fixed.
+fix is in place, pending backfill. A2-9 is fixed. Nothing else here has been fixed.
 
 ### Correctness
 
@@ -129,14 +129,6 @@ fix is in place, pending backfill. Nothing else here has been fixed.
   The coordinator needs to reset the code when a lookup ends, which means the view model's
   outcome has to reach it.
   `Kalorie/Kalorie/Features/AddFoodSheet/DataScannerRepresentable.swift:23`
-
-- [ ] **A2-9 — Denied camera permission renders nothing at all.** The scanner is gated on
-  `DataScannerViewController.isAvailable`, which is false when the user refused camera access.
-  The `if` simply fails, so tapping the scan button leaves the search list on screen with no
-  camera, no message and no route to Settings. Also worth noting while here:
-  `NSCameraUsageDescription` in `Resources/Info.plist` is a hardcoded Czech string, not
-  localized.
-  `Kalorie/Kalorie/Features/AddFoodSheet/AddFoodSheetView.swift:102`
 
 ### Behaviour worth confirming rather than fixing
 

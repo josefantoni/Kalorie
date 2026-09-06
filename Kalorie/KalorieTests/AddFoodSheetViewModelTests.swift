@@ -25,6 +25,29 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isScannerVisible)
     }
 
+    // MARK: - onScenePhaseActive
+
+    func test_onScenePhaseActive_whenScannerVisibleAndCameraStillAvailable_keepsScannerVisible() {
+        let sut = makeSUT(isScannerVisible: true)
+        sut.onScenePhaseActive(isCameraAvailable: true)
+        XCTAssertTrue(sut.isScannerVisible)
+        XCTAssertNil(sut.alertItem)
+    }
+
+    func test_onScenePhaseActive_whenScannerVisibleAndCameraNoLongerAvailable_hidesScannerAndShowsAlert() {
+        let sut = makeSUT(isScannerVisible: true)
+        sut.onScenePhaseActive(isCameraAvailable: false)
+        XCTAssertFalse(sut.isScannerVisible)
+        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.cameraPermissionAlert)
+    }
+
+    func test_onScenePhaseActive_whenScannerNotVisible_doesNothing() {
+        let sut = makeSUT(isScannerVisible: false)
+        sut.onScenePhaseActive(isCameraAvailable: false)
+        XCTAssertFalse(sut.isScannerVisible)
+        XCTAssertNil(sut.alertItem)
+    }
+
     // MARK: - onBarcodeScanned
 
     func test_onBarcodeScanned_withEmptyBarcode_doesNothing() async {
