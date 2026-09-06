@@ -1014,13 +1014,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rozvržení jídel"
+            "value" : "Nová položka"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Meal layout"
+            "value" : "New item"
           }
         }
       }
