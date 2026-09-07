@@ -291,8 +291,13 @@ deliberate — a local favourite or meal match is treated as sufficient, so the 
 skipped. [ADR 0012](adr/0012-external-food-is-surfaced-never-imported.md)'s "local search found
 nothing" phrasing is a loose paraphrase of this, not a separate decision;
 [ADR 0023](adr/0023-external-search-gate-includes-favourites-and-meals.md) corrects that phrasing
-for a reader who hits the same "looks like a bug" reaction. A failed external search is swallowed
-into an empty list, which the UI cannot tell from "no such product" (finding **A2-5**).
+for a reader who hits the same "looks like a bug" reaction. A failed external search is still
+swallowed into an empty list — interrupting a live search with an alert on every network hiccup
+would be worse than showing nothing — but the failure is no longer silent: it is logged through
+`Log.warning`, and since § 2.4's fix the thrown error distinguishes a genuine "no such product"
+from a service failure rather than conflating the two (finding **A2-5**, fixed — see § 2.4).
+`MyCreatedMealEditorViewModel`'s equivalent search path was the same call site copied into a
+second feature and got the same logging fix.
 
 ### 2.4 OpenFoodFacts integration
 
@@ -301,10 +306,33 @@ envelope (`products`), the barcode envelope (`status` + optional `product`), and
 itself with its `nutriments`. Both requests send a `fields=` parameter so the API returns only
 what is mapped.
 
-`URLSession.shared` is used **directly**, not through `FirestoreDataProviderProtocol` — the
-protocol is Firestore-shaped and does not apply. The consequence, recorded in a comment in
-`FetchFoodByBarcodeExternallyUseCase`, is that the fakes can stub a return value but cannot
-assert which URL was called.
+`URLSession` is used **directly**, not through `FirestoreDataProviderProtocol` — the protocol is
+Firestore-shaped and does not apply. Both use cases take a `session: URLSession` in their `init`,
+defaulting to `.shared` so every existing call site is unaffected; the parameter exists purely so
+`SearchFoodExternallyUseCaseTests` / `FetchFoodByBarcodeExternallyUseCaseTests` can inject a
+session configured with `URLProtocolStub` and assert against a real request/response round trip.
+The consequence recorded in a comment in `FetchFoodByBarcodeExternallyUseCase` still holds one
+level up: `SearchFoodExternallyUseCaseFake` / `FetchFoodByBarcodeExternallyUseCaseFake`, used by
+every *other* feature's tests, can only stub a return value and cannot assert which URL was
+called — only the two use cases' own tests exercise the network layer for real.
+
+Each request carries a `User-Agent` (`Constants.OpenFoodFacts.userAgent`, `Kalorie-iOS/<app
+version>`) and a `Constants.OpenFoodFacts.requestTimeout` of 10 s rather than the default
+60 — OpenFoodFacts' terms require an identifying client and rate-limit anonymous ones harder, and
+a hanging request must not block the search spinner for a minute. The HTTP status is checked
+before decoding: a non-2xx response throws `.serverError(statusCode:)` instead of falling into
+`JSONDecoder` and surfacing as a generic decode failure indistinguishable from "no such product"
+— finding **A2-5**, fixed. A 429 or 5xx is now retried, through the shared
+`OpenFoodFactsTransientRequest.data(for:session:retryDelay:)`, up to
+`Constants.OpenFoodFacts.maxAttempts` (3) with a linear backoff (`retryDelay * attempt`,
+`Constants.OpenFoodFacts.retryDelay` = 500 ms) before the caller gives up — gated on the status
+code of a response that was actually received, so it only ever retries the two codes that are
+plausibly transient. A thrown `URLError` is retried too, but only `.timedOut` and
+`.networkConnectionLost` — the two that stand a real chance of succeeding a moment later; any
+other `URLError` (`.notConnectedToInternet` included) is rethrown on the first attempt, since
+retrying it would not plausibly change the outcome — finding **A2-5**, fixed. Both use cases take
+a `retryDelay` in their `init` alongside `session`, for the same reason: `URLProtocolStub`'s tests
+inject `.zero` so a retry-exhaustion test doesn't pay the real backoff.
 
 Mapping OpenFoodFacts → `FoodItemDomain` has a fixed shape:
 
@@ -342,8 +370,11 @@ The delivery path is deliberately indirect: the coordinator writes into a `@Bind
 `viewModel.lastScannedBarcode`, and the view's `.onChange` on that property calls
 `onBarcodeScanned()`. The view model then clears the property, so the same code can be
 delivered again later. The coordinator keeps its own `lastDeliveredCode` to suppress the
-repeated callbacks VisionKit fires while a barcode stays in frame — but it never clears it,
-which is finding **A2-8**.
+repeated callbacks VisionKit fires while a barcode stays in frame, and clears it once a lookup
+ends: `updateUIViewController` reports every `isSearching` change to the coordinator, and the
+`true → false` transition — the same transition that resumes scanning — is what resets
+`lastDeliveredCode` to `nil`. A rescan of the same barcode after a failed lookup therefore
+produces a new callback instead of silence.
 
 Scanning is stopped while a lookup is in flight (`isSearching` → `stopScanning()`), and a
 `ProgressView` over `.ultraThinMaterial` covers the camera preview.

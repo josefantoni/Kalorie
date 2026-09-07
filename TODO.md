@@ -83,7 +83,8 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
 ## Audit findings — 2. Food search and catalogue
 
 From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. A2-3's client-side
-fix is in place, pending backfill. A2-9 is fixed. Nothing else here has been fixed.
+fix is in place, pending backfill. A2-5, A2-8 and A2-9 are fixed. Nothing else here has been
+fixed.
 
 ### Correctness
 
@@ -109,26 +110,6 @@ fix is in place, pending backfill. A2-9 is fixed. Nothing else here has been fix
   [ADR 0013](docs/adr/0013-prefix-search-over-lowercased-name-fields.md) — a real fix means an
   n-gram/token array field or an external search service. Worth deciding deliberately rather
   than discovering under a support request.
-
-- [ ] **A2-5 — Every OpenFoodFacts failure looks like "no such product".** Neither external use
-  case checks the HTTP status — `let (data, _) = try await URLSession.shared.data(from: url)`
-  discards the response — so a 429, a 500 or a maintenance page becomes a `JSONDecoder` error.
-  In search that error is caught and turned into `externalFoodItems = []`, which the UI renders
-  identically to a genuinely empty result. Three related gaps: no `User-Agent` is sent, and
-  OpenFoodFacts' terms require an identifying one and rate-limit anonymous clients harder; the
-  default 60-second `URLSession` timeout applies, so a hanging request blocks the search
-  spinner for a minute; and there is no retry or backoff.
-  `Kalorie/Kalorie/Core/UseCases/SearchFoodExternallyUseCase.swift:32`,
-  `Kalorie/Kalorie/Core/UseCases/FetchFoodByBarcodeExternallyUseCase.swift:37`
-
-- [ ] **A2-8 — Rescanning the same barcode after a failed lookup does nothing.**
-  `DataScannerRepresentable.Coordinator` keeps `lastDeliveredCode` to suppress VisionKit's
-  repeated callbacks while a barcode stays in frame, but never clears it. After "product not
-  found", pointing the camera at the same product again produces no callback, no request and no
-  feedback — the user has to close and reopen the scanner, with nothing on screen saying so.
-  The coordinator needs to reset the code when a lookup ends, which means the view model's
-  outcome has to reach it.
-  `Kalorie/Kalorie/Features/AddFoodSheet/DataScannerRepresentable.swift:23`
 
 ### Behaviour worth confirming rather than fixing
 

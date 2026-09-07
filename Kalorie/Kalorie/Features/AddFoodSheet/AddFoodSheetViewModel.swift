@@ -120,15 +120,19 @@ final class AddFoodSheetViewModel: ObservableObject {
     func onBarcodeScanned() async {
         let barcode = lastScannedBarcode
         guard !barcode.isEmpty else { return }
-        lastScannedBarcode = ""
         isBarcodeSearchLoading = true
-        defer { isBarcodeSearchLoading = false }
+        defer {
+            lastScannedBarcode = ""
+            isBarcodeSearchLoading = false
+        }
         do {
             if let local = try await fetchFoodItemByBarcode(barcode: barcode) {
                 isScannerVisible = false
                 onSelectFoodItem(local)
                 return
             }
+        } catch is CancellationError {
+            return
         } catch {
             Log.warning(error, category: Constants.LogCategory.addFoodSheet)
         }
@@ -138,6 +142,10 @@ final class AddFoodSheetViewModel: ObservableObject {
                 onSelectFoodItem(external)
                 return
             }
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             Log.error(error, category: Constants.LogCategory.addFoodSheet)
             alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
@@ -173,6 +181,7 @@ final class AddFoodSheetViewModel: ObservableObject {
         do {
             externalFoodItems = try await searchFoodExternally(query: searchText)
         } catch {
+            Log.warning(error, category: Constants.LogCategory.addFoodSheet)
             externalFoodItems = []
         }
     }

@@ -133,6 +133,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
         do {
             externalSearchResults = try await searchFoodExternally(query: searchText)
         } catch {
+            Log.warning(error, category: Constants.LogCategory.myCreatedMeal)
             externalSearchResults = []
         }
     }
@@ -145,15 +146,19 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     func onBarcodeScanned() async {
         let barcode = lastScannedBarcode
         guard !barcode.isEmpty else { return }
-        lastScannedBarcode = ""
         isBarcodeSearchLoading = true
-        defer { isBarcodeSearchLoading = false }
+        defer {
+            lastScannedBarcode = ""
+            isBarcodeSearchLoading = false
+        }
         do {
             if let local = try await fetchFoodItemByBarcode(barcode: barcode) {
                 isScannerVisible = false
                 scannedIngredientId = onSelectSearchResult(local)
                 return
             }
+        } catch is CancellationError {
+            return
         } catch {
             Log.warning(error, category: Constants.LogCategory.myCreatedMeal)
         }
@@ -163,6 +168,10 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
                 scannedIngredientId = onSelectSearchResult(external)
                 return
             }
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             Log.error(error, category: Constants.LogCategory.myCreatedMeal)
             alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)

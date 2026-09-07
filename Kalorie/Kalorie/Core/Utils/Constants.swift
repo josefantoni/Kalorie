@@ -20,6 +20,13 @@ enum Constants {
     enum OpenFoodFacts {
         static let host = "world.openfoodfacts.org"
         static let baseURL = URL(string: "https://\(host)")
+        static let requestTimeout: TimeInterval = 10
+        static let maxAttempts = 3
+        static let retryDelay: Duration = .milliseconds(500)
+        static var userAgent: String {
+            let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+            return "Kalorie-iOS/\(version)"
+        }
     }
 
     enum LogCategory {
