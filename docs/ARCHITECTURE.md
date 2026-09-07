@@ -120,10 +120,9 @@ from. Carries `cz_name_lowercase` / `eng_name_lowercase`, written by `CreateFood
 purely so the prefix-range search in `SearchFoodItemsUseCase` has something case-insensitive to
 range over — and `cz_name_folded` / `eng_name_folded` alongside them, additionally
 diacritics-stripped so the same search also matches a query typed without diacritics (finding
-**A2-3**, client side only — existing documents need a backfill to gain these two fields). Both
-new fields are optional on read: documents written before this fix lack them and are still found
-through the plain lowercase fields, which the search still queries
-in parallel.
+**A2-3**, fixed — a one-off Admin SDK script, `scripts/backfill-name-folding.js`, has since
+written both fields onto every pre-existing catalogue document). Both fields stay optional on
+read, since nothing guarantees a document created outside `CreateFoodItemUseCase` carries them.
 
 **`foodConsumed`** (`FoodConsumedDTO`) — one logged entry. Values are **absolute for the logged
 weight**, already scaled, not per 100 g; `calories` is an `Int`. `food_item_id` points back at

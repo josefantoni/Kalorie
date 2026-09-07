@@ -50,7 +50,7 @@ marked `[x]`.
 
 ## Audit findings — 1. Data layer and Firestore model
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1. A1-8 is closed.
 
 ### Data model consistency
 
@@ -67,43 +67,12 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1.
   rather than as a standalone doc now. `loadAsync(id:from:)` already makes the re-read itself
   cheap whenever that lands.
 
-- [ ] **A1-8 — Two field names for the same nutrient.** `foodConsumed` persists
-  `carbohydrate_sugar` and `fat_unsaturated`; `foodItems`, `favouriteFoods` and the
-  `myCreatedMeals` ingredients persist `carbohydrate_pure_sugar` and
-  `fat_unsaturated_fatty_acids`. `mealTypes` additionally persists camelCase where every other
-  collection is snake_case. A second client has to memorise the exceptions rather than follow a
-  rule, and the compiler cannot catch a mistake. This is known, not newly found:
-  [design 0004](docs/design/0004-shared-macro-calculation-module.md) tabulates the same divergence
-  at the *domain* level, declares renaming out of scope, and is why `Macros` adopted the
-  `FoodConsumedDomain` spelling. What its non-goal ("changing the Firestore schema or DTOs") left
-  untouched is the persisted layer — which is the layer that costs a second client. Renaming is a
-  data migration; the cheaper alternative is to write the exceptions down as a contract, which
-  ARCHITECTURE § 1.4 now does.
-
 ## Audit findings — 2. Food search and catalogue
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. A2-3's client-side
-fix is in place, pending backfill. A2-5, A2-8 and A2-9 are fixed. Nothing else here has been
-fixed.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. A2-3, A2-5, A2-8
+and A2-9 are fixed. Nothing else here has been fixed.
 
 ### Correctness
-
-- [ ] **A2-3 — Search does not fold diacritics, in a Czech-first app.** `cz_name_lowercase` is
-  `czName.lowercased()`, so "Rohlík" is stored as "rohlík" and a user typing "rohlik" — which is
-  what most people type — used to find nothing. Fixed for new documents: `FoodItemDTO` and
-  `SearchFoodItemsUseCase` now also write and query `cz_name_folded` / `eng_name_folded` (see
-  ARCHITECTURE § 1.4 and § 2.2). Left open for the one remaining piece:
-
-  **Backfill.** Existing catalogue documents have no `cz_name_folded` / `eng_name_folded` and
-  stay findable only through the exact-diacritics path until someone runs a one-off script
-  (Admin SDK) that reads every `foodItems` document and writes the two new fields. There is no
-  migration tooling in this repo (`scripts/` holds only `build-kmp-framework.sh`) — this needs a
-  human with the Firebase project. Gets more expensive to run the longer the catalogue grows in
-  the meantime.
-
-  A2-4 is untouched by this fix — the prefix-only gap it tracks is separate and structural, not
-  something folding addresses.
-  `Kalorie/Kalorie/Core/UseCases/CreateFoodItemUseCase.swift:51`
 
 - [ ] **A2-4 — Search matches prefixes only.** "mléko" does not find "Polotučné mléko", and
   there is no way to reach it except by knowing the first word. This one *is* inherent to
