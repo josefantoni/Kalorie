@@ -57,9 +57,9 @@ struct AddFoodSheetView: View {
             }
             .task { await viewModel.onAppear() }
             .task(id: viewModel.searchText) { await viewModel.onSearchTextChanged() }
-            .onChange(of: viewModel.lastScannedBarcode) { _, newValue in
-                guard !newValue.isEmpty else { return }
-                Task { await viewModel.onBarcodeScanned() }
+            .task(id: viewModel.lastScannedBarcode) {
+                guard !viewModel.lastScannedBarcode.isEmpty else { return }
+                await viewModel.onBarcodeScanned()
             }
             .onChange(of: viewModel.shouldDismiss) {
                 if viewModel.shouldDismiss { dismiss() }

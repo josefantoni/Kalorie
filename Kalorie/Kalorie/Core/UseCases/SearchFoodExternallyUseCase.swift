@@ -9,6 +9,7 @@ import Foundation
 
 enum SearchFoodExternallyError: Error {
     case invalidURL
+    case serverError(statusCode: Int)
 }
 
 protocol SearchFoodExternallyUseCaseProtocol {
@@ -16,6 +17,18 @@ protocol SearchFoodExternallyUseCaseProtocol {
 }
 
 struct SearchFoodExternallyUseCase: SearchFoodExternallyUseCaseProtocol {
+
+    // MARK: - Properties
+
+    private let session: URLSession
+    private let retryDelay: Duration
+
+    // MARK: - Init
+
+    init(session: URLSession = .shared, retryDelay: Duration = Constants.OpenFoodFacts.retryDelay) {
+        self.session = session
+        self.retryDelay = retryDelay
+    }
 
     // MARK: - Functions
 
@@ -28,9 +41,14 @@ struct SearchFoodExternallyUseCase: SearchFoodExternallyUseCaseProtocol {
             URLQueryItem(name: "fields", value: "code,product_name,product_name_cs,product_name_en,nutriments")
         ]
         guard let url = components?.url else { throw SearchFoodExternallyError.invalidURL }
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let response = try JSONDecoder().decode(OpenFoodFactsResponseDTO.self, from: data)
-        return response.products.compactMap { $0.asDomain() }
+        var request = URLRequest(url: url, timeoutInterval: Constants.OpenFoodFacts.requestTimeout)
+        request.setValue(Constants.OpenFoodFacts.userAgent, forHTTPHeaderField: "User-Agent")
+        let (data, statusCode) = try await OpenFoodFactsTransientRequest.data(for: request, session: session, retryDelay: retryDelay)
+        guard (200...299).contains(statusCode) else {
+            throw SearchFoodExternallyError.serverError(statusCode: statusCode)
+        }
+        let decoded = try JSONDecoder().decode(OpenFoodFactsResponseDTO.self, from: data)
+        return decoded.products.compactMap { $0.asDomain() }
     }
 
 }

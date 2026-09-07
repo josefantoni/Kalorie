@@ -9,6 +9,7 @@ import Foundation
 
 enum FetchFoodByBarcodeExternallyError: Error {
     case invalidURL
+    case serverError(statusCode: Int)
 }
 
 protocol FetchFoodByBarcodeExternallyUseCaseProtocol {
@@ -16,6 +17,18 @@ protocol FetchFoodByBarcodeExternallyUseCaseProtocol {
 }
 
 struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseProtocol {
+
+    // MARK: - Properties
+
+    private let session: URLSession
+    private let retryDelay: Duration
+
+    // MARK: - Init
+
+    init(session: URLSession = .shared, retryDelay: Duration = Constants.OpenFoodFacts.retryDelay) {
+        self.session = session
+        self.retryDelay = retryDelay
+    }
 
     // MARK: - Functions
 
@@ -33,9 +46,14 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
         guard let url = components.url else { throw FetchFoodByBarcodeExternallyError.invalidURL }
         // URLSession is used directly — OpenFoodFacts is plain HTTP, not Firestore, so FirestoreDataProviderProtocol doesn't apply.
         // The trade-off: fakes can only stub the return value, not assert which URL was called.
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let response = try JSONDecoder().decode(OpenFoodFactsBarcodeResponseDTO.self, from: data)
-        guard response.status == 1, let product = response.product else { return nil }
+        var request = URLRequest(url: url, timeoutInterval: Constants.OpenFoodFacts.requestTimeout)
+        request.setValue(Constants.OpenFoodFacts.userAgent, forHTTPHeaderField: "User-Agent")
+        let (data, statusCode) = try await OpenFoodFactsTransientRequest.data(for: request, session: session, retryDelay: retryDelay)
+        guard (200...299).contains(statusCode) else {
+            throw FetchFoodByBarcodeExternallyError.serverError(statusCode: statusCode)
+        }
+        let decoded = try JSONDecoder().decode(OpenFoodFactsBarcodeResponseDTO.self, from: data)
+        guard decoded.status == 1, let product = decoded.product else { return nil }
         return product.asDomain()
     }
 

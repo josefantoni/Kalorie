@@ -99,9 +99,9 @@ struct MyCreatedMealEditorView: View {
             guard let oldValue, oldValue != newValue else { return }
             viewModel.onGramsFieldDefocused(id: oldValue)
         }
-        .onChange(of: viewModel.lastScannedBarcode) { _, newValue in
-            guard !newValue.isEmpty else { return }
-            Task { await viewModel.onBarcodeScanned() }
+        .task(id: viewModel.lastScannedBarcode) {
+            guard !viewModel.lastScannedBarcode.isEmpty else { return }
+            await viewModel.onBarcodeScanned()
         }
         .onChange(of: viewModel.scannedIngredientId) { _, newValue in
             guard let newValue else { return }
