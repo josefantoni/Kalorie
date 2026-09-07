@@ -62,6 +62,25 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
         XCTAssertEqual(result.count, 1)
     }
 
+    func test_search_matchesASecondWordByItsToken() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByCzNameToken = [makeDTO(id: "1", czName: "Polotučné mléko")]
+
+        let result = try await sut(query: "mlék")
+
+        XCTAssertEqual(result.map(\.id), ["1"])
+    }
+
+    func test_search_withResultFromBothPrefixAndTokenFields_deduplicatesById() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByCzName = [makeDTO(id: "1", czName: "Mléko")]
+        dataProvider.stubbedByCzNameToken = [makeDTO(id: "1", czName: "Mléko")]
+
+        let result = try await sut(query: "mlék")
+
+        XCTAssertEqual(result.count, 1)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: SearchFoodItemsUseCase, dataProvider: SearchDataProviderFake) {
@@ -114,6 +133,8 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
     var stubbedByEngName: [FoodItemDTO] = []
     var stubbedByCzNameFolded: [FoodItemDTO] = []
     var stubbedByEngNameFolded: [FoodItemDTO] = []
+    var stubbedByCzNameToken: [FoodItemDTO] = []
+    var stubbedByEngNameToken: [FoodItemDTO] = []
 
     // MARK: - Functions
 
@@ -127,6 +148,14 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
         case "eng_name_lowercase": return stubbedByEngName as? [T] ?? []
         case "cz_name_folded": return stubbedByCzNameFolded as? [T] ?? []
         case "eng_name_folded": return stubbedByEngNameFolded as? [T] ?? []
+        default: return []
+        }
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] {
+        switch field {
+        case "cz_name_search_terms": return stubbedByCzNameToken as? [T] ?? []
+        case "eng_name_search_terms": return stubbedByEngNameToken as? [T] ?? []
         default: return []
         }
     }

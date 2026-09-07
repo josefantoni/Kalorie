@@ -95,6 +95,7 @@ private final class UpdateMyCreatedMealDataProviderFake: FirestoreDataProviderPr
     func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
+    func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }

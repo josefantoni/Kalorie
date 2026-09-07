@@ -123,6 +123,10 @@ diacritics-stripped so the same search also matches a query typed without diacri
 **A2-3**, fixed — a one-off Admin SDK script, `scripts/backfill-name-folding.js`, has since
 written both fields onto every pre-existing catalogue document). Both fields stay optional on
 read, since nothing guarantees a document created outside `CreateFoodItemUseCase` carries them.
+Alongside them, `cz_name_search_terms` / `eng_name_search_terms` hold every prefix of every word
+in the name, folded the same way — see [ADR 0024](adr/0024-token-array-field-for-whole-word-search.md)
+and its own backfill script, `scripts/backfill-search-terms.js`. Also optional on read, for the
+same reason.
 
 **`foodConsumed`** (`FoodConsumedDTO`) — one logged entry. Values are **absolute for the logged
 weight**, already scaled, not per 100 g; `calories` is an `Int`. `food_item_id` points back at
@@ -258,6 +262,15 @@ fix, and therefore missing the folded fields, is still found. The diacritic fold
 Swift as `String.foldingDiacritics()`, so a second client shares the exact folding rather than
 re-deriving it. The mechanics and the limits are recorded in
 [ADR 0013](adr/0013-prefix-search-over-lowercased-name-fields.md).
+
+Two further concurrent queries match by **any word**, not only the first: `array-contains` over
+`cz_name_search_terms` / `eng_name_search_terms`, each holding every prefix of every word in the
+name (folded the same way). This is what lets "mlék" find "Polotučné mléko" — finding **A2-4**,
+fixed. The tokenisation (`searchTerms`) lives in KMP `TextKit` alongside `foldDiacritics`, for the
+same cross-client reason. See
+[ADR 0024](adr/0024-token-array-field-for-whole-word-search.md) for the field shape, the backfill
+script, and what this still doesn't do — it is a prefix match per word, not a substring match, and
+it does not change the per-query `limit(10)` or add any ranking (**A2-12** is untouched).
 
 Ranking happens **above** the use case, in `AddFoodSheetViewModel.displayedResults`, which is a
 pure computed property over three already-loaded lists:
