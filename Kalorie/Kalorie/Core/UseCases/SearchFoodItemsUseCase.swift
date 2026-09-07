@@ -52,11 +52,27 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
             hasPrefix: foldedQuery,
             limit: 10
         )
-        let (nameResults, originalNameResults, foldedNameResults, foldedOriginalNameResults) = try await (
-            byName, byOriginalName, byFoldedName, byFoldedOriginalName
+        async let byCzNameToken: [FoodItemDTO] = dataProvider.loadAsync(
+            from: Constants.Firestore.foodItems,
+            where: "cz_name_search_terms",
+            arrayContains: foldedQuery,
+            limit: 10
+        )
+        async let byEngNameToken: [FoodItemDTO] = dataProvider.loadAsync(
+            from: Constants.Firestore.foodItems,
+            where: "eng_name_search_terms",
+            arrayContains: foldedQuery,
+            limit: 10
+        )
+        let (
+            nameResults, originalNameResults, foldedNameResults, foldedOriginalNameResults, czTokenResults, engTokenResults
+        ) = try await (
+            byName, byOriginalName, byFoldedName, byFoldedOriginalName, byCzNameToken, byEngNameToken
         )
         var seen = Set<String>()
-        return (nameResults + originalNameResults + foldedNameResults + foldedOriginalNameResults)
+        return (
+            nameResults + originalNameResults + foldedNameResults + foldedOriginalNameResults + czTokenResults + engTokenResults
+        )
             .filter { seen.insert($0.id).inserted }
             .map { $0.asDomain() }
     }

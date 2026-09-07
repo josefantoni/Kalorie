@@ -16,4 +16,8 @@ extension String {
     func foldingDiacritics() -> String {
         DiacriticFoldingKt.foldDiacritics(input: self)
     }
+
+    func searchTerms() -> [String] {
+        SearchTermsKt.searchTerms(input: self)
+    }
 }

@@ -69,23 +69,15 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1. A
 
 ## Audit findings — 2. Food search and catalogue
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. A2-3, A2-5, A2-8
-and A2-9 are fixed. Nothing else here has been fixed.
-
-### Correctness
-
-- [ ] **A2-4 — Search matches prefixes only.** "mléko" does not find "Polotučné mléko", and
-  there is no way to reach it except by knowing the first word. This one *is* inherent to
-  [ADR 0013](docs/adr/0013-prefix-search-over-lowercased-name-fields.md) — a real fix means an
-  n-gram/token array field or an external search service. Worth deciding deliberately rather
-  than discovering under a support request.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. A2-3, A2-4, A2-5,
+A2-8 and A2-9 are fixed. Nothing else here has been fixed.
 
 ### Behaviour worth confirming rather than fixing
 
 - [ ] **A2-12 — Ranking cannot be added on top of the current search.** Results are capped at
-  `limit(10)` per field and Firestore returns them in index order, i.e. alphabetically by the
-  matched name. Anything cut by that limit is invisible to a re-sort, so *Rank search results by
-  frequency* cannot be implemented as a client-side reordering of `SearchFoodItemsUseCase`'s
-  output — it needs either a much larger limit (and the read cost that implies) or the frequency
-  data denormalised into the query. Constraint, not a bug; recorded so the feature is not
-  designed around a false assumption.
+  `limit(10)` per field — six fields as of [ADR 0024](docs/adr/0024-token-array-field-for-whole-word-search.md)
+  — and Firestore returns them in index order, i.e. alphabetically by the matched name. Anything
+  cut by that limit is invisible to a re-sort, so *Rank search results by frequency* cannot be
+  implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
+  much larger limit (and the read cost that implies) or the frequency data denormalised into the
+  query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
