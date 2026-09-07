@@ -45,9 +45,16 @@ reason `foldDiacritics` does: a second client writing to `foodItems` must produc
 array or its documents become unsearchable by whatever prefix a first client's user types.
 
 `SearchFoodItemsUseCase` adds two more concurrent queries, `array-contains` on
-`cz_name_search_terms` / `eng_name_search_terms` against the same folded query string already
-used against `cz_name_folded` / `eng_name_folded`, `limit(10)` each, merged and de-duplicated by
-id exactly like the existing four. This required one new query shape on
+`cz_name_search_terms` / `eng_name_search_terms` against the **last word** of the same folded
+query used against `cz_name_folded` / `eng_name_folded`, `limit(10)` each, merged and
+de-duplicated by id exactly like the existing four. The last word, not the whole folded query, is
+what gets matched: a stored array element is always a single word's prefix, so a multi-word query
+like "polotučné mlék" would never hit anything if matched whole. This query is independent of the
+other five, not a filter layered on top of them — it matches on the trailing word alone, with no
+check that any leading word in the query corresponds to anything in the candidate name. A query
+like "jablko mlék" therefore also surfaces "Polotučné mléko", which has nothing to do with
+"jablko". This is intentional: the token lookup is a loose, any-word search, not an
+all-words-must-match one — see Consequences. This required one new query shape on
 `FirestoreDataProviderProtocol` — `loadAsync(from:where:arrayContains:limit:)` — following the
 provider's one-method-per-query-shape convention.
 
@@ -71,6 +78,13 @@ configuration changes either.
 - **`array-contains` is exact-match only.** The query string must equal a stored prefix exactly
   (after the same fold), so this adds no fuzziness or typo tolerance — a query has to be a genuine
   prefix of a genuine word.
+- **The token lookup matches on the query's last word alone, regardless of the other words typed.**
+  A multi-word query is not required to match word-by-word against the candidate name — only its
+  trailing word has to hit a stored token. "jablko mlék" surfaces "Polotučné mléko" even though
+  "jablko" matches nothing in it. Chosen deliberately over the more literal-minded alternative
+  (requiring every word to match): a false positive here just adds an extra, ignorable row to the
+  result list, while requiring every word to match would silently drop a food whose name doesn't
+  happen to contain the user's earlier, less important words in order.
 - The `limit(10)` per query and Firestore's lack of relevance ranking are unchanged. **A2-12**
   stays open: results cut by the per-field limit are still invisible to any client-side re-sort,
   and now cut across six queries instead of four.

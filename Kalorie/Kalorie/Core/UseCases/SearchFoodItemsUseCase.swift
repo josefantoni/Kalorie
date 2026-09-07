@@ -28,6 +28,7 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
     func callAsFunction(query: String) async throws -> [FoodItemDomain] {
         let lowercasedQuery = query.lowercased()
         let foldedQuery = lowercasedQuery.foldingDiacritics()
+        let foldedLastWord = foldedQuery.split(separator: " ").last.map(String.init) ?? foldedQuery
         async let byName: [FoodItemDTO] = dataProvider.loadAsync(
             from: Constants.Firestore.foodItems,
             where: "cz_name_lowercase",
@@ -55,13 +56,13 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
         async let byCzNameToken: [FoodItemDTO] = dataProvider.loadAsync(
             from: Constants.Firestore.foodItems,
             where: "cz_name_search_terms",
-            arrayContains: foldedQuery,
+            arrayContains: foldedLastWord,
             limit: 10
         )
         async let byEngNameToken: [FoodItemDTO] = dataProvider.loadAsync(
             from: Constants.Firestore.foodItems,
             where: "eng_name_search_terms",
-            arrayContains: foldedQuery,
+            arrayContains: foldedLastWord,
             limit: 10
         )
         let (

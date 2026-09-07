@@ -69,6 +69,16 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
         let result = try await sut(query: "mlék")
 
         XCTAssertEqual(result.map(\.id), ["1"])
+        XCTAssertEqual(dataProvider.arrayContainsValuesByField["cz_name_search_terms"], "mlek")
+        XCTAssertEqual(dataProvider.arrayContainsValuesByField["eng_name_search_terms"], "mlek")
+    }
+
+    func test_search_withMultiWordQuery_matchesTokenFieldByLastWordOnly() async throws {
+        let (sut, dataProvider) = makeSUT()
+
+        _ = try await sut(query: "polotučné mlék")
+
+        XCTAssertEqual(dataProvider.arrayContainsValuesByField["cz_name_search_terms"], "mlek")
     }
 
     func test_search_withResultFromBothPrefixAndTokenFields_deduplicatesById() async throws {
@@ -135,6 +145,11 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
     var stubbedByEngNameFolded: [FoodItemDTO] = []
     var stubbedByCzNameToken: [FoodItemDTO] = []
     var stubbedByEngNameToken: [FoodItemDTO] = []
+    private let arrayContainsValuesLock = NSLock()
+    private var _arrayContainsValuesByField: [String: String] = [:]
+    var arrayContainsValuesByField: [String: String] {
+        arrayContainsValuesLock.withLock { _arrayContainsValuesByField }
+    }
 
     // MARK: - Functions
 
@@ -153,6 +168,7 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
     }
 
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] {
+        arrayContainsValuesLock.withLock { _arrayContainsValuesByField[field] = value }
         switch field {
         case "cz_name_search_terms": return stubbedByCzNameToken as? [T] ?? []
         case "eng_name_search_terms": return stubbedByEngNameToken as? [T] ?? []
