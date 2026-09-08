@@ -47,10 +47,21 @@ area produced are listed below.
 Findings are grouped by area and numbered `A<area>-<n>`. Each is a decision still to make unless
 marked `[x]`.
 
+A second pass followed on 2026-09-08, after the ~50 commits that closed almost all of the first
+audit's findings. Its subject was different: not undocumented code, but **whether the living
+description still matches the code**, since `ARCHITECTURE.md` is the one document that is meant
+to be updated rather than frozen. It checked documentation coverage, doc-to-code drift, decisions
+that shipped without a record, and use-case test coverage — it did **not** re-read the source
+file by file, so it is not a replacement for a code-level audit of any area. Findings from that
+pass are A1-13 upward, A2-13 upward, A3-9 upward, A5-12 upward, and the new area 6.
+
 
 ## Audit findings — 1. Data layer and Firestore model
 
-From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1. A1-8 is closed.
+From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1. A1-8 is closed;
+A1-13 onward are from the 2026-09-08 documentation pass. A1-14 is closed by
+[ADR 0025](docs/adr/0025-food-item-kind-discriminates-entry-origin.md); A1-13 and A1-15 are closed
+by describing `food_item_kind` in § 1.4 and adding the `arrayContains` row to § 1.5.
 
 ### Data model consistency
 
@@ -70,7 +81,8 @@ From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 1. A
 ## Audit findings — 2. Food search and catalogue
 
 From the review recorded in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2. A2-3, A2-4, A2-5,
-A2-8 and A2-9 are fixed. Nothing else here has been fixed.
+A2-8 and A2-9 are fixed. Nothing else here has been fixed; A2-13 onward are from the 2026-09-08
+documentation pass.
 
 ### Behaviour worth confirming rather than fixing
 
@@ -81,3 +93,58 @@ A2-8 and A2-9 are fixed. Nothing else here has been fixed.
   implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
   much larger limit (and the read cost that implies) or the frequency data denormalised into the
   query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
+
+### The tokenisation exists twice
+
+A2-13 is closed by [ADR 0026](docs/adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md):
+the JS copy is accepted as a deliberate exception, pinned to
+`TextKit/fixtures/text-kit-cases.json`, which `scripts/lib/diacritics.test.js` and
+`scripts/lib/search-terms.test.js` load directly and `DiacriticFoldingTest` /
+`SearchTermsTest` mirror by hand (TextKit has no JVM/JS test target to read the file itself).
+
+A2-14 is closed: the catalogue is Czech-only by design, and a Slovak user gets Czech names — see
+[ARCHITECTURE.md](docs/ARCHITECTURE.md) § 2.2. No map or backfill change.
+
+## Audit findings — 3. Dashboard and meal types
+
+Every finding from the first pass is closed. These are from the 2026-09-08 documentation pass over
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 3. A3-9 is closed by the new § 3.7, which describes
+the delete path and what it does to design 0006's fourth argument.
+
+A3-10 is closed: `FetchFoodsConsumedForMonthUseCaseTests` and `UpdateMealTypeTimesUseCaseTests` now
+cover both.
+
+## Audit findings — 4. Food entry flow
+
+Every finding from the first pass is closed. The 2026-09-08 documentation pass over
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 4 produced A4-10, now closed: § 4.1 and § 4.5 say
+what the detail screen actually changes, and where deleting an entry lives instead.
+
+## Audit findings — 5. Cross-cutting concerns
+
+Every finding from the first pass is closed. The 2026-09-08 documentation pass over
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) § 5 produced A5-12, now closed: § 5.5 counts nine
+files and names `Double+Extension` and `View+Loader`.
+
+## Audit findings — 6. Documentation coverage
+
+New area, opened by the 2026-09-08 pass. These are not findings about one part of the app but
+about what `docs/` does and does not reach. A6-2 is closed — `docs/README.md` → *Do not update a
+shipped design doc* now states which post-ship edits are allowed inline (the Outcome section, or a
+marked `iOS`-scoped update) and which need their own ADR (`Backend` / `Cross-platform`), which is
+also what closed A1-14.
+
+- [ ] **A6-1 — Authentication and the account screen have no living description anywhere.**
+  `ARCHITECTURE.md` has five sections and none covers auth, yet the app carries `Core/Auth/` (8
+  files) and `Features/Account/` (3 files). Measured by name: `AccountView`, `PendingMergeSnapshot`
+  and `DeleteAccount` appear **zero** times in the document; `AuthStateObserver` and
+  `SignInWithApple` appear once each, in passing. The omission is historically explainable — auth
+  was the one area that had a design doc *before* implementation, so it fell outside the
+  "documenting what already exists" pass that produced the other five sections — but
+  [design 0001](docs/design/0001-user-authentication.md) and
+  [0002](docs/design/0002-google-sign-in.md) are frozen at 2026-08-07/08 and predate the re-auth
+  guard before account deletion (A1-2), the `Log.warning`/`Log.error` calls now in the `try?`
+  branches (A5-2), and the Google session clearing. So the most security-sensitive area of the app
+  is the one with no current description. Fix is a § 6 written the same way as the others, with its
+  own *Read first:* line.
+

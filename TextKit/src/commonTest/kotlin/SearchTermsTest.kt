@@ -1,25 +1,23 @@
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+// The exact-value case below mirrors TextKit/fixtures/text-kit-cases.json → searchTerms. Kept in
+// sync by hand with the JS suite in scripts/lib/search-terms.test.js, which loads that file
+// directly — TextKit has no JVM/JS test target able to read a repo file at test time. See
+// ADR 0026.
 class SearchTermsTest {
 
     @Test
-    fun searchTerms_withSingleWord_returnsEveryPrefix() {
+    fun searchTerms_matchesSharedFixture() {
         assertEquals(listOf("t", "tv", "tva", "tvar", "tvaro", "tvaroh"), searchTerms("Tvaroh"))
-    }
-
-    @Test
-    fun searchTerms_findsAnyWordByAnyOfItsPrefixes() {
-        val terms = searchTerms("Polotučné mléko")
-        assertEquals(true, terms.contains("mleko"))
-        assertEquals(true, terms.contains("mlek"))
-        assertEquals(true, terms.contains("m"))
-        assertEquals(true, terms.contains("polotucne"))
-    }
-
-    @Test
-    fun searchTerms_lowercasesAndFoldsDiacritics() {
-        assertEquals(true, searchTerms("ROHLÍK").contains("rohlik"))
+        assertEquals(
+            listOf(
+                "p", "po", "pol", "polo", "polot", "polotu", "polotuc",
+                "polotucn", "polotucne", "m", "ml", "mle", "mlek", "mleko"
+            ),
+            searchTerms("Polotučné mléko")
+        )
+        assertEquals(listOf("r", "ro", "roh", "rohl", "rohli", "rohlik"), searchTerms("ROHLÍK"))
     }
 
     @Test

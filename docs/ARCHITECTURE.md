@@ -126,11 +126,19 @@ read, since nothing guarantees a document created outside `CreateFoodItemUseCase
 Alongside them, `cz_name_search_terms` / `eng_name_search_terms` hold every prefix of every word
 in the name, folded the same way — see [ADR 0024](adr/0024-token-array-field-for-whole-word-search.md)
 and its own backfill script, `scripts/backfill-search-terms.js`. Also optional on read, for the
-same reason.
+same reason. Both backfill scripts re-implement TextKit's folding and tokenisation in JS, since
+Node cannot call the compiled XCFramework; [ADR 0026](adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md)
+accepts that duplication and pins both sides to a shared fixture,
+`TextKit/fixtures/text-kit-cases.json`.
 
 **`foodConsumed`** (`FoodConsumedDTO`) — one logged entry. Values are **absolute for the logged
 weight**, already scaled, not per 100 g; `calories` is an `Int`. `food_item_id` points back at
-the catalogue entry and is required (no optional, no backfill — see `TODO.md`). This DTO's
+the catalogue entry and is required (no optional, no backfill — see `TODO.md`), and
+`food_item_kind` says what it points at: `catalogue` (a `foodItems` document), `external` (an
+OpenFoodFacts barcode that resolves against nothing — ADR 0012) or `created_meal` (a
+`myCreatedMeals` UUID). It is required for the same reason `food_item_id` is, and an absent or
+unrecognised value fails the whole day's fetch — see
+[ADR 0025](adr/0025-food-item-kind-discriminates-entry-origin.md). This DTO's
 field names diverge from the rest of the model (`carbohydrate_sugar` vs.
 `carbohydrate_pure_sugar`, `fat_unsaturated` vs. `fat_unsaturated_fatty_acids`) — finding
 **A1-8**. It also carries `energy_kj`, `fat_saturated` and `fiber`, all optional so that entries
@@ -142,7 +150,9 @@ falls back to `MacroKit.energyKJFromMacros` when absent, `fat_saturated` and `fi
 midnight (`endMinutes < startMinutes`); `MealKit` owns that arithmetic.
 
 **`favouriteFoods`** (`FavouriteFoodDTO`) — a full copy of the `FoodItemDomain` plus
-`favourited_at`. Fetched ordered by `favourited_at` descending, limit 50.
+`favourited_at`. The document id is the food's own id, and `food_item_kind` says which of the
+three things that id is, exactly as on `foodConsumed` (ADR 0025) — required here too. Fetched
+ordered by `favourited_at` descending, limit 50.
 
 **`myCreatedMeals`** (`MyCreatedMealDTO`) — `ingredients` is an **array of nested maps**
 (`MyCreatedMealIngredientDTO`), each a nutrition snapshot plus `grams`. Fetched ordered by
@@ -162,6 +172,7 @@ builder:
 | `loadFromServerAsync(from:)` | same, `source: .server` — bypasses the offline cache |
 | `loadAsync(from:where:isGreaterThanOrEqualTo:isLessThan:)` | numeric range, used for date windows |
 | `loadAsync(from:where:hasPrefix:limit:)` | range over `[prefix, prefix + )` — prefix search |
+| `loadAsync(from:where:arrayContains:limit:)` | `whereField(_:arrayContains:)` — token search over `*_name_search_terms`, see [ADR 0024](adr/0024-token-array-field-for-whole-word-search.md) |
 | `loadAsync(from:where:isEqualTo:)` | equality, `limit(1)`, returns `T?` |
 | `loadAsync(id:from:)` | `document(id).getDocument()` — one document by key, returns `T?` |
 | `loadFromServerAsync(id:from:)` | same, `source: .server` — one document, bypasses the offline cache |
@@ -261,7 +272,11 @@ fix, and therefore missing the folded fields, is still found. The diacritic fold
 (`foldDiacritics`, a Czech accent-to-base character map) lives in KMP `TextKit`, bridged into
 Swift as `String.foldingDiacritics()`, so a second client shares the exact folding rather than
 re-deriving it. The mechanics and the limits are recorded in
-[ADR 0013](adr/0013-prefix-search-over-lowercased-name-fields.md).
+[ADR 0013](adr/0013-prefix-search-over-lowercased-name-fields.md). The fold map covers only the
+15 Czech diacritic pairs; Slovak-specific characters (`ä ô ĺ ľ ŕ`, absent from Czech) pass through
+unfolded. This is by design, not a gap: `foodItems` is a Czech-first catalogue and § 5.3 already
+has `BilingualNamed.displayName` show a Slovak user the Czech name — a Slovak diacritic in a
+catalogue name is not an expected case to search around.
 
 Two further concurrent queries match by **any word**, not only the first: `array-contains` over
 `cz_name_search_terms` / `eng_name_search_terms`, each holding every prefix of every word in the
@@ -574,6 +589,24 @@ changing the day carry over a sensible time of day:
 handler and pull-to-refresh both call it, but it is a no-op until `onAppear`'s initial load has
 completed, so the month is never fetched twice on launch.
 
+### 3.7 Deleting a logged entry
+
+A trailing swipe on a food row calls `onDeleteRequested`, which stages the entry in
+`foodPendingDeletion` and raises a confirmation alert; `onDeleteConfirmed` then calls
+`DeleteFoodConsumedUseCase` — a single `deleteAsync(id:from:)` against the user's `foodConsumed`
+collection — invalidates the day's month cache entry and reloads it, exactly as the update path
+does. There is no undo and no soft-delete flag: the document is gone, and the confirmation alert
+is the only thing standing in front of that. Failure surfaces as
+`L10n.Dashboard.errorDeleteFailed` and the row stays.
+
+The delete lives on the Dashboard row only — `FoodConsumedDetail` (§ 4.5) edits an entry, it does
+not remove one.
+
+This path did not exist when [design 0006](design/0006-own-daily-meals.md) was written, and its
+fourth argument for Variant A — *"Variant B would therefore let one tap deposit eight permanently
+unremovable rows"* — is no longer true. The design doc is frozen and stays as written; the
+decision it reached still stands, since its other three arguments are untouched.
+
 ---
 
 ## 4. Food entry flow
@@ -592,11 +625,15 @@ the favourite button is hidden rather than disabled).
 AddFoodSheet ──select──▶ FoodQuantity ──confirm──▶ SaveFoodConsumedUseCase ──▶ foodConsumed
                                                                                     │
 Dashboard ────tap────▶ FoodConsumedDetail ──save──▶ UpdateFoodConsumedUseCase ──────┘
+          └───swipe──▶ (confirm) ──────────────────▶ DeleteFoodConsumedUseCase ──────┘
 ```
 
 `AddFoodSheet` answers *which food* (§ 2). `FoodQuantity` answers *how much*, and is the only
-screen that writes a new entry. `FoodConsumedDetail` is the after-the-fact editor, and the only
-thing it can change is the weight.
+screen that writes a new entry. `FoodConsumedDetail` is the after-the-fact editor: it changes the
+weight and, since [ADR 0022](adr/0022-meal-assignment-may-be-pinned-by-the-user.md), the meal type
+the entry is pinned to — its single Save button writes whichever of the two actually changed, so
+`meal_type_id` is emphatically **not** written only at logging time (§ 3.2). Removing an entry is
+not on that screen at all; it is a swipe on the Dashboard row (§ 3.7).
 
 Both quantity screens are assembled by `AddFoodSheetConfigurator.createView(date:…)`, which
 takes the Dashboard's `selectedDay` and threads it down to `FoodQuantityViewModel.selectedDate`.
@@ -662,9 +699,11 @@ rounded value always implied, just no longer compounding on every subsequent edi
 ### 4.5 The detail screen
 
 `FoodConsumedDetailViewModel` keeps `weight` (the edited value) alongside `savedWeight` (what is
-on the server), so `hasWeightChanged` can gate the Save button. `food` itself is never mutated,
-which is what keeps repeated edits correct: every rescale is computed against the originally
-loaded weight, not against the previous edit.
+on the server), so `hasWeightChanged` can gate the Save button together with `hasMealTypeChanged`
+— `hasChanges` is the union of the two, and `onSave` writes each half only if it moved. `food`
+itself is replaced only after a write succeeds (`withScaledWeight`, `withMealTypeId`), never while
+the user is editing, which is what keeps repeated edits correct: `scaledMacros` always scales from
+the last persisted state, so typing 200 then 150 gives the same result as typing 150 outright.
 
 `onAppear` runs two lookups concurrently: whether the entry is favourited
 (`IsFavouriteFoodUseCase`) and whether its catalogue item still exists, via
@@ -782,14 +821,17 @@ values live.
 
 ### 5.5 Extensions
 
-`Core/Extensions/` is eight files of small, mostly single-purpose helpers. Two carry real
-behaviour and are worth knowing about before adding a third:
+`Core/Extensions/` is nine files of small, mostly single-purpose helpers. Four carry real
+behaviour and are worth knowing about before adding a fifth:
 
 - `Date+Extension` — `minutesSinceMidnight` (the bridge into `MealKit`, see
   [ADR 0014](adr/0014-meal-assignment-by-time-of-day-only.md)), `formatCacheKey(with:)` (the
   Dashboard's cache-key builder — locale-independent via a cached `en_US_POSIX` formatter per
   format string), and the `withAddedMinutes` / `withAddedHours` arithmetic the meal sheet uses.
 - `String+Extension` — HTML entity decoding, delegating to `TextKit`.
+- `Double+Extension` — `formattedGrams`, the locale-aware gram formatter every screen goes
+  through (see § 5.3).
+- `View+Loader` — `View.loader(_:)`, the shared busy indicator every screen overlays (see § 5.2).
 
 The rest (`CGFloat`, `Int`, `TimeInterval`, `NumberFormatter`, `UIWindowScene`) are one or two
 members each.

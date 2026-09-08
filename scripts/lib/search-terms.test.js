@@ -1,22 +1,18 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { searchTerms } = require('./search-terms');
 
-test('searchTerms_withSingleWord_returnsEveryPrefix', () => {
-  assert.deepEqual(searchTerms('Tvaroh'), ['t', 'tv', 'tva', 'tvar', 'tvaro', 'tvaroh']);
-});
+const fixture = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '..', '..', 'TextKit', 'fixtures', 'text-kit-cases.json'), 'utf8')
+);
 
-test('searchTerms_findsAnyWordByAnyOfItsPrefixes', () => {
-  const terms = searchTerms('Polotučné mléko');
-  assert.ok(terms.includes('mleko'));
-  assert.ok(terms.includes('mlek'));
-  assert.ok(terms.includes('m'));
-  assert.ok(terms.includes('polotucne'));
-});
-
-test('searchTerms_lowercasesAndFoldsDiacritics', () => {
-  assert.ok(searchTerms('ROHLÍK').includes('rohlik'));
-});
+for (const { input, expected } of fixture.searchTerms) {
+  test(`searchTerms(${JSON.stringify(input)}) matches the shared fixture`, () => {
+    assert.deepEqual(searchTerms(input), expected);
+  });
+}
 
 test('searchTerms_collapsesRepeatedWhitespace_andHasNoEmptyTerms', () => {
   assert.ok(!searchTerms('Tvaroh   light').includes(''));
