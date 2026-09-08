@@ -29,6 +29,25 @@ implementation notes to it turns earlier sections into lies — "what is missing
 that now exist, "decisions to make" describes decisions already made. If the design turned out
 wrong, write a new ADR that supersedes it; do not rewrite history.
 
+The one exception is the **Outcome** section itself: the template already has it "filled in
+once" after shipping, to record what actually happened against the plan. That is the design doc
+doing its job, not an update to it.
+
+A **genuinely new decision** made after shipping — not a correction of what the Outcome section
+already covers, a fact that turns out not to hold — is a second decision, not an outcome, and
+where it goes depends on scope:
+
+- **`Backend` or `Cross-platform`** — MUST get its own ADR. A second client, and
+  `ARCHITECTURE.md`'s per-section *Read first:* lists, discover obligations by scanning the ADR
+  index; a paragraph inserted into an already-frozen design doc is invisible to both.
+- **`iOS`-only** — MAY be recorded as a clearly marked, dated addition to the design doc (e.g. a
+  `**Update — ...**` paragraph), since no second client depends on finding it anywhere else and
+  there is no supersession chain to maintain.
+
+So a design doc edited after shipping is not itself a finding — check first whether the edit is
+the Outcome section, a marked `iOS`-scoped update, or an undeclared `Backend` /
+`Cross-platform` decision with no ADR behind it. Only the last of those is the problem.
+
 ### Documenting code that already exists
 
 Most of the app was written before this process existed. Documenting it retroactively is worth
@@ -204,3 +223,7 @@ understanding why.
 | [0020](adr/0020-alertitem-carries-an-optional-message.md) | `AlertItem` carries an optional message alongside its title | Accepted | iOS |
 | [0021](adr/0021-meal-type-ids-are-uuids.md) | Meal type ids are UUIDs, assigned client-side at creation | Accepted | Backend, Cross-platform |
 | [0022](adr/0022-meal-assignment-may-be-pinned-by-the-user.md) | A logged food may be pinned to a meal type, overriding the time-of-day rule | Accepted | Backend, Cross-platform |
+| [0023](adr/0023-external-search-gate-includes-favourites-and-meals.md) | External search fallback gate description corrected — favourites and saved meals count as "found" | Accepted | Cross-platform |
+| [0024](adr/0024-token-array-field-for-whole-word-search.md) | A per-word prefix array closes the "second word" gap in catalogue search | Accepted | Backend, Cross-platform |
+| [0025](adr/0025-food-item-kind-discriminates-entry-origin.md) | `food_item_kind` discriminates what `food_item_id` points to | Accepted | Backend, Cross-platform |
+| [0026](adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md) | The JS backfill scripts' TextKit duplication is governed by a shared fixture | Accepted | Backend, Cross-platform |

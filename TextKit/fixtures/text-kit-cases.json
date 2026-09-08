@@ -1,0 +1,26 @@
+{
+  "foldDiacritics": [
+    { "input": "Plain text", "expected": "Plain text" },
+    { "input": "áčďěéňóřšťúůýž", "expected": "acdeenorstuuyz" },
+    { "input": "ÁČĎĚÉŇÓŘŠŤÚŮÝŽ", "expected": "ACDEENORSTUUYZ" },
+    { "input": "rohlík", "expected": "rohlik" },
+    { "input": "Polotučné mléko", "expected": "Polotucne mleko" }
+  ],
+  "searchTerms": [
+    {
+      "input": "Tvaroh",
+      "expected": ["t", "tv", "tva", "tvar", "tvaro", "tvaroh"]
+    },
+    {
+      "input": "Polotučné mléko",
+      "expected": [
+        "p", "po", "pol", "polo", "polot", "polotu", "polotuc",
+        "polotucn", "polotucne", "m", "ml", "mle", "mlek", "mleko"
+      ]
+    },
+    {
+      "input": "ROHLÍK",
+      "expected": ["r", "ro", "roh", "rohl", "rohli", "rohlik"]
+    }
+  ]
+}
