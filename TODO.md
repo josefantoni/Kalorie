@@ -134,17 +134,8 @@ shipped design doc* now states which post-ship edits are allowed inline (the Out
 marked `iOS`-scoped update) and which need their own ADR (`Backend` / `Cross-platform`), which is
 also what closed A1-14.
 
-- [ ] **A6-1 — Authentication and the account screen have no living description anywhere.**
-  `ARCHITECTURE.md` has five sections and none covers auth, yet the app carries `Core/Auth/` (8
-  files) and `Features/Account/` (3 files). Measured by name: `AccountView`, `PendingMergeSnapshot`
-  and `DeleteAccount` appear **zero** times in the document; `AuthStateObserver` and
-  `SignInWithApple` appear once each, in passing. The omission is historically explainable — auth
-  was the one area that had a design doc *before* implementation, so it fell outside the
-  "documenting what already exists" pass that produced the other five sections — but
-  [design 0001](docs/design/0001-user-authentication.md) and
-  [0002](docs/design/0002-google-sign-in.md) are frozen at 2026-08-07/08 and predate the re-auth
-  guard before account deletion (A1-2), the `Log.warning`/`Log.error` calls now in the `try?`
-  branches (A5-2), and the Google session clearing. So the most security-sensitive area of the app
-  is the one with no current description. Fix is a § 6 written the same way as the others, with its
-  own *Read first:* line.
+A6-1 is closed: [ARCHITECTURE.md](docs/ARCHITECTURE.md) § 6 now covers `Core/Auth/` and
+`Features/Account/`, including the three things the frozen design docs predate — the re-auth guard
+before account deletion (A1-2), the `Log.warning`/`Log.error` calls in the `try?` branches (A5-2),
+and Google session clearing.
 

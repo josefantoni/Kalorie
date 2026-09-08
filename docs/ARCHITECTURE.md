@@ -19,6 +19,7 @@ are out of date: a decision recorded in one is still in force.
 3. [Dashboard and meal types](#3-dashboard-and-meal-types)
 4. [Food entry flow](#4-food-entry-flow)
 5. [Cross-cutting concerns](#5-cross-cutting-concerns)
+6. [Authentication](#6-authentication)
 
 ---
 
@@ -835,3 +836,167 @@ behaviour and are worth knowing about before adding a fifth:
 
 The rest (`CGFloat`, `Int`, `TimeInterval`, `NumberFormatter`, `UIWindowScene`) are one or two
 members each.
+
+---
+
+## 6. Authentication
+
+**Scope:** `Backend` for the security rules' dependence on `request.auth.uid` (see § 1.6);
+`Cross-platform` for the anonymous-first identity model and the merge algorithm; `iOS` for the
+provider adapters, the on-disk snapshot format and the account screen.
+
+**Read first:** [design 0001](design/0001-user-authentication.md) (anonymous-first identity,
+Apple sign-in, the merge algorithm), [design 0002](design/0002-google-sign-in.md) (Google as a
+second provider, identity collisions), [ADR 0001](adr/0001-anonymous-firebase-auth-as-device-identity.md),
+[ADR 0002](adr/0002-merge-anonymous-data-before-switching-accounts.md),
+[ADR 0003](adr/0003-separate-auth-command-provider.md),
+[ADR 0004](adr/0004-migrate-usecase-exposes-two-methods.md),
+[ADR 0005](adr/0005-no-shared-sign-in-provider-abstraction.md),
+[ADR 0006](adr/0006-google-sign-in-identity-collisions.md). Both design docs are frozen at
+2026-08-07/08 and predate three things this section covers that exist only in the code: the
+re-auth guard in front of account deletion (§ 6.3), the `Log.warning`/`Log.error` calls in `try?`
+branches (§ 6.4), and Google session clearing (§ 6.1).
+
+### 6.1 Reading vs. mutating auth state
+
+`AuthProviderProtocol` (`AuthProvider.swift`) is read-only — `userId`, `isAnonymous`,
+`displayName`, `lastSignInDate`, `linkedProviderKind` — every property computed straight from
+`Auth.auth().currentUser`. `AuthCommandProviderProtocol` (`AuthCommandProvider.swift`) holds every
+mutation: `link`, `signIn`, `reauthenticate`, `signOut`, `updateDisplayName`,
+`deleteCurrentUser`. The split exists so the eight persistence use cases that only ever need a
+`userId` keep depending on the narrow read-only protocol instead of carrying auth mutations they
+never call — see [ADR 0003](adr/0003-separate-auth-command-provider.md).
+
+`linkedProviderKind` maps `providerData.first?.providerID` (`"apple.com"` / `"google.com"`) to
+`AuthProviderKind`. The `.first` relies on an invariant the type itself does not enforce — an
+account never carries more than one linked provider — which is instead guaranteed by
+`LinkOrMergeCredentialUseCase` (§ 6.2) refusing to link a second one.
+
+Each provider gets its own sign-in adapter with no shared protocol above them:
+`AppleSignInProvider` wraps a delegate-driven `ASAuthorizationController`, generating and hashing
+its own nonce via `NonceGenerator`; `GoogleSignInProvider` wraps `GIDSignIn`, resolving the client
+ID from `FirebaseApp.app()?.options.clientID` rather than duplicating it in `Info.plist`. Per
+[ADR 0005](adr/0005-no-shared-sign-in-provider-abstraction.md) the two signatures are irreducibly
+different — Apple hands back `(ASAuthorization, nonce)` through a delegate callback, Google's SDK
+drives its own flow and takes nothing — so a shared protocol above them would unify a couple of
+lines at the cost of a lowest-common-denominator signature. Both adapters are `@MainActor`, since
+both need a live presenting window; on `GoogleSignInProvider` that inference extends to the whole
+struct including its synthesized initializer, which is why the initializer is marked `nonisolated`
+by hand on both it and its `Fake` — an implementation detail design 0002's Outcome section flags as
+unanticipated. `GoogleSessionProvider.clearSession()` is the third small wrapper here: a one-method
+protocol over `GIDSignIn.sharedInstance.signOut()`, used only by `SignOutUseCase` (§ 6.2) because
+Firebase forgetting the user does not make the Google SDK forget its cached session, and design
+0002 requires that signing out actually offers the account chooser again.
+
+`ReauthenticateUseCase`, added 2026-09-01 and covered by neither design doc, is a third consumer of
+the same two adapters: it switches on `authProvider.linkedProviderKind` to decide which provider to
+re-run, then feeds the resulting credential to `authCommandProvider.reauthenticate(with:)`. See
+§ 6.3 for why it exists.
+
+### 6.2 Anonymous-first identity and the merge
+
+Every install signs in anonymously on first launch and keeps that account as its identity for as
+long as the user stays signed out — `AuthStateObserver` calls `Auth.auth().signInAnonymously`
+whenever the auth-state listener reports no user. This is the identity model
+[ADR 0001](adr/0001-anonymous-firebase-auth-as-device-identity.md) chose over a client-generated
+identifier: only a Firebase UID is verifiable by `request.auth.uid` in the security rules (§ 1.6),
+so it is what makes owner-only rules possible at all.
+
+Signing in goes through `LinkOrMergeCredentialUseCase`, which is provider-agnostic — it takes a
+bare `AuthCredential`, never an `ASAuthorization` or a Google type — and tries `link()` first. Three
+outcomes, all from [ADR 0006](adr/0006-google-sign-in-identity-collisions.md):
+
+- **Succeeds** — the anonymous account is upgraded in place, same UID, nothing to migrate.
+- **`credentialAlreadyInUse`** — the credential already belongs to another Firebase account (the
+  normal case on a second device). Handled by migrating, below.
+- **`emailAlreadyInUse`** — the credential's e-mail belongs to an account reached through the
+  *other* provider. `LinkOrMergeCredentialUseCase` throws
+  `LinkOrMergeCredentialError.accountExistsWithAnotherProvider`, which `AccountViewModel` catches
+  by name to show a "sign in with Apple instead" alert rather than the generic sign-in failure.
+  There is deliberately no "proceed with Google anyway" option — seeing this error at all depends
+  on the Firebase project staying on *one account per email address*; the alternative setting
+  removes the error and makes the next case (below) the unconditional behaviour instead.
+- **Anything else that links cleanly** — an e-mail mismatch (common with Apple's private relay
+  address) reaches no error path at all and silently produces a second, unrelated account. Case 3
+  in ADR 0006's table; accepted as undetectable rather than mitigated.
+
+The migrate path is `MigrateAnonymousDataUseCase`, one type with two methods rather than a single
+`callAsFunction` — see [ADR 0004](adr/0004-migrate-usecase-exposes-two-methods.md) for why the
+convention is deviated from here. `migrate(fromAnonymousUserId:credential:)` is the live path: it
+loads `foodConsumed`, `favouriteFoods` and `myCreatedMeals` for the anonymous user concurrently via
+`async let`, writes the result to disk as a `PendingMergeSnapshot` *before* calling
+`authCommandProvider.signIn(with:)`, then replays the snapshot under the new UID and deletes it.
+The disk write has to come first: the moment `signIn` succeeds, owner-only security rules mean the
+client can no longer read the anonymous account's data, so anything not already captured is
+unreachable — [ADR 0002](adr/0002-merge-anonymous-data-before-switching-accounts.md) is the record
+of why this ordering is the non-obvious part. The replay (`writeAndCleanup`) is idempotent because
+every document keeps its original id through `batchSetAsync`, so resuming after a crash overwrites
+rather than duplicates (§ 1.5 covers `batchSetAsync`'s own chunking behaviour, which this use case
+is explicitly designed to tolerate). Meal types are never merged — their historical ids collided
+across accounts — so the signed-in account's own layout always wins.
+
+`resumeIfNeeded()` is the crash-recovery path, called once per launch from
+`AuthStateObserver.resumePendingMergeOnce` and guarded by `hasAttemptedPendingMergeResume`: without
+that guard, the `signIn(with:)` call inside `migrate` would re-trigger the very same auth-state
+listener that calls `resumeIfNeeded`, running the resume concurrently with the migrate that is
+still in flight. On resume, a snapshot whose `sourceAnonymousUserId` still matches the current user
+means the app crashed before `signIn` ever completed, so the snapshot is simply deleted; otherwise
+`writeAndCleanup` runs exactly as it would from the live path. `SignOutUseCase` deletes any
+snapshot before signing out, for a mirror-image reason: sign-out immediately provisions a fresh
+anonymous UID, and a snapshot destined for the *previous* account would otherwise be resumed
+against it on the next launch.
+
+`AuthStateObserver.isMerging` is a counter (`activeMergeCount`), not a plain `Bool`, because two
+independent call sites raise it concurrently — this resume, and the live merge
+`AccountViewModel.onSignInWithAppleTapped` / `onSignInWithGoogleTapped` start via the same
+`MergeStatusReporting` protocol — and whichever finishes first must not tear down the overlay while
+the other is still running. `KalorieApp` (§ 5.1) shows the merge overlay and disables hit-testing
+off this flag.
+
+### 6.3 The account screen and deleting an account
+
+`AccountConfigurator.createView()` wires one `AuthCommandProvider`, one `PendingMergeSnapshotStore`
+and one `LinkOrMergeCredentialUseCase` into `SignOutUseCase`, both sign-in use cases,
+`DeleteAccountUseCase` and `ReauthenticateUseCase` — the only feature configurator assembling this
+many use cases around one shared pair of providers. `AccountViewModel.State` is `idle` / `linking`
+/ `deletingAccount`, driving the same `View.loader(_:)` overlay every other feature uses (§ 5.2).
+
+Both sign-in handlers filter user cancellation before it reaches the generic alert path —
+`ASAuthorizationError.canceled` for Apple, `GIDSignInError.canceled` for Google — matching design
+0002's note that an unfiltered cancellation looks like a spurious failure every time the sheet is
+dismissed.
+
+`DeleteAccountUseCase.callAsFunction(skipDataWipe:)` checks `authProvider.lastSignInDate` against
+`Constants.Auth.recentLoginThreshold` (4 minutes) **before** touching Firestore, and throws
+`DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: false)` immediately if the session is
+stale — this upfront guard is finding **A1-2**, fixed: previously the same failure was discovered
+only after `wipeFirestoreData` had already run, by `authCommandProvider.deleteCurrentUser()`
+itself throwing `requiresRecentLogin`. That second path still exists as a fallback for the race
+where the session goes stale between the check and the call, and is distinguished by
+`dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
+Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods` and
+`myCreatedMeals` document by document, then the `users` profile document last — the profile delete
+alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
+not the kind of correctness problem an orphaned collection would be.
+
+`AccountViewModel.onReauthenticateConfirmed` is what turns the guard into a usable flow: it shows
+an alert naming the reauthenticate button, calls `ReauthenticateUseCase` (§ 6.1) — which resigns in
+through whichever provider is already linked — and on success calls `performDelete()` again with
+`isDataAlreadyWiped` carried over from the first attempt. Neither design doc describes any of this;
+it was added afterward specifically to close the gap the guard above exposes.
+
+### 6.4 What error handling does differently here
+
+This area's `catch` blocks join § 5.2's typed-error-switch category rather than inventing a new
+convention: `LinkOrMergeCredentialError.accountExistsWithAnotherProvider` and
+`DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted:)` sit alongside `CreateFoodItemError`
+and `CreateMealTypeError` as the enums a view model switches over by case rather than collapsing to
+`L10n.Common.errorUnknown`.
+
+What is specific to auth is where `Log.warning` / `Log.error` sit inside `try?`-shaped code —
+finding **A5-2**, fixed. `SignInWithAppleUseCase.saveProfileIfNeeded` and its Google counterpart
+each wrap `updateDisplayName` and the profile `setAsync` in their own `do/catch` that only logs: a
+failed profile write must not fail the sign-in it is attached to, but before this fix the failure
+was invisible even in Crashlytics. `AuthStateObserver.resumePendingMergeOnce` logs the same way
+around `resumeIfNeeded()` — a failed crash-recovery merge must not block app launch, but it must
+not vanish silently either.
