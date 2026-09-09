@@ -15,6 +15,7 @@ struct PendingMergeSnapshot: Codable {
     let foodConsumed: [FoodConsumedDTO]
     let favouriteFoods: [FavouriteFoodDTO]
     let myCreatedMeals: [MyCreatedMealDTO]
+    let foodItemPortions: [FoodItemPersonalPortionsDTO]
 
     // MARK: - Init
 
@@ -22,12 +23,14 @@ struct PendingMergeSnapshot: Codable {
         sourceAnonymousUserId: String,
         foodConsumed: [FoodConsumedDTO],
         favouriteFoods: [FavouriteFoodDTO],
-        myCreatedMeals: [MyCreatedMealDTO]
+        myCreatedMeals: [MyCreatedMealDTO],
+        foodItemPortions: [FoodItemPersonalPortionsDTO] = []
     ) {
         self.sourceAnonymousUserId = sourceAnonymousUserId
         self.foodConsumed = foodConsumed
         self.favouriteFoods = favouriteFoods
         self.myCreatedMeals = myCreatedMeals
+        self.foodItemPortions = foodItemPortions
     }
 
     init(from decoder: Decoder) throws {
@@ -36,6 +39,7 @@ struct PendingMergeSnapshot: Codable {
         foodConsumed = try container.decode([FoodConsumedDTO].self, forKey: .foodConsumed)
         favouriteFoods = try container.decodeIfPresent([FavouriteFoodDTO].self, forKey: .favouriteFoods) ?? []
         myCreatedMeals = try container.decodeIfPresent([MyCreatedMealDTO].self, forKey: .myCreatedMeals) ?? []
+        foodItemPortions = try container.decodeIfPresent([FoodItemPersonalPortionsDTO].self, forKey: .foodItemPortions) ?? []
     }
 }
 

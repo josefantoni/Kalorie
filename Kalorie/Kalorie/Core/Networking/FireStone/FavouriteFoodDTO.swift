@@ -29,11 +29,12 @@ struct FavouriteFoodDTO: Codable {
     let protein: Double
     let salt: Double
     let favouritedAt: TimeInterval
+    let portions: [FoodPortionDTO]?
 
     // MARK: - Coding keys
 
     enum CodingKeys: String, CodingKey {
-        case id, weight, date, fat, carbohydrate, protein, salt, fiber
+        case id, weight, date, fat, carbohydrate, protein, salt, fiber, portions
         case czName = "cz_name"
         case engName = "eng_name"
         case energyKJ = "energy_kj"
@@ -65,6 +66,7 @@ struct FavouriteFoodDTO: Codable {
         protein = item.protein
         salt = item.salt
         self.favouritedAt = favouritedAt.timeIntervalSince1970
+        portions = item.portions.map(FoodPortionDTO.init(portion:))
     }
 
     // MARK: - Functions
@@ -86,7 +88,8 @@ struct FavouriteFoodDTO: Codable {
             carbohydratePureSugar: carbohydratePureSugar,
             fiber: fiber,
             protein: protein,
-            salt: salt
+            salt: salt,
+            portions: portions?.map { $0.asDomain() } ?? []
         )
     }
 }

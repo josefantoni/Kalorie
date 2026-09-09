@@ -196,6 +196,8 @@ understanding why.
 | [0004](design/0004-shared-macro-calculation-module.md) | Shared macro calculation module (Kotlin Multiplatform) | Implemented | Cross-platform, iOS |
 | [0005](design/0005-meal-window-and-html-entity-decoding.md) | Meal-window arithmetic and HTML entity decoding (Kotlin Multiplatform) | Implemented | Cross-platform, iOS |
 | [0006](design/0006-own-daily-meals.md) | My created meals | Implemented | Backend, Cross-platform, iOS |
+| [0007](design/0007-crash-reporting-and-logging.md) | Crash reporting and structured logging | Implemented | iOS |
+| [0008](design/0008-food-portions.md) | Food portions | Implemented | Backend, Cross-platform, iOS |
 
 ### Decision records
 

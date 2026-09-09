@@ -265,6 +265,7 @@ struct AddFoodSheetView: View {
                         weight: $viewModel.formInput.salt
                     )
                 }
+                FoodPortionsSection(portions: $viewModel.formInput.portions)
             }
             addButton
                 .padding(.horizontal)
@@ -310,6 +311,8 @@ struct AddFoodSheetView: View {
                 isFavourite: isFavourite,
                 addFavouriteFood: AddFavouriteFoodUseCaseFake(),
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
+                fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(),
+                saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
                 onSaved: onSaved,
                 onFavouriteChanged: onFavouriteChanged,
                 quantity: isMyCreatedMeal ? item.weight : 1,

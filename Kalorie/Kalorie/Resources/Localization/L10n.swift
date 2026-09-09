@@ -114,6 +114,22 @@ enum L10n {
         static var buttonCreateMeal: String { String(localized: "addFood_button_createMeal") }
     }
 
+    enum FoodPortion {
+        static var sectionTitle: String { String(localized: "foodPortion_section_title") }
+        static var buttonAdd: String { String(localized: "foodPortion_button_add") }
+        static var fieldNamePlaceholder: String { String(localized: "foodPortion_field_namePlaceholder") }
+        static var errorInvalidName: String { String(localized: "foodPortion_error_invalidName") }
+        static var errorInvalidGrams: String { String(localized: "foodPortion_error_invalidGrams") }
+        static var errorTooMany: String { String(localized: "foodPortion_error_tooMany") }
+    }
+
+    enum MyPortions {
+        static var title: String { String(localized: "myPortions_title") }
+        static var empty: String { String(localized: "myPortions_empty") }
+        static var errorSaveFailed: String { String(localized: "myPortions_error_saveFailed") }
+        static var errorDeleteFailed: String { String(localized: "myPortions_error_deleteFailed") }
+    }
+
     enum MyCreatedMeal {
         static var titleNew: String { String(localized: "myCreatedMeal_title_new") }
         static var titleEdit: String { String(localized: "myCreatedMeal_title_edit") }
@@ -143,6 +159,7 @@ enum L10n {
         static var inputHundredGrams: String { String(localized: "foodQuantity_input_portions") }
         static var inputGrams: String { String(localized: "foodQuantity_input_grams") }
         static var buttonAdd: String { String(localized: "foodQuantity_button_add") }
+        static var buttonMyPortions: String { String(localized: "foodQuantity_button_myPortions") }
         static var calories: String { String(localized: "foodQuantity_macro_calories") }
         static var protein: String { String(localized: "foodQuantity_macro_protein") }
         static var carbs: String { String(localized: "foodQuantity_macro_carbs") }

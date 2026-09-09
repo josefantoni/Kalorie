@@ -24,6 +24,7 @@ struct FoodItemFormInput {
     var fiber: Double = 0
     var protein: Double = 0
     var salt: Double = 0
+    var portions: [FoodPortionDraft] = []
 }
 
 final class AddFoodSheetViewModel: ObservableObject {
@@ -259,7 +260,8 @@ final class AddFoodSheetViewModel: ObservableObject {
             carbohydratePureSugar: formInput.carbohydratePureSugar,
             fiber: formInput.fiber,
             protein: formInput.protein,
-            salt: formInput.salt
+            salt: formInput.salt,
+            portions: Self.parsedPortions(formInput.portions)
         )
         do {
             _ = try await createFoodItem(item)
@@ -279,11 +281,31 @@ final class AddFoodSheetViewModel: ObservableObject {
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidCalories)
             case .invalidWeight:
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
+            case .invalidPortion(let portionError):
+                alertItem = AlertItem(title: Self.errorMessage(for: portionError))
             case .itemAlreadyExists:
                 alertItem = AlertItem(title: L10n.AddFood.errorItemAlreadyExists)
             case nil:
                 alertItem = AlertItem(title: L10n.Common.errorUnknown)
             }
+        }
+    }
+
+    // MARK: - Private
+
+    private static func errorMessage(for portionError: FoodPortionError) -> String {
+        switch portionError {
+        case .invalidName: return L10n.FoodPortion.errorInvalidName
+        case .invalidGrams: return L10n.FoodPortion.errorInvalidGrams
+        case .tooMany: return L10n.FoodPortion.errorTooMany
+        }
+    }
+
+    private static func parsedPortions(_ drafts: [FoodPortionDraft]) -> [FoodPortionDomain] {
+        drafts.compactMap { draft in
+            let grams = Double(draft.gramsText.replacingOccurrences(of: ",", with: ".")) ?? 0
+            guard grams >= 1 else { return nil }
+            return FoodPortionDomain(name: draft.name, grams: grams)
         }
     }
 }

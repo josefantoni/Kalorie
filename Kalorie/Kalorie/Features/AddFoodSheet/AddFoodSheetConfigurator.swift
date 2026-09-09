@@ -54,6 +54,8 @@ struct AddFoodSheetConfigurator {
                     isFavourite: isFavourite,
                     addFavouriteFood: AddFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                     removeFavouriteFood: RemoveFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                    fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                    saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                     onSaved: onSaved,
                     onFavouriteChanged: onFavouriteChanged,
                     quantity: isMyCreatedMeal ? item.weight : 1,

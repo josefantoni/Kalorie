@@ -42,11 +42,13 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
         async let foodConsumed: [FoodConsumedDTO] = dataProvider.loadAsync(from: Constants.Firestore.foodConsumed(userId: sourceUserId))
         async let favouriteFoods: [FavouriteFoodDTO] = dataProvider.loadAsync(from: Constants.Firestore.favouriteFoods(userId: sourceUserId))
         async let myCreatedMeals: [MyCreatedMealDTO] = dataProvider.loadAsync(from: Constants.Firestore.myCreatedMeals(userId: sourceUserId))
+        async let foodItemPortions: [FoodItemPersonalPortionsDTO] = dataProvider.loadAsync(from: Constants.Firestore.foodItemPortions(userId: sourceUserId))
         let snapshot = PendingMergeSnapshot(
             sourceAnonymousUserId: sourceUserId,
             foodConsumed: try await foodConsumed,
             favouriteFoods: try await favouriteFoods,
-            myCreatedMeals: try await myCreatedMeals
+            myCreatedMeals: try await myCreatedMeals,
+            foodItemPortions: try await foodItemPortions
         )
         try snapshotStore.save(snapshot)
 
@@ -76,6 +78,8 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
         try await dataProvider.batchSetAsync(favourites, in: Constants.Firestore.favouriteFoods(userId: userId))
         let meals = snapshot.myCreatedMeals.map { (item: $0, id: $0.id) }
         try await dataProvider.batchSetAsync(meals, in: Constants.Firestore.myCreatedMeals(userId: userId))
+        let portions = snapshot.foodItemPortions.map { (item: $0, id: $0.id) }
+        try await dataProvider.batchSetAsync(portions, in: Constants.Firestore.foodItemPortions(userId: userId))
         try snapshotStore.delete()
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 
 protocol CreateMyCreatedMealUseCaseProtocol {
-    func callAsFunction(name: String, ingredients: [MyCreatedMealIngredientDomain]) async throws -> MyCreatedMealDomain
+    func callAsFunction(name: String, ingredients: [MyCreatedMealIngredientDomain], portions: [FoodPortionDomain]) async throws -> MyCreatedMealDomain
 }
 
 struct CreateMyCreatedMealUseCase: CreateMyCreatedMealUseCaseProtocol {
@@ -27,16 +27,17 @@ struct CreateMyCreatedMealUseCase: CreateMyCreatedMealUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(name: String, ingredients: [MyCreatedMealIngredientDomain]) async throws -> MyCreatedMealDomain {
+    func callAsFunction(name: String, ingredients: [MyCreatedMealIngredientDomain], portions: [FoodPortionDomain] = []) async throws -> MyCreatedMealDomain {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        if let error = MyCreatedMealValidation.validate(name: name, ingredients: ingredients) { throw error }
+        if let error = MyCreatedMealValidation.validate(name: name, ingredients: ingredients, portions: portions) { throw error }
         let now = Date.now
         let meal = MyCreatedMealDomain(
             id: UUID().uuidString,
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             ingredients: ingredients,
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
+            portions: portions
         )
         let dto = MyCreatedMealDTO(meal: meal)
         try await dataProvider.setAsync(dto, id: meal.id, in: Constants.Firestore.myCreatedMeals(userId: userId))
@@ -53,9 +54,9 @@ struct CreateMyCreatedMealUseCaseFake: CreateMyCreatedMealUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(name: String, ingredients: [MyCreatedMealIngredientDomain]) async throws -> MyCreatedMealDomain {
+    func callAsFunction(name: String, ingredients: [MyCreatedMealIngredientDomain], portions: [FoodPortionDomain] = []) async throws -> MyCreatedMealDomain {
         if shouldThrow { throw URLError(.unknown) }
-        return MyCreatedMealDomain(id: UUID().uuidString, name: name, ingredients: ingredients, createdAt: .now, updatedAt: .now)
+        return MyCreatedMealDomain(id: UUID().uuidString, name: name, ingredients: ingredients, createdAt: .now, updatedAt: .now, portions: portions)
     }
 }
 #endif

@@ -69,6 +69,10 @@ struct FoodQuantityView: View {
                 }
             }
         }
+        .task { await viewModel.onAppear() }
+        .sheet(isPresented: $viewModel.isPersonalPortionsSheetVisible) {
+            FoodPortionsManagerView(viewModel: viewModel)
+        }
     }
 
     // MARK: - Functions
@@ -100,13 +104,23 @@ struct FoodQuantityView: View {
                     viewModel.quantity = Double(normalized) ?? 0
                 }
             Picker("", selection: $viewModel.unit) {
-                Text(L10n.FoodQuantity.unitGrams).tag(FoodQuantityUnit.grams)
-                Text(L10n.FoodQuantity.unitHundredGrams).tag(FoodQuantityUnit.hundredGrams)
+                ForEach(viewModel.unitOptions, id: \.self) { option in
+                    Text(Self.label(for: option)).tag(option)
+                }
             }
             .pickerStyle(.menu)
             .onChange(of: viewModel.unit) { oldUnit, newUnit in
                 viewModel.onUnitChanged(from: oldUnit, to: newUnit)
                 quantityText = Self.formattedQuantity(viewModel.quantity)
+            }
+
+            if viewModel.isPersonalPortionsAvailable {
+                Button {
+                    viewModel.isPersonalPortionsSheetVisible = true
+                } label: {
+                    Image(systemName: "bookmark")
+                }
+                .accessibilityLabel(L10n.FoodQuantity.buttonMyPortions)
             }
         }
     }
@@ -118,6 +132,14 @@ struct FoodQuantityView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text(verbatim: value)
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    static func label(for unit: FoodQuantityUnit) -> String {
+        switch unit {
+        case .grams: return L10n.FoodQuantity.unitGrams
+        case .hundredGrams: return L10n.FoodQuantity.unitHundredGrams
+        case .portion(let portion): return "\(portion.name) (\(portion.grams.formattedGrams()))"
         }
     }
 
@@ -164,6 +186,8 @@ struct FoodQuantityView: View {
                 isFavourite: false,
                 addFavouriteFood: AddFavouriteFoodUseCaseFake(),
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
+                fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(),
+                saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
                 onSaved: {}
             ) { _, _ in }
         )

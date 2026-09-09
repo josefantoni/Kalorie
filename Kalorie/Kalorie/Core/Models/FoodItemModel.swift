@@ -33,6 +33,47 @@ struct FoodItemDomain: BilingualNamed {
     let fiber: Double?
     let protein: Double
     let salt: Double
+    let portions: [FoodPortionDomain]
+
+    // MARK: - Init
+
+    init(
+        id: String,
+        kind: FoodItemKind,
+        czName: String,
+        engName: String,
+        weight: Double,
+        date: Date,
+        energyKJ: Double,
+        caloriesPerHundredGrams: Double,
+        fat: Double,
+        fatSaturated: Double?,
+        fatUnsaturatedFattyAcids: Double,
+        carbohydrate: Double,
+        carbohydratePureSugar: Double,
+        fiber: Double?,
+        protein: Double,
+        salt: Double,
+        portions: [FoodPortionDomain] = []
+    ) {
+        self.id = id
+        self.kind = kind
+        self.czName = czName
+        self.engName = engName
+        self.weight = weight
+        self.date = date
+        self.energyKJ = energyKJ
+        self.caloriesPerHundredGrams = caloriesPerHundredGrams
+        self.fat = fat
+        self.fatSaturated = fatSaturated
+        self.fatUnsaturatedFattyAcids = fatUnsaturatedFattyAcids
+        self.carbohydrate = carbohydrate
+        self.carbohydratePureSugar = carbohydratePureSugar
+        self.fiber = fiber
+        self.protein = protein
+        self.salt = salt
+        self.portions = portions
+    }
 }
 
 extension FoodItemDomain {
