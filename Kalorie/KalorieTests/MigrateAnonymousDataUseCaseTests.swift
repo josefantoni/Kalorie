@@ -31,6 +31,15 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.batchSavedMyCreatedMealIds, ["meal1"], "an anonymous user's created meals must survive sign-in exactly like their logged food")
     }
 
+    func test_migrate_carriesFoodItemPortionsThroughWithSameLifecycleAsFoodConsumed() async throws {
+        let (sut, dataProvider, _, _) = makeSUT()
+        dataProvider.stubbedFoodItemPortions = [makePortions(id: "12345678")]
+
+        try await sut.migrate(fromAnonymousUserId: "anon-1", credential: makeCredential())
+
+        XCTAssertEqual(dataProvider.batchSavedFoodItemPortionIds, ["12345678"], "an anonymous user's personal portions must survive sign-in exactly like their logged food")
+    }
+
     func test_migrate_signsInWithCredentialAfterSavingSnapshot() async throws {
         let (sut, dataProvider, authCommandProvider, snapshotStore) = makeSUT()
         dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
@@ -196,6 +205,10 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
             )
         )
     }
+
+    private func makePortions(id: String) -> FoodItemPersonalPortionsDTO {
+        FoodItemPersonalPortionsDTO(id: id, portions: [FoodPortionDTO(portion: FoodPortionDomain(name: "1 balení", grams: 33))])
+    }
 }
 
 private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProtocol {
@@ -205,9 +218,11 @@ private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProto
     var stubbedFoodConsumed: [FoodConsumedDTO] = []
     var stubbedFavouriteFoods: [FavouriteFoodDTO] = []
     var stubbedMyCreatedMeals: [MyCreatedMealDTO] = []
+    var stubbedFoodItemPortions: [FoodItemPersonalPortionsDTO] = []
     private(set) var batchSavedItemCount = 0
     private(set) var batchSavedFavouriteFoodIds: [String] = []
     private(set) var batchSavedMyCreatedMealIds: [String] = []
+    private(set) var batchSavedFoodItemPortionIds: [String] = []
 
     // MARK: - Functions
 
@@ -217,6 +232,9 @@ private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProto
         }
         if collection.contains("myCreatedMeals") {
             return stubbedMyCreatedMeals.compactMap { $0 as? T }
+        }
+        if collection.contains("foodItemPortions") {
+            return stubbedFoodItemPortions.compactMap { $0 as? T }
         }
         return stubbedFoodConsumed.compactMap { $0 as? T }
     }
@@ -237,6 +255,8 @@ private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProto
             batchSavedFavouriteFoodIds = items.map(\.id)
         } else if collection.contains("myCreatedMeals") {
             batchSavedMyCreatedMealIds = items.map(\.id)
+        } else if collection.contains("foodItemPortions") {
+            batchSavedFoodItemPortionIds = items.map(\.id)
         } else {
             batchSavedItemCount = items.count
         }

@@ -33,11 +33,12 @@ public struct FoodItemDTO: Codable {
     let fiber: Double?
     let protein: Double
     let salt: Double
+    let portions: [FoodPortionDTO]?
 
     // MARK: - Coding keys
 
     enum CodingKeys: String, CodingKey {
-        case id, weight, date, fat, carbohydrate, protein, salt, fiber
+        case id, weight, date, fat, carbohydrate, protein, salt, fiber, portions
         case czName = "cz_name"
         case engName = "eng_name"
         case czNameLowercase = "cz_name_lowercase"
@@ -77,6 +78,7 @@ public struct FoodItemDTO: Codable {
         fiber = item.fiber
         protein = item.protein
         salt = item.salt
+        portions = item.portions.map(FoodPortionDTO.init(portion:))
     }
 
     // MARK: - Functions
@@ -98,7 +100,8 @@ public struct FoodItemDTO: Codable {
             carbohydratePureSugar: carbohydratePureSugar,
             fiber: fiber,
             protein: protein,
-            salt: salt
+            salt: salt,
+            portions: portions?.map { $0.asDomain() } ?? []
         )
     }
 }

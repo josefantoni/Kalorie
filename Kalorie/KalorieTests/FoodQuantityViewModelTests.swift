@@ -192,6 +192,85 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem)
     }
 
+    // MARK: - onAppear (personal portions)
+
+    @MainActor
+    func test_onAppear_withCatalogueItem_fetchesPersonalPortions() async {
+        let stubbedPortion = FoodPortionDomain(name: "1 balení", grams: 33)
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .catalogue),
+            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [stubbedPortion])
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.personalPortions, [stubbedPortion])
+    }
+
+    @MainActor
+    func test_onAppear_withExternalItem_doesNotSurfacePersonalPortions() async {
+        let stubbedPortion = FoodPortionDomain(name: "1 balení", grams: 33)
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .external),
+            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [stubbedPortion])
+        )
+        await sut.onAppear()
+        XCTAssertTrue(
+            sut.personalPortions.isEmpty,
+            "OpenFoodFacts items have no reliable package size to key a personal portion off (design 0008)"
+        )
+    }
+
+    // MARK: - onAddPersonalPortion
+
+    @MainActor
+    func test_onAddPersonalPortion_whenSaveSucceeds_appendsToPersonalPortions() async {
+        let sut = makeSUT()
+        await sut.onAddPersonalPortion(name: "1 balení", grams: 33)
+        XCTAssertEqual(sut.personalPortions, [FoodPortionDomain(name: "1 balení", grams: 33)])
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onAddPersonalPortion_whenSaveFails_restoresPreAddSnapshotEvenWithADuplicateNameAndGrams() async {
+        let existing = FoodPortionDomain(name: "1 lžíce", grams: 15)
+        let sut = makeSUT(
+            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [existing]),
+            saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(shouldThrow: true)
+        )
+        await sut.onAppear()
+        await sut.onAddPersonalPortion(name: existing.name, grams: existing.grams)
+        XCTAssertEqual(
+            sut.personalPortions,
+            [existing],
+            "a failed save must restore the pre-add snapshot, not filter by (name, grams) equality — " +
+                "a value-based filter also drops an already-saved portion that happens to share the new one's name and grams"
+        )
+        XCTAssertEqual(sut.alertItem?.title, L10n.MyPortions.errorSaveFailed)
+    }
+
+    // MARK: - onDeletePersonalPortion
+
+    @MainActor
+    func test_onDeletePersonalPortion_whenSaveSucceeds_removesPortion() async {
+        let portion = FoodPortionDomain(name: "1 balení", grams: 33)
+        let sut = makeSUT(fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [portion]))
+        await sut.onAppear()
+        await sut.onDeletePersonalPortion(portion)
+        XCTAssertTrue(sut.personalPortions.isEmpty)
+    }
+
+    @MainActor
+    func test_onDeletePersonalPortion_whenSaveFails_restoresPortionAndShowsAlert() async {
+        let portion = FoodPortionDomain(name: "1 balení", grams: 33)
+        let sut = makeSUT(
+            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [portion]),
+            saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(shouldThrow: true)
+        )
+        await sut.onAppear()
+        await sut.onDeletePersonalPortion(portion)
+        XCTAssertEqual(sut.personalPortions, [portion])
+        XCTAssertEqual(sut.alertItem?.title, L10n.MyPortions.errorDeleteFailed)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
@@ -202,6 +281,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
         isFavourite: Bool = false,
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
+        fetchFoodItemPersonalPortions: any FetchFoodItemPersonalPortionsUseCaseProtocol = FetchFoodItemPersonalPortionsUseCaseFake(),
+        saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol = SaveFoodItemPersonalPortionsUseCaseFake(),
         onSaved: @escaping () -> Void = {},
         onFavouriteChanged: @escaping (String, Bool) -> Void = { _, _ in },
         quantity: Double = 1,
@@ -216,6 +297,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
             isFavourite: isFavourite,
             addFavouriteFood: addFavouriteFood,
             removeFavouriteFood: removeFavouriteFood,
+            fetchFoodItemPersonalPortions: fetchFoodItemPersonalPortions,
+            saveFoodItemPersonalPortions: saveFoodItemPersonalPortions,
             onSaved: onSaved,
             onFavouriteChanged: onFavouriteChanged,
             quantity: quantity,
@@ -227,10 +310,10 @@ final class FoodQuantityViewModelTests: XCTestCase {
         return sut
     }
 
-    private func makeFoodItem(caloriesPerHundredGrams: Double = 100, fiber: Double? = 0) -> FoodItemDomain {
+    private func makeFoodItem(kind: FoodItemKind = .catalogue, caloriesPerHundredGrams: Double = 100, fiber: Double? = 0) -> FoodItemDomain {
         FoodItemDomain(
             id: "test",
-            kind: .catalogue,
+            kind: kind,
             czName: "Tvaroh",
             engName: "Cottage cheese",
             weight: 100,

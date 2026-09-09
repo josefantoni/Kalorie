@@ -23,6 +23,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     @Published private(set) var state: LoadingState<Void> = .idle
     @Published var name: String
     @Published var ingredients: [MyCreatedMealIngredientDraft]
+    @Published var portions: [FoodPortionDraft]
     @Published var searchText = ""
     @Published private(set) var searchResults: [FoodItemDomain] = []
     @Published private(set) var externalSearchResults: [FoodItemDomain] = []
@@ -39,6 +40,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     private let existingMeal: MyCreatedMealDomain?
     private let initialName: String
     private let initialIngredients: [MyCreatedMealIngredientDomain]
+    private let initialPortions: [FoodPortionDomain]
     private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
     private let searchFoodExternally: any SearchFoodExternallyUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
@@ -55,10 +57,14 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
 
     var ingredientDomains: [MyCreatedMealIngredientDomain] { Self.ingredientDomains(from: ingredients) }
 
-    var hasChanges: Bool { name != initialName || ingredientDomains != initialIngredients }
+    var portionDomains: [FoodPortionDomain] { Self.parsedPortions(portions) }
+
+    var hasChanges: Bool {
+        name != initialName || ingredientDomains != initialIngredients || portionDomains != initialPortions
+    }
 
     var canSave: Bool {
-        guard MyCreatedMealValidation.canSave(name: name, ingredients: ingredientDomains) else { return false }
+        guard MyCreatedMealValidation.canSave(name: name, ingredients: ingredientDomains, portions: portionDomains) else { return false }
         return !isEditing || hasChanges
     }
 
@@ -99,10 +105,15 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
                 gramsText: Self.formattedGrams(ingredient.grams)
             )
         }
+        let resolvedPortions = (existingMeal?.portions ?? []).map { portion in
+            FoodPortionDraft(name: portion.name, gramsText: Self.formattedGrams(portion.grams))
+        }
         name = resolvedName
         ingredients = resolvedIngredients
+        portions = resolvedPortions
         initialName = resolvedName
         initialIngredients = Self.ingredientDomains(from: resolvedIngredients)
+        initialPortions = Self.parsedPortions(resolvedPortions)
     }
 
     // MARK: - Functions
@@ -220,11 +231,12 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
                         name: name,
                         ingredients: ingredientDomains,
                         createdAt: existingMeal.createdAt,
-                        updatedAt: existingMeal.updatedAt
+                        updatedAt: existingMeal.updatedAt,
+                        portions: portionDomains
                     )
                 )
             } else {
-                _ = try await createMyCreatedMeal(name: name, ingredients: ingredientDomains)
+                _ = try await createMyCreatedMeal(name: name, ingredients: ingredientDomains, portions: portionDomains)
             }
             onSaved()
             shouldDismiss = true
@@ -250,6 +262,14 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
 
     private static func parsedGrams(_ text: String) -> Double {
         Double(text.replacingOccurrences(of: ",", with: ".")) ?? 0
+    }
+
+    private static func parsedPortions(_ drafts: [FoodPortionDraft]) -> [FoodPortionDomain] {
+        drafts.compactMap { draft in
+            let grams = parsedGrams(draft.gramsText)
+            guard grams >= 1 else { return nil }
+            return FoodPortionDomain(name: draft.name, grams: grams)
+        }
     }
 
     private static func formattedGrams(_ value: Double) -> String {

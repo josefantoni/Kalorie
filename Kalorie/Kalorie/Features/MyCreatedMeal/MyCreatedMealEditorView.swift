@@ -48,6 +48,8 @@ struct MyCreatedMealEditorView: View {
                     }
                 }
 
+                FoodPortionsSection(portions: $viewModel.portions)
+
                 Section {
                     HStack {
                         TextField(viewModel.searchPlaceholder, text: $viewModel.searchText)

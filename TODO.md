@@ -30,12 +30,12 @@ The app works with three kinds of data. The distinction matters for the items be
 - [ ] **Rank search results by frequency** — order manual search results by how often the user has
   logged each food, so the most used ones come first. Distinct from favourites above: this one is
   derived, not chosen, and the user cannot remove an entry from it.
-- [ ] **Package/portion weight and quick-add gram amounts** — `FoodQuantityView` currently only
-  offers 1g/100g. Two related pieces: (1) a food item can carry a known package/portion weight
-  (e.g. a muesli bar is 33g, a Pepsi can is 80g) that shows up as a selectable unit; (2) per-user
-  "frequently added weights" — gram amounts the user logs often for a given food (e.g. 50g oats
-  almost daily, one slice of bread) — surfaced as quick-add options, likely derived from
-  `foodConsumed` history rather than manually maintained.
+- [ ] **Frequency-derived quick-add gram amounts** — per-user "frequently added weights", gram
+  amounts the user logs often for a given food (e.g. 50g oats almost daily, one slice of bread),
+  surfaced as quick-add options, likely derived from `foodConsumed` history rather than manually
+  maintained. This is the other half of what used to be one combined line here; the first half —
+  a food carrying a named, user-chosen package/portion weight selectable as a unit — shipped as
+  [design 0008](docs/design/0008-food-portions.md).
 
 ## Documentation baseline
 

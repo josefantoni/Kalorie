@@ -15,17 +15,20 @@ struct BaseStringTextField: View {
     let placeholder: String
     let title: String
     @Binding var text: String
+    var textAlignment: TextAlignment = .center
 
     // MARK: - Body
 
     var body: some View {
         HStack {
-            Text(title)
-                .font(.system(size: .smallPlus))
+            if !title.isEmpty {
+                Text(title)
+                    .font(.system(size: .smallPlus))
+            }
             TextField(placeholder, text: $text)
                 .keyboardType(.numberPad)
                 .frame(maxWidth: .infinity)
-                .multilineTextAlignment(.center)
+                .multilineTextAlignment(textAlignment)
         }
     }
 }

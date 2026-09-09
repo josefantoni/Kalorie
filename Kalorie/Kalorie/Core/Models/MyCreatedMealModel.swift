@@ -28,6 +28,25 @@ struct MyCreatedMealDomain {
     let ingredients: [MyCreatedMealIngredientDomain]
     let createdAt: Date
     let updatedAt: Date
+    let portions: [FoodPortionDomain]
+
+    // MARK: - Init
+
+    init(
+        id: String,
+        name: String,
+        ingredients: [MyCreatedMealIngredientDomain],
+        createdAt: Date,
+        updatedAt: Date,
+        portions: [FoodPortionDomain] = []
+    ) {
+        self.id = id
+        self.name = name
+        self.ingredients = ingredients
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.portions = portions
+    }
 }
 
 extension MyCreatedMealDomain {
@@ -55,18 +74,17 @@ extension MyCreatedMealDomain {
             engName: "",
             weight: totalGrams,
             date: createdAt,
-            nutrition: FoodNutritionValues(
-                energyKJ: density(\.energyKJ),
-                caloriesPerHundredGrams: density(\.caloriesPerHundredGrams),
-                fat: density(\.fat),
-                fatSaturated: densityOptional(\.fatSaturated),
-                fatUnsaturatedFattyAcids: density(\.fatUnsaturatedFattyAcids),
-                carbohydrate: density(\.carbohydrate),
-                carbohydratePureSugar: density(\.carbohydratePureSugar),
-                fiber: densityOptional(\.fiber),
-                protein: density(\.protein),
-                salt: density(\.salt)
-            )
+            energyKJ: density(\.energyKJ),
+            caloriesPerHundredGrams: density(\.caloriesPerHundredGrams),
+            fat: density(\.fat),
+            fatSaturated: densityOptional(\.fatSaturated),
+            fatUnsaturatedFattyAcids: density(\.fatUnsaturatedFattyAcids),
+            carbohydrate: density(\.carbohydrate),
+            carbohydratePureSugar: density(\.carbohydratePureSugar),
+            fiber: densityOptional(\.fiber),
+            protein: density(\.protein),
+            salt: density(\.salt),
+            portions: portions
         )
     }
 }
@@ -82,21 +100,32 @@ enum MyCreatedMealError: Error {
     case invalidName
     case noIngredients
     case invalidIngredientWeight
+    case invalidPortion
 }
 
 enum MyCreatedMealValidation {
 
     // MARK: - Functions
 
-    static func validate(name: String, ingredients: [MyCreatedMealIngredientDomain]) -> MyCreatedMealError? {
+    static func validate(
+        name: String,
+        ingredients: [MyCreatedMealIngredientDomain],
+        portions: [FoodPortionDomain] = []
+    ) -> MyCreatedMealError? {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmedName.isEmpty { return .invalidName }
         if ingredients.isEmpty { return .noIngredients }
         if ingredients.contains(where: { $0.grams < 1 }) { return .invalidIngredientWeight }
+        if portions.contains(where: { FoodPortionValidation.validate(name: $0.name, grams: $0.grams) != nil }) { return .invalidPortion }
+        if FoodPortionValidation.validate(portions: portions) != nil { return .invalidPortion }
         return nil
     }
 
-    static func canSave(name: String, ingredients: [MyCreatedMealIngredientDomain]) -> Bool {
-        validate(name: name, ingredients: ingredients) == nil
+    static func canSave(
+        name: String,
+        ingredients: [MyCreatedMealIngredientDomain],
+        portions: [FoodPortionDomain] = []
+    ) -> Bool {
+        validate(name: name, ingredients: ingredients, portions: portions) == nil
     }
 }

@@ -29,13 +29,14 @@ struct UpdateMyCreatedMealUseCase: UpdateMyCreatedMealUseCaseProtocol {
 
     func callAsFunction(_ meal: MyCreatedMealDomain) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        if let error = MyCreatedMealValidation.validate(name: meal.name, ingredients: meal.ingredients) { throw error }
+        if let error = MyCreatedMealValidation.validate(name: meal.name, ingredients: meal.ingredients, portions: meal.portions) { throw error }
         let updated = MyCreatedMealDomain(
             id: meal.id,
             name: meal.name.trimmingCharacters(in: .whitespacesAndNewlines),
             ingredients: meal.ingredients,
             createdAt: meal.createdAt,
-            updatedAt: .now
+            updatedAt: .now,
+            portions: meal.portions
         )
         let dto = MyCreatedMealDTO(meal: updated)
         try await dataProvider.setAsync(dto, id: updated.id, in: Constants.Firestore.myCreatedMeals(userId: userId))

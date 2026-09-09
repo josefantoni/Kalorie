@@ -93,11 +93,12 @@ struct MyCreatedMealDTO: Codable {
     let ingredients: [MyCreatedMealIngredientDTO]
     let createdAt: TimeInterval
     let updatedAt: TimeInterval
+    let portions: [FoodPortionDTO]?
 
     // MARK: - Coding keys
 
     enum CodingKeys: String, CodingKey {
-        case id, name, ingredients
+        case id, name, ingredients, portions
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
@@ -110,6 +111,7 @@ struct MyCreatedMealDTO: Codable {
         ingredients = meal.ingredients.map(MyCreatedMealIngredientDTO.init(ingredient:))
         createdAt = meal.createdAt.timeIntervalSince1970
         updatedAt = meal.updatedAt.timeIntervalSince1970
+        portions = meal.portions.map(FoodPortionDTO.init(portion:))
     }
 
     // MARK: - Functions
@@ -120,7 +122,8 @@ struct MyCreatedMealDTO: Codable {
             name: name,
             ingredients: ingredients.map { $0.asDomain() },
             createdAt: Date(timeIntervalSince1970: createdAt),
-            updatedAt: Date(timeIntervalSince1970: updatedAt)
+            updatedAt: Date(timeIntervalSince1970: updatedAt),
+            portions: portions?.map { $0.asDomain() } ?? []
         )
     }
 }

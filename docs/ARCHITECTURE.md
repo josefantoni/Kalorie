@@ -31,7 +31,9 @@ are out of date: a decision recorded in one is still in force.
 **Read first:** [design 0001](design/0001-user-authentication.md) (the `users` collection and the
 first version of the security rules), [design 0003](design/0003-favourite-foods.md)
 (`favouriteFoods`, and why `food_item_id` is required), [design 0006](design/0006-own-daily-meals.md)
-(`myCreatedMeals`, and what `food_item_id` means once a meal can be logged).
+(`myCreatedMeals`, and what `food_item_id` means once a meal can be logged),
+[design 0008](design/0008-food-portions.md) (`portions` on `foodItems`/`myCreatedMeals`, and the
+barcode-keyed `foodItemPortions` collection).
 
 ### 1.1 Layering
 
@@ -71,6 +73,7 @@ users/{userId}/mealTypes/{uuid}            the user's meal windows
 users/{userId}/foodConsumed/{uuid}         logged entries
 users/{userId}/favouriteFoods/{barcode}    explicitly favourited catalogue items
 users/{userId}/myCreatedMeals/{uuid}       user-composed meals
+users/{userId}/foodItemPortions/{barcode}  personal gram-shortcut portions
 ```
 
 Everything under `users/{userId}` is private to that user. `foodItems` is shared by every user
@@ -78,8 +81,9 @@ and every future client.
 
 Document IDs are meaningful, not random:
 
-- `foodItems` and `favouriteFoods` are keyed by the **barcode**, which is also the item's `id`
-  field. `CreateFoodItemUseCase` enforces that the id is all digits.
+- `foodItems`, `favouriteFoods` and `foodItemPortions` are keyed by the **barcode**, which is also
+  the item's `id` field on the first two. `CreateFoodItemUseCase` enforces that the id is all
+  digits.
 - `foodConsumed`, `myCreatedMeals` and `mealTypes` are keyed by a client-generated
   `UUID().uuidString` — see [ADR 0021](adr/0021-meal-type-ids-are-uuids.md) for `mealTypes`,
   which used a client-assigned integer until this record.
@@ -117,7 +121,11 @@ These are the contract a second client has to match exactly.
 
 **`foodItems`** (`FoodItemDTO`) — the catalogue. Values are **per 100 g**
 (`calories_per_hundred_grams`) except `weight`, which is the package weight the entry was read
-from. Carries `cz_name_lowercase` / `eng_name_lowercase`, written by `CreateFoodItemUseCase`
+from. Also carries an optional `portions` — named gram shortcuts (`FoodPortionDomain`: `name`,
+`grams`) set once at creation and never updated afterward, since `foodItems` has no `allow update`
+rule to write through (see [design 0008](design/0008-food-portions.md) for why that write-once
+shape is deliberate). Absent on every document written before this shipped, decoded as `nil → []`.
+Carries `cz_name_lowercase` / `eng_name_lowercase`, written by `CreateFoodItemUseCase`
 purely so the prefix-range search in `SearchFoodItemsUseCase` has something case-insensitive to
 range over — and `cz_name_folded` / `eng_name_folded` alongside them, additionally
 diacritics-stripped so the same search also matches a query typed without diacritics (finding
@@ -151,16 +159,29 @@ falls back to `MacroKit.energyKJFromMacros` when absent, `fat_saturated` and `fi
 midnight (`endMinutes < startMinutes`); `MealKit` owns that arithmetic.
 
 **`favouriteFoods`** (`FavouriteFoodDTO`) — a full copy of the `FoodItemDomain` plus
-`favourited_at`. The document id is the food's own id, and `food_item_kind` says which of the
-three things that id is, exactly as on `foodConsumed` (ADR 0025) — required here too. Fetched
-ordered by `favourited_at` descending, limit 50.
+`favourited_at`, `portions` included — leaving it out would silently drop a favourited item's
+canonical portions, inconsistent with every other copied field (same staleness caveat **A1-7**
+already accepts for the rest of the snapshot). The document id is the food's own id, and
+`food_item_kind` says which of the three things that id is, exactly as on `foodConsumed`
+(ADR 0025) — required here too. Fetched ordered by `favourited_at` descending, limit 50.
 
 **`myCreatedMeals`** (`MyCreatedMealDTO`) — `ingredients` is an **array of nested maps**
-(`MyCreatedMealIngredientDTO`), each a nutrition snapshot plus `grams`. Fetched ordered by
-`updated_at` descending, limit 50. `MyCreatedMealDomain.asFoodItem()` collapses the meal into a
-synthetic `FoodItemDomain` whose per-100 g values are the gram-weighted mean of the
-ingredients (`MacroKit.weightedMeanPerHundredGrams`), which is what lets a saved meal appear in
-search and be logged like any catalogue food.
+(`MyCreatedMealIngredientDTO`), each a nutrition snapshot plus `grams`. Also carries an optional
+`portions`, the same shape as `foodItems`' — but editable here, through the ordinary
+`CreateMyCreatedMealUseCase` / `UpdateMyCreatedMealUseCase` path, since a meal has no write-once
+constraint to begin with. Fetched ordered by `updated_at` descending, limit 50.
+`MyCreatedMealDomain.asFoodItem()` collapses the meal into a synthetic `FoodItemDomain` whose
+per-100 g values are the gram-weighted mean of the ingredients
+(`MacroKit.weightedMeanPerHundredGrams`), carrying `portions` straight through unchanged, which is
+what lets a saved meal appear in search and be logged like any catalogue food.
+
+**`foodItemPortions`** (`FoodItemPersonalPortionsDTO`) — one document per catalogue item a user
+has added a personal portion to, keyed by that item's barcode; `id` plus a `portions` array, the
+same `FoodPortionDomain` shape again. Private, `.catalogue`-only (OpenFoodFacts items have no
+reliable package size to key a shortcut off — [design 0008](design/0008-food-portions.md)),
+fetched and saved whole by `FetchFoodItemPersonalPortionsUseCase` /
+`SaveFoodItemPersonalPortionsUseCase` — the caller does the add/remove and writes the full list
+back with `setAsync`, there is no partial-update path.
 
 ### 1.5 The provider
 
@@ -618,7 +639,8 @@ decision it reached still stands, since its other three arguments are untouched.
 it unified the *rule*, not the *basis*), [design 0003](design/0003-favourite-foods.md) (the detail
 screen's favourite button and its catalogue lookup),
 [design 0006](design/0006-own-daily-meals.md) (the quantity defaults for a created meal, and why
-the favourite button is hidden rather than disabled).
+the favourite button is hidden rather than disabled), [design 0008](design/0008-food-portions.md)
+(the portion unit options and the personal-portions sheet).
 
 ### 4.1 The path a food takes
 
@@ -643,9 +665,17 @@ That date is what the entry is stamped with — see § 3.5 for why its time-of-d
 ### 4.2 Choosing an amount
 
 `FoodQuantityViewModel` holds `quantity: Double` and `unit: FoodQuantityUnit` (`.grams` = 1 g,
-`.hundredGrams` = 100 g), and derives everything from `grams = quantity * unit.gramsPerUnit`.
-`FoodQuantityUnit` is the whole of the unit system today; package and portion weights are a
-planned extension (`TODO.md`).
+`.hundredGrams` = 100 g, or `.portion(FoodPortionDomain)`), and derives everything from
+`grams = quantity * unit.gramsPerUnit`. `unitOptions` builds the picker's list at runtime —
+`.grams` and `.hundredGrams` first, then the item's own canonical `portions`, then
+`personalPortions` — rather than `FoodQuantityUnit` being `CaseIterable`, since the portion set is
+per-item and only known once the item is loaded. `personalPortions` is fetched once in `onAppear()`
+and only when `item.kind == .catalogue`; a bookmark button next to the picker opens
+`FoodPortionsManagerView` to add or remove one, pre-filling the grams field with the screen's
+current `grams`. See [design 0008](design/0008-food-portions.md) for the write-once/editable split
+between a canonical portion (authored once, in `AddFoodSheetView`'s new-food form or the meal
+editor) and a personal one. Frequency-derived quick-add amounts are the still-unbuilt other half
+of the same `TODO.md` line.
 
 Two defaults are set by the configurator rather than by the view model: selecting one of the
 user's own meals pre-fills `quantity: item.weight, unit: .grams` — the meal's total gram weight,
@@ -923,8 +953,8 @@ outcomes, all from [ADR 0006](adr/0006-google-sign-in-identity-collisions.md):
 The migrate path is `MigrateAnonymousDataUseCase`, one type with two methods rather than a single
 `callAsFunction` — see [ADR 0004](adr/0004-migrate-usecase-exposes-two-methods.md) for why the
 convention is deviated from here. `migrate(fromAnonymousUserId:credential:)` is the live path: it
-loads `foodConsumed`, `favouriteFoods` and `myCreatedMeals` for the anonymous user concurrently via
-`async let`, writes the result to disk as a `PendingMergeSnapshot` *before* calling
+loads `foodConsumed`, `favouriteFoods`, `myCreatedMeals` and `foodItemPortions` for the anonymous
+user concurrently via `async let`, writes the result to disk as a `PendingMergeSnapshot` *before* calling
 `authCommandProvider.signIn(with:)`, then replays the snapshot under the new UID and deletes it.
 The disk write has to come first: the moment `signIn` succeeds, owner-only security rules mean the
 client can no longer read the anonymous account's data, so anything not already captured is
@@ -974,8 +1004,9 @@ only after `wipeFirestoreData` had already run, by `authCommandProvider.deleteCu
 itself throwing `requiresRecentLogin`. That second path still exists as a fallback for the race
 where the session goes stale between the check and the call, and is distinguished by
 `dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
-Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods` and
-`myCreatedMeals` document by document, then the `users` profile document last — the profile delete
+Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods`,
+`myCreatedMeals` and `foodItemPortions` document by document, then the `users` profile document
+last — the profile delete
 alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
 not the kind of correctness problem an orphaned collection would be.
 

@@ -35,6 +35,17 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertTrue(log.entries.dropLast().contains("deleteMeal:meal1"), "Firestore does not cascade — created meals are user data and must not survive account deletion as orphans")
     }
 
+    func test_callAsFunction_deletesFoodItemPortionsAsPrivacyObligation() async throws {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedFoodItemPortions = [FoodItemPersonalPortionsDTO(id: "12345678", portions: [FoodPortionDTO(portion: FoodPortionDomain(name: "1 balení", grams: 33))])]
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
+
+        try await sut()
+
+        XCTAssertTrue(log.entries.dropLast().contains("deletePortions:12345678"), "Firestore does not cascade — personal portions are user data and must not survive account deletion as orphans")
+    }
+
     func test_callAsFunction_deletesFirestoreDataBeforeDeletingAuthAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
@@ -260,6 +271,7 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     var stubbedFoodConsumed: [FoodConsumedDTO] = []
     var stubbedFavouriteFoods: [FavouriteFoodDTO] = []
     var stubbedMyCreatedMeals: [MyCreatedMealDTO] = []
+    var stubbedFoodItemPortions: [FoodItemPersonalPortionsDTO] = []
     private(set) var deletedIds: [String] = []
 
     // MARK: - Init
@@ -279,6 +291,9 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
         }
         if collection.hasSuffix("myCreatedMeals") {
             return stubbedMyCreatedMeals.compactMap { $0 as? T }
+        }
+        if collection.hasSuffix("foodItemPortions") {
+            return stubbedFoodItemPortions.compactMap { $0 as? T }
         }
         return stubbedFoodConsumed.compactMap { $0 as? T }
     }
@@ -303,6 +318,8 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
             log.record("deleteFavourite:\(id)")
         } else if collection.hasSuffix("myCreatedMeals") {
             log.record("deleteMeal:\(id)")
+        } else if collection.hasSuffix("foodItemPortions") {
+            log.record("deletePortions:\(id)")
         } else if collection.hasSuffix("foodConsumed") {
             log.record("deleteFood:\(id)")
         } else {

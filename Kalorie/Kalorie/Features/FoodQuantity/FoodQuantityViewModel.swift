@@ -7,14 +7,16 @@
 
 import Foundation
 
-enum FoodQuantityUnit: CaseIterable {
+enum FoodQuantityUnit: Hashable {
     case hundredGrams
     case grams
+    case portion(FoodPortionDomain)
 
     var gramsPerUnit: Double {
         switch self {
         case .hundredGrams: return 100
         case .grams: return 1
+        case .portion(let portion): return portion.grams
         }
     }
 }
@@ -29,12 +31,16 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     @Published var alertItem: AlertItem?
     @Published var isFavourite: Bool
     @Published var isTogglingFavourite = false
+    @Published private(set) var personalPortions: [FoodPortionDomain] = []
+    @Published var isPersonalPortionsSheetVisible = false
 
     let item: FoodItemDomain
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let addFavouriteFood: any AddFavouriteFoodUseCaseProtocol
     private let removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol
+    private let fetchFoodItemPersonalPortions: any FetchFoodItemPersonalPortionsUseCaseProtocol
+    private let saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol
     private let selectedDate: Date
     private var mealTypes: [MealTypeDomain]
     private let onSaved: () -> Void
@@ -50,6 +56,12 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     var scaledFat: Double { scaledMacros.fat }
     var scaledFiber: Double { scaledMacros.fiber ?? 0 }
 
+    var isPersonalPortionsAvailable: Bool { item.kind == .catalogue }
+
+    var unitOptions: [FoodQuantityUnit] {
+        [.grams, .hundredGrams] + item.portions.map(FoodQuantityUnit.portion) + personalPortions.map(FoodQuantityUnit.portion)
+    }
+
     // MARK: - Init
 
     init(
@@ -61,6 +73,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         isFavourite: Bool,
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol,
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol,
+        fetchFoodItemPersonalPortions: any FetchFoodItemPersonalPortionsUseCaseProtocol,
+        saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol,
         onSaved: @escaping () -> Void,
         onFavouriteChanged: @escaping (String, Bool) -> Void,
         quantity: Double = 1,
@@ -74,6 +88,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         self.isFavourite = isFavourite
         self.addFavouriteFood = addFavouriteFood
         self.removeFavouriteFood = removeFavouriteFood
+        self.fetchFoodItemPersonalPortions = fetchFoodItemPersonalPortions
+        self.saveFoodItemPersonalPortions = saveFoodItemPersonalPortions
         self.onSaved = onSaved
         self.onFavouriteChanged = onFavouriteChanged
         self.quantity = quantity
@@ -82,9 +98,45 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
 
     // MARK: - Functions
 
+    @MainActor
+    func onAppear() async {
+        guard isPersonalPortionsAvailable else { return }
+        do {
+            personalPortions = try await fetchFoodItemPersonalPortions(barcode: item.id)
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.foodQuantity)
+        }
+    }
+
     func onUnitChanged(from oldUnit: FoodQuantityUnit, to newUnit: FoodQuantityUnit) {
         let currentGrams = quantity * oldUnit.gramsPerUnit
         quantity = currentGrams / newUnit.gramsPerUnit
+    }
+
+    @MainActor
+    func onAddPersonalPortion(name: String, grams: Double) async {
+        let original = personalPortions
+        personalPortions = original + [FoodPortionDomain(name: name, grams: grams)]
+        do {
+            try await saveFoodItemPersonalPortions(barcode: item.id, portions: personalPortions)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.foodQuantity)
+            personalPortions = original
+            alertItem = AlertItem(title: L10n.MyPortions.errorSaveFailed)
+        }
+    }
+
+    @MainActor
+    func onDeletePersonalPortion(_ portion: FoodPortionDomain) async {
+        let original = personalPortions
+        personalPortions.removeAll { $0 == portion }
+        do {
+            try await saveFoodItemPersonalPortions(barcode: item.id, portions: personalPortions)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.foodQuantity)
+            personalPortions = original
+            alertItem = AlertItem(title: L10n.MyPortions.errorDeleteFailed)
+        }
     }
 
     @MainActor
