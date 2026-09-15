@@ -16,6 +16,8 @@ struct BaseStringTextField: View {
     let title: String
     @Binding var text: String
     var textAlignment: TextAlignment = .center
+    var keyboardType: UIKeyboardType = .default
+    var isHighlighted: Bool = false
 
     // MARK: - Body
 
@@ -26,7 +28,8 @@ struct BaseStringTextField: View {
                     .font(.system(size: .smallPlus))
             }
             TextField(placeholder, text: $text)
-                .keyboardType(.numberPad)
+                .keyboardType(keyboardType)
+                .fontWeight(isHighlighted ? .bold : .regular)
                 .frame(maxWidth: .infinity)
                 .multilineTextAlignment(textAlignment)
         }

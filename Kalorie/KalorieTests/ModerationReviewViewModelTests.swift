@@ -38,17 +38,104 @@ final class ModerationReviewViewModelTests: XCTestCase {
         XCTAssertEqual(approveSubmission.receivedItem?.engName, "Cottage cheese", "editing an unrelated field must not blank the English name")
     }
 
+    // MARK: - onApproveTapped error handling
+
+    @MainActor
+    func test_onApproveTapped_whenValidationFails_showsFieldSpecificMessageAndDoesNotDismiss() async {
+        let approveSubmission = ApproveSubmissionUseCaseSpy()
+        approveSubmission.errorToThrow = CreateFoodItemError.invalidWeight
+        let sut = makeSUT(submission: makeSubmission(), approveSubmission: approveSubmission)
+
+        await sut.onApproveTapped()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorInvalidWeight)
+        XCTAssertFalse(sut.shouldDismiss)
+    }
+
+    @MainActor
+    func test_onApproveTapped_whenBarcodeCollides_showsAlreadyExistsMessage() async {
+        let approveSubmission = ApproveSubmissionUseCaseSpy()
+        approveSubmission.errorToThrow = CreateFoodItemError.itemAlreadyExists
+        let sut = makeSUT(submission: makeSubmission(), approveSubmission: approveSubmission)
+
+        await sut.onApproveTapped()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Moderation.errorAlreadyExists)
+        XCTAssertFalse(sut.shouldDismiss)
+    }
+
+    @MainActor
+    func test_onApproveTapped_whenSubmissionAlreadyResolved_showsMessageAndDismisses() async {
+        let approveSubmission = ApproveSubmissionUseCaseSpy()
+        approveSubmission.errorToThrow = ApproveSubmissionError.alreadyResolved
+        let sut = makeSUT(submission: makeSubmission(), approveSubmission: approveSubmission)
+
+        await sut.onApproveTapped()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Moderation.errorAlreadyResolved)
+        XCTAssertTrue(sut.shouldDismiss)
+    }
+
+    @MainActor
+    func test_onApproveTapped_whenSubmissionChangedSinceReview_showsMessageAndDismisses() async {
+        let approveSubmission = ApproveSubmissionUseCaseSpy()
+        approveSubmission.errorToThrow = ApproveSubmissionError.changedSinceReview
+        let sut = makeSUT(submission: makeSubmission(), approveSubmission: approveSubmission)
+
+        await sut.onApproveTapped()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Moderation.errorChangedSinceReview)
+        XCTAssertTrue(sut.shouldDismiss)
+    }
+
+    // MARK: - onRejectConfirmed error handling
+
+    @MainActor
+    func test_onRejectConfirmed_whenSubmissionChangedSinceReview_showsMessageAndDismisses() async {
+        let rejectSubmission = RejectSubmissionUseCaseFake(errorToThrow: RejectSubmissionError.changedSinceReview)
+        let sut = makeSUT(submission: makeSubmission(), rejectSubmission: rejectSubmission)
+        sut.rejectReason = "Wrong calories"
+
+        await sut.onRejectConfirmed()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Moderation.errorChangedSinceReview)
+        XCTAssertTrue(sut.shouldDismiss)
+    }
+
+    // MARK: - onNutritionLabelCaptured
+
+    @MainActor
+    func test_onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() async {
+        let submission = makeSubmission()
+        let sut = makeSUT(
+            submission: submission,
+            recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(stubbedReading: NutritionLabelReading(fat: 999, fiber: 1))
+        )
+        sut.isNutritionLabelCameraVisible = true
+        let originalFat = sut.formInput.fat
+
+        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: nil)
+
+        XCTAssertFalse(sut.isNutritionLabelCameraVisible, "a successful capture on an already-open form must close the camera without a push")
+        XCTAssertEqual(sut.formInput.fat, originalFat, "a field already holding a submitted value must never be overwritten by the photo")
+        XCTAssertEqual(sut.formInput.fiber, 1, "a field still at its default must be filled")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         submission: FoodItemSubmissionDomain,
         approveSubmission: any ApproveSubmissionUseCaseProtocol = ApproveSubmissionUseCaseFake(),
-        rejectSubmission: any RejectSubmissionUseCaseProtocol = RejectSubmissionUseCaseFake()
+        rejectSubmission: any RejectSubmissionUseCaseProtocol = RejectSubmissionUseCaseFake(),
+        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
+        cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake()
     ) -> ModerationReviewViewModel {
         ModerationReviewViewModel(
             submission: submission,
             approveSubmission: approveSubmission,
-            rejectSubmission: rejectSubmission
+            rejectSubmission: rejectSubmission,
+            recognizeNutritionLabel: recognizeNutritionLabel,
+            cameraAuthorizationProvider: cameraAuthorizationProvider
         ) {}
     }
 
@@ -92,10 +179,12 @@ private final class ApproveSubmissionUseCaseSpy: ApproveSubmissionUseCaseProtoco
     // MARK: - Properties
 
     private(set) var receivedItem: FoodItemDomain?
+    var errorToThrow: Error?
 
     // MARK: - Functions
 
-    func callAsFunction(id: String, item: FoodItemDomain) async throws {
+    func callAsFunction(submission: FoodItemSubmissionDomain, item: FoodItemDomain) async throws {
         receivedItem = item
+        if let errorToThrow { throw errorToThrow }
     }
 }

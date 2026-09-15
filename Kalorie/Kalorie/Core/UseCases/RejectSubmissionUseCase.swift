@@ -11,6 +11,7 @@ import Foundation
 enum RejectSubmissionError: Error {
     case reasonRequired
     case alreadyResolved
+    case changedSinceReview
 }
 
 protocol RejectSubmissionUseCaseProtocol {
@@ -49,20 +50,24 @@ struct RejectSubmissionUseCase: RejectSubmissionUseCaseProtocol {
         do {
             try await dataProvider.setAsync(dto, id: submission.id, in: Constants.Firestore.foodItemSubmissions)
         } catch let writeError where writeError.matches(domain: FirestoreErrorDomain, code: FirestoreErrorCode.permissionDenied.rawValue) {
-            // The rules deny both "someone else already approved/deleted this submission" and an
-            // expired auth session with the same code — re-read to tell them apart. If the re-read
-            // itself fails, we can't tell, so surface the original write error rather than
-            // misreporting it as alreadyResolved.
-            let stillQueued: FoodItemSubmissionDTO?
+            // The rules deny three different things with the same code: "someone already
+            // approved/deleted this submission", "the author resubmitted it since this screen
+            // loaded it" (the rule requires submitted_at to be unchanged, see firestore.rules) and
+            // an expired auth session. Re-read to tell them apart. If the re-read itself fails, we
+            // can't tell, so surface the original write error rather than misreporting it.
+            let current: FoodItemSubmissionDTO?
             do {
-                stillQueued = try await dataProvider.loadFromServerAsync(
+                current = try await dataProvider.loadFromServerAsync(
                     id: submission.id,
                     from: Constants.Firestore.foodItemSubmissions
                 )
             } catch {
                 throw writeError
             }
-            guard stillQueued != nil else { throw RejectSubmissionError.alreadyResolved }
+            guard let current else { throw RejectSubmissionError.alreadyResolved }
+            guard current.submittedAt == submission.submittedAt.timeIntervalSince1970 else {
+                throw RejectSubmissionError.changedSinceReview
+            }
             throw writeError
         }
     }

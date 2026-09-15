@@ -13,7 +13,7 @@ enum BaseImageName: String {
     case barCode = "barcode.viewfinder"
     case plus = "plus"
     case plusCircle = "plus.circle"
-    case carrotFill = "carrot.fill"
     case heart = "heart"
     case heartFill = "heart.fill"
+    case camera = "camera.viewfinder"
 }

@@ -23,7 +23,11 @@ struct MyCreatedMealEditorConfigurator {
 
     // MARK: - Functions
 
-    func createView(existingMeal: MyCreatedMealDomain? = nil, onSaved: @escaping () -> Void = {}) -> MyCreatedMealEditorView {
+    func createView(
+        existingMeal: MyCreatedMealDomain? = nil,
+        onSaved: @escaping () -> Void = {},
+        dismissesOnSave: Bool = true
+    ) -> MyCreatedMealEditorView {
         MyCreatedMealEditorView(
             viewModel: MyCreatedMealEditorViewModel(
                 searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
@@ -33,7 +37,8 @@ struct MyCreatedMealEditorConfigurator {
                 createMyCreatedMeal: CreateMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 updateMyCreatedMeal: UpdateMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 existingMeal: existingMeal,
-                onSaved: onSaved
+                onSaved: onSaved,
+                dismissesOnSave: dismissesOnSave
             )
         )
     }

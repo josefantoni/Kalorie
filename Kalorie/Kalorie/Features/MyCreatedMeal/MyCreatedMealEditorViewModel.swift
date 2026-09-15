@@ -48,6 +48,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     private let createMyCreatedMeal: any CreateMyCreatedMealUseCaseProtocol
     private let updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol
     private let onSaved: () -> Void
+    private let dismissesOnSave: Bool
 
     var isEditing: Bool { existingMeal != nil }
 
@@ -78,7 +79,8 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
         createMyCreatedMeal: any CreateMyCreatedMealUseCaseProtocol,
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol,
         existingMeal: MyCreatedMealDomain? = nil,
-        onSaved: @escaping () -> Void = {}
+        onSaved: @escaping () -> Void = {},
+        dismissesOnSave: Bool = true
     ) {
         self.existingMeal = existingMeal
         self.searchFoodItems = searchFoodItems
@@ -88,8 +90,9 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
         self.createMyCreatedMeal = createMyCreatedMeal
         self.updateMyCreatedMeal = updateMyCreatedMeal
         self.onSaved = onSaved
+        self.dismissesOnSave = dismissesOnSave
         let example = L10n.AddFood.searchExamples.randomElement() ?? ""
-        searchPlaceholder = L10n.AddFood.searchPlaceholder(example: example)
+        searchPlaceholder = L10n.MyCreatedMeal.searchPlaceholder(example: example)
         let resolvedName = existingMeal?.name ?? ""
         let resolvedIngredients = (existingMeal?.ingredients ?? []).map { ingredient in
             MyCreatedMealIngredientDraft(
@@ -105,9 +108,12 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
                 gramsText: Self.formattedGrams(ingredient.grams)
             )
         }
-        let resolvedPortions = (existingMeal?.portions ?? []).map { portion in
-            FoodPortionDraft(name: portion.name, gramsText: Self.formattedGrams(portion.grams))
-        }
+        let existingPortions = existingMeal?.portions ?? []
+        let resolvedPortions = existingPortions.isEmpty
+            ? [FoodPortionDraft(name: "", gramsText: "")]
+            : existingPortions.map { portion in
+                FoodPortionDraft(name: portion.name, gramsText: Self.formattedGrams(portion.grams))
+            }
         name = resolvedName
         ingredients = resolvedIngredients
         portions = resolvedPortions
@@ -239,7 +245,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
                 _ = try await createMyCreatedMeal(name: name, ingredients: ingredientDomains, portions: portionDomains)
             }
             onSaved()
-            shouldDismiss = true
+            shouldDismiss = dismissesOnSave
         } catch {
             Log.error(error, category: Constants.LogCategory.myCreatedMeal)
             alertItem = AlertItem(title: L10n.MyCreatedMeal.errorSaveFailed)

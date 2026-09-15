@@ -75,12 +75,10 @@ final class DashboardViewModel: ObservableObject {
     @Published var showAddFoodSheet = false
     @Published var showCalendarSheet = false
     @Published var showAccountSheet = false
-    @Published var showMyCreatedMealEditor = false
     @Published var alertItem: AlertItem?
     @Published var isDeleteConfirmationVisible = false
     @Published private(set) var activeDaysInMonth: Set<Int> = []
 
-    private var isMyCreatedMealEditorPending = false
     private var isViewingToday = true
     private var hasCompletedInitialLoad = false
     private var monthCache: [String: [FoodConsumedDomain]] = [:]
@@ -191,10 +189,6 @@ final class DashboardViewModel: ObservableObject {
         }
     }
 
-    func onCreateMealRequested() {
-        isMyCreatedMealEditorPending = true
-    }
-
     func onDeleteRequested(_ food: FoodConsumedDomain) {
         foodPendingDeletion = food
         isDeleteConfirmationVisible = true
@@ -213,12 +207,6 @@ final class DashboardViewModel: ObservableObject {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Dashboard.errorDeleteFailed)
         }
-    }
-
-    func onAddFoodSheetDismissed() {
-        guard isMyCreatedMealEditorPending else { return }
-        isMyCreatedMealEditorPending = false
-        showMyCreatedMealEditor = true
     }
 
     @MainActor

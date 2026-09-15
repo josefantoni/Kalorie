@@ -26,8 +26,7 @@ struct DashboardConfigurator {
                 mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
                 addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
                 foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
-                accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: mergeStatusReporting),
-                myCreatedMealEditorConfigurator: MyCreatedMealEditorConfigurator(dataProvider: dataProvider, authProvider: authProvider)
+                accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: mergeStatusReporting)
             )
         )
     }

@@ -30,31 +30,53 @@ struct ModerationReviewView: View {
                         .foregroundStyle(.red)
                 }
             }
-            Section {
-                BaseStringTextField(
-                    placeholder: L10n.AddFood.fieldBarcodePlaceholder,
-                    title: L10n.AddFood.fieldBarcodeTitle,
-                    text: .constant(viewModel.formInput.scannedCode)
-                )
-                .disabled(true)
-                FoodItemFormFields(formInput: $viewModel.formInput)
+            FoodItemFormSections(
+                formInput: $viewModel.formInput,
+                highlightedFields: viewModel.recognizedFields,
+                barcodeRow: .locked,
+                onNutritionLabelScanTapped: {
+                    Task { await viewModel.onNutritionLabelCameraTapped() }
+                }
+            ) { field in
+                viewModel.onFormFieldEdited(field)
             }
-            FoodPortionsSection(portions: $viewModel.formInput.portions)
+        }
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 12) {
+                Button {
+                    Task { await viewModel.onApproveTapped() }
+                } label: {
+                    Text(L10n.Moderation.buttonApprove)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+
+                Button(role: .destructive) {
+                    viewModel.isRejectSheetVisible = true
+                } label: {
+                    Text(L10n.Moderation.buttonReject)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(.red)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
         }
         .navigationTitle(viewModel.formInput.name)
         .navigationBarTitleDisplayMode(.inline)
         .loader(viewModel.state.isLoading)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(L10n.Moderation.buttonApprove) {
-                    Task { await viewModel.onApproveTapped() }
-                }
-            }
-            ToolbarItem(placement: .bottomBar) {
-                Button(L10n.Moderation.buttonReject, role: .destructive) {
-                    viewModel.isRejectSheetVisible = true
-                }
-            }
+        .fullScreenCover(isPresented: $viewModel.isNutritionLabelCameraVisible) {
+            NutritionLabelCameraView(
+                isRecognizing: viewModel.isRecognizingNutritionLabel,
+                hint: viewModel.nutritionLabelCameraHint,
+                onCaptured: { image, liveBarcode in
+                    await viewModel.onNutritionLabelCaptured(image, liveBarcode: liveBarcode)
+                },
+                onClose: { viewModel.isNutritionLabelCameraVisible = false }
+            )
         }
         .alert(item: $viewModel.alertItem) { item in
             Alert(
@@ -108,7 +130,9 @@ struct ModerationReviewView: View {
                     )
                 ),
                 approveSubmission: ApproveSubmissionUseCaseFake(),
-                rejectSubmission: RejectSubmissionUseCaseFake()
+                rejectSubmission: RejectSubmissionUseCaseFake(),
+                recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
+                cameraAuthorizationProvider: CameraAuthorizationProviderFake()
             ) {}
         )
     }

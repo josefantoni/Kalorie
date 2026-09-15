@@ -25,77 +25,95 @@ struct MyCreatedMealEditorView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack {
-            List {
-                Section(header: Text(L10n.MyCreatedMeal.fieldNameTitle)) {
-                    TextField(L10n.MyCreatedMeal.fieldNamePlaceholder, text: $viewModel.name)
-                }
+        List {
+            Section {
+                TextField(L10n.MyCreatedMeal.fieldNamePlaceholder, text: $viewModel.name)
+            }
 
-                if !viewModel.ingredients.isEmpty {
-                    Section(header: Text(L10n.MyCreatedMeal.sectionIngredients)) {
-                        ForEach($viewModel.ingredients) { $draft in
-                            ingredientRow($draft)
-                                .swipeActions(edge: .trailing) {
-                                    Button(role: .destructive) {
-                                        if let index = viewModel.ingredients.firstIndex(where: { $0.id == draft.id }) {
-                                            viewModel.onDeleteIngredient(at: IndexSet(integer: index))
-                                        }
-                                    } label: {
-                                        Image(systemName: "trash")
+            if !viewModel.ingredients.isEmpty {
+                Section(header: Text(L10n.MyCreatedMeal.sectionIngredients)) {
+                    ForEach($viewModel.ingredients) { $draft in
+                        ingredientRow($draft)
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    if let index = viewModel.ingredients.firstIndex(where: { $0.id == draft.id }) {
+                                        viewModel.onDeleteIngredient(at: IndexSet(integer: index))
                                     }
+                                } label: {
+                                    Image(systemName: "trash")
                                 }
-                        }
+                            }
                     }
                 }
+            }
 
-                FoodPortionsSection(portions: $viewModel.portions)
+            FoodPortionsSection(portions: $viewModel.portions)
 
-                Section {
-                    HStack {
-                        TextField(viewModel.searchPlaceholder, text: $viewModel.searchText)
-                        BaseButton(
-                            style: .plain,
-                            imageName: .barCode,
-                            imageSize: .medium
-                        ) {
-                            if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-                                viewModel.onScannerButtonTapped()
-                            } else {
-                                viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
-                            }
-                        }
-                    }
-                }
-
-                if !viewModel.searchText.isEmpty {
-                    Section(header: Text(L10n.AddFood.sectionExternalResults)) {
-                        if !viewModel.searchResults.isEmpty {
-                            ForEach(viewModel.searchResults, id: \.id) { item in
-                                FoodItemRow(item: item, isFavourite: false)
-                                    .onTapGesture {
-                                        focusedIngredientId = viewModel.onSelectSearchResult(item)
-                                    }
-                            }
-                        } else if viewModel.isExternalSearchLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
+            Section(header: Text(L10n.MyCreatedMeal.sectionCatalogue)) {
+                HStack {
+                    TextField(viewModel.searchPlaceholder, text: $viewModel.searchText)
+                    BaseButton(
+                        style: .plain,
+                        imageName: .barCode,
+                        imageSize: .medium
+                    ) {
+                        if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
+                            viewModel.onScannerButtonTapped()
                         } else {
-                            ForEach(viewModel.externalSearchResults, id: \.id) { item in
-                                Text(item.displayName)
-                                    .onTapGesture {
-                                        focusedIngredientId = viewModel.onSelectSearchResult(item)
-                                    }
-                            }
+                            viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
                         }
                     }
                 }
             }
 
-            startDataScannerIfPossible
+            if !viewModel.searchText.isEmpty {
+                Section(header: Text(L10n.AddFood.sectionExternalResults)) {
+                    if !viewModel.searchResults.isEmpty {
+                        ForEach(viewModel.searchResults, id: \.id) { item in
+                            FoodItemRow(item: item, isFavourite: false)
+                                .onTapGesture {
+                                    focusedIngredientId = viewModel.onSelectSearchResult(item)
+                                }
+                        }
+                    } else if viewModel.isExternalSearchLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        ForEach(viewModel.externalSearchResults, id: \.id) { item in
+                            Text(item.displayName)
+                                .onTapGesture {
+                                    focusedIngredientId = viewModel.onSelectSearchResult(item)
+                                }
+                        }
+                    }
+                }
+            }
+        }
+        .contentMargins(.top, 0, for: .scrollContent)
+        .safeAreaInset(edge: .bottom) {
+            if viewModel.canSave {
+                Button {
+                    viewModel.onSaveTapped()
+                } label: {
+                    Text(L10n.MyCreatedMeal.buttonSave)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                }
+                .glassEffect(.regular, in: .capsule)
+                .padding(.bottom, 8)
+            }
         }
         .navigationTitle(viewModel.title)
         .navigationBarTitleDisplayMode(.inline)
         .loader(viewModel.state.isLoading)
+        .fullScreenCover(isPresented: $viewModel.isScannerVisible) {
+            BarcodeScannerOverlay(
+                scannedCode: $viewModel.lastScannedBarcode,
+                isSearching: viewModel.isBarcodeSearchLoading
+            ) {
+                viewModel.isScannerVisible = false
+            }
+        }
         .task(id: viewModel.searchText) { await viewModel.onSearchTextChanged() }
         .onChange(of: focusedIngredientId) { oldValue, newValue in
             guard let oldValue, oldValue != newValue else { return }
@@ -125,38 +143,9 @@ struct MyCreatedMealEditorView: View {
                 Task { await viewModel.onSaveConfirmed() }
             }
         }
-        .toolbar {
-            if !viewModel.isEditing {
-                DismissToolbarItem()
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    viewModel.onSaveTapped()
-                } label: {
-                    Image(systemName: "checkmark")
-                }
-                .disabled(!viewModel.canSave)
-            }
-        }
     }
 
     // MARK: - Functions
-
-    @ViewBuilder private var startDataScannerIfPossible: some View {
-        if viewModel.isScannerVisible && DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-            ZStack {
-                DataScannerRepresentable(
-                    scannedCode: $viewModel.lastScannedBarcode,
-                    isSearching: viewModel.isBarcodeSearchLoading
-                )
-                if viewModel.isBarcodeSearchLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(.ultraThinMaterial)
-                }
-            }
-        }
-    }
 
     private func ingredientRow(_ draft: Binding<MyCreatedMealIngredientDraft>) -> some View {
         HStack {

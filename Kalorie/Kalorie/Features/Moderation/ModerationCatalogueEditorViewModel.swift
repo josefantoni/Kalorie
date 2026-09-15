@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import UIKit
 
-final class ModerationCatalogueEditorViewModel: ObservableObject {
+final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabelPrefilling {
 
     // MARK: - Properties
 
@@ -17,21 +18,43 @@ final class ModerationCatalogueEditorViewModel: ObservableObject {
     @Published private(set) var state: LoadingState<Void> = .idle
     @Published var alertItem: AlertItem?
     @Published private(set) var didSave = false
+    @Published var recognizedFields: Set<FoodItemFormField> = []
+    @Published var isRecognizingNutritionLabel = false
+    @Published var isNutritionLabelCameraVisible = false
+    @Published var nutritionLabelCameraHint: String?
 
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let updateFoodItem: any UpdateFoodItemUseCaseProtocol
+    private let recognizeNutritionLabelUseCase: any RecognizeNutritionLabelUseCaseProtocol
+    private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
 
     // MARK: - Init
 
     init(
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
-        updateFoodItem: any UpdateFoodItemUseCaseProtocol
+        updateFoodItem: any UpdateFoodItemUseCaseProtocol,
+        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol,
+        cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
     ) {
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.updateFoodItem = updateFoodItem
+        self.recognizeNutritionLabelUseCase = recognizeNutritionLabel
+        self.cameraAuthorizationProvider = cameraAuthorizationProvider
     }
 
     // MARK: - Functions
+
+    @MainActor
+    func onNutritionLabelCaptured(_ image: UIImage, liveBarcode: String?) async {
+        await recognizeNutritionLabel(from: image, liveBarcode: liveBarcode, using: recognizeNutritionLabelUseCase)
+    }
+
+    @MainActor
+    func onNutritionLabelCameraTapped() async {
+        await openNutritionLabelCamera(using: cameraAuthorizationProvider) {
+            alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
+        }
+    }
 
     @MainActor
     func onSearchTapped() async {
@@ -46,6 +69,7 @@ final class ModerationCatalogueEditorViewModel: ObservableObject {
             }
             loadedItem = item
             formInput = FoodItemFormInput(item: item)
+            recognizedFields = []
             didSave = false
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)

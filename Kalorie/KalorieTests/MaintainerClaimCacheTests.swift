@@ -12,21 +12,21 @@ final class MaintainerClaimCacheTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_value_whenNothingStoredYet_isNil() {
+    func test_entry_whenNothingStoredYet_isNil() {
         let sut = MaintainerClaimCache()
-        XCTAssertNil(sut.value)
+        XCTAssertNil(sut.entry)
     }
 
-    func test_value_afterStoring_returnsStoredValue() {
+    func test_entry_afterStoring_returnsStoredValue() {
         let sut = MaintainerClaimCache()
-        sut.value = true
-        XCTAssertEqual(sut.value, true)
+        sut.entry = .init(value: true, cachedAt: .now)
+        XCTAssertEqual(sut.entry?.value, true)
     }
 
-    func test_value_isSharedAcrossHoldersOfTheSameInstance() {
+    func test_entry_isSharedAcrossHoldersOfTheSameInstance() {
         let sut = MaintainerClaimCache()
         let otherHolder = sut
-        sut.value = true
-        XCTAssertEqual(otherHolder.value, true, "the cache must be a reference type so every use case built from the same configurator sees the same value")
+        sut.entry = .init(value: true, cachedAt: .now)
+        XCTAssertEqual(otherHolder.entry?.value, true, "the cache must be a reference type so every use case built from the same configurator sees the same value")
     }
 }

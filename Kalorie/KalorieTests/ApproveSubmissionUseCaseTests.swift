@@ -16,7 +16,7 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
         let (sut, _, _) = makeSUT(userId: nil)
         let submission = makeSubmission()
         do {
-            try await sut(id: submission.id, item: submission.item)
+            try await sut(submission: submission, item: submission.item)
             XCTFail("Expected notAuthenticated error")
         } catch AuthError.notAuthenticated {
             // pass
@@ -26,7 +26,8 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
     func test_approve_withValidSubmission_createsCatalogueItemThenDeletesSubmission() async throws {
         let (sut, dataProvider, createFoodItem) = makeSUT()
         let submission = makeSubmission()
-        try await sut(id: submission.id, item: submission.item)
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        try await sut(submission: submission, item: submission.item)
         XCTAssertEqual(createFoodItem.receivedItem?.id, submission.item.id)
         XCTAssertEqual(dataProvider.deletedId, submission.id)
         XCTAssertEqual(dataProvider.deletedCollection, Constants.Firestore.foodItemSubmissions)
@@ -34,10 +35,11 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
 
     func test_approve_whenBarcodeEnteredCatalogueAfterSubmissionWasFiled_refusesAndKeepsSubmission() async throws {
         let (sut, dataProvider, createFoodItem) = makeSUT()
-        createFoodItem.errorToThrow = CreateFoodItemError.itemAlreadyExists
         let submission = makeSubmission()
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        createFoodItem.errorToThrow = CreateFoodItemError.itemAlreadyExists
         do {
-            try await sut(id: submission.id, item: submission.item)
+            try await sut(submission: submission, item: submission.item)
             XCTFail("Expected itemAlreadyExists error")
         } catch CreateFoodItemError.itemAlreadyExists {
             // pass
@@ -45,12 +47,46 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
         XCTAssertNil(dataProvider.deletedId, "A submission that collides with an approved barcode must survive for the maintainer to resolve by hand")
     }
 
+    func test_approve_whenSubmissionNoLongerExists_throwsAlreadyResolvedAndNeverCreates() async throws {
+        let (sut, dataProvider, createFoodItem) = makeSUT()
+        let submission = makeSubmission()
+        dataProvider.stubbedReReadDTO = nil
+        do {
+            try await sut(submission: submission, item: submission.item)
+            XCTFail("Expected alreadyResolved error")
+        } catch ApproveSubmissionError.alreadyResolved {
+            // pass
+        }
+        XCTAssertNil(createFoodItem.receivedItem, "Must not create a catalogue item for a submission that was already resolved")
+    }
+
+    func test_approve_whenSubmissionWasResubmittedSinceReview_throwsChangedSinceReviewAndNeverCreates() async throws {
+        let (sut, dataProvider, createFoodItem) = makeSUT()
+        let submission = makeSubmission()
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission, submittedAt: submission.submittedAt.addingTimeInterval(60))
+        do {
+            try await sut(submission: submission, item: submission.item)
+            XCTFail("Expected changedSinceReview error")
+        } catch ApproveSubmissionError.changedSinceReview {
+            // pass
+        }
+        XCTAssertNil(createFoodItem.receivedItem, "Must not approve stale form values over an edit the author resubmitted after this screen loaded")
+    }
+
+    func test_approve_whenSubmissionDeleteFailsAfterCreate_swallowsTheErrorSinceTheCatalogueWriteAlreadySucceeded() async throws {
+        let (sut, dataProvider, _) = makeSUT()
+        let submission = makeSubmission()
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        dataProvider.stubbedDeleteError = NSError(domain: "test", code: -1)
+        try await sut(submission: submission, item: submission.item)
+    }
+
     // MARK: - Helpers
 
-    private func makeSUT(userId: String? = "maintainer-user") -> (sut: ApproveSubmissionUseCase, dataProvider: ApproveSubmissionDataProviderFake, createFoodItem: CreateFoodItemUseCaseStub) {
+    private func makeSUT(userId: String? = "maintainer-user") -> (sut: ApproveSubmissionUseCase, dataProvider: ApproveSubmissionDataProviderFake, createFoodItem: CreateFoodItemUseCaseFake) {
         let dataProvider = ApproveSubmissionDataProviderFake()
         let authProvider = AuthProviderFake(userId: userId)
-        let createFoodItem = CreateFoodItemUseCaseStub()
+        let createFoodItem = CreateFoodItemUseCaseFake()
         let sut = ApproveSubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider, createFoodItem: createFoodItem)
         return (sut, dataProvider, createFoodItem)
     }
@@ -83,9 +119,21 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
             )
         )
     }
+
+    private func makeDTO(from submission: FoodItemSubmissionDomain, submittedAt: Date? = nil) -> FoodItemSubmissionDTO {
+        FoodItemSubmissionDTO(
+            id: submission.id,
+            barcode: submission.barcode,
+            submittedBy: submission.submittedBy,
+            status: submission.status,
+            submittedAt: submittedAt ?? submission.submittedAt,
+            rejectReason: submission.rejectReason,
+            item: submission.item
+        )
+    }
 }
 
-private final class CreateFoodItemUseCaseStub: CreateFoodItemUseCaseProtocol {
+private final class CreateFoodItemUseCaseFake: CreateFoodItemUseCaseProtocol {
 
     // MARK: - Properties
 
@@ -107,6 +155,8 @@ private final class ApproveSubmissionDataProviderFake: FirestoreDataProviderProt
 
     var deletedId: String?
     var deletedCollection: String?
+    var stubbedReReadDTO: FoodItemSubmissionDTO?
+    var stubbedDeleteError: Error?
 
     // MARK: - Functions
 
@@ -118,12 +168,13 @@ private final class ApproveSubmissionDataProviderFake: FirestoreDataProviderProt
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
-    func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
+    func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { stubbedReReadDTO as? T }
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
     func deleteAsync(id: String, from collection: String) async throws {
+        if let stubbedDeleteError { throw stubbedDeleteError }
         deletedId = id
         deletedCollection = collection
     }

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import UIKit
 import VisionKit
 
 struct AddFoodSheetView: View {
@@ -14,19 +15,21 @@ struct AddFoodSheetView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: AddFoodSheetViewModel
-    @State private var flipAngle: Double = 0
     @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) private var scenePhase
     private let makeFoodQuantityView: (FoodItemDomain, Bool, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
+    private let makeMealEditorView: (@escaping () -> Void) -> MyCreatedMealEditorView
 
     // MARK: - Init
 
     init(
         viewModel: AddFoodSheetViewModel,
-        makeFoodQuantityView: @escaping (FoodItemDomain, Bool, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
+        makeFoodQuantityView: @escaping (FoodItemDomain, Bool, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView,
+        makeMealEditorView: @escaping (@escaping () -> Void) -> MyCreatedMealEditorView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeFoodQuantityView = makeFoodQuantityView
+        self.makeMealEditorView = makeMealEditorView
     }
 
     // MARK: - Body
@@ -34,20 +37,58 @@ struct AddFoodSheetView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                ZStack {
-                    Group {
-                        if !viewModel.isAddNewItemVisible {
-                            addFoodItem
-                        } else {
-                            addCustomFoodItem
-                        }
+                Picker("", selection: modeBinding) {
+                    ForEach(AddFoodSheetMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
                     }
-                    .rotation3DEffect(.degrees(flipAngle), axis: (x: 0, y: 1, z: 0))
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
 
-                    startDataScannerIfPossible
+                switch viewModel.mode {
+                case .search:
+                    addFoodItem
+                case .newItem:
+                    newItemPrompt
+                case .createMeal:
+                    makeMealEditorView {
+                        Task { await viewModel.onMyCreatedMealSaved() }
+                    }
                 }
             }
+            .navigationTitle(navigationTitle)
+            .navigationBarTitleDisplayMode(.inline)
             .loader(viewModel.state.isLoading)
+            .fullScreenCover(isPresented: $viewModel.isScannerVisible) {
+                BarcodeScannerOverlay(
+                    scannedCode: $viewModel.lastScannedBarcode,
+                    isSearching: viewModel.isBarcodeSearchLoading
+                ) {
+                    viewModel.isScannerVisible = false
+                }
+            }
+            .fullScreenCover(isPresented: $viewModel.isNutritionLabelCameraVisible, onDismiss: {
+                viewModel.onNutritionLabelCameraDismissed()
+            }) {
+                NutritionLabelCameraView(
+                    isRecognizing: viewModel.isRecognizingNutritionLabel,
+                    hint: viewModel.nutritionLabelCameraHint,
+                    onCaptured: { image, liveBarcode in
+                        await viewModel.onNutritionLabelCaptured(image, liveBarcode: liveBarcode)
+                    },
+                    onClose: { viewModel.isNutritionLabelCameraVisible = false }
+                )
+            }
+            .fullScreenCover(isPresented: $viewModel.isBarcodeRescanVisible) {
+                BarcodeScannerOverlay(scannedCode: $viewModel.rescannedBarcode, isSearching: false) {
+                    viewModel.isBarcodeRescanVisible = false
+                }
+            }
+            .onChange(of: viewModel.rescannedBarcode) {
+                viewModel.onBarcodeRescanned()
+            }
             .alert(item: $viewModel.alertItem) { item in
                 Alert(
                     title: Text(item.title),
@@ -55,8 +96,11 @@ struct AddFoodSheetView: View {
                     dismissButton: Alert.Button.default(Text(L10n.Common.ok))
                 )
             }
-            .alert(L10n.AddFood.submissionSubmitted, isPresented: $viewModel.isSubmissionConfirmationVisible) {
-                Button(L10n.Common.ok) { viewModel.onSubmissionConfirmationDismissed() }
+            .alert(L10n.AddFood.confirmWithdrawSubmission, isPresented: $viewModel.isSubmissionDeleteConfirmationVisible) {
+                Button(L10n.Common.buttonNo, role: .cancel) {}
+                Button(L10n.Common.buttonYes, role: .destructive) {
+                    Task { await viewModel.onDeleteSubmissionConfirmed() }
+                }
             }
             .task { await viewModel.onAppear() }
             .task(id: viewModel.searchText) { await viewModel.onSearchTextChanged() }
@@ -79,29 +123,14 @@ struct AddFoodSheetView: View {
                     }
                 }
             }
+            .navigationDestination(isPresented: $viewModel.isReviewPushed) {
+                newItemReviewView
+            }
             .toolbar {
                 DismissToolbarItem()
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        withAnimation(.easeIn(duration: 0.2)) {
-                            flipAngle = 90
-                        } completion: {
-                            viewModel.onAddNewItemToggleTapped()
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                flipAngle = 0
-                            }
-                        }
-                    } label: {
-                        BaseImage(
-                            imageName: .carrotFill,
-                            imageSize: 17
-                        )
-                    }
-                    .clipShape(Circle())
-                    .buttonStyle(.borderedProminent)
-                }
             }
-            .background(Color(.secondarySystemBackground))
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .background(Color(.systemGroupedBackground))
         }
     }
 
@@ -115,20 +144,22 @@ struct AddFoodSheetView: View {
         }
     }
 
-    @ViewBuilder var startDataScannerIfPossible: some View {
-        if viewModel.isScannerVisible && DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-            ZStack {
-                DataScannerRepresentable(
-                    scannedCode: $viewModel.lastScannedBarcode,
-                    isSearching: viewModel.isBarcodeSearchLoading
-                )
-                if viewModel.isBarcodeSearchLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(.ultraThinMaterial)
-                }
-            }
+    private var navigationTitle: String {
+        switch viewModel.mode {
+        case .search:
+            L10n.AddFood.navigationTitleSearch
+        case .newItem:
+            L10n.AddFood.navigationTitleNewItem
+        case .createMeal:
+            ""
         }
+    }
+
+    private var modeBinding: Binding<AddFoodSheetMode> {
+        Binding(
+            get: { viewModel.mode },
+            set: { viewModel.onModeSelected($0) }
+        )
     }
 
     var addFoodItem: some View {
@@ -176,6 +207,13 @@ struct AddFoodSheetView: View {
                             .onTapGesture {
                                 viewModel.onSelectSubmission(submission)
                             }
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    viewModel.onDeleteSubmissionRequested(submission)
+                                } label: {
+                                    Image(systemName: "trash")
+                                }
+                            }
                     }
                 }
             }
@@ -202,20 +240,71 @@ struct AddFoodSheetView: View {
                 }
             }
         }
-        .safeAreaInset(edge: .bottom) {
-            Button {
-                viewModel.onCreateMealButtonTapped()
-            } label: {
-                Text(L10n.AddFood.buttonCreateMeal)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
+        .contentMargins(.top, 0, for: .scrollContent)
+    }
+
+    var newItemPrompt: some View {
+        Group {
+            switch viewModel.cameraAccess {
+            case .authorized, .notDetermined:
+                Button {
+                    Task { await viewModel.onNutritionLabelPromptTapped() }
+                } label: {
+                    VStack(spacing: 16) {
+                        Image(systemName: BaseImageName.camera.rawValue)
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .padding(20)
+                            .background(Color.accentColor)
+                            .clipShape(.circle)
+                        Text(L10n.AddFood.nutritionLabelPromptBody)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(32)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            case .denied:
+                VStack(spacing: 16) {
+                    promptIcon
+                    Text(L10n.AddFood.nutritionLabelDeniedMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button(L10n.AddFood.buttonOpenSettings) {
+                        openSettings()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding(32)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .unsupported:
+                Text(L10n.AddFood.nutritionLabelUnsupportedMessage)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(32)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .glassEffect(.regular, in: .capsule)
-            .padding(.bottom, 8)
         }
     }
 
-    var addCustomFoodItem: some View {
+    private var promptIcon: some View {
+        Image(systemName: BaseImageName.camera.rawValue)
+            .font(.system(size: .extraLarge))
+            .foregroundStyle(.secondary)
+    }
+
+    private func openSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
+    }
+
+    var newItemReviewView: some View {
         VStack(spacing: 0) {
             List {
                 if let rejectionReason = viewModel.rejectionReasonBeingEdited {
@@ -224,21 +313,29 @@ struct AddFoodSheetView: View {
                             .foregroundStyle(.red)
                     }
                 }
-                Section(header: Text(L10n.AddFood.sectionNewItem)) {
-                    BaseStringTextField(
-                        placeholder: L10n.AddFood.fieldBarcodePlaceholder,
-                        title: L10n.AddFood.fieldBarcodeTitle,
-                        text: $viewModel.formInput.scannedCode
-                    )
-                    .disabled(viewModel.isEditingSubmission)
-                    FoodItemFormFields(formInput: $viewModel.formInput)
+                FoodItemFormSections(
+                    formInput: $viewModel.formInput,
+                    highlightedFields: viewModel.recognizedFields,
+                    barcodeRow: viewModel.isEditingSubmission ? .locked : .editable { viewModel.onBarcodeRescanTapped() },
+                    onNutritionLabelScanTapped: {
+                        Task { await viewModel.onReviewNutritionLabelCameraTapped() }
+                    }
+                ) { field in
+                    viewModel.onFormFieldEdited(field)
                 }
-                FoodPortionsSection(portions: $viewModel.formInput.portions)
             }
+            .contentMargins(.top, 0, for: .scrollContent)
             addButton
                 .padding(.horizontal)
                 .padding(.vertical, 12)
                 .background(Color(.secondarySystemBackground))
+        }
+        .navigationTitle(L10n.AddFood.navigationTitleNewItem)
+        .navigationBarTitleDisplayMode(.inline)
+        .alert(L10n.AddFood.submissionSubmitted, isPresented: $viewModel.isSubmissionConfirmationVisible) {
+            Button(L10n.Common.ok) { viewModel.onSubmissionConfirmationDismissed() }
+        } message: {
+            Text(L10n.AddFood.submissionSubmittedMessage)
         }
     }
 
@@ -264,29 +361,45 @@ struct AddFoodSheetView: View {
             submitFoodItem: SubmitFoodItemUseCaseFake(),
             fetchMySubmissions: FetchMySubmissionsUseCaseFake(),
             updateMySubmission: UpdateMySubmissionUseCaseFake(),
+            deleteMySubmission: DeleteMySubmissionUseCaseFake(),
             searchFoodExternally: SearchFoodExternallyUseCaseFake(),
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
             fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
             fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(),
-            fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake()
-        )
-    ) { item, isFavourite, isMyCreatedMeal, onSaved, onFavouriteChanged in
-        FoodQuantityView(
-            viewModel: FoodQuantityViewModel(
-                item: item,
-                saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
-                fetchMealTypes: FetchMealTypesUseCaseFake(),
-                selectedDate: .now,
-                mealTypes: [],
-                isFavourite: isFavourite,
-                addFavouriteFood: AddFavouriteFoodUseCaseFake(),
-                removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
-                fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(),
-                saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
-                onSaved: onSaved,
-                onFavouriteChanged: onFavouriteChanged,
-                quantity: isMyCreatedMeal ? item.weight : 1,
-                unit: isMyCreatedMeal ? .grams : .hundredGrams
+            fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(),
+            recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
+            cameraAuthorizationProvider: CameraAuthorizationProviderFake()
+        ),
+        makeFoodQuantityView: { item, isFavourite, isMyCreatedMeal, onSaved, onFavouriteChanged in
+            FoodQuantityView(
+                viewModel: FoodQuantityViewModel(
+                    item: item,
+                    saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
+                    fetchMealTypes: FetchMealTypesUseCaseFake(),
+                    selectedDate: .now,
+                    mealTypes: [],
+                    isFavourite: isFavourite,
+                    addFavouriteFood: AddFavouriteFoodUseCaseFake(),
+                    removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
+                    fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(),
+                    saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
+                    onSaved: onSaved,
+                    onFavouriteChanged: onFavouriteChanged,
+                    quantity: isMyCreatedMeal ? item.weight : 1,
+                    unit: isMyCreatedMeal ? .grams : .hundredGrams
+                )
+            )
+        }
+    ) { onSaved in
+        MyCreatedMealEditorView(
+            viewModel: MyCreatedMealEditorViewModel(
+                searchFoodItems: SearchFoodItemsUseCaseFake(),
+                searchFoodExternally: SearchFoodExternallyUseCaseFake(),
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
+                fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
+                createMyCreatedMeal: CreateMyCreatedMealUseCaseFake(),
+                updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
+                onSaved: onSaved
             )
         )
     }

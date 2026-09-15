@@ -18,7 +18,7 @@ final class ModerationQueueViewModelTests: XCTestCase {
         let submissionB = makeSubmission(id: "b", barcode: "222")
         let sut = makeSUT(
             fetchPendingSubmissions: FetchPendingSubmissionsUseCaseFake(stubbedSubmissions: [submissionA, submissionB]),
-            fetchFoodItemByBarcode: BarcodeLookupStub(existingBarcodes: ["111"])
+            fetchFoodItemByBarcode: BarcodeLookupFake(existingBarcodes: ["111"])
         )
         await sut.onAppear()
         XCTAssertTrue(sut.isColliding(submissionA))
@@ -32,7 +32,7 @@ final class ModerationQueueViewModelTests: XCTestCase {
         let submissionA = makeSubmission(id: "a", barcode: "111")
         let submissionB = makeSubmission(id: "b", barcode: "222")
         let fetchPendingSubmissions = FetchPendingSubmissionsUseCaseSpy(stubbedSubmissions: [submissionA, submissionB])
-        let sut = makeSUT(fetchPendingSubmissions: fetchPendingSubmissions, fetchFoodItemByBarcode: BarcodeLookupStub(existingBarcodes: []))
+        let sut = makeSUT(fetchPendingSubmissions: fetchPendingSubmissions, fetchFoodItemByBarcode: BarcodeLookupFake(existingBarcodes: []))
         await sut.onAppear()
         XCTAssertEqual(fetchPendingSubmissions.callCount, 1)
 
@@ -46,7 +46,7 @@ final class ModerationQueueViewModelTests: XCTestCase {
     func test_onSubmissionResolved_recomputesCollisionsForRemainingSubmissions() async {
         let submissionA = makeSubmission(id: "a", barcode: "111")
         let submissionB = makeSubmission(id: "b", barcode: "222")
-        let barcodeLookup = BarcodeLookupStub(existingBarcodes: [])
+        let barcodeLookup = BarcodeLookupFake(existingBarcodes: [])
         let sut = makeSUT(
             fetchPendingSubmissions: FetchPendingSubmissionsUseCaseFake(stubbedSubmissions: [submissionA, submissionB]),
             fetchFoodItemByBarcode: barcodeLookup
@@ -120,7 +120,7 @@ private final class FetchPendingSubmissionsUseCaseSpy: FetchPendingSubmissionsUs
     }
 }
 
-private final class BarcodeLookupStub: FetchFoodItemByBarcodeUseCaseProtocol {
+private final class BarcodeLookupFake: FetchFoodItemByBarcodeUseCaseProtocol {
 
     // MARK: - Properties
 
