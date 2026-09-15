@@ -20,6 +20,7 @@ are out of date: a decision recorded in one is still in force.
 4. [Food entry flow](#4-food-entry-flow)
 5. [Cross-cutting concerns](#5-cross-cutting-concerns)
 6. [Authentication](#6-authentication)
+7. [Catalogue moderation](#7-catalogue-moderation)
 
 ---
 
@@ -33,7 +34,8 @@ first version of the security rules), [design 0003](design/0003-favourite-foods.
 (`favouriteFoods`, and why `food_item_id` is required), [design 0006](design/0006-own-daily-meals.md)
 (`myCreatedMeals`, and what `food_item_id` means once a meal can be logged),
 [design 0008](design/0008-food-portions.md) (`portions` on `foodItems`/`myCreatedMeals`, and the
-barcode-keyed `foodItemPortions` collection).
+barcode-keyed `foodItemPortions` collection), [design 0009](design/0009-catalogue-moderation.md)
+(`foodItemSubmissions`, and the maintainer claim narrowing `foodItems` writes — see § 7).
 
 ### 1.1 Layering
 
@@ -74,6 +76,7 @@ users/{userId}/foodConsumed/{uuid}         logged entries
 users/{userId}/favouriteFoods/{barcode}    explicitly favourited catalogue items
 users/{userId}/myCreatedMeals/{uuid}       user-composed meals
 users/{userId}/foodItemPortions/{barcode}  personal gram-shortcut portions
+foodItemSubmissions/{uuid}                 shared, a user's pending/rejected catalogue submission
 ```
 
 Everything under `users/{userId}` is private to that user. `foodItems` is shared by every user
@@ -183,6 +186,16 @@ fetched and saved whole by `FetchFoodItemPersonalPortionsUseCase` /
 `SaveFoodItemPersonalPortionsUseCase` — the caller does the add/remove and writes the full list
 back with `setAsync`, there is no partial-update path.
 
+**`foodItemSubmissions`** (`FoodItemSubmissionDTO`) — a user-submitted catalogue entry awaiting
+maintainer review, keyed by a client-generated UUID (not the barcode, so two users submitting the
+same barcode don't overwrite each other). Carries `barcode` (the food's own identity, duplicated at
+top level for rules and queries), `submitted_by`, `status` (`pending` / `rejected`), `submitted_at`,
+an optional `reject_reason`, and `item` — a nested `FoodItemDTO` in the exact shape `foodItems`
+expects. There is no `approved` status: approving is `ApproveSubmissionUseCase` writing `item` to
+`foodItems` under `barcode` and deleting the submission, so the collection only ever holds queue
+entries still awaiting a maintainer. See [design 0009](design/0009-catalogue-moderation.md) and
+§ 7 for the full flow.
+
 ### 1.5 The provider
 
 `FirestoreDataProviderProtocol` is a flat list of one method per **query shape**, not a query
@@ -237,13 +250,35 @@ Consequences worth knowing before adding a method:
 
 - `users/{userId}` and everything beneath it: read and write require
   `request.auth.uid == userId`. Anonymous users are authenticated users, so this covers them.
-- `foodItems`: read requires only `request.auth != null`. `create`/`update` additionally require
-  the document id to match the barcode length whitelist, `request.resource.data.id == itemId`,
-  and every numeric field to be `is number` (the three fields optional on write —
-  `energy_kj`, `fat_saturated`, `fiber` — only when present). `delete` is not granted and falls
-  through to Firestore's default deny. See
-  [ADR 0011](adr/0011-foodItems-writable-by-any-authenticated-client.md) for why client writes
-  exist at all.
+- `isMaintainer()` — `request.auth != null && request.auth.token.maintainer == true`, a custom
+  claim set out-of-band via `scripts/set-maintainer-claim.js` (see `docs/SETUP.md`). Gates every
+  catalogue write; the client only reads it to decide whether to render the moderation panel
+  (§ 7), never to allow anything by itself.
+- `validFoodItem(data)` — the shared per-field numeric validation plus a barcode-format check on
+  `data.id` ([ADR 0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md)),
+  called with either `request.resource.data` (a `foodItems` write) or `request.resource.data.item`
+  (a `foodItemSubmissions` write), so `create` and `update` on both collections can't drift apart.
+- `foodItems`: read requires only `request.auth != null`. `create`/`update` require
+  `isMaintainer()`, the document id to match the barcode length whitelist,
+  `request.resource.data.id == itemId`, and `validFoodItem`. `delete` is not granted and falls
+  through to Firestore's default deny. Client writes were removed by
+  [ADR 0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md), which superseded
+  [ADR 0011](adr/0011-foodItems-writable-by-any-authenticated-client.md)'s Decision — ADR 0011's
+  Context is still the record of *why* client writes existed in the first place.
+- `foodItemSubmissions/{submissionId}`: the first collection with two differently-privileged
+  readers of the same document — `allow read` is `isMaintainer() || resource.data.submitted_by ==
+  request.auth.uid`. `create` requires the author's own uid, `status == 'pending'` and
+  `validFoodItem(item)`. `update`'s author branch is the only rule in the project that guards a
+  specific field value (`status == 'pending'`) rather than ownership alone, since without it an
+  author could approve their own submission by editing its status; the maintainer branch is the
+  reject path — `isMaintainer()` plus an unchanged `barcode`/`submitted_by`, `status ==
+  'rejected'`, a non-empty `reject_reason` and `validFoodItem(item)` — narrowed by
+  [ADR 0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md) to match
+  exactly what `RejectSubmissionUseCase` writes; approving deletes the submission rather than
+  updating it, so this branch never needs to allow that. `delete` is `isMaintainer() ||` the
+  author, the latter existing for account deletion, not as a product feature. See
+  [design 0009](design/0009-catalogue-moderation.md) for the original rule text and the Rules
+  Playground cases it calls out, and ADR 0028 for what changed since.
 - Everything else is denied by Firestore's default.
 
 `Kalorie/firestore.indexes.json`, deployed via the same `firebase.json`, disables single-field
@@ -260,7 +295,9 @@ fallback behaviour; `iOS` for the scanner.
 
 **Read first:** [design 0003](design/0003-favourite-foods.md) (favourites hoisted into the result
 list, and why an OpenFoodFacts item outside the catalogue is accepted),
-[design 0006](design/0006-own-daily-meals.md) (a created meal appearing in the same search).
+[design 0006](design/0006-own-daily-meals.md) (a created meal appearing in the same search),
+[design 0009](design/0009-catalogue-moderation.md) (the author's own pending/rejected submissions
+as a fourth such list — see § 7).
 
 ### 2.1 The four ways a food is found
 
@@ -310,15 +347,20 @@ script, and what this still doesn't do — it is a prefix match per word, not a 
 it does not change the per-query `limit(10)` or add any ranking (**A2-12** is untouched).
 
 Ranking happens **above** the use case, in `AddFoodSheetViewModel.displayedResults`, which is a
-pure computed property over three already-loaded lists:
+pure computed property over four already-loaded lists:
 
 1. matching **my created meals** (`asFoodItem()`, prefix on the meal name),
 2. matching **favourites** not already listed as a meal,
-3. the local search results, minus anything already listed.
+3. matching **own catalogue submissions** ([design 0009](design/0009-catalogue-moderation.md)) not
+   already listed as a meal or favourite,
+4. the local search results, minus anything already listed.
 
-Favourites and meals are loaded once in `onAppear`, not per keystroke, so this re-ranking costs
-nothing. With an empty query, `displayedResults` returns `localFoodItems`, which is empty — the
-Favourites section in the view renders from `favouriteFoods` directly.
+Favourites, meals and submissions are loaded once in `onAppear`, not per keystroke, so this
+re-ranking costs nothing. With an empty query, `displayedResults` returns `localFoodItems`, which
+is empty — the Favourites and My submissions sections in the view render from `favouriteFoods` /
+`mySubmissions` directly. A submission row carries a *pending* or *rejected* marker
+(`FoodItemRow.submissionStatus`); tapping a rejected one reopens the new-food form pre-filled from
+it instead of pushing to the quantity screen (§ 7).
 
 ### 2.3 Search orchestration
 
@@ -430,25 +472,32 @@ Scanning is stopped while a lookup is in flight (`isSearching` → `stopScanning
 
 ### 2.6 Creating a catalogue item
 
-`CreateFoodItemUseCase` validates in a fixed order — id non-empty and all digits, Czech name
-non-empty, calories > 0, weight > 0 — then checks for an existing document and writes with
-`setAsync`. Each failure is a distinct `CreateFoodItemError` case, and `AddFoodSheetViewModel`
-switches over them exhaustively to pick the alert string; anything unrecognised falls back to
-`L10n.Common.errorUnknown`.
+**Since [design 0009](design/0009-catalogue-moderation.md), `CreateFoodItemUseCase` is no longer
+reachable from `AddFoodSheetViewModel` at all** — its only caller now is `ApproveSubmissionUseCase`
+(§ 7). The *add a new food* form still collects the same fields, but `onCreateFoodItem` calls
+`SubmitFoodItemUseCase` instead, which writes to `foodItemSubmissions`, not `foodItems`.
 
-Two things to know before touching it. First, the existence check reads the target document
-straight from the server (`loadFromServerAsync(id:from:)`) rather than the offline-capable
-equality query it used before, and `firestore.rules` independently drops `update` from the
-`foodItems` block, so an overwrite is refused server-side even if the client's read was stale —
-the rule is what actually closes the race, the read is the affordance. Both are deployed and
-verified by hand: a genuinely new barcode still succeeds, and re-submitting an existing one is
-refused server-side rather than silently overwritten. A `permissionDenied` from `setAsync` is
-re-read and rethrown as `.itemAlreadyExists` rather than assumed, since the same denial code can
-also mean an expired auth session. Whether an offline `setAsync` hangs rather than throwing
-before reaching this rule is unverified — not reproducible from a unit test or the simulator's
-default networking, and nobody has tried it on a real device yet. Second, `eng_name_lowercase`
-is written as
-`""` for every manually created item, because the form has no English name field.
+Its validation — id non-empty, all digits, of a valid barcode length; Czech name non-empty;
+calories > 0; weight > 0; portions — is `FoodItemValidation`, a static predicate shared with
+`SubmitFoodItemUseCase` and `UpdateFoodItemUseCase` (§ 7) so the three write paths cannot drift.
+Each use case still wraps the result in its own error enum (`CreateFoodItemError`,
+`FoodItemSubmissionError`, `UpdateFoodItemError`) so each caller's exhaustive `switch` keeps its
+own alert strings; `AddFoodSheetViewModel` now switches over `FoodItemSubmissionError`, and
+`ModerationReviewViewModel` / `ModerationCatalogueEditorViewModel` over the other two.
+
+Two things to know before touching `CreateFoodItemUseCase` itself. First, the existence check reads
+the target document straight from the server (`loadFromServerAsync(id:from:)`) rather than the
+offline-capable equality query it used before. `firestore.rules` now grants the maintainer
+`update` on `foodItems` (§ 1.6), so — unlike before design 0009 — the rule no longer closes the
+race by itself; this existence check is the only thing standing between an approval and silently
+overwriting a catalogue entry whose barcode entered the catalogue after the submission was filed
+(the design's own required test case for this is `ApproveSubmissionUseCaseTests`). A
+`permissionDenied` from `setAsync` is re-read and rethrown as `.itemAlreadyExists` rather than
+assumed, since the same denial code can also mean an expired auth session. Whether an offline
+`setAsync` hangs rather than throwing before reaching this rule is unverified — not reproducible
+from a unit test or the simulator's default networking, and nobody has tried it on a real device
+yet. Second, `eng_name_lowercase` is written as `""` for every manually created item, because the
+form has no English name field.
 
 `FetchFoodItemsUseCase`, which loaded the entire catalogue with no callers, has been deleted.
 
@@ -1005,8 +1054,8 @@ itself throwing `requiresRecentLogin`. That second path still exists as a fallba
 where the session goes stale between the check and the call, and is distinguished by
 `dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
 Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods`,
-`myCreatedMeals` and `foodItemPortions` document by document, then the `users` profile document
-last — the profile delete
+`myCreatedMeals`, `foodItemPortions` and the user's own `foodItemSubmissions` document by document,
+then the `users` profile document last — the profile delete
 alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
 not the kind of correctness problem an orphaned collection would be.
 
@@ -1031,3 +1080,90 @@ failed profile write must not fail the sign-in it is attached to, but before thi
 was invisible even in Crashlytics. `AuthStateObserver.resumePendingMergeOnce` logs the same way
 around `resumeIfNeeded()` — a failed crash-recovery merge must not block app launch, but it must
 not vanish silently either.
+
+---
+
+## 7. Catalogue moderation
+
+**Scope:** `Backend` for the claim and the rules it gates; `Cross-platform` for the submission
+lifecycle and the log-before-approval behaviour; `iOS` for the panel.
+
+**Read first:** [design 0009](design/0009-catalogue-moderation.md) (the whole flow, the two
+identities a submission carries, and the alternatives rejected),
+[ADR 0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) (the claim decision and why it
+supersedes [ADR 0011](adr/0011-foodItems-writable-by-any-authenticated-client.md)),
+[ADR 0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md) (the
+maintainer `update` branch narrowed to what the reject path actually writes). § 1.2/1.4/1.6
+cover the collection shape and rules; § 2.6 covers where this replaces the old direct-write path.
+
+### 7.1 What exists
+
+Eight use cases, all `FirestoreDataProviderProtocol` + `AuthProviderProtocol` except
+`FetchMaintainerClaimUseCase` (§ 7.3, which touches `FirebaseAuth` directly and takes neither):
+
+| Use case | Does |
+|---|---|
+| `SubmitFoodItemUseCase` | validates, checks the barcode isn't already in `foodItems`, writes a `pending` submission |
+| `FetchMySubmissionsUseCase` | the author's own submissions, for the fourth `displayedResults` list (§ 2.2) |
+| `UpdateMySubmissionUseCase` | resubmits a rejected submission under its existing id, resetting `status` to `pending` |
+| `FetchPendingSubmissionsUseCase` | the maintainer's queue |
+| `ApproveSubmissionUseCase` | calls `CreateFoodItemUseCase` (§ 2.6), then deletes the submission |
+| `RejectSubmissionUseCase` | overwrites the submission with `status: rejected` and a reason — `setAsync` replaces, so every other field is resent unchanged |
+| `UpdateFoodItemUseCase` | the maintainer's correction of an existing `foodItems` entry; same `FoodItemValidation`, no existence check |
+| `FetchMaintainerClaimUseCase` | reads the `maintainer` custom claim via `getIDTokenResult()` |
+
+### 7.2 The submission flow (AddFoodSheet)
+
+Nothing about *finding* or *logging* a food changes. What changes is where the *add a new food*
+form writes: `AddFoodSheetViewModel.onCreateFoodItem` calls `SubmitFoodItemUseCase` for a fresh
+submission, or `UpdateMySubmissionUseCase` when `editingSubmissionId` is set (a resubmit). Both
+share `FoodItemFormInput.asFoodItemDomain()` and the same `FoodItemSubmissionError` switch for
+alerts. On success the sheet shows a one-line confirmation
+(`isSubmissionConfirmationVisible`) before dismissing.
+
+The user's own submissions are the fourth list folded into `displayedResults` (§ 2.2) and — with an
+empty search — their own always-visible section, `mySubmissions`, fetched once in `onAppear`
+alongside favourites and created meals. `FoodItemRow.submissionStatus` renders the *pending* /
+*rejected* marker. Tapping a **pending** row behaves like any other result (logs it, via the
+ordinary quantity screen); tapping a **rejected** row calls `onSelectRejectedSubmission`, which
+pre-fills `formInput` from `FoodItemFormInput(item:)`, shows the rejection reason as a banner, and
+routes the next save through `UpdateMySubmissionUseCase` instead of `SubmitFoodItemUseCase`.
+
+Logging a food that points at a pending or rejected submission needs no special case: `foodConsumed`
+already carries denormalised nutrition (§ 1.3) and never reads `foodItems` at write time, so
+`food_item_id` = the barcode resolves once — or if rejected, never — without the entry itself ever
+being wrong.
+
+### 7.3 The panel (Account)
+
+A `Section` in `AccountView`, rendered only when `AccountViewModel.isMaintainer` is true —
+populated in `onAppear()` from `FetchMaintainerClaimUseCase`, a plain `Bool` with no retry. This is
+a **UI gate, not a defence**: the rules in § 1.6 are what actually restrict a write, exactly as
+design 0009 requires.
+
+`ModerationConfigurator` assembles three pushed (not sheeted) views, all reached through
+`NavigationLink`s inside `AccountView`'s existing `NavigationStack`, matching how
+`MyCreatedMealEditorView` is pushed from `MealTypeSheetView` rather than sheeted:
+
+- **`ModerationQueueView`** — `FetchPendingSubmissionsUseCase`'s list, each row concurrently
+  checked against `FetchFoodItemByBarcodeUseCase` so an already-collided barcode shows a marker
+  before the maintainer opens it (an affordance; `ApproveSubmissionUseCase`'s own existence check
+  in `CreateFoodItemUseCase` is the actual guard). A toolbar button pushes the catalogue editor.
+- **`ModerationReviewView`** — one submission, every field editable via the same
+  `FoodItemFormFields` component the *add a new food* form and the editor use (extracted by this
+  work to avoid a third copy of a thirteen-field list), *Approve* and *Reject with a reason*. A
+  `CreateFoodItemError.itemAlreadyExists` from approval surfaces as
+  `L10n.Moderation.errorAlreadyExists` rather than a generic failure.
+- **`ModerationCatalogueEditorView`** — search `foodItems` by barcode
+  (`FetchFoodItemByBarcodeUseCase`), edit any field including canonical portions, save via
+  `UpdateFoodItemUseCase`. This is the correction path [design 0008](design/0008-food-portions.md)
+  deferred here, since canonical portions were write-once purely for lack of an `update` rule.
+
+### 7.4 What this does not do
+
+Per design 0009's Non-goals: no packaging photo (Storage isn't configured), no report-a-problem
+channel for an existing catalogue item, no push notification of the outcome, no `delete` on
+`foodItems` for anyone including the maintainer, and no second-platform admin panel — an Android
+client ships without one, which is an accepted consequence of hosting it in the iOS client alone.
+All four are tracked in `TODO.md`, not here, per this document's own rule that open work lives in
+the backlog, not in the description of what exists.

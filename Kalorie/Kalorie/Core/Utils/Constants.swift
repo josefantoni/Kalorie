@@ -15,6 +15,7 @@ enum Constants {
 
     enum Auth {
         static let recentLoginThreshold: TimeInterval = 4 * 60
+        static let maintainerClaimCacheTTL: TimeInterval = 5 * 60
     }
 
     enum OpenFoodFacts {
@@ -39,10 +40,12 @@ enum Constants {
         static let addFoodSheet = "addFoodSheet"
         static let dashboard = "dashboard"
         static let myCreatedMeal = "myCreatedMeal"
+        static let moderation = "moderation"
     }
 
     enum Firestore {
         static let foodItems = "foodItems"
+        static let foodItemSubmissions = "foodItemSubmissions"
         static let users = "users"
         static let batchWriteLimit = 500
         static func mealTypes(userId: String) -> String { "users/\(userId)/mealTypes" }

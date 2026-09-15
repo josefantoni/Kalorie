@@ -19,14 +19,19 @@ The app works with three kinds of data. The distinction matters for the items be
   sized for a single visible dashboard, not an arbitrary export range.
 - [ ] **Prompt to sign in** — the account screen is only reachable from the toolbar icon; add an
   unobtrusive prompt after the first logged meal so users on a second device sign in early
-- [ ] **User-submitted food** — the user photographs the packaging, fills in macros and calories,
-  reviews and submits for approval. The submission goes to a separate pending collection rather
-  than straight into the shared catalogue, and reaches `foodItems` only once the maintainer
-  approves it. Requires Firebase Storage for the photos.
-- [ ] **Maintainer admin panel** — a list of pending food submissions (including the packaging
-  photo) to approve or reject; approving publishes the item to the shared `foodItems` catalogue.
-  Requires a maintainer role (Firebase custom claims) and matching security rules — once done,
-  direct client writes to `foodItems` get disabled.
+- [ ] **Packaging photo on a submission** — the other half of the user-submitted-food flow shipped
+  in [design 0009](docs/design/0009-catalogue-moderation.md), deferred by that design's Non-goals:
+  Firebase Storage is not configured in this project, and whether the project's plan includes free
+  Storage quota is unverified. Needs a `storage` block in `firebase.json`, `storage.rules`, and a
+  Blaze-plan check before starting. Additive once it lands — `FoodItemSubmissionDTO` gains an
+  optional `photo_path`, no other schema change.
+- [ ] **Report incorrect data on a catalogue item** — a user who spots a wrong value on a shared
+  catalogue entry has no way to say so. Correcting one is the maintainer's own action in the
+  moderation panel ([design 0009](docs/design/0009-catalogue-moderation.md), shipped), and the
+  submission flow deliberately refuses a barcode already in the catalogue, so a correction can only
+  start from the maintainer noticing the error personally — recorded as a Non-goal in that design,
+  not an oversight. Needs a report affordance on the item's own screen and a queue for reports in
+  the panel, beside the existing submissions queue.
 - [ ] **Rank search results by frequency** — order manual search results by how often the user has
   logged each food, so the most used ones come first. Distinct from favourites above: this one is
   derived, not chosen, and the user cannot remove an entry from it.
@@ -53,10 +58,10 @@ ones are listed below; closed findings live in git history, not here.
   favourite when tapped, a meal when opened in the editor. Nothing to decide; the only thing
   worth adding is a **trigger**, since there is currently no way to learn that a catalogue item
   was corrected in the first place. Left open as a reminder that the mitigation is designed but
-  not built. The trigger depends on **Maintainer admin panel** above — approval is the only
-  moment a correction is known to have happened, so design the trigger alongside that panel
-  rather than as a standalone doc now. `loadAsync(id:from:)` already makes the re-read itself
-  cheap whenever that lands.
+  not built. `ModerationCatalogueEditorViewModel.onSaveTapped` ([design 0009](docs/design/0009-catalogue-moderation.md),
+  shipped) is now the only place a correction happens, so it is also the only place a trigger could
+  fire from — still not built. `loadAsync(id:from:)` already makes the re-read itself cheap
+  whenever that lands.
 
 ## Audit findings — 2. Food search and catalogue
 

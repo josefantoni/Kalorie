@@ -1,5 +1,22 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "foodItemSubmissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "submitted_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "foodItemSubmissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "submitted_by", "order": "ASCENDING" },
+        { "fieldPath": "submitted_at", "order": "DESCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": [
     { "collectionGroup": "foodItems", "fieldPath": "id", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "weight", "indexes": [] },

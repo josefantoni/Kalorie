@@ -15,6 +15,15 @@ enum CreateFoodItemError: Error {
     case invalidWeight
     case invalidPortion(FoodPortionError)
     case itemAlreadyExists
+
+    init(_ validationError: FoodItemValidationError) {
+        self = validationError.mapped(
+            invalidCode: .invalidCode,
+            invalidName: .invalidName,
+            invalidCalories: .invalidCalories,
+            invalidWeight: .invalidWeight
+        ) { .invalidPortion($0) }
+    }
 }
 
 protocol CreateFoodItemUseCaseProtocol {
@@ -36,20 +45,8 @@ struct CreateFoodItemUseCase: CreateFoodItemUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemDomain {
-        guard
-            item.id.allSatisfy({ $0.isASCII && $0.isNumber }),
-            [8, 12, 13].contains(item.id.count)
-        else { throw CreateFoodItemError.invalidCode }
-        guard !item.czName.isEmpty else { throw CreateFoodItemError.invalidName }
-        guard item.caloriesPerHundredGrams > 0 else { throw CreateFoodItemError.invalidCalories }
-        guard item.weight > 0 else { throw CreateFoodItemError.invalidWeight }
-        for portion in item.portions {
-            if let error = FoodPortionValidation.validate(name: portion.name, grams: portion.grams) {
-                throw CreateFoodItemError.invalidPortion(error)
-            }
-        }
-        if let error = FoodPortionValidation.validate(portions: item.portions) {
-            throw CreateFoodItemError.invalidPortion(error)
+        if let validationError = FoodItemValidation.validate(item) {
+            throw CreateFoodItemError(validationError)
         }
         let existing: FoodItemDTO? = try await dataProvider.loadFromServerAsync(
             id: item.id,

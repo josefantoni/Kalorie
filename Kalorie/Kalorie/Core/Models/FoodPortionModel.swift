@@ -19,6 +19,14 @@ enum FoodPortionError: Error {
     case invalidName
     case invalidGrams
     case tooMany
+
+    var alertTitle: String {
+        switch self {
+        case .invalidName: return L10n.FoodPortion.errorInvalidName
+        case .invalidGrams: return L10n.FoodPortion.errorInvalidGrams
+        case .tooMany: return L10n.FoodPortion.errorTooMany
+        }
+    }
 }
 
 enum FoodPortionValidation {

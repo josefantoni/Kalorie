@@ -33,7 +33,9 @@ struct AddFoodSheetConfigurator {
         AddFoodSheetView(
             viewModel: AddFoodSheetViewModel(
                 searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
-                createFoodItem: CreateFoodItemUseCase(dataProvider: dataProvider),
+                submitFoodItem: SubmitFoodItemUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchMySubmissions: FetchMySubmissionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                updateMySubmission: UpdateMySubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 searchFoodExternally: SearchFoodExternallyUseCase(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),

@@ -13,18 +13,71 @@ struct FoodItemFormInput {
 
     var scannedCode = ""
     var name = ""
+    var engName = ""
     var weightOfProduct: Double = 0
     var energyKJ: Double = 0
     var caloriesPerHundredGrams: Double = 0
     var fat: Double = 0
-    var fatSaturated: Double = 0
+    var fatSaturated: Double? = 0
     var fatUnsaturatedFattyAcids: Double = 0
     var carbohydrate: Double = 0
     var carbohydratePureSugar: Double = 0
-    var fiber: Double = 0
+    var fiber: Double? = 0
     var protein: Double = 0
     var salt: Double = 0
     var portions: [FoodPortionDraft] = []
+}
+
+extension FoodItemFormInput {
+    init(item: FoodItemDomain) {
+        self.init(
+            scannedCode: item.id,
+            name: item.czName,
+            engName: item.engName,
+            weightOfProduct: item.weight,
+            energyKJ: item.energyKJ,
+            caloriesPerHundredGrams: item.caloriesPerHundredGrams,
+            fat: item.fat,
+            fatSaturated: item.fatSaturated,
+            fatUnsaturatedFattyAcids: item.fatUnsaturatedFattyAcids,
+            carbohydrate: item.carbohydrate,
+            carbohydratePureSugar: item.carbohydratePureSugar,
+            fiber: item.fiber,
+            protein: item.protein,
+            salt: item.salt,
+            portions: item.portions.map { FoodPortionDraft(name: $0.name, gramsText: String(format: "%g", $0.grams)) }
+        )
+    }
+
+    func asFoodItemDomain(kind: FoodItemKind = .catalogue, date: Date = .now) -> FoodItemDomain {
+        FoodItemDomain(
+            id: scannedCode,
+            kind: kind,
+            czName: name,
+            engName: engName,
+            weight: weightOfProduct,
+            date: date,
+            energyKJ: energyKJ,
+            caloriesPerHundredGrams: caloriesPerHundredGrams,
+            fat: fat,
+            fatSaturated: fatSaturated,
+            fatUnsaturatedFattyAcids: fatUnsaturatedFattyAcids,
+            carbohydrate: carbohydrate,
+            carbohydratePureSugar: carbohydratePureSugar,
+            fiber: fiber,
+            protein: protein,
+            salt: salt,
+            portions: Self.parsedPortions(portions)
+        )
+    }
+
+    static func parsedPortions(_ drafts: [FoodPortionDraft]) -> [FoodPortionDomain] {
+        drafts.compactMap { draft in
+            let grams = Double(draft.gramsText.replacingOccurrences(of: ",", with: ".")) ?? 0
+            guard grams >= 1 else { return nil }
+            return FoodPortionDomain(name: draft.name, grams: grams)
+        }
+    }
 }
 
 final class AddFoodSheetViewModel: ObservableObject {
@@ -48,10 +101,17 @@ final class AddFoodSheetViewModel: ObservableObject {
     @Published private(set) var favouriteFoods: [FoodItemDomain] = []
     @Published private(set) var favouriteIds: Set<String> = []
     @Published private(set) var myCreatedMeals: [MyCreatedMealDomain] = []
+    @Published private(set) var mySubmissions: [FoodItemSubmissionDomain] = []
+    @Published var isSubmissionConfirmationVisible = false
+    @Published private(set) var rejectionReasonBeingEdited: String?
     let searchPlaceholder: String
 
+    var isEditingSubmission: Bool { editingSubmissionId != nil }
+
     private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
-    private let createFoodItem: any CreateFoodItemUseCaseProtocol
+    private let submitFoodItem: any SubmitFoodItemUseCaseProtocol
+    private let fetchMySubmissions: any FetchMySubmissionsUseCaseProtocol
+    private let updateMySubmission: any UpdateMySubmissionUseCaseProtocol
     private let searchFoodExternally: any SearchFoodExternallyUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
@@ -59,6 +119,7 @@ final class AddFoodSheetViewModel: ObservableObject {
     private let fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol
     private let onFoodSaved: () -> Void
     private let onCreateMealRequested: () -> Void
+    private var editingSubmissionId: String?
 
     var displayedResults: [FoodItemDomain] {
         let query = searchText.lowercased()
@@ -71,8 +132,14 @@ final class AddFoodSheetViewModel: ObservableObject {
         }
         let mealIds = Set(matchingMeals.map(\.id))
         let matchingFavouritesFiltered = matchingFavourites.filter { !mealIds.contains($0.id) }
-        let matchingIds = mealIds.union(matchingFavouritesFiltered.map(\.id))
-        return matchingMeals + matchingFavouritesFiltered
+        let matchingFavouriteAndMealIds = mealIds.union(matchingFavouritesFiltered.map(\.id))
+        var seenSubmissionIds = matchingFavouriteAndMealIds
+        let matchingSubmissions = mySubmissions
+            .map(\.item)
+            .filter { $0.czName.lowercased().hasPrefix(query) || $0.engName.lowercased().hasPrefix(query) }
+            .filter { seenSubmissionIds.insert($0.id).inserted }
+        let matchingIds = matchingFavouriteAndMealIds.union(matchingSubmissions.map(\.id))
+        return matchingMeals + matchingFavouritesFiltered + matchingSubmissions
             + localFoodItems.filter { !matchingIds.contains($0.id) }
     }
 
@@ -80,7 +147,9 @@ final class AddFoodSheetViewModel: ObservableObject {
 
     init(
         searchFoodItems: any SearchFoodItemsUseCaseProtocol,
-        createFoodItem: any CreateFoodItemUseCaseProtocol,
+        submitFoodItem: any SubmitFoodItemUseCaseProtocol,
+        fetchMySubmissions: any FetchMySubmissionsUseCaseProtocol,
+        updateMySubmission: any UpdateMySubmissionUseCaseProtocol,
         searchFoodExternally: any SearchFoodExternallyUseCaseProtocol,
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
@@ -92,7 +161,9 @@ final class AddFoodSheetViewModel: ObservableObject {
     ) {
         self.isScannerVisible = isScannerVisible
         self.searchFoodItems = searchFoodItems
-        self.createFoodItem = createFoodItem
+        self.submitFoodItem = submitFoodItem
+        self.fetchMySubmissions = fetchMySubmissions
+        self.updateMySubmission = updateMySubmission
         self.searchFoodExternally = searchFoodExternally
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
@@ -109,6 +180,15 @@ final class AddFoodSheetViewModel: ObservableObject {
     func onScannerButtonTapped() {
         isAddNewItemVisible = false
         isScannerVisible = true
+    }
+
+    @MainActor
+    func onAddNewItemToggleTapped() {
+        isAddNewItemVisible.toggle()
+        guard isAddNewItemVisible else { return }
+        formInput = FoodItemFormInput()
+        editingSubmissionId = nil
+        rejectionReasonBeingEdited = nil
     }
 
     func onScenePhaseActive(isCameraAvailable: Bool) {
@@ -208,6 +288,7 @@ final class AddFoodSheetViewModel: ObservableObject {
     func onAppear() async {
         async let favourites = fetchFavouriteFoods()
         async let meals = fetchMyCreatedMeals()
+        async let submissions = fetchMySubmissions()
         do {
             let items = try await favourites
             favouriteFoods = items
@@ -220,6 +301,11 @@ final class AddFoodSheetViewModel: ObservableObject {
         } catch {
             Log.warning(error, category: Constants.LogCategory.addFoodSheet)
         }
+        do {
+            mySubmissions = try await submissions
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.addFoodSheet)
+        }
     }
 
     func isFavourite(_ item: FoodItemDomain) -> Bool {
@@ -228,6 +314,30 @@ final class AddFoodSheetViewModel: ObservableObject {
 
     func isMyCreatedMeal(_ item: FoodItemDomain) -> Bool {
         item.kind == .createdMeal
+    }
+
+    func submissionStatus(for item: FoodItemDomain) -> FoodItemSubmissionStatus? {
+        mySubmissions.first { $0.barcode == item.id }?.status
+    }
+
+    @MainActor
+    func onSelectRejectedSubmission(_ item: FoodItemDomain) {
+        guard let submission = mySubmissions.first(where: { $0.barcode == item.id }) else { return }
+        openEditingForm(for: submission)
+    }
+
+    @MainActor
+    func onSelectSubmission(_ submission: FoodItemSubmissionDomain) {
+        guard submission.status == .rejected else {
+            onSelectFoodItem(submission.item)
+            return
+        }
+        openEditingForm(for: submission)
+    }
+
+    func onSubmissionConfirmationDismissed() {
+        isSubmissionConfirmationVisible = false
+        shouldDismiss = true
     }
 
     func onFavouriteChanged(id: String, isFavourite: Bool, item: FoodItemDomain) {
@@ -244,35 +354,23 @@ final class AddFoodSheetViewModel: ObservableObject {
     func onCreateFoodItem() async {
         state = .loading
         defer { state = .loaded }
-        let item = FoodItemDomain(
-            id: formInput.scannedCode,
-            kind: .catalogue,
-            czName: formInput.name,
-            engName: "",
-            weight: formInput.weightOfProduct,
-            date: .now,
-            energyKJ: formInput.energyKJ,
-            caloriesPerHundredGrams: formInput.caloriesPerHundredGrams,
-            fat: formInput.fat,
-            fatSaturated: formInput.fatSaturated,
-            fatUnsaturatedFattyAcids: formInput.fatUnsaturatedFattyAcids,
-            carbohydrate: formInput.carbohydrate,
-            carbohydratePureSugar: formInput.carbohydratePureSugar,
-            fiber: formInput.fiber,
-            protein: formInput.protein,
-            salt: formInput.salt,
-            portions: Self.parsedPortions(formInput.portions)
-        )
+        let item = formInput.asFoodItemDomain()
         do {
-            _ = try await createFoodItem(item)
-            shouldDismiss = true
+            if let editingSubmissionId {
+                _ = try await updateMySubmission(id: editingSubmissionId, item: item)
+            } else {
+                _ = try await submitFoodItem(item)
+            }
+            editingSubmissionId = nil
+            rejectionReasonBeingEdited = nil
+            isSubmissionConfirmationVisible = true
         } catch {
             Log.error(error, category: Constants.LogCategory.addFoodSheet)
             guard !error.isFirestoreUnreachable else {
                 alertItem = AlertItem(title: L10n.Common.errorOffline, message: L10n.Common.errorOfflineMessage)
                 return
             }
-            switch error as? CreateFoodItemError {
+            switch error as? FoodItemSubmissionError {
             case .invalidCode:
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidCode)
             case .invalidName:
@@ -282,7 +380,7 @@ final class AddFoodSheetViewModel: ObservableObject {
             case .invalidWeight:
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
             case .invalidPortion(let portionError):
-                alertItem = AlertItem(title: Self.errorMessage(for: portionError))
+                alertItem = AlertItem(title: portionError.alertTitle)
             case .itemAlreadyExists:
                 alertItem = AlertItem(title: L10n.AddFood.errorItemAlreadyExists)
             case nil:
@@ -293,19 +391,12 @@ final class AddFoodSheetViewModel: ObservableObject {
 
     // MARK: - Private
 
-    private static func errorMessage(for portionError: FoodPortionError) -> String {
-        switch portionError {
-        case .invalidName: return L10n.FoodPortion.errorInvalidName
-        case .invalidGrams: return L10n.FoodPortion.errorInvalidGrams
-        case .tooMany: return L10n.FoodPortion.errorTooMany
-        }
+    @MainActor
+    private func openEditingForm(for submission: FoodItemSubmissionDomain) {
+        formInput = FoodItemFormInput(item: submission.item)
+        editingSubmissionId = submission.id
+        rejectionReasonBeingEdited = submission.rejectReason
+        isAddNewItemVisible = true
     }
 
-    private static func parsedPortions(_ drafts: [FoodPortionDraft]) -> [FoodPortionDomain] {
-        drafts.compactMap { draft in
-            let grams = Double(draft.gramsText.replacingOccurrences(of: ",", with: ".")) ?? 0
-            guard grams >= 1 else { return nil }
-            return FoodPortionDomain(name: draft.name, grams: grams)
-        }
-    }
 }

@@ -14,6 +14,7 @@ struct AccountConfigurator {
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
     private let mergeStatusReporting: any MergeStatusReporting
+    private let maintainerClaimCache = MaintainerClaimCache()
 
     // MARK: - Init
 
@@ -76,8 +77,11 @@ struct AccountConfigurator {
                     authCommandProvider: authCommandProvider,
                     authProvider: authProvider
                 ),
+                fetchMaintainerClaim: FetchMaintainerClaimUseCase(cache: maintainerClaimCache),
                 mergeStatusReporting: mergeStatusReporting
             )
-        )
+        ) { [self] in
+            ModerationConfigurator(dataProvider: dataProvider, authProvider: authProvider).createView()
+        }
     }
 }

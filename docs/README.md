@@ -198,6 +198,7 @@ understanding why.
 | [0006](design/0006-own-daily-meals.md) | My created meals | Implemented | Backend, Cross-platform, iOS |
 | [0007](design/0007-crash-reporting-and-logging.md) | Crash reporting and structured logging | Implemented | iOS |
 | [0008](design/0008-food-portions.md) | Food portions | Implemented | Backend, Cross-platform, iOS |
+| [0009](design/0009-catalogue-moderation.md) | Catalogue moderation | Implemented | Backend, Cross-platform, iOS |
 
 ### Decision records
 
@@ -213,7 +214,7 @@ understanding why.
 | [0008](adr/0008-dates-as-epoch-seconds-not-firestore-timestamp.md) | Dates are stored as epoch seconds, not as a Firestore `Timestamp` | Accepted | Backend, Cross-platform |
 | [0009](adr/0009-denormalised-nutrition-snapshots.md) | Nutrition values are denormalised into every collection that references a food | Accepted | Backend, Cross-platform |
 | [0010](adr/0010-client-assigned-integer-meal-type-ids.md) | Meal type IDs are integers assigned by the client | Superseded | Backend, Cross-platform |
-| [0011](adr/0011-foodItems-writable-by-any-authenticated-client.md) | `foodItems` is writable by any authenticated client, pending the moderation flow | Accepted | Backend |
+| [0011](adr/0011-foodItems-writable-by-any-authenticated-client.md) | `foodItems` is writable by any authenticated client, pending the moderation flow | Superseded in part | Backend |
 | [0012](adr/0012-external-food-is-surfaced-never-imported.md) | OpenFoodFacts results are surfaced to the user, never imported into the catalogue | Accepted | Cross-platform |
 | [0013](adr/0013-prefix-search-over-lowercased-name-fields.md) | Catalogue search is a Firestore prefix range over pre-lowercased name fields | Accepted | Backend, Cross-platform |
 | [0014](adr/0014-meal-assignment-by-time-of-day-only.md) | A food is assigned to a meal by time of day alone, never by calendar date | Superseded in part | Cross-platform |
@@ -229,3 +230,5 @@ understanding why.
 | [0024](adr/0024-token-array-field-for-whole-word-search.md) | A per-word prefix array closes the "second word" gap in catalogue search | Accepted | Backend, Cross-platform |
 | [0025](adr/0025-food-item-kind-discriminates-entry-origin.md) | `food_item_kind` discriminates what `food_item_id` points to | Accepted | Backend, Cross-platform |
 | [0026](adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md) | The JS backfill scripts' TextKit duplication is governed by a shared fixture | Accepted | Backend, Cross-platform |
+| [0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) | Catalogue writes require a maintainer claim, with user contributions queued for approval | Accepted | Backend, Cross-platform |
+| [0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md) | The `foodItemSubmissions` update rule validates the maintainer branch too | Accepted | Backend |
