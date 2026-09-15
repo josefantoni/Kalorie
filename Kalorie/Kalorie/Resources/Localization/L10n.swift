@@ -86,7 +86,6 @@ enum L10n {
         static var sectionExternalResults: String { String(localized: "addFood_section_externalResults") }
         static var sectionFavourites: String { String(localized: "addFood_section_favourites") }
         static var sectionMyCreatedMeals: String { String(localized: "addFood_section_myCreatedMeals") }
-        static var sectionNewItem: String { String(localized: "addFood_section_newItem") }
         static var fieldBarcodeTitle: String { String(localized: "addFood_field_barcode_title") }
         static var fieldBarcodePlaceholder: String { String(localized: "addFood_field_barcode_placeholder") }
         static var fieldNameTitle: String { String(localized: "addFood_field_name_title") }
@@ -111,14 +110,31 @@ enum L10n {
         static var errorItemAlreadyExists: String { String(localized: "addFood_error_itemAlreadyExists") }
         static var errorLoadFailed: String { String(localized: "addFood_error_loadFailed") }
         static var errorFavouriteFailed: String { String(localized: "addFood_error_favouriteFailed") }
-        static var buttonCreateMeal: String { String(localized: "addFood_button_createMeal") }
         static var sectionMySubmissions: String { String(localized: "addFood_section_mySubmissions") }
+        static var modeSearch: String { String(localized: "addFood_mode_search") }
+        static var modeNewItem: String { String(localized: "addFood_mode_newItem") }
+        static var modeCreateMeal: String { String(localized: "addFood_mode_createMeal") }
+        static var navigationTitleSearch: String { String(localized: "addFood_navigationTitle_search") }
+        static var navigationTitleNewItem: String { String(localized: "addFood_navigationTitle_newItem") }
         static var submissionPending: String { String(localized: "addFood_submission_pending") }
         static var submissionRejected: String { String(localized: "addFood_submission_rejected") }
         static var submissionSubmitted: String { String(localized: "addFood_submission_submitted") }
+        static var submissionSubmittedMessage: String { String(localized: "addFood_submission_submittedMessage") }
         static func submissionRejectedReason(reason: String) -> String {
             String(format: String(localized: "addFood_submission_rejectedReason"), reason)
         }
+        static var confirmWithdrawSubmission: String { String(localized: "addFood_confirm_withdrawSubmission") }
+        static var errorWithdrawSubmissionFailed: String { String(localized: "addFood_error_withdrawSubmissionFailed") }
+        static var buttonScanNutritionLabel: String { String(localized: "addFood_button_scanNutritionLabel") }
+        static var nutritionLabelNothingRecognized: String { String(localized: "addFood_nutritionLabel_nothingRecognized") }
+        static var nutritionLabelPromptBody: String { String(localized: "addFood_nutritionLabel_promptBody") }
+        static var nutritionLabelDeniedMessage: String { String(localized: "addFood_nutritionLabel_deniedMessage") }
+        static var nutritionLabelUnsupportedMessage: String { String(localized: "addFood_nutritionLabel_unsupportedMessage") }
+        static var nutritionLabelCameraIdleHint: String { String(localized: "addFood_nutritionLabel_cameraIdleHint") }
+        static var nutritionLabelCameraCaptureFailed: String { String(localized: "addFood_nutritionLabel_cameraCaptureFailed") }
+        static var nutritionLabelCameraShutterAccessibility: String { String(localized: "addFood_nutritionLabel_cameraShutterAccessibility") }
+        static var nutritionLabelBarcodeScanAccessibility: String { String(localized: "addFood_nutritionLabel_barcodeScanAccessibility") }
+        static var buttonOpenSettings: String { String(localized: "addFood_button_openSettings") }
     }
 
     enum Moderation {
@@ -136,6 +152,7 @@ enum L10n {
         static var editorSaved: String { String(localized: "moderation_editor_saved") }
         static var errorAlreadyExists: String { String(localized: "moderation_error_alreadyExists") }
         static var errorAlreadyResolved: String { String(localized: "moderation_error_alreadyResolved") }
+        static var errorChangedSinceReview: String { String(localized: "moderation_error_changedSinceReview") }
     }
 
     enum FoodPortion {
@@ -157,7 +174,6 @@ enum L10n {
     enum MyCreatedMeal {
         static var titleNew: String { String(localized: "myCreatedMeal_title_new") }
         static var titleEdit: String { String(localized: "myCreatedMeal_title_edit") }
-        static var fieldNameTitle: String { String(localized: "myCreatedMeal_field_nameTitle") }
         static var fieldNamePlaceholder: String { String(localized: "myCreatedMeal_field_namePlaceholder") }
         static var sectionIngredients: String { String(localized: "myCreatedMeal_section_ingredients") }
         static var confirmCreate: String { String(localized: "myCreatedMeal_confirm_create") }
@@ -167,6 +183,11 @@ enum L10n {
         static var errorDeleteFailed: String { String(localized: "myCreatedMeal_error_deleteFailed") }
         static var listTitle: String { String(localized: "myCreatedMeal_list_title") }
         static var listEmpty: String { String(localized: "myCreatedMeal_list_empty") }
+        static var buttonSave: String { String(localized: "myCreatedMeal_button_save") }
+        static var sectionCatalogue: String { String(localized: "myCreatedMeal_section_catalogue") }
+        static func searchPlaceholder(example: String) -> String {
+            String(format: String(localized: "myCreatedMeal_search_placeholder"), example)
+        }
     }
 
     enum FoodConsumedDetail {

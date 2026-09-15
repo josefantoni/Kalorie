@@ -239,8 +239,9 @@ value** rather than ownership alone. It has to: without `status == 'pending'` an
 approve their own submission, and without the `submitted_by` equality they could reassign it. Both
 are worth a Rules Playground case each.
 
-The author's `delete` exists for account deletion (see *Cross-cutting concerns*), not as a product
-feature.
+The author's `delete` exists for account deletion (see *Cross-cutting concerns*) and now also backs
+withdrawal from **My submissions** (finding **A7-1**, closed) — the author can withdraw a pending or
+rejected submission of their own from the add-food sheet.
 
 ### Indexes
 
@@ -337,6 +338,26 @@ No new screen, and no badge anywhere else. The cost is that a rejection reason h
 result row until the form is opened, so the marker says only *rejected* and the reason lives in the
 form.
 
+A row in **My submissions** also carries a swipe-to-delete action, confirmed with an alert that warns
+the rejection reason is lost too. Withdrawal is `DeleteMySubmissionUseCase`, an optimistic removal
+from `mySubmissions` — see *Withdrawal races* below for what it does not guard against.
+
+### Withdrawal races
+
+Three races, accepted rather than coded around:
+
+- **Withdraw vs. approve.** `ApproveSubmissionUseCase` re-reads, then creates `foodItems`, then
+  deletes the submission. A withdrawal landing between the re-read and the create still ends up in
+  the catalogue; the approve's own delete then no-ops or fails, and is only logged. The window is
+  milliseconds and the result is an approved item, not corrupt data.
+- **Withdraw vs. reject.** Already handled by the rules above: `setAsync` on a missing document is
+  evaluated as a **create**, the create rule requires `submitted_by == request.auth.uid`, the
+  maintainer's write is denied, the re-read returns `nil`, and `RejectSubmissionUseCase` surfaces
+  `RejectSubmissionError.alreadyResolved` in `ModerationReviewViewModel`.
+- **Logged diary entry.** A pending item the author already logged stays in `foodConsumed` as a
+  snapshot after withdrawal — the same consequence already accepted for the anonymous → signed-in
+  merge (*Cross-cutting concerns*). Nothing to do.
+
 ### The panel
 
 A section in `AccountView`, rendered only when `FetchMaintainerClaimUseCase` returns `true`.
@@ -366,6 +387,7 @@ ApproveSubmissionUseCase         // CreateFoodItemUseCase, then delete the submi
 RejectSubmissionUseCase          // status + reason
 UpdateFoodItemUseCase            // the maintainer's correction of an existing entry
 FetchMaintainerClaimUseCase      // the claim
+DeleteMySubmissionUseCase        // author withdraws a pending or rejected submission
 ```
 
 Every one of these is `FirestoreDataProviderProtocol` + `AuthProviderProtocol`, the same shape every

@@ -457,49 +457,261 @@ not eat this meal; they should log the ingredients, or edit the meal.
 
 ### The entry point
 
-`AddFoodSheetView` gains a **floating button** at the bottom centre, over the search-results list:
-*Vytvořit vlastní jídlo z potravin*.
+> **Revised 2026-09-12 — implemented.** This section replaces both the floating button and the
+> sheet-to-sheet handoff that shipped in the original pass; see *Outcome*'s last bullet for the one
+> place the implementation departs from the spec below.
+>
+> **Revised again 2026-09-13 — implemented.** The mode control changes from a toolbar
+> `Menu` + menu-style `Picker` with a 3D flip animation to a **segmented picker in a row below the
+> navigation bar, switching content instantly**. *The mode control* below is the current spec; the
+> Menu/flip version it replaces was never pushed. Everything from *Mode is view-model state* onward
+> already holds in the working tree and is unaffected except where marked. *Implementation handoff*
+> at the end of this section lists the concrete steps.
 
-Per the Liquid Glass conventions this is `.safeAreaInset(edge: .bottom)`, which centres its content
-by default and correctly insets the `List` above it so the last result is never trapped under the
-button, with `.glassEffect(.regular, in: .capsule)` — a capsule rather than a circle because the
-control is text-labelled, and a capsule keeps its proportions when Dynamic Type grows the label. Not
-`ToolbarItem(.bottomBar)`, and not `BaseImage` at a large size. It is the same mechanism the
-Dashboard's add-food FAB already uses (`DashboardView.swift:96-111`), minus that one's
-`foodsConsumed.isEmpty` condition — this button is always present.
-
-**This placement is provisional.** It is a deliberate holding position, not a considered outcome:
-it competes for the same corner as the Dashboard FAB one layer down, and a full-width text capsule
-is a lot of visual weight for a secondary action on a screen whose job is the search field. Nothing
-else in this design depends on where the button sits — moving it later touches one view and no
-model, use case or document. Recorded here so a future reader does not mistake it for a decision
-that was argued for.
-
-Tapping it **dismisses the add-food sheet and presents the editor as a new modal**, which is a
-sheet-to-sheet transition and the one piece of mechanics here that is easy to get wrong.
-
-`DashboardView` owns the presentation — it already presents four sheets (`DashboardView.swift:130-145`),
-and `AddFoodSheetViewModel` already carries the `shouldDismiss` flag that `AddFoodSheetView` turns
-into a `dismiss()` (`AddFoodSheetView.swift:62-64`). The editor is the fifth sheet on `DashboardView`,
-and the handoff uses `.sheet(isPresented:onDismiss:)`:
+`AddFoodSheetView` does three jobs on one screen, and which one it shows is chosen from a **three-way
+mode picker**:
 
 ```swift
-.sheet(isPresented: $viewModel.showAddFoodSheet) {
-    viewModel.onAddFoodSheetDismissed()
-} content: {
-    router.makeAddFoodSheetView(for: viewModel.selectedDay) { … }
+enum AddFoodSheetMode: CaseIterable, Identifiable, Equatable {
+    case search
+    case newItem
+    case createMeal
 }
 ```
 
-`AddFoodSheetViewModel` sets a pending flag and `shouldDismiss`; `DashboardViewModel` reads that
-flag in `onAddFoodSheetDismissed()` and only then sets `showMyCreatedMealEditor = true`.
+| Mode | cs label | en label | Content |
+|---|---|---|---|
+| `.search` | *Hledat* | *Search* | `addFoodItem` — today's default |
+| `.newItem` | *Nová potravina* | *New food* | `addCustomFoodItem` — the submission form |
+| `.createMeal` | *Vlastní jídlo* | *My meal* | `MyCreatedMealEditorView`, **in place** |
 
-**Setting the second flag anywhere other than `onDismiss` is a bug**, not a style preference: SwiftUI
-drops a sheet presented while another is still dismissing, and the failure mode is a button that
-works intermittently — worst on a fast tap, invisible in a simulator screenshot. This is the single
-most likely place for this feature to ship broken, so it gets a named mitigation in *Risks*.
+This retires two separate controls. The carrot toggle button was a two-state flip with no label, so
+nothing on screen said what it would flip *to*; and the floating *Vytvořit vlastní jídlo z potravin*
+capsule specified above was a second affordance for what is really a third mode of the same screen.
+Both go; the picker is the only way to change mode.
 
-The add-food sheet is the only entry point for **creating**. The entry point for **editing** an
+#### The mode control
+
+**A segmented `Picker`, in its own full-width row at the top of the sheet's content**, directly
+below the navigation bar and above the content `ZStack`:
+
+```swift
+VStack(spacing: 0) {
+    Picker("", selection: modeBinding) {
+        ForEach(AddFoodSheetMode.allCases) { mode in
+            Text(mode.title).tag(mode)
+        }
+    }
+    .pickerStyle(.segmented)
+    .padding(.horizontal, 16)
+    .padding(.top, 8)
+    .padding(.bottom, 16)
+
+    ZStack {
+        switch viewModel.mode { … }   // no rotation3DEffect
+        startDataScannerIfPossible
+    }
+}
+```
+
+Why these choices, each against the alternative that was on the table:
+
+- **Segmented rather than a menu.** All three modes are visible at once with the active one
+  highlighted, so the user sees what exists and where they are without opening anything. The menu
+  needed two taps and hid the options behind an unlabeled carrot glyph.
+- **A content row rather than `ToolbarItem(placement: .principal)`.** The principal slot is narrowed
+  by `DismissToolbarItem` on the leading side, leaving roughly 90 pt per segment, and it replaces the
+  navigation title — which would hide `MyCreatedMealEditorView`'s `navigationTitle` in `.createMeal`
+  (see *What the editor needs in order to be embedded*, which keeps that title deliberately). The row
+  costs vertical space in every mode; accepted for the full width and the kept title.
+  **Revised 2026-09-13:** the vertical padding shipped asymmetric — `top 8, bottom 16` — after visual
+  review found a single `4` too tight below the picker and `8` on both sides too loose above it.
+- **Short labels.** The previous menu-row labels (*Přidat novou potravinu do katalogu potravin*)
+  truncate in a segment. The segment only has to name the mode; the content below explains it.
+- **No animation.** The flip was a 0.4 s rotation with the state change applied at its midpoint,
+  which read as jerky and delayed the content. A segment tap now swaps the content immediately — a
+  plain `@Published` assignment with no `withAnimation`.
+- **Row placement relative to the scanner.** The sheet's scanner overlay (`startDataScannerIfPossible`)
+  stays a sibling *inside* the `ZStack`, so it covers only the content, not the picker. Tapping any
+  segment while scanning closes the scanner through `onModeSelected`'s existing
+  `isScannerVisible = false`.
+- **The toolbar keeps only `DismissToolbarItem()`.** Nothing replaces the carrot menu on the trailing
+  side.
+
+**Re-selecting the active mode must be a no-op, and the guard lives in the view model.**
+`onModeSelected(.newItem)` resets `formInput`, so a setter call carrying the already-active mode would
+wipe a half-typed form. Whether a segmented `Picker` ever calls its binding's setter with an unchanged
+value is not something this document verifies; the guard makes the answer irrelevant. It moves from
+`modeBinding`'s setter (where it existed only to avoid a pointless spin) into `onModeSelected` itself
+as `guard mode != self.mode else { return }`, where a unit test can hold it.
+
+**Switching modes still discards the draft you are leaving** (see below) — decided explicitly for
+this revision despite a segment making an accidental switch a single tap rather than two.
+
+#### Mode is view-model state
+
+`isAddNewItemVisible` (`AddFoodSheetViewModel.swift:93`) becomes
+`@Published private(set) var mode: AddFoodSheetMode = .search`, and the `if !isAddNewItemVisible`
+branch (`AddFoodSheetView.swift:38-44`) becomes a `switch` over it. Four call sites move with it:
+
+- `onAddNewItemToggleTapped()` (`:186-192`) → `onModeSelected(_:)`. It keeps the existing reset —
+  entering `.newItem` clears `formInput`, `editingSubmissionId` and `rejectionReasonBeingEdited`,
+  which is what stops a closed rejected-submission edit from silently reopening pointed at the old
+  submission — and gains `isScannerVisible = false` on every mode change, because the sheet's own
+  scanner overlay is a `ZStack` sibling of the mode content (`:47`) and would otherwise stay
+  alive over a mode that has its own.
+- `onScannerButtonTapped()` (`:181`) → `mode = .search`.
+- `openEditingForm(for:)` (`:399`) → `mode = .newItem`.
+- `onCreateMealButtonTapped()` (`:282-285`) is **deleted**, not renamed. Its only caller was the
+  floating button.
+
+New: `onMyCreatedMealSaved()` sets `mode = .search` and refreshes `myCreatedMeals` through the
+`fetchMyCreatedMeals` use case it already holds. Saving a meal therefore lands the user back in
+search with the meal they just built sitting in *Vlastní jídla*, ready to log — which is the point
+of folding the editor in rather than shuffling modals.
+
+#### What the editor needs in order to be embedded
+
+`MyCreatedMealEditorView` owns no `NavigationStack` (see *Outcome* — they live at its call sites),
+so it drops into `AddFoodSheetView`'s existing stack unchanged in that respect. Three things do
+have to change:
+
+1. **`dismiss()` on save must not fire here.** `shouldDismiss`
+   (`MyCreatedMealEditorViewModel.swift:242`, view at `:112-114`) closes the nearest presentation —
+   inside the add-food sheet that is the whole sheet, not the mode. The *Vlastní jídla* push still
+   needs it, since a `NavigationLink`-pushed editor has no other way to pop itself. So the view and
+   `MyCreatedMealEditorConfigurator.createView` take `dismissesOnSave: Bool = true`, and the
+   add-food sheet passes `false`, leaving `onSaved` as the only channel out. The name breaks the
+   `is`/`has`/`can` convention in *Naming Conventions* deliberately and with precedent
+   (`withBarcodeScan` on `AddFoodSheetConfigurator.createView`): `isDismissedOnSave` would read as a
+   fact about the past rather than an instruction.
+2. **`DismissToolbarItem()` (`MyCreatedMealEditorView.swift:129-131`) becomes dead and is removed.**
+   It is already suppressed on the editing path, and after this revision the creating path is inside
+   a sheet that draws its own close button — there is no remaining context where the editor should
+   draw a second one.
+3. **Two `.topBarTrailing` items now coexist** — the editor's save checkmark (`:132-139`) and the
+   mode picker. Both render; the order is declaration-dependent and wants an eye in the simulator
+   rather than a guess in this document. Note the inconsistency this exposes: `.newItem` puts its
+   save in a bottom `addButton` (`AddFoodSheetView.swift:245-255`) while `.createMeal` puts it in the
+   toolbar. Left as-is — unifying them is a separate change with its own argument.
+   *(Moot as of 2026-09-13: the editor's save became a floating bottom button — see Outcome — and the
+   mode picker left the toolbar for a content row, so neither item is in `.topBarTrailing` any more.)*
+
+`MyCreatedMealEditorView.navigationTitle(viewModel.title)` (`:96`) will now title the add-food sheet
+while `.createMeal` is showing, where the other two modes have no title. That is an improvement, not
+a side effect to suppress.
+
+**Switching modes discards the draft you are leaving.** The editor's `MyCreatedMealEditorViewModel`
+is a `@StateObject` inside the branch, so it dies when the branch leaves the tree, exactly as
+`.newItem`'s `formInput` is already cleared on entry. Consistent, and cheap to keep that way — but
+recorded because a half-composed five-ingredient meal is a bigger loss than a half-typed form, and
+the fix if it bites is to hoist the view model up to `AddFoodSheetView` alongside the main one.
+
+#### Wiring, and what it deletes
+
+`AddFoodSheetView` gains `makeMealEditorView: (@escaping () -> Void) -> MyCreatedMealEditorView`,
+the same closure-injection shape `makeFoodQuantityView` already uses (`:20-30`); the view passes
+`Task { await viewModel.onMyCreatedMealSaved() }` as `onSaved`. `AddFoodSheetConfigurator` builds it
+from a locally constructed `MyCreatedMealEditorConfigurator(dataProvider:authProvider:)` — it holds
+both dependencies already, and `MealTypeSheetConfigurator.swift:17,30-32` is the existing precedent
+for a configurator assembling a peer configurator inline.
+
+Everything that existed to carry the meal editor up to `DashboardView` then goes:
+
+- `AddFoodSheetConfigurator` / `AddFoodSheetViewModel` — the `onCreateMealRequested` closure
+  (`Configurator:30,45`, `ViewModel:121,159,173,283`)
+- `DashboardViewModel` — `showMyCreatedMealEditor` (`:78`), `isMyCreatedMealEditorPending`,
+  `onCreateMealRequested()` (`:194`), `onAddFoodSheetDismissed()` (`:217-221`)
+- `DashboardView` — the fifth `.sheet` (`:155-158`) **and** the `onDismiss:` closure on the add-food
+  sheet (`:143-145`), which reverts to a plain `.sheet(isPresented:) { }`
+- `DashboardRouter.makeMyCreatedMealEditorView` and its `myCreatedMealEditorConfigurator` property
+  (`:18,27,58-60`), whose only caller was that sheet, plus the argument threaded through
+  `DashboardConfigurator.swift:30` and `DashboardView.swift:338`
+
+That is the entire dismiss-then-present mechanism this section originally specified, including the
+pending flag it called *the single most likely place for this feature to ship broken*. The race it
+mitigated cannot occur once there is no second sheet, which retires the first row of *Risks*.
+`MealTypeSheetConfigurator` keeps building its own editor and is untouched.
+
+#### Tests
+
+`AddFoodSheetViewModelTests` currently asserts on `isAddNewItemVisible` at `:19,196,217-223,249,263`;
+those move to `mode`. The one at `:206` — closing a rejected-submission edit must reopen as a fresh
+form rather than silently pointed at the old submission — carries intent per Rule 9 and must survive
+the rename rather than be rewritten around it. One new test carries intent too: after
+`onMyCreatedMealSaved()` the mode is `.search` **and** `myCreatedMeals` contains the new meal,
+encoding that a meal you just composed is immediately loggable without reopening the sheet.
+
+The segmented-picker revision adds one more: re-selecting the active mode keeps what the user typed
+(see *The mode control*). The flip animation never had a test, so removing it breaks none.
+
+#### Implementation handoff (segmented picker revision, 2026-09-13)
+
+Written for an implementer without the conversation that produced this revision. Line numbers are
+against the uncommitted working tree on `refactor/catalogueModerationFlow` as of 2026-09-13; re-grep
+if they have moved. Paths are relative to `Kalorie/`.
+
+1. **`Kalorie/Features/AddFoodSheet/AddFoodSheetView.swift`**
+   - Delete `@State private var flipAngle: Double = 0` (`:17`).
+   - In `body`, insert the segmented `Picker` from *The mode control* as the first child of
+     `VStack(spacing: 0)` (`:39`), before `ZStack` (`:40`).
+   - Delete `.rotation3DEffect(.degrees(flipAngle), axis: (x: 0, y: 1, z: 0))` (`:53`) and the
+     `Group { }` wrapper around the `switch` (`:41-52`) if nothing else hangs off it — it existed
+     only to carry the rotation.
+   - In `case .createMeal:` (`:48-50`), replace `flip { Task { await viewModel.onMyCreatedMealSaved() } }`
+     with `Task { await viewModel.onMyCreatedMealSaved() }`.
+   - In `.toolbar` (`:90-108`), delete the entire `ToolbarItem(placement: .topBarTrailing) { Menu … }`
+     (`:92-107`); keep `DismissToolbarItem()`.
+   - `modeBinding` (`:123-131`): the setter becomes `set: { viewModel.onModeSelected($0) }` — no
+     guard, no `flip`.
+   - Delete `private func flip(_:)` (`:133-142`).
+   - Do **not** touch `.buttonStyle(.borderedProminent)` at `:269`; it belongs to `addCustomFoodItem`'s
+     submit button, not to the removed menu.
+2. **`Kalorie/Features/AddFoodSheet/AddFoodSheetViewModel.swift`** — make `onModeSelected(_:)`
+   (`:202`) start with `guard mode != self.mode else { return }`, before `self.mode = mode`.
+   Nothing else changes; `onScannerButtonTapped` (`:197`), `onMyCreatedMealSaved` (`:301`) and the
+   rejected-submission path (`:421`) assign `mode` directly and the picker follows through the binding.
+3. **`Kalorie/Components/Helpers/BaseImageName.swift:16`** — delete `case carrotFill`. Its only use
+   was the removed menu label (verified by grep on 2026-09-13; grep again before deleting).
+4. **`Kalorie/Resources/Localizable.xcstrings`** — change only the **values** of the existing keys
+   (`:790` `addFood_mode_createMeal`, `:807` `addFood_mode_newItem`, `:824` `addFood_mode_search`)
+   to the labels in the table above, `cs` and `en` both. Keys and `L10n.AddFood.mode*` stay as they
+   are.
+5. **`KalorieTests/AddFoodSheetViewModelTests.swift`** — under `// MARK: - onModeSelected` (`:203`),
+   add a test that enters `.newItem`, types into `formInput` (e.g. `formInput.name = "Ovar"`), calls
+   `onModeSelected(.newItem)` again and asserts the name survived. The assertion message should say
+   why: re-tapping the active segment must not wipe a half-typed form. Existing tests there must pass
+   unmodified — in particular `test_onModeSelected_afterClosingRejectedSubmissionEdit_…` (`:206`),
+   which switches to `.search` before re-entering `.newItem`, so the new guard does not affect it.
+6. **This document** — update *Localization*'s three `addFood_mode_*` rows and the paragraph under
+   the table that says the `cs` value moved verbatim from `addFood_button_createMeal` (it no longer
+   does; the labels were shortened for the segmented control). Then rewrite the *Outcome* bullet
+   beginning *"The three-way mode picker revision … is shipped"*: it describes the `Menu`/`Picker`
+   toolbar control and the `flip(_:)` helper as shipped, which stops being true. Record what shipped
+   instead and what was verified. Leave this revision note's "not yet implemented" marker updated to
+   "implemented".
+
+**Definition of done:** `xcodebuild build` succeeds, the full test suite passes, zero new SwiftLint
+violations (the pre-existing `type_body_length` / `trailing_closure` warnings in
+`AddFoodSheetViewModelTests` predate this and stay), and no remaining reference to `flipAngle`,
+`flip(` or `carrotFill` anywhere under `Kalorie/`.
+
+**Verify by hand in the simulator** — nothing automated covers these:
+
+- The three labels fit without truncation at the default text size; check one large Dynamic Type
+  size and note the result either way.
+- A segment tap swaps the content instantly, with no rotation or fade.
+- Opening the scanner in *Hledat*, then tapping another segment, closes the camera; the picker stays
+  visible and tappable above the camera preview while scanning.
+- Tapping a rejected submission in search moves the highlighted segment to *Nová potravina*; saving a
+  meal in *Vlastní jídlo* moves it back to *Hledat* with the new meal listed.
+- In *Vlastní jídlo*, the editor's navigation title still shows and its floating save button still
+  appears once `canSave` holds.
+
+Do not commit unless asked. Commit messages in this repo carry no `Co-Authored-By` or
+`Claude-Session` trailers (CLAUDE.md).
+
+The add-food sheet is still the only entry point for **creating**. The entry point for **editing** an
 existing meal is deliberately left open below.
 
 ### The editor screen
@@ -511,7 +723,9 @@ following the project's Router + Configurator pattern.
 
 Layout, top to bottom, inside a `NavigationStack` + `List`:
 
-1. **Name** — a single `BaseStringTextField`, placeholder *Název jídla*.
+1. **Name** — a single `TextField`, no section header, placeholder *Název vlastního jídla … třeba
+   Můj domácí chleba* (see *Localization*'s copy-pass revision — the placeholder now carries the
+   label's job since the header above it was removed).
 2. **Selected ingredients** — a section of rows, each showing the food's `displayName` and a grams
    input. Swipe-to-delete removes a row.
 3. **Search field**, then **search results** — typing runs the same debounced
@@ -673,13 +887,31 @@ belong to the sheet that renders them, matching how `addFood_section_favourites`
 `L10n.swift:57`) and two on `L10n.Common` (`ANO`/`NE` are generic and this will not be the last
 confirmation in the app).
 
+> **Revised 2026-09-13 — implemented.** Two section headers were removed because they only repeated
+> what the field below them already said with a visible placeholder — `addFood_section_newItem`
+> (*Nová položka*, above the `.newItem` form) and `myCreatedMeal_field_nameTitle` (*Název vlastního
+> jídla*, above the meal-name field). Both keys are gone; the `.newItem` and meal-name `Section`s now
+> render with no header. The meal-name field loses its only label this way, so its placeholder
+> absorbs the label's job, following the `addFood_search_placeholder` pattern (*label … example*)
+> already used one screen over. Separately: `cs` copy across `AddFoodSheetView` and
+> `MyCreatedMealEditorView` was mixed between formal (*vykání*) and informal (*tykání*) address —
+> `myCreatedMeal_title_new` ("Sestavte…") and `myCreatedMeal_list_empty` ("…nemáte…") were formal
+> while `myCreatedMeal_ingredients_empty` ("Vyhledej a přidej…") was already informal. Unified to
+> informal, matching the address `Dashboard`'s own copy mostly already uses (e.g.
+> `dashboard_empty_title_future` "Plánuješ…", `dashboard_empty_description_future` "…pomož") —
+> `Dashboard` itself keeps one formal outlier (`dashboard_empty_description`, "…jste… nesnědli"), left
+> alone since it renders outside this sheet. Table below reflects the shipped values.
+
 | Key | cs | en |
 |---|---|---|
 | `addFood_section_myCreatedMeals` | Vlastní jídla | My meals |
 | `addFood_button_createMeal` | Vytvořit vlastní jídlo z potravin | Create a meal from foods |
-| `myCreatedMeal_title_new` | Nové vlastní jídlo | New meal |
+| `addFood_mode_search` | Hledat | Search |
+| `addFood_mode_newItem` | Nová potravina | New food |
+| `addFood_mode_createMeal` | Vlastní jídlo | My meal |
+| `myCreatedMeal_title_new` | Sestav vlastní jídlo | New meal |
 | `myCreatedMeal_title_edit` | Upravit vlastní jídlo | Edit meal |
-| `myCreatedMeal_field_namePlaceholder` | Název jídla | Meal name |
+| `myCreatedMeal_field_namePlaceholder` | Název vlastního jídla … třeba Můj domácí chleba | Custom meal name … try My homemade bread |
 | `myCreatedMeal_section_ingredients` | Suroviny | Ingredients |
 | `myCreatedMeal_ingredients_empty` | Vyhledejte a přidejte alespoň jednu surovinu | Search and add at least one ingredient |
 | `myCreatedMeal_confirm_create` | Vytvořit toto jídlo? | Create this meal? |
@@ -688,15 +920,32 @@ confirmation in the app).
 | `myCreatedMeal_error_saveFailed` | Jídlo se nepodařilo uložit | Could not save the meal |
 | `myCreatedMeal_error_deleteFailed` | Jídlo se nepodařilo smazat | Could not delete the meal |
 | `myCreatedMeal_list_title` | Vlastní jídla | My meals |
-| `myCreatedMeal_list_empty` | Zatím nemáte žádné vlastní jídlo | You have no meals yet |
+| `myCreatedMeal_list_empty` | Zatím nemáš žádné vlastní jídlo | You have no meals yet |
 | `mealTypeSheet_button_edit` | Upravit | Edit |
 | `mealTypeSheet_button_editDone` | Hotovo | Done |
 | `common_button_yes` | Ano | Yes |
 | `common_button_no` | Ne | No |
 
+The three `addFood_mode_*` keys are added by the revision in *The entry point*, which also removes
+`addFood_button_createMeal` along with the button that was its only caller. Their values were
+shortened again for the segmented-picker revision — a segment names the mode, not what it does —
+so they no longer match `addFood_button_createMeal`'s old `cs` value verbatim.
+
 The grams placeholder is the literal string `100`, and the `g` unit label after the field is the
 literal string `g`; neither is localized — it is a unit, and the `g` suffix follows the same
 hard-coded convention `BaseDoubleTextField` already uses.
+
+Two pre-existing keys outside this feature's own additions get the same tone pass, since they
+render inside the same sheet and the inconsistency is exactly what this revision removes:
+`addFood_camera_permissionAlert` ("Povolte…" → "Povol…") and `addFood_error_loadFailed`
+("Zkuste…" → "Zkus…"). Their `en` values are untouched — English has no formal/informal split here.
+
+Shipped as: `AddFoodSheetView.swift`'s `.newItem` `Section` and `MyCreatedMealEditorView.swift`'s
+name `Section` both dropped their `header:` argument; `AddFood.sectionNewItem` and
+`MyCreatedMeal.fieldNameTitle` were deleted from `L10n.swift` and from `Localizable.xcstrings`
+along with the two other keys the copy pass touched. `xcodebuild build` succeeds, the full test
+suite passes unmodified — no test referenced either removed key — and no new SwiftLint violations
+were introduced.
 
 ### File-by-file impact
 
@@ -720,6 +969,8 @@ Changed:
 - `Constants.swift` — `myCreatedMeals(userId:)`
 - `AddFoodSheetViewModel.swift` / `View.swift` / `Configurator.swift` — the section, the
   `displayedResults` layer, the bottom button and the dismiss handoff
+  — the bottom button and the dismiss handoff are both superseded by the three-way mode picker;
+  see *The entry point* for that revision's own file-by-file list
 - `DashboardView.swift` / `DashboardViewModel.swift` / the Dashboard router — the fifth sheet, the
   `onDismiss` handoff, and the meal-layout toolbar button becoming icon-only
 - `MealTypeSheetView.swift` / `MealTypeSheetConfigurator.swift` — the inline *Vlastní jídla* section
@@ -880,7 +1131,7 @@ logged meal.
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| The dismiss-then-present handoff races | The bottom button works intermittently — worst on a fast tap, and invisible in a simulator screenshot | Set `showMyCreatedMealEditor` **only** in the add-food sheet's `onDismiss:`, never alongside `shouldDismiss`. Verify on device with a deliberate fast tap, not just in the canvas. This is the most likely way this feature ships broken |
+| The dismiss-then-present handoff races | The bottom button works intermittently — worst on a fast tap, and invisible in a simulator screenshot | Set `showMyCreatedMealEditor` **only** in the add-food sheet's `onDismiss:`, never alongside `shouldDismiss`. Verify on device with a deliberate fast tap, not just in the canvas. This is the most likely way this feature ships broken. **Retired** once the revision in *The entry point* lands: with the editor an in-place mode rather than a second sheet, there is no handoff left to race |
 | Cooking loss — 300 g of ingredients becomes 250 g of porridge | Logging the real cooked weight under-counts calories by the evaporation ratio; logging the composed weight over-counts the portion | The known modelling flaw, accepted for v1 and named in *Non-goals*. Mitigated in practice because the quantity screen defaults to the full composed weight, which is the arithmetically correct total for the whole meal. The v2 fix is an optional "final weight" on the meal that overrides `totalGrams` in the density denominator — an additive field, no migration |
 | Ingredient snapshots go stale, N-fold | A created meal logs outdated macros indefinitely, and compounds across its ingredients | Accepted for v1; `FoodConsumedDTO` and `FavouriteFoodDTO` have the same property. If it bites, refresh the snapshots by `food_item_id` when the meal is opened in the editor — a localised change, no schema migration |
 | `canSave` and the use case's validation drift | The button enables for a meal the use case then rejects, or disables for one it would accept | One shared predicate, and a test that drives both from the same cases. Listed as an intent-carrying test above |
@@ -964,3 +1215,36 @@ the editor + entry point, search integration, and the *Vlastní jídla* manageme
   model, driven by an `@FocusState private var focusedIngredientId: UUID?` in the view. Selecting a
   result also clears the search field and its results, which the original spec omitted. Reasoning
   above under *The grams input* and *Layout*.
+- **The three-way mode picker revision (see *The entry point*) is shipped**, now as the
+  **segmented-picker** revision from 2026-09-13 rather than the `Menu`/flip version that preceded
+  it. One deviation from the original spec, carried over from the earlier pass and unaffected by the
+  segmented-picker change: `onMyCreatedMealSaved()` is `@MainActor func … async`, not a synchronous
+  method that spawns its own `Task` internally — chosen because it is directly awaitable from a test
+  (`await sut.onMyCreatedMealSaved()`), matching how `DashboardView` already wraps
+  `onMealTypesChanged()` and `MealTypeSheetView` wraps `myCreatedMealListViewModel.onSaved()`.
+  Everything else matches the segmented-picker spec in *The mode control* as written: the `Menu`,
+  the `flip(_:)` helper and `flipAngle` are gone; the picker is a full-width segmented row above the
+  content `ZStack`; mode switches apply immediately with no animation; `carrotFill` is deleted from
+  `BaseImageName`; `onModeSelected(_:)` starts with `guard mode != self.mode else { return }`, moving
+  the no-op guard out of the view's binding setter and into the view model where a unit test
+  (`test_onModeSelected_withAlreadyActiveMode_keepsHalfTypedForm`) holds it. Full test suite green,
+  zero new SwiftLint violations (`AddFoodSheetViewModelTests`' pre-existing `type_body_length` and
+  `trailing_closure` warnings predate this change and were left alone per *Surgical Changes*),
+  `xcodebuild build` succeeds. **Not** verified on this pass: the items under *Verify by hand in the
+  simulator* in *Implementation handoff* below — label truncation at large Dynamic Type sizes,
+  instant content swap with no rotation or fade, the scanner closing on a segment tap, and the
+  editor's title/floating-save-button still showing in `.createMeal` — this pass had no UI session
+  to drive.
+- **Revised 2026-09-13: the editor's save control moved from a toolbar checkmark to a floating
+  "Uložit" button**, superseding *The editor screen*'s "a checkmark in `.topBarTrailing`" line
+  above. The button lives in `.safeAreaInset(edge: .bottom)` with `.glassEffect(.regular, in:
+  .capsule)` — the same Liquid Glass shape the add-food sheet's now-removed bottom button used —
+  and is conditioned on `viewModel.canSave` at the `if` level rather than `.disabled()`: when
+  `canSave` is `false` the button doesn't render at all, so it is neither visible nor tappable, not
+  merely greyed out. No view-model change was needed — `canSave` already meant "valid to save, and
+  if editing, something changed" (*The save button's enabled state*), which is exactly the
+  visibility rule asked for. This also resolves the "two-toolbar-item visual overlap" flagged as
+  unverified in the bullet above: `.createMeal` mode's toolbar is now empty on that side, since the
+  editor no longer draws anything in `.topBarTrailing`. `MyCreatedMealEditorViewModelTests` needed
+  no changes — the tests already assert on `canSave`, not on the toolbar — and all 27 pass
+  unmodified; full suite and `xcodebuild build` still green.

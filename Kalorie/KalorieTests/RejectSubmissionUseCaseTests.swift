@@ -58,26 +58,49 @@ final class RejectSubmissionUseCaseTests: XCTestCase {
         }
     }
 
-    func test_reject_whenWriteDeniedButSubmissionStillQueued_rethrowsOriginalError() async throws {
+    func test_reject_whenWriteDeniedButSubmissionStillQueuedUnchanged_rethrowsOriginalError() async throws {
         let (sut, dataProvider) = makeSUT()
+        let submission = makeSubmission()
         let deniedError = NSError(domain: FirestoreErrorDomain, code: FirestoreErrorCode.permissionDenied.rawValue)
         dataProvider.stubbedSetError = deniedError
         dataProvider.stubbedReReadDTO = FoodItemSubmissionDTO(
-            id: "sub-1",
-            barcode: "12345678",
-            submittedBy: "some-user",
+            id: submission.id,
+            barcode: submission.barcode,
+            submittedBy: submission.submittedBy,
             status: .pending,
-            submittedAt: .now,
+            submittedAt: submission.submittedAt,
             rejectReason: nil,
-            item: makeSubmission().item
+            item: submission.item
         )
         do {
-            try await sut(makeSubmission(), reason: "Wrong calories")
+            try await sut(submission, reason: "Wrong calories")
             XCTFail("Expected the original permissionDenied error")
         } catch RejectSubmissionError.alreadyResolved {
             XCTFail("Should not report alreadyResolved while the submission is still queued")
         } catch {
             XCTAssertEqual(error as NSError, deniedError)
+        }
+    }
+
+    func test_reject_whenWriteDeniedAndSubmissionWasResubmittedSinceReview_throwsChangedSinceReview() async throws {
+        let (sut, dataProvider) = makeSUT()
+        let submission = makeSubmission()
+        let deniedError = NSError(domain: FirestoreErrorDomain, code: FirestoreErrorCode.permissionDenied.rawValue)
+        dataProvider.stubbedSetError = deniedError
+        dataProvider.stubbedReReadDTO = FoodItemSubmissionDTO(
+            id: submission.id,
+            barcode: submission.barcode,
+            submittedBy: submission.submittedBy,
+            status: .pending,
+            submittedAt: submission.submittedAt.addingTimeInterval(60),
+            rejectReason: nil,
+            item: submission.item
+        )
+        do {
+            try await sut(submission, reason: "Wrong calories")
+            XCTFail("Expected changedSinceReview error")
+        } catch RejectSubmissionError.changedSinceReview {
+            // pass
         }
     }
 

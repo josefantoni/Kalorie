@@ -470,6 +470,19 @@ produces a new callback instead of silence.
 Scanning is stopped while a lookup is in flight (`isSearching` → `stopScanning()`), and a
 `ProgressView` over `.ultraThinMaterial` covers the camera preview.
 
+`AddFoodSheetView`'s inline scanner, `MyCreatedMealEditorView`'s identical one, and the barcode-rescan
+`fullScreenCover` on the nutrition-label review screen (§ 7.5) all go through `BarcodeScannerOverlay`
+(`Components/`) rather than `DataScannerRepresentable` directly — it adds the one thing all three
+need and none had before design 0010's revision: a top-trailing close button, so `isScannerVisible`
+(or `isBarcodeRescanVisible`) has an explicit user-driven path back to `false` instead of only
+clearing on a successful scan.
+
+**This is a separate scanner from the nutrition-label camera** (§ 7.5): `DataScannerRepresentable`
+here is barcode-only, single item, and drives the search flow; `NutritionLabelScannerRepresentable`
+recognises text and barcodes together and drives `RecognizeNutritionLabelUseCase` instead. Neither
+wraps or extends the other, on purpose — reusing this one would mean teaching it to assert on text
+items it isn't built to see (§ 7.5).
+
 ### 2.6 Creating a catalogue item
 
 **Since [design 0009](design/0009-catalogue-moderation.md), `CreateFoodItemUseCase` is no longer
@@ -1093,8 +1106,12 @@ identities a submission carries, and the alternatives rejected),
 [ADR 0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) (the claim decision and why it
 supersedes [ADR 0011](adr/0011-foodItems-writable-by-any-authenticated-client.md)),
 [ADR 0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md) (the
-maintainer `update` branch narrowed to what the reject path actually writes). § 1.2/1.4/1.6
-cover the collection shape and rules; § 2.6 covers where this replaces the old direct-write path.
+maintainer `update` branch narrowed to what the reject path actually writes),
+[ADR 0029](adr/0029-submitted-at-guards-foodItemSubmissions-concurrency.md) (`submitted_at` as an
+optimistic-concurrency token against a submission edited while under review),
+[design 0010](design/0010-nutrition-label-photo-prefill.md) (the camera pre-fill on all three
+`FoodItemFormFields` screens — § 7.5). § 1.2/1.4/1.6 cover the collection shape and rules; § 2.6
+covers where this replaces the old direct-write path.
 
 ### 7.1 What exists
 
@@ -1107,8 +1124,8 @@ Eight use cases, all `FirestoreDataProviderProtocol` + `AuthProviderProtocol` ex
 | `FetchMySubmissionsUseCase` | the author's own submissions, for the fourth `displayedResults` list (§ 2.2) |
 | `UpdateMySubmissionUseCase` | resubmits a rejected submission under its existing id, resetting `status` to `pending` |
 | `FetchPendingSubmissionsUseCase` | the maintainer's queue |
-| `ApproveSubmissionUseCase` | calls `CreateFoodItemUseCase` (§ 2.6), then deletes the submission |
-| `RejectSubmissionUseCase` | overwrites the submission with `status: rejected` and a reason — `setAsync` replaces, so every other field is resent unchanged |
+| `ApproveSubmissionUseCase` | re-reads the submission to guard against a concurrent edit (ADR 0029), calls `CreateFoodItemUseCase` (§ 2.6), then deletes the submission |
+| `RejectSubmissionUseCase` | overwrites the submission with `status: rejected` and a reason — `setAsync` replaces, so every other field is resent unchanged; a denied write is re-read to tell "already resolved" apart from "resubmitted since review" (ADR 0029) |
 | `UpdateFoodItemUseCase` | the maintainer's correction of an existing `foodItems` entry; same `FoodItemValidation`, no existence check |
 | `FetchMaintainerClaimUseCase` | reads the `maintainer` custom claim via `getIDTokenResult()` |
 
@@ -1167,3 +1184,62 @@ channel for an existing catalogue item, no push notification of the outcome, no 
 client ships without one, which is an accepted consequence of hosting it in the iOS client alone.
 All four are tracked in `TODO.md`, not here, per this document's own rule that open work lives in
 the backlog, not in the description of what exists.
+
+### 7.5 Pre-filling the form from a photo
+
+[Design 0010](design/0010-nutrition-label-photo-prefill.md), including its *camera-first flow*
+revision, drives the same recognition pipeline from a live camera on all three screens
+(`AddFoodSheetView`'s new-item tab, `ModerationReviewView`, `ModerationCatalogueEditorView`).
+`RecognizeNutritionLabelUseCase` (`Core/UseCases/`) runs a pure-Swift pipeline over
+`Core/NutritionLabelRecognition/`: Vision OCR (`VisionTextRecognizer`) and barcode detection produce
+`[RecognizedTextLine]`, `NutritionLabelParser` turns the EU-regulation nutrition declaration into a
+`NutritionLabelReading` through a multilingual keyword dictionary, tried two ways: row/column
+geometry for the table format most labels use, and a keyword-position fallback (bounded to the text
+after a nutrition-section cue, when one is found) for the **linear** format small packages are
+legally allowed to use instead — one sentence, no table at all. The fallback only runs when the
+table pass found none of the five macro fields, so a label with neither format present still
+correctly fills nothing. Only when `SystemLanguageModel.default.availability == .available` does
+`FoundationModelExtractor` fill what neither deterministic pass can (name, package weight,
+portions), grounded against the OCR text and never overriding a value either pass already found.
+
+**The new-item tab is camera-first.** `AddFoodSheetMode.newItem` opens on a capture prompt, not a
+form — there is no manual-entry path for a brand-new item. The prompt's state comes from
+`CameraAuthorizationProviderProtocol.status` (`Core/Camera/`), a three-state-plus-unsupported
+`CameraAccess` read from `AVCaptureDevice.authorizationStatus(for: .video)` and
+`DataScannerViewController.isSupported`, refreshed on every `scenePhase` → `.active` transition the
+same way § 2.5's barcode scanner already re-checks its own permission. Tapping the prompt opens
+`NutritionLabelCameraView` (`Components/`): a full-screen `DataScannerViewController` configured for
+`.text()` **and** `.barcode()` (`NutritionLabelScannerRepresentable`, distinct from § 2.5's
+barcode-only `DataScannerRepresentable` — the two are never reused for each other's job). Its
+coordinator converts each live text item's quad to a `RecognizedTextLine` (`LiveTextItemConversion`,
+kept free of VisionKit so it is unit-testable against plain `CGPoint`s) and re-parses on every
+update; once a parse clears `NutritionLabelReading.isCompleteForAutoCapture` (kcal, fat, carbs and
+protein all present) it calls `capturePhoto()` once, the same still-image entry point
+`RecognizeNutritionLabelUseCase` already used. A manual shutter triggers the same capture for labels
+the auto-capture predicate never locks onto. Nothing is written to the form from a live-only read —
+only the captured still goes through the pipeline, which is what makes reusing a live scanner safe
+here despite § 2.5's `DataScannerRepresentable` being barcode-only for an unrelated reason (a
+multi-frame text read cannot be assembled reliably; see design 0010's *Capture*).
+
+The merge rule is one rule for all three screens, decided in design 0010 rather than left as three
+different behaviours: a recognised value is written only into a field still at its default
+(`FoodItemFormInput.applying(_:)`). `NutritionLabelPrefilling` (`Core/Utils/`, the same
+protocol-extension shape as `FavouriteToggling`, § 4.6) is what lets `AddFoodSheetViewModel`,
+`ModerationReviewViewModel` and `ModerationCatalogueEditorViewModel` share this without three
+copies, including the "nothing recognised" path: the camera stays open and a hint renders inside
+`NutritionLabelCameraView` itself (an `.alert` over a `fullScreenCover` never appears), and a
+capture whose `recognizedFields` is empty counts as nothing recognised even when a barcode alone
+came back. `AddFoodSheetViewModel` additionally tracks whether a capture succeeded and pushes the
+review screen only from the cover's own `onDismiss`, not at capture time — pushing while the cover
+is still animating out is dropped by SwiftUI. The fields a photo actually changed are tracked as a
+`Set<FoodItemFormField>` and passed to `FoodItemFormSections` (`Components/`, wrapping
+`FoodPortionsSection` then a name field, an optional barcode row, the scan button and
+`FoodItemFormFields` in that order), which bolds those fields' values
+(`BaseStringTextField` / `BaseDoubleTextField` both take an `isHighlighted` flag) until the user
+edits them — detected by wrapping each field's `Binding` rather than `.onChange`, since `.onChange`
+would also fire for the merge's own programmatic write and immediately clear the mark it had just
+set.
+
+No photo is stored and nothing new reaches Firestore — this is a client-side prefill of the same
+form `SubmitFoodItemUseCase` / `UpdateMySubmissionUseCase` / `UpdateFoodItemUseCase` already wrote
+before this design.

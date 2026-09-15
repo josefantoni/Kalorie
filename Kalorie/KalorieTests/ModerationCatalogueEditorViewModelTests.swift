@@ -52,13 +52,41 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         XCTAssertTrue(sut.didSave)
     }
 
+    // MARK: - onNutritionLabelCaptured
+
+    @MainActor
+    func test_onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() async {
+        let item = makeItem()
+        let sut = makeSUT(
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item),
+            recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(stubbedReading: NutritionLabelReading(fat: 999, fiber: 1))
+        )
+        sut.barcodeQuery = "12345678"
+        await sut.onSearchTapped()
+        sut.isNutritionLabelCameraVisible = true
+        let originalFat = sut.formInput.fat
+
+        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: nil)
+
+        XCTAssertFalse(sut.isNutritionLabelCameraVisible, "a successful capture on an already-open form must close the camera without a push")
+        XCTAssertEqual(sut.formInput.fat, originalFat, "a field already holding a loaded value must never be overwritten by the photo")
+        XCTAssertEqual(sut.formInput.fiber, 1, "a field still at its default must be filled")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
-        updateFoodItem: any UpdateFoodItemUseCaseProtocol = UpdateFoodItemUseCaseFake()
+        updateFoodItem: any UpdateFoodItemUseCaseProtocol = UpdateFoodItemUseCaseFake(),
+        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
+        cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake()
     ) -> ModerationCatalogueEditorViewModel {
-        ModerationCatalogueEditorViewModel(fetchFoodItemByBarcode: fetchFoodItemByBarcode, updateFoodItem: updateFoodItem)
+        ModerationCatalogueEditorViewModel(
+            fetchFoodItemByBarcode: fetchFoodItemByBarcode,
+            updateFoodItem: updateFoodItem,
+            recognizeNutritionLabel: recognizeNutritionLabel,
+            cameraAuthorizationProvider: cameraAuthorizationProvider
+        )
     }
 
     private func makeItem(id: String = "12345678", date: Date = .now) -> FoodItemDomain {

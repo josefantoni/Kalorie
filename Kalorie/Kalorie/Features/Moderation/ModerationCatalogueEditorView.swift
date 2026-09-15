@@ -37,10 +37,15 @@ struct ModerationCatalogueEditorView: View {
                 }
             }
             if viewModel.loadedItem != nil {
-                Section {
-                    FoodItemFormFields(formInput: $viewModel.formInput)
+                FoodItemFormSections(
+                    formInput: $viewModel.formInput,
+                    highlightedFields: viewModel.recognizedFields,
+                    onNutritionLabelScanTapped: {
+                        Task { await viewModel.onNutritionLabelCameraTapped() }
+                    }
+                ) { field in
+                    viewModel.onFormFieldEdited(field)
                 }
-                FoodPortionsSection(portions: $viewModel.formInput.portions)
                 Section {
                     Button {
                         Task { await viewModel.onSaveTapped() }
@@ -60,6 +65,16 @@ struct ModerationCatalogueEditorView: View {
         .navigationTitle(L10n.Moderation.editorTitle)
         .navigationBarTitleDisplayMode(.inline)
         .loader(viewModel.state.isLoading)
+        .fullScreenCover(isPresented: $viewModel.isNutritionLabelCameraVisible) {
+            NutritionLabelCameraView(
+                isRecognizing: viewModel.isRecognizingNutritionLabel,
+                hint: viewModel.nutritionLabelCameraHint,
+                onCaptured: { image, liveBarcode in
+                    await viewModel.onNutritionLabelCaptured(image, liveBarcode: liveBarcode)
+                },
+                onClose: { viewModel.isNutritionLabelCameraVisible = false }
+            )
+        }
         .alert(item: $viewModel.alertItem) { item in
             Alert(
                 title: Text(item.title),
@@ -76,7 +91,9 @@ struct ModerationCatalogueEditorView: View {
         ModerationCatalogueEditorView(
             viewModel: ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
-                updateFoodItem: UpdateFoodItemUseCaseFake()
+                updateFoodItem: UpdateFoodItemUseCaseFake(),
+                recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
+                cameraAuthorizationProvider: CameraAuthorizationProviderFake()
             )
         )
     }

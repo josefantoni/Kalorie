@@ -199,6 +199,7 @@ understanding why.
 | [0007](design/0007-crash-reporting-and-logging.md) | Crash reporting and structured logging | Implemented | iOS |
 | [0008](design/0008-food-portions.md) | Food portions | Implemented | Backend, Cross-platform, iOS |
 | [0009](design/0009-catalogue-moderation.md) | Catalogue moderation | Implemented | Backend, Cross-platform, iOS |
+| [0010](design/0010-nutrition-label-photo-prefill.md) | Pre-filling the food form from a photo of the packaging | Implemented | iOS |
 
 ### Decision records
 
@@ -232,3 +233,4 @@ understanding why.
 | [0026](adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md) | The JS backfill scripts' TextKit duplication is governed by a shared fixture | Accepted | Backend, Cross-platform |
 | [0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) | Catalogue writes require a maintainer claim, with user contributions queued for approval | Accepted | Backend, Cross-platform |
 | [0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md) | The `foodItemSubmissions` update rule validates the maintainer branch too | Accepted | Backend |
+| [0029](adr/0029-submitted-at-guards-foodItemSubmissions-concurrency.md) | `submitted_at` guards against concurrent writes to a `foodItemSubmissions` document | Accepted | Backend, Cross-platform |

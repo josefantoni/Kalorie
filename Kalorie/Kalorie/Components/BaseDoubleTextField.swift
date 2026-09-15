@@ -15,6 +15,7 @@ struct BaseDoubleTextField: View {
     var title: String
     var unit: String
     @Binding var weight: Double
+    var isHighlighted: Bool = false
 
     // MARK: - Body
 
@@ -33,6 +34,7 @@ struct BaseDoubleTextField: View {
 
             TextField("0", value: $weight, formatter: NumberFormatter.decimal)
                 .keyboardType(.decimalPad)
+                .fontWeight(isHighlighted ? .bold : .regular)
                 .multilineTextAlignment(.trailing)
                 .frame(
                     width: 100,

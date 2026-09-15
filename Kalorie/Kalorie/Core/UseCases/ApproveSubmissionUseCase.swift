@@ -7,8 +7,13 @@
 
 import Foundation
 
+enum ApproveSubmissionError: Error {
+    case alreadyResolved
+    case changedSinceReview
+}
+
 protocol ApproveSubmissionUseCaseProtocol {
-    func callAsFunction(id: String, item: FoodItemDomain) async throws
+    func callAsFunction(submission: FoodItemSubmissionDomain, item: FoodItemDomain) async throws
 }
 
 struct ApproveSubmissionUseCase: ApproveSubmissionUseCaseProtocol {
@@ -33,10 +38,29 @@ struct ApproveSubmissionUseCase: ApproveSubmissionUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(id: String, item: FoodItemDomain) async throws {
+    func callAsFunction(submission: FoodItemSubmissionDomain, item: FoodItemDomain) async throws {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
+        // The review screen may have been open for a while — re-read before approving so an
+        // edit the author resubmitted in the meantime is never silently overwritten by the
+        // maintainer's (now stale) form values.
+        let current: FoodItemSubmissionDTO? = try await dataProvider.loadFromServerAsync(
+            id: submission.id,
+            from: Constants.Firestore.foodItemSubmissions
+        )
+        guard let current else { throw ApproveSubmissionError.alreadyResolved }
+        guard current.submittedAt == submission.submittedAt.timeIntervalSince1970 else {
+            throw ApproveSubmissionError.changedSinceReview
+        }
         _ = try await createFoodItem(item)
-        try await dataProvider.deleteAsync(id: id, from: Constants.Firestore.foodItemSubmissions)
+        do {
+            try await dataProvider.deleteAsync(id: submission.id, from: Constants.Firestore.foodItemSubmissions)
+        } catch {
+            // The catalogue write already succeeded — the important half of this operation is
+            // done. A submission that survives this delete failure resurfaces as a collision on
+            // the queue's next load (ModerationQueueViewModel) and is cleared by hand, exactly as
+            // design 0009's own Risks table accepts.
+            Log.error(error, category: Constants.LogCategory.moderation)
+        }
     }
 }
 
@@ -49,7 +73,7 @@ struct ApproveSubmissionUseCaseFake: ApproveSubmissionUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(id: String, item: FoodItemDomain) async throws {
+    func callAsFunction(submission: FoodItemSubmissionDomain, item: FoodItemDomain) async throws {
         if let errorToThrow { throw errorToThrow }
     }
 }

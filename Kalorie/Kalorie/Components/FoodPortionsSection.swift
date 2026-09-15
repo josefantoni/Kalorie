@@ -25,24 +25,58 @@ struct FoodPortionsSection: View {
     // MARK: - Body
 
     var body: some View {
-        Section(header: Text(L10n.FoodPortion.sectionTitle)) {
-            ForEach($portions) { $draft in
-                portionRow($draft)
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            portions.removeAll { $0.id == draft.id }
-                        } label: {
-                            Image(systemName: "trash")
+        Group {
+            Section(header: Text(L10n.FoodPortion.sectionTitle)) {
+                ForEach($portions) { $draft in
+                    portionRow($draft)
+                        .listRowSeparator(.hidden)
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                portions.removeAll { $0.id == draft.id }
+                            } label: {
+                                Image(systemName: "trash")
+                            }
                         }
+                    if draft.id != portions.last?.id {
+                        Divider()
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
                     }
+                }
             }
-            Button(L10n.FoodPortion.buttonAdd) {
-                portions.append(FoodPortionDraft(name: "", gramsText: ""))
+
+            Section {
+                Button {
+                    portions.append(FoodPortionDraft(name: "", gramsText: ""))
+                } label: {
+                    Image(systemName: BaseImageName.plus.rawValue)
+                        .font(.footnote)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .frame(width: Self.addButtonSize, height: Self.addButtonSize)
+                }
+                .background(Color.accentColor)
+                .clipShape(.circle)
+                .disabled(!canAddPortion)
+                .opacity(canAddPortion ? 1 : 0.4)
+                .frame(maxWidth: .infinity)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             }
+            .listSectionSpacing(0)
         }
     }
 
+    private static let addButtonSize: CGFloat = 28
+
     // MARK: - Functions
+
+    private var canAddPortion: Bool {
+        portions.allSatisfy { draft in
+            !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !draft.gramsText.isEmpty
+        }
+    }
 
     private func portionRow(_ draft: Binding<FoodPortionDraft>) -> some View {
         HStack {

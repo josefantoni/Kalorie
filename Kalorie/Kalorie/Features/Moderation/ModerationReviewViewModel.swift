@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import UIKit
 
-final class ModerationReviewViewModel: ObservableObject {
+final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefilling {
 
     // MARK: - Properties
 
@@ -17,6 +18,10 @@ final class ModerationReviewViewModel: ObservableObject {
     @Published var isRejectSheetVisible = false
     @Published var rejectReason = ""
     @Published private(set) var shouldDismiss = false
+    @Published var recognizedFields: Set<FoodItemFormField> = []
+    @Published var isRecognizingNutritionLabel = false
+    @Published var isNutritionLabelCameraVisible = false
+    @Published var nutritionLabelCameraHint: String?
 
     let submittedAt: Date
     let rejectReasonIfAny: String?
@@ -24,6 +29,8 @@ final class ModerationReviewViewModel: ObservableObject {
     private let submission: FoodItemSubmissionDomain
     private let approveSubmission: any ApproveSubmissionUseCaseProtocol
     private let rejectSubmission: any RejectSubmissionUseCaseProtocol
+    private let recognizeNutritionLabelUseCase: any RecognizeNutritionLabelUseCaseProtocol
+    private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
     private let onResolved: () -> Void
 
     // MARK: - Init
@@ -32,6 +39,8 @@ final class ModerationReviewViewModel: ObservableObject {
         submission: FoodItemSubmissionDomain,
         approveSubmission: any ApproveSubmissionUseCaseProtocol,
         rejectSubmission: any RejectSubmissionUseCaseProtocol,
+        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol,
+        cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
         onResolved: @escaping () -> Void
     ) {
         self.submission = submission
@@ -40,10 +49,24 @@ final class ModerationReviewViewModel: ObservableObject {
         self.rejectReasonIfAny = submission.rejectReason
         self.approveSubmission = approveSubmission
         self.rejectSubmission = rejectSubmission
+        self.recognizeNutritionLabelUseCase = recognizeNutritionLabel
+        self.cameraAuthorizationProvider = cameraAuthorizationProvider
         self.onResolved = onResolved
     }
 
     // MARK: - Functions
+
+    @MainActor
+    func onNutritionLabelCaptured(_ image: UIImage, liveBarcode: String?) async {
+        await recognizeNutritionLabel(from: image, liveBarcode: liveBarcode, using: recognizeNutritionLabelUseCase)
+    }
+
+    @MainActor
+    func onNutritionLabelCameraTapped() async {
+        await openNutritionLabelCamera(using: cameraAuthorizationProvider) {
+            alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
+        }
+    }
 
     @MainActor
     func onApproveTapped() async {
@@ -51,14 +74,35 @@ final class ModerationReviewViewModel: ObservableObject {
         defer { state = .loaded }
         let editedItem = formInput.asFoodItemDomain(date: submission.item.date)
         do {
-            try await approveSubmission(id: submission.id, item: editedItem)
+            try await approveSubmission(submission: submission, item: editedItem)
             onResolved()
             shouldDismiss = true
-        } catch CreateFoodItemError.itemAlreadyExists {
-            alertItem = AlertItem(title: L10n.Moderation.errorAlreadyExists)
+        } catch ApproveSubmissionError.alreadyResolved {
+            onResolved()
+            alertItem = AlertItem(title: L10n.Moderation.errorAlreadyResolved)
+            shouldDismiss = true
+        } catch ApproveSubmissionError.changedSinceReview {
+            onResolved()
+            alertItem = AlertItem(title: L10n.Moderation.errorChangedSinceReview)
+            shouldDismiss = true
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            switch error as? CreateFoodItemError {
+            case .invalidCode:
+                alertItem = AlertItem(title: L10n.AddFood.errorInvalidCode)
+            case .invalidName:
+                alertItem = AlertItem(title: L10n.AddFood.errorInvalidName)
+            case .invalidCalories:
+                alertItem = AlertItem(title: L10n.AddFood.errorInvalidCalories)
+            case .invalidWeight:
+                alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
+            case .invalidPortion(let portionError):
+                alertItem = AlertItem(title: portionError.alertTitle)
+            case .itemAlreadyExists:
+                alertItem = AlertItem(title: L10n.Moderation.errorAlreadyExists)
+            case nil:
+                alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            }
         }
     }
 
@@ -75,6 +119,10 @@ final class ModerationReviewViewModel: ObservableObject {
         } catch RejectSubmissionError.alreadyResolved {
             onResolved()
             alertItem = AlertItem(title: L10n.Moderation.errorAlreadyResolved)
+            shouldDismiss = true
+        } catch RejectSubmissionError.changedSinceReview {
+            onResolved()
+            alertItem = AlertItem(title: L10n.Moderation.errorChangedSinceReview)
             shouldDismiss = true
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)

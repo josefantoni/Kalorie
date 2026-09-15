@@ -310,8 +310,12 @@ meaning, and a flat list is simplest; see *Alternatives considered*.
 **Shared component**, `Components/FoodPortionsSection.swift` — a `List` `Section` of rows (name +
 grams, `BaseStringTextField` + a grams `TextField` matching `FoodQuantityView`'s own sanitiser
 pattern rather than `BaseDoubleTextField`, for the same "not-yet-filled" reason design 0006 gives
-for the meal editor's grams input), swipe-to-delete, and a trailing "+ Přidat porci" row. Backed
-by a small `Binding<[FoodPortionDraft]>`:
+for the meal editor's grams input), swipe-to-delete, and a trailing "+ Přidat další porci" row.
+**Revised 2026-09-13 (iOS-only):** the label was *"+ Přidat porci"* until both call sites started
+seeding one empty `FoodPortionDraft` up front (see below) — with a row already on screen ready to
+fill in, "another" is the accurate word, and an empty leading row that never counts as a portion
+until its grams parse to `>= 1` needs no separate empty-state affordance. Backed by a small
+`Binding<[FoodPortionDraft]>`:
 
 ```swift
 struct FoodPortionDraft: Identifiable, Equatable {
@@ -327,15 +331,36 @@ save path to convert it to `[FoodPortionDomain]` (parse `gramsText`, drop rows t
 `MyCreatedMealEditorViewModel.parsedGrams` already has):
 
 1. **`AddFoodSheetView.addCustomFoodItem`** — a new *Porce* `Section`, optional, below the existing
-   nutrition fields. `FoodItemFormInput` gains `var portions: [FoodPortionDraft] = []`.
-   `onCreateFoodItem()` passes the parsed list to `CreateFoodItemUseCase` via the new
-   `FoodItemDomain.portions` argument.
+   nutrition fields. `FoodItemFormInput` gains `var portions: [FoodPortionDraft]`. `onCreateFoodItem()`
+   passes the parsed list to `CreateFoodItemUseCase` via the new `FoodItemDomain.portions` argument.
 2. **`MyCreatedMealEditorView`** — the same section, below *Suroviny*. `MyCreatedMealEditorViewModel`
-   gains `@Published var portions: [FoodPortionDraft] = []`, seeded from `existingMeal?.portions`
+   gains `@Published var portions: [FoodPortionDraft]`, seeded from `existingMeal?.portions`
    when editing (so this is also how an *existing* meal's canonical portions get edited — never
    write-once here, matching the *Context* distinction: `myCreatedMeals` has no create/update
    asymmetry to begin with). `canSave` / `hasChanges` extend to cover it, same predicate the use
    cases validate.
+
+**Revised 2026-09-13 (iOS-only):** both defaulted to `[]` originally. Both now default to
+`[FoodPortionDraft(name: "", gramsText: "")]` whenever there is nothing to seed from — always for
+`FoodItemFormInput()`'s bare default and the rejected-submission-reopen path when the item had no
+portions, and for the meal editor whenever `existingMeal` is `nil` or its `portions` is empty — so
+the section always opens with one row ready to type into rather than requiring a tap on "add" first.
+This is purely a UI starting-state change: an unfilled draft still parses to nothing (`grams < 1`
+is dropped, exactly as before) and `hasChanges`/`initialPortions` compare equal in the editing case
+since `parsedPortions` filters the empty seed out the same way it always filtered incomplete rows.
+
+**Revised 2026-09-13 (iOS-only), again:** the add-row affordance changed a second time, from the
+text row above to an icon-only circular button — visually matching the Dashboard's floating action
+button (`Color.accentColor` circle, white `plus` glyph) but sized to one row's height (28pt) and
+centered, rather than the FAB's fixed icon padding. It is disabled and dimmed (`opacity` 0.4) until
+every existing portion row has both a name and a non-empty grams value, so a second blank row can't
+be added before the first is usable — this is a stricter, UI-only gate on top of the parsing rule
+above, not a replacement for it. The button also now renders in its own `Section` (background
+cleared, `listSectionSpacing(0)`) rather than as a trailing row inside the portions section itself:
+a plain trailing row there took the grouped list's bottom-rounded corner away from the last portion
+row, and a separate zero-spaced section keeps the card's rounding intact while the button still
+reads as directly attached beneath it. Portion rows gained an explicit `Divider()` between them
+(the default `List` row separator hidden) for the same "which row is which" reason.
 
 Reusing one component instead of writing this twice is the only reuse decision in this document
 worth calling out — see *Alternatives considered* for what was rejected instead.
@@ -377,8 +402,8 @@ field placeholders are identical copy in all three) and a handful under `L10n.Fo
 | Key | cs | en |
 |---|---|---|
 | `foodPortion_section_title` | Porce | Portions |
-| `foodPortion_button_add` | Přidat porci | Add portion |
-| `foodPortion_field_namePlaceholder` | Název (např. 1 balení) | Name (e.g. 1 package) |
+| `foodPortion_button_add` | Přidat další porci | Add another portion |
+| `foodPortion_field_namePlaceholder` | Název (např. 1 plátek nebo 1 kus) | Name (e.g. 1 slice or 1 piece) |
 | `foodPortion_error_invalidName` | Zadejte název porce | Enter a portion name |
 | `foodPortion_error_invalidGrams` | Zadejte gramáž větší než 0 | Enter a weight greater than 0 |
 | `foodPortion_error_tooMany` | Můžete přidat nejvýš 20 porcí | You can add at most 20 portions |

@@ -51,12 +51,14 @@ service cloud.firestore {
       allow update: if (isMaintainer() &&
           request.resource.data.submitted_by == resource.data.submitted_by &&
           request.resource.data.barcode == resource.data.barcode &&
+          request.resource.data.submitted_at == resource.data.submitted_at &&
           request.resource.data.status == 'rejected' &&
           request.resource.data.reject_reason is string &&
           request.resource.data.reject_reason.size() > 0 &&
           validFoodItem(request.resource.data.item)) ||
         (resource.data.submitted_by == request.auth.uid &&
           request.resource.data.submitted_by == resource.data.submitted_by &&
+          request.resource.data.barcode == resource.data.barcode &&
           request.resource.data.status == 'pending' &&
           validFoodItem(request.resource.data.item));
 

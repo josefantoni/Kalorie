@@ -141,21 +141,12 @@ struct DashboardView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showAddFoodSheet) {
-                viewModel.onAddFoodSheetDismissed()
-            } content: {
-                router.makeAddFoodSheetView(for: viewModel.selectedDay, mealTypes: viewModel.mealTypes, onFoodSaved: {
+                router.makeAddFoodSheetView(for: viewModel.selectedDay, mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onFoodConsumedUpdated() }
-                }) {
-                    viewModel.onCreateMealRequested()
                 }
             }
             .sheet(isPresented: $viewModel.showAccountSheet) {
                 router.makeAccountView()
-            }
-            .sheet(isPresented: $viewModel.showMyCreatedMealEditor) {
-                NavigationStack {
-                    router.makeMyCreatedMealEditorView()
-                }
             }
             .sheet(isPresented: $viewModel.showCalendarSheet) {
                 MonthCalendarView(
@@ -334,8 +325,7 @@ struct DashboardView: View {
             mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
             addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
             foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
-            accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: MergeStatusReportingFake()),
-            myCreatedMealEditorConfigurator: MyCreatedMealEditorConfigurator(dataProvider: dataProvider, authProvider: authProvider)
+            accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: MergeStatusReportingFake())
         )
     )
 }

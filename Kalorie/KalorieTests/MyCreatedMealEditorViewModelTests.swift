@@ -233,6 +233,20 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onSaveConfirmed_whenEmbeddedWithDismissesOnSaveFalse_savesButLeavesTheHostInPlace() async {
+        var onSavedCalled = false
+        let sut = makeSUT(onSaved: { onSavedCalled = true }, dismissesOnSave: false)
+        sut.name = "Kaše"
+        sut.onSelectSearchResult(makeFoodItem())
+        sut.ingredients[0].gramsText = "50"
+
+        await sut.onSaveConfirmed()
+
+        XCTAssertTrue(onSavedCalled, "the host (the add-food sheet) still needs to know the meal was saved")
+        XCTAssertFalse(sut.shouldDismiss, "embedded in a sheet, dismiss() would close the whole sheet rather than just this mode")
+    }
+
+    @MainActor
     func test_onSaveConfirmed_whenCreateFails_showsAlertAndDoesNotDismiss() async {
         let sut = makeSUT(createMyCreatedMeal: CreateMyCreatedMealUseCaseFake(shouldThrow: true))
         sut.name = "Kaše"
@@ -286,7 +300,8 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         createMyCreatedMeal: any CreateMyCreatedMealUseCaseProtocol = CreateMyCreatedMealUseCaseFake(),
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
         existingMeal: MyCreatedMealDomain? = nil,
-        onSaved: @escaping () -> Void = {}
+        onSaved: @escaping () -> Void = {},
+        dismissesOnSave: Bool = true
     ) -> MyCreatedMealEditorViewModel {
         let sut = MyCreatedMealEditorViewModel(
             searchFoodItems: searchFoodItems,
@@ -296,7 +311,8 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
             createMyCreatedMeal: createMyCreatedMeal,
             updateMyCreatedMeal: updateMyCreatedMeal,
             existingMeal: existingMeal,
-            onSaved: onSaved
+            onSaved: onSaved,
+            dismissesOnSave: dismissesOnSave
         )
         addTeardownBlock { [weak sut] in
             XCTAssertNil(sut, "MyCreatedMealEditorViewModel leaked — potential retain cycle")
