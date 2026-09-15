@@ -27,15 +27,18 @@ struct FoodItemFormInput {
     var protein: Double = 0
     var salt: Double = 0
     var portions: [FoodPortionDraft] = [FoodPortionDraft(name: "", gramsText: "")]
+    var measure: FoodMeasure = .grams
+    var isWeightInThousands = false
 }
 
 extension FoodItemFormInput {
     init(item: FoodItemDomain) {
+        let weightDisplay = Self.weightDisplay(for: item.weight)
         self.init(
             scannedCode: item.id,
             name: item.czName,
             engName: item.engName,
-            weightOfProduct: item.weight,
+            weightOfProduct: weightDisplay.value,
             energyKJ: item.energyKJ,
             caloriesPerHundredGrams: item.caloriesPerHundredGrams,
             fat: item.fat,
@@ -48,8 +51,14 @@ extension FoodItemFormInput {
             salt: item.salt,
             portions: item.portions.isEmpty
                 ? [FoodPortionDraft(name: "", gramsText: "")]
-                : item.portions.map { FoodPortionDraft(name: $0.name, gramsText: String(format: "%g", $0.grams)) }
+                : item.portions.map { FoodPortionDraft(name: $0.name, gramsText: String(format: "%g", $0.grams)) },
+            measure: item.measure,
+            isWeightInThousands: weightDisplay.isInThousands
         )
+    }
+
+    static func weightDisplay(for weight: Double) -> (value: Double, isInThousands: Bool) {
+        weight >= 1000 ? (weight / 1000, true) : (weight, false)
     }
 
     func asFoodItemDomain(kind: FoodItemKind = .catalogue, date: Date = .now) -> FoodItemDomain {
@@ -58,7 +67,7 @@ extension FoodItemFormInput {
             kind: kind,
             czName: name,
             engName: engName,
-            weight: weightOfProduct,
+            weight: isWeightInThousands ? weightOfProduct * 1000 : weightOfProduct,
             date: date,
             energyKJ: energyKJ,
             caloriesPerHundredGrams: caloriesPerHundredGrams,
@@ -70,7 +79,8 @@ extension FoodItemFormInput {
             fiber: fiber,
             protein: protein,
             salt: salt,
-            portions: Self.parsedPortions(portions)
+            portions: Self.parsedPortions(portions),
+            measure: measure
         )
     }
 
@@ -110,7 +120,22 @@ extension FoodItemFormInput {
             name = value
             applied.insert(.name)
         }
-        fillIfEmpty(&weightOfProduct, with: reading.weightOfProduct, field: .weight)
+        if
+            weightOfProduct == 0,
+            let value = reading.weightOfProduct
+        {
+            let display = Self.weightDisplay(for: value)
+            weightOfProduct = display.value
+            isWeightInThousands = display.isInThousands
+            applied.insert(.weight)
+        }
+        if
+            measure == .grams,
+            let value = reading.measure
+        {
+            measure = value
+            applied.insert(.measure)
+        }
         fillIfEmpty(&energyKJ, with: reading.energyKJ, field: .energyKJ)
         fillIfEmpty(&caloriesPerHundredGrams, with: reading.caloriesPerHundredGrams, field: .calories)
         fillIfEmpty(&fat, with: reading.fat, field: .fat)

@@ -41,14 +41,13 @@ The app works with three kinds of data. The distinction matters for the items be
   maintained. This is the other half of what used to be one combined line here; the first half —
   a food carrying a named, user-chosen package/portion weight selectable as a unit — shipped as
   [design 0008](docs/design/0008-food-portions.md).
-- [ ] **Unit choice when creating a food item** — `FoodItemFormFields` should let the user enter
-  the item's weight/volume in grams, kilograms, millilitres, or litres, not grams only. Server
-  storage presumably stays grams-only (convert on submit), so this is a client-side input
-  convenience — needs deciding whether litres/millilitres imply a density assumption (1 ml ≈ 1 g)
-  or whether the DTO needs a real volume field. Must also be reflected when displaying an existing
-  catalogue item back (round-tripping the unit, or at least formatting large gram values as kg/l),
-  not just on entry. Distinct from [design 0008](docs/design/0008-food-portions.md)'s unit picker,
-  which is about logging/consuming an existing item, not creating one.
+- [ ] **Food measured in grams or millilitres** — decided and specified in
+  [design 0011](docs/design/0011-food-measure-grams-or-millilitres.md), ready to implement. Replaces
+  the former *Unit choice when creating a food item* line: a client-only g/kg/ml/l input was found
+  to change nothing after saving, since `FoodItemDomain.weight` drives no calculation, while
+  [design 0010](docs/design/0010-nutrition-label-photo-prefill.md)'s parser already stores per-100 ml
+  labels as per-100 g. The fix is an optional `measure_unit` field carried from `foodItems` to
+  `foodConsumed`, with numbers never converted.
 
 ## Documentation baseline
 

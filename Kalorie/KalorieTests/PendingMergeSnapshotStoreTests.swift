@@ -87,7 +87,8 @@ final class PendingMergeSnapshotStoreTests: XCTestCase {
                     fatUnsaturated: 1,
                     fiber: 1,
                     salt: 1,
-                    mealTypeId: nil
+                    mealTypeId: nil,
+                    measureUnit: nil
                 )
             },
             favouriteFoods: [],

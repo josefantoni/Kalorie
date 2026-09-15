@@ -49,7 +49,7 @@ struct FoodConsumedDetailView: View {
                                 let normalized = sanitized.replacingOccurrences(of: ",", with: ".")
                                 if let value = Double(normalized) { viewModel.weight = value }
                             }
-                        Text("g")
+                        Text(viewModel.food.measure.unitSymbol)
                     }
                 }
                 LabeledContent(L10n.FoodConsumedDetail.labelTime) {

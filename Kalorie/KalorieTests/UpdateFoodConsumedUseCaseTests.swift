@@ -72,6 +72,12 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         )
     }
 
+    func test_updateFoodConsumed_writesTheFoodsMeasure() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeFood(weight: 100, measure: .millilitres), newWeight: 200)
+        XCTAssertEqual(dataProvider.savedDTO?.measureUnit, "millilitres", "editing a milk entry's amount must not relabel it as grams")
+    }
+
     func test_updateFoodConsumed_whenExistingWeightIsNotPositive_throwsInvalidWeightError() async throws {
         let (sut, _) = makeSUT()
         do {
@@ -100,9 +106,10 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         fatSaturated: Double? = 3,
         fiber: Double? = 0,
         kind: FoodItemKind = .catalogue,
-        mealTypeId: String? = nil
+        mealTypeId: String? = nil,
+        measure: FoodMeasure = .grams
     ) -> FoodConsumedDomain {
-        FoodConsumedDomain(
+        var food = FoodConsumedDomain(
             id: "1",
             foodItemId: foodItemId,
             foodItemKind: kind,
@@ -123,6 +130,8 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
             salt: 0.3,
             mealTypeId: mealTypeId
         )
+        food.measure = measure
+        return food
     }
 }
 

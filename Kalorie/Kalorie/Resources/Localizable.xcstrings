@@ -787,6 +787,23 @@
         }
       }
     },
+    "addFood_field_caloriesPer100ml" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie na 100 mililitrů"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calories per 100ml"
+          }
+        }
+      }
+    },
     "addFood_field_carbs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -902,6 +919,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fibre"
+          }
+        }
+      }
+    },
+    "addFood_field_measure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Měří se v"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measured in"
           }
         }
       }
@@ -1620,6 +1654,57 @@
         }
       }
     },
+    "common_unit_kilograms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kg"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kg"
+          }
+        }
+      }
+    },
+    "common_unit_litres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "l"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "l"
+          }
+        }
+      }
+    },
+    "common_unit_millilitres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ml"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ml"
+          }
+        }
+      }
+    },
     "dashboard_button_mealLayout" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2296,6 +2381,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "100 g"
+          }
+        }
+      }
+    },
+    "foodQuantity_unit_hundredMillilitres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 ml"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 ml"
+          }
+        }
+      }
+    },
+    "foodQuantity_unit_millilitres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 ml"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 ml"
           }
         }
       }

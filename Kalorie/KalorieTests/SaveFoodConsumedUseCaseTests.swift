@@ -86,6 +86,12 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedDTO?.foodItemKind, .external)
     }
 
+    func test_saveFoodConsumed_storesTheItemsMeasure() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeItem(measure: .millilitres), grams: 200, date: .now, mealTypes: [])
+        XCTAssertEqual(dataProvider.savedDTO?.measureUnit, "millilitres", "a drink logged from a millilitre item must not silently read grams")
+    }
+
     func test_saveFoodConsumed_pinsToTheMealTypeWindowItWasLoggedInto() async throws {
         let (sut, dataProvider) = makeSUT()
         let cal = Calendar.current
@@ -125,7 +131,8 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
         weight: Double = 100,
         caloriesPerHundredGrams: Double = 155,
         fiber: Double? = 0,
-        kind: FoodItemKind = .catalogue
+        kind: FoodItemKind = .catalogue,
+        measure: FoodMeasure = .grams
     ) -> FoodItemDomain {
         FoodItemDomain(
             id: "12345",
@@ -143,7 +150,8 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
             carbohydratePureSugar: 0,
             fiber: fiber,
             protein: 13,
-            salt: 0.3
+            salt: 0.3,
+            measure: measure
         )
     }
 }

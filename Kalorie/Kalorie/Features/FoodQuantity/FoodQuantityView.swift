@@ -105,7 +105,7 @@ struct FoodQuantityView: View {
                 }
             Picker("", selection: $viewModel.unit) {
                 ForEach(viewModel.unitOptions, id: \.self) { option in
-                    Text(Self.label(for: option)).tag(option)
+                    Text(Self.label(for: option, measure: viewModel.item.measure)).tag(option)
                 }
             }
             .pickerStyle(.menu)
@@ -135,11 +135,11 @@ struct FoodQuantityView: View {
         }
     }
 
-    static func label(for unit: FoodQuantityUnit) -> String {
+    static func label(for unit: FoodQuantityUnit, measure: FoodMeasure) -> String {
         switch unit {
-        case .grams: return L10n.FoodQuantity.unitGrams
-        case .hundredGrams: return L10n.FoodQuantity.unitHundredGrams
-        case .portion(let portion): return "\(portion.name) (\(portion.grams.formattedGrams()))"
+        case .grams: return measure == .grams ? L10n.FoodQuantity.unitGrams : L10n.FoodQuantity.unitMillilitres
+        case .hundredGrams: return measure == .grams ? L10n.FoodQuantity.unitHundredGrams : L10n.FoodQuantity.unitHundredMillilitres
+        case .portion(let portion): return "\(portion.name) (\(portion.grams.formattedAmount(measure: measure)))"
         }
     }
 

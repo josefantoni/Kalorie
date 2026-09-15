@@ -20,7 +20,8 @@ service cloud.firestore {
         data.salt is number &&
         (!('energy_kj' in data) || data.energy_kj is number) &&
         (!('fat_saturated' in data) || data.fat_saturated is number) &&
-        (!('fiber' in data) || data.fiber is number);
+        (!('fiber' in data) || data.fiber is number) &&
+        (!('measure_unit' in data) || data.measure_unit in ['grams', 'millilitres']);
     }
 
     match /users/{userId} {

@@ -118,6 +118,47 @@ final class NutritionLabelParserTests: XCTestCase {
         XCTAssertEqual(reading.energyKJ, 3404, "\"Energie\", the short EU-legal form, must be recognised alongside the long-form \"energetická hodnota\"")
         XCTAssertEqual(reading.caloriesPerHundredGrams, 813)
         XCTAssertNil(reading.protein, "\"Omega 3 mastné kyseliny\" is a label, not a value — its stray digit must never become the protein reading")
+        XCTAssertEqual(reading.measure, .millilitres, "the label's own \"ve 100 ml\" header must set the measure, not the default grams")
+    }
+
+    // MARK: - Measure
+
+    func test_parse_perHundredMillilitreHeader_setsMeasureToMillilitres() {
+        let lines = [
+            RecognizedTextLine(text: "Hodnoty na 100 ml", boundingBox: CGRect(x: 0.6, y: 0.9, width: 0.3, height: 0.03)),
+            RecognizedTextLine(text: "Tuky", boundingBox: CGRect(x: 0.1, y: 0.7, width: 0.3, height: 0.05)),
+            RecognizedTextLine(text: "12 g", boundingBox: CGRect(x: 0.6, y: 0.7, width: 0.15, height: 0.05))
+        ]
+        let reading = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(reading.measure, .millilitres)
+    }
+
+    func test_parse_perHundredGramHeader_setsMeasureToGrams() {
+        let reading = NutritionLabelParser.parse(lines: czechLabelLines())
+        XCTAssertEqual(reading.measure, .grams)
+    }
+
+    func test_parse_noHeaderButPackageInLitres_setsMeasureToMillilitres() {
+        let lines = [
+            RecognizedTextLine(text: "Balení netto 1 l", boundingBox: CGRect(x: 0.1, y: 0.95, width: 0.3, height: 0.03))
+        ]
+        let reading = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(reading.measure, .millilitres, "with no nutrition header to key off, the package line's own unit is the only signal left")
+    }
+
+    func test_parse_headerInGramsWithPackageInMillilitres_headerWins() {
+        var lines = czechLabelLines()
+        lines.append(RecognizedTextLine(text: "Hmotnost: 500 ml", boundingBox: CGRect(x: 0.1, y: 0.95, width: 0.3, height: 0.03)))
+        let reading = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(reading.measure, .grams, "the nutrition basis the numbers were actually read against always outranks the package line")
+    }
+
+    func test_parse_withNothingToGoOn_leavesMeasureNil() {
+        let lines = [
+            RecognizedTextLine(text: "Nějaký nesouvisející text", boundingBox: CGRect(x: 0.1, y: 0.5, width: 0.3, height: 0.05))
+        ]
+        let reading = NutritionLabelParser.parse(lines: lines)
+        XCTAssertNil(reading.measure)
     }
 
     // MARK: - No per-100g column

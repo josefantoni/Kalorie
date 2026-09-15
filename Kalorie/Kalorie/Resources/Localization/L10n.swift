@@ -19,6 +19,9 @@ enum L10n {
         static var buttonNo: String { String(localized: "common_button_no") }
         static var buttonCancel: String { String(localized: "common_button_cancel") }
         static var unitGrams: String { String(localized: "common_unit_grams") }
+        static var unitMillilitres: String { String(localized: "common_unit_millilitres") }
+        static var unitKilograms: String { String(localized: "common_unit_kilograms") }
+        static var unitLitres: String { String(localized: "common_unit_litres") }
     }
 
     enum Auth {
@@ -93,6 +96,8 @@ enum L10n {
         static var fieldWeight: String { String(localized: "addFood_field_weight") }
         static var fieldEnergyKJ: String { String(localized: "addFood_field_energyKJ") }
         static var fieldCaloriesPer100g: String { String(localized: "addFood_field_caloriesPer100g") }
+        static var fieldCaloriesPer100ml: String { String(localized: "addFood_field_caloriesPer100ml") }
+        static var fieldMeasure: String { String(localized: "addFood_field_measure") }
         static var fieldProtein: String { String(localized: "addFood_field_protein") }
         static var fieldCarbs: String { String(localized: "addFood_field_carbs") }
         static var fieldCarbsSugar: String { String(localized: "addFood_field_carbsSugar") }
@@ -201,6 +206,8 @@ enum L10n {
         static var sectionNutrition: String { String(localized: "foodQuantity_section_nutrition") }
         static var unitHundredGrams: String { String(localized: "foodQuantity_unit_hundredGrams") }
         static var unitGrams: String { String(localized: "foodQuantity_unit_grams") }
+        static var unitMillilitres: String { String(localized: "foodQuantity_unit_millilitres") }
+        static var unitHundredMillilitres: String { String(localized: "foodQuantity_unit_hundredMillilitres") }
         static var inputHundredGrams: String { String(localized: "foodQuantity_input_portions") }
         static var inputGrams: String { String(localized: "foodQuantity_input_grams") }
         static var buttonAdd: String { String(localized: "foodQuantity_button_add") }

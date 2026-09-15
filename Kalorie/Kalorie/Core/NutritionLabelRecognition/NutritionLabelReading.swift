@@ -25,6 +25,7 @@ struct NutritionLabelReading: Equatable {
     var protein: Double?
     var salt: Double?
     var portions: [FoodPortionDomain]?
+    var measure: FoodMeasure?
 
     // MARK: - Init
 
@@ -42,7 +43,8 @@ struct NutritionLabelReading: Equatable {
         fiber: Double? = nil,
         protein: Double? = nil,
         salt: Double? = nil,
-        portions: [FoodPortionDomain]? = nil
+        portions: [FoodPortionDomain]? = nil,
+        measure: FoodMeasure? = nil
     ) {
         self.scannedCode = scannedCode
         self.name = name
@@ -58,6 +60,7 @@ struct NutritionLabelReading: Equatable {
         self.protein = protein
         self.salt = salt
         self.portions = portions
+        self.measure = measure
     }
 }
 
@@ -79,6 +82,7 @@ extension NutritionLabelReading {
         if fiber != nil { fields.insert(.fiber) }
         if protein != nil { fields.insert(.protein) }
         if salt != nil { fields.insert(.salt) }
+        if measure != nil { fields.insert(.measure) }
         return fields
     }
 

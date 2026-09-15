@@ -36,6 +36,12 @@ final class AddFavouriteFoodUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedDTO?.foodItemKind, .external)
     }
 
+    func test_addFavouriteFood_storesTheItemsMeasure() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeItem(measure: .millilitres))
+        XCTAssertEqual(dataProvider.savedDTO?.measureUnit, "millilitres")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(userId: String? = "test-user") -> (sut: AddFavouriteFoodUseCase, dataProvider: AddFavouriteFoodDataProviderFake) {
@@ -45,7 +51,7 @@ final class AddFavouriteFoodUseCaseTests: XCTestCase {
         return (sut, dataProvider)
     }
 
-    private func makeItem(id: String = "12345", kind: FoodItemKind = .catalogue) -> FoodItemDomain {
+    private func makeItem(id: String = "12345", kind: FoodItemKind = .catalogue, measure: FoodMeasure = .grams) -> FoodItemDomain {
         FoodItemDomain(
             id: id,
             kind: kind,
@@ -62,7 +68,8 @@ final class AddFavouriteFoodUseCaseTests: XCTestCase {
             carbohydratePureSugar: 0,
             fiber: 0,
             protein: 13,
-            salt: 0.3
+            salt: 0.3,
+            measure: measure
         )
     }
 }

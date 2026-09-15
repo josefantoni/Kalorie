@@ -31,6 +31,7 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
     let fiber: Double?
     let salt: Double
     let mealTypeId: String?
+    var measure: FoodMeasure = .grams
 
     // MARK: - Functions
 
@@ -47,7 +48,8 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
         fatUnsaturated: Double? = nil,
         fiber: Double?? = nil,
         salt: Double? = nil,
-        mealTypeId: String?? = nil
+        mealTypeId: String?? = nil,
+        measure: FoodMeasure? = nil
     ) -> FoodConsumedDomain {
         FoodConsumedDomain(
             id: id,
@@ -68,7 +70,8 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
             fatUnsaturated: fatUnsaturated ?? self.fatUnsaturated,
             fiber: fiber ?? self.fiber,
             salt: salt ?? self.salt,
-            mealTypeId: mealTypeId ?? self.mealTypeId
+            mealTypeId: mealTypeId ?? self.mealTypeId,
+            measure: measure ?? self.measure
         )
     }
 }

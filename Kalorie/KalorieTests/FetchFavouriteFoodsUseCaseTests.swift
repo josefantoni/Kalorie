@@ -51,6 +51,13 @@ final class FetchFavouriteFoodsUseCaseTests: XCTestCase {
         XCTAssertNil(result.first?.fiber)
     }
 
+    func test_fetchFavouriteFoods_roundTripsMillilitreMeasure() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDTOs = [makeDTO(id: "12345", czName: "Mléko", measure: .millilitres)]
+        let result = try await sut()
+        XCTAssertEqual(result.first?.measure, .millilitres)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(userId: String? = "test-user") -> (sut: FetchFavouriteFoodsUseCase, dataProvider: FetchFavouriteFoodsDataProviderFake) {
@@ -60,7 +67,7 @@ final class FetchFavouriteFoodsUseCaseTests: XCTestCase {
         return (sut, dataProvider)
     }
 
-    private func makeDTO(id: String, czName: String) -> FavouriteFoodDTO {
+    private func makeDTO(id: String, czName: String, measure: FoodMeasure = .grams) -> FavouriteFoodDTO {
         FavouriteFoodDTO(
             item: FoodItemDomain(
                 id: id,
@@ -78,7 +85,8 @@ final class FetchFavouriteFoodsUseCaseTests: XCTestCase {
                 carbohydratePureSugar: 0,
                 fiber: 0,
                 protein: 0,
-                salt: 0
+                salt: 0,
+                measure: measure
             ),
             favouritedAt: .now
         )

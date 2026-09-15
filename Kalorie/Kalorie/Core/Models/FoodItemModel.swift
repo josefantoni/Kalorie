@@ -34,6 +34,7 @@ struct FoodItemDomain: BilingualNamed {
     let protein: Double
     let salt: Double
     let portions: [FoodPortionDomain]
+    let measure: FoodMeasure
 
     // MARK: - Init
 
@@ -54,7 +55,8 @@ struct FoodItemDomain: BilingualNamed {
         fiber: Double?,
         protein: Double,
         salt: Double,
-        portions: [FoodPortionDomain] = []
+        portions: [FoodPortionDomain] = [],
+        measure: FoodMeasure = .grams
     ) {
         self.id = id
         self.kind = kind
@@ -73,6 +75,7 @@ struct FoodItemDomain: BilingualNamed {
         self.protein = protein
         self.salt = salt
         self.portions = portions
+        self.measure = measure
     }
 }
 

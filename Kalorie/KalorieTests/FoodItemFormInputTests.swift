@@ -54,19 +54,60 @@ final class FoodItemFormInputTests: XCTestCase {
         XCTAssertEqual(sut.asFoodItemDomain().fatSaturated, 3)
     }
 
+    // MARK: - Measure and thousands display
+
+    func test_asFoodItemDomain_whenWeightEnteredInLitres_convertsToBaseMillilitresAndKeepsMeasure() {
+        var sut = FoodItemFormInput()
+        sut.measure = .millilitres
+        sut.weightOfProduct = 1.5
+        sut.isWeightInThousands = true
+        let result = sut.asFoodItemDomain()
+        XCTAssertEqual(result.weight, 1500)
+        XCTAssertEqual(result.measure, .millilitres)
+    }
+
+    func test_initFromItem_withWeightAtOrAboveAThousand_displaysInThousands() {
+        let sut = FoodItemFormInput(item: makeItem(weight: 1500))
+        XCTAssertEqual(sut.weightOfProduct, 1.5)
+        XCTAssertTrue(sut.isWeightInThousands)
+    }
+
+    func test_initFromItem_withWeightBelowAThousand_staysInBaseUnit() {
+        let sut = FoodItemFormInput(item: makeItem(weight: 999))
+        XCTAssertEqual(sut.weightOfProduct, 999)
+        XCTAssertFalse(sut.isWeightInThousands)
+    }
+
+    // MARK: - applying(_:)
+
+    func test_applying_readingWithMillilitres_setsMeasureAndReportsItChanged() {
+        var sut = FoodItemFormInput()
+        let applied = sut.applying(NutritionLabelReading(measure: .millilitres))
+        XCTAssertEqual(sut.measure, .millilitres)
+        XCTAssertTrue(applied.contains(.measure))
+    }
+
+    func test_applying_whenFormAlreadyAtMillilitres_isNotOverwrittenByGrams() {
+        var sut = FoodItemFormInput()
+        sut.measure = .millilitres
+        _ = sut.applying(NutritionLabelReading(measure: .grams))
+        XCTAssertEqual(sut.measure, .millilitres, "an explicitly picked measure must not be overwritten by a later reading, same as every other field")
+    }
+
     // MARK: - Helpers
 
     private func makeItem(
         engName: String = "Cottage cheese",
         fatSaturated: Double? = 0.3,
-        fiber: Double? = 0
+        fiber: Double? = 0,
+        weight: Double = 200
     ) -> FoodItemDomain {
         FoodItemDomain(
             id: "12345678",
             kind: .catalogue,
             czName: "Tvaroh",
             engName: engName,
-            weight: 200,
+            weight: weight,
             date: .now,
             energyKJ: 335,
             caloriesPerHundredGrams: 80,
