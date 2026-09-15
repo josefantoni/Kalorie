@@ -46,11 +46,13 @@ enum NutritionLabelParser {
     // MARK: - Functions
 
     static func parse(lines: [RecognizedTextLine]) -> NutritionLabelReading {
-        var reading = NutritionLabelReading(weightOfProduct: packageWeight(in: lines))
+        let weightResult = packageWeight(in: lines)
+        var reading = NutritionLabelReading(weightOfProduct: weightResult?.value)
 
-        if let columnX = perHundredColumnX(in: lines) {
+        let header = perHundredHeader(in: lines)
+        if let header {
             for row in groupIntoRows(lines) {
-                apply(row: row, columnX: columnX, to: &reading)
+                apply(row: row, columnX: header.x, to: &reading)
             }
         }
 
@@ -66,8 +68,20 @@ enum NutritionLabelParser {
             reading = applyingConsistencyChecks(reading)
         }
 
+        // The nutrition basis (what the numbers mean) always outranks the package line, which is
+        // only a hint — see design 0011's "core rule".
+        reading.measure = header?.measure ?? linearMeasure(lines: lines) ?? weightResult?.measure
+
         reading = derivingUnsaturated(reading)
         return reading
+    }
+
+    private static func linearMeasure(lines: [RecognizedTextLine]) -> FoodMeasure? {
+        let compact = lines.map(\.text).joined(separator: " ").lowercased().replacingOccurrences(of: " ", with: "")
+        let hasMl = compact.contains("100ml")
+        let hasG = compact.contains("100g")
+        guard hasMl != hasG else { return nil }
+        return hasMl ? .millilitres : .grams
     }
 
     private static func hasNoMacros(_ reading: NutritionLabelReading) -> Bool {
@@ -220,10 +234,12 @@ enum NutritionLabelParser {
         return overlap / minHeight > rowOverlapThreshold
     }
 
-    private static func perHundredColumnX(in lines: [RecognizedTextLine]) -> CGFloat? {
+    private static func perHundredHeader(in lines: [RecognizedTextLine]) -> (x: CGFloat, measure: FoodMeasure)? {
         let headers = lines.filter { isPerHundredHeader($0.text) }
         guard headers.count == 1, let header = headers.first else { return nil }
-        return header.boundingBox.midX
+        let folded = header.text.lowercased().foldingDiacritics().replacingOccurrences(of: " ", with: "")
+        let measure: FoodMeasure = folded.contains("100ml") ? .millilitres : .grams
+        return (header.boundingBox.midX, measure)
     }
 
     private static func isPerHundredHeader(_ text: String) -> Bool {
@@ -286,22 +302,28 @@ enum NutritionLabelParser {
 
     // MARK: - Package weight
 
-    private static func packageWeight(in lines: [RecognizedTextLine]) -> Double? {
-        let candidates: [Double] = lines.compactMap { line in
+    private static func packageWeight(in lines: [RecognizedTextLine]) -> (value: Double, measure: FoodMeasure)? {
+        let candidates: [(value: Double, measure: FoodMeasure)] = lines.compactMap { line in
             let folded = line.text.lowercased().foldingDiacritics()
             guard weightKeywords.contains(where: { folded.contains($0) }) else { return nil }
-            if let (value, unit) = weightValue(in: line.text) {
-                return unit == "kg" || unit == "l" ? value * 1000 : value
+            if let match = weightValue(in: line.text) {
+                return scaledPackageWeight(match)
             }
             // The value is sometimes printed in a much larger font directly under its label
             // (e.g. "Hmotnost:" / "200 g"), which Vision reports as two separate lines.
             guard
                 let below = nearestLineBelow(line, in: lines),
-                let (value, unit) = weightValue(in: below.text)
+                let match = weightValue(in: below.text)
             else { return nil }
-            return unit == "kg" || unit == "l" ? value * 1000 : value
+            return scaledPackageWeight(match)
         }
         return candidates.count == 1 ? candidates[0] : nil
+    }
+
+    private static func scaledPackageWeight(_ match: (value: Double, unit: String)) -> (value: Double, measure: FoodMeasure) {
+        let value = match.unit == "kg" || match.unit == "l" ? match.value * 1000 : match.value
+        let measure: FoodMeasure = match.unit == "ml" || match.unit == "l" ? .millilitres : .grams
+        return (value, measure)
     }
 
     private static func nearestLineBelow(_ line: RecognizedTextLine, in lines: [RecognizedTextLine]) -> RecognizedTextLine? {

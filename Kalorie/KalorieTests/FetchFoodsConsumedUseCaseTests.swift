@@ -40,7 +40,8 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
                 fatUnsaturated: 0,
                 fiber: 0,
                 salt: 0,
-                mealTypeId: nil
+                mealTypeId: nil,
+                measureUnit: nil
             ),
             FoodConsumedDTO(
                 id: "2",
@@ -61,7 +62,8 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
                 fatUnsaturated: 0,
                 fiber: 0,
                 salt: 0,
-                mealTypeId: nil
+                mealTypeId: nil,
+                measureUnit: nil
             )
         ]
 
@@ -95,7 +97,8 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
                 fatUnsaturated: 0,
                 fiber: 0,
                 salt: 0,
-                mealTypeId: nil
+                mealTypeId: nil,
+                measureUnit: nil
             ),
             FoodConsumedDTO(
                 id: "2",
@@ -116,7 +119,8 @@ final class FetchFoodsConsumedUseCaseTests: XCTestCase {
                 fatUnsaturated: 0,
                 fiber: 0,
                 salt: 0,
-                mealTypeId: nil
+                mealTypeId: nil,
+                measureUnit: nil
             )
         ]
 

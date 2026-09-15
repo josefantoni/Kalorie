@@ -27,7 +27,7 @@ struct FoodItemFormSections: View {
 
     var body: some View {
         Group {
-            FoodPortionsSection(portions: $formInput.portions)
+            FoodPortionsSection(portions: $formInput.portions, measure: formInput.measure)
             Section {
                 BaseStringTextField(
                     placeholder: L10n.AddFood.fieldNamePlaceholder,

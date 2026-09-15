@@ -21,6 +21,7 @@ struct FoodPortionsSection: View {
     // MARK: - Properties
 
     @Binding var portions: [FoodPortionDraft]
+    var measure: FoodMeasure = .grams
 
     // MARK: - Body
 
@@ -104,7 +105,7 @@ struct FoodPortionsSection: View {
                         draft.gramsText.wrappedValue = sanitized
                     }
                 }
-            Text(L10n.Common.unitGrams)
+            Text(measure.unitSymbol)
                 .foregroundStyle(.secondary)
         }
     }

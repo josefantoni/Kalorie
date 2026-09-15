@@ -31,6 +31,7 @@ struct FoodConsumedDTO: Codable {
     let fiber: Double?
     let salt: Double
     let mealTypeId: String?
+    let measureUnit: String?
 
     // MARK: - Coding keys
 
@@ -46,6 +47,7 @@ struct FoodConsumedDTO: Codable {
         case energyKJ = "energy_kj"
         case fatSaturated = "fat_saturated"
         case mealTypeId = "meal_type_id"
+        case measureUnit = "measure_unit"
     }
 
     // MARK: - Functions
@@ -70,7 +72,8 @@ struct FoodConsumedDTO: Codable {
             fatUnsaturated: fatUnsaturated,
             fiber: fiber,
             salt: salt,
-            mealTypeId: mealTypeId
+            mealTypeId: mealTypeId,
+            measure: measureUnit.flatMap(FoodMeasure.init(rawValue:)) ?? .grams
         )
     }
 }
@@ -96,7 +99,8 @@ extension FoodConsumedDTO {
             fatUnsaturated: food.fatUnsaturated,
             fiber: food.fiber,
             salt: food.salt,
-            mealTypeId: mealTypeId
+            mealTypeId: mealTypeId,
+            measureUnit: food.measure.rawValue
         )
     }
 }

@@ -34,6 +34,7 @@ public struct FoodItemDTO: Codable {
     let protein: Double
     let salt: Double
     let portions: [FoodPortionDTO]?
+    let measureUnit: String?
 
     // MARK: - Coding keys
 
@@ -52,6 +53,7 @@ public struct FoodItemDTO: Codable {
         case fatSaturated = "fat_saturated"
         case fatUnsaturatedFattyAcids = "fat_unsaturated_fatty_acids"
         case carbohydratePureSugar = "carbohydrate_pure_sugar"
+        case measureUnit = "measure_unit"
     }
 
     // MARK: - Init
@@ -79,6 +81,7 @@ public struct FoodItemDTO: Codable {
         protein = item.protein
         salt = item.salt
         portions = item.portions.map(FoodPortionDTO.init(portion:))
+        measureUnit = item.measure.rawValue
     }
 
     // MARK: - Functions
@@ -101,7 +104,8 @@ public struct FoodItemDTO: Codable {
             fiber: fiber,
             protein: protein,
             salt: salt,
-            portions: portions?.map { $0.asDomain() } ?? []
+            portions: portions?.map { $0.asDomain() } ?? [],
+            measure: measureUnit.flatMap(FoodMeasure.init(rawValue:)) ?? .grams
         )
     }
 }

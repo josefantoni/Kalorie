@@ -30,6 +30,7 @@
     { "collectionGroup": "foodItems", "fieldPath": "carbohydrate_pure_sugar", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "fiber", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "protein", "indexes": [] },
-    { "collectionGroup": "foodItems", "fieldPath": "salt", "indexes": [] }
+    { "collectionGroup": "foodItems", "fieldPath": "salt", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "measure_unit", "indexes": [] }
   ]
 }

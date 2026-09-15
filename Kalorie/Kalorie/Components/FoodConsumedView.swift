@@ -24,7 +24,7 @@ struct FoodConsumedView: View {
 
     var body: some View {
         HStack {
-            Text(foodConsumed.weight.formattedGrams(fractionDigits: 0))
+            Text(foodConsumed.weight.formattedAmount(measure: foodConsumed.measure, fractionDigits: 0))
             Text(foodConsumed.displayName)
             Spacer()
             VStack {

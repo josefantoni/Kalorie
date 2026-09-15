@@ -37,7 +37,7 @@ struct FoodPortionsManagerView: View {
                             HStack {
                                 Text(portion.name)
                                 Spacer()
-                                Text(portion.grams.formattedGrams())
+                                Text(portion.grams.formattedAmount(measure: viewModel.item.measure))
                                     .foregroundStyle(.secondary)
                             }
                             .swipeActions(edge: .trailing) {
@@ -63,7 +63,7 @@ struct FoodPortionsManagerView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 50)
-                        Text(L10n.Common.unitGrams)
+                        Text(viewModel.item.measure.unitSymbol)
                             .foregroundStyle(.secondary)
                     }
                     Button(L10n.FoodPortion.buttonAdd) {
