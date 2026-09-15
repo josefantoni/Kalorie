@@ -112,6 +112,30 @@ enum L10n {
         static var errorLoadFailed: String { String(localized: "addFood_error_loadFailed") }
         static var errorFavouriteFailed: String { String(localized: "addFood_error_favouriteFailed") }
         static var buttonCreateMeal: String { String(localized: "addFood_button_createMeal") }
+        static var sectionMySubmissions: String { String(localized: "addFood_section_mySubmissions") }
+        static var submissionPending: String { String(localized: "addFood_submission_pending") }
+        static var submissionRejected: String { String(localized: "addFood_submission_rejected") }
+        static var submissionSubmitted: String { String(localized: "addFood_submission_submitted") }
+        static func submissionRejectedReason(reason: String) -> String {
+            String(format: String(localized: "addFood_submission_rejectedReason"), reason)
+        }
+    }
+
+    enum Moderation {
+        static var sectionTitle: String { String(localized: "moderation_section_title") }
+        static var queueTitle: String { String(localized: "moderation_queue_title") }
+        static var queueEmpty: String { String(localized: "moderation_queue_empty") }
+        static var queueCollision: String { String(localized: "moderation_queue_collision") }
+        static var buttonApprove: String { String(localized: "moderation_button_approve") }
+        static var buttonReject: String { String(localized: "moderation_button_reject") }
+        static var buttonSave: String { String(localized: "moderation_button_save") }
+        static var rejectReasonPlaceholder: String { String(localized: "moderation_reject_reasonPlaceholder") }
+        static var errorReasonRequired: String { String(localized: "moderation_error_reasonRequired") }
+        static var editorTitle: String { String(localized: "moderation_editor_title") }
+        static var editorSearchPlaceholder: String { String(localized: "moderation_editor_searchPlaceholder") }
+        static var editorSaved: String { String(localized: "moderation_editor_saved") }
+        static var errorAlreadyExists: String { String(localized: "moderation_error_alreadyExists") }
+        static var errorAlreadyResolved: String { String(localized: "moderation_error_alreadyResolved") }
     }
 
     enum FoodPortion {

@@ -20,6 +20,7 @@ protocol FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T]
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T]
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T?
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T]
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T?
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T?
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T]
@@ -127,6 +128,24 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
             let result: T? = try snapshot.documents.first.flatMap { try $0.data(as: T.self) }
             log("✅ GET \(collection) WHERE \(field) == '\(value)' → \(result == nil ? "nil" : "found")")
+            return result
+        } catch {
+            logFailure("❌ GET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] {
+        log("🚀 GET \(collection) WHERE \(field) == '\(value)' ORDER BY \(orderField) \(descending ? "DESC" : "ASC")")
+        do {
+            let snapshot = try await Firestore.firestore()
+                .collection(collection)
+                .whereField(field, isEqualTo: value)
+                .order(by: orderField, descending: descending)
+                .getDocuments()
+            snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
+            let result: [T] = try snapshot.documents.compactMap { try $0.data(as: T.self) }
+            log("✅ GET \(collection) → \(result.count) items")
             return result
         } catch {
             logFailure("❌ GET \(collection)", error: error)

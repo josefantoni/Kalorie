@@ -12,11 +12,13 @@ struct AccountView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: AccountViewModel
+    private let makeModerationView: () -> ModerationQueueView
 
     // MARK: - Init
 
-    init(viewModel: AccountViewModel) {
+    init(viewModel: AccountViewModel, makeModerationView: @escaping () -> ModerationQueueView) {
         self._viewModel = StateObject(wrappedValue: viewModel)
+        self.makeModerationView = makeModerationView
     }
 
     // MARK: - Body
@@ -89,7 +91,17 @@ struct AccountView: View {
                         }
                     }
                 }
+                if viewModel.isMaintainer {
+                    Section(header: Text(L10n.Moderation.sectionTitle)) {
+                        NavigationLink {
+                            makeModerationView()
+                        } label: {
+                            Text(L10n.Moderation.queueTitle)
+                        }
+                    }
+                }
             }
+            .task { await viewModel.onAppear() }
             .safeAreaInset(edge: .bottom) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L10n.Account.dataAttribution)
@@ -158,9 +170,12 @@ extension AccountViewModel.State: Equatable {}
             signInWithGoogle: SignInWithGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
             reauthenticate: ReauthenticateUseCaseFake(),
+            fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
         )
-    )
+    ) {
+        ModerationConfigurator(dataProvider: FirestoreDataProvider(), authProvider: AuthProviderFake()).createView()
+    }
 }
 
 #Preview {
@@ -172,7 +187,10 @@ extension AccountViewModel.State: Equatable {}
             signInWithGoogle: SignInWithGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
             reauthenticate: ReauthenticateUseCaseFake(),
+            fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
         )
-    )
+    ) {
+        ModerationConfigurator(dataProvider: FirestoreDataProvider(), authProvider: AuthProviderFake()).createView()
+    }
 }

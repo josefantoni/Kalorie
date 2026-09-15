@@ -1,6 +1,10 @@
 # 0011. `foodItems` is writable by any authenticated client, pending the moderation flow
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0027](0027-catalogue-writes-require-a-maintainer-claim.md) (the
+  Decision only — the accepted risk and every Consequence below stay in force until the moderation
+  flow ships, which is the condition this Decision itself set. The rule text quoted below also no
+  longer matches what is deployed: `write` was narrowed to `create` with per-field validation,
+  before and independently of ADR 0027)
 - **Scope:** Backend
 - **Date:** 2026-08-27
 

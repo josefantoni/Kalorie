@@ -12,6 +12,22 @@ import XCTest
 
 final class AccountViewModelTests: XCTestCase {
 
+    // MARK: - onAppear
+
+    @MainActor
+    func test_onAppear_whenMaintainerClaimIsTrue_setsIsMaintainer() async {
+        let sut = makeSUT(fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer: true))
+        await sut.onAppear()
+        XCTAssertTrue(sut.isMaintainer)
+    }
+
+    @MainActor
+    func test_onAppear_whenMaintainerClaimIsFalse_leavesIsMaintainerFalse() async {
+        let sut = makeSUT(fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer: false))
+        await sut.onAppear()
+        XCTAssertFalse(sut.isMaintainer)
+    }
+
     // MARK: - Tests
 
     func test_isAnonymous_reflectsAuthProvider() {
@@ -213,6 +229,7 @@ final class AccountViewModelTests: XCTestCase {
         signInWithGoogle: any SignInWithGoogleUseCaseProtocol = SignInWithGoogleUseCaseFake(),
         deleteAccount: any DeleteAccountUseCaseProtocol = DeleteAccountUseCaseFake(),
         reauthenticate: any ReauthenticateUseCaseProtocol = ReauthenticateUseCaseFake(),
+        fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake(),
         mergeStatusReporting: any MergeStatusReporting = MergeStatusReportingFake()
     ) -> AccountViewModel {
         let sut = AccountViewModel(
@@ -222,6 +239,7 @@ final class AccountViewModelTests: XCTestCase {
             signInWithGoogle: signInWithGoogle,
             deleteAccount: deleteAccount,
             reauthenticate: reauthenticate,
+            fetchMaintainerClaim: fetchMaintainerClaim,
             mergeStatusReporting: mergeStatusReporting
         )
         addTeardownBlock { [weak sut] in

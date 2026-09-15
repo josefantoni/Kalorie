@@ -46,6 +46,20 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertTrue(log.entries.dropLast().contains("deletePortions:12345678"), "Firestore does not cascade — personal portions are user data and must not survive account deletion as orphans")
     }
 
+    func test_callAsFunction_deletesOwnSubmissionsAsPrivacyObligation() async throws {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedSubmissions = [makeSubmission(id: "sub1")]
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
+
+        try await sut()
+
+        XCTAssertTrue(
+            log.entries.dropLast().contains("deleteSubmission:sub1"),
+            "A pending or rejected submission is the user's own data and must not survive account deletion"
+        )
+    }
+
     func test_callAsFunction_deletesFirestoreDataBeforeDeletingAuthAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
@@ -225,6 +239,35 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         )
     }
 
+    private func makeSubmission(id: String) -> FoodItemSubmissionDTO {
+        FoodItemSubmissionDTO(
+            id: id,
+            barcode: "12345678",
+            submittedBy: "test-user-id",
+            status: .pending,
+            submittedAt: .now,
+            rejectReason: nil,
+            item: FoodItemDomain(
+                id: "12345678",
+                kind: .catalogue,
+                czName: "Test",
+                engName: "Test",
+                weight: 100,
+                date: .now,
+                energyKJ: 400,
+                caloriesPerHundredGrams: 100,
+                fat: 1,
+                fatSaturated: 1,
+                fatUnsaturatedFattyAcids: 1,
+                carbohydrate: 1,
+                carbohydratePureSugar: 1,
+                fiber: 1,
+                protein: 1,
+                salt: 1
+            )
+        )
+    }
+
     private func makeMeal(id: String) -> MyCreatedMealDTO {
         MyCreatedMealDTO(
             meal: MyCreatedMealDomain(
@@ -272,6 +315,7 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     var stubbedFavouriteFoods: [FavouriteFoodDTO] = []
     var stubbedMyCreatedMeals: [MyCreatedMealDTO] = []
     var stubbedFoodItemPortions: [FoodItemPersonalPortionsDTO] = []
+    var stubbedSubmissions: [FoodItemSubmissionDTO] = []
     private(set) var deletedIds: [String] = []
 
     // MARK: - Init
@@ -303,6 +347,9 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] {
+        stubbedSubmissions.compactMap { $0 as? T }
+    }
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
@@ -322,6 +369,8 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
             log.record("deletePortions:\(id)")
         } else if collection.hasSuffix("foodConsumed") {
             log.record("deleteFood:\(id)")
+        } else if collection == Constants.Firestore.foodItemSubmissions {
+            log.record("deleteSubmission:\(id)")
         } else {
             log.record("deleteUser:\(id)")
         }

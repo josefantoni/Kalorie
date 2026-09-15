@@ -169,6 +169,7 @@ final class FirestoreDataProviderFake: FirestoreDataProviderProtocol {
     var stubbedConfirmationDTO: FoodItemDTO?
     var stubbedLoadError: Error?
     var stubbedSetError: Error?
+    var stubbedEqualityOrderedResults: [Any] = []
     var didWrite = false
     private var loadFromServerByIdCallCount = 0
 
@@ -180,6 +181,9 @@ final class FirestoreDataProviderFake: FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] {
+        stubbedEqualityOrderedResults.compactMap { $0 as? T }
+    }
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? {
         if let stubbedLoadError { throw stubbedLoadError }

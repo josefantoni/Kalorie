@@ -55,6 +55,29 @@ firebase emulators:start
 and the failure only shows up at runtime. When adding a collection to `Constants.Firestore`, add
 a matching rule block in the same change.
 
+### Maintainer claim (catalogue moderation)
+
+The moderation panel ([design 0009](design/0009-catalogue-moderation.md)) is gated by a Firebase
+custom claim, `maintainer: true`, checked both client-side (renders the panel) and in
+`firestore.rules` (the only real enforcement — the client-side check is a UI gate, not a defence).
+Setting it:
+
+1. Find your own UID: Firebase Console → Authentication → Users, or sign in on-device and check
+   the account screen / Crashlytics user ID. Use the UID linked to your Apple/Google sign-in, not
+   a bare anonymous session — every install starts anonymous (§ 6.2 in `ARCHITECTURE.md`), and
+   that UID is throwaway. Signing in with the same Apple/Google account always converges back to
+   the same linked UID (via `credentialAlreadyInUse` → migrate), so the claim survives reinstalls
+   as long as you sign in again after each one.
+2. Run the script with a service account key (the same one the backfill scripts under `scripts/`
+   already use):
+   ```sh
+   node scripts/set-maintainer-claim.js --key <path-to-service-account.json> --uid <your-uid>
+   ```
+   Pass `--remove` to unset the claim instead.
+3. **Sign out and back in on the device**, or force a token refresh
+   (`getIDTokenResult(forcingRefresh: true)`). Custom claims only propagate to a fresh ID token
+   (roughly hourly otherwise), so without this step the panel stays invisible and looks broken.
+
 ## Crashlytics
 
 No Firebase Console toggle is needed — unlike the Auth providers above, Crashlytics activates

@@ -55,6 +55,9 @@ struct AddFoodSheetView: View {
                     dismissButton: Alert.Button.default(Text(L10n.Common.ok))
                 )
             }
+            .alert(L10n.AddFood.submissionSubmitted, isPresented: $viewModel.isSubmissionConfirmationVisible) {
+                Button(L10n.Common.ok) { viewModel.onSubmissionConfirmationDismissed() }
+            }
             .task { await viewModel.onAppear() }
             .task(id: viewModel.searchText) { await viewModel.onSearchTextChanged() }
             .task(id: viewModel.lastScannedBarcode) {
@@ -80,11 +83,10 @@ struct AddFoodSheetView: View {
                 DismissToolbarItem()
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        let target = !viewModel.isAddNewItemVisible
                         withAnimation(.easeIn(duration: 0.2)) {
                             flipAngle = 90
                         } completion: {
-                            viewModel.isAddNewItemVisible = target
+                            viewModel.onAddNewItemToggleTapped()
                             withAnimation(.easeOut(duration: 0.2)) {
                                 flipAngle = 0
                             }
@@ -104,6 +106,14 @@ struct AddFoodSheetView: View {
     }
 
     // MARK: - Functions
+
+    func onSelectResultRow(_ item: FoodItemDomain) {
+        if viewModel.submissionStatus(for: item) == .rejected {
+            viewModel.onSelectRejectedSubmission(item)
+        } else {
+            viewModel.onSelectFoodItem(item)
+        }
+    }
 
     @ViewBuilder var startDataScannerIfPossible: some View {
         if viewModel.isScannerVisible && DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
@@ -159,13 +169,23 @@ struct AddFoodSheetView: View {
                     }
                 }
             }
+            if viewModel.searchText.isEmpty && !viewModel.mySubmissions.isEmpty {
+                Section(header: Text(L10n.AddFood.sectionMySubmissions)) {
+                    ForEach(viewModel.mySubmissions, id: \.id) { submission in
+                        FoodItemRow(item: submission.item, isFavourite: false, submissionStatus: submission.status)
+                            .onTapGesture {
+                                viewModel.onSelectSubmission(submission)
+                            }
+                    }
+                }
+            }
             if !viewModel.displayedResults.isEmpty || !viewModel.searchText.isEmpty {
                 Section(header: Text(L10n.AddFood.sectionExternalResults)) {
                     if !viewModel.displayedResults.isEmpty {
                         ForEach(viewModel.displayedResults, id: \.id) { item in
-                            FoodItemRow(item: item, isFavourite: viewModel.isFavourite(item))
+                            FoodItemRow(item: item, isFavourite: viewModel.isFavourite(item), submissionStatus: viewModel.submissionStatus(for: item))
                                 .onTapGesture {
-                                    viewModel.onSelectFoodItem(item)
+                                    onSelectResultRow(item)
                                 }
                         }
                     } else if viewModel.isExternalSearchLoading {
@@ -198,72 +218,20 @@ struct AddFoodSheetView: View {
     var addCustomFoodItem: some View {
         VStack(spacing: 0) {
             List {
+                if let rejectionReason = viewModel.rejectionReasonBeingEdited {
+                    Section {
+                        Text(L10n.AddFood.submissionRejectedReason(reason: rejectionReason))
+                            .foregroundStyle(.red)
+                    }
+                }
                 Section(header: Text(L10n.AddFood.sectionNewItem)) {
                     BaseStringTextField(
                         placeholder: L10n.AddFood.fieldBarcodePlaceholder,
                         title: L10n.AddFood.fieldBarcodeTitle,
                         text: $viewModel.formInput.scannedCode
                     )
-                    BaseStringTextField(
-                        placeholder: L10n.AddFood.fieldNamePlaceholder,
-                        title: L10n.AddFood.fieldNameTitle,
-                        text: $viewModel.formInput.name
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldWeight,
-                        unit: L10n.Common.unitGrams,
-                        weight: $viewModel.formInput.weightOfProduct
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldEnergyKJ,
-                        unit: "kJ",
-                        weight: $viewModel.formInput.energyKJ
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldCaloriesPer100g,
-                        unit: "kcal",
-                        weight: $viewModel.formInput.caloriesPerHundredGrams
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldProtein,
-                        unit: L10n.Common.unitGrams,
-                        weight: $viewModel.formInput.protein
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldCarbs,
-                        unit: L10n.Common.unitGrams,
-                        weight: $viewModel.formInput.carbohydrate
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldCarbsSugar,
-                        unit: L10n.Common.unitGrams,
-                        weight: $viewModel.formInput.carbohydratePureSugar
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldFiber,
-                        unit: L10n.Common.unitGrams,
-                        weight: $viewModel.formInput.fiber
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldFat,
-                        unit: L10n.Common.unitGrams,
-                        weight: $viewModel.formInput.fat
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldFatSaturated,
-                        unit: L10n.Common.unitGrams,
-                        weight: $viewModel.formInput.fatSaturated
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldFatUnsaturated,
-                        unit: L10n.Common.unitGrams,
-                        weight: $viewModel.formInput.fatUnsaturatedFattyAcids
-                    )
-                    BaseDoubleTextField(
-                        title: L10n.AddFood.fieldSalt,
-                        unit: L10n.Common.unitGrams,
-                        weight: $viewModel.formInput.salt
-                    )
+                    .disabled(viewModel.isEditingSubmission)
+                    FoodItemFormFields(formInput: $viewModel.formInput)
                 }
                 FoodPortionsSection(portions: $viewModel.formInput.portions)
             }
@@ -293,7 +261,9 @@ struct AddFoodSheetView: View {
     AddFoodSheetView(
         viewModel: AddFoodSheetViewModel(
             searchFoodItems: SearchFoodItemsUseCaseFake(),
-            createFoodItem: CreateFoodItemUseCaseFake(),
+            submitFoodItem: SubmitFoodItemUseCaseFake(),
+            fetchMySubmissions: FetchMySubmissionsUseCaseFake(),
+            updateMySubmission: UpdateMySubmissionUseCaseFake(),
             searchFoodExternally: SearchFoodExternallyUseCaseFake(),
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
             fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),

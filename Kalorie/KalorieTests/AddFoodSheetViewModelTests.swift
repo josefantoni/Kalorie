@@ -167,10 +167,168 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isMyCreatedMeal(makeFoodItem(kind: .external)))
     }
 
+    // MARK: - own submissions in displayedResults
+
+    @MainActor
+    func test_displayedResults_includesMatchingOwnSubmission() async {
+        let sut = makeSUT(fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [makeSubmission(barcode: "sub-item", status: .rejected)]))
+        await sut.onAppear()
+        sut.searchText = "ov"
+        XCTAssertTrue(sut.displayedResults.map(\.id).contains("sub-item"))
+    }
+
+    @MainActor
+    func test_submissionStatus_forMatchingSubmission_returnsItsStatus() async {
+        let sut = makeSUT(fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [makeSubmission(barcode: "sub-item", status: .rejected)]))
+        await sut.onAppear()
+        XCTAssertEqual(sut.submissionStatus(for: makeFoodItem(id: "sub-item")), .rejected)
+        XCTAssertNil(sut.submissionStatus(for: makeFoodItem(id: "other-item")))
+    }
+
+    // MARK: - onSelectRejectedSubmission
+
+    @MainActor
+    func test_onSelectRejectedSubmission_prefillsFormAndShowsRejectionReason() async {
+        let submission = makeSubmission(id: "sub-1", barcode: "sub-item", status: .rejected, rejectReason: "Wrong calories")
+        let sut = makeSUT(fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [submission]))
+        await sut.onAppear()
+        sut.onSelectRejectedSubmission(makeFoodItem(id: "sub-item", czName: "Ovar"))
+        XCTAssertTrue(sut.isAddNewItemVisible)
+        XCTAssertEqual(sut.formInput.scannedCode, "sub-item")
+        XCTAssertEqual(sut.formInput.name, "Ovar")
+        XCTAssertEqual(sut.rejectionReasonBeingEdited, "Wrong calories")
+        XCTAssertTrue(sut.isEditingSubmission, "the barcode must be locked while resubmitting, or approving it can orphan entries logged under the old barcode")
+    }
+
+    // MARK: - onAddNewItemToggleTapped
+
+    @MainActor
+    func test_onAddNewItemToggleTapped_afterClosingRejectedSubmissionEdit_reopensAsFreshFormAndSubmitsNewItem() async {
+        let submission = makeSubmission(id: "sub-1", barcode: "sub-item", status: .rejected, rejectReason: "Wrong calories")
+        let submitFoodItem = SubmitFoodItemUseCaseSpy()
+        let updateMySubmission = UpdateMySubmissionUseCaseSpy()
+        let sut = makeSUT(
+            submitFoodItem: submitFoodItem,
+            fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [submission]),
+            updateMySubmission: updateMySubmission
+        )
+        await sut.onAppear()
+        sut.onSelectRejectedSubmission(makeFoodItem(id: "sub-item", czName: "Ovar"))
+        XCTAssertTrue(sut.isAddNewItemVisible)
+
+        sut.onAddNewItemToggleTapped()
+        XCTAssertFalse(sut.isAddNewItemVisible, "closing the form must not leave it silently pointed at the old submission")
+
+        sut.onAddNewItemToggleTapped()
+        XCTAssertTrue(sut.isAddNewItemVisible)
+        XCTAssertNil(sut.rejectionReasonBeingEdited)
+        XCTAssertEqual(sut.formInput.scannedCode, "")
+        XCTAssertFalse(sut.isEditingSubmission, "a freshly reopened form must allow a barcode again")
+
+        sut.formInput.scannedCode = "99999999"
+        sut.formInput.name = "Nová položka"
+        sut.formInput.weightOfProduct = 100
+        sut.formInput.caloriesPerHundredGrams = 50
+        await sut.onCreateFoodItem()
+
+        XCTAssertEqual(submitFoodItem.receivedItem?.id, "99999999", "a freshly reopened form must submit a new submission")
+        XCTAssertNil(updateMySubmission.receivedId, "it must not silently overwrite the previously edited submission")
+    }
+
+    // MARK: - onSelectSubmission
+
+    @MainActor
+    func test_onSelectSubmission_forRejectedSubmission_opensThatExactSubmissionDespiteDuplicateBarcode() async {
+        let rejected = makeSubmission(id: "sub-old", barcode: "shared-barcode", status: .rejected, rejectReason: "Wrong calories")
+        let pending = makeSubmission(id: "sub-new", barcode: "shared-barcode", status: .pending)
+        let sut = makeSUT(fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [pending, rejected]))
+        await sut.onAppear()
+
+        sut.onSelectSubmission(rejected)
+
+        XCTAssertTrue(sut.isAddNewItemVisible)
+        XCTAssertEqual(sut.rejectionReasonBeingEdited, "Wrong calories")
+    }
+
+    @MainActor
+    func test_onSelectSubmission_forPendingSubmission_navigatesToFoodItemDespiteDuplicateBarcode() async {
+        let rejected = makeSubmission(id: "sub-old", barcode: "shared-barcode", status: .rejected, rejectReason: "Wrong calories")
+        let pending = makeSubmission(id: "sub-new", barcode: "shared-barcode", status: .pending)
+        let sut = makeSUT(fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [pending, rejected]))
+        await sut.onAppear()
+
+        sut.onSelectSubmission(pending)
+
+        XCTAssertTrue(sut.isPushedToQuantityView)
+        XCTAssertFalse(sut.isAddNewItemVisible)
+    }
+
+    // MARK: - onCreateFoodItem
+
+    @MainActor
+    func test_onCreateFoodItem_withNoEditingSubmission_submitsNewFoodItem() async {
+        let submitFoodItem = SubmitFoodItemUseCaseSpy()
+        let sut = makeSUT(submitFoodItem: submitFoodItem)
+        sut.formInput.scannedCode = "12345678"
+        sut.formInput.name = "Tvaroh"
+        sut.formInput.weightOfProduct = 200
+        sut.formInput.caloriesPerHundredGrams = 80
+        await sut.onCreateFoodItem()
+        XCTAssertEqual(submitFoodItem.receivedItem?.id, "12345678")
+        XCTAssertTrue(sut.isSubmissionConfirmationVisible)
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onCreateFoodItem_whenResubmittingRejectedSubmission_callsUpdateMySubmission() async {
+        let submission = makeSubmission(id: "sub-1", barcode: "sub-item", status: .rejected, rejectReason: "Wrong calories")
+        let updateMySubmission = UpdateMySubmissionUseCaseSpy()
+        let sut = makeSUT(
+            fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [submission]),
+            updateMySubmission: updateMySubmission
+        )
+        await sut.onAppear()
+        sut.onSelectRejectedSubmission(makeFoodItem(id: "sub-item", czName: "Ovar"))
+        sut.formInput.weightOfProduct = 200
+        sut.formInput.caloriesPerHundredGrams = 80
+
+        await sut.onCreateFoodItem()
+
+        XCTAssertEqual(updateMySubmission.receivedId, "sub-1")
+        XCTAssertTrue(sut.isSubmissionConfirmationVisible)
+        XCTAssertNil(sut.rejectionReasonBeingEdited, "resolving the resubmission must clear the rejection banner")
+    }
+
+    @MainActor
+    func test_onCreateFoodItem_whenBarcodeAlreadyExists_showsAlertAndKeepsFormOpen() async {
+        let sut = makeSUT(submitFoodItem: SubmitFoodItemUseCaseFake(errorToThrow: FoodItemSubmissionError.itemAlreadyExists))
+        sut.formInput.scannedCode = "12345678"
+        sut.formInput.name = "Tvaroh"
+        sut.formInput.weightOfProduct = 200
+        sut.formInput.caloriesPerHundredGrams = 80
+        await sut.onCreateFoodItem()
+        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorItemAlreadyExists)
+        XCTAssertFalse(sut.isSubmissionConfirmationVisible)
+    }
+
+    // MARK: - onSubmissionConfirmationDismissed
+
+    @MainActor
+    func test_onSubmissionConfirmationDismissed_dismissesSheet() {
+        let sut = makeSUT()
+        sut.isSubmissionConfirmationVisible = true
+        sut.onSubmissionConfirmationDismissed()
+        XCTAssertFalse(sut.isSubmissionConfirmationVisible)
+        XCTAssertTrue(sut.shouldDismiss)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         searchFoodItems: any SearchFoodItemsUseCaseProtocol = SearchFoodItemsUseCaseFake(),
+        submitFoodItem: any SubmitFoodItemUseCaseProtocol = SubmitFoodItemUseCaseFake(),
+        fetchMySubmissions: any FetchMySubmissionsUseCaseProtocol = FetchMySubmissionsUseCaseFake(),
+        updateMySubmission: any UpdateMySubmissionUseCaseProtocol = UpdateMySubmissionUseCaseFake(),
         searchFoodExternally: any SearchFoodExternallyUseCaseProtocol = SearchFoodExternallyUseCaseFake(),
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
@@ -180,13 +338,27 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     ) -> AddFoodSheetViewModel {
         AddFoodSheetViewModel(
             searchFoodItems: searchFoodItems,
-            createFoodItem: CreateFoodItemUseCaseFake(),
+            submitFoodItem: submitFoodItem,
+            fetchMySubmissions: fetchMySubmissions,
+            updateMySubmission: updateMySubmission,
             searchFoodExternally: searchFoodExternally,
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             fetchFavouriteFoods: fetchFavouriteFoods,
             fetchMyCreatedMeals: fetchMyCreatedMeals,
             isScannerVisible: isScannerVisible
+        )
+    }
+
+    private func makeSubmission(id: String = "sub-1", barcode: String = "12345678", status: FoodItemSubmissionStatus = .pending, rejectReason: String? = nil) -> FoodItemSubmissionDomain {
+        FoodItemSubmissionDomain(
+            id: id,
+            barcode: barcode,
+            submittedBy: "test-user",
+            status: status,
+            submittedAt: .now,
+            rejectReason: rejectReason,
+            item: makeFoodItem(id: barcode, czName: "Ovar")
         )
     }
 
@@ -238,5 +410,35 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             createdAt: .now,
             updatedAt: .now
         )
+    }
+}
+
+private final class SubmitFoodItemUseCaseSpy: SubmitFoodItemUseCaseProtocol {
+
+    // MARK: - Properties
+
+    private(set) var receivedItem: FoodItemDomain?
+
+    // MARK: - Functions
+
+    func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemSubmissionDomain {
+        receivedItem = item
+        return FoodItemSubmissionDomain(id: "new-id", barcode: item.id, submittedBy: "test-user", status: .pending, submittedAt: .now, rejectReason: nil, item: item)
+    }
+}
+
+private final class UpdateMySubmissionUseCaseSpy: UpdateMySubmissionUseCaseProtocol {
+
+    // MARK: - Properties
+
+    private(set) var receivedId: String?
+    private(set) var receivedItem: FoodItemDomain?
+
+    // MARK: - Functions
+
+    func callAsFunction(id: String, item: FoodItemDomain) async throws -> FoodItemSubmissionDomain {
+        receivedId = id
+        receivedItem = item
+        return FoodItemSubmissionDomain(id: id, barcode: item.id, submittedBy: "test-user", status: .pending, submittedAt: .now, rejectReason: nil, item: item)
     }
 }

@@ -13,13 +13,21 @@ struct FoodItemRow: View {
 
     let item: FoodItemDomain
     let isFavourite: Bool
+    var submissionStatus: FoodItemSubmissionStatus?
 
     // MARK: - Body
 
     var body: some View {
         let row = HStack {
-            Text(item.displayName)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading) {
+                Text(item.displayName)
+                if let submissionStatus {
+                    Text(Self.marker(for: submissionStatus))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             if isFavourite {
                 BaseImage(imageName: .heartFill)
                     .foregroundStyle(.red)
@@ -31,6 +39,15 @@ struct FoodItemRow: View {
             row.accessibilityLabel(Text(verbatim: "\(item.displayName), \(L10n.AddFood.sectionFavourites)"))
         } else {
             row
+        }
+    }
+
+    // MARK: - Private
+
+    private static func marker(for status: FoodItemSubmissionStatus) -> String {
+        switch status {
+        case .pending: L10n.AddFood.submissionPending
+        case .rejected: L10n.AddFood.submissionRejected
         }
     }
 }
