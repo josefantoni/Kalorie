@@ -274,7 +274,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         let sut = makeSUT(fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "meal", name: "Ovesná kaše")]))
         await sut.onAppear()
         sut.searchText = "ov"
-        XCTAssertEqual(sut.displayedResults.first(where: { $0.id == "meal" })?.kind, .createdMeal)
+        XCTAssertEqual(sut.displayedResults.first { $0.id == "meal" }?.kind, .createdMeal)
     }
 
     // MARK: - isMyCreatedMeal
