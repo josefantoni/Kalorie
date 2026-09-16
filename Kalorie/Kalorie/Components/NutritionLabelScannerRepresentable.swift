@@ -108,7 +108,7 @@ struct NutritionLabelScannerRepresentable: UIViewControllerRepresentable {
                 do {
                     let image = try await dataScanner.capturePhoto()
                     await self?.onCaptured(image, barcode)
-                    try? await dataScanner.startScanning()
+                    try? dataScanner.startScanning()
                 } catch {
                     Log.warning(error, category: Constants.LogCategory.nutritionLabelRecognition)
                     self?.onCaptureFailed()

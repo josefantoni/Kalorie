@@ -37,7 +37,7 @@ final class AppleSignInProvider: NSObject, AppleSignInProviderProtocol {
 
     // MARK: - Init
 
-    nonisolated override init() {
+    override nonisolated init() {
         super.init()
     }
 
@@ -112,16 +112,20 @@ extension AppleSignInProvider: ASAuthorizationControllerDelegate {
 
 extension AppleSignInProvider: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
         guard
-            let window = UIApplication.shared.connectedScenes
-                .compactMap({ $0 as? UIWindowScene })
+            let window = windowScenes
                 .first(where: { $0.activationState == .foregroundActive })?
                 .keyWindow
         else {
             if let (continuation, _) = takeContinuation() {
                 continuation.resume(throwing: AppleSignInError.presentationAnchorUnavailable)
             }
-            return UIWindow()
+            // Both non-scene UIWindow initializers are deprecated (iOS 26); reuse an existing one instead.
+            guard let fallbackWindow = windowScenes.first?.windows.first else {
+                fatalError("AppleSignInProvider.presentationAnchor(for:) found no window in any connected scene")
+            }
+            return fallbackWindow
         }
         return window
     }
