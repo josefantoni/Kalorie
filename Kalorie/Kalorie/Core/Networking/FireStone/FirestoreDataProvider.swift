@@ -22,12 +22,31 @@ protocol FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T?
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T]
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T?
+    func loadAsync<T: Decodable>(from collection: String, whereDocumentIdIn ids: [String]) async throws -> [T]
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T?
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T]
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws
     func deleteAsync(id: String, from collection: String) async throws
+}
+
+// A naive per-id fallback, so every existing FirestoreDataProviderProtocol conformer (test fakes
+// included) keeps compiling without implementing this: only the real FirestoreDataProvider below
+// overrides it with a genuinely batched query.
+extension FirestoreDataProviderProtocol {
+    func loadAsync<T: Decodable>(from collection: String, whereDocumentIdIn ids: [String]) async throws -> [T] {
+        try await withThrowingTaskGroup(of: T?.self) { group in
+            for id in ids {
+                group.addTask { try await self.loadAsync(id: id, from: collection) }
+            }
+            var results: [T] = []
+            for try await item in group {
+                if let item { results.append(item) }
+            }
+            return results
+        }
+    }
 }
 
 struct FirestoreDataProvider: FirestoreDataProviderProtocol {
@@ -163,6 +182,28 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             }
             let result = try snapshot.data(as: T.self)
             log("✅ GET \(collection)/\(id) → found")
+            return result
+        } catch {
+            logFailure("❌ GET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, whereDocumentIdIn ids: [String]) async throws -> [T] {
+        guard !ids.isEmpty else { return [] }
+        log("🚀 GET \(collection) WHERE documentID IN \(ids)")
+        do {
+            var result: [T] = []
+            for chunkStart in stride(from: 0, to: ids.count, by: Constants.Firestore.inQueryLimit) {
+                let chunk = Array(ids[chunkStart..<min(chunkStart + Constants.Firestore.inQueryLimit, ids.count)])
+                let snapshot = try await Firestore.firestore()
+                    .collection(collection)
+                    .whereField(FieldPath.documentID(), in: chunk)
+                    .getDocuments()
+                snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
+                result += try snapshot.documents.compactMap { try $0.data(as: T.self) }
+            }
+            log("✅ GET \(collection) → \(result.count) items")
             return result
         } catch {
             logFailure("❌ GET \(collection)", error: error)

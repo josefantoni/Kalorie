@@ -192,6 +192,48 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem)
     }
 
+    // MARK: - unitOptions
+
+    func test_unitOptions_ordersCataloguePortionsBeforeGramsBeforeHundredGrams() {
+        let slice = FoodPortionDomain(name: "1 plátek", grams: 30)
+        let sut = makeSUT(item: makeFoodItem(portions: [slice]))
+        XCTAssertEqual(sut.unitOptions, [.portion(slice), .grams, .hundredGrams])
+    }
+
+    @MainActor
+    func test_unitOptions_ordersPersonalPortionsAfterCataloguePortionsAndBeforeGrams() async {
+        let cataloguePortion = FoodPortionDomain(name: "1 balení", grams: 250)
+        let personalPortion = FoodPortionDomain(name: "1 hrnek", grams: 40)
+        let sut = makeSUT(
+            item: makeFoodItem(portions: [cataloguePortion]),
+            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [personalPortion])
+        )
+        await sut.onAppear()
+        XCTAssertEqual(
+            sut.unitOptions,
+            [.portion(cataloguePortion), .portion(personalPortion), .grams, .hundredGrams],
+            "portions must lead the list so the item's own package/portion sizes are the fastest pick"
+        )
+    }
+
+    // MARK: - defaultUnit(for:)
+
+    func test_defaultUnit_withCataloguePortions_returnsFirstPortion() {
+        let firstPortion = FoodPortionDomain(name: "1 balení", grams: 80)
+        let secondPortion = FoodPortionDomain(name: "1 plátek", grams: 30)
+        let item = makeFoodItem(portions: [firstPortion, secondPortion])
+        XCTAssertEqual(
+            FoodQuantityViewModel.defaultUnit(for: item),
+            .portion(firstPortion),
+            "a catalogue-defined portion is the fastest way to log a packaged food, so it must be pre-selected"
+        )
+    }
+
+    func test_defaultUnit_withoutCataloguePortions_returnsHundredGrams() {
+        let item = makeFoodItem(portions: [])
+        XCTAssertEqual(FoodQuantityViewModel.defaultUnit(for: item), .hundredGrams)
+    }
+
     // MARK: - onAppear (personal portions)
 
     @MainActor
@@ -310,7 +352,12 @@ final class FoodQuantityViewModelTests: XCTestCase {
         return sut
     }
 
-    private func makeFoodItem(kind: FoodItemKind = .catalogue, caloriesPerHundredGrams: Double = 100, fiber: Double? = 0) -> FoodItemDomain {
+    private func makeFoodItem(
+        kind: FoodItemKind = .catalogue,
+        caloriesPerHundredGrams: Double = 100,
+        fiber: Double? = 0,
+        portions: [FoodPortionDomain] = []
+    ) -> FoodItemDomain {
         FoodItemDomain(
             id: "test",
             kind: kind,
@@ -327,7 +374,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
             carbohydratePureSugar: 3,
             fiber: fiber,
             protein: 13,
-            salt: 0.1
+            salt: 0.1,
+            portions: portions
         )
     }
 }

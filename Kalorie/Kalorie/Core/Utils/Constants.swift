@@ -49,6 +49,7 @@ enum Constants {
         static let foodItemSubmissions = "foodItemSubmissions"
         static let users = "users"
         static let batchWriteLimit = 500
+        static let inQueryLimit = 30
         static func mealTypes(userId: String) -> String { "users/\(userId)/mealTypes" }
         static func foodConsumed(userId: String) -> String { "users/\(userId)/foodConsumed" }
         static func favouriteFoods(userId: String) -> String { "users/\(userId)/favouriteFoods" }

@@ -40,7 +40,10 @@ struct NutritionLabelScannerRepresentable: UIViewControllerRepresentable {
         private var lastManualCaptureRequest: Int
         private var liveBarcode: String?
         private var isCapturing = false
+        private var lastParseAt = Date.distantPast
         var isAutoCaptureEnabled = true
+
+        private static let parseThrottleInterval: TimeInterval = 0.3
 
         init(onCaptured: @escaping (UIImage, String?) async -> Void, onCaptureFailed: @escaping () -> Void, manualCaptureRequest: Int) {
             self.onCaptured = onCaptured
@@ -69,6 +72,12 @@ struct NutritionLabelScannerRepresentable: UIViewControllerRepresentable {
                 }
             }
             guard isAutoCaptureEnabled, !isCapturing else { return }
+            // The delegate fires many times per second as tracked items move; re-running the
+            // multi-keyword parse on every single callback added steady CPU load with no benefit,
+            // since a genuine label completes over many frames, not one.
+            let now = Date()
+            guard now.timeIntervalSince(lastParseAt) >= Self.parseThrottleInterval else { return }
+            lastParseAt = now
             let viewSize = dataScanner.view.bounds.size
             let lines: [RecognizedTextLine] = allItems.compactMap { item in
                 guard case .text(let text) = item else { return nil }

@@ -71,18 +71,7 @@ final class ModerationQueueViewModel: ObservableObject {
         among barcodes: [String],
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     ) async -> Set<String> {
-        await withTaskGroup(of: (barcode: String, exists: Bool).self) { group in
-            for barcode in barcodes {
-                group.addTask {
-                    let exists = (try? await fetchFoodItemByBarcode(barcode: barcode)) != nil
-                    return (barcode, exists)
-                }
-            }
-            var colliding: Set<String> = []
-            for await result in group where result.exists {
-                colliding.insert(result.barcode)
-            }
-            return colliding
-        }
+        let existing = (try? await fetchFoodItemByBarcode(barcodes: barcodes)) ?? []
+        return Set(existing.map(\.id))
     }
 }

@@ -36,7 +36,7 @@ extension NutritionLabelPrefilling {
                 nutritionLabelCameraHint = L10n.AddFood.nutritionLabelNothingRecognized
                 return false
             }
-            recognizedFields.formUnion(formInput.applying(reading))
+            recognizedFields.formUnion(formInput.applying(reading, alreadyRecognizedFields: recognizedFields))
             nutritionLabelCameraHint = nil
             isNutritionLabelCameraVisible = false
             return true

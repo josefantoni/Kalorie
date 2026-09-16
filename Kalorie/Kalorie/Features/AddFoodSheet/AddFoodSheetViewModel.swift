@@ -93,16 +93,19 @@ extension FoodItemFormInput {
     }
 
     @discardableResult
-    mutating func applying(_ reading: NutritionLabelReading) -> Set<FoodItemFormField> {
+    mutating func applying(_ reading: NutritionLabelReading, alreadyRecognizedFields: Set<FoodItemFormField> = []) -> Set<FoodItemFormField> {
         var applied: Set<FoodItemFormField> = []
 
+        // A field already filled by an earlier scan is tracked via alreadyRecognizedFields, not by
+        // checking `current == 0`: a legitimately-zero macro (e.g. 0g salt) would otherwise look
+        // indistinguishable from "never set" and a noisier rescan could silently overwrite it.
         func fillIfEmpty(_ current: inout Double, with value: Double?, field: FoodItemFormField) {
-            guard current == 0, let value else { return }
+            guard !alreadyRecognizedFields.contains(field), current == 0, let value else { return }
             current = value
             applied.insert(field)
         }
         func fillIfEmpty(_ current: inout Double?, with value: Double?, field: FoodItemFormField) {
-            guard (current ?? 0) == 0, let value else { return }
+            guard !alreadyRecognizedFields.contains(field), (current ?? 0) == 0, let value else { return }
             current = value
             applied.insert(field)
         }

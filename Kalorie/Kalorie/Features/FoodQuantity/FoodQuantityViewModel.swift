@@ -59,7 +59,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     var isPersonalPortionsAvailable: Bool { item.kind == .catalogue }
 
     var unitOptions: [FoodQuantityUnit] {
-        [.grams, .hundredGrams] + item.portions.map(FoodQuantityUnit.portion) + personalPortions.map(FoodQuantityUnit.portion)
+        item.portions.map(FoodQuantityUnit.portion) + personalPortions.map(FoodQuantityUnit.portion) + [.grams, .hundredGrams]
     }
 
     // MARK: - Init
@@ -97,6 +97,10 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     }
 
     // MARK: - Functions
+
+    static func defaultUnit(for item: FoodItemDomain) -> FoodQuantityUnit {
+        item.portions.first.map(FoodQuantityUnit.portion) ?? .hundredGrams
+    }
 
     @MainActor
     func onAppear() async {

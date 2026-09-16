@@ -14,8 +14,9 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
 
     func test_update_whenNotAuthenticated_throwsAuthError() async throws {
         let (sut, _) = makeSUT(userId: nil)
+        let item = makeItem()
         do {
-            try await sut(makeItem())
+            try await sut(item, previouslyLoaded: item)
             XCTFail("Expected notAuthenticated error")
         } catch AuthError.notAuthenticated {
             // pass
@@ -24,8 +25,9 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
 
     func test_update_withInvalidItem_throwsValidationErrorAndDoesNotWrite() async throws {
         let (sut, dataProvider) = makeSUT()
+        let invalidItem = makeItem(caloriesPerHundredGrams: 0)
         do {
-            try await sut(makeItem(caloriesPerHundredGrams: 0))
+            try await sut(invalidItem, previouslyLoaded: invalidItem)
             XCTFail("Expected invalidCalories error")
         } catch UpdateFoodItemError.invalidCalories {
             // pass
@@ -34,18 +36,39 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
     }
 
     func test_update_withValidItem_overwritesTheCatalogueDocument() async throws {
-        let (sut, dataProvider) = makeSUT()
         let item = makeItem()
-        try await sut(item)
+        let (sut, dataProvider) = makeSUT(currentDocument: item)
+        // previouslyLoaded round-trips through FoodItemDTO, same as it would coming from a real
+        // Firestore read (e.g. FetchFoodItemByBarcodeUseCase) — comparing against the raw in-memory
+        // `item` instead would spuriously fail on `date`'s TimeInterval round-trip precision.
+        let previouslyLoaded = FoodItemDTO(item: item).asDomain()
+        try await sut(item, previouslyLoaded: previouslyLoaded)
         XCTAssertTrue(dataProvider.didWrite)
         XCTAssertEqual(dataProvider.writtenCollection, Constants.Firestore.foodItems)
         XCTAssertEqual(dataProvider.writtenId, item.id)
     }
 
+    func test_update_whenDocumentChangedSinceLoad_throwsAndDoesNotWrite() async throws {
+        let previouslyLoaded = makeItem(caloriesPerHundredGrams: 80)
+        let changedOnServer = makeItem(caloriesPerHundredGrams: 90)
+        let (sut, dataProvider) = makeSUT(currentDocument: changedOnServer)
+        do {
+            try await sut(makeItem(caloriesPerHundredGrams: 100), previouslyLoaded: previouslyLoaded)
+            XCTFail("Expected changedSinceLoad error")
+        } catch UpdateFoodItemError.changedSinceLoad {
+            // pass
+        }
+        XCTAssertFalse(dataProvider.didWrite)
+    }
+
     // MARK: - Helpers
 
-    private func makeSUT(userId: String? = "maintainer-user") -> (sut: UpdateFoodItemUseCase, dataProvider: UpdateFoodItemDataProviderFake) {
+    private func makeSUT(
+        userId: String? = "maintainer-user",
+        currentDocument: FoodItemDomain? = nil
+    ) -> (sut: UpdateFoodItemUseCase, dataProvider: UpdateFoodItemDataProviderFake) {
         let dataProvider = UpdateFoodItemDataProviderFake()
+        dataProvider.currentDocument = currentDocument.map(FoodItemDTO.init(item:))
         let authProvider = AuthProviderFake(userId: userId)
         let sut = UpdateFoodItemUseCase(dataProvider: dataProvider, authProvider: authProvider)
         return (sut, dataProvider)
@@ -80,6 +103,7 @@ private final class UpdateFoodItemDataProviderFake: FirestoreDataProviderProtoco
     var didWrite = false
     var writtenCollection: String?
     var writtenId: String?
+    var currentDocument: FoodItemDTO?
 
     // MARK: - Functions
 
@@ -90,7 +114,7 @@ private final class UpdateFoodItemDataProviderFake: FirestoreDataProviderProtoco
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
+    func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { currentDocument as? T }
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}

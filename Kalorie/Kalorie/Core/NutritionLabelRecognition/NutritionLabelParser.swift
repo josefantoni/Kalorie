@@ -468,7 +468,17 @@ enum NutritionLabelParser {
     private static func isGrounded(_ value: Double, in text: String) -> Bool {
         let dotForm = String(format: "%g", value)
         let commaForm = dotForm.replacingOccurrences(of: ".", with: ",")
-        return text.contains(dotForm) || text.contains(commaForm)
+        return containsAsStandaloneNumber(dotForm, in: text) || containsAsStandaloneNumber(commaForm, in: text)
+    }
+
+    // A plain substring `contains` would match a short number like "1" inside an unrelated longer
+    // one (e.g. "312 kJ"), treating a hallucinated value as grounded when it merely shares digits
+    // with something else on the label — the digit-boundary lookaround rules that out.
+    private static func containsAsStandaloneNumber(_ number: String, in text: String) -> Bool {
+        let pattern = "(?<![0-9.,])\(NSRegularExpression.escapedPattern(for: number))(?![0-9.,])"
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return false }
+        let range = NSRange(text.startIndex..., in: text)
+        return regex.firstMatch(in: text, range: range) != nil
     }
 
     private static func groundedOrNil(_ value: Double?, in text: String) -> Double? {

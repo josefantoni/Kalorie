@@ -158,6 +158,7 @@ enum L10n {
         static var errorAlreadyExists: String { String(localized: "moderation_error_alreadyExists") }
         static var errorAlreadyResolved: String { String(localized: "moderation_error_alreadyResolved") }
         static var errorChangedSinceReview: String { String(localized: "moderation_error_changedSinceReview") }
+        static var errorItemChangedSinceLoad: String { String(localized: "moderation_error_itemChangedSinceLoad") }
     }
 
     enum FoodPortion {
