@@ -52,6 +52,24 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         XCTAssertTrue(sut.didSave)
     }
 
+    @MainActor
+    func test_onSaveTapped_whenItemChangedSinceLoad_showsAlertAndDoesNotMarkSaved() async {
+        let item = makeItem()
+        let updateFoodItem = UpdateFoodItemUseCaseFake(errorToThrow: UpdateFoodItemError.changedSinceLoad)
+        let sut = makeSUT(
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item),
+            updateFoodItem: updateFoodItem
+        )
+        sut.barcodeQuery = "12345678"
+        await sut.onSearchTapped()
+
+        sut.formInput.name = "Opravený název"
+        await sut.onSaveTapped()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Moderation.errorItemChangedSinceLoad)
+        XCTAssertFalse(sut.didSave)
+    }
+
     // MARK: - onNutritionLabelCaptured
 
     @MainActor
@@ -119,7 +137,7 @@ private final class UpdateFoodItemUseCaseSpy: UpdateFoodItemUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain) async throws {
+    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain) async throws {
         receivedItem = item
     }
 }

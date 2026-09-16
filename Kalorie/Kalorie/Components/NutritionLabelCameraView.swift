@@ -101,5 +101,5 @@ struct NutritionLabelCameraView: View {
 // MARK: - Preview
 
 #Preview {
-    NutritionLabelCameraView(isRecognizing: false, hint: nil, onCaptured: { _, _ in }, onClose: {})
+    NutritionLabelCameraView(isRecognizing: false, hint: nil, onCaptured: { _, _ in }) {}
 }

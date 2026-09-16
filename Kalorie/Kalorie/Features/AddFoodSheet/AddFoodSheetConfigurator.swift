@@ -63,7 +63,7 @@ struct AddFoodSheetConfigurator {
                         onSaved: onSaved,
                         onFavouriteChanged: onFavouriteChanged,
                         quantity: isMyCreatedMeal ? item.weight : 1,
-                        unit: isMyCreatedMeal ? .grams : .hundredGrams
+                        unit: isMyCreatedMeal ? .grams : FoodQuantityViewModel.defaultUnit(for: item)
                     )
                 )
             }

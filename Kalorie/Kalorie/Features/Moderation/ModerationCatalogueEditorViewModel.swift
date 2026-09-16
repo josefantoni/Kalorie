@@ -79,12 +79,13 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
 
     @MainActor
     func onSaveTapped() async {
+        guard let loadedItem else { return }
         state = .loading
         defer { state = .loaded }
-        let item = formInput.asFoodItemDomain(date: loadedItem?.date ?? .now)
+        let item = formInput.asFoodItemDomain(date: loadedItem.date)
         do {
-            try await updateFoodItem(item)
-            loadedItem = item
+            try await updateFoodItem(item, previouslyLoaded: loadedItem)
+            self.loadedItem = item
             didSave = true
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)
@@ -99,6 +100,8 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
             case .invalidPortion(let portionError):
                 alertItem = AlertItem(title: portionError.alertTitle)
+            case .changedSinceLoad:
+                alertItem = AlertItem(title: L10n.Moderation.errorItemChangedSinceLoad)
             case nil:
                 alertItem = AlertItem(title: L10n.Common.errorUnknown)
             }

@@ -7,13 +7,13 @@
 
 import Foundation
 
-enum FoodItemKind: String, Codable {
+enum FoodItemKind: String, Codable, Equatable {
     case catalogue
     case external
     case createdMeal = "created_meal"
 }
 
-struct FoodItemDomain: BilingualNamed {
+struct FoodItemDomain: BilingualNamed, Equatable {
 
     // MARK: - Properties
 

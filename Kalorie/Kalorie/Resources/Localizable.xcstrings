@@ -2816,6 +2816,23 @@
         }
       }
     },
+    "moderation_error_itemChangedSinceLoad" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Položka byla mezitím změněna, načtěte ji znovu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This item changed since you loaded it — search again to see the latest version"
+          }
+        }
+      }
+    },
     "moderation_error_reasonRequired" : {
       "extractionState" : "manual",
       "localizations" : {

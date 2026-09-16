@@ -569,3 +569,22 @@ changing the wire format or the write-once/editable split other clients must hon
 Everything else — the validation thresholds, the barcode-keyed personal-portions document shape,
 the `.catalogue`-only guard, the flat unsectioned picker list, the write-once canonical rule, and
 the merge/deletion obligations — matches the design as written.
+
+**Update — 2026-09-16 (iOS-only):** two decisions above turned out wrong once used for real and
+were reversed. The sections above are left as shipped, on purpose (frozen); this paragraph records
+what actually changed since.
+
+- **Non-goals → "Changing the default selected unit based on whether portions exist" is
+  reversed.** An item carrying a catalogue portion (e.g. *"1 balení (80 g)"*) now opens with that
+  portion pre-selected, not `1 × 100 g` — the whole point of a portion is that it is the fastest
+  way to log the item, and forcing a manual switch away from `100 g` first defeated that.
+  `FoodQuantityViewModel.defaultUnit(for:)` returns `item.portions.first`, falling back to
+  `.hundredGrams` when the item has none; `AddFoodSheetConfigurator` and `AddFoodSheetView` call it
+  instead of hardcoding `.hundredGrams`. Personal portions stay out of this default — they resolve
+  asynchronously in `onAppear`, after the picker's initial selection is already made. A
+  `MyCreatedMeal` is unaffected — still opens at its full composed weight in grams.
+- **`unitOptions`' literal order is reversed.** The snippet above lists
+  `[.grams, .hundredGrams] + item.portions + personalPortions`; the shipped order is now the
+  item's own portions first (canonical, then personal), followed by `.grams`, then
+  `.hundredGrams` — the item's own portion(s) should be the fastest pick in the list, not buried
+  after two generic units.

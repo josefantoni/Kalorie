@@ -64,14 +64,11 @@ struct RecognizeNutritionLabelUseCase: RecognizeNutritionLabelUseCaseProtocol {
         guard let cgImage = image.cgImage else { throw NutritionLabelRecognitionError.invalidImage }
         let orientation = CGImagePropertyOrientation(image.imageOrientation)
 
-        let lines = try await textRecognizer.recognizeText(in: cgImage, orientation: orientation)
+        async let linesTask = textRecognizer.recognizeText(in: cgImage, orientation: orientation)
+        async let barcodeTask = try? barcodeDetector.detectBarcode(in: cgImage, orientation: orientation)
 
-        var barcode: String?
-        do {
-            barcode = try await barcodeDetector.detectBarcode(in: cgImage, orientation: orientation)
-        } catch {
-            barcode = nil
-        }
+        let lines = try await linesTask
+        let barcode = await barcodeTask
 
         var reading = NutritionLabelParser.parse(lines: lines)
         reading.scannedCode = barcode
