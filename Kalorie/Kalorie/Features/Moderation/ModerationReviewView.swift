@@ -71,6 +71,7 @@ struct ModerationReviewView: View {
         }
         .navigationTitle(viewModel.formInput.name)
         .navigationBarTitleDisplayMode(.inline)
+        .keyboardDoneToolbar()
         .loader(viewModel.state.isLoading)
         .fullScreenCover(isPresented: $viewModel.isNutritionLabelCameraVisible) {
             NutritionLabelCameraView(

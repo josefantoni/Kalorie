@@ -79,6 +79,7 @@ struct FoodQuantityView: View {
                 dismissButton: .default(Text(L10n.Common.ok))
             )
         }
+        .keyboardDoneToolbar()
         .toolbar {
             if makeMealEditorView != nil {
                 ToolbarItem(placement: .topBarLeading) {

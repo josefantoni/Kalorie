@@ -63,6 +63,7 @@ struct AddFoodSheetView: View {
             }
             .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
+            .keyboardDoneToolbar()
             .loader(viewModel.state.isLoading)
             .fullScreenCover(isPresented: $viewModel.isScannerVisible) {
                 BarcodeScannerOverlay(
@@ -392,6 +393,7 @@ struct AddFoodSheetView: View {
         }
         .navigationTitle(L10n.AddFood.navigationTitleNewItem)
         .navigationBarTitleDisplayMode(.inline)
+        .keyboardDoneToolbar()
         .alert(L10n.AddFood.submissionSubmitted, isPresented: $viewModel.isSubmissionConfirmationVisible) {
             Button(L10n.Common.ok) { viewModel.onSubmissionConfirmationDismissed() }
         } message: {
