@@ -65,8 +65,11 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     var scaledCalories: Int { scaledMacros.calories }
     var scaledProtein: Double { scaledMacros.protein }
     var scaledCarbohydrate: Double { scaledMacros.carbohydrate }
+    var scaledCarbohydrateSugar: Double { scaledMacros.carbohydrateSugar }
     var scaledFat: Double { scaledMacros.fat }
-    var scaledFiber: Double { scaledMacros.fiber ?? 0 }
+    var scaledFatSaturated: Double? { scaledMacros.fatSaturated }
+    var scaledFiber: Double? { scaledMacros.fiber }
+    var scaledSalt: Double { scaledMacros.salt }
 
     var isPersonalPortionsAvailable: Bool { item.kind == .catalogue }
     var canReportIncorrectData: Bool { item.kind == .catalogue }

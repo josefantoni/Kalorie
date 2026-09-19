@@ -38,3 +38,11 @@ extension Double {
         return text
     }
 }
+
+extension Optional where Wrapped == Double {
+
+    func formattedGrams(fractionDigits: Int = 1) -> String {
+        guard let self else { return "–" }
+        return self.formattedGrams(fractionDigits: fractionDigits)
+    }
+}

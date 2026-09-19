@@ -237,3 +237,5 @@ understanding why.
 | [0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md) | The `foodItemSubmissions` update rule validates the maintainer branch too | Accepted | Backend |
 | [0029](adr/0029-submitted-at-guards-foodItemSubmissions-concurrency.md) | `submitted_at` guards against concurrent writes to a `foodItemSubmissions` document | Accepted | Backend, Cross-platform |
 | [0030](adr/0030-first-quantity-picker-option-is-the-preselected-unit.md) | The first quantity picker option is the preselected unit | Accepted | Cross-platform, iOS |
+| [0031](adr/0031-meal-type-pin-resolved-by-the-caller-not-the-save-use-case.md) | The meal-type pin is resolved by the caller, not by `SaveFoodConsumedUseCase` | Accepted | Cross-platform, iOS |
+| [0032](adr/0032-unknown-optional-nutrient-shown-as-dash-not-zero.md) | An unknown optional nutrient is displayed as a dash, never as zero or a hidden row | Accepted | Cross-platform |

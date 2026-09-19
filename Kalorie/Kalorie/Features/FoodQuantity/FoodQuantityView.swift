@@ -45,8 +45,11 @@ struct FoodQuantityView: View {
                 macroRow(label: L10n.FoodQuantity.calories, value: "\(viewModel.scaledCalories) kcal")
                 macroRow(label: L10n.FoodQuantity.protein, value: viewModel.scaledProtein.formattedGrams())
                 macroRow(label: L10n.FoodQuantity.carbs, value: viewModel.scaledCarbohydrate.formattedGrams())
+                macroRow(label: L10n.AddFood.fieldCarbsSugar, value: viewModel.scaledCarbohydrateSugar.formattedGrams())
                 macroRow(label: L10n.FoodQuantity.fat, value: viewModel.scaledFat.formattedGrams())
+                macroRow(label: L10n.AddFood.fieldFatSaturated, value: viewModel.scaledFatSaturated.formattedGrams())
                 macroRow(label: L10n.FoodQuantity.fiber, value: viewModel.scaledFiber.formattedGrams())
+                macroRow(label: L10n.AddFood.fieldSalt, value: viewModel.scaledSalt.formattedGrams(fractionDigits: 2))
             }
         }
         .loader(viewModel.state.isLoading)

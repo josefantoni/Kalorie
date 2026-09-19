@@ -65,9 +65,9 @@ final class FoodQuantityViewModelTests: XCTestCase {
 
     // MARK: - scaledFiber
 
-    func test_scaledFiber_whenItemsFiberIsUnknown_showsZeroInsteadOfNil() {
+    func test_scaledFiber_whenItemsFiberIsUnknown_staysNil() {
         let sut = makeSUT(item: makeFoodItem(fiber: nil))
-        XCTAssertEqual(sut.scaledFiber, 0)
+        XCTAssertNil(sut.scaledFiber)
     }
 
     // MARK: - init defaults
