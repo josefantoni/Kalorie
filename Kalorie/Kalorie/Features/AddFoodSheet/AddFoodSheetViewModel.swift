@@ -232,6 +232,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
     private let fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol
+    private let refreshFavouriteFood: any RefreshFavouriteFoodUseCaseProtocol
     private let fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol
     private let deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol
     private let recognizeNutritionLabelUseCase: any RecognizeNutritionLabelUseCaseProtocol
@@ -276,6 +277,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
         fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol,
+        refreshFavouriteFood: any RefreshFavouriteFoodUseCaseProtocol,
         fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol,
         deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol,
         recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol,
@@ -293,6 +295,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
         self.fetchFavouriteFoods = fetchFavouriteFoods
+        self.refreshFavouriteFood = refreshFavouriteFood
         self.fetchMyCreatedMeals = fetchMyCreatedMeals
         self.deleteMyCreatedMeal = deleteMyCreatedMeal
         self.recognizeNutritionLabelUseCase = recognizeNutritionLabel
@@ -479,6 +482,21 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         guard !isPushedToQuantityView else { return }
         selectedFoodItem = item
         isPushedToQuantityView = true
+    }
+
+    @MainActor
+    func onSelectFavouriteFood(_ item: FoodItemDomain) async {
+        guard !isPushedToQuantityView else { return }
+        var resolved = item
+        do {
+            resolved = try await refreshFavouriteFood(item)
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.addFoodSheet)
+        }
+        if resolved != item, let index = favouriteFoods.firstIndex(where: { $0.id == item.id }) {
+            favouriteFoods[index] = resolved
+        }
+        onSelectFoodItem(resolved)
     }
 
     func onFoodConsumedSaved() {

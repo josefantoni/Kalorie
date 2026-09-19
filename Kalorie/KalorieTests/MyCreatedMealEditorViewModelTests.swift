@@ -290,13 +290,82 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         XCTAssertTrue(editingSUT.isEditing)
     }
 
+    // MARK: - onAppear (catalogue refresh)
+
+    @MainActor
+    func test_onAppear_whenCatalogueWasCorrected_updatesIngredientAndMarksMealAsChanged() async {
+        let sut = makeSUT(
+            fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(stubbedItems: [makeFoodItem(calories: 140)]),
+            existingMeal: makeExistingMeal()
+        )
+        XCTAssertFalse(sut.hasChanges)
+        await sut.onAppear()
+        XCTAssertEqual(sut.ingredients.first?.item.caloriesPerHundredGrams, 140)
+        XCTAssertTrue(sut.hasChanges)
+    }
+
+    @MainActor
+    func test_onAppear_keepsTheEnteredGrams() async {
+        let sut = makeSUT(
+            fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(stubbedItems: [makeFoodItem(calories: 140)]),
+            existingMeal: makeExistingMeal()
+        )
+        let gramsBefore = sut.ingredients.first?.gramsText
+        await sut.onAppear()
+        XCTAssertEqual(sut.ingredients.first?.gramsText, gramsBefore)
+    }
+
+    @MainActor
+    func test_onAppear_whenNothingChanged_doesNotMarkMealAsChanged() async {
+        let sut = makeSUT(
+            fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(stubbedItems: [makeFoodItem()]),
+            existingMeal: makeExistingMeal()
+        )
+        await sut.onAppear()
+        XCTAssertFalse(sut.hasChanges)
+    }
+
+    @MainActor
+    func test_onAppear_whenIngredientIsNotInCatalogue_keepsItsSnapshot() async {
+        let sut = makeSUT(
+            fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(stubbedItems: [makeFoodItem(id: "other", calories: 1)]),
+            existingMeal: makeExistingMeal()
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.ingredients.first?.item.caloriesPerHundredGrams, 155)
+        XCTAssertFalse(sut.hasChanges)
+    }
+
+    @MainActor
+    func test_onAppear_whenFetchFails_keepsSnapshotsUntouched() async {
+        let sut = makeSUT(
+            fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(stubbedItems: [makeFoodItem(calories: 140)], shouldThrow: true),
+            existingMeal: makeExistingMeal()
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.ingredients.first?.item.caloriesPerHundredGrams, 155)
+        XCTAssertFalse(sut.hasChanges)
+    }
+
+    @MainActor
+    func test_onAppear_whenCreatingNewMeal_doesNotFetch() async {
+        let sut = makeSUT(fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(stubbedItems: [makeFoodItem(calories: 140)], shouldThrow: true))
+        await sut.onAppear()
+        XCTAssertTrue(sut.ingredients.isEmpty)
+    }
+
     // MARK: - Helpers
+
+    private func makeExistingMeal() -> MyCreatedMealDomain {
+        MyCreatedMealDomain(id: "meal-1", name: "Kaše", ingredients: [makeIngredientDomain()], createdAt: .now, updatedAt: .now)
+    }
 
     private func makeSUT(
         searchFoodItems: any SearchFoodItemsUseCaseProtocol = SearchFoodItemsUseCaseFake(),
         searchFoodExternally: any SearchFoodExternallyUseCaseProtocol = SearchFoodExternallyUseCaseFake(),
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
+        fetchFoodItemsByIds: any FetchFoodItemsByIdsUseCaseProtocol = FetchFoodItemsByIdsUseCaseFake(),
         createMyCreatedMeal: any CreateMyCreatedMealUseCaseProtocol = CreateMyCreatedMealUseCaseFake(),
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
         existingMeal: MyCreatedMealDomain? = nil,
@@ -308,6 +377,7 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
             searchFoodExternally: searchFoodExternally,
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
+            fetchFoodItemsByIds: fetchFoodItemsByIds,
             createMyCreatedMeal: createMyCreatedMeal,
             updateMyCreatedMeal: updateMyCreatedMeal,
             existingMeal: existingMeal,
@@ -320,7 +390,7 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         return sut
     }
 
-    private func makeFoodItem(id: String = "12345") -> FoodItemDomain {
+    private func makeFoodItem(id: String = "12345", calories: Double = 155) -> FoodItemDomain {
         FoodItemDomain(
             id: id,
             kind: .catalogue,
@@ -329,7 +399,7 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
             weight: 100,
             date: .now,
             energyKJ: 648,
-            caloriesPerHundredGrams: 155,
+            caloriesPerHundredGrams: calories,
             fat: 10,
             fatSaturated: 3,
             fatUnsaturatedFattyAcids: 3,

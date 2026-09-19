@@ -41,23 +41,6 @@ The app works with three kinds of data. The distinction matters for the items be
 decisions still in effect. Findings are grouped by area and numbered `A<area>-<n>` — only open
 ones are listed below; closed findings live in git history, not here.
 
-## Audit findings — 1. Data layer and Firestore model
-
-- [ ] **A1-7 — Favourites and saved meals never see catalogue corrections.** *Downgraded on
-  review of the design docs — this is a decided risk, not an open question.* Both
-  [design 0003](docs/design/0003-favourite-foods.md) and
-  [design 0006](docs/design/0006-own-daily-meals.md) accept the staleness explicitly for v1 and
-  specify the same mitigation: re-read by `food_item_id` when the user opens the item — a
-  favourite when tapped, a meal when opened in the editor. Nothing to decide; the only thing
-  worth adding is a **trigger**, since there is currently no way to learn that a catalogue item
-  was corrected in the first place. Left open as a reminder that the mitigation is designed but
-  not built. `ModerationCatalogueEditorViewModel.onSaveTapped` ([design 0009](docs/design/0009-catalogue-moderation.md),
-  shipped) is now the only place a correction happens, so it is also the only place a trigger could
-  fire from — still not built. `loadAsync(id:from:)` already makes the re-read itself cheap
-  whenever that lands. [Design 0012](docs/design/0012-report-incorrect-catalogue-data.md)'s report
-  flow raises how often a correction happens — it no longer depends on the maintainer noticing an
-  error personally — but does not close this finding by itself.
-
 ## Audit findings — 2. Food search and catalogue
 
 - [ ] **A2-12 — Ranking cannot be added on top of the current search.** Results are capped at
