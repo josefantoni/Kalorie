@@ -36,6 +36,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     @Published var isAddPortionFormVisible = false
     @Published var newPortionName = ""
     @Published var newPortionGramsText = ""
+    @Published private(set) var mealTypes: [MealTypeDomain]
+    @Published var selectedMealTypeId: String?
 
     let item: FoodItemDomain
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
@@ -45,10 +47,10 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     private let fetchFoodItemPersonalPortions: any FetchFoodItemPersonalPortionsUseCaseProtocol
     private let saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol
     private let selectedDate: Date
-    private var mealTypes: [MealTypeDomain]
     private let onSaved: () -> Void
     private let onFavouriteChanged: (String, Bool) -> Void
     private var hasUserSelectedUnit = false
+    private var hasUserSelectedMealType = false
 
     var grams: Double { quantity * unit.gramsPerUnit }
 
@@ -89,6 +91,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         self.fetchMealTypes = fetchMealTypes
         self.selectedDate = selectedDate
         self.mealTypes = mealTypes
+        self.selectedMealTypeId = mealTypes.mealType(at: selectedDate)?.id
         self.isFavourite = isFavourite
         self.addFavouriteFood = addFavouriteFood
         self.removeFavouriteFood = removeFavouriteFood
@@ -128,6 +131,11 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         let currentGrams = quantity * unit.gramsPerUnit
         unit = newUnit
         quantity = currentGrams / newUnit.gramsPerUnit
+    }
+
+    func onMealTypeSelected(_ mealTypeId: String) {
+        hasUserSelectedMealType = true
+        selectedMealTypeId = mealTypeId
     }
 
     func onShowAddPortionForm() {
@@ -206,7 +214,20 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
             } catch {
                 Log.warning(error, category: Constants.LogCategory.foodQuantity)
             }
-            try await saveFoodConsumed(item, grams: grams, date: selectedDate, mealTypes: mealTypes)
+            let mealTypeId: String?
+            if hasUserSelectedMealType {
+                guard
+                    let selectedMealTypeId,
+                    mealTypes.contains(where: { $0.id == selectedMealTypeId })
+                else {
+                    alertItem = AlertItem(title: L10n.Common.errorUnknown)
+                    return
+                }
+                mealTypeId = selectedMealTypeId
+            } else {
+                mealTypeId = mealTypes.mealType(at: selectedDate)?.id
+            }
+            try await saveFoodConsumed(item, grams: grams, date: selectedDate, mealTypeId: mealTypeId)
             onSaved()
         } catch {
             Log.error(error, category: Constants.LogCategory.foodQuantity)

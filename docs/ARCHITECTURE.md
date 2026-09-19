@@ -547,7 +547,9 @@ arithmetic and which call sites delegate to `MealKit`),
 [design 0001](design/0001-user-authentication.md) (why the multi-device meal-type guard exists),
 [ADR 0022](adr/0022-meal-assignment-may-be-pinned-by-the-user.md) (how a user moves an entry
 between meals without touching its timestamp, and why a new entry is pinned at write time instead
-of starting out unpinned).
+of starting out unpinned), [ADR 0031](adr/0031-meal-type-pin-resolved-by-the-caller-not-the-save-use-case.md)
+(why `SaveFoodConsumedUseCase` no longer resolves that pin itself — § 4.2 covers the picker this
+enabled).
 
 ### 3.1 What the Dashboard is
 
@@ -568,14 +570,18 @@ changing anything here. [ADR 0022](adr/0022-meal-assignment-may-be-pinned-by-the
 one override on top: a `foodConsumed` document may carry an optional `meal_type_id`, pinning the
 entry to that meal regardless of what its time of day would otherwise select.
 
-`SaveFoodConsumedUseCase` resolves that window itself at write time — `mealTypes.mealType(at:)`
-— and writes its id as `meal_type_id` immediately, instead of leaving the field absent. An entry
-logged outside every window is still written unpinned; there is nothing to resolve it to. The
-meal-type picker in `FoodConsumedDetailView` only ever moves the pin to another concrete meal
-type — there is no "by time" option to revert to the implicit, time-derived state. Picking a
-meal type stages the change; the screen's single Save button writes whichever of weight and meal
-type actually changed. Documents that predate this field keep `meal_type_id` absent and keep
-resolving dynamically through the fallback described next; they are not migrated.
+A new entry's `meal_type_id` is resolved before `SaveFoodConsumedUseCase` is ever called — the use
+case just persists whatever it is handed
+([ADR 0031](adr/0031-meal-type-pin-resolved-by-the-caller-not-the-save-use-case.md)). § 4.2 covers
+the picker that does the resolving; the default it falls back to when untouched is still
+`mealTypes.mealType(at:)`, the same window match ADR 0022 introduced. An entry logged outside every
+window is still written unpinned; there is nothing to resolve it to. The meal-type pickers in
+`FoodQuantityView` and `FoodConsumedDetailView` only ever move the pin to another concrete meal
+type — there is no "by time" option to revert to the implicit, time-derived state, on either
+screen. On the edit screen, picking a meal type stages the change; the screen's single Save
+button writes whichever of weight and meal type actually changed. Documents that predate this
+field keep `meal_type_id` absent and keep resolving dynamically through the fallback described
+next; they are not migrated.
 
 `groupedFoods` resolves each food to at most one meal type id up front, via
 `mealTypes.resolvedMealTypeId(for:)`: a food **pinned to it** (`mealTypeId` names a meal type that
@@ -727,7 +733,9 @@ which reversed that document's own order and default),
 [ADR 0030](adr/0030-first-quantity-picker-option-is-the-preselected-unit.md) (why the picker's
 order and its preselected unit are one decision, and the two ways reselecting a unit
 programmatically goes wrong), [design 0011](design/0011-food-measure-grams-or-millilitres.md)
-(why every amount of the food itself, but not a nutrient amount, follows the item's measure).
+(why every amount of the food itself, but not a nutrient amount, follows the item's measure),
+[ADR 0031](adr/0031-meal-type-pin-resolved-by-the-caller-not-the-save-use-case.md) (the meal-type
+picker on this screen, and why resolving its default moved out of `SaveFoodConsumedUseCase`).
 
 ### 4.1 The path a food takes
 
@@ -803,6 +811,19 @@ regardless of what the food itself is measured in. See
 
 Unit switching goes through `onUnitChanged(from:to:)`, which converts the current gram amount
 into the new unit by dividing, with no rounding — a fractional quantity survives a unit switch.
+
+A second `List` row, below the quantity row, holds a meal-type picker — `selectedMealTypeId`,
+preselected from `mealTypes.mealType(at: selectedDate)?.id` at init, the same window match
+`SaveFoodConsumedUseCase` used to do internally before
+[ADR 0031](adr/0031-meal-type-pin-resolved-by-the-caller-not-the-save-use-case.md). Picking a row
+calls `onMealTypeSelected(_:)`, which marks the pick as user-driven; `onConfirm()` then refetches
+`mealTypes` (as it already did) and, for a user-driven pick, confirms the chosen id still exists in
+that fresh list before saving — failing loudly with `L10n.Common.errorUnknown` if a meal type was
+deleted from under the picker rather than silently falling back to the time-based default. An
+untouched pick always resolves fresh against the refetched list too, so the pin still reflects
+whatever `mealTypes` looks like at save time, not at sheet-open time. Like the edit screen's
+picker, there is no "by time" option to select — an unresolved pin renders only as a display
+placeholder, `L10n.FoodQuantity.mealTypeUnassigned`.
 
 ### 4.3 Numeric input
 

@@ -213,6 +213,8 @@ enum L10n {
         static var inputGrams: String { String(localized: "foodQuantity_input_grams") }
         static var buttonAdd: String { String(localized: "foodQuantity_button_add") }
         static var buttonMyPortions: String { String(localized: "foodQuantity_button_myPortions") }
+        static var labelMealType: String { String(localized: "foodQuantity_label_mealType") }
+        static var mealTypeUnassigned: String { String(localized: "foodQuantity_mealType_unassigned") }
         static var calories: String { String(localized: "foodQuantity_macro_calories") }
         static var protein: String { String(localized: "foodQuantity_macro_protein") }
         static var carbs: String { String(localized: "foodQuantity_macro_carbs") }
