@@ -13,6 +13,7 @@ struct MealTypeSheetView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: MealTypeSheetViewModel
+    private let router: MealTypeSheetRouter
     @FocusState private var focusedField: Field?
     @State private var editMode: EditMode = .inactive
 
@@ -22,7 +23,8 @@ struct MealTypeSheetView: View {
 
     // MARK: - Init
 
-    init(viewModel: MealTypeSheetViewModel) {
+    init(router: MealTypeSheetRouter, viewModel: MealTypeSheetViewModel) {
+        self.router = router
         _viewModel = StateObject(wrappedValue: viewModel)
     }
 
@@ -82,7 +84,17 @@ struct MealTypeSheetView: View {
             .toolbar {
                 if editMode == .inactive {
                     DismissToolbarItem()
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            viewModel.isExportPushed = true
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                    }
                 }
+            }
+            .navigationDestination(isPresented: $viewModel.isExportPushed) {
+                router.makeExportView(mealTypes: viewModel.mealTypes)
             }
             .loader(viewModel.state.isLoading)
             .interactiveDismissDisabled(editMode == .active)

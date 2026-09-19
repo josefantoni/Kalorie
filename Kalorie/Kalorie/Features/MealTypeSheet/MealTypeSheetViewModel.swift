@@ -18,6 +18,7 @@ final class MealTypeSheetViewModel: ObservableObject {
     @Published var newMealStart = Date.now
     @Published var newMealEnd = Date.now
     @Published var isAddFormVisible = false
+    @Published var isExportPushed = false
     @Published var alertItem: AlertItem?
 
     private let onMealTypesChanged: () -> Void

@@ -14,7 +14,9 @@
 		86186DAC2C2C63B500176E09 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 86186DAB2C2C63B500176E09 /* FirebaseFirestore */; };
 		864EAE1B2FF4043900D0C4AE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 864EAE1A2FF4043900D0C4AE /* FirebaseAuth */; };
 		86C775E32C2A6E1600FC4493 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 86C775E22C2A6E1600FC4493 /* FirebaseFirestore */; };
+		B2C3D4E5F60718293A4B5C6D /* ExportKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ExportKit.xcframework */; };
 		B74120D8222DF1130D4F05B1 /* TextKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AE53F7D212EDE430F92DF1C /* TextKit.xcframework */; };
+		C3D4E5F60718293A4B5C6D7E /* ExportKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ExportKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D25725F186D3199499A6CD75 /* MealKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EF9A4CE03DFBCE693EF2F49 /* MealKit.xcframework */; };
 		E6C0BF6417AFBF06AE2C644A /* MacroKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3F33A3B2218AFA5E33204F9B /* MacroKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		EC5634EF5F520D783DDC6BB5 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 0D59EE77D1F2615EF379053B /* FirebaseCrashlytics */; };
@@ -47,6 +49,7 @@
 				E6C0BF6417AFBF06AE2C644A /* MacroKit.xcframework in Embed Frameworks */,
 				5FF00AFAED788D95DB7057D3 /* MealKit.xcframework in Embed Frameworks */,
 				2B3CBF021BBE9A83F535FA1F /* TextKit.xcframework in Embed Frameworks */,
+				C3D4E5F60718293A4B5C6D7E /* ExportKit.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -60,6 +63,7 @@
 		860C154E2C10B01B0062D6E7 /* Kalorie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kalorie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		860C155F2C10B01C0062D6E7 /* KalorieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KalorieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		860C15692C10B01C0062D6E7 /* KalorieUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KalorieUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F60718293A4B5C /* ExportKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ExportKit.xcframework; path = ../ExportKit/build/XCFrameworks/release/ExportKit.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -103,6 +107,7 @@
 				721DCA1D2D414EEBC74AC528 /* MacroKit.xcframework in Frameworks */,
 				D25725F186D3199499A6CD75 /* MealKit.xcframework in Frameworks */,
 				B74120D8222DF1130D4F05B1 /* TextKit.xcframework in Frameworks */,
+				B2C3D4E5F60718293A4B5C6D /* ExportKit.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -150,6 +155,7 @@
 				3F33A3B2218AFA5E33204F9B /* MacroKit.xcframework */,
 				2EF9A4CE03DFBCE693EF2F49 /* MealKit.xcframework */,
 				7AE53F7D212EDE430F92DF1C /* TextKit.xcframework */,
+				A1B2C3D4E5F60718293A4B5C /* ExportKit.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -164,6 +170,7 @@
 				2E2687C131B4C44553A5A89E /* Build MacroKit (Gradle) */,
 				699B3BE6FFA2B83A508CC13A /* Build MealKit (Gradle) */,
 				D806D7FB58FCD57680B786FC /* Build TextKit (Gradle) */,
+				D4E5F60718293A4B5C6D7E8F /* Build ExportKit (Gradle) */,
 				860C154A2C10B01B0062D6E7 /* Sources */,
 				860C154B2C10B01B0062D6E7 /* Frameworks */,
 				1607450784FF2995A1BE09C6 /* Embed Frameworks */,
@@ -387,6 +394,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]\nthen\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif command -v swiftlint >/dev/null 2>&1\nthen\n    swiftlint\nelse\n    echo \"warning: `swiftlint` command not found - See https://github.com/realm/SwiftLint#installation for installation instructions.\"\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		D4E5F60718293A4B5C6D7E8F /* Build ExportKit (Gradle) */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build ExportKit (Gradle)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/../scripts/build-kmp-framework.sh\" ExportKit\n";
 			showEnvVarsInLog = 0;
 		};
 		D806D7FB58FCD57680B786FC /* Build TextKit (Gradle) */ = {
