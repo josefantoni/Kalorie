@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum FoodItemValidationError: Error {
+enum FoodItemValidationError: Error, Equatable {
     case invalidCode
     case invalidName
     case invalidCalories
