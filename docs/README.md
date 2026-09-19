@@ -202,6 +202,8 @@ understanding why.
 | [0010](design/0010-nutrition-label-photo-prefill.md) | Pre-filling the food form from a photo of the packaging | Implemented | iOS |
 | [0011](design/0011-food-measure-grams-or-millilitres.md) | A food measured in grams or millilitres | Implemented | Backend, Cross-platform, iOS |
 | [0012](design/0012-report-incorrect-catalogue-data.md) | Reporting incorrect data on a catalogue item | Implemented | Backend, Cross-platform, iOS |
+| [0013](design/0013-catalogue-item-without-barcode.md) | Manual entry of a catalogue item without a barcode | Proposed | Backend, Cross-platform, iOS |
+| [0014](design/0014-data-export.md) | Exporting consumed food to PDF or Excel | Draft | Cross-platform, iOS |
 
 ### Decision records
 
