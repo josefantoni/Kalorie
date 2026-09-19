@@ -372,9 +372,10 @@ not `BaseImage` at a large size) next to the unit picker, shown only when `item.
 opening a `.sheet`: `FoodPortionsManagerView`, a small `List`:
 
 - existing `personalPortions`, one row each, swipe-to-delete,
-- a trailing add row: a name field and a grams field, **the grams field pre-filled with the
-  quantity screen's current `grams`** (`viewModel.grams`) — the direct answer to "I just weighed
-  this, save it as a shortcut" — editable before confirming.
+- a trailing add row: a name field and a grams field, both blank. (Earlier revisions pre-filled
+  grams from the quantity screen's current `grams`; dropped because a weighed quantity such as a
+  whole loaf is not the size of a reusable portion, and the pre-fill was skipped when the unit was
+  already a portion, which made it inconsistent.)
 
 Saving calls `onAddPersonalPortion(name:grams:)` on `FoodQuantityViewModel`, which appends to the
 already-fetched `personalPortions`, calls `SaveFoodItemPersonalPortionsUseCase(barcode: item.id, portions:)`

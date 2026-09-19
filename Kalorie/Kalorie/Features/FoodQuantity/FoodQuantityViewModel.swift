@@ -179,11 +179,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     }
 
     func onPortionsManagerOpened() {
-        if case .portion = unit {
-            portionDrafts = [FoodPortionDraft.blank]
-        } else {
-            portionDrafts = [FoodPortionDraft(name: "", gramsText: grams.formattedTrimmed())]
-        }
+        portionDrafts = [FoodPortionDraft.blank]
     }
 
     func onAddPortionDraftTapped() {

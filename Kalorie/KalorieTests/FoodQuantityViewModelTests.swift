@@ -435,22 +435,14 @@ final class FoodQuantityViewModelTests: XCTestCase {
     // MARK: - onPortionsManagerOpened
 
     @MainActor
-    func test_onPortionsManagerOpened_whenCurrentUnitIsNotAPortion_seedsOneDraftWithCurrentGrams() {
-        let sut = makeSUT(quantity: 150, unit: .grams)
+    func test_onPortionsManagerOpened_seedsOneBlankDraftRegardlessOfCurrentGrams() {
+        let sut = makeSUT(quantity: 1000, unit: .grams)
         sut.onPortionsManagerOpened()
-        XCTAssertEqual(sut.portionDrafts.map(\.gramsText), ["150"])
         XCTAssertEqual(sut.portionDrafts.map(\.name), [""])
-    }
-
-    @MainActor
-    func test_onPortionsManagerOpened_whenCurrentUnitIsAlreadyAPortion_seedsOneDraftWithBlankGrams() {
-        let existingPortion = FoodPortionDomain(name: "1 balení", grams: 33)
-        let sut = makeSUT(quantity: 2, unit: .portion(existingPortion))
-        sut.onPortionsManagerOpened()
         XCTAssertEqual(
             sut.portionDrafts.map(\.gramsText),
             [""],
-            "the current grams are a multiple of an existing portion, not a freeform weight worth copying into a new one"
+            "a portion is a reusable shortcut; the quantity being weighed right now (e.g. a whole loaf) is not its size"
         )
     }
 
