@@ -200,7 +200,7 @@ understanding why.
 | [0008](design/0008-food-portions.md) | Food portions | Implemented | Backend, Cross-platform, iOS |
 | [0009](design/0009-catalogue-moderation.md) | Catalogue moderation | Implemented | Backend, Cross-platform, iOS |
 | [0010](design/0010-nutrition-label-photo-prefill.md) | Pre-filling the food form from a photo of the packaging | Implemented | iOS |
-| [0011](design/0011-food-measure-grams-or-millilitres.md) | A food measured in grams or millilitres | Approved | Backend, Cross-platform, iOS |
+| [0011](design/0011-food-measure-grams-or-millilitres.md) | A food measured in grams or millilitres | Implemented | Backend, Cross-platform, iOS |
 
 ### Decision records
 
@@ -235,3 +235,4 @@ understanding why.
 | [0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) | Catalogue writes require a maintainer claim, with user contributions queued for approval | Accepted | Backend, Cross-platform |
 | [0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md) | The `foodItemSubmissions` update rule validates the maintainer branch too | Accepted | Backend |
 | [0029](adr/0029-submitted-at-guards-foodItemSubmissions-concurrency.md) | `submitted_at` guards against concurrent writes to a `foodItemSubmissions` document | Accepted | Backend, Cross-platform |
+| [0030](adr/0030-first-quantity-picker-option-is-the-preselected-unit.md) | The first quantity picker option is the preselected unit | Accepted | Cross-platform, iOS |

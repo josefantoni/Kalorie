@@ -258,7 +258,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     // MARK: - displayedResults
 
     @MainActor
-    func test_displayedResults_hoistsMatchingCreatedMealsAboveFavouritesAndCatalog() async {
+    func test_displayedResults_hoistsMatchingFavouritesAboveCreatedMealsAndCatalog() async {
         let sut = makeSUT(
             fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(stubbedItems: [makeFoodItem(id: "fav", czName: "Ovar")]),
             fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "meal", name: "Ovesná kaše")])
@@ -266,7 +266,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         await sut.onAppear()
         sut.localFoodItems = [makeFoodItem(id: "cat", czName: "Ovoce")]
         sut.searchText = "ov"
-        XCTAssertEqual(sut.displayedResults.map(\.id), ["meal", "fav", "cat"])
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["fav", "meal", "cat"])
     }
 
     @MainActor

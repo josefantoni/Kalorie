@@ -26,4 +26,15 @@ extension Double {
         let number = formatter.string(from: NSNumber(value: self)) ?? String(self)
         return "\(number) \(measure.unitSymbol)"
     }
+
+    func formattedTrimmed() -> String {
+        var text = String(format: "%.2f", self)
+        while text.hasSuffix("0") {
+            text.removeLast()
+        }
+        if text.hasSuffix(".") {
+            text.removeLast()
+        }
+        return text
+    }
 }

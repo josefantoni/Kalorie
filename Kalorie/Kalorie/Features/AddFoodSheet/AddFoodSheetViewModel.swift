@@ -241,22 +241,22 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     var displayedResults: [FoodItemDomain] {
         let query = searchText.lowercased()
         guard !query.isEmpty else { return localFoodItems }
-        let matchingMeals = myCreatedMeals
-            .map { $0.asFoodItem() }
-            .filter { $0.czName.lowercased().hasPrefix(query) }
         let matchingFavourites = favouriteFoods.filter {
             $0.czName.lowercased().hasPrefix(query) || $0.engName.lowercased().hasPrefix(query)
         }
-        let mealIds = Set(matchingMeals.map(\.id))
-        let matchingFavouritesFiltered = matchingFavourites.filter { !mealIds.contains($0.id) }
-        let matchingFavouriteAndMealIds = mealIds.union(matchingFavouritesFiltered.map(\.id))
+        let matchingMeals = myCreatedMeals
+            .map { $0.asFoodItem() }
+            .filter { $0.czName.lowercased().hasPrefix(query) }
+        let favouriteIds = Set(matchingFavourites.map(\.id))
+        let matchingMealsFiltered = matchingMeals.filter { !favouriteIds.contains($0.id) }
+        let matchingFavouriteAndMealIds = favouriteIds.union(matchingMealsFiltered.map(\.id))
         var seenSubmissionIds = matchingFavouriteAndMealIds
         let matchingSubmissions = mySubmissions
             .map(\.item)
             .filter { $0.czName.lowercased().hasPrefix(query) || $0.engName.lowercased().hasPrefix(query) }
             .filter { seenSubmissionIds.insert($0.id).inserted }
         let matchingIds = matchingFavouriteAndMealIds.union(matchingSubmissions.map(\.id))
-        return matchingMeals + matchingFavouritesFiltered + matchingSubmissions
+        return matchingFavourites + matchingMealsFiltered + matchingSubmissions
             + localFoodItems.filter { !matchingIds.contains($0.id) }
     }
 

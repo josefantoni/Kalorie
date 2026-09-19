@@ -12,54 +12,50 @@ struct FoodPortionsManagerView: View {
     // MARK: - Properties
 
     @ObservedObject var viewModel: FoodQuantityViewModel
-    @State private var newName = ""
-    @State private var newGramsText: String
-    @Environment(\.dismiss) private var dismiss
+    @FocusState private var isNameFocused: Bool
 
     // MARK: - Init
 
     init(viewModel: FoodQuantityViewModel) {
         self.viewModel = viewModel
-        self._newGramsText = State(initialValue: FoodQuantityView.formattedQuantity(viewModel.grams))
     }
 
     // MARK: - Body
 
     var body: some View {
-        NavigationStack {
-            List {
+        List {
+            Section {
                 if viewModel.personalPortions.isEmpty {
                     Text(L10n.MyPortions.empty)
                         .foregroundStyle(.secondary)
                 } else {
-                    Section {
-                        ForEach(viewModel.personalPortions, id: \.self) { portion in
-                            HStack {
-                                Text(portion.name)
-                                Spacer()
-                                Text(portion.grams.formattedAmount(measure: viewModel.item.measure))
-                                    .foregroundStyle(.secondary)
-                            }
-                            .swipeActions(edge: .trailing) {
-                                Button(role: .destructive) {
-                                    Task { await viewModel.onDeletePersonalPortion(portion) }
-                                } label: {
-                                    Image(systemName: "trash")
-                                }
+                    ForEach(viewModel.personalPortions, id: \.self) { portion in
+                        HStack {
+                            Text(portion.name)
+                            Spacer()
+                            Text(portion.grams.formattedAmount(measure: viewModel.item.measure))
+                                .foregroundStyle(.secondary)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                Task { await viewModel.onDeletePersonalPortion(portion) }
+                            } label: {
+                                Image(systemName: "trash")
                             }
                         }
                     }
                 }
 
-                Section {
+                if viewModel.isAddPortionFormVisible {
                     HStack {
                         BaseStringTextField(
                             placeholder: L10n.FoodPortion.fieldNamePlaceholder,
                             title: "",
-                            text: $newName,
+                            text: $viewModel.newPortionName,
                             textAlignment: .leading
                         )
-                        TextField("0", text: $newGramsText)
+                        .focused($isNameFocused)
+                        TextField("0", text: $viewModel.newPortionGramsText)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 50)
@@ -67,21 +63,26 @@ struct FoodPortionsManagerView: View {
                             .foregroundStyle(.secondary)
                     }
                     Button(L10n.FoodPortion.buttonAdd) {
-                        let grams = Double(newGramsText.replacingOccurrences(of: ",", with: ".")) ?? 0
-                        guard FoodPortionValidation.validate(name: newName, grams: grams) == nil else { return }
-                        Task {
-                            await viewModel.onAddPersonalPortion(name: newName, grams: grams)
-                            newName = ""
-                            newGramsText = FoodQuantityView.formattedQuantity(viewModel.grams)
-                        }
+                        isNameFocused = false
+                        Task { await viewModel.onAddPersonalPortion() }
                     }
+                } else {
+                    BaseButton(style: .plain, imageName: .plusCircle, imageSize: .extraLarge) {
+                        viewModel.onShowAddPortionForm()
+                        isNameFocused = true
+                    }
+                    .frame(maxWidth: .infinity)
                 }
             }
-            .navigationTitle(L10n.MyPortions.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                DismissToolbarItem()
-            }
+        }
+        .navigationTitle(L10n.MyPortions.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .alert(item: $viewModel.alertItem) { item in
+            Alert(
+                title: Text(item.title),
+                message: item.message.map(Text.init),
+                dismissButton: .default(Text(L10n.Common.ok))
+            )
         }
     }
 }
@@ -89,36 +90,38 @@ struct FoodPortionsManagerView: View {
 // MARK: - Preview
 
 #Preview {
-    FoodPortionsManagerView(
-        viewModel: FoodQuantityViewModel(
-            item: FoodItemDomain(
-                id: "1",
-                kind: .catalogue,
-                czName: "Vejce",
-                engName: "Egg",
-                weight: 100,
-                date: .now,
-                energyKJ: 648,
-                caloriesPerHundredGrams: 155,
-                fat: 10,
-                fatSaturated: 3,
-                fatUnsaturatedFattyAcids: 3,
-                carbohydrate: 1,
-                carbohydratePureSugar: 0,
-                fiber: 0,
-                protein: 13,
-                salt: 0.3
-            ),
-            saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
-            fetchMealTypes: FetchMealTypesUseCaseFake(),
-            selectedDate: .now,
-            mealTypes: [],
-            isFavourite: false,
-            addFavouriteFood: AddFavouriteFoodUseCaseFake(),
-            removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
-            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(),
-            saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
-            onSaved: {}
-        ) { _, _ in }
-    )
+    NavigationStack {
+        FoodPortionsManagerView(
+            viewModel: FoodQuantityViewModel(
+                item: FoodItemDomain(
+                    id: "1",
+                    kind: .catalogue,
+                    czName: "Vejce",
+                    engName: "Egg",
+                    weight: 100,
+                    date: .now,
+                    energyKJ: 648,
+                    caloriesPerHundredGrams: 155,
+                    fat: 10,
+                    fatSaturated: 3,
+                    fatUnsaturatedFattyAcids: 3,
+                    carbohydrate: 1,
+                    carbohydratePureSugar: 0,
+                    fiber: 0,
+                    protein: 13,
+                    salt: 0.3
+                ),
+                saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
+                fetchMealTypes: FetchMealTypesUseCaseFake(),
+                selectedDate: .now,
+                mealTypes: [],
+                isFavourite: false,
+                addFavouriteFood: AddFavouriteFoodUseCaseFake(),
+                removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
+                fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(),
+                saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
+                onSaved: {}
+            ) { _, _ in }
+        )
+    }
 }

@@ -1,6 +1,6 @@
 # Design: A food measured in grams or millilitres
 
-- **Status:** Approved
+- **Status:** Implemented
 - **Scope:** Backend, Cross-platform, iOS
 
 ## Context and scope
@@ -314,4 +314,7 @@ read `g`; edit to 300 ml and confirm it still reads `ml`.
 
 ## Outcome
 
-_Not implemented yet._
+Shipped as designed, per commit `0d855a6` — `FoodMeasure`, the four DTOs, the form, the parser and
+the display sites all match this document; see `ARCHITECTURE.md` § 1.3/1.4/1.6, § 4.2 and § 7.5.
+The two hand-verification steps this document calls out (Rules Playground, on-device logging) are
+still owed and are not tracked by any automated check.
