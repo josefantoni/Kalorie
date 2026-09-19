@@ -79,6 +79,8 @@ struct MyCreatedMealEditorView: View {
                     } else {
                         ForEach(viewModel.externalSearchResults, id: \.id) { item in
                             Text(item.displayName)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
                                 .onTapGesture {
                                     focusedIngredientId = viewModel.onSelectSearchResult(item)
                                 }

@@ -234,6 +234,8 @@ struct AddFoodSheetView: View {
                     } else {
                         ForEach(viewModel.externalFoodItems, id: \.id) { item in
                             Text(item.displayName)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
                                 .onTapGesture {
                                     viewModel.onSelectFoodItem(item)
                                 }
