@@ -1,6 +1,6 @@
 # Design: Exporting consumed food to PDF or Excel
 
-- **Status:** Draft
+- **Status:** Implemented
 - **Scope:** Cross-platform, iOS
 - **Date:** 2026-09-19
 

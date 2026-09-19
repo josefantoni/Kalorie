@@ -4,7 +4,7 @@ A description of what exists today. This document is **living** — update it wh
 changes. It is not a plan and not a history; for those see `docs/design/` and `docs/adr/`.
 
 Written retroactively, area by area, following `docs/README.md` → *Documenting code that
-already exists*. All five areas are covered; the audit findings each one produced are in
+already exists*. The areas below are covered; the audit findings each one produced are in
 `TODO.md`.
 
 **This document is the entry point into `docs/`.** Each section opens with the ADRs and design
@@ -21,6 +21,7 @@ are out of date: a decision recorded in one is still in force.
 5. [Cross-cutting concerns](#5-cross-cutting-concerns)
 6. [Authentication](#6-authentication)
 7. [Catalogue moderation](#7-catalogue-moderation)
+8. [Data export](#8-data-export)
 
 ---
 
@@ -1457,3 +1458,91 @@ collection rather than a second write path into `foodItems` — routing a correc
 `foodItemSubmissions` would have meant conditionally lifting `SubmitFoodItemUseCase`'s own
 existence check and bypassing `CreateFoodItemUseCase`'s, the exact guard
 [ADR 0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) says must not be removed.
+
+---
+
+## 8. Data export
+
+**Scope:** `Cross-platform` for the report contract, the xlsx writer and the PDF layout (all in
+ExportKit); `iOS` for the screen, the day bucketing and the file delivery.
+
+**Read first:** [design 0014](design/0014-data-export.md) (the report rules, why day bucketing and
+meal resolution stay in Swift, and the dated Updates on PdfKmp and the removed offline handling),
+[ADR 0032](adr/0032-unknown-optional-nutrient-shown-as-dash-not-zero.md) (dash for one food's
+unknown value, zero in a sum), [ADR 0034](adr/0034-kotlin-toolchain-pinned-at-2.4.10-across-kmp-modules.md)
+(the Kotlin version PdfKmp needs), [design 0011](design/0011-food-measure-grams-or-millilitres.md)
+(the `g` / `ml` amount label).
+
+### 8.1 What it does
+
+The user opens the meal types sheet from the Dashboard, taps the export button in its toolbar, picks
+a from/to date and PDF or Excel, and gets a file in the system share sheet. Both formats show the
+same hierarchy: day → meal (with its window) → foods, a subtotal after each meal and a total after
+each day. Every day of the interval appears; a day without entries shows a "no entries" row, and an
+interval without any entries still yields a file.
+
+```
+MealTypeSheetView ─▶ ExportView ─▶ ExportViewModel ─▶ GenerateFoodExportUseCase
+                                                        │  FetchFoodsConsumedInRangeUseCase
+                                                        │  FoodExportReportFactory (Swift)
+                                                        │  ExportKit: buildReport → renderXlsx / renderPdf
+                                                        ▼
+                                                   temp file URL ─▶ UIActivityViewController
+```
+
+The screen is pushed inside the sheet's `NavigationStack` (`isExportPushed`, `MealTypeSheetRouter`),
+not presented separately. The file is written to the temporary directory as
+`Kalorie_<from>_<to>.<ext>` and removed when the share sheet finishes (`ExportViewModel.onShareFinished`).
+`ShareLink` is not used: it needs its item before the tap, and the file exists only after an async
+generation.
+
+### 8.2 Swift side
+
+`FetchFoodsConsumedInRangeUseCase` is one ordinary range query over `date`,
+`[startOfDay(from), startOfDay(to) + 1 day)`, through the provider's existing range method — the
+same shape as `FetchFoodsConsumedForMonthUseCase`, without `DashboardViewModel.monthCache`, which is
+sized for one visible dashboard and never evicts (ADR 0015).
+
+`FoodExportReportFactory` is everything that depends on `Calendar`, `Locale` or Swift-only logic:
+it buckets entries into days with `Calendar.current`, resolves each entry's meal through
+`[MealTypeDomain].resolvedMealTypeId(for:)` (so a pin beats the time of day, exactly as on the
+Dashboard, ADR 0022), and produces every display string — day labels, section headers
+(`<name> HH:mm–HH:mm`), column headers, the amount with `g`/`ml`, and the device's decimal
+separator. Entries outside the interval are ignored. Meal types are not re-fetched; the sheet
+already holds the current ones, so a past day is grouped by today's meal types, as on the Dashboard.
+
+### 8.3 ExportKit
+
+The fourth KMP module, after MacroKit, MealKit and TextKit, with its own XCFramework, its own Gradle build phase in the Xcode project, and — unlike the other three —
+an `iosMain` source set and one third-party dependency, PdfKmp. It does not depend on MacroKit or
+MealKit; the only arithmetic is adding already-absolute values, with no scaling and no rounding.
+
+- **`buildReport`** takes flat primitives (days, sections, entries, labels) and returns the report
+  tree: sections in `sortKey` order, empty sections omitted, entries by timestamp, an unassigned
+  section last (also catching an unknown section id), subtotals and a day total. A single food keeps
+  an unknown `fatSaturated` / `fiber` as `null`; sums count it as `0`.
+- **`renderXlsx`** writes a minimal Office Open XML workbook by hand — six parts, inline strings,
+  numeric cells with `0` / `0.0` formats, bold for structure rows — inside a ZIP with **stored**
+  (uncompressed) entries and a table-based CRC32. All text is XML-escaped, since food names come
+  from users and OpenFoodFacts.
+- **`renderPdf`** builds one PdfKmp table on A4 landscape with the column header repeated on every
+  continuation page. Cells are formatted as text in Kotlin (`formatNumber`) using
+  `ExportLabels.decimalSeparator`, whereas xlsx keeps them numeric so Excel applies the viewer's
+  locale. A page break may separate a section's foods from its subtotal row; rows are not kept
+  together.
+- **`renderXlsxData` / `renderPdfData`** in `iosMain` return `NSData`, because a `ByteArray` reaches
+  Swift as a `KotlinByteArray` that can only be copied element by element.
+
+### 8.4 Things to know before changing it
+
+- The amount column is never summed and every nutrient is grams of nutrient, so mixed `g` / `ml`
+  entries do not affect any total.
+- `energyKJ` in the report is whatever the domain already holds; when the stored value was absent it
+  was derived at decode time (ADR 0007), the export does not derive it again.
+- Every string reaching ExportKit is already localized; ExportKit holds no `Locale` or `Calendar`
+  and no `kotlinx-datetime`, which is the reason day bucketing stays in Swift. An Android client
+  supplies the same inputs from its own calendar, meal resolution and strings.
+- The `.xlsx` container has no compression on purpose: `commonMain` has no deflate, and the file is
+  small. ZIP64 is not needed.
+- There is no interval limit: two years is around 11,000 entries, and the cost is one Firestore read
+  per entry per export.
