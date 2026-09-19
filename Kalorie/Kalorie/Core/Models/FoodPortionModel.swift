@@ -15,7 +15,7 @@ struct FoodPortionDomain: Hashable {
     let grams: Double
 }
 
-enum FoodPortionError: Error {
+enum FoodPortionError: Error, Equatable {
     case invalidName
     case invalidGrams
     case tooMany

@@ -83,16 +83,3 @@ final class FoodItemValidationTests: XCTestCase {
         )
     }
 }
-
-extension FoodItemValidationError: Equatable {
-    public static func == (lhs: FoodItemValidationError, rhs: FoodItemValidationError) -> Bool {
-        switch (lhs, rhs) {
-        case (.invalidCode, .invalidCode), (.invalidName, .invalidName), (.invalidCalories, .invalidCalories), (.invalidWeight, .invalidWeight):
-            return true
-        case (.invalidPortion(let lhsError), .invalidPortion(let rhsError)):
-            return lhsError == rhsError
-        default:
-            return false
-        }
-    }
-}
