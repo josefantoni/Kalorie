@@ -41,6 +41,7 @@ struct AddFoodSheetConfigurator {
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
                 fetchFavouriteFoods: FetchFavouriteFoodsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                refreshFavouriteFood: RefreshFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchMyCreatedMeals: FetchMyCreatedMealsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteMyCreatedMeal: DeleteMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 recognizeNutritionLabel: RecognizeNutritionLabelUseCase(),

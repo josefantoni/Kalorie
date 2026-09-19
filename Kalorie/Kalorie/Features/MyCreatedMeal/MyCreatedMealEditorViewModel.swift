@@ -12,7 +12,7 @@ struct MyCreatedMealIngredientDraft: Identifiable {
     // MARK: - Properties
 
     let id = UUID()
-    let item: FoodItemDomain
+    var item: FoodItemDomain
     var gramsText: String
 }
 
@@ -45,6 +45,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     private let searchFoodExternally: any SearchFoodExternallyUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
+    private let fetchFoodItemsByIds: any FetchFoodItemsByIdsUseCaseProtocol
     private let createMyCreatedMeal: any CreateMyCreatedMealUseCaseProtocol
     private let updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol
     private let onSaved: () -> Void
@@ -76,6 +77,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
         searchFoodExternally: any SearchFoodExternallyUseCaseProtocol,
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
+        fetchFoodItemsByIds: any FetchFoodItemsByIdsUseCaseProtocol,
         createMyCreatedMeal: any CreateMyCreatedMealUseCaseProtocol,
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol,
         existingMeal: MyCreatedMealDomain? = nil,
@@ -87,6 +89,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
         self.searchFoodExternally = searchFoodExternally
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
+        self.fetchFoodItemsByIds = fetchFoodItemsByIds
         self.createMyCreatedMeal = createMyCreatedMeal
         self.updateMyCreatedMeal = updateMyCreatedMeal
         self.onSaved = onSaved
@@ -123,6 +126,28 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     }
 
     // MARK: - Functions
+
+    @MainActor
+    func onAppear() async {
+        guard isEditing else { return }
+        let freshItems: [FoodItemDomain]
+        do {
+            freshItems = try await fetchFoodItemsByIds(ids: ingredients.map(\.item.id))
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.myCreatedMeal)
+            return
+        }
+        let freshById = Dictionary(freshItems.map { ($0.id, $0) }) { first, _ in first }
+        for index in ingredients.indices {
+            guard
+                let fresh = freshById[ingredients[index].item.id],
+                fresh.nutrition != ingredients[index].item.nutrition
+                    || fresh.czName != ingredients[index].item.czName
+                    || fresh.engName != ingredients[index].item.engName
+            else { continue }
+            ingredients[index].item = fresh
+        }
+    }
 
     @MainActor
     func onSearchTextChanged() async {

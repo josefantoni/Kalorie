@@ -34,6 +34,7 @@ struct MyCreatedMealEditorConfigurator {
                 searchFoodExternally: SearchFoodExternallyUseCase(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
+                fetchFoodItemsByIds: FetchFoodItemsByIdsUseCase(dataProvider: dataProvider),
                 createMyCreatedMeal: CreateMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 updateMyCreatedMeal: UpdateMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 existingMeal: existingMeal,

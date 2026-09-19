@@ -184,8 +184,9 @@ midnight (`endMinutes < startMinutes`); `MealKit` owns that arithmetic.
 
 **`favouriteFoods`** (`FavouriteFoodDTO`) — a full copy of the `FoodItemDomain` plus
 `favourited_at`, `portions` included — leaving it out would silently drop a favourited item's
-canonical portions, inconsistent with every other copied field (same staleness caveat **A1-7**
-already accepts for the rest of the snapshot). The document id is the food's own id, and
+canonical portions, inconsistent with every other copied field. The snapshot is refreshed from the catalogue when the
+favourite is tapped (`RefreshFavouriteFoodUseCase`, `.catalogue` items only, rewritten only if it
+differs, `favourited_at` kept, any failure falls back to the stored copy). The document id is the food's own id, and
 `food_item_kind` says which of the three things that id is, exactly as on `foodConsumed`
 (ADR 0025) — required here too. Also carries `measure_unit`, for the same reason `portions` is
 carried: leaving it out would silently relabel a favourited millilitre item as grams. Fetched
@@ -195,7 +196,11 @@ ordered by `favourited_at` descending, limit 50.
 (`MyCreatedMealIngredientDTO`), each a nutrition snapshot plus `grams`. Also carries an optional
 `portions`, the same shape as `foodItems`' — but editable here, through the ordinary
 `CreateMyCreatedMealUseCase` / `UpdateMyCreatedMealUseCase` path, since a meal has no write-once
-constraint to begin with. Fetched ordered by `updated_at` descending, limit 50.
+constraint to begin with. Fetched ordered by `updated_at` descending, limit 50. Opening an existing
+meal in the editor re-reads its ingredients by `food_item_id` (`FetchFoodItemsByIdsUseCase`) and
+applies any catalogue change to the draft as an unsaved edit — nothing is written until the user
+saves. An ingredient whose id is not in the catalogue keeps its snapshot; one that later appears
+there adopts the catalogue values, because the catalogue outranks OpenFoodFacts.
 `MyCreatedMealDomain.asFoodItem()` collapses the meal into a synthetic `FoodItemDomain` whose
 per-100 g values are the gram-weighted mean of the ingredients
 (`MacroKit.weightedMeanPerHundredGrams`), carrying `portions` straight through unchanged, which is

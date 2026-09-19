@@ -210,7 +210,7 @@ struct AddFoodSheetView: View {
                     ForEach(viewModel.favouriteFoods, id: \.id) { item in
                         FoodItemRow(item: item, isFavourite: true)
                             .onTapGesture {
-                                viewModel.onSelectFoodItem(item)
+                                Task { await viewModel.onSelectFavouriteFood(item) }
                             }
                     }
                 }
@@ -432,6 +432,7 @@ struct AddFoodSheetView: View {
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
             fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
             fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(),
+            refreshFavouriteFood: RefreshFavouriteFoodUseCaseFake(),
             fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(),
             deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseFake(),
             recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
@@ -469,6 +470,7 @@ struct AddFoodSheetView: View {
                     searchFoodExternally: SearchFoodExternallyUseCaseFake(),
                     fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                     fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
+                    fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(),
                     createMyCreatedMeal: CreateMyCreatedMealUseCaseFake(),
                     updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
                     onSaved: onSaved
@@ -482,6 +484,7 @@ struct AddFoodSheetView: View {
                 searchFoodExternally: SearchFoodExternallyUseCaseFake(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
+                fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(),
                 createMyCreatedMeal: CreateMyCreatedMealUseCaseFake(),
                 updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
                 onSaved: onSaved

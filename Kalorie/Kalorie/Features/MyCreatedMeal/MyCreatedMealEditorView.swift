@@ -111,6 +111,7 @@ struct MyCreatedMealEditorView: View {
                 viewModel.isScannerVisible = false
             }
         }
+        .task { await viewModel.onAppear() }
         .task(id: viewModel.searchText) { await viewModel.onSearchTextChanged() }
         .onChange(of: focusedIngredientId) { oldValue, newValue in
             guard let oldValue, oldValue != newValue else { return }
@@ -183,6 +184,7 @@ struct MyCreatedMealEditorView: View {
                 searchFoodExternally: SearchFoodExternallyUseCaseFake(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
+                fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(),
                 createMyCreatedMeal: CreateMyCreatedMealUseCaseFake(),
                 updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake()
             )

@@ -255,6 +255,32 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isPushedToQuantityView)
     }
 
+    // MARK: - onSelectFavouriteFood
+
+    @MainActor
+    func test_onSelectFavouriteFood_whenCatalogueCorrectedItem_selectsAndReplacesWithFreshItem() async {
+        let stale = makeFoodItem(id: "fav", czName: "Ovar")
+        let corrected = makeFoodItem(id: "fav", czName: "Ovar opravený")
+        let sut = makeSUT(
+            fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(stubbedItems: [stale]),
+            refreshFavouriteFood: RefreshFavouriteFoodUseCaseFake(stubbedItem: corrected)
+        )
+        await sut.onAppear()
+        await sut.onSelectFavouriteFood(stale)
+        XCTAssertEqual(sut.selectedFoodItem, corrected)
+        XCTAssertEqual(sut.favouriteFoods, [corrected])
+        XCTAssertTrue(sut.isPushedToQuantityView)
+    }
+
+    @MainActor
+    func test_onSelectFavouriteFood_whenRefreshFails_stillSelectsTheStoredSnapshot() async {
+        let stale = makeFoodItem(id: "fav", czName: "Ovar")
+        let sut = makeSUT(refreshFavouriteFood: RefreshFavouriteFoodUseCaseFake(shouldThrow: true))
+        await sut.onSelectFavouriteFood(stale)
+        XCTAssertEqual(sut.selectedFoodItem, stale)
+        XCTAssertTrue(sut.isPushedToQuantityView)
+    }
+
     // MARK: - displayedResults
 
     @MainActor
@@ -624,6 +650,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol = FetchFavouriteFoodsUseCaseFake(),
+        refreshFavouriteFood: any RefreshFavouriteFoodUseCaseProtocol = RefreshFavouriteFoodUseCaseFake(),
         fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol = FetchMyCreatedMealsUseCaseFake(),
         deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol = DeleteMyCreatedMealUseCaseFake(),
         recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
@@ -640,6 +667,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             fetchFavouriteFoods: fetchFavouriteFoods,
+            refreshFavouriteFood: refreshFavouriteFood,
             fetchMyCreatedMeals: fetchMyCreatedMeals,
             deleteMyCreatedMeal: deleteMyCreatedMeal,
             recognizeNutritionLabel: recognizeNutritionLabel,
