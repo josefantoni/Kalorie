@@ -71,7 +71,7 @@ final class ModerationReportsViewModelTests: XCTestCase {
 
         await sut.onAppear()
 
-        XCTAssertEqual(sut.groups.first?.itemName, "Tvaroh")
+        XCTAssertEqual(sut.groups.first?.itemName, item.displayName)
     }
 
     @MainActor
