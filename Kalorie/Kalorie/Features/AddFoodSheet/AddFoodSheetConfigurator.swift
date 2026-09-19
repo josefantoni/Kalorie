@@ -42,6 +42,7 @@ struct AddFoodSheetConfigurator {
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
                 fetchFavouriteFoods: FetchFavouriteFoodsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchMyCreatedMeals: FetchMyCreatedMealsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                deleteMyCreatedMeal: DeleteMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 recognizeNutritionLabel: RecognizeNutritionLabelUseCase(),
                 cameraAuthorizationProvider: CameraAuthorizationProvider(),
                 onFoodSaved: onFoodSaved,
@@ -71,9 +72,12 @@ struct AddFoodSheetConfigurator {
                         unit: meal != nil ? .grams : FoodQuantityViewModel.defaultUnit(for: item)
                     )
                 )
+            },
+            makeMealEditorView: { onSaved in
+                mealEditorConfigurator.createView(onSaved: onSaved, dismissesOnSave: false)
             }
-        ) { onSaved in
-            mealEditorConfigurator.createView(onSaved: onSaved, dismissesOnSave: false)
+        ) { meal, onSaved in
+            mealEditorConfigurator.createView(existingMeal: meal, onSaved: onSaved)
         }
     }
 }

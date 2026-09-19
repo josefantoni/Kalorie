@@ -19,17 +19,20 @@ struct AddFoodSheetView: View {
     @Environment(\.scenePhase) private var scenePhase
     private let makeFoodQuantityView: (FoodItemDomain, Bool, MyCreatedMealDomain?, @escaping () -> Void, @escaping (String, Bool) -> Void, @escaping (MyCreatedMealDomain) -> Void) -> FoodQuantityView
     private let makeMealEditorView: (@escaping () -> Void) -> MyCreatedMealEditorView
+    private let makeEditMealView: (MyCreatedMealDomain, @escaping () -> Void) -> MyCreatedMealEditorView
 
     // MARK: - Init
 
     init(
         viewModel: AddFoodSheetViewModel,
         makeFoodQuantityView: @escaping (FoodItemDomain, Bool, MyCreatedMealDomain?, @escaping () -> Void, @escaping (String, Bool) -> Void, @escaping (MyCreatedMealDomain) -> Void) -> FoodQuantityView,
-        makeMealEditorView: @escaping (@escaping () -> Void) -> MyCreatedMealEditorView
+        makeMealEditorView: @escaping (@escaping () -> Void) -> MyCreatedMealEditorView,
+        makeEditMealView: @escaping (MyCreatedMealDomain, @escaping () -> Void) -> MyCreatedMealEditorView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeFoodQuantityView = makeFoodQuantityView
         self.makeMealEditorView = makeMealEditorView
+        self.makeEditMealView = makeEditMealView
     }
 
     // MARK: - Body
@@ -118,15 +121,35 @@ struct AddFoodSheetView: View {
             }
             .navigationDestination(isPresented: $viewModel.isPushedToQuantityView) {
                 if let item = viewModel.selectedFoodItem {
-                    makeFoodQuantityView(item, viewModel.isFavourite(item), viewModel.myCreatedMeal(for: item), viewModel.onFoodConsumedSaved, { id, isFavourite in
+                    let meal = viewModel.myCreatedMeal(for: item)
+                    let quantityView = makeFoodQuantityView(item, viewModel.isFavourite(item), meal, viewModel.onFoodConsumedSaved, { id, isFavourite in
                         viewModel.onFavouriteChanged(id: id, isFavourite: isFavourite, item: item)
                     }) { updatedMeal in
                         viewModel.onMyCreatedMealUpdated(updatedMeal)
+                    }
+                    if let meal {
+                        quantityView.mealActions(
+                            makeEditorView: {
+                                makeEditMealView(meal) {
+                                    Task { await viewModel.onMyCreatedMealSaved() }
+                                }
+                            }
+                        ) {
+                            Task { await viewModel.onDeleteMealConfirmed(meal) }
+                        }
+                    } else {
+                        quantityView
                     }
                 }
             }
             .navigationDestination(isPresented: $viewModel.isReviewPushed) {
                 newItemReviewView
+            }
+            .alert(L10n.MyCreatedMeal.confirmDelete, isPresented: $viewModel.isMealDeleteConfirmationVisible) {
+                Button(L10n.Common.buttonNo, role: .cancel) {}
+                Button(L10n.Common.buttonYes, role: .destructive) {
+                    Task { await viewModel.onDeleteMealConfirmed() }
+                }
             }
             .toolbar {
                 DismissToolbarItem()
@@ -195,10 +218,23 @@ struct AddFoodSheetView: View {
             if viewModel.searchText.isEmpty && !viewModel.myCreatedMeals.isEmpty {
                 Section(header: Text(L10n.AddFood.sectionMyCreatedMeals)) {
                     ForEach(viewModel.myCreatedMeals, id: \.id) { meal in
-                        FoodItemRow(item: meal.asFoodItem(), isFavourite: false)
-                            .onTapGesture {
-                                viewModel.onSelectFoodItem(meal.asFoodItem())
+                        HStack {
+                            FoodItemRow(item: meal.asFoodItem(), isFavourite: false)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            viewModel.onSelectFoodItem(meal.asFoodItem())
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                viewModel.onDeleteMealRequested(meal)
+                            } label: {
+                                Image(systemName: "trash")
                             }
+                        }
                     }
                 }
             }
@@ -397,6 +433,7 @@ struct AddFoodSheetView: View {
             fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
             fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(),
             fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(),
+            deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseFake(),
             recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
             cameraAuthorizationProvider: CameraAuthorizationProviderFake()
         ),
@@ -424,8 +461,21 @@ struct AddFoodSheetView: View {
                     unit: meal != nil ? .grams : FoodQuantityViewModel.defaultUnit(for: item)
                 )
             )
+        },
+        makeMealEditorView: { onSaved in
+            MyCreatedMealEditorView(
+                viewModel: MyCreatedMealEditorViewModel(
+                    searchFoodItems: SearchFoodItemsUseCaseFake(),
+                    searchFoodExternally: SearchFoodExternallyUseCaseFake(),
+                    fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
+                    fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
+                    createMyCreatedMeal: CreateMyCreatedMealUseCaseFake(),
+                    updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
+                    onSaved: onSaved
+                )
+            )
         }
-    ) { onSaved in
+    ) { _, onSaved in
         MyCreatedMealEditorView(
             viewModel: MyCreatedMealEditorViewModel(
                 searchFoodItems: SearchFoodItemsUseCaseFake(),

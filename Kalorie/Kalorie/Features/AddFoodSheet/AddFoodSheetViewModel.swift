@@ -195,6 +195,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     @Published var nutritionLabelCameraHint: String?
     @Published var cameraAccess: CameraAccess
     @Published var isReviewPushed = false
+    @Published var isMealDeleteConfirmationVisible = false
     @Published var isBarcodeRescanVisible = false
     @Published var rescannedBarcode = ""
     @Published var localFoodItems: [FoodItemDomain] = []
@@ -232,12 +233,14 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
     private let fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol
     private let fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol
+    private let deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol
     private let recognizeNutritionLabelUseCase: any RecognizeNutritionLabelUseCaseProtocol
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
     private let onFoodSaved: () -> Void
     private var editingSubmissionId: String?
     private var isNutritionLabelCameraReviewPending = false
     private var submissionPendingDeletion: FoodItemSubmissionDomain?
+    private var mealPendingDeletion: MyCreatedMealDomain?
 
     var displayedResults: [FoodItemDomain] {
         let query = searchText.lowercased()
@@ -274,6 +277,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
         fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol,
         fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol,
+        deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol,
         recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol,
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
         onFoodSaved: @escaping () -> Void = {},
@@ -290,6 +294,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
         self.fetchFavouriteFoods = fetchFavouriteFoods
         self.fetchMyCreatedMeals = fetchMyCreatedMeals
+        self.deleteMyCreatedMeal = deleteMyCreatedMeal
         self.recognizeNutritionLabelUseCase = recognizeNutritionLabel
         self.cameraAuthorizationProvider = cameraAuthorizationProvider
         self.cameraAccess = cameraAuthorizationProvider.status
@@ -350,6 +355,32 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         guard isNutritionLabelCameraReviewPending else { return }
         isNutritionLabelCameraReviewPending = false
         isReviewPushed = true
+    }
+
+    func onDeleteMealRequested(_ meal: MyCreatedMealDomain) {
+        mealPendingDeletion = meal
+        isMealDeleteConfirmationVisible = true
+    }
+
+    @MainActor
+    func onDeleteMealConfirmed() async {
+        guard let meal = mealPendingDeletion else { return }
+        mealPendingDeletion = nil
+        await onDeleteMealConfirmed(meal)
+    }
+
+    @MainActor
+    func onDeleteMealConfirmed(_ meal: MyCreatedMealDomain) async {
+        isPushedToQuantityView = false
+        let index = myCreatedMeals.firstIndex { $0.id == meal.id }
+        myCreatedMeals.removeAll { $0.id == meal.id }
+        do {
+            try await deleteMyCreatedMeal(id: meal.id)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.addFoodSheet)
+            if let index { myCreatedMeals.insert(meal, at: min(index, myCreatedMeals.count)) }
+            alertItem = AlertItem(title: L10n.MyCreatedMeal.errorDeleteFailed)
+        }
     }
 
     func onBarcodeRescanTapped() {
@@ -458,6 +489,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     @MainActor
     func onMyCreatedMealSaved() async {
         mode = .search
+        isPushedToQuantityView = false
         do {
             myCreatedMeals = try await fetchMyCreatedMeals()
         } catch {

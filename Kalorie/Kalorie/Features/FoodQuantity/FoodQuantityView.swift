@@ -14,6 +14,10 @@ struct FoodQuantityView: View {
     @StateObject private var viewModel: FoodQuantityViewModel
     @FocusState private var isQuantityFocused: Bool
     @State private var quantityText = "1"
+    @State private var isDeleteConfirmationVisible = false
+    @State private var isMealEditorPushed = false
+    private var makeMealEditorView: (() -> MyCreatedMealEditorView)?
+    private var onDeleteMealConfirmed: (() -> Void)?
 
     // MARK: - Init
 
@@ -51,6 +55,21 @@ struct FoodQuantityView: View {
                 macroRow(label: L10n.FoodQuantity.fiber, value: viewModel.scaledFiber.formattedGrams())
                 macroRow(label: L10n.AddFood.fieldSalt, value: viewModel.scaledSalt.formattedGrams(fractionDigits: 2))
             }
+
+            if onDeleteMealConfirmed != nil {
+                Section {
+                    Button(L10n.MyCreatedMeal.buttonDelete, role: .destructive) {
+                        isDeleteConfirmationVisible = true
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+        }
+        .alert(L10n.MyCreatedMeal.confirmDelete, isPresented: $isDeleteConfirmationVisible) {
+            Button(L10n.Common.buttonCancel, role: .cancel) {}
+            Button(L10n.MyCreatedMeal.buttonDelete, role: .destructive) {
+                onDeleteMealConfirmed?()
+            }
         }
         .loader(viewModel.state.isLoading)
         .alert(item: $viewModel.alertItem) { item in
@@ -61,6 +80,16 @@ struct FoodQuantityView: View {
             )
         }
         .toolbar {
+            if makeMealEditorView != nil {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        isMealEditorPushed = true
+                    } label: {
+                        Image(systemName: "pencil")
+                    }
+                    .accessibilityLabel(L10n.MyCreatedMeal.buttonEdit)
+                }
+            }
             if viewModel.canReportIncorrectData {
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
@@ -86,6 +115,11 @@ struct FoodQuantityView: View {
         .navigationDestination(isPresented: $viewModel.isPersonalPortionsManagerPushed) {
             FoodPortionsManagerView(viewModel: viewModel)
         }
+        .navigationDestination(isPresented: $isMealEditorPushed) {
+            if let makeMealEditorView {
+                makeMealEditorView()
+            }
+        }
         .alert(L10n.FoodItemReport.alertTitle, isPresented: $viewModel.isReportReasonAlertVisible) {
             TextField(L10n.FoodItemReport.alertPlaceholder, text: $viewModel.reportReasonText)
             Button(L10n.Common.buttonCancel, role: .cancel) {}
@@ -96,6 +130,13 @@ struct FoodQuantityView: View {
     }
 
     // MARK: - Functions
+
+    func mealActions(makeEditorView: @escaping () -> MyCreatedMealEditorView, onDelete: @escaping () -> Void) -> Self {
+        var copy = self
+        copy.makeMealEditorView = makeEditorView
+        copy.onDeleteMealConfirmed = onDelete
+        return copy
+    }
 
     var quantityRow: some View {
         HStack {

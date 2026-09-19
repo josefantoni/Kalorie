@@ -13,11 +13,8 @@ struct MealTypeSheetView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: MealTypeSheetViewModel
-    @StateObject private var myCreatedMealListViewModel: MyCreatedMealListViewModel
     @FocusState private var focusedField: Field?
     @State private var editMode: EditMode = .inactive
-
-    private let makeEditorView: (MyCreatedMealDomain, @escaping () -> Void) -> MyCreatedMealEditorView
 
     private enum Field: Int, CaseIterable {
         case newMealName
@@ -25,14 +22,8 @@ struct MealTypeSheetView: View {
 
     // MARK: - Init
 
-    init(
-        viewModel: MealTypeSheetViewModel,
-        myCreatedMealListViewModel: MyCreatedMealListViewModel,
-        makeEditorView: @escaping (MyCreatedMealDomain, @escaping () -> Void) -> MyCreatedMealEditorView
-    ) {
+    init(viewModel: MealTypeSheetViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
-        _myCreatedMealListViewModel = StateObject(wrappedValue: myCreatedMealListViewModel)
-        self.makeEditorView = makeEditorView
     }
 
     // MARK: - Body
@@ -41,35 +32,6 @@ struct MealTypeSheetView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 List {
-                    Section(header: Text(L10n.MyCreatedMeal.listTitle)) {
-                        if myCreatedMealListViewModel.meals.isEmpty && !myCreatedMealListViewModel.state.isLoading {
-                            Text(L10n.MyCreatedMeal.listEmpty)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        ForEach(myCreatedMealListViewModel.meals, id: \.id) { meal in
-                            NavigationLink {
-                                makeEditorView(meal) {
-                                    Task { await myCreatedMealListViewModel.onSaved() }
-                                }
-                            } label: {
-                                HStack {
-                                    Text(meal.name)
-                                    Spacer()
-                                    Text("\(Int(meal.ingredients.reduce(0) { $0 + $1.grams })) g")
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .swipeActions(edge: .trailing) {
-                                Button(role: .destructive) {
-                                    myCreatedMealListViewModel.onDeleteRequested(meal)
-                                } label: {
-                                    Image(systemName: "trash")
-                                }
-                            }
-                        }
-                    }
-
                     Section(
                         header: HStack {
                             Text(L10n.MealTypeSheet.sectionMealLayout)
@@ -124,26 +86,12 @@ struct MealTypeSheetView: View {
             }
             .loader(viewModel.state.isLoading)
             .interactiveDismissDisabled(editMode == .active)
-            .task { await myCreatedMealListViewModel.onAppear() }
             .alert(item: $viewModel.alertItem) { item in
                 Alert(
                     title: Text(item.title),
                     message: item.message.map(Text.init),
                     dismissButton: Alert.Button.default(Text(L10n.Common.ok))
                 )
-            }
-            .alert(item: $myCreatedMealListViewModel.alertItem) { item in
-                Alert(
-                    title: Text(item.title),
-                    message: item.message.map(Text.init),
-                    dismissButton: .default(Text(L10n.Common.ok))
-                )
-            }
-            .alert(L10n.MyCreatedMeal.confirmDelete, isPresented: $myCreatedMealListViewModel.isDeleteConfirmationVisible) {
-                Button(L10n.Common.buttonNo, role: .cancel) {}
-                Button(L10n.Common.buttonYes, role: .destructive) {
-                    Task { await myCreatedMealListViewModel.onDeleteConfirmed() }
-                }
             }
         }
     }

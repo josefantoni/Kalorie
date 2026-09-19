@@ -1248,3 +1248,25 @@ the editor + entry point, search integration, and the *Vlastní jídla* manageme
   editor no longer draws anything in `.topBarTrailing`. `MyCreatedMealEditorViewModelTests` needed
   no changes — the tests already assert on `canSave`, not on the toolbar — and all 27 pass
   unmodified; full suite and `xcodebuild build` still green.
+
+## Update — 2026-09-19: management moved from `MealTypeSheetView` to the add-food sheet
+
+The *Vlastní jídla* section in `MealTypeSheetView` (edit, swipe-to-delete) is gone. Editing and
+deleting a created meal now happen where the meal is actually picked. On its row in
+`AddFoodSheetView`'s *Vlastní jídla* section, a trailing chevron signals that a tap pushes to the
+quantity screen, and a trailing swipe deletes after a confirmation alert. On that quantity screen,
+a pencil in the leading toolbar pushes `MyCreatedMealEditorView`, and a red *Delete meal* button in
+a last section deletes after the same kind of alert. An edit gear on the row was tried first and
+dropped: a pencil next to the back button follows where secondary actions already sit on this
+screen, and a destructive button at the end of the list follows the HIG's placement for one.
+
+- `MyCreatedMealListViewModel` and its tests were deleted; its delete logic (optimistic removal,
+  restore at the original index and alert on failure) moved into `AddFoodSheetViewModel`, which
+  already held `myCreatedMeals`. `AddFoodSheetViewModel` therefore takes a
+  `DeleteMyCreatedMealUseCaseProtocol`.
+- A dedicated list screen was tried first and dropped: it only repeated the rows already visible
+  in the search list.
+- The design decision *An inline section inside `MealTypeSheetView`* above no longer holds. The
+  *Rozvržení jídel* section and its *Upravit*/*Hotovo* button are unchanged.
+- Not verified on a device or in the simulator; compilation and `AddFoodSheetViewModelTests`
+  only.
