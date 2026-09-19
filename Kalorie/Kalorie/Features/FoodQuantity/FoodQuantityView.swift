@@ -19,7 +19,7 @@ struct FoodQuantityView: View {
 
     init(viewModel: FoodQuantityViewModel) {
         self._viewModel = StateObject(wrappedValue: viewModel)
-        self._quantityText = State(initialValue: Self.formattedQuantity(viewModel.quantity))
+        self._quantityText = State(initialValue: viewModel.quantity.formattedTrimmed())
     }
 
     // MARK: - Body
@@ -27,6 +27,16 @@ struct FoodQuantityView: View {
     var body: some View {
         List {
             Section {
+                HStack {
+                    Text(viewModel.item.displayName)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Spacer()
+                    FavouriteButton(isFavourite: viewModel.isFavourite) {
+                        Task { await viewModel.onFavouriteToggled() }
+                    }
+                    .disabled(viewModel.isTogglingFavourite)
+                }
                 quantityRow
             }
 
@@ -37,22 +47,7 @@ struct FoodQuantityView: View {
                 macroRow(label: L10n.FoodQuantity.fat, value: viewModel.scaledFat.formattedGrams())
                 macroRow(label: L10n.FoodQuantity.fiber, value: viewModel.scaledFiber.formattedGrams())
             }
-
-            Section {
-                HStack {
-                    Spacer()
-                    FavouriteButton(isFavourite: viewModel.isFavourite) {
-                        Task { await viewModel.onFavouriteToggled() }
-                    }
-                    .disabled(viewModel.isTogglingFavourite)
-                    Spacer()
-                }
-            }
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
         }
-        .navigationTitle(viewModel.item.displayName)
-        .navigationBarTitleDisplayMode(.inline)
         .loader(viewModel.state.isLoading)
         .alert(item: $viewModel.alertItem) { item in
             Alert(
@@ -70,7 +65,7 @@ struct FoodQuantityView: View {
             }
         }
         .task { await viewModel.onAppear() }
-        .sheet(isPresented: $viewModel.isPersonalPortionsSheetVisible) {
+        .navigationDestination(isPresented: $viewModel.isPersonalPortionsManagerPushed) {
             FoodPortionsManagerView(viewModel: viewModel)
         }
     }
@@ -103,26 +98,39 @@ struct FoodQuantityView: View {
                     let normalized = sanitized.replacingOccurrences(of: ",", with: ".")
                     viewModel.quantity = Double(normalized) ?? 0
                 }
-            Picker("", selection: $viewModel.unit) {
-                ForEach(viewModel.unitOptions, id: \.self) { option in
-                    Text(Self.label(for: option, measure: viewModel.item.measure)).tag(option)
+            Text(verbatim: "×")
+                .foregroundStyle(.secondary)
+            Menu {
+                Picker("", selection: unitBinding) {
+                    ForEach(viewModel.unitOptions, id: \.self) { option in
+                        Text(Self.label(for: option, measure: viewModel.item.measure)).tag(option)
+                    }
+                }
+                if viewModel.isPersonalPortionsAvailable {
+                    Divider()
+                    Button(L10n.FoodQuantity.buttonMyPortions) {
+                        viewModel.isPersonalPortionsManagerPushed = true
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(Self.label(for: viewModel.unit, measure: viewModel.item.measure))
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
-            .pickerStyle(.menu)
-            .onChange(of: viewModel.unit) { oldUnit, newUnit in
-                viewModel.onUnitChanged(from: oldUnit, to: newUnit)
-                quantityText = Self.formattedQuantity(viewModel.quantity)
-            }
-
-            if viewModel.isPersonalPortionsAvailable {
-                Button {
-                    viewModel.isPersonalPortionsSheetVisible = true
-                } label: {
-                    Image(systemName: "bookmark")
-                }
-                .accessibilityLabel(L10n.FoodQuantity.buttonMyPortions)
+            .onChange(of: viewModel.unit) { _, _ in
+                quantityText = viewModel.quantity.formattedTrimmed()
             }
         }
+    }
+
+    var unitBinding: Binding<FoodQuantityUnit> {
+        Binding(
+            get: { viewModel.unit },
+            set: { viewModel.onUnitSelected($0) }
+        )
     }
 
     func macroRow(label: String, value: String) -> some View {
@@ -141,17 +149,6 @@ struct FoodQuantityView: View {
         case .hundredGrams: return measure == .grams ? L10n.FoodQuantity.unitHundredGrams : L10n.FoodQuantity.unitHundredMillilitres
         case .portion(let portion): return "\(portion.name) (\(portion.grams.formattedAmount(measure: measure)))"
         }
-    }
-
-    static func formattedQuantity(_ value: Double) -> String {
-        var text = String(format: "%.2f", value)
-        while text.hasSuffix("0") {
-            text.removeLast()
-        }
-        if text.hasSuffix(".") {
-            text.removeLast()
-        }
-        return text
     }
 }
 

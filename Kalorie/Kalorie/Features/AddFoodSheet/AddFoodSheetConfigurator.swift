@@ -62,7 +62,7 @@ struct AddFoodSheetConfigurator {
                         saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         onSaved: onSaved,
                         onFavouriteChanged: onFavouriteChanged,
-                        quantity: isMyCreatedMeal ? item.weight : 1,
+                        quantity: isMyCreatedMeal ? item.weight : (item.portions.isEmpty ? 100 : 1),
                         unit: isMyCreatedMeal ? .grams : FoodQuantityViewModel.defaultUnit(for: item)
                     )
                 )

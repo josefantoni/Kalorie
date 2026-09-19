@@ -29,6 +29,18 @@ struct FoodConsumedDetailView: View {
         let macros = viewModel.scaledMacros
         List {
             Section {
+                HStack {
+                    Text(viewModel.food.displayName)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Spacer()
+                    if viewModel.canShowFavouriteButton {
+                        FavouriteButton(isFavourite: viewModel.isFavourite) {
+                            Task { await viewModel.onFavouriteToggled() }
+                        }
+                        .disabled(!viewModel.canToggleFavourite)
+                    }
+                }
                 LabeledContent(L10n.AddFood.fieldWeight) {
                     HStack(spacing: 4) {
                         TextField("0", text: $weightText)
@@ -100,24 +112,7 @@ struct FoodConsumedDetailView: View {
                     Text(macros.salt.formattedGrams(fractionDigits: 2))
                 }
             }
-
-            if viewModel.canShowFavouriteButton {
-                Section {
-                    HStack {
-                        Spacer()
-                        FavouriteButton(isFavourite: viewModel.isFavourite) {
-                            Task { await viewModel.onFavouriteToggled() }
-                        }
-                        .disabled(!viewModel.canToggleFavourite)
-                        Spacer()
-                    }
-                }
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            }
         }
-        .navigationTitle(viewModel.food.displayName)
-        .navigationBarTitleDisplayMode(.large)
         .loader(viewModel.state.isLoading)
         .task { await viewModel.onAppear() }
         .toolbar {

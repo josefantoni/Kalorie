@@ -180,22 +180,22 @@ struct AddFoodSheetView: View {
                     }
                 }
             }
-            if viewModel.searchText.isEmpty && !viewModel.myCreatedMeals.isEmpty {
-                Section(header: Text(L10n.AddFood.sectionMyCreatedMeals)) {
-                    ForEach(viewModel.myCreatedMeals, id: \.id) { meal in
-                        FoodItemRow(item: meal.asFoodItem(), isFavourite: false)
-                            .onTapGesture {
-                                viewModel.onSelectFoodItem(meal.asFoodItem())
-                            }
-                    }
-                }
-            }
             if viewModel.searchText.isEmpty && !viewModel.favouriteFoods.isEmpty {
                 Section(header: Text(L10n.AddFood.sectionFavourites)) {
                     ForEach(viewModel.favouriteFoods, id: \.id) { item in
                         FoodItemRow(item: item, isFavourite: true)
                             .onTapGesture {
                                 viewModel.onSelectFoodItem(item)
+                            }
+                    }
+                }
+            }
+            if viewModel.searchText.isEmpty && !viewModel.myCreatedMeals.isEmpty {
+                Section(header: Text(L10n.AddFood.sectionMyCreatedMeals)) {
+                    ForEach(viewModel.myCreatedMeals, id: \.id) { meal in
+                        FoodItemRow(item: meal.asFoodItem(), isFavourite: false)
+                            .onTapGesture {
+                                viewModel.onSelectFoodItem(meal.asFoodItem())
                             }
                     }
                 }
@@ -385,7 +385,7 @@ struct AddFoodSheetView: View {
                     saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
                     onSaved: onSaved,
                     onFavouriteChanged: onFavouriteChanged,
-                    quantity: isMyCreatedMeal ? item.weight : 1,
+                    quantity: isMyCreatedMeal ? item.weight : (item.portions.isEmpty ? 100 : 1),
                     unit: isMyCreatedMeal ? .grams : FoodQuantityViewModel.defaultUnit(for: item)
                 )
             )

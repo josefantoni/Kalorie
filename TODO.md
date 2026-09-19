@@ -41,13 +41,29 @@ The app works with three kinds of data. The distinction matters for the items be
   maintained. This is the other half of what used to be one combined line here; the first half —
   a food carrying a named, user-chosen package/portion weight selectable as a unit — shipped as
   [design 0008](docs/design/0008-food-portions.md).
-- [ ] **Food measured in grams or millilitres** — decided and specified in
-  [design 0011](docs/design/0011-food-measure-grams-or-millilitres.md), ready to implement. Replaces
-  the former *Unit choice when creating a food item* line: a client-only g/kg/ml/l input was found
-  to change nothing after saving, since `FoodItemDomain.weight` drives no calculation, while
-  [design 0010](docs/design/0010-nutrition-label-photo-prefill.md)'s parser already stores per-100 ml
-  labels as per-100 g. The fix is an optional `measure_unit` field carried from `foodItems` to
-  `foodConsumed`, with numbers never converted.
+- [ ] **Meal type picker on the quantity screen** — let the user choose which meal window a food is
+  logged into at the moment of logging, instead of only being able to move it afterwards. The pin
+  itself already exists ([ADR 0022](docs/adr/0022-meal-assignment-may-be-pinned-by-the-user.md)) and
+  so does the infrastructure: `FoodQuantityViewModel` already holds and fetches `mealTypes`. It
+  belongs in a `List` row, not the toolbar — its counterpart on the sister screen
+  (`FoodConsumedDetailView.swift:59-71`) is already a row, and keeping it there leaves the toolbar at
+  one item. Two decisions ADR 0022 settled only for the *edit* screen come back here and are **not
+  yet made**, so this needs its own record before it is built:
+  - **What the picker defaults to.** `SaveFoodConsumedUseCase` resolves the window itself at write
+    time from the entry's time of day (ADR 0022 `:43`). Pre-selecting that in the picker means
+    duplicating the resolve above the use case; starting empty means the screen offers less than the
+    use case already infers.
+  - **Whether a "by time of day" option exists.** It deliberately does not on the edit screen
+    (ADR 0022 `:94` — the picker "can only ever move a pin to a concrete meal type, never clear
+    it"). Adding one here diverges from that screen; omitting one makes every *new* entry pinned,
+    which retires the implicit time-of-day path (`ARCHITECTURE.md` § 3.2) for anything logged from
+    now on.
+
+  Worth knowing either way: this partly answers the trailing *unassigned foods* section — a food
+  logged outside every window can be placed by hand instead of landing there with no recourse. It
+  does **not** touch which *day* an entry lands on; a pin governs the section within a day and
+  `date` is never rewritten (§ 3.2), so a post-midnight entry for the previous day stays out of
+  reach.
 
 ## Documentation baseline
 

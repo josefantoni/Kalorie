@@ -84,46 +84,71 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.unit, .grams)
     }
 
-    // MARK: - onUnitChanged
+    // MARK: - onUnitSelected
 
-    func test_onUnitChanged_toGrams_convertsQuantity() {
+    func test_onUnitSelected_toGrams_convertsQuantity() {
         let sut = makeSUT()
+        sut.unit = .hundredGrams
         sut.quantity = 1
-        sut.onUnitChanged(from: .hundredGrams, to: .grams)
+        sut.onUnitSelected(.grams)
         XCTAssertEqual(sut.quantity, 100)
     }
 
-    func test_onUnitChanged_toHundredGrams_convertsQuantity() {
+    func test_onUnitSelected_toHundredGrams_convertsQuantity() {
         let sut = makeSUT()
         sut.unit = .grams
         sut.quantity = 200
-        sut.onUnitChanged(from: .grams, to: .hundredGrams)
+        sut.onUnitSelected(.hundredGrams)
         XCTAssertEqual(sut.quantity, 2)
     }
 
-    func test_onUnitChanged_toHundredGrams_keepsFraction() {
+    func test_onUnitSelected_toHundredGrams_keepsFraction() {
         let sut = makeSUT()
         sut.unit = .grams
         sut.quantity = 150
-        sut.onUnitChanged(from: .grams, to: .hundredGrams)
+        sut.onUnitSelected(.hundredGrams)
         XCTAssertEqual(sut.quantity, 1.5)
     }
 
-    func test_onUnitChanged_toHundredGrams_belowFiftyGrams_doesNotFloorToOne() {
+    func test_onUnitSelected_toHundredGrams_belowFiftyGrams_doesNotFloorToOne() {
         let sut = makeSUT()
         sut.unit = .grams
         sut.quantity = 20
-        sut.onUnitChanged(from: .grams, to: .hundredGrams)
+        sut.onUnitSelected(.hundredGrams)
         XCTAssertEqual(sut.quantity, 0.2)
     }
 
-    func test_onUnitChanged_toHundredGramsAndBack_roundTripsExactly() {
+    func test_onUnitSelected_toHundredGramsAndBack_roundTripsExactly() {
         let sut = makeSUT()
         sut.unit = .grams
         sut.quantity = 150
-        sut.onUnitChanged(from: .grams, to: .hundredGrams)
-        sut.onUnitChanged(from: .hundredGrams, to: .grams)
+        sut.onUnitSelected(.hundredGrams)
+        sut.onUnitSelected(.grams)
         XCTAssertEqual(sut.quantity, 150)
+    }
+
+    func test_onUnitSelected_setsUnit() {
+        let sut = makeSUT()
+        let portion = FoodPortionDomain(name: "1 balení", grams: 250)
+        sut.onUnitSelected(.portion(portion))
+        XCTAssertEqual(sut.unit, .portion(portion))
+    }
+
+    @MainActor
+    func test_onUnitSelected_thenOnAppearResolvesPersonalPortions_doesNotOverrideUserChoice() async {
+        let cataloguePortion = FoodPortionDomain(name: "1 balení", grams: 250)
+        let personalPortion = FoodPortionDomain(name: "1 hrnek", grams: 40)
+        let sut = makeSUT(
+            item: makeFoodItem(portions: [cataloguePortion]),
+            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [personalPortion])
+        )
+        sut.onUnitSelected(.grams)
+        await sut.onAppear()
+        XCTAssertEqual(
+            sut.unit,
+            .grams,
+            "a personal portion resolving after the user already picked a unit must not override that choice"
+        )
     }
 
     // MARK: - onConfirm
@@ -194,14 +219,14 @@ final class FoodQuantityViewModelTests: XCTestCase {
 
     // MARK: - unitOptions
 
-    func test_unitOptions_ordersCataloguePortionsBeforeGramsBeforeHundredGrams() {
+    func test_unitOptions_ordersCataloguePortionBeforeGramsBeforeHundredGrams() {
         let slice = FoodPortionDomain(name: "1 plátek", grams: 30)
         let sut = makeSUT(item: makeFoodItem(portions: [slice]))
         XCTAssertEqual(sut.unitOptions, [.portion(slice), .grams, .hundredGrams])
     }
 
     @MainActor
-    func test_unitOptions_ordersPersonalPortionsAfterCataloguePortionsAndBeforeGrams() async {
+    func test_unitOptions_ordersPersonalPortionsBeforeCataloguePortionsAndGenericUnits() async {
         let cataloguePortion = FoodPortionDomain(name: "1 balení", grams: 250)
         let personalPortion = FoodPortionDomain(name: "1 hrnek", grams: 40)
         let sut = makeSUT(
@@ -211,8 +236,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
         await sut.onAppear()
         XCTAssertEqual(
             sut.unitOptions,
-            [.portion(cataloguePortion), .portion(personalPortion), .grams, .hundredGrams],
-            "portions must lead the list so the item's own package/portion sizes are the fastest pick"
+            [.portion(personalPortion), .portion(cataloguePortion), .grams, .hundredGrams],
+            "ADR 0030: the user's own shortcuts lead the list, ahead of the item's canonical portions"
         )
     }
 
@@ -229,9 +254,9 @@ final class FoodQuantityViewModelTests: XCTestCase {
         )
     }
 
-    func test_defaultUnit_withoutCataloguePortions_returnsHundredGrams() {
+    func test_defaultUnit_withoutCataloguePortions_returnsGrams() {
         let item = makeFoodItem(portions: [])
-        XCTAssertEqual(FoodQuantityViewModel.defaultUnit(for: item), .hundredGrams)
+        XCTAssertEqual(FoodQuantityViewModel.defaultUnit(for: item), .grams)
     }
 
     // MARK: - onAppear (personal portions)
@@ -248,6 +273,53 @@ final class FoodQuantityViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onAppear_withPersonalPortions_movesDefaultToFirstPersonalPortion() async {
+        let cataloguePortion = FoodPortionDomain(name: "1 balení", grams: 250)
+        let personalPortion = FoodPortionDomain(name: "1 hrnek", grams: 40)
+        let sut = makeSUT(
+            item: makeFoodItem(portions: [cataloguePortion]),
+            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [personalPortion]),
+            unit: FoodQuantityViewModel.defaultUnit(for: makeFoodItem(portions: [cataloguePortion]))
+        )
+        await sut.onAppear()
+        XCTAssertEqual(
+            sut.unit,
+            .portion(personalPortion),
+            "ADR 0030: the first option in the list is always the preselected unit, so once personal portions resolve the default follows them"
+        )
+        XCTAssertEqual(sut.quantity, 1, "the step-2 reselection must not be treated as a unit change and rescale the quantity")
+    }
+
+    @MainActor
+    func test_onAppear_withPersonalPortionsAndNoCataloguePortion_resetsQuantityFromTheGramsFallbackDefault() async {
+        let personalPortion = FoodPortionDomain(name: "1 hrnek", grams: 40)
+        let sut = makeSUT(
+            item: makeFoodItem(portions: []),
+            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [personalPortion]),
+            quantity: 100,
+            unit: .grams
+        )
+        await sut.onAppear()
+        XCTAssertEqual(
+            sut.quantity,
+            1,
+            "a portion resolving into the plain-grams default (quantity 100, ADR 0030) must reset to 1, " +
+                "or the screen would open at 100 × 1 hrnek instead of 1 × 1 hrnek"
+        )
+    }
+
+    @MainActor
+    func test_onAppear_withoutPersonalPortions_keepsSynchronousDefault() async {
+        let cataloguePortion = FoodPortionDomain(name: "1 balení", grams: 250)
+        let sut = makeSUT(
+            item: makeFoodItem(portions: [cataloguePortion]),
+            unit: .portion(cataloguePortion)
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.unit, .portion(cataloguePortion))
+    }
+
+    @MainActor
     func test_onAppear_withExternalItem_doesNotSurfacePersonalPortions() async {
         let stubbedPortion = FoodPortionDomain(name: "1 balení", grams: 33)
         let sut = makeSUT(
@@ -261,14 +333,43 @@ final class FoodQuantityViewModelTests: XCTestCase {
         )
     }
 
+    // MARK: - onShowAddPortionForm
+
+    @MainActor
+    func test_onShowAddPortionForm_whenCurrentUnitIsNotAPortion_prefillsGramsFromCurrentQuantity() {
+        let sut = makeSUT(quantity: 150, unit: .grams)
+        sut.onShowAddPortionForm()
+        XCTAssertEqual(sut.newPortionGramsText, "150")
+        XCTAssertEqual(sut.newPortionName, "")
+        XCTAssertTrue(sut.isAddPortionFormVisible)
+    }
+
+    @MainActor
+    func test_onShowAddPortionForm_whenCurrentUnitIsAlreadyAPortion_leavesGramsBlank() {
+        let existingPortion = FoodPortionDomain(name: "1 balení", grams: 33)
+        let sut = makeSUT(quantity: 2, unit: .portion(existingPortion))
+        sut.onShowAddPortionForm()
+        XCTAssertEqual(
+            sut.newPortionGramsText,
+            "",
+            "the current grams are a multiple of an existing portion, not a freeform weight worth copying into a new one"
+        )
+    }
+
     // MARK: - onAddPersonalPortion
 
     @MainActor
-    func test_onAddPersonalPortion_whenSaveSucceeds_appendsToPersonalPortions() async {
+    func test_onAddPersonalPortion_whenSaveSucceeds_appendsToPersonalPortionsAndClosesForm() async {
         let sut = makeSUT()
-        await sut.onAddPersonalPortion(name: "1 balení", grams: 33)
+        sut.newPortionName = "1 balení"
+        sut.newPortionGramsText = "33"
+        sut.isAddPortionFormVisible = true
+        await sut.onAddPersonalPortion()
         XCTAssertEqual(sut.personalPortions, [FoodPortionDomain(name: "1 balení", grams: 33)])
         XCTAssertNil(sut.alertItem)
+        XCTAssertFalse(sut.isAddPortionFormVisible)
+        XCTAssertEqual(sut.newPortionName, "")
+        XCTAssertEqual(sut.newPortionGramsText, "")
     }
 
     @MainActor
@@ -279,7 +380,9 @@ final class FoodQuantityViewModelTests: XCTestCase {
             saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(shouldThrow: true)
         )
         await sut.onAppear()
-        await sut.onAddPersonalPortion(name: existing.name, grams: existing.grams)
+        sut.newPortionName = existing.name
+        sut.newPortionGramsText = "15"
+        await sut.onAddPersonalPortion()
         XCTAssertEqual(
             sut.personalPortions,
             [existing],
@@ -287,6 +390,19 @@ final class FoodQuantityViewModelTests: XCTestCase {
                 "a value-based filter also drops an already-saved portion that happens to share the new one's name and grams"
         )
         XCTAssertEqual(sut.alertItem?.title, L10n.MyPortions.errorSaveFailed)
+    }
+
+    @MainActor
+    func test_onAddPersonalPortion_whenGramsFieldIsBlank_showsAlertAndDoesNotSave() async {
+        let sut = makeSUT()
+        sut.newPortionName = "1 balení"
+        sut.newPortionGramsText = ""
+        await sut.onAddPersonalPortion()
+        XCTAssertTrue(
+            sut.personalPortions.isEmpty,
+            "an unparseable grams field must not silently save a zero-gram portion"
+        )
+        XCTAssertEqual(sut.alertItem?.title, L10n.FoodPortion.errorInvalidGrams)
     }
 
     // MARK: - onDeletePersonalPortion

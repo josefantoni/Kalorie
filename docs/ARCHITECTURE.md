@@ -35,7 +35,10 @@ first version of the security rules), [design 0003](design/0003-favourite-foods.
 (`myCreatedMeals`, and what `food_item_id` means once a meal can be logged),
 [design 0008](design/0008-food-portions.md) (`portions` on `foodItems`/`myCreatedMeals`, and the
 barcode-keyed `foodItemPortions` collection), [design 0009](design/0009-catalogue-moderation.md)
-(`foodItemSubmissions`, and the maintainer claim narrowing `foodItems` writes — see § 7).
+(`foodItemSubmissions`, and the maintainer claim narrowing `foodItems` writes — see § 7),
+[design 0011](design/0011-food-measure-grams-or-millilitres.md) (`measure_unit` on `foodItems`,
+`favouriteFoods` and `foodConsumed`, and why the numbers are never converted between grams and
+millilitres).
 
 ### 1.1 Layering
 
@@ -119,6 +122,13 @@ These are the contract a second client has to match exactly.
   ([ADR 0007](adr/0007-derive-missing-energy-kj-from-macros.md)); the other two stay optional
   through `FoodItemDomain`/`FoodNutritionValues` rather than defaulting to `0`, since neither
   can be derived from the other macros.
+- **A food carries a `measure`** (`FoodMeasure`: `.grams` or `.millilitres`), wire field
+  `measure_unit`, absent on read meaning grams. This is a **label on the numbers, not a
+  conversion of them** — a millilitre item's `weight`, portions and `calories_per_hundred_grams`
+  are the same numbers they would be for a per-100 ml label, just read as millilitres; no density
+  is ever applied. Only amounts of the food itself carry this label — nutrient amounts (fat,
+  protein, sugar, salt, fibre) are always grams of nutrient. See
+  [design 0011](design/0011-food-measure-grams-or-millilitres.md).
 
 ### 1.4 Per-collection shape
 
@@ -141,7 +151,8 @@ and its own backfill script, `scripts/backfill-search-terms.js`. Also optional o
 same reason. Both backfill scripts re-implement TextKit's folding and tokenisation in JS, since
 Node cannot call the compiled XCFramework; [ADR 0026](adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md)
 accepts that duplication and pins both sides to a shared fixture,
-`TextKit/fixtures/text-kit-cases.json`.
+`TextKit/fixtures/text-kit-cases.json`. Also carries optional `measure_unit` (§ 1.3), absent
+meaning grams; there is no backfill script for it, since absent already means the correct value.
 
 **`foodConsumed`** (`FoodConsumedDTO`) — one logged entry. Values are **absolute for the logged
 weight**, already scaled, not per 100 g; `calories` is an `Int`. `food_item_id` points back at
@@ -156,6 +167,9 @@ field names diverge from the rest of the model (`carbohydrate_sugar` vs.
 **A1-8**. It also carries `energy_kj`, `fat_saturated` and `fiber`, all optional so that entries
 logged before those fields were persisted still decode — they were never backfilled; `energy_kj`
 falls back to `MacroKit.energyKJFromMacros` when absent, `fat_saturated` and `fiber` stay `nil`.
+Also carries `measure_unit`, absent meaning grams — `FoodConsumedDomain.copy(...)` must pass it
+through explicitly (it is a `var` on a memberwise init, not caught by the compiler), since missing
+it would relabel an edited millilitre entry as grams.
 
 **`mealTypes`** (`MealTypeDTO`) — `startMinutes` / `endMinutes` are minutes since midnight
 (0–1439), stored **unrenamed in camelCase**, unlike every other DTO. A window may wrap past
@@ -166,7 +180,9 @@ midnight (`endMinutes < startMinutes`); `MealKit` owns that arithmetic.
 canonical portions, inconsistent with every other copied field (same staleness caveat **A1-7**
 already accepts for the rest of the snapshot). The document id is the food's own id, and
 `food_item_kind` says which of the three things that id is, exactly as on `foodConsumed`
-(ADR 0025) — required here too. Fetched ordered by `favourited_at` descending, limit 50.
+(ADR 0025) — required here too. Also carries `measure_unit`, for the same reason `portions` is
+carried: leaving it out would silently relabel a favourited millilitre item as grams. Fetched
+ordered by `favourited_at` descending, limit 50.
 
 **`myCreatedMeals`** (`MyCreatedMealDTO`) — `ingredients` is an **array of nested maps**
 (`MyCreatedMealIngredientDTO`), each a nutrition snapshot plus `grams`. Also carries an optional
@@ -258,6 +274,9 @@ Consequences worth knowing before adding a method:
   `data.id` ([ADR 0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md)),
   called with either `request.resource.data` (a `foodItems` write) or `request.resource.data.item`
   (a `foodItemSubmissions` write), so `create` and `update` on both collections can't drift apart.
+  Also checks that `measure_unit`, when present, is `'grams'` or `'millilitres'`
+  ([design 0011](design/0011-food-measure-grams-or-millilitres.md)) — covering both collections
+  the same way, for the same reason.
 - `foodItems`: read requires only `request.auth != null`. `create`/`update` require
   `isMaintainer()`, the document id to match the barcode length whitelist,
   `request.resource.data.id == itemId`, and `validFoodItem`. `delete` is not granted and falls
@@ -349,10 +368,11 @@ it does not change the per-query `limit(10)` or add any ranking (**A2-12** is un
 Ranking happens **above** the use case, in `AddFoodSheetViewModel.displayedResults`, which is a
 pure computed property over four already-loaded lists:
 
-1. matching **my created meals** (`asFoodItem()`, prefix on the meal name),
-2. matching **favourites** not already listed as a meal,
+1. matching **favourites** (`favouriteFoods`, prefix on either name),
+2. matching **my created meals** (`asFoodItem()`, prefix on the meal name) not already listed as a
+   favourite,
 3. matching **own catalogue submissions** ([design 0009](design/0009-catalogue-moderation.md)) not
-   already listed as a meal or favourite,
+   already listed as a favourite or meal,
 4. the local search results, minus anything already listed.
 
 Favourites, meals and submissions are loaded once in `onAppear`, not per keystroke, so this
@@ -702,7 +722,12 @@ it unified the *rule*, not the *basis*), [design 0003](design/0003-favourite-foo
 screen's favourite button and its catalogue lookup),
 [design 0006](design/0006-own-daily-meals.md) (the quantity defaults for a created meal, and why
 the favourite button is hidden rather than disabled), [design 0008](design/0008-food-portions.md)
-(the portion unit options and the personal-portions sheet).
+(the portion unit options and the personal-portions sheet — including its dated `Update` paragraph,
+which reversed that document's own order and default),
+[ADR 0030](adr/0030-first-quantity-picker-option-is-the-preselected-unit.md) (why the picker's
+order and its preselected unit are one decision, and the two ways reselecting a unit
+programmatically goes wrong), [design 0011](design/0011-food-measure-grams-or-millilitres.md)
+(why every amount of the food itself, but not a nutrient amount, follows the item's measure).
 
 ### 4.1 The path a food takes
 
@@ -729,24 +754,52 @@ That date is what the entry is stamped with — see § 3.5 for why its time-of-d
 `FoodQuantityViewModel` holds `quantity: Double` and `unit: FoodQuantityUnit` (`.grams` = 1 g,
 `.hundredGrams` = 100 g, or `.portion(FoodPortionDomain)`), and derives everything from
 `grams = quantity * unit.gramsPerUnit`. `unitOptions` builds the picker's list at runtime —
-`.grams` and `.hundredGrams` first, then the item's own canonical `portions`, then
-`personalPortions` — rather than `FoodQuantityUnit` being `CaseIterable`, since the portion set is
-per-item and only known once the item is loaded. `personalPortions` is fetched once in `onAppear()`
-and only when `item.kind == .catalogue`; a bookmark button next to the picker opens
-`FoodPortionsManagerView` to add or remove one, pre-filling the grams field with the screen's
-current `grams`. See [design 0008](design/0008-food-portions.md) for the write-once/editable split
+`personalPortions` first, then the item's own canonical `portions`, then `.grams` and
+`.hundredGrams` — rather than `FoodQuantityUnit` being `CaseIterable`, since the portion set is per-item
+and only known once the item is loaded. Neither group is sorted: the order within each is
+Firestore array order, which is the order the portions were authored in. This order, and the rule
+that the first option is always the preselected unit, is
+[ADR 0030](adr/0030-first-quantity-picker-option-is-the-preselected-unit.md)'s decision.
+
+`personalPortions` is fetched once in `onAppear()` and only when `item.kind == .catalogue`; when
+`isPersonalPortionsAvailable`, the unit `Menu` gains a `Divider()` and a button
+(`L10n.FoodQuantity.buttonMyPortions`) that pushes `FoodPortionsManagerView` via
+`navigationDestination`, pre-filling the grams field with the screen's current `grams`. Pushing
+rather than sheeting means it now follows the same pushed-not-sheeted pattern § 7.3 describes
+instead of being the one exception to it; it shares the *same* `FoodQuantityViewModel` rather than
+owning one.
+See [design 0008](design/0008-food-portions.md) for the write-once/editable split
 between a canonical portion (authored once, in `AddFoodSheetView`'s new-food form or the meal
 editor) and a personal one. Frequency-derived quick-add amounts are the still-unbuilt other half
 of the same `TODO.md` line.
 
 Two defaults are set by the configurator rather than by the view model: selecting one of the
 user's own meals pre-fills `quantity: item.weight, unit: .grams` — the meal's total gram weight,
-because a saved meal is normally logged whole — while everything else starts at `1 × 100 g`.
+because a saved meal is normally logged whole — while everything else goes through
+`FoodQuantityViewModel.defaultUnit(for:)`, which returns `item.portions.first` and falls back to
+`.grams` for an item with no canonical portion — paired with `quantity: 100` from the configurator,
+so a portion-less item opens at `100 × 1 g` rather than `1 × 100 g`
+([ADR 0030](adr/0030-first-quantity-picker-option-is-the-preselected-unit.md)). Personal portions are deliberately not part
+of this synchronous step: they resolve in `onAppear()`, after the picker's initial selection has
+already been made (design 0008's `Update — 2026-09-16`). Once they resolve,
+[ADR 0030](adr/0030-first-quantity-picker-option-is-the-preselected-unit.md)'s step 2 moves the
+selection to `personalPortions.first` — unless the user has already picked a unit through
+`FoodQuantityView.unitBinding`, which routes every user-driven pick through
+`FoodQuantityViewModel.onUnitSelected(_:)` and marks the picker as touched. `onAppear`'s own write
+goes straight to the `unit` property instead, so it neither rescales `quantity` nor counts as a
+touch.
 
 The macro preview shown under the input is computed by `scaledMacros` / `scaledCalories` on the
 view model, which recompute on every keystroke and are never persisted. Both the preview and
 `SaveFoodConsumedUseCase`'s persisted values go through the same
 `FoodItemDomain.scaled(toGrams:)` helper, so the two never diverge.
+
+Every label naming an amount of the food itself — the unit picker's rows, the personal-portions
+sheet, the Dashboard row, the detail screen's weight suffix — reads `g` or `ml` off the item's own
+`measure` (`Double.formattedAmount(measure:)`, a sibling of `formattedGrams`). Macro rows are the
+one exception and stay `formattedGrams` unconditionally, since a nutrient amount is always grams
+regardless of what the food itself is measured in. See
+[design 0011](design/0011-food-measure-grams-or-millilitres.md).
 
 Unit switching goes through `onUnitChanged(from:to:)`, which converts the current gram amount
 into the new unit by dividing, with no rounding — a fractional quantity survives a unit switch.
@@ -819,6 +872,12 @@ failure. See [ADR 0017](adr/0017-optimistic-favourite-toggle-shared-by-protocol-
 
 `FoodQuantityViewModel` additionally passes an `onToggled` callback so `AddFoodSheetViewModel`
 can keep its in-memory favourites list in step without re-querying.
+
+The two screens also *place* the button identically — inline in a header row alongside the food's
+name, in place of the nav bar title, above the quantity/weight content — rather than the earlier
+header-less `Section` centred between two `Spacer`s. That sameness is load-bearing rather than
+incidental: `FavouriteButton` exists as a component precisely because the button is built twice
+([design 0003](design/0003-favourite-foods.md)), so the placement moved on both screens together.
 
 ---
 
@@ -1110,8 +1169,9 @@ maintainer `update` branch narrowed to what the reject path actually writes),
 [ADR 0029](adr/0029-submitted-at-guards-foodItemSubmissions-concurrency.md) (`submitted_at` as an
 optimistic-concurrency token against a submission edited while under review),
 [design 0010](design/0010-nutrition-label-photo-prefill.md) (the camera pre-fill on all three
-`FoodItemFormFields` screens — § 7.5). § 1.2/1.4/1.6 cover the collection shape and rules; § 2.6
-covers where this replaces the old direct-write path.
+`FoodItemFormFields` screens — § 7.5), [design 0011](design/0011-food-measure-grams-or-millilitres.md)
+(the parser setting a submission's measure from the label it read). § 1.2/1.4/1.6 cover the
+collection shape and rules; § 2.6 covers where this replaces the old direct-write path.
 
 ### 7.1 What exists
 
@@ -1198,7 +1258,12 @@ geometry for the table format most labels use, and a keyword-position fallback (
 after a nutrition-section cue, when one is found) for the **linear** format small packages are
 legally allowed to use instead — one sentence, no table at all. The fallback only runs when the
 table pass found none of the five macro fields, so a label with neither format present still
-correctly fills nothing. Only when `SystemLanguageModel.default.availability == .available` does
+correctly fills nothing. The same pass also sets the reading's `measure` — from the per-100
+column header if it names `ml` or `g`, else from the linear fallback's own header test, else from
+the package-weight unit, else `nil` — and `FoodItemFormInput.applying(_:)` fills the form's
+`measure` from it only while the form is still at its `.grams` default, per the same
+still-at-default rule as every other field. See
+[design 0011](design/0011-food-measure-grams-or-millilitres.md). Only when `SystemLanguageModel.default.availability == .available` does
 `FoundationModelExtractor` fill what neither deterministic pass can (name, package weight,
 portions), grounded against the OCR text and never overriding a value either pass already found.
 

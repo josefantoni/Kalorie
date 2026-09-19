@@ -32,7 +32,10 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     @Published var isFavourite: Bool
     @Published var isTogglingFavourite = false
     @Published private(set) var personalPortions: [FoodPortionDomain] = []
-    @Published var isPersonalPortionsSheetVisible = false
+    @Published var isPersonalPortionsManagerPushed = false
+    @Published var isAddPortionFormVisible = false
+    @Published var newPortionName = ""
+    @Published var newPortionGramsText = ""
 
     let item: FoodItemDomain
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
@@ -45,6 +48,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     private var mealTypes: [MealTypeDomain]
     private let onSaved: () -> Void
     private let onFavouriteChanged: (String, Bool) -> Void
+    private var hasUserSelectedUnit = false
 
     var grams: Double { quantity * unit.gramsPerUnit }
 
@@ -59,7 +63,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     var isPersonalPortionsAvailable: Bool { item.kind == .catalogue }
 
     var unitOptions: [FoodQuantityUnit] {
-        item.portions.map(FoodQuantityUnit.portion) + personalPortions.map(FoodQuantityUnit.portion) + [.grams, .hundredGrams]
+        personalPortions.map(FoodQuantityUnit.portion) + item.portions.map(FoodQuantityUnit.portion) + [.grams, .hundredGrams]
     }
 
     // MARK: - Init
@@ -99,7 +103,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     // MARK: - Functions
 
     static func defaultUnit(for item: FoodItemDomain) -> FoodQuantityUnit {
-        item.portions.first.map(FoodQuantityUnit.portion) ?? .hundredGrams
+        item.portions.first.map(FoodQuantityUnit.portion) ?? .grams
     }
 
     @MainActor
@@ -107,22 +111,53 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         guard isPersonalPortionsAvailable else { return }
         do {
             personalPortions = try await fetchFoodItemPersonalPortions(barcode: item.id)
+            if
+                !hasUserSelectedUnit,
+                let firstPersonalPortion = personalPortions.first
+            {
+                quantity = 1
+                unit = .portion(firstPersonalPortion)
+            }
         } catch {
             Log.warning(error, category: Constants.LogCategory.foodQuantity)
         }
     }
 
-    func onUnitChanged(from oldUnit: FoodQuantityUnit, to newUnit: FoodQuantityUnit) {
-        let currentGrams = quantity * oldUnit.gramsPerUnit
+    func onUnitSelected(_ newUnit: FoodQuantityUnit) {
+        hasUserSelectedUnit = true
+        let currentGrams = quantity * unit.gramsPerUnit
+        unit = newUnit
         quantity = currentGrams / newUnit.gramsPerUnit
     }
 
+    func onShowAddPortionForm() {
+        newPortionName = ""
+        if case .portion = unit {
+            newPortionGramsText = ""
+        } else {
+            newPortionGramsText = grams.formattedTrimmed()
+        }
+        isAddPortionFormVisible = true
+    }
+
     @MainActor
-    func onAddPersonalPortion(name: String, grams: Double) async {
+    func onAddPersonalPortion() async {
+        let grams = Double(newPortionGramsText.replacingOccurrences(of: ",", with: ".")) ?? 0
+        if let error = FoodPortionValidation.validate(name: newPortionName, grams: grams) {
+            alertItem = AlertItem(title: error.alertTitle)
+            return
+        }
         let original = personalPortions
-        personalPortions = original + [FoodPortionDomain(name: name, grams: grams)]
+        personalPortions = original + [FoodPortionDomain(name: newPortionName, grams: grams)]
         do {
             try await saveFoodItemPersonalPortions(barcode: item.id, portions: personalPortions)
+            newPortionName = ""
+            newPortionGramsText = ""
+            isAddPortionFormVisible = false
+        } catch let error as FoodPortionError {
+            Log.error(error, category: Constants.LogCategory.foodQuantity)
+            personalPortions = original
+            alertItem = AlertItem(title: error.alertTitle)
         } catch {
             Log.error(error, category: Constants.LogCategory.foodQuantity)
             personalPortions = original

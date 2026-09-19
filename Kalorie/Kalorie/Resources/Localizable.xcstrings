@@ -3196,13 +3196,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zatím nemáte žádnou vlastní porci"
+            "value" : "Zatím nemáte evidovanou žádnou vlastní porci pro danou potravinu nebo jídlo."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You have no personal portions yet"
+            "value" : "You have not yet recorded any personal portion for this food item."
           }
         }
       }
