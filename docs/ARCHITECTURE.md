@@ -407,6 +407,8 @@ pure computed property over four already-loaded lists:
    already listed as a favourite or meal,
 4. the local search results, minus anything already listed.
 
+A created-meal row carries a trailing chevron and a swipe-to-delete with confirmation. Editing happens on the meal's quantity screen instead (§ 4.2): a pencil in the leading toolbar pushes `MyCreatedMealEditorView`, and a *Delete meal* button closes the list. Those two places are the only ones where created meals are edited or deleted ([design 0006](design/0006-own-daily-meals.md), *Update — 2026-09-19*).
+
 Favourites, meals and submissions are loaded once in `onAppear`, not per keystroke, so this
 re-ranking costs nothing. With an empty query, `displayedResults` returns `localFoodItems`, which
 is empty — the Favourites and My submissions sections in the view render from `favouriteFoods` /
@@ -837,6 +839,8 @@ of dropping it silently, and writes all remaining drafts in one `setAsync`.
 The `+` button must live in its **own `Section`** with `.listSectionSpacing(0)`, as it does in
 `FoodPortionsSection`. Placed inside the rows' `Section`, the List draws the group as continuing
 through the button row and the last portion row loses its bottom corner radius.
+
+For a created meal, `FoodQuantityView` gains two more things, attached through `mealActions(makeEditorView:onDelete:)` from `AddFoodSheetView`: a pencil in the leading toolbar and a destructive *Delete meal* button in a last section, behind an alert. The editor's `navigationDestination` is declared on `FoodQuantityView` itself, not on the sheet's root — a second `navigationDestination(isPresented:)` on the root, activated while the quantity screen is already pushed through another, replaces that screen's content instead of pushing. Saving or deleting sets `isPushedToQuantityView = false`, returning to the sheet's list, since the quantity screen would otherwise keep showing the pre-edit meal.
 
 Two defaults are set by the configurator rather than by the view model: selecting one of the
 user's own meals pre-fills `quantity: item.weight, unit: .grams` — the meal's total gram weight,
@@ -1309,7 +1313,7 @@ design 0009 requires.
 
 `ModerationConfigurator` assembles four pushed (not sheeted) views, all reached through
 `NavigationLink`s inside `AccountView`'s existing `NavigationStack`, matching how
-`MyCreatedMealEditorView` is pushed from `MealTypeSheetView` rather than sheeted. The queue and the
+`MyCreatedMealEditorView` is pushed from a created meal's quantity screen (its pencil button) rather than sheeted. The queue and the
 reports screen (§ 7.6) are two separate, sibling `NavigationLink`s in `AccountView`'s maintainer
 section — not one nested inside the other — since a report row means something different from a
 submission row and goes somewhere else:

@@ -557,6 +557,46 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorWithdrawSubmissionFailed)
     }
 
+    // MARK: - delete created meal
+
+    @MainActor
+    func test_onDeleteMealConfirmed_removesRowOptimistically() async {
+        let sut = makeSUT(fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "1", name: "A"), makeMeal(id: "2", name: "B")]))
+        await sut.onAppear()
+
+        sut.onDeleteMealRequested(sut.myCreatedMeals[0])
+        XCTAssertTrue(sut.isMealDeleteConfirmationVisible)
+        await sut.onDeleteMealConfirmed()
+
+        XCTAssertEqual(sut.myCreatedMeals.map(\.id), ["2"])
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onDeleteMealConfirmed_whenDeleteFails_restoresRowAndShowsAlert() async {
+        let sut = makeSUT(
+            fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "1", name: "A"), makeMeal(id: "2", name: "B")]),
+            deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseFake(shouldThrow: true)
+        )
+        await sut.onAppear()
+
+        sut.onDeleteMealRequested(sut.myCreatedMeals[0])
+        await sut.onDeleteMealConfirmed()
+
+        XCTAssertEqual(sut.myCreatedMeals.map(\.id), ["1", "2"], "a failed delete must restore the row at its original position")
+        XCTAssertEqual(sut.alertItem?.title, L10n.MyCreatedMeal.errorDeleteFailed)
+    }
+
+    @MainActor
+    func test_onDeleteMealConfirmed_withoutAPendingRequest_doesNothing() async {
+        let sut = makeSUT(fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "1", name: "A")]))
+        await sut.onAppear()
+
+        await sut.onDeleteMealConfirmed()
+
+        XCTAssertEqual(sut.myCreatedMeals.map(\.id), ["1"])
+    }
+
     // MARK: - onMyCreatedMealSaved
 
     @MainActor
@@ -585,6 +625,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol = FetchFavouriteFoodsUseCaseFake(),
         fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol = FetchMyCreatedMealsUseCaseFake(),
+        deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol = DeleteMyCreatedMealUseCaseFake(),
         recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake(),
         isScannerVisible: Bool = false
@@ -600,6 +641,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             fetchFavouriteFoods: fetchFavouriteFoods,
             fetchMyCreatedMeals: fetchMyCreatedMeals,
+            deleteMyCreatedMeal: deleteMyCreatedMeal,
             recognizeNutritionLabel: recognizeNutritionLabel,
             cameraAuthorizationProvider: cameraAuthorizationProvider,
             isScannerVisible: isScannerVisible

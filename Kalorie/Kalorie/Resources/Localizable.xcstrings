@@ -7,9 +7,6 @@
     "%lld" : {
 
     },
-    "%lld g" : {
-
-    },
     "%lld kcal" : {
 
     },
@@ -3332,6 +3329,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Similar catalogue items"
+          }
+        }
+      }
+    },
+    "myCreatedMeal_button_delete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smazat jídlo"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete meal"
+          }
+        }
+      }
+    },
+    "myCreatedMeal_button_edit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upravit jídlo"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit meal"
           }
         }
       }

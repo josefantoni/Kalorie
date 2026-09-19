@@ -217,6 +217,8 @@ enum L10n {
         static var listTitle: String { String(localized: "myCreatedMeal_list_title") }
         static var listEmpty: String { String(localized: "myCreatedMeal_list_empty") }
         static var buttonSave: String { String(localized: "myCreatedMeal_button_save") }
+        static var buttonEdit: String { String(localized: "myCreatedMeal_button_edit") }
+        static var buttonDelete: String { String(localized: "myCreatedMeal_button_delete") }
         static var sectionCatalogue: String { String(localized: "myCreatedMeal_section_catalogue") }
         static func searchPlaceholder(example: String) -> String {
             String(format: String(localized: "myCreatedMeal_search_placeholder"), example)
