@@ -36,9 +36,11 @@ struct FoodItemRow: View {
             }
         }
         if isFavourite {
-            row.accessibilityLabel(Text(verbatim: "\(item.displayName), \(L10n.AddFood.sectionFavourites)"))
-        } else {
             row
+                .contentShape(Rectangle())
+                .accessibilityLabel(Text(verbatim: "\(item.displayName), \(L10n.AddFood.sectionFavourites)"))
+        } else {
+            row.contentShape(Rectangle())
         }
     }
 
