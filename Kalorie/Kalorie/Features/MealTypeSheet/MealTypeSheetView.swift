@@ -81,6 +81,7 @@ struct MealTypeSheetView: View {
                 .environment(\.editMode, $editMode)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            .keyboardDoneToolbar()
             .toolbar {
                 if editMode == .inactive {
                     DismissToolbarItem()

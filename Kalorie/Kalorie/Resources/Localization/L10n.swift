@@ -18,6 +18,7 @@ enum L10n {
         static var buttonYes: String { String(localized: "common_button_yes") }
         static var buttonNo: String { String(localized: "common_button_no") }
         static var buttonCancel: String { String(localized: "common_button_cancel") }
+        static var buttonDone: String { String(localized: "common_button_done") }
         static var unitGrams: String { String(localized: "common_unit_grams") }
         static var unitMillilitres: String { String(localized: "common_unit_millilitres") }
         static var unitKilograms: String { String(localized: "common_unit_kilograms") }

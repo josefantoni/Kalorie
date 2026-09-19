@@ -118,6 +118,7 @@ struct FoodConsumedDetailView: View {
         }
         .loader(viewModel.state.isLoading)
         .task { await viewModel.onAppear() }
+        .keyboardDoneToolbar()
         .toolbar {
             if viewModel.canReportIncorrectData {
                 ToolbarItem(placement: .topBarLeading) {

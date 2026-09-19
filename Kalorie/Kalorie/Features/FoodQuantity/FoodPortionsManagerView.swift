@@ -59,6 +59,7 @@ struct FoodPortionsManagerView: View {
         }
         .navigationTitle(L10n.MyPortions.title)
         .navigationBarTitleDisplayMode(.inline)
+        .keyboardDoneToolbar()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 SaveToolbarButton(

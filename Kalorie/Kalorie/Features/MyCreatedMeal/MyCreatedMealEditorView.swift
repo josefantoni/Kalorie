@@ -94,6 +94,7 @@ struct MyCreatedMealEditorView: View {
         .contentMargins(.top, 0, for: .scrollContent)
         .navigationTitle(viewModel.title)
         .navigationBarTitleDisplayMode(.inline)
+        .keyboardDoneToolbar()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(L10n.MyCreatedMeal.buttonSave) {
