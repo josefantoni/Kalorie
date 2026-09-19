@@ -13,10 +13,10 @@ The app works with three kinds of data. The distinction matters for the items be
 
 ## Planned features
 
-- [ ] **Data export** — export consumed food for a chosen interval to PDF or Excel. Needs its own
-  memory strategy for walking long intervals (streaming/paging the query) rather than routing
-  through `DashboardViewModel.monthCache`, which caches every loaded month with no eviction and is
-  sized for a single visible dashboard, not an arbitrary export range.
+- [ ] **Data export** — implemented per [design 0014](docs/design/0014-data-export.md). Not yet
+  verified by hand: open the `.xlsx` in Excel and Numbers, and check the share sheet and the PDF
+  layout on a device. Once confirmed, remove this item and add the § 8 subsection to
+  `docs/ARCHITECTURE.md`.
 - [ ] **Prompt to sign in** — the account screen is only reachable from the toolbar icon; add an
   unobtrusive prompt after the first logged meal so users on a second device sign in early
 - [ ] **Packaging photo on a submission** — the other half of the user-submitted-food flow shipped
