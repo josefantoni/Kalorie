@@ -18,7 +18,7 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
         let save = SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
         let update = UpdateFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
 
-        try await save(makeItem(), grams: 100, date: .now, mealTypes: [])
+        try await save(makeItem(), grams: 100, date: .now, mealTypeId: nil)
         XCTAssertEqual(dataProvider.documents.count, 1)
 
         let savedDTO = try XCTUnwrap(dataProvider.documents.values.first)
@@ -36,7 +36,7 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
         let assignMealType = AssignFoodMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider)
         let update = UpdateFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
 
-        try await save(makeItem(), grams: 100, date: .now, mealTypes: [])
+        try await save(makeItem(), grams: 100, date: .now, mealTypeId: nil)
         let savedFood = try XCTUnwrap(dataProvider.documents.values.first).asDomain()
 
         try await assignMealType(savedFood, mealTypeId: "breakfast")
@@ -57,7 +57,7 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
         let dataProvider = FirestoreDocumentStoreFake()
         let authProvider = AuthProviderFake(userId: "user-123")
         let save = SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
-        try await save(makeItem(), grams: 100, date: .now, mealTypes: [])
+        try await save(makeItem(), grams: 100, date: .now, mealTypeId: nil)
         let savedFood = try XCTUnwrap(dataProvider.documents.values.first).asDomain()
         let sut = makeDetailViewModel(food: savedFood, dataProvider: dataProvider, authProvider: authProvider)
 
@@ -78,7 +78,7 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
         let dataProvider = FirestoreDocumentStoreFake()
         let authProvider = AuthProviderFake(userId: "user-123")
         let save = SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
-        try await save(makeItem(), grams: 100, date: .now, mealTypes: [])
+        try await save(makeItem(), grams: 100, date: .now, mealTypeId: nil)
         let savedFood = try XCTUnwrap(dataProvider.documents.values.first).asDomain()
         let sut = makeDetailViewModel(food: savedFood, dataProvider: dataProvider, authProvider: authProvider)
 

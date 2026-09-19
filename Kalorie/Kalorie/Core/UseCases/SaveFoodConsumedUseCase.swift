@@ -8,7 +8,7 @@
 import Foundation
 
 protocol SaveFoodConsumedUseCaseProtocol {
-    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypes: [MealTypeDomain]) async throws
+    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypeId: String?) async throws
 }
 
 struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
@@ -27,7 +27,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypes: [MealTypeDomain]) async throws {
+    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypeId: String?) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let scaled = item.scaled(toGrams: grams)
         let dto = FoodConsumedDTO(
@@ -49,7 +49,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
             fatUnsaturated: scaled.fatUnsaturated,
             fiber: scaled.fiber,
             salt: scaled.salt,
-            mealTypeId: mealTypes.mealType(at: date)?.id,
+            mealTypeId: mealTypeId,
             measureUnit: item.measure.rawValue
         )
         try await dataProvider.setAsync(dto, id: dto.id, in: Constants.Firestore.foodConsumed(userId: userId))
@@ -65,7 +65,7 @@ struct SaveFoodConsumedUseCaseFake: SaveFoodConsumedUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypes: [MealTypeDomain]) async throws {
+    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypeId: String?) async throws {
         if shouldThrow { throw URLError(.unknown) }
     }
 }

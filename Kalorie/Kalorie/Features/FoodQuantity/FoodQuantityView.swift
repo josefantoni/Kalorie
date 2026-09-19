@@ -38,6 +38,7 @@ struct FoodQuantityView: View {
                     .disabled(viewModel.isTogglingFavourite)
                 }
                 quantityRow
+                mealTypeRow
             }
 
             Section(header: Text(L10n.FoodQuantity.sectionNutrition)) {
@@ -130,6 +131,30 @@ struct FoodQuantityView: View {
         Binding(
             get: { viewModel.unit },
             set: { viewModel.onUnitSelected($0) }
+        )
+    }
+
+    var mealTypeRow: some View {
+        LabeledContent(L10n.FoodQuantity.labelMealType) {
+            Picker("", selection: mealTypeBinding) {
+                if viewModel.selectedMealTypeId == nil {
+                    Text(L10n.FoodQuantity.mealTypeUnassigned).tag(String?.none)
+                }
+                ForEach(viewModel.mealTypes, id: \.id) { mealType in
+                    Text(mealType.name).tag(String?.some(mealType.id))
+                }
+            }
+            .pickerStyle(.menu)
+        }
+    }
+
+    var mealTypeBinding: Binding<String?> {
+        Binding(
+            get: { viewModel.selectedMealTypeId },
+            set: { newValue in
+                guard let newValue else { return }
+                viewModel.onMealTypeSelected(newValue)
+            }
         )
     }
 

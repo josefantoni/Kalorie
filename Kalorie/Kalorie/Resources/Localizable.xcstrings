@@ -2249,6 +2249,23 @@
         }
       }
     },
+    "foodQuantity_label_mealType" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zařazení"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meal"
+          }
+        }
+      }
+    },
     "foodQuantity_macro_calories" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2330,6 +2347,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Protein"
+          }
+        }
+      }
+    },
+    "foodQuantity_mealType_unassigned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podle času"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By time"
           }
         }
       }

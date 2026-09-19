@@ -196,25 +196,84 @@ final class FoodQuantityViewModelTests: XCTestCase {
 
     @MainActor
     func test_onConfirm_usesFreshlyFetchedMealTypesInsteadOfStaleSnapshot() async {
-        let freshMealTypes = [MealTypeDomain(id: "lunch", name: "Lunch", startTime: .now, endTime: .now)]
+        let cal = Calendar.current
+        let loggedAt = cal.date(bySettingHour: 12, minute: 0, second: 0, of: .now) ?? .now
+        let staleMealTypes = [makeMealType(id: "breakfast", hour: 6, endHour: 10)]
+        let freshMealTypes = [makeMealType(id: "lunch", hour: 11, endHour: 14)]
         let spy = SaveFoodConsumedUseCaseSpy()
-        let sut = makeSUT(saveFoodConsumed: spy, fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: freshMealTypes))
+        let sut = makeSUT(
+            saveFoodConsumed: spy,
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: freshMealTypes),
+            selectedDate: loggedAt,
+            mealTypes: staleMealTypes
+        )
         await sut.onConfirm()
         XCTAssertEqual(
-            spy.capturedMealTypes?.map(\.id),
-            ["lunch"],
+            spy.capturedMealTypeId,
+            "lunch",
             "onConfirm must resolve the meal-type pin against meal types fetched at save time, not the array captured when the sheet was opened"
         )
     }
 
     @MainActor
     func test_onConfirm_whenMealTypesRefetchFails_fallsBackToOriginalSnapshot() async {
-        let originalMealTypes = [MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: .now, endTime: .now)]
+        let cal = Calendar.current
+        let loggedAt = cal.date(bySettingHour: 8, minute: 0, second: 0, of: .now) ?? .now
+        let originalMealTypes = [makeMealType(id: "breakfast", hour: 6, endHour: 10)]
         let spy = SaveFoodConsumedUseCaseSpy()
-        let sut = makeSUT(saveFoodConsumed: spy, fetchMealTypes: FetchMealTypesUseCaseFake(shouldThrow: true), mealTypes: originalMealTypes)
+        let sut = makeSUT(
+            saveFoodConsumed: spy,
+            fetchMealTypes: FetchMealTypesUseCaseFake(shouldThrow: true),
+            selectedDate: loggedAt,
+            mealTypes: originalMealTypes
+        )
         await sut.onConfirm()
-        XCTAssertEqual(spy.capturedMealTypes?.map(\.id), ["breakfast"], "a failed refetch must fall back to the snapshot captured when the sheet was opened, not discard it")
+        XCTAssertEqual(spy.capturedMealTypeId, "breakfast", "a failed refetch must fall back to the snapshot captured when the sheet was opened, not discard it")
         XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onConfirm_whenUserPickedAMealType_usesThatInsteadOfTheTimeBasedDefault() async {
+        let cal = Calendar.current
+        let loggedAt = cal.date(bySettingHour: 12, minute: 0, second: 0, of: .now) ?? .now
+        let mealTypes = [makeMealType(id: "lunch", hour: 11, endHour: 14), makeMealType(id: "dinner", hour: 18, endHour: 21)]
+        let spy = SaveFoodConsumedUseCaseSpy()
+        let sut = makeSUT(
+            saveFoodConsumed: spy,
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: mealTypes),
+            selectedDate: loggedAt,
+            mealTypes: mealTypes
+        )
+        sut.onMealTypeSelected("dinner")
+        await sut.onConfirm()
+        XCTAssertEqual(spy.capturedMealTypeId, "dinner", "an explicit pick overrides the time-of-day default, mirroring the edit screen's picker")
+    }
+
+    @MainActor
+    func test_onConfirm_whenPickedMealTypeNoLongerExistsAfterRefetch_showsAlertAndDoesNotSave() async {
+        let mealTypes = [makeMealType(id: "lunch", hour: 11, endHour: 14)]
+        let spy = SaveFoodConsumedUseCaseSpy()
+        let sut = makeSUT(saveFoodConsumed: spy, fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: []), mealTypes: mealTypes)
+        sut.onMealTypeSelected("lunch")
+        await sut.onConfirm()
+        XCTAssertFalse(spy.wasCalled, "a pin to a meal type deleted since the sheet opened must not be silently written")
+        XCTAssertEqual(sut.alertItem?.title, L10n.Common.errorUnknown)
+    }
+
+    // MARK: - selectedMealTypeId (init)
+
+    func test_init_preselectsTheMealTypeResolvedFromTimeOfDay() {
+        let cal = Calendar.current
+        let loggedAt = cal.date(bySettingHour: 12, minute: 0, second: 0, of: .now) ?? .now
+        let sut = makeSUT(selectedDate: loggedAt, mealTypes: [makeMealType(id: "lunch", hour: 11, endHour: 14)])
+        XCTAssertEqual(sut.selectedMealTypeId, "lunch")
+    }
+
+    func test_init_whenNoWindowMatches_preselectsNoMealType() {
+        let cal = Calendar.current
+        let loggedAt = cal.date(bySettingHour: 3, minute: 0, second: 0, of: .now) ?? .now
+        let sut = makeSUT(selectedDate: loggedAt, mealTypes: [makeMealType(id: "breakfast", hour: 6, endHour: 10)])
+        XCTAssertNil(sut.selectedMealTypeId)
     }
 
     // MARK: - unitOptions
@@ -435,6 +494,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
         item: FoodItemDomain? = nil,
         saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol = SaveFoodConsumedUseCaseFake(),
         fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
+        selectedDate: Date = .now,
         mealTypes: [MealTypeDomain] = [],
         isFavourite: Bool = false,
         addFavouriteFood: any AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
@@ -450,7 +510,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
             item: item ?? makeFoodItem(),
             saveFoodConsumed: saveFoodConsumed,
             fetchMealTypes: fetchMealTypes,
-            selectedDate: .now,
+            selectedDate: selectedDate,
             mealTypes: mealTypes,
             isFavourite: isFavourite,
             addFavouriteFood: addFavouriteFood,
@@ -466,6 +526,14 @@ final class FoodQuantityViewModelTests: XCTestCase {
             XCTAssertNil(sut, "FoodQuantityViewModel leaked — potential retain cycle")
         }
         return sut
+    }
+
+    private func makeMealType(id: String, hour: Int, endHour: Int, minute: Int = 0) -> MealTypeDomain {
+        let cal = Calendar.current
+        let base = Date.now
+        let start = cal.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
+        let end = cal.date(bySettingHour: endHour, minute: minute, second: 0, of: base) ?? base
+        return MealTypeDomain(id: id, name: "Meal \(id)", startTime: start, endTime: end)
     }
 
     private func makeFoodItem(
@@ -500,11 +568,13 @@ private final class SaveFoodConsumedUseCaseSpy: SaveFoodConsumedUseCaseProtocol 
 
     // MARK: - Properties
 
-    private(set) var capturedMealTypes: [MealTypeDomain]?
+    private(set) var wasCalled = false
+    private(set) var capturedMealTypeId: String?
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypes: [MealTypeDomain]) async throws {
-        capturedMealTypes = mealTypes
+    func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypeId: String?) async throws {
+        wasCalled = true
+        capturedMealTypeId = mealTypeId
     }
 }
