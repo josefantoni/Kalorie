@@ -828,7 +828,7 @@ row's `listRowInsets` widens at the edges for a visual separation.
 `FoodPortionsManagerView` deliberately mirrors the portions editor of *Build your own meal*
 (`FoodPortionsSection`). Saved personal portions are listed read-only, followed by
 `FoodQuantityViewModel.portionDrafts` — a list that **always holds at least one row**: opening the
-screen seeds one draft (`onPortionsManagerOpened`, grams pre-filled from the current quantity),
+screen seeds one draft (`onPortionsManagerOpened`, always blank),
 deleting the last draft re-seeds an empty one, and a successful save resets to one empty row. The
 `+` button appends an empty draft and is disabled until *every* draft has a name and grams
 (`arePortionDraftsComplete`); the navigation-bar Save is enabled as soon as *at least one* draft is
