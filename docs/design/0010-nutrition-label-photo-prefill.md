@@ -444,6 +444,14 @@ the form becomes a review step after it.
    screens, and on the review screen, a successful capture closes the camera and merges into the
    form in place — no push.
 
+   **Update — 2026-09-19 (decision):** the *Scan nutrition label* button is removed from the new-item
+   review screen (`AddFoodSheetView`). That screen is only reachable after the camera flow already
+   ran (or after *Add manually*), so the button offered a second scan of what was just scanned.
+   `FoodItemFormSections.onNutritionLabelScanTapped` is now optional and the button renders only
+   when a caller passes it; `ModerationReviewView` and `ModerationCatalogueEditorView` still do, so
+   the maintainer screens keep their in-place camera. `AddFoodSheetViewModel.onReviewNutritionLabelCameraTapped`
+   was deleted with it. The barcode-rescan icon on the barcode row is unaffected.
+
 ### Auto-capture predicate
 
 Capture fires when a parse of the live lines has `caloriesPerHundredGrams` **and** `fat`,

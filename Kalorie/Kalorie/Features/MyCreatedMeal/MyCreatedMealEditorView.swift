@@ -47,15 +47,13 @@ struct MyCreatedMealEditorView: View {
                 }
             }
 
-            FoodPortionsSection(portions: $viewModel.portions)
-
             Section(header: Text(L10n.MyCreatedMeal.sectionCatalogue)) {
                 HStack {
                     TextField(viewModel.searchPlaceholder, text: $viewModel.searchText)
                     BaseButton(
                         style: .plain,
                         imageName: .barCode,
-                        imageSize: .medium
+                        imageSize: .basic
                     ) {
                         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
                             viewModel.onScannerButtonTapped()
@@ -88,23 +86,20 @@ struct MyCreatedMealEditorView: View {
                     }
                 }
             }
+
+            FoodPortionsSection(portions: $viewModel.portions)
         }
         .contentMargins(.top, 0, for: .scrollContent)
-        .safeAreaInset(edge: .bottom) {
-            if viewModel.canSave {
-                Button {
-                    viewModel.onSaveTapped()
-                } label: {
-                    Text(L10n.MyCreatedMeal.buttonSave)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                }
-                .glassEffect(.regular, in: .capsule)
-                .padding(.bottom, 8)
-            }
-        }
         .navigationTitle(viewModel.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(L10n.MyCreatedMeal.buttonSave) {
+                    viewModel.onSaveTapped()
+                }
+                .disabled(!viewModel.canSave)
+            }
+        }
         .loader(viewModel.state.isLoading)
         .fullScreenCover(isPresented: $viewModel.isScannerVisible) {
             BarcodeScannerOverlay(

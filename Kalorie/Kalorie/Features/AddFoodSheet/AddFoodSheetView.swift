@@ -17,14 +17,14 @@ struct AddFoodSheetView: View {
     @StateObject var viewModel: AddFoodSheetViewModel
     @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    private let makeFoodQuantityView: (FoodItemDomain, Bool, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView
+    private let makeFoodQuantityView: (FoodItemDomain, Bool, MyCreatedMealDomain?, @escaping () -> Void, @escaping (String, Bool) -> Void, @escaping (MyCreatedMealDomain) -> Void) -> FoodQuantityView
     private let makeMealEditorView: (@escaping () -> Void) -> MyCreatedMealEditorView
 
     // MARK: - Init
 
     init(
         viewModel: AddFoodSheetViewModel,
-        makeFoodQuantityView: @escaping (FoodItemDomain, Bool, Bool, @escaping () -> Void, @escaping (String, Bool) -> Void) -> FoodQuantityView,
+        makeFoodQuantityView: @escaping (FoodItemDomain, Bool, MyCreatedMealDomain?, @escaping () -> Void, @escaping (String, Bool) -> Void, @escaping (MyCreatedMealDomain) -> Void) -> FoodQuantityView,
         makeMealEditorView: @escaping (@escaping () -> Void) -> MyCreatedMealEditorView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
@@ -118,8 +118,10 @@ struct AddFoodSheetView: View {
             }
             .navigationDestination(isPresented: $viewModel.isPushedToQuantityView) {
                 if let item = viewModel.selectedFoodItem {
-                    makeFoodQuantityView(item, viewModel.isFavourite(item), viewModel.isMyCreatedMeal(item), viewModel.onFoodConsumedSaved) { id, isFavourite in
+                    makeFoodQuantityView(item, viewModel.isFavourite(item), viewModel.myCreatedMeal(for: item), viewModel.onFoodConsumedSaved, { id, isFavourite in
                         viewModel.onFavouriteChanged(id: id, isFavourite: isFavourite, item: item)
+                    }) { updatedMeal in
+                        viewModel.onMyCreatedMealUpdated(updatedMeal)
                     }
                 }
             }
@@ -170,7 +172,7 @@ struct AddFoodSheetView: View {
                     BaseButton(
                         style: .plain,
                         imageName: .barCode,
-                        imageSize: .medium
+                        imageSize: .basic
                     ) {
                         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
                             viewModel.onScannerButtonTapped()
@@ -337,12 +339,12 @@ struct AddFoodSheetView: View {
                             viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
                         }
                     },
-                    onNutritionLabelScanTapped: {
-                        Task { await viewModel.onReviewNutritionLabelCameraTapped() }
+                    // Unlabeled trailing closure would be matched backward past the omitted onNutritionLabelScanTapped.
+                    // swiftlint:disable:next trailing_closure
+                    onFieldEdited: { field in
+                        viewModel.onFormFieldEdited(field)
                     }
-                ) { field in
-                    viewModel.onFormFieldEdited(field)
-                }
+                )
             }
             .contentMargins(.top, 0, for: .scrollContent)
             addButton
@@ -396,7 +398,7 @@ struct AddFoodSheetView: View {
             recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
             cameraAuthorizationProvider: CameraAuthorizationProviderFake()
         ),
-        makeFoodQuantityView: { item, isFavourite, isMyCreatedMeal, onSaved, onFavouriteChanged in
+        makeFoodQuantityView: { item, isFavourite, meal, onSaved, onFavouriteChanged, onMealUpdated in
             FoodQuantityView(
                 viewModel: FoodQuantityViewModel(
                     item: item,
@@ -411,10 +413,13 @@ struct AddFoodSheetView: View {
                     saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
                     fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
                     submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
+                    meal: meal,
+                    updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
                     onSaved: onSaved,
+                    onMealUpdated: onMealUpdated,
                     onFavouriteChanged: onFavouriteChanged,
-                    quantity: isMyCreatedMeal ? item.weight : (item.portions.isEmpty ? 100 : 1),
-                    unit: isMyCreatedMeal ? .grams : FoodQuantityViewModel.defaultUnit(for: item)
+                    quantity: meal != nil ? item.weight : (item.portions.isEmpty ? 100 : 1),
+                    unit: meal != nil ? .grams : FoodQuantityViewModel.defaultUnit(for: item)
                 )
             )
         }

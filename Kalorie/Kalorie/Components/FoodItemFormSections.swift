@@ -20,7 +20,7 @@ struct FoodItemFormSections: View {
     @Binding var formInput: FoodItemFormInput
     var highlightedFields: Set<FoodItemFormField> = []
     var barcodeRow: FoodItemFormBarcodeRow = .hidden
-    var onNutritionLabelScanTapped: () -> Void = {}
+    var onNutritionLabelScanTapped: (() -> Void)?
     var onFieldEdited: (FoodItemFormField) -> Void = { _ in }
 
     // MARK: - Body
@@ -80,17 +80,19 @@ struct FoodItemFormSections: View {
                 if formInput.scannedCode.isEmpty {
                     Text(L10n.AddFood.warningMissingBarcode)
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(.yellow)
                 }
             }
         }
     }
 
-    private var nutritionLabelScanButton: some View {
-        Button {
-            onNutritionLabelScanTapped()
-        } label: {
-            Label(L10n.AddFood.buttonScanNutritionLabel, systemImage: BaseImageName.camera.rawValue)
+    @ViewBuilder private var nutritionLabelScanButton: some View {
+        if let onNutritionLabelScanTapped {
+            Button {
+                onNutritionLabelScanTapped()
+            } label: {
+                Label(L10n.AddFood.buttonScanNutritionLabel, systemImage: BaseImageName.camera.rawValue)
+            }
         }
     }
 }

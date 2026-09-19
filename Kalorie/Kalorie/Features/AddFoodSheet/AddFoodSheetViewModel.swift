@@ -339,13 +339,6 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     }
 
     @MainActor
-    func onReviewNutritionLabelCameraTapped() async {
-        await openNutritionLabelCamera(using: cameraAuthorizationProvider) {
-            alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
-        }
-    }
-
-    @MainActor
     func onNutritionLabelCaptured(_ image: UIImage, liveBarcode: String?) async {
         let succeeded = await recognizeNutritionLabel(from: image, liveBarcode: liveBarcode, using: recognizeNutritionLabelUseCase)
         if succeeded {
@@ -502,6 +495,16 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
 
     func isMyCreatedMeal(_ item: FoodItemDomain) -> Bool {
         item.kind == .createdMeal
+    }
+
+    func myCreatedMeal(for item: FoodItemDomain) -> MyCreatedMealDomain? {
+        guard isMyCreatedMeal(item) else { return nil }
+        return myCreatedMeals.first { $0.id == item.id }
+    }
+
+    func onMyCreatedMealUpdated(_ meal: MyCreatedMealDomain) {
+        guard let index = myCreatedMeals.firstIndex(where: { $0.id == meal.id }) else { return }
+        myCreatedMeals[index] = meal
     }
 
     func submissionStatus(for item: FoodItemDomain) -> FoodItemSubmissionStatus? {

@@ -134,20 +134,13 @@ struct FoodConsumedDetailView: View {
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
+                SaveToolbarButton(
+                    title: L10n.FoodConsumedDetail.buttonSave,
+                    showCheckmark: viewModel.showCheckmark,
+                    isEnabled: viewModel.hasChanges && !viewModel.state.isLoading
+                ) {
                     Task { await viewModel.onSave() }
-                } label: {
-                    if viewModel.showCheckmark {
-                        Image(systemName: "checkmark")
-                            .foregroundStyle(.green)
-                            .transition(.scale.combined(with: .opacity))
-                    } else {
-                        Text(L10n.FoodConsumedDetail.buttonSave)
-                            .transition(.opacity)
-                    }
                 }
-                .animation(.spring(duration: 0.4), value: viewModel.showCheckmark)
-                .disabled(!viewModel.hasChanges || viewModel.state.isLoading)
             }
         }
         .alert(item: $viewModel.alertItem) { item in

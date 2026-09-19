@@ -47,7 +47,7 @@ struct AddFoodSheetConfigurator {
                 onFoodSaved: onFoodSaved,
                 isScannerVisible: withBarcodeScan
             ),
-            makeFoodQuantityView: { [self] item, isFavourite, isMyCreatedMeal, onSaved, onFavouriteChanged in
+            makeFoodQuantityView: { [self] item, isFavourite, meal, onSaved, onFavouriteChanged, onMealUpdated in
                 FoodQuantityView(
                     viewModel: FoodQuantityViewModel(
                         item: item,
@@ -62,10 +62,13 @@ struct AddFoodSheetConfigurator {
                         saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         fetchMyFoodItemReport: FetchMyFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         submitFoodItemReport: SubmitFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                        meal: meal,
+                        updateMyCreatedMeal: UpdateMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         onSaved: onSaved,
+                        onMealUpdated: onMealUpdated,
                         onFavouriteChanged: onFavouriteChanged,
-                        quantity: isMyCreatedMeal ? item.weight : (item.portions.isEmpty ? 100 : 1),
-                        unit: isMyCreatedMeal ? .grams : FoodQuantityViewModel.defaultUnit(for: item)
+                        quantity: meal != nil ? item.weight : (item.portions.isEmpty ? 100 : 1),
+                        unit: meal != nil ? .grams : FoodQuantityViewModel.defaultUnit(for: item)
                     )
                 )
             }

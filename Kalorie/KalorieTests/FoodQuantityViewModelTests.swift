@@ -432,56 +432,104 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.alertItem?.title, L10n.FoodItemReport.errorReasonTooLong)
     }
 
-    // MARK: - onShowAddPortionForm
+    // MARK: - onPortionsManagerOpened
 
     @MainActor
-    func test_onShowAddPortionForm_whenCurrentUnitIsNotAPortion_prefillsGramsFromCurrentQuantity() {
+    func test_onPortionsManagerOpened_whenCurrentUnitIsNotAPortion_seedsOneDraftWithCurrentGrams() {
         let sut = makeSUT(quantity: 150, unit: .grams)
-        sut.onShowAddPortionForm()
-        XCTAssertEqual(sut.newPortionGramsText, "150")
-        XCTAssertEqual(sut.newPortionName, "")
-        XCTAssertTrue(sut.isAddPortionFormVisible)
+        sut.onPortionsManagerOpened()
+        XCTAssertEqual(sut.portionDrafts.map(\.gramsText), ["150"])
+        XCTAssertEqual(sut.portionDrafts.map(\.name), [""])
     }
 
     @MainActor
-    func test_onShowAddPortionForm_whenCurrentUnitIsAlreadyAPortion_leavesGramsBlank() {
+    func test_onPortionsManagerOpened_whenCurrentUnitIsAlreadyAPortion_seedsOneDraftWithBlankGrams() {
         let existingPortion = FoodPortionDomain(name: "1 balení", grams: 33)
         let sut = makeSUT(quantity: 2, unit: .portion(existingPortion))
-        sut.onShowAddPortionForm()
+        sut.onPortionsManagerOpened()
         XCTAssertEqual(
-            sut.newPortionGramsText,
-            "",
+            sut.portionDrafts.map(\.gramsText),
+            [""],
             "the current grams are a multiple of an existing portion, not a freeform weight worth copying into a new one"
         )
     }
 
-    // MARK: - onAddPersonalPortion
+    // MARK: - portion drafts
 
     @MainActor
-    func test_onAddPersonalPortion_whenSaveSucceeds_appendsToPersonalPortionsAndClosesForm() async {
+    func test_arePortionDraftsComplete_isFalseUntilEveryDraftHasNameAndGrams() {
         let sut = makeSUT()
-        sut.newPortionName = "1 balení"
-        sut.newPortionGramsText = "33"
-        sut.isAddPortionFormVisible = true
-        await sut.onAddPersonalPortion()
-        XCTAssertEqual(sut.personalPortions, [FoodPortionDomain(name: "1 balení", grams: 33)])
-        XCTAssertNil(sut.alertItem)
-        XCTAssertFalse(sut.isAddPortionFormVisible)
-        XCTAssertEqual(sut.newPortionName, "")
-        XCTAssertEqual(sut.newPortionGramsText, "")
+        XCTAssertFalse(sut.arePortionDraftsComplete, "the always-present empty row must keep the add button disabled")
+        sut.portionDrafts[0].name = "1 balení"
+        XCTAssertFalse(sut.arePortionDraftsComplete)
+        sut.portionDrafts[0].gramsText = "33"
+        XCTAssertTrue(sut.arePortionDraftsComplete)
+        sut.onAddPortionDraftTapped()
+        XCTAssertFalse(sut.arePortionDraftsComplete, "a freshly added empty row must disable the add button again")
     }
 
     @MainActor
-    func test_onAddPersonalPortion_whenSaveFails_restoresPreAddSnapshotEvenWithADuplicateNameAndGrams() async {
+    func test_canSavePortionDrafts_isTrueWhenAtLeastOneDraftIsCompleteEvenIfAnotherIsEmpty() {
+        let sut = makeSUT()
+        XCTAssertFalse(sut.canSavePortionDrafts)
+        sut.portionDrafts[0].name = "1 balení"
+        sut.portionDrafts[0].gramsText = "33"
+        sut.onAddPortionDraftTapped()
+        XCTAssertTrue(
+            sut.canSavePortionDrafts,
+            "the row added with the plus button is still empty, but the completed row above it is unsaved and must be savable"
+        )
+    }
+
+    @MainActor
+    func test_onSavePersonalPortions_skipsEmptyDrafts() async {
+        let sut = makeSUT()
+        sut.portionDrafts = [
+            FoodPortionDraft(name: "1 balení", gramsText: "33"),
+            FoodPortionDraft(name: "", gramsText: "")
+        ]
+        await sut.onSavePersonalPortions()
+        XCTAssertEqual(sut.personalPortions, [FoodPortionDomain(name: "1 balení", grams: 33)])
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onDeletePortionDraft_whenDeletingTheLastDraft_leavesOneEmptyDraft() {
+        let sut = makeSUT()
+        sut.portionDrafts[0].name = "1 balení"
+        sut.onDeletePortionDraft(sut.portionDrafts[0])
+        XCTAssertEqual(sut.portionDrafts.map(\.name), [""], "the screen must always show at least one row")
+    }
+
+    // MARK: - onSavePersonalPortions
+
+    @MainActor
+    func test_onSavePersonalPortions_whenSaveSucceeds_appendsAllDraftsAndResetsToOneEmptyDraft() async {
+        let sut = makeSUT()
+        sut.portionDrafts = [
+            FoodPortionDraft(name: "1 balení", gramsText: "33"),
+            FoodPortionDraft(name: "1 lžíce", gramsText: "15")
+        ]
+        await sut.onSavePersonalPortions()
+        XCTAssertEqual(
+            sut.personalPortions,
+            [FoodPortionDomain(name: "1 balení", grams: 33), FoodPortionDomain(name: "1 lžíce", grams: 15)]
+        )
+        XCTAssertNil(sut.alertItem)
+        XCTAssertEqual(sut.portionDrafts.map(\.name), [""])
+        XCTAssertEqual(sut.portionDrafts.map(\.gramsText), [""])
+    }
+
+    @MainActor
+    func test_onSavePersonalPortions_whenSaveFails_restoresPreAddSnapshotEvenWithADuplicateNameAndGrams() async {
         let existing = FoodPortionDomain(name: "1 lžíce", grams: 15)
         let sut = makeSUT(
             fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [existing]),
             saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(shouldThrow: true)
         )
         await sut.onAppear()
-        sut.newPortionName = existing.name
-        sut.newPortionGramsText = "15"
-        await sut.onAddPersonalPortion()
+        sut.portionDrafts = [FoodPortionDraft(name: existing.name, gramsText: "15")]
+        await sut.onSavePersonalPortions()
         XCTAssertEqual(
             sut.personalPortions,
             [existing],
@@ -492,11 +540,10 @@ final class FoodQuantityViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onAddPersonalPortion_whenGramsFieldIsBlank_showsAlertAndDoesNotSave() async {
+    func test_onSavePersonalPortions_whenGramsFieldIsBlank_showsAlertAndDoesNotSave() async {
         let sut = makeSUT()
-        sut.newPortionName = "1 balení"
-        sut.newPortionGramsText = ""
-        await sut.onAddPersonalPortion()
+        sut.portionDrafts = [FoodPortionDraft(name: "1 balení", gramsText: "")]
+        await sut.onSavePersonalPortions()
         XCTAssertTrue(
             sut.personalPortions.isEmpty,
             "an unparseable grams field must not silently save a zero-gram portion"
@@ -528,7 +575,117 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.alertItem?.title, L10n.MyPortions.errorDeleteFailed)
     }
 
+    @MainActor
+    func test_onDeletePersonalPortion_whenPortionIsSelectedUnit_switchesToGramsKeepingAmount() async {
+        let portion = FoodPortionDomain(name: "1 hrnek", grams: 40)
+        let sut = makeSUT(fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [portion]))
+        await sut.onAppear()
+        sut.quantity = 2
+        await sut.onDeletePersonalPortion(portion)
+        XCTAssertEqual(sut.unit, .grams, "a deleted portion is no longer a picker option, so it cannot stay selected")
+        XCTAssertEqual(sut.grams, 80, "removing a shortcut must not change the amount the user is about to log")
+    }
+
+    @MainActor
+    func test_onDeletePersonalPortion_whenSaveFails_restoresSelectedUnit() async {
+        let portion = FoodPortionDomain(name: "1 hrnek", grams: 40)
+        let sut = makeSUT(
+            fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions: [portion]),
+            saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(shouldThrow: true)
+        )
+        await sut.onAppear()
+        await sut.onDeletePersonalPortion(portion)
+        XCTAssertEqual(sut.unit, .portion(portion))
+        XCTAssertEqual(sut.quantity, 1)
+    }
+
+    // MARK: - My created meal portions
+
+    @MainActor
+    func test_unitOptions_forMeal_listsEachPortionOnce() {
+        let portion = FoodPortionDomain(name: "1 miska", grams: 250)
+        let meal = makeMeal(portions: [portion])
+        let sut = makeSUT(item: meal.asFoodItem(), meal: meal)
+        XCTAssertEqual(
+            sut.unitOptions,
+            [.portion(portion), .grams, .hundredGrams],
+            "the meal's portions live on the meal itself, so item.portions must not be listed a second time"
+        )
+    }
+
+    @MainActor
+    func test_onSavePersonalPortions_forMeal_writesPortionsToMealAndNotifiesParent() async {
+        let existing = FoodPortionDomain(name: "1 miska", grams: 250)
+        let meal = makeMeal(portions: [existing])
+        var notifiedMeal: MyCreatedMealDomain?
+        let sut = makeSUT(item: meal.asFoodItem(), meal: meal, onSaved: {}) { notifiedMeal = $0 }
+        sut.portionDrafts = [FoodPortionDraft(name: "1 lžíce", gramsText: "15")]
+        await sut.onSavePersonalPortions()
+        let expected = [existing, FoodPortionDomain(name: "1 lžíce", grams: 15)]
+        XCTAssertEqual(sut.personalPortions, expected)
+        XCTAssertEqual(notifiedMeal?.portions, expected, "the parent list must see the new portion, or reopening the meal would lose it")
+    }
+
+    @MainActor
+    func test_onSavePersonalPortions_forMeal_whenSaveFails_restoresPortionsAndDoesNotNotifyParent() async {
+        let existing = FoodPortionDomain(name: "1 miska", grams: 250)
+        let meal = makeMeal(portions: [existing])
+        var wasNotified = false
+        let sut = makeSUT(
+            item: meal.asFoodItem(),
+            meal: meal,
+            updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(shouldThrow: true),
+            onSaved: {}
+        ) { _ in wasNotified = true }
+        sut.portionDrafts = [FoodPortionDraft(name: "1 lžíce", gramsText: "15")]
+        await sut.onSavePersonalPortions()
+        XCTAssertEqual(sut.personalPortions, [existing])
+        XCTAssertFalse(wasNotified)
+        XCTAssertEqual(sut.alertItem?.title, L10n.MyPortions.errorSaveFailed)
+    }
+
+    @MainActor
+    func test_onDeletePersonalPortion_forMeal_removesPortionFromMealAndNotifiesParent() async {
+        let portion = FoodPortionDomain(name: "1 miska", grams: 250)
+        let meal = makeMeal(portions: [portion])
+        var notifiedMeal: MyCreatedMealDomain?
+        let sut = makeSUT(item: meal.asFoodItem(), meal: meal, onSaved: {}) { notifiedMeal = $0 }
+        await sut.onDeletePersonalPortion(portion)
+        XCTAssertTrue(sut.personalPortions.isEmpty)
+        XCTAssertEqual(notifiedMeal?.portions, [])
+    }
+
     // MARK: - Helpers
+
+    private func makeMeal(portions: [FoodPortionDomain]) -> MyCreatedMealDomain {
+        MyCreatedMealDomain(
+            id: "meal",
+            name: "Guláš",
+            ingredients: [
+                MyCreatedMealIngredientDomain(
+                    foodItemId: "beef",
+                    czName: "Hovězí",
+                    engName: "Beef",
+                    grams: 200,
+                    nutrition: FoodNutritionValues(
+                        energyKJ: 1000,
+                        caloriesPerHundredGrams: 240,
+                        fat: 15,
+                        fatSaturated: 6,
+                        fatUnsaturatedFattyAcids: 9,
+                        carbohydrate: 0,
+                        carbohydratePureSugar: 0,
+                        fiber: 0,
+                        protein: 26,
+                        salt: 0.1
+                    )
+                )
+            ],
+            createdAt: .now,
+            updatedAt: .now,
+            portions: portions
+        )
+    }
 
     private func makeSUT(
         item: FoodItemDomain? = nil,
@@ -543,7 +700,10 @@ final class FoodQuantityViewModelTests: XCTestCase {
         saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol = SaveFoodItemPersonalPortionsUseCaseFake(),
         fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
+        meal: MyCreatedMealDomain? = nil,
+        updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
         onSaved: @escaping () -> Void = {},
+        onMealUpdated: @escaping (MyCreatedMealDomain) -> Void = { _ in },
         onFavouriteChanged: @escaping (String, Bool) -> Void = { _, _ in },
         quantity: Double = 1,
         unit: FoodQuantityUnit = .hundredGrams
@@ -561,7 +721,10 @@ final class FoodQuantityViewModelTests: XCTestCase {
             saveFoodItemPersonalPortions: saveFoodItemPersonalPortions,
             fetchMyFoodItemReport: fetchMyFoodItemReport,
             submitFoodItemReport: submitFoodItemReport,
+            meal: meal,
+            updateMyCreatedMeal: updateMyCreatedMeal,
             onSaved: onSaved,
+            onMealUpdated: onMealUpdated,
             onFavouriteChanged: onFavouriteChanged,
             quantity: quantity,
             unit: unit

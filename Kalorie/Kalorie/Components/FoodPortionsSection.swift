@@ -23,14 +23,33 @@ struct FoodPortionsSection: View {
     @Binding var portions: [FoodPortionDraft]
     var measure: FoodMeasure = .grams
 
+    @FocusState private var focusedPortionId: UUID?
+
     // MARK: - Body
 
     var body: some View {
         Group {
             Section(header: Text(L10n.FoodPortion.sectionTitle)) {
-                ForEach($portions) { $draft in
-                    portionRow($draft)
+                ForEach(Array(portions.enumerated()), id: \.element.id) { index, draft in
+                    PortionInputRow(
+                        name: $portions[index].name,
+                        gramsText: $portions[index].gramsText,
+                        measure: measure,
+                        focusedField: $focusedPortionId,
+                        focusValue: draft.id
+                    )
+                        .padding(.bottom, Self.rowSpacing)
+                        .overlay(alignment: .bottom) {
+                            if index < portions.count - 1 {
+                                Rectangle()
+                                    .fill(Color(uiColor: .separator))
+                                    .frame(height: 1)
+                                    .padding(.horizontal, 16)
+                            }
+                        }
+                        // .hidden alone doesn't reliably suppress this List's row separator; the clear tint forces it.
                         .listRowSeparator(.hidden)
+                        .listRowSeparatorTint(.clear)
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
                                 portions.removeAll { $0.id == draft.id }
@@ -38,11 +57,12 @@ struct FoodPortionsSection: View {
                                 Image(systemName: "trash")
                             }
                         }
-                    if draft.id != portions.last?.id {
-                        Divider()
-                            .listRowInsets(EdgeInsets())
-                            .listRowSeparator(.hidden)
-                    }
+                        .listRowInsets(EdgeInsets(
+                            top: index == 0 ? Self.edgeRowSpacing : Self.rowSpacing,
+                            leading: 0,
+                            bottom: index == portions.count - 1 ? 8 : 0,
+                            trailing: 0
+                        ))
                 }
             }
 
@@ -69,7 +89,9 @@ struct FoodPortionsSection: View {
         }
     }
 
-    private static let addButtonSize: CGFloat = 28
+    fileprivate static let addButtonSize: CGFloat = 28
+    private static let rowSpacing: CGFloat = 12
+    private static let edgeRowSpacing: CGFloat = 18
 
     // MARK: - Functions
 
@@ -78,43 +100,12 @@ struct FoodPortionsSection: View {
             !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !draft.gramsText.isEmpty
         }
     }
-
-    private func portionRow(_ draft: Binding<FoodPortionDraft>) -> some View {
-        HStack {
-            BaseStringTextField(
-                placeholder: L10n.FoodPortion.fieldNamePlaceholder,
-                title: "",
-                text: draft.name,
-                textAlignment: .leading
-            )
-            TextField("0", text: draft.gramsText)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .frame(width: 50)
-                .onChange(of: draft.gramsText.wrappedValue) { _, text in
-                    var seenSeparator = false
-                    let sanitized = String(text.filter { char in
-                        if char == "." || char == "," {
-                            if seenSeparator { return false }
-                            seenSeparator = true
-                            return true
-                        }
-                        return char.isASCII && char.isNumber
-                    })
-                    if sanitized != text {
-                        draft.gramsText.wrappedValue = sanitized
-                    }
-                }
-            Text(measure.unitSymbol)
-                .foregroundStyle(.secondary)
-        }
-    }
 }
 
 // MARK: - Preview
 
 #Preview {
     List {
-        FoodPortionsSection(portions: .constant([FoodPortionDraft(name: "1 balení", gramsText: "33")]))
+        FoodPortionsSection(portions: .constant([FoodPortionDraft(name: "1 balení", gramsText: "33"), FoodPortionDraft(name: "1 balení", gramsText: "33")]))
     }
 }
