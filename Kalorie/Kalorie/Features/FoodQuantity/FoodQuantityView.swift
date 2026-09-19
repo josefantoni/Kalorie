@@ -58,6 +58,20 @@ struct FoodQuantityView: View {
             )
         }
         .toolbar {
+            if viewModel.canReportIncorrectData {
+                ToolbarItem(placement: .topBarLeading) {
+                    Menu {
+                        Button(
+                            viewModel.hasReportedCurrentItem ? L10n.FoodItemReport.buttonAlreadyReported : L10n.FoodItemReport.buttonReport
+                        ) {
+                            viewModel.onReportIncorrectDataTapped()
+                        }
+                        .disabled(viewModel.hasReportedCurrentItem)
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button(L10n.FoodQuantity.buttonAdd) {
                     isQuantityFocused = false
@@ -68,6 +82,13 @@ struct FoodQuantityView: View {
         .task { await viewModel.onAppear() }
         .navigationDestination(isPresented: $viewModel.isPersonalPortionsManagerPushed) {
             FoodPortionsManagerView(viewModel: viewModel)
+        }
+        .alert(L10n.FoodItemReport.alertTitle, isPresented: $viewModel.isReportReasonAlertVisible) {
+            TextField(L10n.FoodItemReport.alertPlaceholder, text: $viewModel.reportReasonText)
+            Button(L10n.Common.buttonCancel, role: .cancel) {}
+            Button(L10n.FoodItemReport.buttonSend) {
+                Task { await viewModel.onReportSubmitted() }
+            }
         }
     }
 
@@ -210,6 +231,8 @@ struct FoodQuantityView: View {
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
                 fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(),
                 saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
+                fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
+                submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
                 onSaved: {}
             ) { _, _ in }
         )

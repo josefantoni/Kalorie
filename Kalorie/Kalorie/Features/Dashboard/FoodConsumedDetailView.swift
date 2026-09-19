@@ -116,6 +116,20 @@ struct FoodConsumedDetailView: View {
         .loader(viewModel.state.isLoading)
         .task { await viewModel.onAppear() }
         .toolbar {
+            if viewModel.canReportIncorrectData {
+                ToolbarItem(placement: .topBarLeading) {
+                    Menu {
+                        Button(
+                            viewModel.hasReportedCurrentItem ? L10n.FoodItemReport.buttonAlreadyReported : L10n.FoodItemReport.buttonReport
+                        ) {
+                            viewModel.onReportIncorrectDataTapped()
+                        }
+                        .disabled(viewModel.hasReportedCurrentItem)
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     Task { await viewModel.onSave() }
@@ -139,6 +153,13 @@ struct FoodConsumedDetailView: View {
                 message: item.message.map(Text.init),
                 dismissButton: .default(Text(L10n.Common.ok))
             )
+        }
+        .alert(L10n.FoodItemReport.alertTitle, isPresented: $viewModel.isReportReasonAlertVisible) {
+            TextField(L10n.FoodItemReport.alertPlaceholder, text: $viewModel.reportReasonText)
+            Button(L10n.Common.buttonCancel, role: .cancel) {}
+            Button(L10n.FoodItemReport.buttonSend) {
+                Task { await viewModel.onReportSubmitted() }
+            }
         }
     }
 }
@@ -178,7 +199,9 @@ struct FoodConsumedDetailView: View {
                 addFavouriteFood: AddFavouriteFoodUseCaseFake(),
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
-                fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake()
+                fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
+                fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
+                submitFoodItemReport: SubmitFoodItemReportUseCaseFake()
             ) {}
         )
     }

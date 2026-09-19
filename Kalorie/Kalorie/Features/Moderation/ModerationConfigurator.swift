@@ -45,16 +45,33 @@ struct ModerationConfigurator {
                     )
                 )
             },
-            makeCatalogueEditorView: { [self] in
-                ModerationCatalogueEditorView(
-                    viewModel: ModerationCatalogueEditorViewModel(
-                        fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
-                        updateFoodItem: UpdateFoodItemUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                        recognizeNutritionLabel: RecognizeNutritionLabelUseCase(),
-                        cameraAuthorizationProvider: CameraAuthorizationProvider()
-                    )
-                )
-            }
+            makeCatalogueEditorView: { [self] barcode in makeCatalogueEditorView(initialBarcode: barcode) }
+        )
+    }
+
+    func createReportsView() -> ModerationReportsView {
+        ModerationReportsView(
+            viewModel: ModerationReportsViewModel(
+                fetchFoodItemReports: FetchFoodItemReportsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
+                deleteFoodItemReport: DeleteFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider)
+            )
+        ) { [self] barcode in
+            makeCatalogueEditorView(initialBarcode: barcode)
+        }
+    }
+
+    // MARK: - Private
+
+    private func makeCatalogueEditorView(initialBarcode: String?) -> ModerationCatalogueEditorView {
+        ModerationCatalogueEditorView(
+            viewModel: ModerationCatalogueEditorViewModel(
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
+                updateFoodItem: UpdateFoodItemUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                recognizeNutritionLabel: RecognizeNutritionLabelUseCase(),
+                cameraAuthorizationProvider: CameraAuthorizationProvider(),
+                initialBarcode: initialBarcode
+            )
         )
     }
 }

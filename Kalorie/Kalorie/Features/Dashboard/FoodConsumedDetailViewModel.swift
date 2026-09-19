@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
+final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, FoodItemReporting {
 
     // MARK: - Properties
 
@@ -19,6 +19,10 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     @Published var isTogglingFavourite = false
     @Published private(set) var catalogueItem: FoodItemDomain?
     @Published private(set) var mealTypeId: String?
+    @Published var hasReportedCurrentItem = false
+    @Published var isSubmittingReport = false
+    @Published var isReportReasonAlertVisible = false
+    @Published var reportReasonText = ""
 
     private(set) var food: FoodConsumedDomain
     @Published private(set) var mealTypes: [MealTypeDomain]
@@ -33,10 +37,13 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
     private let removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
+    private let fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol
+    private let submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol
     private let onFoodUpdated: () -> Void
 
     var canShowFavouriteButton: Bool { isFavourite || catalogueItem != nil }
     var canToggleFavourite: Bool { !isTogglingFavourite && canShowFavouriteButton }
+    var canReportIncorrectData: Bool { food.foodItemKind == .catalogue }
 
     // MARK: - Init
 
@@ -51,6 +58,8 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol,
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
+        fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol,
+        submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol,
         onFoodUpdated: @escaping () -> Void
     ) {
         self.food = food
@@ -66,6 +75,8 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
         self.removeFavouriteFood = removeFavouriteFood
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
+        self.fetchMyFoodItemReport = fetchMyFoodItemReport
+        self.submitFoodItemReport = submitFoodItemReport
         self.onFoodUpdated = onFoodUpdated
     }
 
@@ -85,6 +96,14 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling {
         async let catalogueItem = loadCatalogueItem()
         isFavourite = await favourite
         self.catalogueItem = await catalogueItem
+        if canReportIncorrectData {
+            await loadReportState(barcode: food.foodItemId, fetchMyFoodItemReport: fetchMyFoodItemReport)
+        }
+    }
+
+    @MainActor
+    func onReportSubmitted() async {
+        await onReportSubmitted(barcode: food.foodItemId, submitFoodItemReport: submitFoodItemReport)
     }
 
     private func loadIsFavourite() async -> Bool {

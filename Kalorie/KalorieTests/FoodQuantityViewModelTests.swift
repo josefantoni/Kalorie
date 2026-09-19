@@ -392,6 +392,46 @@ final class FoodQuantityViewModelTests: XCTestCase {
         )
     }
 
+    // MARK: - Reporting incorrect data
+
+    func test_canReportIncorrectData_onlyTrueForCatalogueKind() {
+        XCTAssertTrue(makeSUT(item: makeFoodItem(kind: .catalogue)).canReportIncorrectData)
+        XCTAssertFalse(makeSUT(item: makeFoodItem(kind: .external)).canReportIncorrectData, "an OpenFoodFacts item is not ours to correct")
+    }
+
+    @MainActor
+    func test_onAppear_whenAlreadyReported_setsHasReportedCurrentItem() async {
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .catalogue),
+            fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(
+                stubbedReport: FoodItemReportDomain(barcode: "test", reportedBy: "test-user-id", reason: "wrong", reportedAt: .now)
+            )
+        )
+        await sut.onAppear()
+        XCTAssertTrue(sut.hasReportedCurrentItem)
+    }
+
+    @MainActor
+    func test_onReportSubmitted_whenSucceeds_marksAsReported() async {
+        let sut = makeSUT(item: makeFoodItem(kind: .catalogue))
+        sut.reportReasonText = "wrong calories"
+        await sut.onReportSubmitted()
+        XCTAssertTrue(sut.hasReportedCurrentItem)
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onReportSubmitted_whenReasonTooLong_showsAlertAndDoesNotMarkAsReported() async {
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .catalogue),
+            submitFoodItemReport: SubmitFoodItemReportUseCaseFake(errorToThrow: FoodItemReportError.reasonTooLong)
+        )
+        sut.reportReasonText = String(repeating: "a", count: 501)
+        await sut.onReportSubmitted()
+        XCTAssertFalse(sut.hasReportedCurrentItem)
+        XCTAssertEqual(sut.alertItem?.title, L10n.FoodItemReport.errorReasonTooLong)
+    }
+
     // MARK: - onShowAddPortionForm
 
     @MainActor
@@ -501,6 +541,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
         fetchFoodItemPersonalPortions: any FetchFoodItemPersonalPortionsUseCaseProtocol = FetchFoodItemPersonalPortionsUseCaseFake(),
         saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol = SaveFoodItemPersonalPortionsUseCaseFake(),
+        fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
+        submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
         onSaved: @escaping () -> Void = {},
         onFavouriteChanged: @escaping (String, Bool) -> Void = { _, _ in },
         quantity: Double = 1,
@@ -517,6 +559,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
             removeFavouriteFood: removeFavouriteFood,
             fetchFoodItemPersonalPortions: fetchFoodItemPersonalPortions,
             saveFoodItemPersonalPortions: saveFoodItemPersonalPortions,
+            fetchMyFoodItemReport: fetchMyFoodItemReport,
+            submitFoodItemReport: submitFoodItemReport,
             onSaved: onSaved,
             onFavouriteChanged: onFavouriteChanged,
             quantity: quantity,

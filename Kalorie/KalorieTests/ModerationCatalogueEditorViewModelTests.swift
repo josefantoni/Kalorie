@@ -91,19 +91,45 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         XCTAssertEqual(sut.formInput.fiber, 1, "a field still at its default must be filled")
     }
 
+    // MARK: - onAppear (initialBarcode)
+
+    @MainActor
+    func test_onAppear_withInitialBarcode_prefillsFormFromIt() async {
+        let item = makeItem()
+        let sut = makeSUT(
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item),
+            initialBarcode: "12345678"
+        )
+
+        await sut.onAppear()
+
+        XCTAssertEqual(sut.loadedItem, item, "a report row must land the maintainer on the already-loaded item, not an empty search field")
+    }
+
+    @MainActor
+    func test_onAppear_withoutInitialBarcode_doesNothing() async {
+        let sut = makeSUT()
+
+        await sut.onAppear()
+
+        XCTAssertNil(sut.loadedItem)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         updateFoodItem: any UpdateFoodItemUseCaseProtocol = UpdateFoodItemUseCaseFake(),
         recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
-        cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake()
+        cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake(),
+        initialBarcode: String? = nil
     ) -> ModerationCatalogueEditorViewModel {
         ModerationCatalogueEditorViewModel(
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             updateFoodItem: updateFoodItem,
             recognizeNutritionLabel: recognizeNutritionLabel,
-            cameraAuthorizationProvider: cameraAuthorizationProvider
+            cameraAuthorizationProvider: cameraAuthorizationProvider,
+            initialBarcode: initialBarcode
         )
     }
 

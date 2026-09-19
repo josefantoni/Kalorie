@@ -36,6 +36,9 @@ first version of the security rules), [design 0003](design/0003-favourite-foods.
 [design 0008](design/0008-food-portions.md) (`portions` on `foodItems`/`myCreatedMeals`, and the
 barcode-keyed `foodItemPortions` collection), [design 0009](design/0009-catalogue-moderation.md)
 (`foodItemSubmissions`, and the maintainer claim narrowing `foodItems` writes — see § 7),
+[design 0012](design/0012-report-incorrect-catalogue-data.md) (`foodItemReports`, keyed by
+`{barcode}_{userId}` rather than a UUID, and why that key shape is the opposite choice from
+`foodItemSubmissions` — see § 7),
 [design 0011](design/0011-food-measure-grams-or-millilitres.md) (`measure_unit` on `foodItems`,
 `favouriteFoods` and `foodConsumed`, and why the numbers are never converted between grams and
 millilitres).
@@ -80,6 +83,7 @@ users/{userId}/favouriteFoods/{barcode}    explicitly favourited catalogue items
 users/{userId}/myCreatedMeals/{uuid}       user-composed meals
 users/{userId}/foodItemPortions/{barcode}  personal gram-shortcut portions
 foodItemSubmissions/{uuid}                 shared, a user's pending/rejected catalogue submission
+foodItemReports/{barcode}_{userId}         shared, a report that a catalogue entry looks wrong
 ```
 
 Everything under `users/{userId}` is private to that user. `foodItems` is shared by every user
@@ -90,9 +94,12 @@ Document IDs are meaningful, not random:
 - `foodItems`, `favouriteFoods` and `foodItemPortions` are keyed by the **barcode**, which is also
   the item's `id` field on the first two. `CreateFoodItemUseCase` enforces that the id is all
   digits.
-- `foodConsumed`, `myCreatedMeals` and `mealTypes` are keyed by a client-generated
-  `UUID().uuidString` — see [ADR 0021](adr/0021-meal-type-ids-are-uuids.md) for `mealTypes`,
-  which used a client-assigned integer until this record.
+- `foodConsumed`, `myCreatedMeals`, `mealTypes` and `foodItemSubmissions` are keyed by a
+  client-generated `UUID().uuidString` — see [ADR 0021](adr/0021-meal-type-ids-are-uuids.md) for
+  `mealTypes`, which used a client-assigned integer until this record.
+- `foodItemReports` is keyed by `{barcode}_{userId}`, the one collection keyed by neither a UUID
+  nor the barcode alone — see [design 0012](design/0012-report-incorrect-catalogue-data.md) for why
+  a composed, deterministic id is the opposite choice from `foodItemSubmissions`' UUID.
 
 The `users/{userId}` profile document is written **only** by `SignInWithAppleUseCase` and
 `SignInWithGoogleUseCase`. An anonymous user therefore has subcollections but no parent
@@ -212,6 +219,17 @@ expects. There is no `approved` status: approving is `ApproveSubmissionUseCase` 
 entries still awaiting a maintainer. See [design 0009](design/0009-catalogue-moderation.md) and
 § 7 for the full flow.
 
+**`foodItemReports`** (`FoodItemReportDTO`) — a user's flag that a `.catalogue` item's data looks
+wrong, keyed by `{barcode}_{userId}` rather than a UUID: a second report from the same user on the
+same item replaces the first, which is what bounds one user to one open report per item without
+any rule that can count documents. Four fields — `barcode`, `reported_by`, `reason` (free text,
+capped at `Constants.Firestore.reportReasonMaxLength`) and `reported_at` — and no nested item
+snapshot, since the maintainer needs the item's *current* values, not what they were when the
+report was filed. There is no `status` field: a report exists while it is open and is deleted once
+the maintainer corrects the item or dismisses it, the same reasoning that kept
+`foodItemSubmissions` from retaining `approved` entries. See
+[design 0012](design/0012-report-incorrect-catalogue-data.md) and § 7 for the full flow.
+
 ### 1.5 The provider
 
 `FirestoreDataProviderProtocol` is a flat list of one method per **query shape**, not a query
@@ -298,12 +316,26 @@ Consequences worth knowing before adding a method:
   author, the latter existing for account deletion, not as a product feature. See
   [design 0009](design/0009-catalogue-moderation.md) for the original rule text and the Rules
   Playground cases it calls out, and ADR 0028 for what changed since.
+- `foodItemReports/{reportId}`: `allow read` is `isMaintainer() || resource.data.reported_by ==
+  request.auth.uid`, the same two-reader shape `foodItemSubmissions` has. `create` requires the
+  author's own uid and, critically, that `reportId` itself equals
+  `request.resource.data.barcode + '_' + request.auth.uid` — the one rule in the project that
+  validates a document id against a concatenation of two of its own fields. There is **no `update`
+  clause**: a second report from the same user re-submits the same document id, which Firestore
+  routes through `create` while the first is absent and refuses outright while it is still open,
+  since no rule grants it. The client reads its own report first (`loadAsync(id:from:)`) and offers
+  no second report when one exists, rather than writing blind against a rule that would refuse it.
+  `delete` is `isMaintainer() ||` the author, for account deletion, exactly as on
+  `foodItemSubmissions`. See [design 0012](design/0012-report-incorrect-catalogue-data.md).
 - Everything else is denied by Firestore's default.
 
 `Kalorie/firestore.indexes.json`, deployed via the same `firebase.json`, disables single-field
 indexing on `foodItems`' numeric fields via `fieldOverrides` — only `cz_name_lowercase`,
 `eng_name_lowercase`, `cz_name_folded`, `eng_name_folded` and `id` are ever queried, so every
-other field would otherwise be indexed in both directions for no reason.
+other field would otherwise be indexed in both directions for no reason. It also carries two
+composite indexes for `foodItemSubmissions` and one for `foodItemReports` — every one of them
+exists solely for `DeleteAccountUseCase`'s or a moderation queue's `where` + `orderBy` on two
+different fields, which a single-field index cannot serve.
 
 ---
 
@@ -1191,24 +1223,32 @@ maintainer `update` branch narrowed to what the reject path actually writes),
 optimistic-concurrency token against a submission edited while under review),
 [design 0010](design/0010-nutrition-label-photo-prefill.md) (the camera pre-fill on all three
 `FoodItemFormFields` screens — § 7.5), [design 0011](design/0011-food-measure-grams-or-millilitres.md)
-(the parser setting a submission's measure from the label it read). § 1.2/1.4/1.6 cover the
+(the parser setting a submission's measure from the label it read),
+[design 0012](design/0012-report-incorrect-catalogue-data.md) (the report flow — § 7.6 — and why it
+is a signal collection, not a second write path into `foodItems`). § 1.2/1.4/1.6 cover the
 collection shape and rules; § 2.6 covers where this replaces the old direct-write path.
 
 ### 7.1 What exists
 
-Eight use cases, all `FirestoreDataProviderProtocol` + `AuthProviderProtocol` except
-`FetchMaintainerClaimUseCase` (§ 7.3, which touches `FirebaseAuth` directly and takes neither):
+Ten submission/moderation use cases plus four report ones, all `FirestoreDataProviderProtocol` +
+`AuthProviderProtocol` except `FetchMaintainerClaimUseCase` (§ 7.3, which touches `FirebaseAuth`
+directly and takes neither):
 
 | Use case | Does |
 |---|---|
 | `SubmitFoodItemUseCase` | validates, checks the barcode isn't already in `foodItems`, writes a `pending` submission |
 | `FetchMySubmissionsUseCase` | the author's own submissions, for the fourth `displayedResults` list (§ 2.2) |
 | `UpdateMySubmissionUseCase` | resubmits a rejected submission under its existing id, resetting `status` to `pending` |
+| `DeleteMySubmissionUseCase` | the author withdraws a pending or rejected submission |
 | `FetchPendingSubmissionsUseCase` | the maintainer's queue |
 | `ApproveSubmissionUseCase` | re-reads the submission to guard against a concurrent edit (ADR 0029), calls `CreateFoodItemUseCase` (§ 2.6), then deletes the submission |
 | `RejectSubmissionUseCase` | overwrites the submission with `status: rejected` and a reason — `setAsync` replaces, so every other field is resent unchanged; a denied write is re-read to tell "already resolved" apart from "resubmitted since review" (ADR 0029) |
 | `UpdateFoodItemUseCase` | the maintainer's correction of an existing `foodItems` entry; same `FoodItemValidation`, no existence check |
 | `FetchMaintainerClaimUseCase` | reads the `maintainer` custom claim via `getIDTokenResult()` |
+| `SubmitFoodItemReportUseCase` | validates the reason, writes under the composed `{barcode}_{userId}` id (§ 7.6) |
+| `FetchMyFoodItemReportUseCase` | reads the caller's own report for one barcode, by key — the *already reported* check |
+| `FetchFoodItemReportsUseCase` | the maintainer's report queue, ordered by `reported_at` |
+| `DeleteFoodItemReportUseCase` | the maintainer clears one report, by its composed key, after correcting or dismissing it |
 
 ### 7.2 The submission flow (AddFoodSheet)
 
@@ -1239,9 +1279,12 @@ populated in `onAppear()` from `FetchMaintainerClaimUseCase`, a plain `Bool` wit
 a **UI gate, not a defence**: the rules in § 1.6 are what actually restrict a write, exactly as
 design 0009 requires.
 
-`ModerationConfigurator` assembles three pushed (not sheeted) views, all reached through
+`ModerationConfigurator` assembles four pushed (not sheeted) views, all reached through
 `NavigationLink`s inside `AccountView`'s existing `NavigationStack`, matching how
-`MyCreatedMealEditorView` is pushed from `MealTypeSheetView` rather than sheeted:
+`MyCreatedMealEditorView` is pushed from `MealTypeSheetView` rather than sheeted. The queue and the
+reports screen (§ 7.6) are two separate, sibling `NavigationLink`s in `AccountView`'s maintainer
+section — not one nested inside the other — since a report row means something different from a
+submission row and goes somewhere else:
 
 - **`ModerationQueueView`** — `FetchPendingSubmissionsUseCase`'s list, each row concurrently
   checked against `FetchFoodItemByBarcodeUseCase` so an already-collided barcode shows a marker
@@ -1255,16 +1298,19 @@ design 0009 requires.
 - **`ModerationCatalogueEditorView`** — search `foodItems` by barcode
   (`FetchFoodItemByBarcodeUseCase`), edit any field including canonical portions, save via
   `UpdateFoodItemUseCase`. This is the correction path [design 0008](design/0008-food-portions.md)
-  deferred here, since canonical portions were write-once purely for lack of an `update` rule.
+  deferred here, since canonical portions were write-once purely for lack of an `update` rule. Also
+  reachable with a barcode already supplied — see § 7.6.
+- **`ModerationReportsView`** (§ 7.6) — the report queue, grouped by barcode.
 
 ### 7.4 What this does not do
 
-Per design 0009's Non-goals: no packaging photo (Storage isn't configured), no report-a-problem
-channel for an existing catalogue item, no push notification of the outcome, no `delete` on
-`foodItems` for anyone including the maintainer, and no second-platform admin panel — an Android
-client ships without one, which is an accepted consequence of hosting it in the iOS client alone.
-All four are tracked in `TODO.md`, not here, per this document's own rule that open work lives in
-the backlog, not in the description of what exists.
+Per design 0009's Non-goals: no packaging photo (Storage isn't configured), no push notification of
+the outcome, no `delete` on `foodItems` for anyone including the maintainer, and no second-platform
+admin panel — an Android client ships without one, which is an accepted consequence of hosting it in
+the iOS client alone. All three are tracked in `TODO.md`, not here, per this document's own rule
+that open work lives in the backlog, not in the description of what exists. The fourth item design
+0009 listed here — a report-a-problem channel for an existing catalogue item — is no longer a gap;
+see § 7.6.
 
 ### 7.5 Pre-filling the form from a photo
 
@@ -1329,3 +1375,48 @@ set.
 No photo is stored and nothing new reaches Firestore — this is a client-side prefill of the same
 form `SubmitFoodItemUseCase` / `UpdateMySubmissionUseCase` / `UpdateFoodItemUseCase` already wrote
 before this design.
+
+### 7.6 Reporting incorrect data
+
+A user looking at a `.catalogue` item — on `FoodConsumedDetailView` or `FoodQuantityView`, gated by
+`canReportIncorrectData` (`food.foodItemKind == .catalogue` / `item.kind == .catalogue`) — can flag
+that its data looks wrong. An `.external` (OpenFoodFacts) item or a created meal offers no such
+affordance: neither is a `foodItems` entry a report could point the maintainer at.
+
+`FoodItemReporting` (`Core/Utils/`) is the third protocol-extension pair sharing state across two
+view models, the same shape as `FavouriteToggling` (§ 4.6) and `NutritionLabelPrefilling` (§ 7.5):
+`onAppear()` loads whether the current user already has an open report for this barcode
+(`FetchMyFoodItemReportUseCase`, one document read by the composed `{barcode}_{userId}` key — no
+query), and the toolbar menu offers *Report incorrect data* or a disabled *Already reported*
+accordingly. Submitting (`SubmitFoodItemReportUseCase`) validates the reason is non-empty and under
+`Constants.Firestore.reportReasonMaxLength`, then `setAsync`s under that same composed key — a
+second report from the same user replaces rather than duplicates, which is what the key shape buys
+over `foodItemSubmissions`' UUID (§ 1.2): one open report per user per item, enforced by the rules
+having no `update` clause to fall back on rather than by client-side counting.
+
+`ModerationReportsView` / `ModerationReportsViewModel` (§ 7.3) is the maintainer's queue:
+`FetchFoodItemReportsUseCase` loads the whole collection ordered by `reported_at`, and the view
+model groups the result by barcode client-side — `Dictionary(grouping:by:)` over an already-loaded
+list, not a second query — so two different users reporting the same item collapse into one row
+showing a count, sorted with the most-reported item first. Names resolve through the same
+`FetchFoodItemByBarcodeUseCase.callAsFunction(barcodes:)` batched lookup `ModerationQueueViewModel`
+already uses for its own collision check; a barcode that resolves to nothing still renders, as the
+bare barcode, since the report is still clearable. Tapping a row pushes
+`ModerationCatalogueEditorView` pre-loaded with that barcode (`initialBarcode`, resolved in its own
+`onAppear()`) — reporting adds no correction UI of its own, it only routes to the one design 0009
+already built. Resolving is a swipe action that calls `DeleteFoodItemReportUseCase` once per report
+in the group; a partial failure leaves the rest, the same visible, idempotent shape design 0009
+accepted for approval's own two non-transactional writes.
+
+There is no `status` field and no retained "resolved" record — a report is deleted once acted on,
+the same reasoning [design 0009](design/0009-catalogue-moderation.md) gave for not retaining
+approved submissions. `DeleteAccountUseCase.wipeFirestoreData` queries `foodItemReports where
+reported_by == uid` and deletes each, the same privacy obligation `foodItemSubmissions` already
+carries; unlike that query, this one needed its own composite index (§ 1.6), since equality on one
+field plus a sort on another is never covered by Firestore's automatic single-field indexing.
+
+See [design 0012](design/0012-report-incorrect-catalogue-data.md) for why this is a signal
+collection rather than a second write path into `foodItems` — routing a correction through
+`foodItemSubmissions` would have meant conditionally lifting `SubmitFoodItemUseCase`'s own
+existence check and bypassing `CreateFoodItemUseCase`'s, the exact guard
+[ADR 0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) says must not be removed.

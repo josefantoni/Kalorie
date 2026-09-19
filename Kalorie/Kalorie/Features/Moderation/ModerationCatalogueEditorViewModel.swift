@@ -27,6 +27,7 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
     private let updateFoodItem: any UpdateFoodItemUseCaseProtocol
     private let recognizeNutritionLabelUseCase: any RecognizeNutritionLabelUseCaseProtocol
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
+    private let initialBarcode: String?
 
     // MARK: - Init
 
@@ -34,15 +35,25 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         updateFoodItem: any UpdateFoodItemUseCaseProtocol,
         recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol,
-        cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
+        cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
+        initialBarcode: String? = nil
     ) {
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.updateFoodItem = updateFoodItem
         self.recognizeNutritionLabelUseCase = recognizeNutritionLabel
         self.cameraAuthorizationProvider = cameraAuthorizationProvider
+        self.initialBarcode = initialBarcode
+        self.barcodeQuery = initialBarcode ?? ""
     }
 
     // MARK: - Functions
+
+    @MainActor
+    func onAppear() async {
+        guard let initialBarcode, loadedItem == nil else { return }
+        barcodeQuery = initialBarcode
+        await onSearchTapped()
+    }
 
     @MainActor
     func onNutritionLabelCaptured(_ image: UIImage, liveBarcode: String?) async {

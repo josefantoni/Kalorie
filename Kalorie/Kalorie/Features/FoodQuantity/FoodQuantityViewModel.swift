@@ -21,7 +21,7 @@ enum FoodQuantityUnit: Hashable {
     }
 }
 
-final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
+final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItemReporting {
 
     // MARK: - Properties
 
@@ -38,6 +38,10 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     @Published var newPortionGramsText = ""
     @Published private(set) var mealTypes: [MealTypeDomain]
     @Published var selectedMealTypeId: String?
+    @Published var hasReportedCurrentItem = false
+    @Published var isSubmittingReport = false
+    @Published var isReportReasonAlertVisible = false
+    @Published var reportReasonText = ""
 
     let item: FoodItemDomain
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
@@ -46,6 +50,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     private let removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol
     private let fetchFoodItemPersonalPortions: any FetchFoodItemPersonalPortionsUseCaseProtocol
     private let saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol
+    private let fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol
+    private let submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol
     private let selectedDate: Date
     private let onSaved: () -> Void
     private let onFavouriteChanged: (String, Bool) -> Void
@@ -63,6 +69,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
     var scaledFiber: Double { scaledMacros.fiber ?? 0 }
 
     var isPersonalPortionsAvailable: Bool { item.kind == .catalogue }
+    var canReportIncorrectData: Bool { item.kind == .catalogue }
 
     var unitOptions: [FoodQuantityUnit] {
         personalPortions.map(FoodQuantityUnit.portion) + item.portions.map(FoodQuantityUnit.portion) + [.grams, .hundredGrams]
@@ -81,6 +88,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol,
         fetchFoodItemPersonalPortions: any FetchFoodItemPersonalPortionsUseCaseProtocol,
         saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol,
+        fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol,
+        submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol,
         onSaved: @escaping () -> Void,
         onFavouriteChanged: @escaping (String, Bool) -> Void,
         quantity: Double = 1,
@@ -97,6 +106,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         self.removeFavouriteFood = removeFavouriteFood
         self.fetchFoodItemPersonalPortions = fetchFoodItemPersonalPortions
         self.saveFoodItemPersonalPortions = saveFoodItemPersonalPortions
+        self.fetchMyFoodItemReport = fetchMyFoodItemReport
+        self.submitFoodItemReport = submitFoodItemReport
         self.onSaved = onSaved
         self.onFavouriteChanged = onFavouriteChanged
         self.quantity = quantity
@@ -111,6 +122,9 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
 
     @MainActor
     func onAppear() async {
+        if canReportIncorrectData {
+            await loadReportState(barcode: item.id, fetchMyFoodItemReport: fetchMyFoodItemReport)
+        }
         guard isPersonalPortionsAvailable else { return }
         do {
             personalPortions = try await fetchFoodItemPersonalPortions(barcode: item.id)
@@ -124,6 +138,11 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling {
         } catch {
             Log.warning(error, category: Constants.LogCategory.foodQuantity)
         }
+    }
+
+    @MainActor
+    func onReportSubmitted() async {
+        await onReportSubmitted(barcode: item.id, submitFoodItemReport: submitFoodItemReport)
     }
 
     func onUnitSelected(_ newUnit: FoodQuantityUnit) {

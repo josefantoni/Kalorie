@@ -15,6 +15,14 @@
         { "fieldPath": "submitted_by", "order": "ASCENDING" },
         { "fieldPath": "submitted_at", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "foodItemReports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reported_by", "order": "ASCENDING" },
+        { "fieldPath": "reported_at", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

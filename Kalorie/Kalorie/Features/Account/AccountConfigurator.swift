@@ -79,9 +79,12 @@ struct AccountConfigurator {
                 ),
                 fetchMaintainerClaim: FetchMaintainerClaimUseCase(cache: maintainerClaimCache),
                 mergeStatusReporting: mergeStatusReporting
-            )
+            ),
+            makeModerationView: { [self] in
+                ModerationConfigurator(dataProvider: dataProvider, authProvider: authProvider).createView()
+            }
         ) { [self] in
-            ModerationConfigurator(dataProvider: dataProvider, authProvider: authProvider).createView()
+            ModerationConfigurator(dataProvider: dataProvider, authProvider: authProvider).createReportsView()
         }
     }
 }

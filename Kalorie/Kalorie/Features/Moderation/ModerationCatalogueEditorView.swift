@@ -65,6 +65,7 @@ struct ModerationCatalogueEditorView: View {
         .navigationTitle(L10n.Moderation.editorTitle)
         .navigationBarTitleDisplayMode(.inline)
         .loader(viewModel.state.isLoading)
+        .task { await viewModel.onAppear() }
         .fullScreenCover(isPresented: $viewModel.isNutritionLabelCameraVisible) {
             NutritionLabelCameraView(
                 isRecognizing: viewModel.isRecognizingNutritionLabel,
