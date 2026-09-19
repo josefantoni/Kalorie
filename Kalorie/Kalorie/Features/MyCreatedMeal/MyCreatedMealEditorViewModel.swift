@@ -110,7 +110,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
         }
         let existingPortions = existingMeal?.portions ?? []
         let resolvedPortions = existingPortions.isEmpty
-            ? [FoodPortionDraft(name: "", gramsText: "")]
+            ? [FoodPortionDraft.blank]
             : existingPortions.map { portion in
                 FoodPortionDraft(name: portion.name, gramsText: Self.formattedGrams(portion.grams))
             }

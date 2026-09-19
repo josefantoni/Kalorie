@@ -67,19 +67,3 @@ ones are listed below; closed findings live in git history, not here.
   implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
   much larger limit (and the read cost that implies) or the frequency data denormalised into the
   query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
-
-
-## Audit findings — 4. Food entry flow
-
-- [ ] **A4-1 — The portion-row list is implemented twice.** `FoodPortionsSection` (canonical
-  portions, bound to a `[FoodPortionDraft]`) and `FoodPortionsManagerView` (personal portions,
-  bound to `FoodQuantityViewModel.portionDrafts`) each carry their own copy of the row layout: the
-  full-width separator overlay, the edge-aware `listRowInsets`, the swipe-to-delete, the `+`
-  button in its own `Section` with `.listSectionSpacing(0)`, and the row/edge spacing constants
-  (which have already drifted: 18 vs. 8 for the edge). The "at least one draft, `+` disabled until
-  all complete" rule is likewise re-implemented in `FoodPortionsSection.canAddPortion`,
-  `FoodQuantityViewModel.arePortionDraftsComplete` and the seeding sites in
-  `AddFoodSheetViewModel` and `MyCreatedMealEditorViewModel`. A shared draft-list view plus a
-  `FoodPortionDraft` completeness helper would remove both; it has to accommodate the manager's
-  read-only saved rows above the drafts inside the same section. Layout is verified by hand only —
-  the view models are unit-tested, the rows are not.
