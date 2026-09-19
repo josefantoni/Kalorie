@@ -35,7 +35,7 @@ extension FoodItemFormInput {
     init(item: FoodItemDomain) {
         let weightDisplay = Self.weightDisplay(for: item.weight)
         self.init(
-            scannedCode: item.id,
+            scannedCode: item.barcode ?? "",
             name: item.czName,
             engName: item.engName,
             weightOfProduct: weightDisplay.value,
@@ -217,6 +217,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     @Published var isSubmissionConfirmationVisible = false
     @Published private(set) var rejectionReasonBeingEdited: String?
     @Published var isSubmissionDeleteConfirmationVisible = false
+    @Published var isMissingBarcodeConfirmationVisible = false
     let searchPlaceholder: String
 
     var isEditingSubmission: Bool { editingSubmissionId != nil }
@@ -326,6 +327,15 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         await openNutritionLabelCamera(using: cameraAuthorizationProvider) {
             cameraAccess = .denied
         }
+    }
+
+    @MainActor
+    func onAddManuallyTapped() {
+        formInput = FoodItemFormInput()
+        recognizedFields = []
+        editingSubmissionId = nil
+        rejectionReasonBeingEdited = nil
+        isReviewPushed = true
     }
 
     @MainActor
@@ -495,12 +505,12 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     }
 
     func submissionStatus(for item: FoodItemDomain) -> FoodItemSubmissionStatus? {
-        mySubmissions.first { $0.barcode == item.id }?.status
+        mySubmissions.first { $0.item.id == item.id }?.status
     }
 
     @MainActor
     func onSelectRejectedSubmission(_ item: FoodItemDomain) {
-        guard let submission = mySubmissions.first(where: { $0.barcode == item.id }) else { return }
+        guard let submission = mySubmissions.first(where: { $0.item.id == item.id }) else { return }
         openEditingForm(for: submission)
     }
 
@@ -550,6 +560,23 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
 
     @MainActor
     func onCreateFoodItem() async {
+        guard formInput.scannedCode.isEmpty else {
+            await writeFoodItem()
+            return
+        }
+        isMissingBarcodeConfirmationVisible = true
+    }
+
+    @MainActor
+    func onMissingBarcodeConfirmed() async {
+        isMissingBarcodeConfirmationVisible = false
+        await writeFoodItem()
+    }
+
+    // MARK: - Private
+
+    @MainActor
+    private func writeFoodItem() async {
         state = .loading
         defer { state = .loaded }
         let item = formInput.asFoodItemDomain()
@@ -586,8 +613,6 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
             }
         }
     }
-
-    // MARK: - Private
 
     @MainActor
     private func openEditingForm(for submission: FoodItemSubmissionDomain) {

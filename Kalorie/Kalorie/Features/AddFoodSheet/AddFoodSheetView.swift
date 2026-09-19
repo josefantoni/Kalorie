@@ -247,27 +247,30 @@ struct AddFoodSheetView: View {
         Group {
             switch viewModel.cameraAccess {
             case .authorized, .notDetermined:
-                Button {
-                    Task { await viewModel.onNutritionLabelPromptTapped() }
-                } label: {
-                    VStack(spacing: 16) {
-                        Image(systemName: BaseImageName.camera.rawValue)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                            .padding(20)
-                            .background(Color.accentColor)
-                            .clipShape(.circle)
-                        Text(L10n.AddFood.nutritionLabelPromptBody)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                VStack(spacing: 24) {
+                    Button {
+                        Task { await viewModel.onNutritionLabelPromptTapped() }
+                    } label: {
+                        VStack(spacing: 16) {
+                            Image(systemName: BaseImageName.camera.rawValue)
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.white)
+                                .padding(20)
+                                .background(Color.accentColor)
+                                .clipShape(.circle)
+                            Text(L10n.AddFood.nutritionLabelPromptBody)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
                     }
-                    .padding(32)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    addManuallyButton(title: L10n.AddFood.buttonAddManually)
                 }
-                .buttonStyle(.plain)
+                .padding(32)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentShape(Rectangle())
             case .denied:
                 VStack(spacing: 16) {
                     promptIcon
@@ -279,16 +282,20 @@ struct AddFoodSheetView: View {
                         openSettings()
                     }
                     .buttonStyle(.borderedProminent)
+                    addManuallyButton(title: L10n.AddFood.buttonAddManually)
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .unsupported:
-                Text(L10n.AddFood.nutritionLabelUnsupportedMessage)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(32)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: 16) {
+                    Text(L10n.AddFood.nutritionLabelUnsupportedMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    addManuallyButton(title: L10n.AddFood.buttonAddFoodManually)
+                }
+                .padding(32)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
@@ -297,6 +304,13 @@ struct AddFoodSheetView: View {
         Image(systemName: BaseImageName.camera.rawValue)
             .font(.system(size: .extraLarge))
             .foregroundStyle(.secondary)
+    }
+
+    private func addManuallyButton(title: String) -> some View {
+        Button(title) {
+            viewModel.onAddManuallyTapped()
+        }
+        .font(.subheadline)
     }
 
     private func openSettings() {
@@ -316,7 +330,13 @@ struct AddFoodSheetView: View {
                 FoodItemFormSections(
                     formInput: $viewModel.formInput,
                     highlightedFields: viewModel.recognizedFields,
-                    barcodeRow: viewModel.isEditingSubmission ? .locked : .editable { viewModel.onBarcodeRescanTapped() },
+                    barcodeRow: viewModel.isEditingSubmission ? .locked : .editable {
+                        if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
+                            viewModel.onBarcodeRescanTapped()
+                        } else {
+                            viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
+                        }
+                    },
                     onNutritionLabelScanTapped: {
                         Task { await viewModel.onReviewNutritionLabelCameraTapped() }
                     }
@@ -336,6 +356,12 @@ struct AddFoodSheetView: View {
             Button(L10n.Common.ok) { viewModel.onSubmissionConfirmationDismissed() }
         } message: {
             Text(L10n.AddFood.submissionSubmittedMessage)
+        }
+        .alert(L10n.AddFood.confirmMissingBarcode, isPresented: $viewModel.isMissingBarcodeConfirmationVisible) {
+            Button(L10n.Common.buttonNo, role: .cancel) {}
+            Button(L10n.Common.buttonYes) {
+                Task { await viewModel.onMissingBarcodeConfirmed() }
+            }
         }
     }
 

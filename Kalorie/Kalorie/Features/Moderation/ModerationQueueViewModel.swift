@@ -56,14 +56,15 @@ final class ModerationQueueViewModel: ObservableObject {
     }
 
     func isColliding(_ submission: FoodItemSubmissionDomain) -> Bool {
-        collidingBarcodes.contains(submission.barcode)
+        guard let barcode = submission.barcode else { return false }
+        return collidingBarcodes.contains(barcode)
     }
 
     // MARK: - Private
 
     @MainActor
     private func refreshCollisions() async {
-        let barcodes = submissions.map(\.barcode)
+        let barcodes = submissions.compactMap(\.barcode)
         collidingBarcodes = await Self.collidingBarcodes(among: barcodes, fetchFoodItemByBarcode: fetchFoodItemByBarcode)
     }
 

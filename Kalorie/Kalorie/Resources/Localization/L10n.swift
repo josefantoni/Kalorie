@@ -140,6 +140,11 @@ enum L10n {
         static var nutritionLabelCameraShutterAccessibility: String { String(localized: "addFood_nutritionLabel_cameraShutterAccessibility") }
         static var nutritionLabelBarcodeScanAccessibility: String { String(localized: "addFood_nutritionLabel_barcodeScanAccessibility") }
         static var buttonOpenSettings: String { String(localized: "addFood_button_openSettings") }
+        static var buttonAddManually: String { String(localized: "addFood_button_addManually") }
+        static var buttonAddFoodManually: String { String(localized: "addFood_button_addFoodManually") }
+        static var warningMissingBarcode: String { String(localized: "addFood_warning_missingBarcode") }
+        static var confirmMissingBarcode: String { String(localized: "addFood_confirm_missingBarcode") }
+        static var fieldBarcodeMissingLabel: String { String(localized: "addFood_field_barcode_missingLabel") }
     }
 
     enum Moderation {
@@ -165,6 +170,8 @@ enum L10n {
             String(format: String(localized: "moderation_reports_count"), count)
         }
         static var buttonResolve: String { String(localized: "moderation_button_resolve") }
+        static var similarItemsSectionTitle: String { String(localized: "moderation_similarItems_title") }
+        static var similarItemsEmpty: String { String(localized: "moderation_similarItems_empty") }
     }
 
     enum FoodItemReport {

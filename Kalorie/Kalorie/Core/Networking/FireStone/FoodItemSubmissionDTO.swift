@@ -12,7 +12,7 @@ struct FoodItemSubmissionDTO: Codable {
     // MARK: - Properties
 
     let id: String
-    let barcode: String
+    let barcode: String?
     let submittedBy: String
     let status: FoodItemSubmissionStatus
     let submittedAt: TimeInterval
@@ -32,7 +32,7 @@ struct FoodItemSubmissionDTO: Codable {
 
     init(
         id: String,
-        barcode: String,
+        barcode: String?,
         submittedBy: String,
         status: FoodItemSubmissionStatus,
         submittedAt: Date,

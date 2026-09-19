@@ -40,11 +40,16 @@ enum FoodItemValidation {
 
     // MARK: - Functions
 
+    static func isValidBarcode(_ id: String) -> Bool {
+        id.allSatisfy { $0.isASCII && $0.isNumber } && [8, 12, 13].contains(id.count)
+    }
+
+    static func isValidSubmissionUUID(_ id: String) -> Bool {
+        UUID(uuidString: id) != nil && id == id.uppercased()
+    }
+
     static func validate(_ item: FoodItemDomain) -> FoodItemValidationError? {
-        guard
-            item.id.allSatisfy({ $0.isASCII && $0.isNumber }),
-            [8, 12, 13].contains(item.id.count)
-        else { return .invalidCode }
+        guard isValidBarcode(item.id) || isValidSubmissionUUID(item.id) else { return .invalidCode }
         guard !item.czName.isEmpty else { return .invalidName }
         guard item.caloriesPerHundredGrams > 0 else { return .invalidCalories }
         guard item.weight > 0 else { return .invalidWeight }

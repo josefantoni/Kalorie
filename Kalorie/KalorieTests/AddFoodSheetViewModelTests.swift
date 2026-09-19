@@ -154,18 +154,18 @@ final class AddFoodSheetViewModelTests: XCTestCase {
 
     @MainActor
     func test_onNutritionLabelCaptured_liveBarcodeDoesNotOverwriteALockedBarcode() async {
-        let submission = makeSubmission(id: "sub-1", barcode: "sub-item", status: .rejected, rejectReason: "Wrong calories")
+        let submission = makeSubmission(id: "sub-1", barcode: "87654321", status: .rejected, rejectReason: "Wrong calories")
         let reading = NutritionLabelReading(caloriesPerHundredGrams: 80, fat: 12, carbohydrate: 55, protein: 10)
         let sut = makeSUT(
             fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [submission]),
             recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(stubbedReading: reading)
         )
         await sut.onAppear()
-        sut.onSelectRejectedSubmission(makeFoodItem(id: "sub-item", czName: "Ovar"))
+        sut.onSelectRejectedSubmission(makeFoodItem(id: "87654321", czName: "Ovar"))
 
         await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: "8594004428464")
 
-        XCTAssertEqual(sut.formInput.scannedCode, "sub-item", "the resubmission's barcode is locked; a live scan must never silently redirect it to a different item")
+        XCTAssertEqual(sut.formInput.scannedCode, "87654321", "the resubmission's barcode is locked; a live scan must never silently redirect it to a different item")
     }
 
     // MARK: - onBarcodeScanned
@@ -309,12 +309,12 @@ final class AddFoodSheetViewModelTests: XCTestCase {
 
     @MainActor
     func test_onSelectRejectedSubmission_prefillsFormAndShowsRejectionReason() async {
-        let submission = makeSubmission(id: "sub-1", barcode: "sub-item", status: .rejected, rejectReason: "Wrong calories")
+        let submission = makeSubmission(id: "sub-1", barcode: "87654321", status: .rejected, rejectReason: "Wrong calories")
         let sut = makeSUT(fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [submission]))
         await sut.onAppear()
-        sut.onSelectRejectedSubmission(makeFoodItem(id: "sub-item", czName: "Ovar"))
+        sut.onSelectRejectedSubmission(makeFoodItem(id: "87654321", czName: "Ovar"))
         XCTAssertEqual(sut.mode, .newItem)
-        XCTAssertEqual(sut.formInput.scannedCode, "sub-item")
+        XCTAssertEqual(sut.formInput.scannedCode, "87654321")
         XCTAssertEqual(sut.formInput.name, "Ovar")
         XCTAssertEqual(sut.rejectionReasonBeingEdited, "Wrong calories")
         XCTAssertTrue(sut.isEditingSubmission, "the barcode must be locked while resubmitting, or approving it can orphan entries logged under the old barcode")
@@ -415,14 +415,14 @@ final class AddFoodSheetViewModelTests: XCTestCase {
 
     @MainActor
     func test_onCreateFoodItem_whenResubmittingRejectedSubmission_callsUpdateMySubmission() async {
-        let submission = makeSubmission(id: "sub-1", barcode: "sub-item", status: .rejected, rejectReason: "Wrong calories")
+        let submission = makeSubmission(id: "sub-1", barcode: "87654321", status: .rejected, rejectReason: "Wrong calories")
         let updateMySubmission = UpdateMySubmissionUseCaseSpy()
         let sut = makeSUT(
             fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [submission]),
             updateMySubmission: updateMySubmission
         )
         await sut.onAppear()
-        sut.onSelectRejectedSubmission(makeFoodItem(id: "sub-item", czName: "Ovar"))
+        sut.onSelectRejectedSubmission(makeFoodItem(id: "87654321", czName: "Ovar"))
         sut.formInput.weightOfProduct = 200
         sut.formInput.caloriesPerHundredGrams = 80
 
@@ -443,6 +443,51 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         await sut.onCreateFoodItem()
         XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorItemAlreadyExists)
         XCTAssertFalse(sut.isSubmissionConfirmationVisible)
+    }
+
+    @MainActor
+    func test_onCreateFoodItem_withEmptyBarcode_showsConfirmationAndWritesNothingUntilConfirmed() async {
+        let submitFoodItem = SubmitFoodItemUseCaseSpy()
+        let sut = makeSUT(submitFoodItem: submitFoodItem)
+        sut.formInput.name = "Kukuřice"
+        sut.formInput.weightOfProduct = 200
+        sut.formInput.caloriesPerHundredGrams = 80
+
+        await sut.onCreateFoodItem()
+
+        XCTAssertTrue(sut.isMissingBarcodeConfirmationVisible, "a food with no barcode must be confirmed explicitly before it is submitted")
+        XCTAssertNil(submitFoodItem.receivedItem, "nothing may be written before the maintainer confirms")
+        XCTAssertFalse(sut.isSubmissionConfirmationVisible)
+    }
+
+    @MainActor
+    func test_onMissingBarcodeConfirmed_submitsTheBarcodelessItemAndHidesTheConfirmation() async {
+        let submitFoodItem = SubmitFoodItemUseCaseSpy()
+        let sut = makeSUT(submitFoodItem: submitFoodItem)
+        sut.formInput.name = "Kukuřice"
+        sut.formInput.weightOfProduct = 200
+        sut.formInput.caloriesPerHundredGrams = 80
+        await sut.onCreateFoodItem()
+
+        await sut.onMissingBarcodeConfirmed()
+
+        XCTAssertFalse(sut.isMissingBarcodeConfirmationVisible)
+        XCTAssertEqual(submitFoodItem.receivedItem?.id, "", "the writer, not the form, assigns the submission's identity when there is no barcode")
+        XCTAssertTrue(sut.isSubmissionConfirmationVisible)
+    }
+
+    // MARK: - onAddManuallyTapped
+
+    @MainActor
+    func test_onAddManuallyTapped_resetsFormAndPushesReviewWithoutOpeningCamera() {
+        let sut = makeSUT()
+
+        sut.onAddManuallyTapped()
+
+        XCTAssertTrue(sut.isReviewPushed)
+        XCTAssertFalse(sut.isNutritionLabelCameraVisible, "manual entry must skip the capture flow entirely")
+        XCTAssertEqual(sut.formInput.scannedCode, "")
+        XCTAssertEqual(sut.formInput.name, "")
     }
 
     // MARK: - onSubmissionConfirmationDismissed

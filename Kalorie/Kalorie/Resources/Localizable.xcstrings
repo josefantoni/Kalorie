@@ -1,3466 +1,3613 @@
 {
-  "sourceLanguage": "cs",
-  "strings": {
-    "": {},
-    "%lld": {},
-    "%lld g": {},
-    "%lld kcal": {},
-    "0": {},
-    "1": {},
-    "100": {},
-    "account_alert_deleteConfirmMessage": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tuto akci nelze vzít zpět. Všechna tvá data budou trvale smazána."
+  "sourceLanguage" : "cs",
+  "strings" : {
+    "" : {
+
+    },
+    "%lld" : {
+
+    },
+    "%lld g" : {
+
+    },
+    "%lld kcal" : {
+
+    },
+    "%lld kcal / 100 %@" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld kcal / 100 %2$@"
+          }
+        }
+      }
+    },
+    "0" : {
+
+    },
+    "1" : {
+
+    },
+    "100" : {
+
+    },
+    "account_alert_deleteConfirmMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuto akci nelze vzít zpět. Všechna tvá data budou trvale smazána."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This action can't be undone. All your data will be permanently deleted."
+          }
+        }
+      }
+    },
+    "account_alert_deleteConfirmTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opravdu smazat účet?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account?"
+          }
+        }
+      }
+    },
+    "account_alert_reauthenticateTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyžadováno přihlášení"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in required"
+          }
+        }
+      }
+    },
+    "account_anonymous_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nejsi přihlášen/a. Data jsou vázaná na toto zařízení — při jeho výměně o ně můžeš přijít."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're not signed in. Your data is tied to this device — you may lose it if you switch devices."
+          }
+        }
+      }
+    },
+    "account_button_deleteAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smazat účet"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account"
+          }
+        }
+      }
+    },
+    "account_button_reauthenticate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlásit se znovu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This action can't be undone. All your data will be permanently deleted."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in again"
           }
         }
       }
     },
-    "account_alert_deleteConfirmTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opravdu smazat účet?"
+    "account_button_signInWithApple" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlásit se přes Apple"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete account?"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in with Apple"
           }
         }
       }
     },
-    "account_alert_reauthenticateTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vyžadováno přihlášení"
+    "account_button_signInWithGoogle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlásit se přes Google"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in required"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in with Google"
           }
         }
       }
     },
-    "account_anonymous_description": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nejsi přihlášen/a. Data jsou vázaná na toto zařízení — při jeho výměně o ně můžeš přijít."
+    "account_button_signOut" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlásit se"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You're not signed in. Your data is tied to this device — you may lose it if you switch devices."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out"
           }
         }
       }
     },
-    "account_button_deleteAccount": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Smazat účet"
+    "account_dataAttribution" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutriční data pro některé potraviny pochází z Open Food Facts, dostupné pod licencí Open Database License."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete account"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutrition data for some foods comes from Open Food Facts, available under the Open Database License."
           }
         }
       }
     },
-    "account_button_reauthenticate": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přihlásit se znovu"
+    "account_dataAttribution_linkTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "openfoodfacts.org"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in again"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "openfoodfacts.org"
           }
         }
       }
     },
-    "account_button_signInWithApple": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přihlásit se přes Apple"
+    "account_error_accountExistsWithApple" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in with Apple"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them."
           }
         }
       }
     },
-    "account_button_signInWithGoogle": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přihlásit se přes Google"
+    "account_error_deleteFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smazání účtu se nezdařilo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in with Google"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to delete account"
           }
         }
       }
     },
-    "account_button_signOut": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Odhlásit se"
+    "account_error_deleteRequiresRecentLogin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro smazání účtu se prosím znovu přihlas."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign out"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please sign in again to delete your account."
           }
         }
       }
     },
-    "account_dataAttribution": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nutriční data pro některé potraviny pochází z Open Food Facts, dostupné pod licencí Open Database License."
+    "account_error_signInFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodařilo se přihlásit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nutrition data for some foods comes from Open Food Facts, available under the Open Database License."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in failed"
           }
         }
       }
     },
-    "account_dataAttribution_linkTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "openfoodfacts.org"
+    "account_error_signOutFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlášení se nezdařilo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "openfoodfacts.org"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out failed"
           }
         }
       }
     },
-    "account_error_accountExistsWithApple": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID."
+    "account_navigationTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Účet"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
           }
         }
       }
     },
-    "account_error_deleteFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Smazání účtu se nezdařilo"
+    "account_signedIn_defaultName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlášen/a"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Failed to delete account"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signed in"
           }
         }
       }
     },
-    "account_error_deleteRequiresRecentLogin": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro smazání účtu se prosím znovu přihlas."
+    "account_signInProvider_apple" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Please sign in again to delete your account."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple"
           }
         }
       }
     },
-    "account_error_signInFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nepodařilo se přihlásit"
+    "account_signInProvider_google" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in failed"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google"
           }
         }
       }
     },
-    "account_error_signOutFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Odhlášení se nezdařilo"
+    "addFood_button_add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidat"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign out failed"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
           }
         }
       }
     },
-    "account_navigationTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Účet"
+    "addFood_button_addFoodManually" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidat potravinu ručně"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Account"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add food manually"
           }
         }
       }
     },
-    "account_signedIn_defaultName": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přihlášen/a"
+    "addFood_button_addManually" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nebo přidejte položku ručně"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Signed in"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Or add the item manually"
           }
         }
       }
     },
-    "account_signInProvider_apple": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple"
+    "addFood_button_openSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otevřít Nastavení"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
           }
         }
       }
     },
-    "account_signInProvider_google": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Google"
+    "addFood_button_scanNutritionLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyfotit nutriční tabulku"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Google"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan nutrition label"
           }
         }
       }
     },
-    "addFood_button_add": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přidat"
+    "addFood_camera_permissionAlert" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Povol v nastavení fotoaparát, nemůžeme bez něj skenovat čárový kód. 🙁"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enable camera access in settings to scan barcodes. 🙁"
           }
         }
       }
     },
-    "addFood_camera_permissionAlert": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Povol v nastavení fotoaparát, nemůžeme bez něj skenovat čárový kód. 🙁"
+    "addFood_confirm_missingBarcode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "K jídlu nemáte přiřazený čárový kód. Opravdu chcete pokračovat?"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Please enable camera access in settings to scan barcodes. 🙁"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This food has no barcode assigned. Do you really want to continue?"
           }
         }
       }
     },
-    "addFood_button_scanNutritionLabel": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vyfotit nutriční tabulku"
+    "addFood_confirm_withdrawSubmission" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zrušit tuto položku ke schválení? Přijdeš tím i o důvod zamítnutí."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan nutrition label"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Withdraw this submission? You will also lose the rejection reason."
           }
         }
       }
     },
-    "addFood_nutritionLabel_nothingRecognized": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Na fotce se nepodařilo najít nutriční tabulku. Vyfoť tabulku na zadní straně obalu."
+    "addFood_error_barcodeNotFound" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravina s tímto čárovým kódem nebyla nalezena"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No nutrition table found in the photo. Photograph the table on the back of the packaging."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No food found for this barcode"
           }
         }
       }
     },
-    "addFood_nutritionLabel_promptBody": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vyfoťte nutriční tabulku na obalu, pak zkontrolujte hodnoty."
+    "addFood_error_favouriteFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oblíbené se nepodařilo uložit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Photograph the nutrition table on the packaging, then check the values."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save favourite"
           }
         }
       }
     },
-    "addFood_nutritionLabel_deniedMessage": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pro čtení nutriční tabulky je potřeba povolit přístup ke kameře v Nastavení."
+    "addFood_error_invalidCalories" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie musí být větší než nula"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reading the nutrition table needs camera access enabled in Settings."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calories must be greater than zero"
           }
         }
       }
     },
-    "addFood_nutritionLabel_unsupportedMessage": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toto zařízení neumí skenovat nutriční tabulku."
+    "addFood_error_invalidCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neplatný čárový kód"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This device cannot scan the nutrition table."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid barcode"
           }
         }
       }
     },
-    "addFood_nutritionLabel_cameraIdleHint": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Namiřte kameru na nutriční tabulku"
+    "addFood_error_invalidName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Překontroluj zadaný název"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Point the camera at the nutrition table"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please check the entered name"
           }
         }
       }
     },
-    "addFood_nutritionLabel_cameraCaptureFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fotku se nepodařilo pořídit, kamera se restartuje. Zkuste to znovu."
+    "addFood_error_invalidWeight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hmotnost musí být větší než nula"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn't take the photo, restarting the camera. Try again."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight must be greater than zero"
           }
         }
       }
     },
-    "addFood_nutritionLabel_cameraShutterAccessibility": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vyfotit"
+    "addFood_error_itemAlreadyExists" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravina s tímto čárovým kódem již v databázi existuje"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Take photo"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A food item with this barcode already exists in the database"
           }
         }
       }
     },
-    "addFood_nutritionLabel_barcodeScanAccessibility": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Naskenovat čárový kód"
+    "addFood_error_loadFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodařilo se načíst výsledky. Zkus to prosím znovu."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan barcode"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to load results. Please try again."
           }
         }
       }
     },
-    "addFood_button_openSettings": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Otevřít Nastavení"
+    "addFood_error_withdrawSubmissionFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Položku se nepodařilo zrušit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open Settings"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not withdraw the submission"
           }
         }
       }
     },
-    "addFood_confirm_withdrawSubmission": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zrušit tuto položku ke schválení? Přijdeš tím i o důvod zamítnutí."
+    "addFood_field_barcode_missingLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bez čárového kódu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Withdraw this submission? You will also lose the rejection reason."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no barcode"
           }
         }
       }
     },
-    "addFood_error_barcodeNotFound": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Potravina s tímto čárovým kódem nebyla nalezena"
+    "addFood_field_barcode_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "321321...12345"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No food found for this barcode"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "321321...12345"
           }
         }
       }
     },
-    "addFood_error_favouriteFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oblíbené se nepodařilo uložit"
+    "addFood_field_barcode_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čárový kód potraviny"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not save favourite"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Food barcode"
           }
         }
       }
     },
-    "addFood_error_invalidCalories": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kalorie musí být větší než nula"
+    "addFood_field_caloriesPer100g" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie na 100 gramů"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calories must be greater than zero"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calories per 100g"
           }
         }
       }
     },
-    "addFood_error_invalidCode": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Neplatný čárový kód"
+    "addFood_field_caloriesPer100ml" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie na 100 mililitrů"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invalid barcode"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calories per 100ml"
           }
         }
       }
     },
-    "addFood_error_invalidName": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Překontroluj zadaný název"
+    "addFood_field_carbs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sacharidy"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Please check the entered name"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carbohydrates"
           }
         }
       }
     },
-    "addFood_error_invalidWeight": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hmotnost musí být větší než nula"
+    "addFood_field_carbsSugar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho cukry"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Weight must be greater than zero"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "of which sugars"
           }
         }
       }
     },
-    "addFood_error_itemAlreadyExists": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Potravina s tímto čárovým kódem již v databázi existuje"
+    "addFood_field_energyKJ" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energie (kJ) na 100 g"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A food item with this barcode already exists in the database"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energy (kJ) per 100g"
           }
         }
       }
     },
-    "addFood_error_withdrawSubmissionFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Položku se nepodařilo zrušit"
+    "addFood_field_fat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuky"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not withdraw the submission"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fat"
           }
         }
       }
     },
-    "addFood_error_loadFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nepodařilo se načíst výsledky. Zkus to prosím znovu."
+    "addFood_field_fatSaturated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho nasycené"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Failed to load results. Please try again."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "of which saturates"
           }
         }
       }
     },
-    "addFood_field_barcode_placeholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "321321...12345"
+    "addFood_field_fatUnsaturated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho nenasycené"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "321321...12345"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "of which unsaturated"
           }
         }
       }
     },
-    "addFood_field_barcode_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Čárový kód potraviny"
+    "addFood_field_fiber" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vláknina"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Food barcode"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fibre"
           }
         }
       }
     },
-    "addFood_field_caloriesPer100g": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kalorie na 100 gramů"
+    "addFood_field_measure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Měří se v"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calories per 100g"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Measured in"
           }
         }
       }
     },
-    "addFood_field_caloriesPer100ml": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kalorie na 100 mililitrů"
+    "addFood_field_name_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvaroh nízkotučný"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calories per 100ml"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Low-fat cottage cheese"
           }
         }
       }
     },
-    "addFood_field_carbs": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sacharidy"
+    "addFood_field_name_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Název potraviny"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Carbohydrates"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Food name"
           }
         }
       }
     },
-    "addFood_field_carbsSugar": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "z toho cukry"
+    "addFood_field_protein" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bílkoviny"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "of which sugars"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protein"
           }
         }
       }
     },
-    "addFood_field_energyKJ": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Energie (kJ) na 100 g"
+    "addFood_field_salt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sůl"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Energy (kJ) per 100g"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salt"
           }
         }
       }
     },
-    "addFood_field_fat": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tuky"
+    "addFood_field_weight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hmotnost"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fat"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight"
           }
         }
       }
     },
-    "addFood_field_fatSaturated": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "z toho nasycené"
+    "addFood_mode_createMeal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlastní jídlo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "of which saturates"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My meal"
           }
         }
       }
     },
-    "addFood_field_fatUnsaturated": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "z toho nenasycené"
+    "addFood_mode_newItem" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nová potravina"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "of which unsaturated"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New food"
           }
         }
       }
     },
-    "addFood_field_fiber": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vláknina"
+    "addFood_mode_search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hledat"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fibre"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
           }
         }
       }
     },
-    "addFood_field_measure": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Měří se v"
+    "addFood_navigationTitle_newItem" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidat potravinu do katalogu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Measured in"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add food to catalogue"
           }
         }
       }
     },
-    "addFood_field_name_placeholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tvaroh nízkotučný"
+    "addFood_navigationTitle_search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hledat v katalogu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Low-fat cottage cheese"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search catalogue"
           }
         }
       }
     },
-    "addFood_field_name_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Název potraviny"
+    "addFood_nutritionLabel_barcodeScanAccessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Naskenovat čárový kód"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Food name"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan barcode"
           }
         }
       }
     },
-    "addFood_field_protein": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bílkoviny"
+    "addFood_nutritionLabel_cameraCaptureFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotku se nepodařilo pořídit, kamera se restartuje. Zkuste to znovu."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Protein"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't take the photo, restarting the camera. Try again."
           }
         }
       }
     },
-    "addFood_field_salt": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sůl"
+    "addFood_nutritionLabel_cameraIdleHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Namiřte kameru na nutriční tabulku"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Salt"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Point the camera at the nutrition table"
           }
         }
       }
     },
-    "addFood_field_weight": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hmotnost"
+    "addFood_nutritionLabel_cameraShutterAccessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyfotit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Weight"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take photo"
           }
         }
       }
     },
-    "addFood_mode_createMeal": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vlastní jídlo"
+    "addFood_nutritionLabel_deniedMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pro čtení nutriční tabulky je potřeba povolit přístup ke kameře v Nastavení."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My meal"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the nutrition table needs camera access enabled in Settings."
           }
         }
       }
     },
-    "addFood_mode_newItem": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nová potravina"
+    "addFood_nutritionLabel_nothingRecognized" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na fotce se nepodařilo najít nutriční tabulku. Vyfoť tabulku na zadní straně obalu."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New food"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No nutrition table found in the photo. Photograph the table on the back of the packaging."
           }
         }
       }
     },
-    "addFood_mode_search": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hledat"
+    "addFood_nutritionLabel_promptBody" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyfoťte nutriční tabulku na obalu, pak zkontrolujte hodnoty."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photograph the nutrition table on the packaging, then check the values."
           }
         }
       }
     },
-    "addFood_navigationTitle_newItem": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přidat potravinu do katalogu"
+    "addFood_nutritionLabel_unsupportedMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toto zařízení neumí skenovat nutriční tabulku."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add food to catalogue"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device cannot scan the nutrition table."
           }
         }
       }
     },
-    "addFood_navigationTitle_search": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hledat v katalogu"
+    "addFood_search_example_01" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jablko 🍎"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search catalogue"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "apple 🍎"
           }
         }
       }
     },
-    "addFood_search_example_01": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "jablko 🍎"
+    "addFood_search_example_02" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "banán 🍌"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "apple 🍎"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "banana 🍌"
           }
         }
       }
     },
-    "addFood_search_example_02": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "banán 🍌"
+    "addFood_search_example_03" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chleba 🍞"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "banana 🍌"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bread 🍞"
           }
         }
       }
     },
-    "addFood_search_example_03": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "chleba 🍞"
+    "addFood_search_example_04" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vejce 🥚"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "bread 🍞"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "egg 🥚"
           }
         }
       }
     },
-    "addFood_search_example_04": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "vejce 🥚"
+    "addFood_search_example_05" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kuřecí prsa 🍗"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "egg 🥚"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chicken breast 🍗"
           }
         }
       }
     },
-    "addFood_search_example_05": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "kuřecí prsa 🍗"
+    "addFood_search_example_06" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jogurt 🥛"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "chicken breast 🍗"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yogurt 🥛"
           }
         }
       }
     },
-    "addFood_search_example_06": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "jogurt 🥛"
+    "addFood_search_example_07" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "brokolice 🥦"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "yogurt 🥛"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "broccoli 🥦"
           }
         }
       }
     },
-    "addFood_search_example_07": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "brokolice 🥦"
+    "addFood_search_example_08" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "těstoviny 🍝"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "broccoli 🥦"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pasta 🍝"
           }
         }
       }
     },
-    "addFood_search_example_08": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "těstoviny 🍝"
+    "addFood_search_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hledej potravinu … třeba %@"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "pasta 🍝"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search for food … try %@"
           }
         }
       }
     },
-    "addFood_search_placeholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hledej potravinu … třeba %@"
+    "addFood_section_externalResults" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Online výsledky"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search for food … try %@"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Online results"
           }
         }
       }
     },
-    "addFood_section_externalResults": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Online výsledky"
+    "addFood_section_favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oblíbené"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Online results"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favourites"
           }
         }
       }
     },
-    "addFood_section_favourites": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oblíbené"
+    "addFood_section_myCreatedMeals" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlastní jídla"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Favourites"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My meals"
           }
         }
       }
     },
-    "addFood_section_myCreatedMeals": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vlastní jídla"
+    "addFood_section_mySubmissions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moje návrhy"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My meals"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My submissions"
           }
         }
       }
     },
-    "addFood_section_mySubmissions": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moje návrhy"
+    "addFood_section_searchResults" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyhledaná jídla"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My submissions"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search results"
           }
         }
       }
     },
-    "addFood_section_searchResults": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vyhledaná jídla"
+    "addFood_submission_pending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čeká na schválení"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search results"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for approval"
           }
         }
       }
     },
-    "addFood_submission_pending": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Čeká na schválení"
+    "addFood_submission_rejected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamítnuto"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Waiting for approval"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejected"
           }
         }
       }
     },
-    "addFood_submission_rejected": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zamítnuto"
+    "addFood_submission_rejectedReason" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamítnuto: %@"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rejected"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejected: %@"
           }
         }
       }
     },
-    "addFood_submission_rejectedReason": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zamítnuto: %@"
+    "addFood_submission_submitted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odesláno ke schválení"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rejected: %@"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Submitted for approval"
           }
         }
       }
     },
-    "addFood_submission_submitted": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Odesláno ke schválení"
+    "addFood_submission_submittedMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadané údaje jsme odeslali správci ke schválení. Do té doby položka nebude v katalogu potravin viditelná. Stav najdeš v sekci „Moje příspěvky“, až příště otevřeš přidání potraviny."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Submitted for approval"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We've sent what you entered to the maintainer for approval. Until then, the item won't be visible in the food catalogue. You'll find its status under \"My submissions\" the next time you open Add food."
           }
         }
       }
     },
-    "addFood_submission_submittedMessage": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zadané údaje jsme odeslali správci ke schválení. Do té doby položka nebude v katalogu potravin viditelná. Stav najdeš v sekci „Moje příspěvky“, až příště otevřeš přidání potraviny."
+    "addFood_warning_missingBarcode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bez čárového kódu položku nenajdete skenováním."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "We've sent what you entered to the maintainer for approval. Until then, the item won't be visible in the food catalogue. You'll find its status under \"My submissions\" the next time you open Add food."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without a barcode you won't be able to find this item by scanning."
           }
         }
       }
     },
-    "auth_button_retry": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zkusit znovu"
+    "auth_button_retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zkusit znovu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Try again"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
           }
         }
       }
     },
-    "auth_error_signInFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nepodařilo se přihlásit"
+    "auth_error_signInFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodařilo se přihlásit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in failed"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in failed"
           }
         }
       }
     },
-    "auth_mergingMessage": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Slučujeme data z tohoto zařízení s tvým účtem…"
+    "auth_mergingMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slučujeme data z tohoto zařízení s tvým účtem…"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Merging this device's data into your account…"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merging this device's data into your account…"
           }
         }
       }
     },
-    "common_button_cancel": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zrušit"
+    "common_button_cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zrušit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancel"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
           }
         }
       }
     },
-    "common_button_favourite": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oblíbené"
+    "common_button_favourite" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oblíbené"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Favourite"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favourite"
           }
         }
       }
     },
-    "common_button_no": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ne"
+    "common_button_no" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No"
           }
         }
       }
     },
-    "common_button_yes": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ano"
+    "common_button_yes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ano"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yes"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yes"
           }
         }
       }
     },
-    "common_error_offline": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nepodařilo se připojit k serveru."
+    "common_error_offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodařilo se připojit k serveru."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn't reach the server."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't reach the server."
           }
         }
       }
     },
-    "common_error_offline_message": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zkontroluj připojení k internetu a zkus to znovu."
+    "common_error_offline_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zkontroluj připojení k internetu a zkus to znovu."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check your connection and try again."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your connection and try again."
           }
         }
       }
     },
-    "common_error_unknown": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nastala neznámá chyba"
+    "common_error_unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastala neznámá chyba"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "An unknown error occurred"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An unknown error occurred"
           }
         }
       }
     },
-    "common_error_unknown_message": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zkus to prosím za chvíli znovu."
+    "common_error_unknown_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zkus to prosím za chvíli znovu."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Please try again in a moment."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please try again in a moment."
           }
         }
       }
     },
-    "common_ok": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dobrá"
+    "common_ok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dobrá"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OK"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
           }
         }
       }
     },
-    "common_unit_grams": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "g"
+    "common_unit_grams" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "g"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "g"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "g"
           }
         }
       }
     },
-    "common_unit_kilograms": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "kg"
+    "common_unit_kilograms" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kg"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "kg"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kg"
           }
         }
       }
     },
-    "common_unit_litres": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "l"
+    "common_unit_litres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "l"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "l"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "l"
           }
         }
       }
     },
-    "common_unit_millilitres": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ml"
+    "common_unit_millilitres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ml"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ml"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ml"
           }
         }
       }
     },
-    "dashboard_button_mealLayout": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "rozvržení jídel"
+    "dashboard_button_mealLayout" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "rozvržení jídel"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meal layout"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meal layout"
           }
         }
       }
     },
-    "dashboard_confirm_deleteFood": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Smazat tento záznam jídla?"
+    "dashboard_confirm_deleteFood" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smazat tento záznam jídla?"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete this food entry?"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this food entry?"
           }
         }
       }
     },
-    "dashboard_empty_addFood": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přidat jídlo"
+    "dashboard_empty_addFood" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidat jídlo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add food"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add food"
           }
         }
       }
     },
-    "dashboard_empty_description": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ještě jste dnes nic nesnědli, přidejme nějaké jídlo"
+    "dashboard_empty_description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ještě jste dnes nic nesnědli, přidejme nějaké jídlo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You haven't eaten anything today, let's add some food"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You haven't eaten anything today, let's add some food"
           }
         }
       }
     },
-    "dashboard_empty_description_future": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Záznamy teprve vzniknou — ale klidně jim dnes pomož."
+    "dashboard_empty_description_future" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Záznamy teprve vzniknou — ale klidně jim dnes pomož."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Records don't exist yet — but feel free to help them along today."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Records don't exist yet — but feel free to help them along today."
           }
         }
       }
     },
-    "dashboard_empty_description_past": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zpátky do minulosti přidáním jídla! 🚀"
+    "dashboard_empty_description_past" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zpátky do minulosti přidáním jídla! 🚀"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Go back and add some food! 🚀"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go back and add some food! 🚀"
           }
         }
       }
     },
-    "dashboard_empty_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Žádné záznamy jídel"
+    "dashboard_empty_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žádné záznamy jídel"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No food records"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No food records"
           }
         }
       }
     },
-    "dashboard_empty_title_future": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Plánuješ jídlo na budoucnost?"
+    "dashboard_empty_title_future" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plánuješ jídlo na budoucnost?"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Planning meals for the future?"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planning meals for the future?"
           }
         }
       }
     },
-    "dashboard_empty_title_past": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Žádné snězené jídlo."
+    "dashboard_empty_title_past" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žádné snězené jídlo."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No food eaten."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No food eaten."
           }
         }
       }
     },
-    "dashboard_error_deleteFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Potravinu se nepodařilo smazat"
+    "dashboard_error_deleteFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravinu se nepodařilo smazat"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not delete the food"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not delete the food"
           }
         }
       }
     },
-    "dashboard_navigation_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kalorie"
+    "dashboard_navigation_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calories"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calories"
           }
         }
       }
     },
-    "dashboard_section_unassignedFoods": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ostatní nezařazená jídla"
+    "dashboard_section_unassignedFoods" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatní nezařazená jídla"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Other unassigned foods"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other unassigned foods"
           }
         }
       }
     },
-    "defaultMeals_breakfast": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Snídaně"
+    "defaultMeals_breakfast" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snídaně"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Breakfast"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Breakfast"
           }
         }
       }
     },
-    "defaultMeals_dinner": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Večeře"
+    "defaultMeals_dinner" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Večeře"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dinner"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dinner"
           }
         }
       }
     },
-    "defaultMeals_lunch": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oběd"
+    "defaultMeals_lunch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oběd"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lunch"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunch"
           }
         }
       }
     },
-    "defaultMeals_secondBreakfast": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Druhá snídaně"
+    "defaultMeals_secondBreakfast" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Druhá snídaně"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Second breakfast"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Second breakfast"
           }
         }
       }
     },
-    "defaultMeals_snack": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Svačina"
+    "defaultMeals_snack" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Svačina"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Snack"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snack"
           }
         }
       }
     },
-    "foodConsumedDetail_button_save": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uložit"
+    "foodConsumedDetail_button_save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
           }
         }
       }
     },
-    "foodConsumedDetail_label_mealType": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zařazení"
+    "foodConsumedDetail_label_mealType" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zařazení"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meal"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meal"
           }
         }
       }
     },
-    "foodConsumedDetail_label_time": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Čas zápisu"
+    "foodConsumedDetail_label_time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čas zápisu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logged at"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logged at"
           }
         }
       }
     },
-    "foodConsumedDetail_mealType_unassigned": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Podle času"
+    "foodConsumedDetail_mealType_unassigned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podle času"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "By time"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By time"
           }
         }
       }
     },
-    "foodPortion_button_add": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přidat porci"
+    "foodItemReport_alert_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popište, co je u položky špatně"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add portion"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Describe what's incorrect about this item"
           }
         }
       }
     },
-    "foodPortion_error_invalidGrams": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zadejte gramáž větší než 0"
+    "foodItemReport_alert_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co je špatně?"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter a weight greater than 0"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What's wrong?"
           }
         }
       }
     },
-    "foodPortion_error_invalidName": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zadejte název porce"
+    "foodItemReport_button_alreadyReported" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Již nahlášeno"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter a portion name"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already reported"
           }
         }
       }
     },
-    "foodPortion_error_tooMany": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Můžete přidat nejvýš 20 porcí"
+    "foodItemReport_button_report" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nahlásit chybný údaj"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You can add at most 20 portions"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Report incorrect data"
           }
         }
       }
     },
-    "foodPortion_field_namePlaceholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Název (např. 1 balení)"
+    "foodItemReport_button_send" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odeslat"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Name (e.g. 1 package)"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send"
           }
         }
       }
     },
-    "foodPortion_section_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Porce"
+    "foodItemReport_error_reasonRequired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napište prosím, co je špatně"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Portions"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please describe what's wrong"
           }
         }
       }
     },
-    "foodQuantity_button_add": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přidat"
+    "foodItemReport_error_reasonTooLong" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zkraťte popis na 500 znaků"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the description under 500 characters"
           }
         }
       }
     },
-    "foodQuantity_button_myPortions": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moje porce"
+    "foodPortion_button_add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidat porci"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My portions"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add portion"
           }
         }
       }
     },
-    "foodQuantity_error_invalidQuantity": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Množství musí být větší než nula"
+    "foodPortion_error_invalidGrams" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadejte gramáž větší než 0"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Amount must be greater than zero"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a weight greater than 0"
           }
         }
       }
     },
-    "foodQuantity_input_grams": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Množství"
+    "foodPortion_error_invalidName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadejte název porce"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Amount"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a portion name"
           }
         }
       }
     },
-    "foodQuantity_input_portions": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Počet porcí"
+    "foodPortion_error_tooMany" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Můžete přidat nejvýš 20 porcí"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Servings"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can add at most 20 portions"
           }
         }
       }
     },
-    "foodQuantity_label_mealType": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zařazení"
+    "foodPortion_field_namePlaceholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Název (např. 1 balení)"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meal"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name (e.g. 1 package)"
           }
         }
       }
     },
-    "foodQuantity_macro_calories": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kalorie"
+    "foodPortion_section_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porce"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calories"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portions"
           }
         }
       }
     },
-    "foodQuantity_macro_carbs": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sacharidy"
+    "foodQuantity_button_add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidat"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Carbohydrates"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
           }
         }
       }
     },
-    "foodQuantity_macro_fat": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tuky"
+    "foodQuantity_button_myPortions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moje porce"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fat"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My portions"
           }
         }
       }
     },
-    "foodQuantity_macro_fiber": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vláknina"
+    "foodQuantity_error_invalidQuantity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Množství musí být větší než nula"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fibre"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount must be greater than zero"
           }
         }
       }
     },
-    "foodQuantity_macro_protein": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bílkoviny"
+    "foodQuantity_input_grams" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Množství"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Protein"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount"
           }
         }
       }
     },
-    "foodQuantity_mealType_unassigned": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Podle času"
+    "foodQuantity_input_portions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Počet porcí"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "By time"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servings"
           }
         }
       }
     },
-    "foodQuantity_section_nutrition": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Výživa"
+    "foodQuantity_label_mealType" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zařazení"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nutrition"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meal"
           }
         }
       }
     },
-    "foodQuantity_unit_grams": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 g"
+    "foodQuantity_macro_calories" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 g"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calories"
           }
         }
       }
     },
-    "foodQuantity_unit_hundredGrams": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "100 g"
+    "foodQuantity_macro_carbs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sacharidy"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "100 g"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carbohydrates"
           }
         }
       }
     },
-    "foodQuantity_unit_hundredMillilitres": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "100 ml"
+    "foodQuantity_macro_fat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuky"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "100 ml"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fat"
           }
         }
       }
     },
-    "foodQuantity_unit_millilitres": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 ml"
+    "foodQuantity_macro_fiber" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vláknina"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "1 ml"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fibre"
           }
         }
       }
     },
-    "g": {},
-    "kcal": {},
-    "mealTypeSheet_button_create": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vytvořit"
+    "foodQuantity_macro_protein" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bílkoviny"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Create"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protein"
           }
         }
       }
     },
-    "mealTypeSheet_button_edit": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Upravit"
+    "foodQuantity_mealType_unassigned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podle času"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edit"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By time"
           }
         }
       }
     },
-    "mealTypeSheet_button_editDone": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hotovo"
+    "foodQuantity_section_nutrition" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výživa"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutrition"
           }
         }
       }
     },
-    "mealTypeSheet_datePicker_from": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Od"
+    "foodQuantity_unit_grams" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 g"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "From"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 g"
           }
         }
       }
     },
-    "mealTypeSheet_datePicker_to": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Do"
+    "foodQuantity_unit_hundredGrams" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 g"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "To"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 g"
           }
         }
       }
+    },
+    "foodQuantity_unit_hundredMillilitres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 ml"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 ml"
+          }
+        }
+      }
+    },
+    "foodQuantity_unit_millilitres" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 ml"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 ml"
+          }
+        }
+      }
+    },
+    "g" : {
+
+    },
+    "kcal" : {
+
     },
-    "mealTypeSheet_error_deleteError": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nastala chyba při mazání"
+    "mealTypeSheet_button_create" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vytvořit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "An error occurred while deleting"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create"
           }
         }
       }
     },
-    "mealTypeSheet_error_duplicateName": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jméno jídla musí být unikátní"
+    "mealTypeSheet_button_edit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upravit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meal name must be unique"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
           }
         }
       }
     },
-    "mealTypeSheet_error_durationTooShort": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Minimální délka jídla je 30 minut"
+    "mealTypeSheet_button_editDone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotovo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Minimum meal duration is 30 minutes"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
           }
         }
       }
     },
-    "mealTypeSheet_error_emptyName": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zadej jméno jídla"
+    "mealTypeSheet_datePicker_from" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Od"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter a meal name"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From"
           }
         }
       }
     },
-    "mealTypeSheet_error_lastMealType": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alespoň jednou denně by se chtělo najíst 🍳😉"
+    "mealTypeSheet_datePicker_to" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You should eat at least once a day 🍳😉"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To"
           }
         }
       }
     },
-    "mealTypeSheet_error_timeConflict": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zadaný čas se překrývá s jinou kategorií jídla"
+    "mealTypeSheet_error_deleteError" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastala chyba při mazání"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The entered time overlaps with another meal category"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An error occurred while deleting"
           }
         }
       }
     },
-    "mealTypeSheet_error_unexpected": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nastala nečekaná chyba"
+    "mealTypeSheet_error_duplicateName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jméno jídla musí být unikátní"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "An unexpected error occurred"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meal name must be unique"
           }
         }
       }
     },
-    "mealTypeSheet_field_newMeal_placeholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jedna snad, ale co druhá snídaně … 🧐?"
+    "mealTypeSheet_error_durationTooShort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimální délka jídla je 30 minut"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What about second breakfast … 🧐?"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimum meal duration is 30 minutes"
           }
         }
       }
     },
-    "mealTypeSheet_section_mealLayout": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rozvržení jídel"
+    "mealTypeSheet_error_emptyName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadej jméno jídla"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meal layout"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a meal name"
           }
         }
       }
     },
-    "moderation_button_approve": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Schválit"
+    "mealTypeSheet_error_lastMealType" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alespoň jednou denně by se chtělo najíst 🍳😉"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Approve"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You should eat at least once a day 🍳😉"
           }
         }
       }
     },
-    "moderation_button_reject": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zamítnout"
+    "mealTypeSheet_error_timeConflict" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadaný čas se překrývá s jinou kategorií jídla"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reject"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The entered time overlaps with another meal category"
           }
         }
       }
     },
-    "moderation_button_save": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uložit"
+    "mealTypeSheet_error_unexpected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastala nečekaná chyba"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An unexpected error occurred"
           }
         }
       }
     },
-    "moderation_editor_saved": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uloženo"
+    "mealTypeSheet_field_newMeal_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedna snad, ale co druhá snídaně … 🧐?"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saved"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What about second breakfast … 🧐?"
           }
         }
       }
     },
-    "moderation_editor_searchPlaceholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Čárový kód"
+    "mealTypeSheet_section_mealLayout" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozvržení jídel"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Barcode"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meal layout"
           }
         }
       }
     },
-    "moderation_editor_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Úprava položky"
+    "moderation_button_approve" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schválit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edit catalogue item"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approve"
           }
         }
       }
     },
-    "moderation_error_alreadyExists": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Položka s tímto kódem už v katalogu je"
+    "moderation_button_reject" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamítnout"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "An item with this code is already in the catalogue"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reject"
           }
         }
       }
     },
-    "moderation_error_alreadyResolved": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tuto žádost už vyřídil jiný správce"
+    "moderation_button_resolve" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyřešeno"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This submission was already resolved by another maintainer"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resolved"
           }
         }
       }
     },
-    "moderation_error_changedSinceReview": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uživatel žádost mezitím upravil, zkontrolujte ji znovu"
+    "moderation_button_save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The submission changed since you opened it — review it again"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
           }
         }
       }
     },
-    "moderation_error_itemChangedSinceLoad": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Položka byla mezitím změněna, načtěte ji znovu"
+    "moderation_editor_saved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uloženo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This item changed since you loaded it — search again to see the latest version"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved"
           }
         }
       }
     },
-    "moderation_error_reasonRequired": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uveďte důvod zamítnutí"
+    "moderation_editor_searchPlaceholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čárový kód"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enter a reason for the rejection"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barcode"
           }
         }
       }
     },
-    "moderation_queue_collision": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tento čárový kód už v katalogu je"
+    "moderation_editor_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Úprava položky"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This barcode is already in the catalogue"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit catalogue item"
           }
         }
       }
     },
-    "moderation_queue_empty": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Žádné položky ke schválení"
+    "moderation_error_alreadyExists" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Položka s tímto kódem už v katalogu je"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nothing to review"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An item with this code is already in the catalogue"
           }
         }
       }
     },
-    "moderation_queue_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ke schválení"
+    "moderation_error_alreadyResolved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuto žádost už vyřídil jiný správce"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pending review"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This submission was already resolved by another maintainer"
           }
         }
       }
     },
-    "moderation_reject_reasonPlaceholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Důvod zamítnutí"
+    "moderation_error_changedSinceReview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uživatel žádost mezitím upravil, zkontrolujte ji znovu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reason for rejection"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The submission changed since you opened it — review it again"
           }
         }
       }
     },
-    "moderation_section_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moderace"
+    "moderation_error_itemChangedSinceLoad" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Položka byla mezitím změněna, načtěte ji znovu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moderation"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This item changed since you loaded it — search again to see the latest version"
           }
         }
       }
     },
-    "myCreatedMeal_button_save": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uložit"
+    "moderation_error_reasonRequired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uveďte důvod zamítnutí"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a reason for the rejection"
           }
         }
       }
     },
-    "myCreatedMeal_confirm_create": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vytvořit toto jídlo?"
+    "moderation_queue_collision" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento čárový kód už v katalogu je"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Create this meal?"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This barcode is already in the catalogue"
           }
         }
       }
     },
-    "myCreatedMeal_confirm_delete": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Smazat toto jídlo?"
+    "moderation_queue_empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žádné položky ke schválení"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete this meal?"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to review"
           }
         }
       }
     },
-    "myCreatedMeal_confirm_update": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uložit změny?"
+    "moderation_queue_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ke schválení"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save changes?"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pending review"
           }
         }
       }
     },
-    "myCreatedMeal_error_deleteFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jídlo se nepodařilo smazat"
+    "moderation_reject_reasonPlaceholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Důvod zamítnutí"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not delete the meal"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reason for rejection"
           }
         }
       }
     },
-    "myCreatedMeal_error_saveFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jídlo se nepodařilo uložit"
+    "moderation_reports_count" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld× nahlášeno"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not save the meal"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reported %lld×"
           }
         }
       }
     },
-    "myCreatedMeal_field_namePlaceholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Název vlastního jídla … Guláš"
+    "moderation_reports_empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žádná nahlášení"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Custom meal name … Goulash"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No reports"
           }
         }
       }
     },
-    "myCreatedMeal_ingredients_empty": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vyhledej a přidej alespoň jednu potravinu"
+    "moderation_reports_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nahlášení"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search and add at least one ingredient"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reports"
           }
         }
       }
     },
-    "myCreatedMeal_list_empty": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zatím nemáš žádné vlastní jídlo"
+    "moderation_section_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moderace"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You have no meals yet"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moderation"
           }
         }
       }
     },
-    "myCreatedMeal_list_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vlastní jídla"
+    "moderation_similarItems_empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žádné podobné položky v katalogu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My meals"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No similar items in the catalogue"
           }
         }
       }
     },
-    "myCreatedMeal_search_placeholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Přidej potravinu … třeba %@"
+    "moderation_similarItems_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podobné položky v katalogu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add food … try %@"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Similar catalogue items"
           }
         }
       }
     },
-    "myCreatedMeal_section_catalogue": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Katalog potravin"
+    "myCreatedMeal_button_save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Food catalogue"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
           }
         }
       }
     },
-    "myCreatedMeal_section_ingredients": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Potraviny"
+    "myCreatedMeal_confirm_create" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vytvořit toto jídlo?"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ingredients"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create this meal?"
           }
         }
       }
     },
-    "myCreatedMeal_title_edit": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Upravit vlastní jídlo"
+    "myCreatedMeal_confirm_delete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smazat toto jídlo?"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edit meal"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this meal?"
           }
         }
       }
     },
-    "myCreatedMeal_title_new": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sestav vlastní jídlo"
+    "myCreatedMeal_confirm_update" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložit změny?"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New meal"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save changes?"
           }
         }
       }
     },
-    "myPortions_empty": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zatím nemáte evidovanou žádnou vlastní porci pro danou potravinu nebo jídlo."
+    "myCreatedMeal_error_deleteFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jídlo se nepodařilo smazat"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You have not yet recorded any personal portion for this food item."
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not delete the meal"
           }
         }
       }
     },
-    "myPortions_error_deleteFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Porci se nepodařilo smazat"
+    "myCreatedMeal_error_saveFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jídlo se nepodařilo uložit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not delete the portion"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save the meal"
           }
         }
       }
     },
-    "myPortions_error_saveFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Porci se nepodařilo uložit"
+    "myCreatedMeal_field_namePlaceholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Název vlastního jídla … Guláš"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not save the portion"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom meal name … Goulash"
           }
         }
       }
     },
-    "myPortions_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Moje porce"
+    "myCreatedMeal_ingredients_empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyhledej a přidej alespoň jednu potravinu"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "My portions"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search and add at least one ingredient"
           }
         }
       }
     },
-    "moderation_reports_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nahlášení"
+    "myCreatedMeal_list_empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatím nemáš žádné vlastní jídlo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reports"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have no meals yet"
           }
         }
       }
     },
-    "moderation_reports_empty": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Žádná nahlášení"
+    "myCreatedMeal_list_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlastní jídla"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No reports"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My meals"
           }
         }
       }
     },
-    "moderation_reports_count": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld× nahlášeno"
+    "myCreatedMeal_search_placeholder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidej potravinu … třeba %@"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reported %lld×"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add food … try %@"
           }
         }
       }
     },
-    "moderation_button_resolve": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vyřešeno"
+    "myCreatedMeal_section_catalogue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Katalog potravin"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resolved"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Food catalogue"
           }
         }
       }
     },
-    "foodItemReport_button_report": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nahlásit chybný údaj"
+    "myCreatedMeal_section_ingredients" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potraviny"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Report incorrect data"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingredients"
           }
         }
       }
     },
-    "foodItemReport_button_alreadyReported": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Již nahlášeno"
+    "myCreatedMeal_title_edit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upravit vlastní jídlo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Already reported"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit meal"
           }
         }
       }
     },
-    "foodItemReport_alert_title": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Co je špatně?"
+    "myCreatedMeal_title_new" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sestav vlastní jídlo"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "What's wrong?"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New meal"
           }
         }
       }
     },
-    "foodItemReport_alert_placeholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Popište, co je u položky špatně"
+    "myPortions_empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatím nemáte evidovanou žádnou vlastní porci pro danou potravinu nebo jídlo."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Describe what's incorrect about this item"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have not yet recorded any personal portion for this food item."
           }
         }
       }
     },
-    "foodItemReport_button_send": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Odeslat"
+    "myPortions_error_deleteFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porci se nepodařilo smazat"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Send"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not delete the portion"
           }
         }
       }
     },
-    "foodItemReport_error_reasonRequired": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Napište prosím, co je špatně"
+    "myPortions_error_saveFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porci se nepodařilo uložit"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Please describe what's wrong"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save the portion"
           }
         }
       }
     },
-    "foodItemReport_error_reasonTooLong": {
-      "extractionState": "manual",
-      "localizations": {
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zkraťte popis na 500 znaků"
+    "myPortions_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moje porce"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keep the description under 500 characters"
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My portions"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

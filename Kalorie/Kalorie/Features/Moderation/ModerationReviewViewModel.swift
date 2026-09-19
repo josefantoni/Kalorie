@@ -22,13 +22,18 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
     @Published var isRecognizingNutritionLabel = false
     @Published var isNutritionLabelCameraVisible = false
     @Published var nutritionLabelCameraHint: String?
+    @Published private(set) var similarCatalogueItems: [FoodItemDomain] = []
+    @Published private(set) var isSimilarCatalogueItemsSectionAvailable = true
 
     let submittedAt: Date
     let rejectReasonIfAny: String?
 
+    var showsSimilarCatalogueItemsSection: Bool { submission.barcode == nil }
+
     private let submission: FoodItemSubmissionDomain
     private let approveSubmission: any ApproveSubmissionUseCaseProtocol
     private let rejectSubmission: any RejectSubmissionUseCaseProtocol
+    private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
     private let recognizeNutritionLabelUseCase: any RecognizeNutritionLabelUseCaseProtocol
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
     private let onResolved: () -> Void
@@ -39,6 +44,7 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
         submission: FoodItemSubmissionDomain,
         approveSubmission: any ApproveSubmissionUseCaseProtocol,
         rejectSubmission: any RejectSubmissionUseCaseProtocol,
+        searchFoodItems: any SearchFoodItemsUseCaseProtocol,
         recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol,
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
         onResolved: @escaping () -> Void
@@ -49,12 +55,24 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
         self.rejectReasonIfAny = submission.rejectReason
         self.approveSubmission = approveSubmission
         self.rejectSubmission = rejectSubmission
+        self.searchFoodItems = searchFoodItems
         self.recognizeNutritionLabelUseCase = recognizeNutritionLabel
         self.cameraAuthorizationProvider = cameraAuthorizationProvider
         self.onResolved = onResolved
     }
 
     // MARK: - Functions
+
+    @MainActor
+    func onAppear() async {
+        guard showsSimilarCatalogueItemsSection else { return }
+        do {
+            similarCatalogueItems = try await searchFoodItems(query: submission.item.czName)
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.moderation)
+            isSimilarCatalogueItemsSectionAvailable = false
+        }
+    }
 
     @MainActor
     func onNutritionLabelCaptured(_ image: UIImage, liveBarcode: String?) async {
