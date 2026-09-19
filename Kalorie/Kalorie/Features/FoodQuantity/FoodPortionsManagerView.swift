@@ -17,7 +17,6 @@ struct FoodPortionsManagerView: View {
 
     private static let edgeRowSpacingExtra: CGFloat = 8
     private static let rowSpacing: CGFloat = 12
-    private static let addButtonSize: CGFloat = 28
 
     // MARK: - Init
 
@@ -46,62 +45,17 @@ struct FoodPortionsManagerView: View {
                     }
                 }
 
-                ForEach(Array(viewModel.portionDrafts.enumerated()), id: \.element.id) { index, draft in
-                    PortionInputRow(
-                        name: $viewModel.portionDrafts[index].name,
-                        gramsText: $viewModel.portionDrafts[index].gramsText,
-                        measure: viewModel.item.measure,
-                        focusedField: $focusedField,
-                        focusValue: draft.id
-                    )
-                    .padding(.bottom, Self.rowSpacing)
-                    .overlay(alignment: .bottom) {
-                        if index < viewModel.portionDrafts.count - 1 {
-                            Rectangle()
-                                .fill(Color(uiColor: .separator))
-                                .frame(height: 1)
-                                .padding(.horizontal, 16)
-                        }
-                    }
-                    .listRowInsets(EdgeInsets(
-                        top: index == 0 && viewModel.personalPortions.isEmpty ? Self.edgeRowSpacingExtra : Self.rowSpacing,
-                        leading: 0,
-                        bottom: index == viewModel.portionDrafts.count - 1 ? Self.edgeRowSpacingExtra : 0,
-                        trailing: 0
-                    ))
-                    .listRowSeparator(.hidden)
-                    .listRowSeparatorTint(.clear)
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            viewModel.onDeletePortionDraft(draft)
-                        } label: {
-                            Image(systemName: "trash")
-                        }
-                    }
+                PortionDraftListView(
+                    drafts: $viewModel.portionDrafts,
+                    measure: viewModel.item.measure,
+                    firstRowTopInset: viewModel.personalPortions.isEmpty ? Self.edgeRowSpacingExtra : Self.rowSpacing,
+                    focusedField: $focusedField
+                ) { draft in
+                    viewModel.onDeletePortionDraft(draft)
                 }
             }
 
-            Section {
-                Button {
-                    viewModel.onAddPortionDraftTapped()
-                    focusedField = viewModel.portionDrafts.last?.id
-                } label: {
-                    Image(systemName: BaseImageName.plus.rawValue)
-                        .font(.footnote)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .frame(width: Self.addButtonSize, height: Self.addButtonSize)
-                }
-                .background(Color.accentColor)
-                .clipShape(.circle)
-                .disabled(!viewModel.arePortionDraftsComplete)
-                .opacity(viewModel.arePortionDraftsComplete ? 1 : 0.4)
-                .frame(maxWidth: .infinity)
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            }
-            .listSectionSpacing(0)
+            PortionDraftAddSection(drafts: $viewModel.portionDrafts, focusedField: $focusedField)
         }
         .navigationTitle(L10n.MyPortions.title)
         .navigationBarTitleDisplayMode(.inline)

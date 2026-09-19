@@ -26,7 +26,7 @@ struct FoodItemFormInput {
     var fiber: Double? = 0
     var protein: Double = 0
     var salt: Double = 0
-    var portions: [FoodPortionDraft] = [FoodPortionDraft(name: "", gramsText: "")]
+    var portions: [FoodPortionDraft] = [FoodPortionDraft.blank]
     var measure: FoodMeasure = .grams
     var isWeightInThousands = false
 }
@@ -50,7 +50,7 @@ extension FoodItemFormInput {
             protein: item.protein,
             salt: item.salt,
             portions: item.portions.isEmpty
-                ? [FoodPortionDraft(name: "", gramsText: "")]
+                ? [FoodPortionDraft.blank]
                 : item.portions.map { FoodPortionDraft(name: $0.name, gramsText: String(format: "%g", $0.grams)) },
             measure: item.measure,
             isWeightInThousands: weightDisplay.isInThousands

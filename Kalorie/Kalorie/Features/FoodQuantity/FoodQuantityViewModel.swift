@@ -33,7 +33,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     @Published var isTogglingFavourite = false
     @Published private(set) var personalPortions: [FoodPortionDomain] = []
     @Published var isPersonalPortionsManagerPushed = false
-    @Published var portionDrafts = [FoodPortionDraft(name: "", gramsText: "")]
+    @Published var portionDrafts = [FoodPortionDraft.blank]
     @Published private(set) var showPortionCheckmark = false
     @Published private(set) var mealTypes: [MealTypeDomain]
     @Published var selectedMealTypeId: String?
@@ -74,15 +74,11 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     var scaledSalt: Double { scaledMacros.salt }
 
     var arePortionDraftsComplete: Bool {
-        portionDrafts.allSatisfy { draft in
-            !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !draft.gramsText.isEmpty
-        }
+        portionDrafts.allSatisfy(\.isComplete)
     }
 
     var canSavePortionDrafts: Bool {
-        portionDrafts.contains { draft in
-            !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !draft.gramsText.isEmpty
-        }
+        portionDrafts.contains(where: \.isComplete)
     }
 
     var isPersonalPortionsAvailable: Bool { item.kind == .catalogue || meal != nil }
@@ -184,20 +180,20 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
 
     func onPortionsManagerOpened() {
         if case .portion = unit {
-            portionDrafts = [FoodPortionDraft(name: "", gramsText: "")]
+            portionDrafts = [FoodPortionDraft.blank]
         } else {
             portionDrafts = [FoodPortionDraft(name: "", gramsText: grams.formattedTrimmed())]
         }
     }
 
     func onAddPortionDraftTapped() {
-        portionDrafts.append(FoodPortionDraft(name: "", gramsText: ""))
+        portionDrafts.append(FoodPortionDraft.blank)
     }
 
     func onDeletePortionDraft(_ draft: FoodPortionDraft) {
         portionDrafts.removeAll { $0.id == draft.id }
         if portionDrafts.isEmpty {
-            portionDrafts = [FoodPortionDraft(name: "", gramsText: "")]
+            portionDrafts = [FoodPortionDraft.blank]
         }
     }
 
@@ -220,7 +216,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         personalPortions = original + newPortions
         do {
             try await persistPersonalPortions()
-            portionDrafts = [FoodPortionDraft(name: "", gramsText: "")]
+            portionDrafts = [FoodPortionDraft.blank]
             showPortionCheckmark = true
             try? await Task.sleep(for: .seconds(2))
             showPortionCheckmark = false
