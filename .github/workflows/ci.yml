@@ -22,7 +22,7 @@ jobs:
 
       - name: Build KMP XCFrameworks
         run: |
-          for module in MacroKit MealKit TextKit; do
+          for module in ExportKit MacroKit MealKit TextKit; do
             SRCROOT="$GITHUB_WORKSPACE/Kalorie" ./scripts/build-kmp-framework.sh "$module"
           done
 
