@@ -60,6 +60,8 @@ struct AddFoodSheetConfigurator {
                         removeFavouriteFood: RemoveFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                        fetchMyFoodItemReport: FetchMyFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                        submitFoodItemReport: SubmitFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         onSaved: onSaved,
                         onFavouriteChanged: onFavouriteChanged,
                         quantity: isMyCreatedMeal ? item.weight : (item.portions.isEmpty ? 100 : 1),

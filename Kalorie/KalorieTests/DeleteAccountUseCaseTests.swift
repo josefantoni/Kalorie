@@ -60,6 +60,20 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         )
     }
 
+    func test_callAsFunction_deletesOwnReportsAsPrivacyObligation() async throws {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedReports = [FoodItemReportDTO(barcode: "12345678", reportedBy: "test-user-id", reason: "wrong calories", reportedAt: .now)]
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
+
+        try await sut()
+
+        XCTAssertTrue(
+            log.entries.dropLast().contains("deleteReport:12345678_test-user-id"),
+            "A report is the user's own data and must not survive account deletion"
+        )
+    }
+
     func test_callAsFunction_deletesFirestoreDataBeforeDeletingAuthAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
@@ -317,6 +331,7 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     var stubbedMyCreatedMeals: [MyCreatedMealDTO] = []
     var stubbedFoodItemPortions: [FoodItemPersonalPortionsDTO] = []
     var stubbedSubmissions: [FoodItemSubmissionDTO] = []
+    var stubbedReports: [FoodItemReportDTO] = []
     private(set) var deletedIds: [String] = []
 
     // MARK: - Init
@@ -349,7 +364,10 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] {
-        stubbedSubmissions.compactMap { $0 as? T }
+        if collection == Constants.Firestore.foodItemReports {
+            return stubbedReports.compactMap { $0 as? T }
+        }
+        return stubbedSubmissions.compactMap { $0 as? T }
     }
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
@@ -372,6 +390,8 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
             log.record("deleteFood:\(id)")
         } else if collection == Constants.Firestore.foodItemSubmissions {
             log.record("deleteSubmission:\(id)")
+        } else if collection == Constants.Firestore.foodItemReports {
+            log.record("deleteReport:\(id)")
         } else {
             log.record("deleteUser:\(id)")
         }

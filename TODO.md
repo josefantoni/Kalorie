@@ -25,13 +25,6 @@ The app works with three kinds of data. The distinction matters for the items be
   Storage quota is unverified. Needs a `storage` block in `firebase.json`, `storage.rules`, and a
   Blaze-plan check before starting. Additive once it lands — `FoodItemSubmissionDTO` gains an
   optional `photo_path`, no other schema change.
-- [ ] **Report incorrect data on a catalogue item** — a user who spots a wrong value on a shared
-  catalogue entry has no way to say so. Correcting one is the maintainer's own action in the
-  moderation panel ([design 0009](docs/design/0009-catalogue-moderation.md), shipped), and the
-  submission flow deliberately refuses a barcode already in the catalogue, so a correction can only
-  start from the maintainer noticing the error personally — recorded as a Non-goal in that design,
-  not an oversight. Needs a report affordance on the item's own screen and a queue for reports in
-  the panel, beside the existing submissions queue.
 - [ ] **Rank search results by frequency** — order manual search results by how often the user has
   logged each food, so the most used ones come first. Distinct from favourites above: this one is
   derived, not chosen, and the user cannot remove an entry from it.
@@ -61,7 +54,9 @@ ones are listed below; closed findings live in git history, not here.
   not built. `ModerationCatalogueEditorViewModel.onSaveTapped` ([design 0009](docs/design/0009-catalogue-moderation.md),
   shipped) is now the only place a correction happens, so it is also the only place a trigger could
   fire from — still not built. `loadAsync(id:from:)` already makes the re-read itself cheap
-  whenever that lands.
+  whenever that lands. [Design 0012](docs/design/0012-report-incorrect-catalogue-data.md)'s report
+  flow raises how often a correction happens — it no longer depends on the maintainer noticing an
+  error personally — but does not close this finding by itself.
 
 ## Audit findings — 2. Food search and catalogue
 

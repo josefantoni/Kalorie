@@ -159,6 +159,22 @@ enum L10n {
         static var errorAlreadyResolved: String { String(localized: "moderation_error_alreadyResolved") }
         static var errorChangedSinceReview: String { String(localized: "moderation_error_changedSinceReview") }
         static var errorItemChangedSinceLoad: String { String(localized: "moderation_error_itemChangedSinceLoad") }
+        static var reportsTitle: String { String(localized: "moderation_reports_title") }
+        static var reportsEmpty: String { String(localized: "moderation_reports_empty") }
+        static func reportsCount(_ count: Int) -> String {
+            String(format: String(localized: "moderation_reports_count"), count)
+        }
+        static var buttonResolve: String { String(localized: "moderation_button_resolve") }
+    }
+
+    enum FoodItemReport {
+        static var buttonReport: String { String(localized: "foodItemReport_button_report") }
+        static var buttonAlreadyReported: String { String(localized: "foodItemReport_button_alreadyReported") }
+        static var alertTitle: String { String(localized: "foodItemReport_alert_title") }
+        static var alertPlaceholder: String { String(localized: "foodItemReport_alert_placeholder") }
+        static var buttonSend: String { String(localized: "foodItemReport_button_send") }
+        static var errorReasonRequired: String { String(localized: "foodItemReport_error_reasonRequired") }
+        static var errorReasonTooLong: String { String(localized: "foodItemReport_error_reasonTooLong") }
     }
 
     enum FoodPortion {

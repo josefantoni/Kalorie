@@ -201,6 +201,7 @@ understanding why.
 | [0009](design/0009-catalogue-moderation.md) | Catalogue moderation | Implemented | Backend, Cross-platform, iOS |
 | [0010](design/0010-nutrition-label-photo-prefill.md) | Pre-filling the food form from a photo of the packaging | Implemented | iOS |
 | [0011](design/0011-food-measure-grams-or-millilitres.md) | A food measured in grams or millilitres | Implemented | Backend, Cross-platform, iOS |
+| [0012](design/0012-report-incorrect-catalogue-data.md) | Reporting incorrect data on a catalogue item | Implemented | Backend, Cross-platform, iOS |
 
 ### Decision records
 

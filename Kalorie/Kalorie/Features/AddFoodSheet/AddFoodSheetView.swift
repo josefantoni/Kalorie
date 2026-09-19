@@ -383,6 +383,8 @@ struct AddFoodSheetView: View {
                     removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
                     fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(),
                     saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
+                    fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
+                    submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
                     onSaved: onSaved,
                     onFavouriteChanged: onFavouriteChanged,
                     quantity: isMyCreatedMeal ? item.weight : (item.portions.isEmpty ? 100 : 1),

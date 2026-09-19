@@ -113,7 +113,9 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
             addFavouriteFood: AddFavouriteFoodUseCaseFake(),
             removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
-            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake()
+            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
+            fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
+            submitFoodItemReport: SubmitFoodItemReportUseCaseFake()
         ) {}
     }
 

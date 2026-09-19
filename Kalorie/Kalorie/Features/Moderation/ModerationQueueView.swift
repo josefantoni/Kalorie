@@ -13,14 +13,14 @@ struct ModerationQueueView: View {
 
     @StateObject var viewModel: ModerationQueueViewModel
     private let makeReviewView: (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView
-    private let makeCatalogueEditorView: () -> ModerationCatalogueEditorView
+    private let makeCatalogueEditorView: (String?) -> ModerationCatalogueEditorView
 
     // MARK: - Init
 
     init(
         viewModel: ModerationQueueViewModel,
         makeReviewView: @escaping (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView,
-        makeCatalogueEditorView: @escaping () -> ModerationCatalogueEditorView
+        makeCatalogueEditorView: @escaping (String?) -> ModerationCatalogueEditorView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeReviewView = makeReviewView
@@ -59,7 +59,7 @@ struct ModerationQueueView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink {
-                    makeCatalogueEditorView()
+                    makeCatalogueEditorView(nil)
                 } label: {
                     Image(systemName: "pencil")
                 }
@@ -97,13 +97,14 @@ struct ModerationQueueView: View {
                     )
                 )
             },
-            makeCatalogueEditorView: {
+            makeCatalogueEditorView: { barcode in
                 ModerationCatalogueEditorView(
                     viewModel: ModerationCatalogueEditorViewModel(
                         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                         updateFoodItem: UpdateFoodItemUseCaseFake(),
                         recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
-                        cameraAuthorizationProvider: CameraAuthorizationProviderFake()
+                        cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
+                        initialBarcode: barcode
                     )
                 )
             }

@@ -94,6 +94,61 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         XCTAssertFalse(sut.canShowFavouriteButton)
     }
 
+    // MARK: - Reporting incorrect data
+
+    @MainActor
+    func test_canReportIncorrectData_onlyTrueForCatalogueKind() {
+        XCTAssertTrue(makeSUT(food: makeFood(kind: .catalogue)).canReportIncorrectData)
+        XCTAssertFalse(makeSUT(food: makeFood(kind: .external)).canReportIncorrectData, "an OpenFoodFacts item is not ours to correct")
+        XCTAssertFalse(makeSUT(food: makeFood(kind: .createdMeal)).canReportIncorrectData, "a created meal is private, owner-only data")
+    }
+
+    @MainActor
+    func test_onAppear_whenAlreadyReported_setsHasReportedCurrentItem() async {
+        let sut = makeSUT(
+            food: makeFood(kind: .catalogue),
+            fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(
+                stubbedReport: FoodItemReportDomain(barcode: "12345", reportedBy: "test-user-id", reason: "wrong", reportedAt: .now)
+            )
+        )
+
+        await sut.onAppear()
+
+        XCTAssertTrue(sut.hasReportedCurrentItem)
+    }
+
+    @MainActor
+    func test_onReportIncorrectDataTapped_whenAlreadyReported_doesNotShowAlert() {
+        let sut = makeSUT(food: makeFood(kind: .catalogue))
+        sut.hasReportedCurrentItem = true
+
+        sut.onReportIncorrectDataTapped()
+
+        XCTAssertFalse(sut.isReportReasonAlertVisible, "an already-reported item must not offer a second report")
+    }
+
+    @MainActor
+    func test_onReportSubmitted_withEmptyReason_showsAlertAndDoesNotMarkAsReported() async {
+        let sut = makeSUT(food: makeFood(kind: .catalogue), submitFoodItemReport: SubmitFoodItemReportUseCaseFake(errorToThrow: FoodItemReportError.reasonRequired))
+        sut.reportReasonText = ""
+
+        await sut.onReportSubmitted()
+
+        XCTAssertFalse(sut.hasReportedCurrentItem)
+        XCTAssertNotNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onReportSubmitted_whenSucceeds_marksAsReported() async {
+        let sut = makeSUT(food: makeFood(kind: .catalogue))
+        sut.reportReasonText = "wrong calories"
+
+        await sut.onReportSubmitted()
+
+        XCTAssertTrue(sut.hasReportedCurrentItem)
+        XCTAssertNil(sut.alertItem)
+    }
+
     // MARK: - onMealTypeSelected (staging only, no write)
 
     @MainActor
@@ -241,6 +296,8 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
+        fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
+        submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
         onFoodUpdated: @escaping () -> Void = {}
     ) -> FoodConsumedDetailViewModel {
         let sut = FoodConsumedDetailViewModel(
@@ -254,6 +311,8 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
             removeFavouriteFood: removeFavouriteFood,
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
+            fetchMyFoodItemReport: fetchMyFoodItemReport,
+            submitFoodItemReport: submitFoodItemReport,
             onFoodUpdated: onFoodUpdated
         )
         addTeardownBlock { [weak sut] in

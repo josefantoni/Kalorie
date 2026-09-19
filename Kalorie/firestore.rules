@@ -65,5 +65,22 @@ service cloud.firestore {
 
       allow delete: if isMaintainer() || resource.data.submitted_by == request.auth.uid;
     }
+
+    match /foodItemReports/{reportId} {
+      allow read: if isMaintainer() ||
+        (resource == null && reportId.matches('.*_' + request.auth.uid)) ||
+        (resource != null && resource.data.reported_by == request.auth.uid);
+
+      allow create: if request.auth != null &&
+        reportId == request.resource.data.barcode + '_' + request.auth.uid &&
+        request.resource.data.reported_by == request.auth.uid &&
+        request.resource.data.barcode.matches('[0-9]{8}|[0-9]{12}|[0-9]{13}') &&
+        request.resource.data.reason is string &&
+        request.resource.data.reason.size() > 0 &&
+        request.resource.data.reason.size() <= 500 &&
+        request.resource.data.reported_at is number;
+
+      allow delete: if isMaintainer() || resource.data.reported_by == request.auth.uid;
+    }
   }
 }

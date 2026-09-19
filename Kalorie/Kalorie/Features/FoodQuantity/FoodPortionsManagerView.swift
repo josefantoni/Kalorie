@@ -120,6 +120,8 @@ struct FoodPortionsManagerView: View {
                 removeFavouriteFood: RemoveFavouriteFoodUseCaseFake(),
                 fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseFake(),
                 saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
+                fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
+                submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
                 onSaved: {}
             ) { _, _ in }
         )

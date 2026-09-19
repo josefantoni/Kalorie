@@ -41,15 +41,19 @@ enum Constants {
         static let dashboard = "dashboard"
         static let myCreatedMeal = "myCreatedMeal"
         static let moderation = "moderation"
+        static let foodItemReport = "foodItemReport"
         static let nutritionLabelRecognition = "nutritionLabelRecognition"
     }
 
     enum Firestore {
         static let foodItems = "foodItems"
         static let foodItemSubmissions = "foodItemSubmissions"
+        static let foodItemReports = "foodItemReports"
         static let users = "users"
         static let batchWriteLimit = 500
         static let inQueryLimit = 30
+        static let reportsPageLimit = 50
+        static let reportReasonMaxLength = 500
         static func mealTypes(userId: String) -> String { "users/\(userId)/mealTypes" }
         static func foodConsumed(userId: String) -> String { "users/\(userId)/foodConsumed" }
         static func favouriteFoods(userId: String) -> String { "users/\(userId)/favouriteFoods" }
