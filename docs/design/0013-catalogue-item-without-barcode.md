@@ -57,8 +57,9 @@ currently offers no way to add an item at all.
 ### Barcode optional in the form
 
 - The barcode row in `FoodItemFormSections` stays editable. When it is empty, a warning line is
-  shown under it: *"Bez čárového kódu položku nenajdete skenováním."* Colour: red, as requested,
-  since it is a warning the user should notice even though it does not block submission.
+  shown under it: *"Bez čárového kódu potravinu nenajdete při vyhledávání katalogu přes čárový kod"*.
+  Colour: yellow (was red until 2026-09-19, changed by decision) — a warning the user should notice
+  even though it does not block submission. It disappears as soon as the barcode field is non-empty.
 - On submit with an empty barcode, a confirmation alert is shown before anything is written:
   *"K jídlu nemáte přiřazený čárový kód. Opravdu chcete pokračovat?"* with *Ne* (cancel, stay on
   the form) and *Ano* (submit). `AlertItem` supports a single button only, so this is a separate

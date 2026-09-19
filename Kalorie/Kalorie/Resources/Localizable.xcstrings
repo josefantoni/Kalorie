@@ -1517,7 +1517,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bez čárového kódu položku nenajdete skenováním."
+            "value" : "Bez čárového kódu potravinu nenajdete při vyhledávání katalogu přes čárový kod"
           }
         },
         "en" : {
@@ -2357,6 +2357,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Name (e.g. 1 package)"
+          }
+        }
+      }
+    },
+    "foodPortion_quickAdd_package" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 balení"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 package"
+          }
+        }
+      }
+    },
+    "foodPortion_quickAdd_piece" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 kus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 piece"
+          }
+        }
+      }
+    },
+    "foodPortion_quickAdd_spoon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 lžíce"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 spoon"
           }
         }
       }
@@ -3536,6 +3587,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New meal"
+          }
+        }
+      }
+    },
+    "myPortions_button_save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
           }
         }
       }

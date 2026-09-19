@@ -12,7 +12,12 @@ struct FoodPortionsManagerView: View {
     // MARK: - Properties
 
     @ObservedObject var viewModel: FoodQuantityViewModel
-    @FocusState private var isNameFocused: Bool
+    @Environment(\.dismiss) private var dismiss
+    @FocusState private var focusedField: UUID?
+
+    private static let edgeRowSpacingExtra: CGFloat = 8
+    private static let rowSpacing: CGFloat = 12
+    private static let addButtonSize: CGFloat = 28
 
     // MARK: - Init
 
@@ -29,54 +34,89 @@ struct FoodPortionsManagerView: View {
                     Text(L10n.MyPortions.empty)
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(viewModel.personalPortions, id: \.self) { portion in
-                        HStack {
-                            Text(portion.name)
-                            Spacer()
-                            Text(portion.grams.formattedAmount(measure: viewModel.item.measure))
-                                .foregroundStyle(.secondary)
-                        }
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                Task { await viewModel.onDeletePersonalPortion(portion) }
-                            } label: {
-                                Image(systemName: "trash")
+                    ForEach(Array(viewModel.personalPortions.enumerated()), id: \.element) { index, portion in
+                        readOnlyPortionRow(portion: portion, index: index)
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    Task { await viewModel.onDeletePersonalPortion(portion) }
+                                } label: {
+                                    Image(systemName: "trash")
+                                }
                             }
-                        }
                     }
                 }
 
-                if viewModel.isAddPortionFormVisible {
-                    HStack {
-                        BaseStringTextField(
-                            placeholder: L10n.FoodPortion.fieldNamePlaceholder,
-                            title: "",
-                            text: $viewModel.newPortionName,
-                            textAlignment: .leading
-                        )
-                        .focused($isNameFocused)
-                        TextField("0", text: $viewModel.newPortionGramsText)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 50)
-                        Text(viewModel.item.measure.unitSymbol)
-                            .foregroundStyle(.secondary)
+                ForEach(Array(viewModel.portionDrafts.enumerated()), id: \.element.id) { index, draft in
+                    PortionInputRow(
+                        name: $viewModel.portionDrafts[index].name,
+                        gramsText: $viewModel.portionDrafts[index].gramsText,
+                        measure: viewModel.item.measure,
+                        focusedField: $focusedField,
+                        focusValue: draft.id
+                    )
+                    .padding(.bottom, Self.rowSpacing)
+                    .overlay(alignment: .bottom) {
+                        if index < viewModel.portionDrafts.count - 1 {
+                            Rectangle()
+                                .fill(Color(uiColor: .separator))
+                                .frame(height: 1)
+                                .padding(.horizontal, 16)
+                        }
                     }
-                    Button(L10n.FoodPortion.buttonAdd) {
-                        isNameFocused = false
-                        Task { await viewModel.onAddPersonalPortion() }
+                    .listRowInsets(EdgeInsets(
+                        top: index == 0 && viewModel.personalPortions.isEmpty ? Self.edgeRowSpacingExtra : Self.rowSpacing,
+                        leading: 0,
+                        bottom: index == viewModel.portionDrafts.count - 1 ? Self.edgeRowSpacingExtra : 0,
+                        trailing: 0
+                    ))
+                    .listRowSeparator(.hidden)
+                    .listRowSeparatorTint(.clear)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            viewModel.onDeletePortionDraft(draft)
+                        } label: {
+                            Image(systemName: "trash")
+                        }
                     }
-                } else {
-                    BaseButton(style: .plain, imageName: .plusCircle, imageSize: .extraLarge) {
-                        viewModel.onShowAddPortionForm()
-                        isNameFocused = true
-                    }
-                    .frame(maxWidth: .infinity)
                 }
             }
+
+            Section {
+                Button {
+                    viewModel.onAddPortionDraftTapped()
+                    focusedField = viewModel.portionDrafts.last?.id
+                } label: {
+                    Image(systemName: BaseImageName.plus.rawValue)
+                        .font(.footnote)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .frame(width: Self.addButtonSize, height: Self.addButtonSize)
+                }
+                .background(Color.accentColor)
+                .clipShape(.circle)
+                .disabled(!viewModel.arePortionDraftsComplete)
+                .opacity(viewModel.arePortionDraftsComplete ? 1 : 0.4)
+                .frame(maxWidth: .infinity)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+            .listSectionSpacing(0)
         }
         .navigationTitle(L10n.MyPortions.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                SaveToolbarButton(
+                    title: L10n.MyPortions.buttonSave,
+                    showCheckmark: viewModel.showPortionCheckmark,
+                    isEnabled: viewModel.canSavePortionDrafts
+                ) {
+                    focusedField = nil
+                    Task { await viewModel.onSavePersonalPortions() }
+                }
+            }
+        }
         .alert(item: $viewModel.alertItem) { item in
             Alert(
                 title: Text(item.title),
@@ -84,6 +124,33 @@ struct FoodPortionsManagerView: View {
                 dismissButton: .default(Text(L10n.Common.ok))
             )
         }
+    }
+
+    // MARK: - Functions
+
+    private func readOnlyPortionRow(portion: FoodPortionDomain, index: Int) -> some View {
+        HStack {
+            Text(portion.name)
+            Spacer()
+            Text(portion.grams.formattedAmount(measure: viewModel.item.measure))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color(uiColor: .separator))
+                .frame(height: 1)
+                .padding(.horizontal, 16)
+        }
+        .listRowInsets(EdgeInsets(
+            top: index == 0 ? Self.edgeRowSpacingExtra : 0,
+            leading: 0,
+            bottom: 0,
+            trailing: 0
+        ))
+        .listRowSeparator(.hidden)
+        .listRowSeparatorTint(.clear)
     }
 }
 
@@ -122,7 +189,10 @@ struct FoodPortionsManagerView: View {
                 saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
                 fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
                 submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
-                onSaved: {}
+                meal: nil,
+                updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
+                onSaved: {},
+                onMealUpdated: { _ in }
             ) { _, _ in }
         )
     }

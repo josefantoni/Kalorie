@@ -801,8 +801,11 @@ Firestore array order, which is the order the portions were authored in. This or
 that the first option is always the preselected unit, is
 [ADR 0030](adr/0030-first-quantity-picker-option-is-the-preselected-unit.md)'s decision.
 
-`personalPortions` is fetched once in `onAppear()` and only when `item.kind == .catalogue`; when
-`isPersonalPortionsAvailable`, the unit `Menu` gains a `Divider()` and a button
+`personalPortions` is fetched once in `onAppear()` and only when `item.kind == .catalogue`. For a
+created meal it is instead seeded from `meal.portions` in `init`, `unitOptions` omits `item.portions`
+(they are the same list), and add/delete write the meal through `UpdateMyCreatedMealUseCase`
+([ADR 0033](adr/0033-created-meal-portions-editable-from-the-quantity-screen.md)). When
+`isPersonalPortionsAvailable` (a catalogue item or a created meal), the unit `Menu` gains a `Divider()` and a button
 (`L10n.FoodQuantity.buttonMyPortions`) that pushes `FoodPortionsManagerView` via
 `navigationDestination`, pre-filling the grams field with the screen's current `grams`. Pushing
 rather than sheeting means it now follows the same pushed-not-sheeted pattern § 7.3 describes
@@ -812,6 +815,28 @@ See [design 0008](design/0008-food-portions.md) for the write-once/editable spli
 between a canonical portion (authored once, in `AddFoodSheetView`'s new-food form or the meal
 editor) and a personal one. Frequency-derived quick-add amounts are the still-unbuilt other half
 of the same `TODO.md` line.
+
+Both call sites of `PortionInputRow` — `FoodPortionsSection.swift`'s canonical-portion rows and
+`FoodPortionsManagerView.swift`'s personal-portion rows — draw their own full-width `Rectangle`
+separator between rows instead of the system default: `.listRowSeparator(.hidden)` alone does not
+reliably suppress it on this List, and the default separator's inset is asymmetric (aligned to
+the row's leading content, flush on the trailing edge) rather than spanning the row evenly. Each
+row's `listRowInsets` widens at the edges for a visual separation.
+
+`FoodPortionsManagerView` deliberately mirrors the portions editor of *Build your own meal*
+(`FoodPortionsSection`). Saved personal portions are listed read-only, followed by
+`FoodQuantityViewModel.portionDrafts` — a list that **always holds at least one row**: opening the
+screen seeds one draft (`onPortionsManagerOpened`, grams pre-filled from the current quantity),
+deleting the last draft re-seeds an empty one, and a successful save resets to one empty row. The
+`+` button appends an empty draft and is disabled until *every* draft has a name and grams
+(`arePortionDraftsComplete`); the navigation-bar Save is enabled as soon as *at least one* draft is
+complete (`canSavePortionDrafts`), so a filled row stays savable after `+` has added an empty one
+below it. `onSavePersonalPortions` skips fully empty drafts but alerts on a half-filled one instead
+of dropping it silently, and writes all remaining drafts in one `setAsync`.
+
+The `+` button must live in its **own `Section`** with `.listSectionSpacing(0)`, as it does in
+`FoodPortionsSection`. Placed inside the rows' `Section`, the List draws the group as continuing
+through the button row and the last portion row loses its bottom corner radius.
 
 Two defaults are set by the configurator rather than by the view model: selecting one of the
 user's own meals pre-fills `quantity: item.weight, unit: .grams` — the meal's total gram weight,
@@ -914,7 +939,10 @@ OpenFoodFacts, and `.createdMeal` has none. The catalogue item is needed because
 too, and only stays hidden for a user's own created meals.
 
 After a successful save the screen shows a checkmark for two seconds via `Task.sleep`, then
-clears it.
+clears it. The toolbar button itself is the shared `SaveToolbarButton` (`Components/`): a *Save*
+that is disabled until there is something to save and swaps to a green checkmark while the flag is
+set. `FoodPortionsManagerView` uses the same component, driven by `showPortionCheckmark` on
+`FoodQuantityViewModel`. The flag stays in the view model, not in the component.
 
 ### 4.6 Favourite toggling
 

@@ -191,11 +191,15 @@ enum L10n {
         static var errorInvalidName: String { String(localized: "foodPortion_error_invalidName") }
         static var errorInvalidGrams: String { String(localized: "foodPortion_error_invalidGrams") }
         static var errorTooMany: String { String(localized: "foodPortion_error_tooMany") }
+        static var quickAddPiece: String { String(localized: "foodPortion_quickAdd_piece") }
+        static var quickAddPackage: String { String(localized: "foodPortion_quickAdd_package") }
+        static var quickAddSpoon: String { String(localized: "foodPortion_quickAdd_spoon") }
     }
 
     enum MyPortions {
         static var title: String { String(localized: "myPortions_title") }
         static var empty: String { String(localized: "myPortions_empty") }
+        static var buttonSave: String { String(localized: "myPortions_button_save") }
         static var errorSaveFailed: String { String(localized: "myPortions_error_saveFailed") }
         static var errorDeleteFailed: String { String(localized: "myPortions_error_deleteFailed") }
     }

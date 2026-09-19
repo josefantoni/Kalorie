@@ -33,9 +33,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     @Published var isTogglingFavourite = false
     @Published private(set) var personalPortions: [FoodPortionDomain] = []
     @Published var isPersonalPortionsManagerPushed = false
-    @Published var isAddPortionFormVisible = false
-    @Published var newPortionName = ""
-    @Published var newPortionGramsText = ""
+    @Published var portionDrafts = [FoodPortionDraft(name: "", gramsText: "")]
+    @Published private(set) var showPortionCheckmark = false
     @Published private(set) var mealTypes: [MealTypeDomain]
     @Published var selectedMealTypeId: String?
     @Published var hasReportedCurrentItem = false
@@ -44,6 +43,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     @Published var reportReasonText = ""
 
     let item: FoodItemDomain
+    private var meal: MyCreatedMealDomain?
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let addFavouriteFood: any AddFavouriteFoodUseCaseProtocol
@@ -52,9 +52,11 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     private let saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol
     private let fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol
     private let submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol
+    private let updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol
     private let selectedDate: Date
     private let onSaved: () -> Void
     private let onFavouriteChanged: (String, Bool) -> Void
+    private let onMealUpdated: (MyCreatedMealDomain) -> Void
     private var hasUserSelectedUnit = false
     private var hasUserSelectedMealType = false
 
@@ -71,11 +73,24 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     var scaledFiber: Double? { scaledMacros.fiber }
     var scaledSalt: Double { scaledMacros.salt }
 
-    var isPersonalPortionsAvailable: Bool { item.kind == .catalogue }
+    var arePortionDraftsComplete: Bool {
+        portionDrafts.allSatisfy { draft in
+            !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !draft.gramsText.isEmpty
+        }
+    }
+
+    var canSavePortionDrafts: Bool {
+        portionDrafts.contains { draft in
+            !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !draft.gramsText.isEmpty
+        }
+    }
+
+    var isPersonalPortionsAvailable: Bool { item.kind == .catalogue || meal != nil }
     var canReportIncorrectData: Bool { item.kind == .catalogue }
 
     var unitOptions: [FoodQuantityUnit] {
-        personalPortions.map(FoodQuantityUnit.portion) + item.portions.map(FoodQuantityUnit.portion) + [.grams, .hundredGrams]
+        let ownPortions = meal == nil ? item.portions : []
+        return personalPortions.map(FoodQuantityUnit.portion) + ownPortions.map(FoodQuantityUnit.portion) + [.grams, .hundredGrams]
     }
 
     // MARK: - Init
@@ -93,7 +108,10 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol,
         fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol,
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol,
+        meal: MyCreatedMealDomain?,
+        updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol,
         onSaved: @escaping () -> Void,
+        onMealUpdated: @escaping (MyCreatedMealDomain) -> Void,
         onFavouriteChanged: @escaping (String, Bool) -> Void,
         quantity: Double = 1,
         unit: FoodQuantityUnit = .hundredGrams
@@ -111,8 +129,12 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         self.saveFoodItemPersonalPortions = saveFoodItemPersonalPortions
         self.fetchMyFoodItemReport = fetchMyFoodItemReport
         self.submitFoodItemReport = submitFoodItemReport
+        self.meal = meal
+        self.updateMyCreatedMeal = updateMyCreatedMeal
+        self.personalPortions = meal?.portions ?? []
         self.onSaved = onSaved
         self.onFavouriteChanged = onFavouriteChanged
+        self.onMealUpdated = onMealUpdated
         self.quantity = quantity
         self.unit = unit
     }
@@ -128,7 +150,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         if canReportIncorrectData {
             await loadReportState(barcode: item.id, fetchMyFoodItemReport: fetchMyFoodItemReport)
         }
-        guard isPersonalPortionsAvailable else { return }
+        guard item.kind == .catalogue else { return }
         do {
             personalPortions = try await fetchFoodItemPersonalPortions(barcode: item.id)
             if
@@ -160,30 +182,48 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         selectedMealTypeId = mealTypeId
     }
 
-    func onShowAddPortionForm() {
-        newPortionName = ""
+    func onPortionsManagerOpened() {
         if case .portion = unit {
-            newPortionGramsText = ""
+            portionDrafts = [FoodPortionDraft(name: "", gramsText: "")]
         } else {
-            newPortionGramsText = grams.formattedTrimmed()
+            portionDrafts = [FoodPortionDraft(name: "", gramsText: grams.formattedTrimmed())]
         }
-        isAddPortionFormVisible = true
+    }
+
+    func onAddPortionDraftTapped() {
+        portionDrafts.append(FoodPortionDraft(name: "", gramsText: ""))
+    }
+
+    func onDeletePortionDraft(_ draft: FoodPortionDraft) {
+        portionDrafts.removeAll { $0.id == draft.id }
+        if portionDrafts.isEmpty {
+            portionDrafts = [FoodPortionDraft(name: "", gramsText: "")]
+        }
     }
 
     @MainActor
-    func onAddPersonalPortion() async {
-        let grams = Double(newPortionGramsText.replacingOccurrences(of: ",", with: ".")) ?? 0
-        if let error = FoodPortionValidation.validate(name: newPortionName, grams: grams) {
-            alertItem = AlertItem(title: error.alertTitle)
-            return
+    func onSavePersonalPortions() async {
+        let filledDrafts = portionDrafts.filter { draft in
+            !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !draft.gramsText.isEmpty
+        }
+        guard !filledDrafts.isEmpty else { return }
+        var newPortions: [FoodPortionDomain] = []
+        for draft in filledDrafts {
+            let grams = Double(draft.gramsText.replacingOccurrences(of: ",", with: ".")) ?? 0
+            if let error = FoodPortionValidation.validate(name: draft.name, grams: grams) {
+                alertItem = AlertItem(title: error.alertTitle)
+                return
+            }
+            newPortions.append(FoodPortionDomain(name: draft.name, grams: grams))
         }
         let original = personalPortions
-        personalPortions = original + [FoodPortionDomain(name: newPortionName, grams: grams)]
+        personalPortions = original + newPortions
         do {
-            try await saveFoodItemPersonalPortions(barcode: item.id, portions: personalPortions)
-            newPortionName = ""
-            newPortionGramsText = ""
-            isAddPortionFormVisible = false
+            try await persistPersonalPortions()
+            portionDrafts = [FoodPortionDraft(name: "", gramsText: "")]
+            showPortionCheckmark = true
+            try? await Task.sleep(for: .seconds(2))
+            showPortionCheckmark = false
         } catch let error as FoodPortionError {
             Log.error(error, category: Constants.LogCategory.foodQuantity)
             personalPortions = original
@@ -198,14 +238,41 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     @MainActor
     func onDeletePersonalPortion(_ portion: FoodPortionDomain) async {
         let original = personalPortions
+        let originalUnit = unit
+        let originalQuantity = quantity
         personalPortions.removeAll { $0 == portion }
+        if !unitOptions.contains(unit) {
+            quantity = grams
+            unit = .grams
+        }
         do {
-            try await saveFoodItemPersonalPortions(barcode: item.id, portions: personalPortions)
+            try await persistPersonalPortions()
         } catch {
             Log.error(error, category: Constants.LogCategory.foodQuantity)
             personalPortions = original
+            unit = originalUnit
+            quantity = originalQuantity
             alertItem = AlertItem(title: L10n.MyPortions.errorDeleteFailed)
         }
+    }
+
+    @MainActor
+    private func persistPersonalPortions() async throws {
+        guard let meal else {
+            try await saveFoodItemPersonalPortions(barcode: item.id, portions: personalPortions)
+            return
+        }
+        let updated = MyCreatedMealDomain(
+            id: meal.id,
+            name: meal.name,
+            ingredients: meal.ingredients,
+            createdAt: meal.createdAt,
+            updatedAt: meal.updatedAt,
+            portions: personalPortions
+        )
+        try await updateMyCreatedMeal(updated)
+        self.meal = updated
+        onMealUpdated(updated)
     }
 
     @MainActor

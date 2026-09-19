@@ -134,6 +134,7 @@ struct FoodQuantityView: View {
                 if viewModel.isPersonalPortionsAvailable {
                     Divider()
                     Button(L10n.FoodQuantity.buttonMyPortions) {
+                        viewModel.onPortionsManagerOpened()
                         viewModel.isPersonalPortionsManagerPushed = true
                     }
                 }
@@ -236,7 +237,10 @@ struct FoodQuantityView: View {
                 saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
                 fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
                 submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
-                onSaved: {}
+                meal: nil,
+                updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
+                onSaved: {},
+                onMealUpdated: { _ in }
             ) { _, _ in }
         )
     }
