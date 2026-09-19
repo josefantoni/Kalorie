@@ -43,6 +43,7 @@ enum Constants {
         static let moderation = "moderation"
         static let foodItemReport = "foodItemReport"
         static let nutritionLabelRecognition = "nutritionLabelRecognition"
+        static let export = "export"
     }
 
     enum Firestore {

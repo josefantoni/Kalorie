@@ -120,7 +120,7 @@ iOSInjectionProject/
 
 # End of https://www.toptal.com/developers/gitignore/api/swift,macos
 
-### Kotlin Multiplatform (MacroKit, MealKit, TextKit) ###
+### Kotlin Multiplatform (MacroKit, MealKit, TextKit, ExportKit) ###
 MacroKit/.gradle/
 MacroKit/build/
 MacroKit/.kotlin/
@@ -130,6 +130,9 @@ MealKit/.kotlin/
 TextKit/.gradle/
 TextKit/build/
 TextKit/.kotlin/
+ExportKit/.gradle/
+ExportKit/build/
+ExportKit/.kotlin/
 
 ### Admin scripts ###
 scripts/secrets/

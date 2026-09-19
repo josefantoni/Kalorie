@@ -269,6 +269,34 @@ enum L10n {
         static var errorUnexpected: String { String(localized: "mealTypeSheet_error_unexpected") }
     }
 
+    enum Export {
+        static var navigationTitle: String { String(localized: "export_navigationTitle") }
+        static var datePickerFrom: String { String(localized: "export_datePicker_from") }
+        static var datePickerTo: String { String(localized: "export_datePicker_to") }
+        static var pickerFormat: String { String(localized: "export_picker_format") }
+        static var formatPdf: String { String(localized: "export_format_pdf") }
+        static var formatExcel: String { String(localized: "export_format_excel") }
+        static var buttonExport: String { String(localized: "export_button_export") }
+        static func reportTitle(_ interval: String) -> String {
+            String(format: String(localized: "export_report_title"), interval)
+        }
+        static var noEntries: String { String(localized: "export_report_noEntries") }
+        static var subtotal: String { String(localized: "export_report_subtotal") }
+        static var dayTotal: String { String(localized: "export_report_dayTotal") }
+        static var columnFood: String { String(localized: "export_column_food") }
+        static var columnAmount: String { String(localized: "export_column_amount") }
+        static var columnCalories: String { String(localized: "export_column_calories") }
+        static var columnEnergyKJ: String { String(localized: "export_column_energyKJ") }
+        static var columnProtein: String { String(localized: "export_column_protein") }
+        static var columnCarbohydrate: String { String(localized: "export_column_carbohydrate") }
+        static var columnSugars: String { String(localized: "export_column_sugars") }
+        static var columnFat: String { String(localized: "export_column_fat") }
+        static var columnSaturatedFat: String { String(localized: "export_column_saturatedFat") }
+        static var columnUnsaturatedFat: String { String(localized: "export_column_unsaturatedFat") }
+        static var columnFibre: String { String(localized: "export_column_fibre") }
+        static var columnSalt: String { String(localized: "export_column_salt") }
+    }
+
     enum DefaultMeals {
         static var breakfast: String { String(localized: "defaultMeals_breakfast") }
         static var secondBreakfast: String { String(localized: "defaultMeals_secondBreakfast") }

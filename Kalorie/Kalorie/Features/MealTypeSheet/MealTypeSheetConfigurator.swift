@@ -15,6 +15,7 @@ struct MealTypeSheetConfigurator {
         let dataProvider = FirestoreDataProvider()
         let authProvider = AuthProvider()
         return MealTypeSheetView(
+            router: MealTypeSheetRouter(),
             viewModel: MealTypeSheetViewModel(
                 mealTypes: mealTypes,
                 onMealTypesChanged: onMealTypesChanged,
