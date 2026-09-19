@@ -6,9 +6,14 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.maintainer == true;
     }
 
+    function validItemId(id) {
+      return id.matches('[0-9]{8}|[0-9]{12}|[0-9]{13}') ||
+        id.matches('[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}');
+    }
+
     function validFoodItem(data) {
       return data.id is string &&
-        data.id.matches('[0-9]{8}|[0-9]{12}|[0-9]{13}') &&
+        validItemId(data.id) &&
         data.weight is number &&
         data.date is number &&
         data.calories_per_hundred_grams is number &&
@@ -35,7 +40,7 @@ service cloud.firestore {
     match /foodItems/{itemId} {
       allow read: if request.auth != null;
       allow create, update: if isMaintainer() &&
-        itemId.matches('[0-9]{8}|[0-9]{12}|[0-9]{13}') &&
+        validItemId(itemId) &&
         request.resource.data.id == itemId &&
         validFoodItem(request.resource.data);
     }
@@ -51,7 +56,7 @@ service cloud.firestore {
 
       allow update: if (isMaintainer() &&
           request.resource.data.submitted_by == resource.data.submitted_by &&
-          request.resource.data.barcode == resource.data.barcode &&
+          request.resource.data.get('barcode', null) == resource.data.get('barcode', null) &&
           request.resource.data.submitted_at == resource.data.submitted_at &&
           request.resource.data.status == 'rejected' &&
           request.resource.data.reject_reason is string &&
@@ -59,7 +64,7 @@ service cloud.firestore {
           validFoodItem(request.resource.data.item)) ||
         (resource.data.submitted_by == request.auth.uid &&
           request.resource.data.submitted_by == resource.data.submitted_by &&
-          request.resource.data.barcode == resource.data.barcode &&
+          request.resource.data.get('barcode', null) == resource.data.get('barcode', null) &&
           request.resource.data.status == 'pending' &&
           validFoodItem(request.resource.data.item));
 
@@ -74,7 +79,7 @@ service cloud.firestore {
       allow create: if request.auth != null &&
         reportId == request.resource.data.barcode + '_' + request.auth.uid &&
         request.resource.data.reported_by == request.auth.uid &&
-        request.resource.data.barcode.matches('[0-9]{8}|[0-9]{12}|[0-9]{13}') &&
+        validItemId(request.resource.data.barcode) &&
         request.resource.data.reason is string &&
         request.resource.data.reason.size() > 0 &&
         request.resource.data.reason.size() <= 500 &&

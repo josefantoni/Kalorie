@@ -57,24 +57,31 @@ struct FoodItemFormSections: View {
             EmptyView()
         case .locked:
             BaseStringTextField(
-                placeholder: L10n.AddFood.fieldBarcodePlaceholder,
+                placeholder: formInput.scannedCode.isEmpty ? L10n.AddFood.fieldBarcodeMissingLabel : L10n.AddFood.fieldBarcodePlaceholder,
                 title: L10n.AddFood.fieldBarcodeTitle,
                 text: .constant(formInput.scannedCode),
                 keyboardType: .numberPad
             )
             .disabled(true)
         case .editable(let onScanTapped):
-            HStack {
-                BaseStringTextField(
-                    placeholder: L10n.AddFood.fieldBarcodePlaceholder,
-                    title: L10n.AddFood.fieldBarcodeTitle,
-                    text: $formInput.scannedCode,
-                    keyboardType: .numberPad
-                )
-                BaseButton(style: .plain, imageName: .barCode, imageSize: .medium) {
-                    onScanTapped()
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    BaseStringTextField(
+                        placeholder: L10n.AddFood.fieldBarcodePlaceholder,
+                        title: L10n.AddFood.fieldBarcodeTitle,
+                        text: $formInput.scannedCode,
+                        keyboardType: .numberPad
+                    )
+                    BaseButton(style: .plain, imageName: .barCode, imageSize: .medium) {
+                        onScanTapped()
+                    }
+                    .accessibilityLabel(L10n.AddFood.nutritionLabelBarcodeScanAccessibility)
                 }
-                .accessibilityLabel(L10n.AddFood.nutritionLabelBarcodeScanAccessibility)
+                if formInput.scannedCode.isEmpty {
+                    Text(L10n.AddFood.warningMissingBarcode)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
             }
         }
     }

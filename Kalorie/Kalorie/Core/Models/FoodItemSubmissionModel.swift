@@ -17,7 +17,7 @@ struct FoodItemSubmissionDomain {
     // MARK: - Properties
 
     let id: String
-    let barcode: String
+    let barcode: String?
     let submittedBy: String
     let status: FoodItemSubmissionStatus
     let submittedAt: Date

@@ -91,6 +91,7 @@ struct ModerationQueueView: View {
                         submission: submission,
                         approveSubmission: ApproveSubmissionUseCaseFake(),
                         rejectSubmission: RejectSubmissionUseCaseFake(),
+                        searchFoodItems: SearchFoodItemsUseCaseFake(),
                         recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
                         cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
                         onResolved: onResolved

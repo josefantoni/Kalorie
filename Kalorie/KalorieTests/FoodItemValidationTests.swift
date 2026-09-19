@@ -41,6 +41,18 @@ final class FoodItemValidationTests: XCTestCase {
         XCTAssertNil(FoodItemValidation.validate(makeItem()))
     }
 
+    func test_validate_withUppercaseUUID_returnsNil() {
+        XCTAssertNil(FoodItemValidation.validate(makeItem(id: "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D")), "a barcode-less submission's id is the uppercase UUID of the submission")
+    }
+
+    func test_validate_withLowercaseUUID_returnsInvalidCode() {
+        XCTAssertEqual(
+            FoodItemValidation.validate(makeItem(id: "9a5e1b2c-8d3f-4a6e-9c1d-7b2a4e5f6c8d")),
+            .invalidCode,
+            "UUID().uuidString is always uppercase; a lowercase id must never be accepted as this item's own identity"
+        )
+    }
+
     // MARK: - Helpers
 
     private func makeItem(

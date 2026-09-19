@@ -25,7 +25,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
     func test_submit_withInvalidItem_throwsValidationErrorAndDoesNotWrite() async throws {
         let (sut, dataProvider) = makeSUT()
         do {
-            _ = try await sut(makeItem(id: ""))
+            _ = try await sut(makeItem(id: "123"))
             XCTFail("Expected invalidCode error")
         } catch FoodItemSubmissionError.invalidCode {
             // pass
@@ -50,13 +50,21 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
         let (sut, dataProvider) = makeSUT(userId: "user-123")
         let item = makeItem()
         let result = try await sut(item)
-        XCTAssertEqual(result.barcode, item.id)
+        XCTAssertEqual(result.barcode, item.id, "the item already has a real barcode; it must be kept, not discarded")
         XCTAssertEqual(result.submittedBy, "user-123")
         XCTAssertEqual(result.status, .pending)
         XCTAssertNil(result.rejectReason)
         XCTAssertTrue(dataProvider.didWriteSubmission)
         XCTAssertEqual(dataProvider.writtenCollection, Constants.Firestore.foodItemSubmissions)
         XCTAssertEqual(dataProvider.writtenId, result.id)
+    }
+
+    func test_submit_withEmptyId_usesTheGeneratedSubmissionIdAsTheItemsIdentityAndHasNoBarcode() async throws {
+        let (sut, _) = makeSUT(userId: "user-123")
+        let item = makeItem(id: "", name: "Kukuřice")
+        let result = try await sut(item)
+        XCTAssertEqual(result.item.id, result.id, "a barcode-less item's identity is the submission's own id, so favourites/portions/entries keep pointing at the right document once approved")
+        XCTAssertNil(result.barcode, "the id is a UUID, not a barcode, and must never be sent to OpenFoodFacts or shown as one")
     }
 
     // MARK: - Helpers

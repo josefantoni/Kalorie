@@ -40,7 +40,11 @@ struct ModerationReviewView: View {
             ) { field in
                 viewModel.onFormFieldEdited(field)
             }
+            if viewModel.showsSimilarCatalogueItemsSection {
+                similarCatalogueItemsSection
+            }
         }
+        .task { await viewModel.onAppear() }
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 12) {
                 Button {
@@ -95,6 +99,28 @@ struct ModerationReviewView: View {
             if viewModel.shouldDismiss { dismiss() }
         }
     }
+
+    // MARK: - Functions
+
+    @ViewBuilder private var similarCatalogueItemsSection: some View {
+        if viewModel.isSimilarCatalogueItemsSectionAvailable {
+            Section(header: Text(L10n.Moderation.similarItemsSectionTitle)) {
+                if viewModel.similarCatalogueItems.isEmpty {
+                    Text(L10n.Moderation.similarItemsEmpty)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(viewModel.similarCatalogueItems, id: \.id) { item in
+                        VStack(alignment: .leading) {
+                            Text(item.displayName)
+                            Text("\(Int(item.caloriesPerHundredGrams)) kcal / 100 \(item.measure.unitSymbol)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Preview
@@ -131,6 +157,7 @@ struct ModerationReviewView: View {
                 ),
                 approveSubmission: ApproveSubmissionUseCaseFake(),
                 rejectSubmission: RejectSubmissionUseCaseFake(),
+                searchFoodItems: SearchFoodItemsUseCaseFake(),
                 recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
                 cameraAuthorizationProvider: CameraAuthorizationProviderFake()
             ) {}

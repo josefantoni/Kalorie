@@ -39,6 +39,7 @@ struct ModerationConfigurator {
                             createFoodItem: CreateFoodItemUseCase(dataProvider: dataProvider)
                         ),
                         rejectSubmission: RejectSubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                        searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
                         recognizeNutritionLabel: RecognizeNutritionLabelUseCase(),
                         cameraAuthorizationProvider: CameraAuthorizationProvider(),
                         onResolved: onResolved

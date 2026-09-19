@@ -18,6 +18,7 @@ enum FoodItemSubmissionWriter {
         authProvider: any AuthProviderProtocol
     ) async throws -> FoodItemSubmissionDomain {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
+        let item = item.id.isEmpty ? item.withId(id) : item
         if let validationError = FoodItemValidation.validate(item) {
             throw FoodItemSubmissionError(validationError)
         }
@@ -28,7 +29,7 @@ enum FoodItemSubmissionWriter {
         guard existing == nil else { throw FoodItemSubmissionError.itemAlreadyExists }
         let submission = FoodItemSubmissionDomain(
             id: id,
-            barcode: item.id,
+            barcode: item.barcode,
             submittedBy: userId,
             status: .pending,
             submittedAt: .now,
