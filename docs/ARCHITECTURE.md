@@ -494,7 +494,12 @@ populate it.
 `SearchFoodItemsUseCase` is a case-folded prefix range over `cz_name_lowercase` and
 `eng_name_lowercase`, plus a diacritics-and-case-folded prefix range over `cz_name_folded` and
 `eng_name_folded` for the same query also stripped of diacritics — four concurrent `async let`
-queries, ten results each, de-duplicated by id. The folded pair is what lets "rohlik" find
+queries, ten results each, de-duplicated by id **first occurrence wins**, in this fixed order:
+`cz_name_lowercase` → `eng_name_lowercase` → `cz_name_folded` → `eng_name_folded` →
+`cz_name_search_terms` → `eng_name_search_terms` (the last two are described below). The
+concatenation *is* the user-visible order — each query's ten results arrive in Firestore index
+order, i.e. alphabetically by the matched field, and nothing re-sorts them — so a client that
+merges in another order, or sorts the union, shows a different list. The folded pair is what lets "rohlik" find
 "Rohlík"; the plain lowercase pair stays alongside it so a catalogue document written before the
 fix, and therefore missing the folded fields, is still found. The diacritic fold itself
 (`foldDiacritics`, a Czech accent-to-base character map) lives in KMP `TextKit`, bridged into
@@ -508,8 +513,9 @@ catalogue name is not an expected case to search around.
 
 Two further concurrent queries match by **any word**, not only the first: `array-contains` over
 `cz_name_search_terms` / `eng_name_search_terms`, each holding every prefix of every word in the
-name (folded the same way). This is what lets "mlék" find "Polotučné mléko" — finding **A2-4**,
-fixed. The tokenisation (`searchTerms`) lives in KMP `TextKit` alongside `foldDiacritics`, for the
+name (folded the same way). Only the **last space-separated word** of the folded query is sent to
+these two (`"polotučné ml"` queries `ml`), while the four prefix queries get the whole query. This
+is what lets "mlék" find "Polotučné mléko" — finding **A2-4**, fixed. The tokenisation (`searchTerms`) lives in KMP `TextKit` alongside `foldDiacritics`, for the
 same cross-client reason. See
 [ADR 0024](adr/0024-token-array-field-for-whole-word-search.md) for the field shape, the backfill
 script, and what this still doesn't do — it is a prefix match per word, not a substring match, and
@@ -526,6 +532,14 @@ pure computed property over four already-loaded lists:
 4. the local search results, minus anything already listed.
 
 A created-meal row carries a trailing chevron and a swipe-to-delete with confirmation. Editing happens on the meal's quantity screen instead (§ 4.2): a pencil in the leading toolbar pushes `MyCreatedMealEditorView`, and a *Delete meal* button closes the list. Those two places are the only ones where created meals are edited or deleted ([design 0006](design/0006-own-daily-meals.md), *Update — 2026-09-19*).
+
+The query used for that matching is `searchText.lowercased()` alone — not trimmed, and **not
+diacritics-folded**, unlike the server-side queries above. Favourites and submissions match a
+prefix of either name; created meals match a prefix of the meal name only. So "rohlik" finds a
+catalogue *Rohlík* through `cz_name_folded` but not a favourited *Rohlík*, whose plain
+`hasPrefix` sees the accent. The two paths deliberately differ today, and it matters beyond the list: § 2.3's external-fallback gate is keyed off
+`displayedResults`, so a client that folds consistently gets a different list *and* triggers the
+OpenFoodFacts search in different cases.
 
 Favourites, meals and submissions are loaded once in `onAppear`, not per keystroke, so this
 re-ranking costs nothing. With an empty query, `displayedResults` returns `localFoodItems`, which
@@ -566,8 +580,21 @@ second feature and got the same logging fix.
 
 One DTO file, `OpenFoodFactsProductDTO.swift`, covering three response shapes: the search
 envelope (`products`), the barcode envelope (`status` + optional `product`), and the product
-itself with its `nutriments`. Both requests send a `fields=` parameter so the API returns only
-what is mapped.
+itself with its `nutriments`. The wire contract, which a second client must match to find the
+same products and receive the same fields:
+
+- **Host** `world.openfoodfacts.org` (`Constants.OpenFoodFacts.host`), HTTPS.
+- **Search:** `GET /cgi/search.pl?search_terms=<query>&json=1&page_size=20&fields=<fields>`. The
+  query is the raw search text; no `page` parameter, so only the first 20 hits are ever seen.
+- **Barcode:** `GET /api/v2/product/<barcode>?fields=<fields>`, the barcode percent-encoded as a
+  path segment; an empty barcode returns "not found" without a request. The response is used only
+  when `status == 1` **and** `product` is present — any other `status` is "not found", not an error.
+- **`fields`**, identical on both calls: `code,product_name,product_name_cs,product_name_en,nutriments`.
+  Anything outside that list is never requested, so a field a mapping starts to need must be added
+  here on both calls.
+- **Headers:** `User-Agent` only (below); no API key.
+
+Both requests send that `fields=` parameter so the API returns only what is mapped.
 
 `URLSession` is used **directly**, not through `FirestoreDataProviderProtocol` — the protocol is
 Firestore-shaped and does not apply. Both use cases take a `session: URLSession` in their `init`,
