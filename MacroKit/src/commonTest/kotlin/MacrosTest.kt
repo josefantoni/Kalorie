@@ -1,3 +1,5 @@
+package antoni.kalorie.macrokit
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

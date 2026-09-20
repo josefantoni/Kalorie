@@ -1,3 +1,5 @@
+package antoni.kalorie.textkit
+
 private val htmlEntities = listOf(
     "&amp;" to "&",
     "&quot;" to "\"",

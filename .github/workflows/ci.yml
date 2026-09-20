@@ -26,6 +26,12 @@ jobs:
             SRCROOT="$GITHUB_WORKSPACE/Kalorie" ./scripts/build-kmp-framework.sh "$module"
           done
 
+      - name: Test KMP modules on JVM
+        run: |
+          for module in ExportKit MacroKit MealKit TextKit; do
+            (cd "$module" && ./gradlew jvmTest)
+          done
+
       - name: Run tests
         run: |
           xcodebuild test \

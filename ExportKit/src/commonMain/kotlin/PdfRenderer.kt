@@ -1,3 +1,5 @@
+package antoni.kalorie.exportkit
+
 import com.conamobile.pdfkmp.dsl.TableRowScope
 import com.conamobile.pdfkmp.geometry.PageSize
 import com.conamobile.pdfkmp.geometry.Padding

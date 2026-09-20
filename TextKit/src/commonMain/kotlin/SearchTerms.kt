@@ -1,3 +1,5 @@
+package antoni.kalorie.textkit
+
 fun searchTerms(input: String): List<String> =
     foldDiacritics(input.lowercase())
         .split(Regex(" +"))

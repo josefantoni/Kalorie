@@ -1,3 +1,5 @@
+package antoni.kalorie.exportkit
+
 class ExportDayInput(val index: Int, val label: String)
 
 class ExportSectionInput(val id: String, val header: String, val sortKey: Int)

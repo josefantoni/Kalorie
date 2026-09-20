@@ -1,3 +1,5 @@
+package antoni.kalorie.exportkit
+
 fun formatNumber(value: Double, fractionDigits: Int, decimalSeparator: String): String {
     var scale = 1L
     repeat(fractionDigits) { scale *= 10 }

@@ -1,3 +1,5 @@
+package antoni.kalorie.exportkit
+
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf

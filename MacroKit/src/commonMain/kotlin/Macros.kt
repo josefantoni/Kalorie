@@ -1,3 +1,5 @@
+package antoni.kalorie.macrokit
+
 import kotlin.math.roundToInt
 
 data class Macros(

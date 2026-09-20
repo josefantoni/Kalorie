@@ -1,3 +1,5 @@
+package antoni.kalorie.mealkit
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
