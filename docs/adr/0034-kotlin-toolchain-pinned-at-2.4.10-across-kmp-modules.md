@@ -1,7 +1,9 @@
 # 0034. All KMP modules build with one Kotlin version, 2.4.10
 
-- **Status:** Accepted
-- **Scope:** iOS
+- **Status:** Superseded in part by [ADR 0037](0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md)
+  (its Scope only — the pin binds every consumer of the modules, an Android client included, not
+  only iOS; the Decision and every Consequence below still hold)
+- **Scope:** Cross-platform, iOS
 - **Date:** 2026-09-19
 
 ## Context

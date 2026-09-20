@@ -202,7 +202,7 @@ understanding why.
 | [0010](design/0010-nutrition-label-photo-prefill.md) | Pre-filling the food form from a photo of the packaging | Implemented | iOS |
 | [0011](design/0011-food-measure-grams-or-millilitres.md) | A food measured in grams or millilitres | Implemented | Backend, Cross-platform, iOS |
 | [0012](design/0012-report-incorrect-catalogue-data.md) | Reporting incorrect data on a catalogue item | Implemented | Backend, Cross-platform, iOS |
-| [0013](design/0013-catalogue-item-without-barcode.md) | Manual entry of a catalogue item without a barcode | Proposed | Backend, Cross-platform, iOS |
+| [0013](design/0013-catalogue-item-without-barcode.md) | Manual entry of a catalogue item without a barcode | Implemented | Backend, Cross-platform, iOS |
 | [0014](design/0014-data-export.md) | Exporting consumed food to PDF or Excel | Implemented | Cross-platform, iOS |
 
 ### Decision records
@@ -241,6 +241,8 @@ understanding why.
 | [0030](adr/0030-first-quantity-picker-option-is-the-preselected-unit.md) | The first quantity picker option is the preselected unit | Accepted | Cross-platform, iOS |
 | [0031](adr/0031-meal-type-pin-resolved-by-the-caller-not-the-save-use-case.md) | The meal-type pin is resolved by the caller, not by `SaveFoodConsumedUseCase` | Accepted | Cross-platform, iOS |
 | [0032](adr/0032-unknown-optional-nutrient-shown-as-dash-not-zero.md) | An unknown optional nutrient is displayed as a dash, never as zero or a hidden row | Accepted | Cross-platform |
-| [0034](adr/0034-kotlin-toolchain-pinned-at-2.4.10-across-kmp-modules.md) | All KMP modules build with one Kotlin version, 2.4.10 | Accepted | iOS |
+| [0033](adr/0033-created-meal-portions-editable-from-the-quantity-screen.md) | A created meal's portions can also be edited from the quantity screen | Accepted | iOS |
+| [0034](adr/0034-kotlin-toolchain-pinned-at-2.4.10-across-kmp-modules.md) | All KMP modules build with one Kotlin version, 2.4.10 | Superseded in part | Cross-platform, iOS |
 | [0035](adr/0035-meal-type-creation-rules-are-a-cross-platform-contract.md) | Meal-type creation rules — trimmed case-insensitive names, 30-minute minimum window — are a cross-platform contract | Accepted | Cross-platform |
 | [0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md) | The name shown for a food is chosen by device language at render time, never stored | Accepted | Cross-platform |
+| [0037](adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md) | Shared KMP modules target iOS and JVM and are consumed by composite build | Accepted | Cross-platform |

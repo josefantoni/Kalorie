@@ -1686,7 +1686,8 @@ already holds the current ones, so a past day is grouped by today's meal types, 
 ### 8.3 ExportKit
 
 The fourth KMP module, after MacroKit, MealKit and TextKit, with its own XCFramework, its own Gradle build phase in the Xcode project, and — unlike the other three —
-an `iosMain` source set and one third-party dependency, PdfKmp. It does not depend on MacroKit or
+an `iosMain` source set, an Android target ([ADR 0037](adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md))
+and one third-party dependency, PdfKmp. It does not depend on MacroKit or
 MealKit; the only arithmetic is adding already-absolute values, with no scaling and no rounding.
 
 - **`buildReport`** takes flat primitives (days, sections, entries, labels) and returns the report
