@@ -137,6 +137,7 @@ ExportKit/.kotlin/
 ### Admin scripts ###
 scripts/secrets/
 scripts/node_modules/
+firestore-rules-tests/node_modules/
 
 ### Firebase emulator ###
 firestore-debug.log

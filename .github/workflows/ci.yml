@@ -17,6 +17,12 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Test firestore.rules against the emulator
+        working-directory: firestore-rules-tests
+        run: |
+          npm ci
+          npm test
+
       - name: Write GoogleService-Info.plist
         run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" | base64 --decode > Kalorie/Kalorie/Resources/GoogleService-Info.plist
 
