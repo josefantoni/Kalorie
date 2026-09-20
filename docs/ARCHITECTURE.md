@@ -1141,9 +1141,10 @@ incidental: `FavouriteButton` exists as a component precisely because the button
 
 ## 5. Cross-cutting concerns
 
-**Scope:** `iOS` throughout.
+**Scope:** `iOS`, except the display-name rule in § 5.3, which is `Cross-platform`.
 
-**Read first:** nothing. No design doc covers error presentation, localization or `Components/` —
+**Read first:** [ADR 0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md)
+(which of a food's two names is shown). Otherwise nothing: no design doc covers error presentation, localization or `Components/` —
 this area has never been designed up front, which is itself worth knowing.
 [design 0004](design/0004-shared-macro-calculation-module.md) and
 [design 0005](design/0005-meal-window-and-html-entity-decoding.md) cover only the KMP modules the
@@ -1204,8 +1205,12 @@ reach — today just `NSCameraUsageDescription`, matched by key name rather than
 One thing about the app is Czech-first in a way neither catalogue covers:
 
 - `BilingualNamed.displayName` picks `czName` when the device language is `cs` or `sk`, and
-  otherwise `engName` falling back to `czName`. This is data-level localisation — the food's own
-  two names — and it is independent of both string catalogues.
+  otherwise `engName` falling back to `czName` when `engName` is empty. This is data-level
+  localisation — the food's own two names — and it is independent of both string catalogues.
+  **Cross-platform**, unlike the rest of this section: the rule, its language-only (not region)
+  matching, and the empty-`engName` fallback that a created meal relies on are recorded in
+  [ADR 0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md). It is
+  resolved at render time and never stored.
 
 Numbers and units go through `Double.formattedGrams(fractionDigits:)`
 (`Core/Extensions/Double+Extension.swift`), a locale-aware helper that replaced seventeen

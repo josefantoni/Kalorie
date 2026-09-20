@@ -243,3 +243,4 @@ understanding why.
 | [0032](adr/0032-unknown-optional-nutrient-shown-as-dash-not-zero.md) | An unknown optional nutrient is displayed as a dash, never as zero or a hidden row | Accepted | Cross-platform |
 | [0034](adr/0034-kotlin-toolchain-pinned-at-2.4.10-across-kmp-modules.md) | All KMP modules build with one Kotlin version, 2.4.10 | Accepted | iOS |
 | [0035](adr/0035-meal-type-creation-rules-are-a-cross-platform-contract.md) | Meal-type creation rules — trimmed case-insensitive names, 30-minute minimum window — are a cross-platform contract | Accepted | Cross-platform |
+| [0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md) | The name shown for a food is chosen by device language at render time, never stored | Accepted | Cross-platform |
