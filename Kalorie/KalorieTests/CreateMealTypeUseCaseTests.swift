@@ -132,6 +132,53 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         XCTAssertNotEqual(first.id, second.id, "two devices creating a meal type from the same stale snapshot must not collide on id and silently overwrite each other")
     }
 
+    func test_createMealType_withWhitespaceOnlyName_throwsEmptyNameError() async throws {
+        let (sut, _) = makeSUT()
+        do {
+            _ = try await sut(
+                name: " \n ",
+                startTime: makeDate(hour: 10, minute: 0),
+                endTime: makeDate(hour: 11, minute: 0),
+                existingMealTypes: []
+            )
+            XCTFail("Expected emptyName error")
+        } catch CreateMealTypeError.emptyName {
+            // pass
+        }
+    }
+
+    func test_createMealType_withNameDifferingOnlyInCaseAndPadding_throwsDuplicateNameError() async throws {
+        let (sut, _) = makeSUT()
+        let existing = MealTypeDomain(
+            id: "1",
+            name: "Snídaně",
+            startTime: makeDate(hour: 6, minute: 0),
+            endTime: makeDate(hour: 9, minute: 0)
+        )
+        do {
+            _ = try await sut(
+                name: "  SNÍDANĚ ",
+                startTime: makeDate(hour: 10, minute: 0),
+                endTime: makeDate(hour: 11, minute: 0),
+                existingMealTypes: [existing]
+            )
+            XCTFail("Expected duplicateName error")
+        } catch CreateMealTypeError.duplicateName {
+            // pass
+        }
+    }
+
+    func test_createMealType_withPaddedName_returnsTrimmedName() async throws {
+        let (sut, _) = makeSUT()
+        let result = try await sut(
+            name: "  Oběd ",
+            startTime: makeDate(hour: 11, minute: 0),
+            endTime: makeDate(hour: 13, minute: 0),
+            existingMealTypes: []
+        )
+        XCTAssertEqual(result.name, "Oběd")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: CreateMealTypeUseCase, dataProvider: FirestoreDataProviderFake) {

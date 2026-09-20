@@ -39,13 +39,17 @@ struct CreateMealTypeUseCase: CreateMealTypeUseCaseProtocol {
         endTime: Date,
         existingMealTypes: [MealTypeDomain]
     ) async throws -> MealTypeDomain {
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { throw CreateMealTypeError.emptyName }
-        guard !existingMealTypes.contains(where: { $0.name == name }) else {
+        let comparableName = name.lowercased()
+        guard !existingMealTypes.contains(where: {
+            $0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == comparableName
+        }) else {
             throw CreateMealTypeError.duplicateName
         }
         let startMinutes = startTime.minutesSinceMidnight
         let endMinutes = endTime.minutesSinceMidnight
-        guard MealWindowsKt.isMealWindowLongEnough(startMinutes: startMinutes, endMinutes: endMinutes, minimumDurationMinutes: 30) else {
+        guard MealWindowsKt.isMealWindowLongEnough(startMinutes: startMinutes, endMinutes: endMinutes, minimumDurationMinutes: MealWindowsKt.MIN_MEAL_WINDOW_MINUTES) else {
             throw CreateMealTypeError.durationTooShort
         }
         guard !existingMealTypes.contains(where: {

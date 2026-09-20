@@ -1,5 +1,7 @@
 private const val MINUTES_PER_DAY = 1440
 
+const val MIN_MEAL_WINDOW_MINUTES = 30
+
 fun minutesSinceMidnight(hour: Int, minute: Int): Int = hour * 60 + minute
 
 /**
@@ -22,5 +24,9 @@ fun mealWindowsOverlap(startMinutes: Int, endMinutes: Int, otherStartMinutes: In
     return ranges.any { (start, end) -> otherRanges.any { (otherStart, otherEnd) -> start < otherEnd && end > otherStart } }
 }
 
-fun isMealWindowLongEnough(startMinutes: Int, endMinutes: Int, minimumDurationMinutes: Int): Boolean =
+fun isMealWindowLongEnough(
+    startMinutes: Int,
+    endMinutes: Int,
+    minimumDurationMinutes: Int = MIN_MEAL_WINDOW_MINUTES
+): Boolean =
     dayRanges(startMinutes, endMinutes).sumOf { (start, end) -> end - start } >= minimumDurationMinutes
