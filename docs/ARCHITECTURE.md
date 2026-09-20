@@ -728,7 +728,9 @@ arithmetic and which call sites delegate to `MealKit`),
 between meals without touching its timestamp, and why a new entry is pinned at write time instead
 of starting out unpinned), [ADR 0031](adr/0031-meal-type-pin-resolved-by-the-caller-not-the-save-use-case.md)
 (why `SaveFoodConsumedUseCase` no longer resolves that pin itself — § 4.2 covers the picker this
-enabled).
+enabled),
+[ADR 0035](adr/0035-meal-type-creation-rules-are-a-cross-platform-contract.md) (the name and
+minimum-length rules a second client must match when creating a meal type).
 
 ### 3.1 What the Dashboard is
 
@@ -766,6 +768,10 @@ next; they are not migrated.
 `mealTypes.resolvedMealTypeId(for:)`: a food **pinned to it** (`mealTypeId` names a meal type that
 still exists) resolves to that pin; otherwise it falls back to `mealType(at:)`, which sorts the
 meal types by `startTime` and returns the first whose window contains the food's time of day.
+`startTime` is a `Date`, but `FetchMealTypesUseCase` builds it by adding `startMinutes` to *today's*
+`startOfDay`, so the sort is by minutes since midnight and nothing else. That is the tie-break for
+overlapping windows — the one starting earlier in the day wins — and a client sorting on anything
+else, or on stored dates, assigns an overlapping food to a different meal.
 Foods are grouped by their resolved id into a dictionary, then `groupedFoods` walks `mealTypes` in
 `startTime` order and emits a section for each one with a non-empty group — a meal type with
 nothing resolved to it is skipped, so empty meals are not rendered. Foods that resolve to no meal
@@ -828,8 +834,11 @@ either reintroduces the bug.
 Editing happens in `MealTypeSheetViewModel`, and the set of possible edits is deliberately
 narrow:
 
-- **Create** — validated in `CreateMealTypeUseCase`: non-empty name, unique name, at least 30
-  minutes long, no overlap with an existing window. The validation runs against the
+- **Create** — validated in `CreateMealTypeUseCase` per
+  [ADR 0035](adr/0035-meal-type-creation-rules-are-a-cross-platform-contract.md): the name is
+  trimmed and must then be non-empty and unique among the existing names, compared trimmed and
+  case-insensitively; the window is at least `MealKit`'s `MIN_MEAL_WINDOW_MINUTES` (30) long and
+  overlaps no existing window. The validation runs against the
   `existingMealTypes` array the sheet passes in, i.e. against client state, never against the
   server.
 - **Delete** — blocked when only one meal type remains (`errorLastMealType`), so the collection
