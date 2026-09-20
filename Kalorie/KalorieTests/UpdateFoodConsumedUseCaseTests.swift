@@ -56,6 +56,12 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedDTO?.fiber, 4)
     }
 
+    func test_updateFoodConsumed_whenFoodsSaturatedFatIsUnknown_staysNilInsteadOfZero() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeFood(weight: 100, fatSaturated: nil), newWeight: 200)
+        XCTAssertNil(dataProvider.savedDTO?.fatSaturated)
+    }
+
     func test_updateFoodConsumed_whenFoodsFiberIsUnknown_staysNilInsteadOfZero() async throws {
         let (sut, dataProvider) = makeSUT()
         try await sut(makeFood(weight: 100, fiber: nil), newWeight: 200)
