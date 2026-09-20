@@ -39,7 +39,7 @@ ones are listed below; closed findings live in git history, not here.
 
 ### Android-readiness audit — 2026-09-20
 
-The findings below numbered from `A5-13` onwards, plus the
+The findings below numbered from `A9-1` onwards, in the
 *Android port readiness* section at the end, all come from one audit asking a single question of
 each area: **could an Android developer implement this from `docs/` alone, without reading Swift?**
 
@@ -58,17 +58,6 @@ account.
   implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
   much larger limit (and the read cost that implies) or the frequency data denormalised into the
   query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
-
-## Audit findings — 5. Cross-cutting concerns
-
-- [ ] **A5-13 — `BilingualNamed.displayName` is Cross-platform behaviour filed under an iOS
-  label.** § 5 opens with "Scope: `iOS` throughout" and "Read first: nothing", yet the rule —
-  `cs`/`sk` → `czName`, otherwise `engName` falling back to `czName` when empty — decides which
-  name a user sees, is named in [design 0014](docs/design/0014-data-export.md)'s own "contract an
-  Android client must match" table, carries § 2.2's Slovak-diacritic reasoning, and is depended on
-  by design 0006 for created meals via its empty-`engName` fallback. It lives in Swift rather than
-  in `TextKit`, so a second client will re-implement it and the `isEmpty` fallback is easy to
-  miss. Wants an ADR, and is a candidate for moving into `TextKit` alongside `foldDiacritics`.
 
 ## Audit findings — 9. Android port readiness
 
