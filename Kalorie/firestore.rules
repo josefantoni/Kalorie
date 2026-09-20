@@ -14,6 +14,10 @@ service cloud.firestore {
     function validFoodItem(data) {
       return data.id is string &&
         validItemId(data.id) &&
+        data.cz_name is string &&
+        data.eng_name is string &&
+        data.cz_name_lowercase is string &&
+        data.eng_name_lowercase is string &&
         data.weight is number &&
         data.date is number &&
         data.calories_per_hundred_grams is number &&
