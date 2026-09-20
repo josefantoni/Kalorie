@@ -39,7 +39,7 @@ ones are listed below; closed findings live in git history, not here.
 
 ### Android-readiness audit — 2026-09-20
 
-The findings below numbered from `A2-15`, `A3-11`, `A4-11` and `A5-13` onwards, plus the
+The findings below numbered from `A3-11`, `A4-11` and `A5-13` onwards, plus the
 *Android port readiness* section at the end, all come from one audit asking a single question of
 each area: **could an Android developer implement this from `docs/` alone, without reading Swift?**
 
@@ -51,24 +51,6 @@ account.
 
 ## Audit findings — 2. Food search and catalogue
 
-- [ ] **A2-15 — Client-side result matching does not fold diacritics; server-side search does.**
-  `AddFoodSheetViewModel.displayedResults` filters favourites, created meals and submissions with
-  plain `.lowercased().hasPrefix(query)`, with no `foldingDiacritics()`. So "rohlik" finds a
-  catalogue *Rohlík* through `cz_name_folded` but not a favourited *Rohlík*. § 2.2 says only
-  "prefix on either name". A client that folds consistently — the obvious reading — produces a
-  visibly different list, and with it a different external-fallback gate, since § 2.3 keys that
-  gate off `displayedResults`.
-- [ ] **A2-16 — The merge order and dedup policy of the six search queries is unstated, and it is
-  the user-visible result order.** The code concatenates cz_lowercase → eng_lowercase → cz_folded
-  → eng_folded → cz_token → eng_token and dedups first-wins.
-  [ADR 0013](docs/adr/0013-prefix-search-over-lowercased-name-fields.md) and
-  [ADR 0024](docs/adr/0024-token-array-field-for-whole-word-search.md) say only "concatenated and
-  de-duplicated by id". Add the order to § 2.2.
-- [ ] **A2-17 — The OpenFoodFacts wire contract is under-specified.** Undocumented: the host
-  `world.openfoodfacts.org`, the exact `fields=code,product_name,product_name_cs,product_name_en,nutriments`
-  sent on both calls, the search call's `json=1` and `page_size=20`, and the barcode call's
-  `status == 1` gate. § 2.4 covers timeout, retry and mapping well, but not these. Divergence here
-  changes which products a client finds and silently drops fields. Add to § 2.4.
 - [ ] **A2-12 — Ranking cannot be added on top of the current search.** Results are capped at
   `limit(10)` per field — six fields as of [ADR 0024](docs/adr/0024-token-array-field-for-whole-word-search.md)
   — and Firestore returns them in index order, i.e. alphabetically by the matched name. Anything
