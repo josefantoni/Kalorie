@@ -1,3 +1,5 @@
+package antoni.kalorie.mealkit
+
 private const val MINUTES_PER_DAY = 1440
 
 const val MIN_MEAL_WINDOW_MINUTES = 30

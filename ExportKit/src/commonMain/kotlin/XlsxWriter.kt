@@ -1,3 +1,5 @@
+package antoni.kalorie.exportkit
+
 private const val STYLE_TEXT = 0
 private const val STYLE_BOLD = 1
 private const val STYLE_INTEGER = 2

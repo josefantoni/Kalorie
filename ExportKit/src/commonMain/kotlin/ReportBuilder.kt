@@ -1,3 +1,5 @@
+package antoni.kalorie.exportkit
+
 fun buildReport(
     days: List<ExportDayInput>,
     sections: List<ExportSectionInput>,

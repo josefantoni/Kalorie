@@ -1,3 +1,5 @@
+package antoni.kalorie.textkit
+
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

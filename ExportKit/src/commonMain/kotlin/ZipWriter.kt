@@ -1,3 +1,5 @@
+package antoni.kalorie.exportkit
+
 class ZipEntryInput(val name: String, val data: ByteArray)
 
 private val crcTable = IntArray(256) { n ->
