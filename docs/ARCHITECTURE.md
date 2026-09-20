@@ -1078,6 +1078,25 @@ before this field existed decodes `calories_per_hundred_grams` as missing and
 (`MacroKit.caloriesPerHundredGrams(calories:weight:)`) — the same one-time approximation the
 rounded value always implied, just no longer compounding on every subsequent edit.
 
+Two rules about the fields that are *not* plain scaled `Double`s, both of which iOS gets right by
+construction and a second client has to reproduce on purpose:
+
+- **An unknown optional nutrient stays absent through scaling.** `fat_saturated` and `fiber` are
+  scaled only when present (`food.fatSaturated.map { $0 * ratio }`); when `nil` they are written
+  as absent, never as `0`. `ScaledMacros` does feed `fiber ?? 0` into `Macros.scaled` to satisfy
+  `Macros`'s non-optional field, but throws that result away and keeps the optional one. A client
+  that coalesces to `0` before scaling irreversibly destroys the "unknown" state that
+  [ADR 0032](adr/0032-unknown-optional-nutrient-shown-as-dash-not-zero.md)'s dash depends on — that
+  ADR governs display, this is the write path it relies on.
+- **`energy_kj` is scaled, never re-derived.** It is multiplied by `grams / 100` when an entry is
+  logged and by `newWeight / food.weight` when it is edited, exactly like the other macros, and
+  is never recomputed from fat, carbohydrate and protein on the write path. The macro-derived value
+  ([ADR 0007](adr/0007-derive-missing-energy-kj-from-macros.md)) is only a *decode-time fallback*
+  for a document where `energy_kj` is absent. Re-deriving on every edit would silently change the
+  stored value of any food whose label kJ disagrees with the 37/17/17 factors. One consequence to
+  know: editing an entry that had no stored `energy_kj` persists the derived-then-scaled value,
+  since the decoded domain value is what gets scaled.
+
 ### 4.5 The detail screen
 
 `FoodConsumedDetailViewModel` keeps `weight` (the edited value) alongside `savedWeight` (what is
