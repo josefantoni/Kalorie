@@ -49,9 +49,6 @@ no Android app exists yet. What is left is deferred until that work starts.
   contract but nothing verifies a second client against it. The only shared test vector today is
   `TextKit/fixtures/text-kit-cases.json`. Decide how much to share, and whether some of it should
   move into KMP instead.
-- [ ] **Tests for `firestore.rules`** — there are none; rules are checked by hand in the Rules
-  Playground. Use the Firebase emulator with `@firebase/rules-unit-testing`, and cover at least the
-  two-reader collections and the id-shape rules a second client must satisfy.
 - [ ] **Shared localisation source** — strings live in `Localizable.xcstrings` behind the `L10n`
   enum ([ADR 0019](docs/adr/0019-l10n-enum-over-the-string-catalogue.md)); Android needs its own
   `strings.xml` and nothing keeps the two in step. Open question, not decided.

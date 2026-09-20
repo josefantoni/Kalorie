@@ -45,11 +45,17 @@ cd Kalorie
 firebase deploy --only firestore:rules,firestore:indexes
 ```
 
-Test before deploying, either in the Rules Playground in the console or against the emulator:
+Test before deploying. The rules have an automated suite in `firestore-rules-tests/` that runs
+against the Firestore emulator (needs JDK 21 and Node); CI runs it on every pull request:
 
 ```sh
-firebase emulators:start
+cd firestore-rules-tests
+npm ci
+npm test
 ```
+
+When you change `firestore.rules`, change the suite in the same commit. The Rules Playground in the
+console is still fine for one-off experiments.
 
 `rules_version = '2'` is default-deny: a collection with no matching rule block is inaccessible,
 and the failure only shows up at runtime. When adding a collection to `Constants.Firestore`, add

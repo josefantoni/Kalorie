@@ -1,0 +1,12 @@
+{
+  "name": "kalorie-firestore-rules-tests",
+  "private": true,
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --config ../Kalorie/firebase.json --project demo-kalorie \"node --test\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
+    "firebase-tools": "^15.30.2"
+  }
+}
