@@ -1,6 +1,6 @@
 # Design: Manual entry of a catalogue item without a barcode
 
-- **Status:** Proposed
+- **Status:** Implemented in `5f9b57a`
 - **Scope:** Backend, Cross-platform, iOS
 - **Date:** 2026-09-18
 
@@ -189,4 +189,7 @@ the section is an aid to the maintainer, not a guarantee.
 
 ## Outcome
 
-_Filled in once after shipping._
+Shipped in `5f9b57a`, the commit that also introduced this document. The id shape it specifies is
+now the rule in `firestore.rules` (`validItemId`) and `FoodItemValidation`, and is described in
+`ARCHITECTURE.md` § 1.2 and § 1.4. This paragraph records that it shipped; it does not claim every
+detail above matches what shipped, which nobody has audited.

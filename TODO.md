@@ -31,23 +31,44 @@ The app works with three kinds of data. The distinction matters for the items be
   a food carrying a named, user-chosen package/portion weight selectable as a unit — shipped as
   [design 0008](docs/design/0008-food-portions.md).
 
+## Android readiness
+
+The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md));
+no Android app exists yet. What is left is deferred until that work starts.
+
+- [ ] **Android conventions for Claude Code** — `CLAUDE.md` is iOS-only (MVVM + UseCase,
+  Configurator, XCTest, `xcodebuild`). Before the first Android screen, pick the Android equivalents
+  (UI toolkit, state model in place of `ObservableObject`, Firestore SDK, fake-object testing) and
+  record them, then decide whether Claude may run the emulator (on iOS it may not, to save tokens).
+- [ ] **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
+  Apple Services ID this project does not have. The iOS app currently signs in with Google only,
+  since there is no paid Apple Developer account, so this waits for both.
+- [ ] **Golden vectors for the Swift-only rules** — scaling (`FoodItemDomain.scaled(toGrams:)`),
+  meal resolution with a pin (`resolvedMealTypeId`), food validation, the OpenFoodFacts mapping, the
+  search merge order and export day bucketing live in Swift only; ARCHITECTURE states them as a
+  contract but nothing verifies a second client against it. The only shared test vector today is
+  `TextKit/fixtures/text-kit-cases.json`. Decide how much to share, and whether some of it should
+  move into KMP instead.
+- [ ] **Tests for `firestore.rules`** — there are none; rules are checked by hand in the Rules
+  Playground. Use the Firebase emulator with `@firebase/rules-unit-testing`, and cover at least the
+  two-reader collections and the id-shape rules a second client must satisfy.
+- [ ] **Shared localisation source** — strings live in `Localizable.xcstrings` behind the `L10n`
+  enum ([ADR 0019](docs/adr/0019-l10n-enum-over-the-string-catalogue.md)); Android needs its own
+  `strings.xml` and nothing keeps the two in step. Open question, not decided.
+- [ ] **Build the Android target in CI** — CI runs `jvmTest` for the four modules only. Check that
+  the runner's SDK carries API 37, or install it, then add the ExportKit Android build.
+- [ ] **Firebase setup for an Android app** — the Android section of `docs/SETUP.md` (SHA-1
+  fingerprints, `google-services.json`) is written from general knowledge, not from a run; verify it
+  when the first sign-in screen is built.
+- [ ] **Play Store account deletion** — Google Play's policy has, to my knowledge, required a web
+  link for requesting account deletion in addition to in-app deletion. The iOS
+  `DeleteAccountUseCase` exists; no web page does. Check the current policy before the first release.
+
 ## Documentation baseline
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes what exists; `docs/adr/` records the
 decisions still in effect. Findings are grouped by area and numbered `A<area>-<n>` — only open
 ones are listed below; closed findings live in git history, not here.
-
-### Android-readiness audit — 2026-09-20
-
-The findings below numbered from `A9-1` onwards, in the
-*Android port readiness* section at the end, all come from one audit asking a single question of
-each area: **could an Android developer implement this from `docs/` alone, without reading Swift?**
-
-They differ in kind from the findings above them. Almost none is a bug — the iOS client behaves
-correctly in every case. They are places where a contract exists only in Swift, where the compiler
-enforces it for free and the documentation never had to say it out loud. A second client gets that
-enforcement from nothing, so each one is a way the two clients can silently diverge on a shared
-account.
 
 ## Audit findings — 2. Food search and catalogue
 
@@ -58,39 +79,3 @@ account.
   implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
   much larger limit (and the read cost that implies) or the frequency data denormalised into the
   query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
-
-## Audit findings — 9. Android port readiness
-
-Not an `ARCHITECTURE.md` section. This area is introduced by the 2026-09-20 audit for findings
-that belong to no single feature area: the shared-module build, and the places where the
-documentation index itself hides an obligation from a second client.
-
-- [ ] **A9-1 — No KMP module declares an Android or JVM target, so the reuse premise is
-  currently aspirational.** All four `build.gradle.kts` files declare only `iosArm64()` and
-  `iosSimulatorArm64()`; `androidTarget()` and `jvm()` appear nowhere, and `src/` holds only
-  `commonMain`, `commonTest` and — in ExportKit — `iosMain`.
-  [Design 0014](docs/design/0014-data-export.md) states that "an Android client produces identical
-  files without re-implementing any of it"; today such a client cannot consume the module at all.
-  PdfKmp is not the obstacle: its published Gradle metadata lists `androidJvm` and `jvm` variants
-  alongside the iOS ones. Wants a decision, then an ADR recording the target set.
-- [ ] **A9-2 — There is no consumption path for the modules, and the choice is unrecorded.** Each
-  module is a separate Gradle build with its own `settings.gradle.kts` and
-  `rootProject.name`; there is no root `settings.gradle.kts`, no `maven-publish`, and no `group`
-  or `version` anywhere. An Android app can neither `implementation(project(":MacroKit"))` nor
-  resolve them from a repository. `scripts/build-kmp-framework.sh` only ever runs
-  `assemble<Module>ReleaseXCFramework`. Composite builds versus publishing to Maven is an unmade
-  decision, and whichever is chosen must keep the existing XCFramework build working.
-- [ ] **A9-3 — [Design 0013](docs/design/0013-catalogue-item-without-barcode.md) is indexed
-  `Proposed` while the rule it designs is deployed.** `validItemId()` already accepts the uppercase
-  UUID that document specifies. A second client reading the index skips it as not-yet-built and
-  then cannot explain why its submissions are rejected; ARCHITECTURE § 1.2 now states the id shape, but the index still says `Proposed`. Reconcile the status.
-- [ ] **A9-4 — [ADR 0033](docs/adr/0033-created-meal-portions-editable-from-the-quantity-screen.md)
-  is missing from the Decision records table in `docs/README.md`.** The file exists and
-  ARCHITECTURE § 4.2 links it; it is the only gap in the 0001–0034 range. By that README's own
-  reasoning — a second client discovers obligations by scanning the index — a record absent from
-  the index is invisible.
-- [ ] **A9-5 — [ADR 0034](docs/adr/0034-kotlin-toolchain-pinned-at-2.4.10-across-kmp-modules.md)
-  is scoped `iOS` but constrains a shared artefact.** It pins Kotlin 2.4.10 across the very
-  modules an Android client would consume, and its Consequences address "a future module" but
-  never a future *consumer*. As labelled, an Android developer treats 2.4.10 as mere iOS
-  precedent rather than as a constraint they share.
