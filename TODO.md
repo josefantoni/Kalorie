@@ -39,7 +39,7 @@ ones are listed below; closed findings live in git history, not here.
 
 ### Android-readiness audit — 2026-09-20
 
-The findings below numbered from `A4-11` and `A5-13` onwards, plus the
+The findings below numbered from `A5-13` onwards, plus the
 *Android port readiness* section at the end, all come from one audit asking a single question of
 each area: **could an Android developer implement this from `docs/` alone, without reading Swift?**
 
@@ -58,23 +58,6 @@ account.
   implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
   much larger limit (and the read cost that implies) or the frequency data denormalised into the
   query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
-
-## Audit findings — 4. Food entry flow
-
-- [ ] **A4-11 — Optional nutrients must survive scaling as `nil`, and this is stated nowhere.**
-  `ScaledMacros` feeds `fiber ?? 0` into `Macros.scaled` but then discards that result, keeping
-  `food.fatSaturated.map { $0 * ratio }` and `food.fiber.map { $0 * ratio }` instead. § 4.4 says
-  only that "macro `Double` fields keep scaling by `newWeight / food.weight`", and
-  [ADR 0032](docs/adr/0032-unknown-optional-nutrient-shown-as-dash-not-zero.md) governs *display*,
-  not the write path. A client that coalesces to `0` before scaling writes `0` where iOS wrote
-  absent, irreversibly destroying the "unknown" state ADR 0032's dash depends on. One sentence in
-  § 4.4.
-- [ ] **A4-12 — `energyKJ`'s scaling rule is never named.** It is scaled by `ratio` on edit and by
-  `grams / 100` on log, and never re-derived. § 4.4 names calories and "macro `Double` fields" but
-  not `energyKJ`; § 8.4 says only that the *export* does not re-derive it. A reader following
-  [ADR 0007](docs/adr/0007-derive-missing-energy-kj-from-macros.md) could plausibly re-derive it
-  from macros on every edit, silently changing stored values for any food whose label kJ disagrees
-  with the 37/17/17 factors. Belongs in § 4.4.
 
 ## Audit findings — 5. Cross-cutting concerns
 
