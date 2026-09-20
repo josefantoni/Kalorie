@@ -39,7 +39,7 @@ ones are listed below; closed findings live in git history, not here.
 
 ### Android-readiness audit — 2026-09-20
 
-The findings below numbered from `A3-11`, `A4-11` and `A5-13` onwards, plus the
+The findings below numbered from `A4-11` and `A5-13` onwards, plus the
 *Android port readiness* section at the end, all come from one audit asking a single question of
 each area: **could an Android developer implement this from `docs/` alone, without reading Swift?**
 
@@ -58,25 +58,6 @@ account.
   implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
   much larger limit (and the read cost that implies) or the frequency data denormalised into the
   query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
-
-## Audit findings — 3. Dashboard and meal types
-
-- [ ] **A3-11 — Meal-type name validation is unspecified.** `CreateMealTypeUseCase` checks
-  `!name.isEmpty` — so a whitespace-only name passes — and enforces uniqueness with `$0.name ==
-  name`, an exact, case-sensitive, untrimmed comparison. § 3.4 says only "non-empty name, unique
-  name". A client that trims or case-folds rejects names the other accepts, so the same account's
-  meal layout becomes editable on one device and not on the other. This is Cross-platform
-  behaviour recorded only in a living doc; per `docs/README.md` it wants an ADR, since a second
-  client discovers its obligations by scanning the ADR index.
-- [ ] **A3-12 — The 30-minute minimum window length is a bare literal.** `MealKit` deliberately
-  takes `minimumDurationMinutes` as a parameter rather than owning it, and `30` is hardcoded at
-  the `CreateMealTypeUseCase` call site, not in `Constants`. § 3.4 states it in prose with no ADR
-  behind it. Nothing currently catches a client that picks a different minimum. Either default it
-  in MealKit or state it as a Cross-platform requirement.
-- [ ] **A3-13 — § 3.2 describes `mealType(at:)`'s sort key as `startTime`.** That is a `Date`
-  which `FetchMealTypesUseCase` anchors to today's `dayStart`, making it equivalent to minutes
-  since midnight. The wording should say so, because that tie-break is what decides which window
-  an overlapping food lands in.
 
 ## Audit findings — 4. Food entry flow
 
