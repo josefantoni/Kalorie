@@ -48,6 +48,13 @@ class MealWindowsTest {
     }
 
     @Test
+    fun isMealWindowLongEnough_withoutExplicitMinimum_usesThirtyMinutes() {
+        assertEquals(30, MIN_MEAL_WINDOW_MINUTES)
+        assertTrue(isMealWindowLongEnough(startMinutes = 480, endMinutes = 510))
+        assertFalse(isMealWindowLongEnough(startMinutes = 480, endMinutes = 509))
+    }
+
+    @Test
     fun isMealWindowLongEnough_belowMinimum_returnsFalse() {
         assertFalse(isMealWindowLongEnough(startMinutes = 480, endMinutes = 500, minimumDurationMinutes = 30))
     }
