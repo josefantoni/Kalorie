@@ -92,9 +92,15 @@ and every future client.
 
 Document IDs are meaningful, not random:
 
-- `foodItems`, `favouriteFoods` and `foodItemPortions` are keyed by the **barcode**, which is also
-  the item's `id` field on the first two. `CreateFoodItemUseCase` enforces that the id is all
-  digits.
+- `foodItems`, `favouriteFoods` and `foodItemPortions` are keyed by the item's **id**, which is
+  also its `id` field on the first two. The id has exactly two valid shapes, enforced identically by
+  `validItemId()` in `firestore.rules` and by `FoodItemValidation`: a **barcode** — 8, 12 or 13
+  ASCII digits — or, for a food that has none ([design 0013](design/0013-catalogue-item-without-barcode.md)),
+  a **UUID in canonical hyphenated form with uppercase hex** (`[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}`).
+  The case matters: `UUID.randomUUID().toString()` on the JVM and `UUID().uuidString` on iOS differ
+  here, so a client must uppercase its UUID before writing it, or the rules refuse the write with
+  no diagnosable reason. The two shapes are told apart by `FoodItemDomain.barcode`, which is `nil`
+  for a UUID id.
 - `foodConsumed`, `myCreatedMeals`, `mealTypes` and `foodItemSubmissions` are keyed by a
   client-generated `UUID().uuidString` — see [ADR 0021](adr/0021-meal-type-ids-are-uuids.md) for
   `mealTypes`, which used a client-assigned integer until this record.
@@ -151,8 +157,11 @@ purely so the prefix-range search in `SearchFoodItemsUseCase` has something case
 range over — and `cz_name_folded` / `eng_name_folded` alongside them, additionally
 diacritics-stripped so the same search also matches a query typed without diacritics (finding
 **A2-3**, fixed — a one-off Admin SDK script, `scripts/backfill-name-folding.js`, has since
-written both fields onto every pre-existing catalogue document). Both fields stay optional on
-read, since nothing guarantees a document created outside `CreateFoodItemUseCase` carries them.
+written both fields onto every pre-existing catalogue document). The `_folded` pair stays optional
+on read, since nothing guarantees a document created outside `CreateFoodItemUseCase` carries them.
+`cz_name`, `eng_name`, `cz_name_lowercase` and `eng_name_lowercase` are **not** optional: iOS
+fails to decode a `FoodItemDTO` missing any of them, so `validFoodItem()` requires all four as
+strings (§ 1.6). Every field's optionality is tabulated in § 1.7.
 Alongside them, `cz_name_search_terms` / `eng_name_search_terms` hold every prefix of every word
 in the name, folded the same way — see [ADR 0024](adr/0024-token-array-field-for-whole-word-search.md)
 and its own backfill script, `scripts/backfill-search-terms.js`. Also optional on read, for the
@@ -180,7 +189,8 @@ through explicitly (it is a `var` on a memberwise init, not caught by the compil
 it would relabel an edited millilitre entry as grams.
 
 **`mealTypes`** (`MealTypeDTO`) — `startMinutes` / `endMinutes` are minutes since midnight
-(0–1439), stored **unrenamed in camelCase**, unlike every other DTO. A window may wrap past
+(0–1439), stored **unrenamed in camelCase**, unlike every other DTO except `UserProfileDTO`
+(`displayName`, `email`), which also has no `CodingKeys` and so is camelCase on the wire. A window may wrap past
 midnight (`endMinutes < startMinutes`); `MealKit` owns that arithmetic.
 
 **`favouriteFoods`** (`FavouriteFoodDTO`) — a full copy of the `FoodItemDomain` plus
@@ -217,8 +227,12 @@ back with `setAsync`, there is no partial-update path.
 
 **`foodItemSubmissions`** (`FoodItemSubmissionDTO`) — a user-submitted catalogue entry awaiting
 maintainer review, keyed by a client-generated UUID (not the barcode, so two users submitting the
-same barcode don't overwrite each other). Carries `barcode` (the food's own identity, duplicated at
-top level for rules and queries), `submitted_by`, `status` (`pending` / `rejected`), `submitted_at`,
+same barcode don't overwrite each other). Carries a top-level `id` that **must equal the document
+id** — `firestore.rules` checks `request.resource.data.id == submissionId` on create, so a client
+that omits it is denied — and `barcode` (the food's own identity, duplicated at top level for
+rules and queries), **optional**: absent for a food without a barcode, whose identity is then the
+UUID in `item.id` ([design 0013](design/0013-catalogue-item-without-barcode.md)). Also
+`submitted_by`, `status` (`pending` / `rejected`), `submitted_at`,
 an optional `reject_reason`, and `item` — a nested `FoodItemDTO` in the exact shape `foodItems`
 expects. There is no `approved` status: approving is `ApproveSubmissionUseCase` writing `item` to
 `foodItems` under `barcode` and deleting the submission, so the collection only ever holds queue
@@ -229,7 +243,8 @@ entries still awaiting a maintainer. See [design 0009](design/0009-catalogue-mod
 wrong, keyed by `{barcode}_{userId}` rather than a UUID: a second report from the same user on the
 same item replaces the first, which is what bounds one user to one open report per item without
 any rule that can count documents. Four fields — `barcode`, `reported_by`, `reason` (free text,
-capped at `Constants.Firestore.reportReasonMaxLength`) and `reported_at` — and no nested item
+1–500 characters — `Constants.Firestore.reportReasonMaxLength` is 500, and the rules cap
+`reason.size() <= 500` independently) and `reported_at` — and no nested item
 snapshot, since the maintainer needs the item's *current* values, not what they were when the
 report was filed. There is no `status` field: a report exists while it is open and is deleted once
 the maintainer corrects the item or dismisses it, the same reasoning that kept
@@ -294,15 +309,20 @@ Consequences worth knowing before adding a method:
   claim set out-of-band via `scripts/set-maintainer-claim.js` (see `docs/SETUP.md`). Gates every
   catalogue write; the client only reads it to decide whether to render the moderation panel
   (§ 7), never to allow anything by itself.
-- `validFoodItem(data)` — the shared per-field numeric validation plus a barcode-format check on
-  `data.id` ([ADR 0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md)),
+- `validItemId(id)` — `[0-9]{8}|[0-9]{12}|[0-9]{13}` **or** an uppercase-hex hyphenated UUID
+  (§ 1.2). Applied to `foodItems` document ids, to `data.id` inside `validFoodItem`, and to
+  `foodItemReports`' `barcode`.
+- `validFoodItem(data)` — the shared per-field validation: `id` through `validItemId`, the four
+  name fields (`cz_name`, `eng_name`, `cz_name_lowercase`, `eng_name_lowercase`) as strings, the
+  numeric fields as numbers, and the optional ones only when present
+  ([ADR 0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md)) —
   called with either `request.resource.data` (a `foodItems` write) or `request.resource.data.item`
   (a `foodItemSubmissions` write), so `create` and `update` on both collections can't drift apart.
   Also checks that `measure_unit`, when present, is `'grams'` or `'millilitres'`
   ([design 0011](design/0011-food-measure-grams-or-millilitres.md)) — covering both collections
   the same way, for the same reason.
 - `foodItems`: read requires only `request.auth != null`. `create`/`update` require
-  `isMaintainer()`, the document id to match the barcode length whitelist,
+  `isMaintainer()`, the document id to pass `validItemId`,
   `request.resource.data.id == itemId`, and `validFoodItem`. `delete` is not granted and falls
   through to Firestore's default deny. Client writes were removed by
   [ADR 0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md), which superseded
@@ -342,6 +362,98 @@ other field would otherwise be indexed in both directions for no reason. It also
 composite indexes for `foodItemSubmissions` and one for `foodItemReports` — every one of them
 exists solely for `DeleteAccountUseCase`'s or a moderation queue's `where` + `orderBy` on two
 different fields, which a single-field index cannot serve.
+
+### 1.7 Wire schema
+
+Field-by-field, as the iOS DTOs declare them. **Required on read** means the iOS client fails to
+decode the whole document when the key is absent — for a list query, the whole list. **Rules**
+names what `firestore.rules` enforces on write; where it says *nothing*, a client that omits or
+mistypes the field is accepted by the server and then breaks every iOS reader. Types: *number* is a
+Firestore double (an integer is still written as a number), *seconds* is `TimeInterval` per
+[ADR 0008](adr/0008-dates-as-epoch-seconds-not-firestore-timestamp.md), *string* is UTF-8.
+
+**Nutrition field set** — shared by `foodItems`, `favouriteFoods` and each `myCreatedMeals`
+ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
+
+| Wire name | Type | Required on read | `foodItems` rules |
+|---|---|---|---|
+| `calories_per_hundred_grams` | number, per 100 g | yes | number |
+| `fat` | number (g) | yes | number |
+| `fat_unsaturated_fatty_acids` | number (g) | yes | number |
+| `carbohydrate` | number (g) | yes | number |
+| `carbohydrate_pure_sugar` | number (g) | yes | number |
+| `protein` | number (g) | yes | number |
+| `salt` | number (g) | yes | number |
+| `energy_kj` | number | no — derived from macros when absent (ADR 0007) | number if present |
+| `fat_saturated` | number (g) | no — stays `nil` | number if present |
+| `fiber` | number (g) | no — stays `nil` | number if present |
+
+`foodConsumed` uses `carbohydrate_sugar` and `fat_unsaturated` for the second and third rows
+(finding **A1-8**), and holds absolute values for the logged weight rather than per-100 g ones.
+
+| Collection (DTO) | Wire name | Type | Required on read | Rules |
+|---|---|---|---|---|
+| **`foodItems`** (`FoodItemDTO`) — also the nested `item` of a submission | `id` | string | yes | `validItemId`, and equal to the document id on `foodItems` |
+| | `cz_name`, `eng_name` | string | yes | string |
+| | `cz_name_lowercase`, `eng_name_lowercase` | string, `lowercased()` of the name; `""` when the name is empty | yes | string |
+| | `cz_name_folded`, `eng_name_folded` | string, lowercased then diacritics-folded | no | none |
+| | `cz_name_search_terms`, `eng_name_search_terms` | array of string | no | none |
+| | `weight` | number, package weight | yes | number |
+| | `date` | number, seconds | yes | number |
+| | `portions` | array of `{name: string, grams: number}` | no — absent means `[]` | none |
+| | `measure_unit` | `"grams"` or `"millilitres"` | no — absent means grams | that enum if present |
+| | *nutrition field set* | | | as above |
+| **`favouriteFoods`** (`FavouriteFoodDTO`) | `id`, `cz_name`, `eng_name`, `weight`, `date`, `portions`, `measure_unit`, *nutrition field set* | as `foodItems` | as `foodItems` | user-scoped only (§ 1.6) |
+| | `food_item_kind` | `catalogue` \| `external` \| `created_meal` | yes | none |
+| | `favourited_at` | number, seconds | yes | none |
+| **`foodConsumed`** (`FoodConsumedDTO`) | `id` | string, UUID | yes | user-scoped only |
+| | `food_item_id` | string | yes | |
+| | `food_item_kind` | `catalogue` \| `external` \| `created_meal` | yes — an unknown value fails the whole day's fetch (ADR 0025) | |
+| | `cz_name`, `eng_name` | string | yes | |
+| | `weight`, `date` (seconds), `protein`, `carbohydrate`, `carbohydrate_sugar`, `fat`, `fat_unsaturated`, `salt` | number | yes | |
+| | `calories` | **integer** | yes | |
+| | `calories_per_hundred_grams` | number | no — derived from `calories / weight * 100` | |
+| | `energy_kj`, `fat_saturated`, `fiber` | number | no | |
+| | `meal_type_id` | string | no — absent means "resolve by time of day" (ADR 0022) | |
+| | `measure_unit` | as above | no | |
+| **`myCreatedMeals`** (`MyCreatedMealDTO`) | `id`, `name` | string | yes | user-scoped only |
+| | `ingredients` | array of ingredient map | yes | |
+| | `created_at`, `updated_at` | number, seconds | yes | |
+| | `portions` | as `foodItems` | no | |
+| ingredient map (`MyCreatedMealIngredientDTO`) | `food_item_id`, `cz_name`, `eng_name` | string | yes | |
+| | `grams` | number | yes | |
+| | *nutrition field set* | | | |
+| **`mealTypes`** (`MealTypeDTO`) | `id`, `name` | string | yes | user-scoped only |
+| | `startMinutes`, `endMinutes` | **integer**, minutes since midnight, **camelCase** | yes | |
+| **`foodItemPortions`** (`FoodItemPersonalPortionsDTO`) | `id` | string, the barcode | yes | user-scoped only |
+| | `portions` | array of `{name, grams}` | yes | |
+| **`users/{userId}`** (`UserProfileDTO`) | `displayName`, `email` | string, **camelCase** | no | user-scoped only |
+| **`foodItemSubmissions`** (`FoodItemSubmissionDTO`) | `id` | string | yes | equal to the document id |
+| | `barcode` | string | no — absent for a UUID-identified food | unchanged on update, not validated on create |
+| | `submitted_by` | string, the author's uid | yes | equal to `request.auth.uid` on create |
+| | `status` | `pending` \| `rejected` | yes | `pending` on create; `rejected` on maintainer update |
+| | `submitted_at` | number, seconds | yes | unchanged on maintainer update |
+| | `reject_reason` | string | no — written by `RejectSubmissionUseCase` (trimmed) | non-empty on maintainer update |
+| | `item` | a `foodItems` document | yes | `validFoodItem` |
+| **`foodItemReports`** (`FoodItemReportDTO`) | `barcode` | string | yes | `validItemId`; with the uid it composes the document id |
+| | `reported_by` | string, the reporter's uid | yes | equal to `request.auth.uid` |
+| | `reason` | string | yes | 1–500 characters |
+| | `reported_at` | number, seconds | yes | number |
+
+Written by: `foodItems` — `CreateFoodItemUseCase` (only via `ApproveSubmissionUseCase`) and
+`UpdateFoodItemUseCase`; `favouriteFoods` — `AddFavouriteFoodUseCase`, `RefreshFavouriteFoodUseCase`;
+`foodConsumed` — `SaveFoodConsumedUseCase`, `UpdateFoodConsumedUseCase`; `myCreatedMeals` —
+`CreateMyCreatedMealUseCase`, `UpdateMyCreatedMealUseCase`; `mealTypes` — `SetupDefaultMealsUseCase`,
+`CreateMealTypeUseCase`, `UpdateMealTypeTimesUseCase`; `foodItemPortions` —
+`SaveFoodItemPersonalPortionsUseCase`; `users/{userId}` — `SignInWithAppleUseCase`,
+`SignInWithGoogleUseCase`; `foodItemSubmissions` — `SubmitFoodItemUseCase` (create),
+`RejectSubmissionUseCase` (maintainer update); `foodItemReports` — `SubmitFoodItemReportUseCase`.
+
+`FoodPortionDTO` (`name`, `grams`, both required) has no `CodingKeys`; its two names coincide with
+their wire spelling. Wherever a *required on read* field has *none* in the Rules column, a client
+that omits it is accepted by the server and then breaks every iOS reader of that document — the
+gap the four name fields in `validFoodItem` used to leave open on `foodItems` and on a submission's
+`item`.
 
 ---
 
@@ -550,7 +662,7 @@ reachable from `AddFoodSheetViewModel` at all** — its only caller now is `Appr
 (§ 7). The *add a new food* form still collects the same fields, but `onCreateFoodItem` calls
 `SubmitFoodItemUseCase` instead, which writes to `foodItemSubmissions`, not `foodItems`.
 
-Its validation — id non-empty, all digits, of a valid barcode length; Czech name non-empty;
+Its validation — id a valid barcode or an uppercase UUID (§ 1.2); Czech name non-empty;
 calories > 0; weight > 0; portions — is `FoodItemValidation`, a static predicate shared with
 `SubmitFoodItemUseCase` and `UpdateFoodItemUseCase` (§ 7) so the three write paths cannot drift.
 Each use case still wraps the result in its own error enum (`CreateFoodItemError`,
@@ -1426,8 +1538,8 @@ view models, the same shape as `FavouriteToggling` (§ 4.6) and `NutritionLabelP
 `onAppear()` loads whether the current user already has an open report for this barcode
 (`FetchMyFoodItemReportUseCase`, one document read by the composed `{barcode}_{userId}` key — no
 query), and the toolbar menu offers *Report incorrect data* or a disabled *Already reported*
-accordingly. Submitting (`SubmitFoodItemReportUseCase`) validates the reason is non-empty and under
-`Constants.Firestore.reportReasonMaxLength`, then `setAsync`s under that same composed key — a
+accordingly. Submitting (`SubmitFoodItemReportUseCase`) validates the reason is non-empty and at
+most `Constants.Firestore.reportReasonMaxLength` (500) characters, then `setAsync`s under that same composed key — a
 second report from the same user replaces rather than duplicates, which is what the key shape buys
 over `foodItemSubmissions`' UUID (§ 1.2): one open report per user per item, enforced by the rules
 having no `update` clause to fall back on rather than by client-side counting.
