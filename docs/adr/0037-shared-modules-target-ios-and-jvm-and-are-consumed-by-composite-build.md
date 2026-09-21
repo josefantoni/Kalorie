@@ -115,7 +115,7 @@ publishes a separate `androidJvm` variant (`pdfkmp-android`) for that reason.
 - `commonMain` code is compiled for and tested on the JVM as well as Kotlin/Native, so behaviour that
   differs between the two (string case mapping, number formatting) surfaces in `commonTest` instead
   of in a second client. `jvmTest` is the fast way to run them.
-- The Android app lives in this repository, beside `Kalorie/` (for example `Android/`), so the
+- The Android app lives in this repository, beside `iOS/` (for example `Android/`), so the
   `includeBuild` paths are relative to the repository root and CI is shared. If the app ever moves
   to its own repository, publishing to a Maven repository is the alternative; it needs a repository,
   a `group` and a versioning policy, none of which exist. This record does not choose them.

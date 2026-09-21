@@ -51,9 +51,10 @@ no Android app exists yet. What is left is deferred until that work starts.
   `strings.xml` and nothing keeps the two in step. Open question, not decided.
 - [ ] **Build the Android target in CI** — CI runs `jvmTest` for the four modules only. Check that
   the runner's SDK carries API 37, or install it, then add the ExportKit Android build.
-- [ ] **Firebase setup for an Android app** — the Android section of `docs/SETUP.md` (SHA-1
-  fingerprints, `google-services.json`) is written from general knowledge, not from a run; verify it
-  when the first sign-in screen is built.
+- [ ] **Firebase setup for an Android app** — the Firebase console side is done (app
+  `antoni.kalorie`, debug SHA-1, `google-services.json`). Still to add: the release and Play App
+  Signing SHA-1s, and a real sign-in run to confirm the `docs/SETUP.md` Android section when the
+  first sign-in screen is built.
 - [ ] **Play Store account deletion** — Google Play's policy has, to my knowledge, required a web
   link for requesting account deletion in addition to in-app deletion. The iOS
   `DeleteAccountUseCase` exists; no web page does. Check the current policy before the first release.

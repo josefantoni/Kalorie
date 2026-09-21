@@ -284,9 +284,9 @@ Changed:
 
 - `Constants.swift` — `foodItemReports`, `reportsPageLimit`, and the reason length cap shared with
   the rules. Per `SETUP.md`, a new collection and its rule block land in the same change
-- `Kalorie/firestore.rules` — the `foodItemReports` block. **No** change to `isMaintainer()`,
+- `backend/firestore.rules` — the `foodItemReports` block. **No** change to `isMaintainer()`,
   `validFoodItem()`, `foodItems` or `foodItemSubmissions`
-- `Kalorie/firestore.indexes.json` — unchanged, and that is a claim to verify rather than assume:
+- `backend/firestore.indexes.json` — unchanged, and that is a claim to verify rather than assume:
   run the queue query against the emulator and confirm Firestore does not ask for an index
 - `FoodConsumedDetailViewModel.swift` / `FoodConsumedDetailView.swift` — conform to
   `FoodItemReporting`, the toolbar menu

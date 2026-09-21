@@ -388,7 +388,7 @@ the secondary action on a screen whose job is entering a quantity; still above t
 normal phone, since the whole list is seven rows. The primary action (*Add* / *Save*) stays alone
 in the toolbar — the two do not compete for the same corner.
 
-Because the button is now built twice, it becomes `Kalorie/Components/FavouriteButton.swift`
+Because the button is now built twice, it becomes `iOS/Kalorie/Components/FavouriteButton.swift`
 taking `isFavourite: Bool` and an action closure. Two call sites earn a component; one would not.
 
 ### The mark itself
@@ -460,13 +460,13 @@ title.
 
 New:
 
-- `Kalorie/Core/Networking/FireStone/FavouriteFoodDTO.swift`
-- `Kalorie/Core/UseCases/FetchFavouriteFoodsUseCase.swift`
-- `Kalorie/Core/UseCases/AddFavouriteFoodUseCase.swift`
-- `Kalorie/Core/UseCases/RemoveFavouriteFoodUseCase.swift`
-- `Kalorie/Core/UseCases/IsFavouriteFoodUseCase.swift`
-- `Kalorie/Components/FoodItemRow.swift` — shared by the favourites section and the search results
-- `Kalorie/Components/FavouriteButton.swift` — shared by the two detail screens
+- `iOS/Kalorie/Core/Networking/FireStone/FavouriteFoodDTO.swift`
+- `iOS/Kalorie/Core/UseCases/FetchFavouriteFoodsUseCase.swift`
+- `iOS/Kalorie/Core/UseCases/AddFavouriteFoodUseCase.swift`
+- `iOS/Kalorie/Core/UseCases/RemoveFavouriteFoodUseCase.swift`
+- `iOS/Kalorie/Core/UseCases/IsFavouriteFoodUseCase.swift`
+- `iOS/Kalorie/Components/FoodItemRow.swift` — shared by the favourites section and the search results
+- `iOS/Kalorie/Components/FavouriteButton.swift` — shared by the two detail screens
 - `KalorieTests/FetchFavouriteFoodsUseCaseTests.swift`,
   `AddFavouriteFoodUseCaseTests.swift`, `RemoveFavouriteFoodUseCaseTests.swift`,
   `IsFavouriteFoodUseCaseTests.swift`

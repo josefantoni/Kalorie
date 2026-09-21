@@ -421,15 +421,15 @@ The grams field's trailing unit label is the literal `g`, unlocalized, matching
 
 New:
 
-- `Kalorie/Core/Models/FoodPortionModel.swift` — `FoodPortionDomain`, `FoodPortionError`,
+- `iOS/Kalorie/Core/Models/FoodPortionModel.swift` — `FoodPortionDomain`, `FoodPortionError`,
   `FoodPortionValidation`
-- `Kalorie/Core/Networking/FireStone/FoodPortionDTO.swift` — `FoodPortionDTO`
-- `Kalorie/Core/Networking/FireStone/FoodItemPersonalPortionsDTO.swift`
-- `Kalorie/Core/UseCases/FetchFoodItemPersonalPortionsUseCase.swift`,
+- `iOS/Kalorie/Core/Networking/FireStone/FoodPortionDTO.swift` — `FoodPortionDTO`
+- `iOS/Kalorie/Core/Networking/FireStone/FoodItemPersonalPortionsDTO.swift`
+- `iOS/Kalorie/Core/UseCases/FetchFoodItemPersonalPortionsUseCase.swift`,
   `SaveFoodItemPersonalPortionsUseCase.swift`
-- `Kalorie/Components/FoodPortionsSection.swift` — shared canonical-portions editor section,
+- `iOS/Kalorie/Components/FoodPortionsSection.swift` — shared canonical-portions editor section,
   `FoodPortionDraft`
-- `Kalorie/Features/FoodQuantity/FoodPortionsManagerView.swift` — the personal-portions sheet
+- `iOS/Kalorie/Features/FoodQuantity/FoodPortionsManagerView.swift` — the personal-portions sheet
 - `KalorieTests/FetchFoodItemPersonalPortionsUseCaseTests.swift`,
   `SaveFoodItemPersonalPortionsUseCaseTests.swift`, `FoodPortionValidationTests.swift`
 

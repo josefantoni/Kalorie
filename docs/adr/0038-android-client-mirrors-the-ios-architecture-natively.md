@@ -43,7 +43,7 @@ rejected because it discards a finished iOS UI.
 
 1. **The Android app is written natively in Kotlin with Jetpack Compose, and mirrors the iOS
    architecture layer for layer:** View → ViewModel → UseCase → `FirestoreDataProviderProtocol`.
-   Each Swift type in `Kalorie/Kalorie/` that has a counterpart has one Kotlin file, in the
+   Each Swift type in `iOS/Kalorie/` that has a counterpart has one Kotlin file, in the
    matching package, **with the same type name**. A ported file can be found from its iOS original
    by name alone.
 2. **KMP holds pure, deterministic logic with no I/O that both clients must compute identically.**

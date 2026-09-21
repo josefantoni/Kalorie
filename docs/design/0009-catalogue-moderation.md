@@ -25,7 +25,7 @@ purely because `foodItems` has no `allow update` rule, and correcting a wrong on
 in `TODO.md` wants the same thing from the other side — approval is the only moment at which a
 correction is known to have happened.
 
-What is deployed today is narrower than ADR 0011's own text describes. `Kalorie/firestore.rules`
+What is deployed today is narrower than ADR 0011's own text describes. `backend/firestore.rules`
 grants `allow create` on `foodItems` with per-field validation and no `update` or `delete` at all;
 the broader `allow write` that ADR quotes was narrowed once the race it enabled was understood
 (`ARCHITECTURE.md` §2.6), and design 0008 §*Context* already recorded the drift.
@@ -51,7 +51,7 @@ design ships, since ADR 0011's own Decision made that the condition.
 ## Non-goals
 
 - **A packaging photograph on a submission.** Firebase Storage is not configured in this project
-  today (`Kalorie/firebase.json` has only a `firestore` block), and whether the project's plan
+  today (`backend/firebase.json` has only a `firestore` block), and whether the project's plan
   includes free Storage quota is unverified. Adding it is real, separable work — a `storage` block,
   `storage.rules`, a second deploy step, a Blaze-plan check — that this document deliberately does
   not bundle with the rest. The maintainer reviews a submission on its typed values alone, the same
@@ -430,15 +430,15 @@ for the panel, plus a handful under `L10n.AddFood` for the author-facing markers
 
 New:
 
-- `Kalorie/Core/Models/FoodItemSubmissionModel.swift` — `FoodItemSubmissionDomain`,
+- `iOS/Kalorie/Core/Models/FoodItemSubmissionModel.swift` — `FoodItemSubmissionDomain`,
   `FoodItemSubmissionStatus`, `FoodItemSubmissionError`
-- `Kalorie/Core/Models/FoodItemValidation.swift` — the validation lifted out of
+- `iOS/Kalorie/Core/Models/FoodItemValidation.swift` — the validation lifted out of
   `CreateFoodItemUseCase` so both write paths share one predicate
-- `Kalorie/Core/Networking/FireStone/FoodItemSubmissionDTO.swift`
-- `Kalorie/Core/UseCases/` — `SubmitFoodItemUseCase`, `FetchMySubmissionsUseCase`,
+- `iOS/Kalorie/Core/Networking/FireStone/FoodItemSubmissionDTO.swift`
+- `iOS/Kalorie/Core/UseCases/` — `SubmitFoodItemUseCase`, `FetchMySubmissionsUseCase`,
   `UpdateMySubmissionUseCase`, `FetchPendingSubmissionsUseCase`, `ApproveSubmissionUseCase`,
   `RejectSubmissionUseCase`, `UpdateFoodItemUseCase`, `FetchMaintainerClaimUseCase`
-- `Kalorie/Features/Moderation/` — `ModerationConfigurator`, and the three screens from *The panel*
+- `iOS/Kalorie/Features/Moderation/` — `ModerationConfigurator`, and the three screens from *The panel*
   with a view model each: queue, review, catalogue editor
 - `scripts/set-maintainer-claim.js` — the fourth Admin SDK script, beside the two backfills
 
@@ -446,9 +446,9 @@ Changed:
 
 - `Constants.swift` — `foodItemSubmissions`. Per `SETUP.md`, a new collection and its rule block
   land in the same change
-- `Kalorie/firestore.rules` — `isMaintainer()`, `validFoodItem()`, the narrowed `foodItems` block,
+- `backend/firestore.rules` — `isMaintainer()`, `validFoodItem()`, the narrowed `foodItems` block,
   the new `foodItemSubmissions` block
-- `Kalorie/firestore.indexes.json` — the two composite indexes from *Indexes*
+- `backend/firestore.indexes.json` — the two composite indexes from *Indexes*
 - `CreateFoodItemUseCase.swift` — validation delegates to `FoodItemValidation`; the existence check
   **stays** (see *Duplicate handling*); no longer called from `AddFoodSheetViewModel`
 - `AddFoodSheetViewModel.swift` — `onCreateFoodItem` writes a submission instead of a catalogue

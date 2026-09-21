@@ -649,9 +649,9 @@ The segmented-picker revision adds one more: re-selecting the active mode keeps 
 
 Written for an implementer without the conversation that produced this revision. Line numbers are
 against the uncommitted working tree on `refactor/catalogueModerationFlow` as of 2026-09-13; re-grep
-if they have moved. Paths are relative to `Kalorie/`.
+if they have moved. Paths are relative to the repository root.
 
-1. **`Kalorie/Features/AddFoodSheet/AddFoodSheetView.swift`**
+1. **`iOS/Kalorie/Features/AddFoodSheet/AddFoodSheetView.swift`**
    - Delete `@State private var flipAngle: Double = 0` (`:17`).
    - In `body`, insert the segmented `Picker` from *The mode control* as the first child of
      `VStack(spacing: 0)` (`:39`), before `ZStack` (`:40`).
@@ -667,13 +667,13 @@ if they have moved. Paths are relative to `Kalorie/`.
    - Delete `private func flip(_:)` (`:133-142`).
    - Do **not** touch `.buttonStyle(.borderedProminent)` at `:269`; it belongs to `addCustomFoodItem`'s
      submit button, not to the removed menu.
-2. **`Kalorie/Features/AddFoodSheet/AddFoodSheetViewModel.swift`** — make `onModeSelected(_:)`
+2. **`iOS/Kalorie/Features/AddFoodSheet/AddFoodSheetViewModel.swift`** — make `onModeSelected(_:)`
    (`:202`) start with `guard mode != self.mode else { return }`, before `self.mode = mode`.
    Nothing else changes; `onScannerButtonTapped` (`:197`), `onMyCreatedMealSaved` (`:301`) and the
    rejected-submission path (`:421`) assign `mode` directly and the picker follows through the binding.
-3. **`Kalorie/Components/Helpers/BaseImageName.swift:16`** — delete `case carrotFill`. Its only use
+3. **`iOS/Kalorie/Components/Helpers/BaseImageName.swift:16`** — delete `case carrotFill`. Its only use
    was the removed menu label (verified by grep on 2026-09-13; grep again before deleting).
-4. **`Kalorie/Resources/Localizable.xcstrings`** — change only the **values** of the existing keys
+4. **`iOS/Kalorie/Resources/Localizable.xcstrings`** — change only the **values** of the existing keys
    (`:790` `addFood_mode_createMeal`, `:807` `addFood_mode_newItem`, `:824` `addFood_mode_search`)
    to the labels in the table above, `cs` and `en` both. Keys and `L10n.AddFood.mode*` stay as they
    are.
@@ -694,7 +694,7 @@ if they have moved. Paths are relative to `Kalorie/`.
 **Definition of done:** `xcodebuild build` succeeds, the full test suite passes, zero new SwiftLint
 violations (the pre-existing `type_body_length` / `trailing_closure` warnings in
 `AddFoodSheetViewModelTests` predate this and stay), and no remaining reference to `flipAngle`,
-`flip(` or `carrotFill` anywhere under `Kalorie/`.
+`flip(` or `carrotFill` anywhere under `iOS/Kalorie/`.
 
 **Verify by hand in the simulator** — nothing automated covers these:
 
@@ -951,12 +951,12 @@ were introduced.
 
 New:
 
-- `Kalorie/Core/Models/MyCreatedMealModel.swift` — `MyCreatedMealDomain`,
+- `iOS/Kalorie/Core/Models/MyCreatedMealModel.swift` — `MyCreatedMealDomain`,
   `MyCreatedMealIngredientDomain`, `asFoodItem()`
-- `Kalorie/Core/Networking/FireStone/MyCreatedMealDTO.swift`
-- `Kalorie/Core/UseCases/FetchMyCreatedMealsUseCase.swift`, `CreateMyCreatedMealUseCase.swift`,
+- `iOS/Kalorie/Core/Networking/FireStone/MyCreatedMealDTO.swift`
+- `iOS/Kalorie/Core/UseCases/FetchMyCreatedMealsUseCase.swift`, `CreateMyCreatedMealUseCase.swift`,
   `UpdateMyCreatedMealUseCase.swift`, `DeleteMyCreatedMealUseCase.swift`
-- `Kalorie/Features/MyCreatedMeal/` — `MyCreatedMealEditorView.swift`,
+- `iOS/Kalorie/Features/MyCreatedMeal/` — `MyCreatedMealEditorView.swift`,
   `MyCreatedMealEditorViewModel.swift`, `MyCreatedMealEditorConfigurator.swift`,
   `MyCreatedMealListViewModel.swift`
 - `MacroKit/src/commonMain/kotlin/…` — `weightedMeanPerHundredGrams`, plus its commonTest

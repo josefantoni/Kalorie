@@ -68,7 +68,7 @@ before(async () => {
   env = await initializeTestEnvironment({
     projectId: 'demo-kalorie',
     firestore: {
-      rules: readFileSync(path.join(__dirname, '../Kalorie/firestore.rules'), 'utf8'),
+      rules: readFileSync(path.join(__dirname, '../backend/firestore.rules'), 'utf8'),
     },
   });
 });

@@ -73,7 +73,7 @@ case. Only amounts **of the food** change label.
 
 ### Domain type
 
-New file `Kalorie/Kalorie/Core/Models/FoodMeasure.swift`:
+New file `iOS/Kalorie/Core/Models/FoodMeasure.swift`:
 
 ```swift
 enum FoodMeasure: String, Codable, Hashable {
@@ -103,7 +103,7 @@ it belongs to) or `mealTypes`.
 A second client must: decode an absent or unknown value as grams, write the field on every write of
 those four collections, and never convert numbers based on it.
 
-**Rules** — `Kalorie/firestore.rules:9-24`, append to `validFoodItem`:
+**Rules** — `backend/firestore.rules:9-24`, append to `validFoodItem`:
 
 ```
 && (!('measure_unit' in data) || data.measure_unit in ['grams', 'millilitres'])
@@ -117,7 +117,7 @@ maintainer `foodItems` create with `measure_unit: "millilitres"` is allowed, wit
 denied, without the field is allowed.
 
 **Indexes** — add `{ "collectionGroup": "foodItems", "fieldPath": "measure_unit", "indexes": [] }`
-to `fieldOverrides` in `Kalorie/firestore.indexes.json`, matching the existing rule that only
+to `fieldOverrides` in `backend/firestore.indexes.json`, matching the existing rule that only
 queried `foodItems` fields are indexed (`ARCHITECTURE.md` § 1.6).
 
 **No backfill script.** Absent = grams is the correct value for every existing document.
@@ -228,7 +228,7 @@ globally** — 20+ of its call sites are nutrient amounts and must stay grams.
 
 ### Localization
 
-New keys in `Kalorie/Kalorie/Resources/Localizable.xcstrings`, exposed through `L10n`
+New keys in `iOS/Kalorie/Resources/Localizable.xcstrings`, exposed through `L10n`
 (`Resources/Localization/L10n.swift`, per ADR 0019 — never a raw literal in `Text`):
 
 | Key | cs | en |

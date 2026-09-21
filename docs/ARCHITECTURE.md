@@ -301,7 +301,7 @@ Consequences worth knowing before adding a method:
 
 ### 1.6 Security rules
 
-`Kalorie/firestore.rules`, deployed via `Kalorie/firebase.json`. In full:
+`backend/firestore.rules`, deployed via `backend/firebase.json`. In full:
 
 - `users/{userId}` and everything beneath it: read and write require
   `request.auth.uid == userId`. Anonymous users are authenticated users, so this covers them.
@@ -359,7 +359,7 @@ Consequences worth knowing before adding a method:
   `foodItemSubmissions`. See [design 0012](design/0012-report-incorrect-catalogue-data.md).
 - Everything else is denied by Firestore's default.
 
-`Kalorie/firestore.indexes.json`, deployed via the same `firebase.json`, disables single-field
+`backend/firestore.indexes.json`, deployed via the same `firebase.json`, disables single-field
 indexing on `foodItems`' numeric fields via `fieldOverrides` — only `cz_name_lowercase`,
 `eng_name_lowercase`, `cz_name_folded`, `eng_name_folded` and `id` are ever queried, so every
 other field would otherwise be indexed in both directions for no reason. It also carries two
