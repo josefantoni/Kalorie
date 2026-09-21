@@ -1,7 +1,9 @@
 # Kalorie
 
-iOS app for tracking calories and macros. Built it because existing apps are bloated with features I don't need.
-
+Mobiles apps for tracking calories and macros. Built it because existing apps are bloated with features I don't need.
+- iOS ready for alpha distribution
+- Android in development
+  
 ## What it does
 
 - Log food with calories, protein, carbs, fat
