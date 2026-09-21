@@ -343,7 +343,11 @@ Consequences worth knowing before adding a method:
   [design 0009](design/0009-catalogue-moderation.md) for the original rule text and the Rules
   Playground cases it calls out, and ADR 0028 for what changed since.
 - `foodItemReports/{reportId}`: `allow read` is `isMaintainer() || resource.data.reported_by ==
-  request.auth.uid`, the same two-reader shape `foodItemSubmissions` has. `create` requires the
+  request.auth.uid`, the same two-reader shape `foodItemSubmissions` has, plus one branch for a
+  report that does not exist yet: `resource == null && reportId.matches('.*_' + request.auth.uid)`.
+  `resource` is `null` for an absent document, so without that branch the client's *already
+  reported?* read (`FetchMyFoodItemReportUseCase`) would be denied instead of returning not-found;
+  it lets a user probe only ids ending in their own uid. `create` requires the
   author's own uid and, critically, that `reportId` itself equals
   `request.resource.data.barcode + '_' + request.auth.uid` — the one rule in the project that
   validates a document id against a concatenation of two of its own fields. There is **no `update`
