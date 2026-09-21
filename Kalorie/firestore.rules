@@ -76,6 +76,8 @@ service cloud.firestore {
     }
 
     match /foodItemReports/{reportId} {
+      // resource is null for a report that does not exist yet; without the second branch the client's
+      // "already reported?" read would be denied instead of returning not-found.
       allow read: if isMaintainer() ||
         (resource == null && reportId.matches('.*_' + request.auth.uid)) ||
         (resource != null && resource.data.reported_by == request.auth.uid);

@@ -152,7 +152,9 @@ Two things follow, both worth accepting explicitly:
 
 ```
 match /foodItemReports/{reportId} {
-  allow read: if isMaintainer() || resource.data.reported_by == request.auth.uid;
+  allow read: if isMaintainer() ||
+    (resource == null && reportId.matches('.*_' + request.auth.uid)) ||
+    (resource != null && resource.data.reported_by == request.auth.uid);
 
   allow create: if request.auth != null &&
     reportId == request.resource.data.barcode + '_' + request.auth.uid &&
@@ -176,6 +178,12 @@ match /foodItemReports/{reportId} {
   user that they have already reported this item (see *The affordance*), rather than writing
   blind. This keeps the rule block to three clauses and the "one slot per user per item" invariant
   enforced server-side rather than assumed.
+- **`read` needs a branch for a report that does not exist yet.** For an absent document `resource`
+  is `null`, so `resource.data.reported_by` cannot be evaluated and the read would be denied — which
+  is exactly the case the client's *already reported?* read hits on a first report. The branch
+  `resource == null && reportId.matches('.*_' + request.auth.uid)` turns that into a not-found and
+  lets a user probe only ids ending in their own uid. It shipped with the implementation and is now
+  covered by `firestore-rules-tests/`.
 - **The `reason` length cap belongs in the rules, not only in the client.** It is the only
   server-side bound on how much a client can write into this collection.
 - **`delete` for the author** exists for account deletion, not as a product feature, exactly as the
