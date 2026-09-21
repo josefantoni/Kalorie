@@ -7,7 +7,7 @@ has to be written down.
 
 | Capability | Required by | Notes |
 |---|---|---|
-| Sign in with Apple | `SignInWithAppleUseCase` | Xcode → Signing & Capabilities → **+ Sign in with Apple**. Adds `com.apple.developer.applesignin` to `Kalorie/Resources/Kalorie.entitlements`. Without it the authorization request fails at runtime. |
+| Sign in with Apple | `SignInWithAppleUseCase` | Xcode → Signing & Capabilities → **+ Sign in with Apple**. Adds `com.apple.developer.applesignin` to `iOS/Kalorie/Resources/Kalorie.entitlements`. Without it the authorization request fails at runtime. |
 
 `Kalorie.entitlements` also carries `com.apple.security.app-sandbox` and
 `com.apple.security.files.user-selected.read-only`. Those are macOS keys with no effect on iOS —
@@ -30,18 +30,18 @@ are required.
 Google sign-in needs **no** new Xcode capability and no Apple Developer portal change. The client
 ID is read at runtime from `FirebaseApp.app()?.options.clientID`, so `GIDClientID` is deliberately
 **not** added to Info.plist — the value stays in `GoogleService-Info.plist` only. The one place it
-is duplicated is the `CFBundleURLTypes` URL scheme in `Kalorie/Resources/Info.plist`, which must
+is duplicated is the `CFBundleURLTypes` URL scheme in `iOS/Kalorie/Resources/Info.plist`, which must
 match `REVERSED_CLIENT_ID` exactly; if the Firebase project is ever replaced, that scheme has to
 be updated by hand along with the plist and the CI secret.
 
 ## Firestore security rules
 
-Rules are versioned in `Kalorie/firestore.rules` and field-index overrides in
-`Kalorie/firestore.indexes.json`, but **the repository is not the source of truth for what is
+Rules are versioned in `backend/firestore.rules` and field-index overrides in
+`backend/firestore.indexes.json`, but **the repository is not the source of truth for what is
 live** — they have to be deployed explicitly:
 
 ```sh
-cd Kalorie
+cd backend
 firebase deploy --only firestore:rules,firestore:indexes
 ```
 
@@ -87,14 +87,20 @@ Setting it:
 ## Android client
 
 No Android app exists yet; this is what has to be configured outside the repository before one can
-build and sign in. The Gradle rows were exercised with a scratch app; the Firebase rows were not —
-they are the known shape of Firebase's Android setup, not a record of a run.
+build and sign in. The Gradle rows were exercised with a scratch app. The Firebase rows were checked
+against Firebase's documentation and the console registration was done for real (package
+`antoni.kalorie`, debug SHA-1 added, `google-services.json` downloaded and inspected: an Android
+OAuth client whose hash matches the debug keystore, plus a Web client), but no app has signed in
+with it yet.
 
 | Step | Where | Notes |
 |---|---|---|
 | Register the Android app | Firebase Console → Project settings → Your apps → Add app → Android | Same Firebase project as the iOS app, so both clients share `firestore.rules` and every user's data. The package name chosen here is permanent. |
 | Add the signing SHA-1 (and SHA-256) | Same screen, *SHA certificate fingerprints* | Google sign-in on Android is bound to the signing certificate's fingerprint. Add the **debug** keystore's, the **release** keystore's and, if Play App Signing is on, the **app-signing key** shown in Play Console → App integrity (it differs from the upload key). A missing fingerprint fails as `DEVELOPER_ERROR` / code 10 with no further hint. Print the debug one with `./gradlew signingReport`. |
 | Download `google-services.json` | Same screen, after the fingerprints are added | Download it *after* adding them; an older copy lacks the OAuth client entries. Not committed, same as `GoogleService-Info.plist` (§ Local build); CI needs its own secret. |
+| Google provider | Authentication → Sign-in method → Google | Already enabled for iOS; the same project-wide switch covers Android. |
+| Sign in through Credential Manager | Android app's Google sign-in code | Firebase's current guide uses `androidx.credentials` with `GetGoogleIdOption`, not the legacy `GoogleSignIn` client. `setServerClientId()` takes the **Web** client ID (the `client_type` 3 entry in `google-services.json`, also listed under Google Cloud Console → Credentials), not the Android one; the wrong one fails as `DEVELOPER_ERROR`. |
+| Apply the Google services plugin | Android app's root and module `build.gradle.kts` | `com.google.gms.google-services` plus the Firebase BoM. Check the current versions in Firebase's setup guide when the app is created; they move. |
 | Force Kotlin 2.4.10 | Android app's root `build.gradle.kts` | AGP 9.4.1 ships Kotlin 2.2.0, which cannot read the shared modules. Add `kotlin-gradle-plugin:2.4.10` to `buildscript` classpath — the snippet is in [ADR 0037](adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md) item 7. |
 | Give Gradle more memory | Android app's `gradle.properties` | `org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g`; the default Metaspace runs out with the four composite builds. |
 | Compile against API 37 | Android app's `compileSdk` | [ADR 0037](adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md): ExportKit's PDF dependency refuses anything lower. |
@@ -121,5 +127,5 @@ new Firebase project means updating that secret.
 
 ## Local build
 
-`Kalorie/Kalorie/Resources/GoogleService-Info.plist` is required and is not in the repository.
+`iOS/Kalorie/Resources/GoogleService-Info.plist` is required and is not in the repository.
 Download it from the Firebase Console (Project settings → iOS app) and place it there.

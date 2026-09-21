@@ -478,7 +478,7 @@ root; line numbers are as of commit `37c9c36`.
 
 1. **Pure pieces + tests first.**
    - `NutritionLabelReading.isCompleteForAutoCapture: Bool` (extension in
-     `Kalorie/Kalorie/Core/NutritionLabelRecognition/NutritionLabelReading.swift`), implementing the
+     `iOS/Kalorie/Core/NutritionLabelRecognition/NutritionLabelReading.swift`), implementing the
      predicate above. Tests beside `NutritionLabelParserTests`: passes with kcal+fat+carbs+protein;
      fails when any one is nil; fails for a barcode-only reading. Encode the *why* in assertion
      messages (a premature capture wastes the photo, a missing one strands the user).
@@ -500,12 +500,12 @@ root; line numbers are as of commit `37c9c36`.
    (`AddFoodSheetView.swift` preview, `ModerationReviewView.swift` preview,
    `ModerationCatalogueEditorView.swift:106`, `ModerationQueueView.swift:94,104`, and the three
    `*ViewModelTests.swift` files).
-3. **Live camera.** Replace `Kalorie/Kalorie/Components/NutritionLabelCameraRepresentable.swift`
+3. **Live camera.** Replace `iOS/Kalorie/Components/NutritionLabelCameraRepresentable.swift`
    (delete it; it is the `UIImagePickerController` wrapper) with:
    - `NutritionLabelScannerRepresentable`: `UIViewControllerRepresentable` over
      `DataScannerViewController(recognizedDataTypes: [.text(), .barcode()], qualityLevel: .accurate,
      recognizesMultipleItems: true, isHighlightingEnabled: true, …)`. Copy the shape of
-     `Kalorie/Kalorie/Features/AddFoodSheet/DataScannerRepresentable.swift` — an `isProcessing: Bool`
+     `iOS/Kalorie/Features/AddFoodSheet/DataScannerRepresentable.swift` — an `isProcessing: Bool`
      input that calls `stopScanning()` / `startScanning()` in `updateUIViewController`, exactly like
      its `isSearching`. Its coordinator, in `didUpdate`/`didAdd` over `allItems`: records the first
      `.barcode` payload; converts `.text` items via step 1; if the parse passes the predicate and no
@@ -518,7 +518,7 @@ root; line numbers are as of commit `37c9c36`.
      `ProgressView` overlay while `isRecognizingNutritionLabel`, and a hint text. The hint must be
      rendered **inside this view**: an `.alert` attached to the presenting screen does not appear
      while a `fullScreenCover` is on top.
-4. **Shared prefill logic.** In `Kalorie/Kalorie/Core/Utils/NutritionLabelPrefilling.swift`:
+4. **Shared prefill logic.** In `iOS/Kalorie/Core/Utils/NutritionLabelPrefilling.swift`:
    - add `isNutritionLabelCameraVisible: Bool` and `nutritionLabelCameraHint: String?` to the
      protocol (all three VMs already declare `isNutritionLabelCameraVisible` — e.g.
      `AddFoodSheetViewModel.swift:166`);
@@ -533,7 +533,7 @@ root; line numbers are as of commit `37c9c36`.
      `alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)` (moderation screens and the
      review screen keep today's alert; only the prompt shows the denied state inline).
 5. **Shared form layout.** Decision 8 needs name separated from the nutrient rows. Remove the name
-   row from `Kalorie/Kalorie/Components/FoodItemFormFields.swift:26-31` and add a component, e.g.
+   row from `iOS/Kalorie/Components/FoodItemFormFields.swift:26-31` and add a component, e.g.
    `FoodItemFormSections`, rendering in order: `FoodPortionsSection`, then one `Section` with the
    name field (highlighted via `.name`), an optional barcode row, the camera button, and
    `FoodItemFormFields`. Parameters: `formInput` binding, `highlightedFields`, `barcodeRow`
@@ -547,7 +547,7 @@ root; line numbers are as of commit `37c9c36`.
    Replace both moderation screens' `.fullScreenCover` (`ModerationReviewView.swift:55-59`,
    `ModerationCatalogueEditorView.swift:70-74`) and `nutritionLabelScanButton`
    (`:92-102`, `:85-95`) with `NutritionLabelCameraView` and the shared open action.
-6. **Add-food sheet.** In `Kalorie/Kalorie/Features/AddFoodSheet/`:
+6. **Add-food sheet.** In `iOS/Kalorie/Features/AddFoodSheet/`:
    - `AddFoodSheetViewModel`: `@Published var cameraAccess: CameraAccess`, `@Published var isReviewPushed = false`,
      and a private "capture succeeded" flag. `onNutritionLabelCaptured` (`:277`) sets that flag
      from step 4's return value.
@@ -579,7 +579,7 @@ root; line numbers are as of commit `37c9c36`.
    - Submission confirmation (`isSubmissionConfirmationVisible`) and dismissal stay as they are; the
      alert is attached to the sheet's root view, so move or duplicate it onto the review screen if
      it does not show while that screen is pushed — verify on device.
-7. **Strings** (`Kalorie/Kalorie/Resources/Localizable.xcstrings`, source language `cs`, plus `en`;
+7. **Strings** (`iOS/Kalorie/Resources/Localizable.xcstrings`, source language `cs`, plus `en`;
    accessors in `Resources/Localization/L10n.swift` next to `:84` and `:126-127`, per ADR 0019):
    prompt title, prompt body ("photograph the nutrition table, then check the values"), denied
    message, "Open Settings" button, unsupported-device message, live hint while searching, shutter

@@ -24,12 +24,12 @@ jobs:
           npm test
 
       - name: Write GoogleService-Info.plist
-        run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" | base64 --decode > Kalorie/Kalorie/Resources/GoogleService-Info.plist
+        run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" | base64 --decode > iOS/Kalorie/Resources/GoogleService-Info.plist
 
       - name: Build KMP XCFrameworks
         run: |
           for module in ExportKit MacroKit MealKit TextKit; do
-            SRCROOT="$GITHUB_WORKSPACE/Kalorie" ./scripts/build-kmp-framework.sh "$module"
+            SRCROOT="$GITHUB_WORKSPACE/iOS" ./scripts/build-kmp-framework.sh "$module"
           done
 
       - name: Test KMP modules on JVM
@@ -41,7 +41,7 @@ jobs:
       - name: Run tests
         run: |
           xcodebuild test \
-            -project Kalorie/Kalorie.xcodeproj \
+            -project iOS/Kalorie.xcodeproj \
             -scheme Kalorie \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -skipPackagePluginValidation \

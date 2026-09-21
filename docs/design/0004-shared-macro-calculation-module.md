@@ -11,11 +11,11 @@ is currently reimplemented at five call sites with no shared source of truth:
 
 | Site | What it does | Basis |
 |---|---|---|
-| `Kalorie/Features/FoodQuantity/FoodQuantityViewModel.swift:42-46` | Scales `FoodItemDomain` for a live preview before saving | `grams / 100` |
-| `Kalorie/Core/UseCases/SaveFoodConsumedUseCase.swift:32-48` | Scales `FoodItemDomain` for the persisted document | `grams / 100` |
-| `Kalorie/Core/Models/FoodConsumedModel.swift:30-50` (`ScaledMacros`) | Rescales an already-logged `FoodConsumedDomain` to a new weight | `newWeight / oldWeight` |
-| `Kalorie/Features/Dashboard/DashboardViewModel.swift:60-72` (`dailyMacros`) | Sums a day's foods | — |
-| `Kalorie/Features/Dashboard/MealSectionMacroView.swift:17-23` | Sums one meal section's foods | — |
+| `iOS/Kalorie/Features/FoodQuantity/FoodQuantityViewModel.swift:42-46` | Scales `FoodItemDomain` for a live preview before saving | `grams / 100` |
+| `iOS/Kalorie/Core/UseCases/SaveFoodConsumedUseCase.swift:32-48` | Scales `FoodItemDomain` for the persisted document | `grams / 100` |
+| `iOS/Kalorie/Core/Models/FoodConsumedModel.swift:30-50` (`ScaledMacros`) | Rescales an already-logged `FoodConsumedDomain` to a new weight | `newWeight / oldWeight` |
+| `iOS/Kalorie/Features/Dashboard/DashboardViewModel.swift:60-72` (`dailyMacros`) | Sums a day's foods | — |
+| `iOS/Kalorie/Features/Dashboard/MealSectionMacroView.swift:17-23` | Sums one meal section's foods | — |
 
 The project targets iOS today, with a second client a realistic direction (see
 `docs/README.md` → *Platform scope*). Macro arithmetic is `Cross-platform` behaviour by that

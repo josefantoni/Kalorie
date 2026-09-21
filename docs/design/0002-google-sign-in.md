@@ -155,7 +155,7 @@ None of this is reproducible from source; the runbook entries go in [SETUP.md](.
   appear once the provider is on. Everything else depends on them.
 - Re-download the plist **and re-encode the CI secret** `GOOGLE_SERVICE_INFO_PLIST`. A stale
   secret breaks CI, not the local build, so it fails later and further from the cause.
-- `CFBundleURLTypes` with `REVERSED_CLIENT_ID` in `Kalorie/Resources/Info.plist`, plus
+- `CFBundleURLTypes` with `REVERSED_CLIENT_ID` in `iOS/Kalorie/Resources/Info.plist`, plus
   `GIDSignIn.sharedInstance.handle(_:)` on the root view to receive the redirect.
 - The client ID is read from `FirebaseApp.app()?.options.clientID` rather than duplicated as
   `GIDClientID` in Info.plist, so it lives in exactly one file.
