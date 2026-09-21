@@ -36,10 +36,6 @@ The app works with three kinds of data. The distinction matters for the items be
 The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md));
 no Android app exists yet. What is left is deferred until that work starts.
 
-- [ ] **Android conventions for Claude Code** — `CLAUDE.md` is iOS-only (MVVM + UseCase,
-  Configurator, XCTest, `xcodebuild`). Before the first Android screen, pick the Android equivalents
-  (UI toolkit, state model in place of `ObservableObject`, Firestore SDK, fake-object testing) and
-  record them, then decide whether Claude may run the emulator (on iOS it may not, to save tokens).
 - [ ] **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.
@@ -48,7 +44,8 @@ no Android app exists yet. What is left is deferred until that work starts.
   search merge order and export day bucketing live in Swift only; ARCHITECTURE states them as a
   contract but nothing verifies a second client against it. The only shared test vector today is
   `TextKit/fixtures/text-kit-cases.json`. Decide how much to share, and whether some of it should
-  move into KMP instead.
+  move into KMP instead — [ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md)
+  item 2 sets the rule (pure, deterministic, no I/O), not which rules qualify.
 - [ ] **Shared localisation source** — strings live in `Localizable.xcstrings` behind the `L10n`
   enum ([ADR 0019](docs/adr/0019-l10n-enum-over-the-string-catalogue.md)); Android needs its own
   `strings.xml` and nothing keeps the two in step. Open question, not decided.

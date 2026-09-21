@@ -101,6 +101,7 @@ future direction. Every design doc and ADR therefore declares a **Scope**:
 | `Backend` | Firestore data model, security rules, Cloud Functions | One implementation serves all clients. Changing it affects every platform at once. |
 | `Cross-platform` | Behaviour every client must implement identically | Re-implemented per platform. Clients must not diverge, or they corrupt each other's data. |
 | `iOS` | Implementation detail of this client | Another platform is free to decide differently. |
+| `Android` | Implementation detail of the Android client | iOS is free to decide differently. |
 
 Getting this label right is what makes these documents reusable later: when the Android client
 is written, `Backend` and `Cross-platform` records are requirements, and `iOS` records are
@@ -246,3 +247,4 @@ understanding why.
 | [0035](adr/0035-meal-type-creation-rules-are-a-cross-platform-contract.md) | Meal-type creation rules — trimmed case-insensitive names, 30-minute minimum window — are a cross-platform contract | Accepted | Cross-platform |
 | [0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md) | The name shown for a food is chosen by device language at render time, never stored | Accepted | Cross-platform |
 | [0037](adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md) | Shared KMP modules target iOS and JVM and are consumed by composite build | Accepted | Cross-platform |
+| [0038](adr/0038-android-client-mirrors-the-ios-architecture-natively.md) | The Android client is native Kotlin mirroring the iOS architecture, sharing only pure logic | Accepted | Android |
