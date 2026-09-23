@@ -49,8 +49,6 @@ no Android app exists yet. What is left is deferred until that work starts.
 - [ ] **Shared localisation source** — strings live in `Localizable.xcstrings` behind the `L10n`
   enum ([ADR 0019](docs/adr/0019-l10n-enum-over-the-string-catalogue.md)); Android needs its own
   `strings.xml` and nothing keeps the two in step. Open question, not decided.
-- [ ] **Build the Android target in CI** — CI runs `jvmTest` for the four modules only. Check that
-  the runner's SDK carries API 37, or install it, then add the ExportKit Android build.
 - [ ] **Firebase setup for an Android app** — the Firebase console side is done (app
   `antoni.kalorie`, debug SHA-1, `google-services.json`). Still to add: the release and Play App
   Signing SHA-1s, and a real sign-in run to confirm the `docs/SETUP.md` Android section when the
