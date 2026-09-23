@@ -38,6 +38,15 @@ jobs:
             (cd "$module" && ./gradlew jvmTest)
           done
 
+      - name: Build ExportKit Android target
+        working-directory: ExportKit
+        run: |
+          if [ ! -d "$ANDROID_HOME/platforms/android-37" ]; then
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37"
+          fi
+          ./gradlew bundleAndroidMainAar
+
       - name: Run tests
         run: |
           xcodebuild test \
