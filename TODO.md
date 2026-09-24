@@ -56,9 +56,10 @@ has the Dashboard screen ported. What is left is deferred until the next screen 
     resources directory in `Android/app/build.gradle.kts` and parse with
     `Json.parseToJsonElement`.
   - **Scaling fixture**, with the FoodQuantity port: a `FoodItemDomain` and grams in,
-    `ScaledMacros` out (iOS `FoodConsumedModel.swift:128-158`).
+    `ScaledMacros` out (iOS `ScaledMacros.init(item:ratio:)` and `FoodItemDomain.scaled(toGrams:)` in
+  `FoodConsumedModel.swift`).
   - **Export day-bucketing fixture**, with the Export port: `Europe/Prague`, including 2026-03-29
-    and 2026-10-25 (iOS `FoodExportReportFactory.swift:31-55`).
+    and 2026-10-25 (iOS `FoodExportReportFactory.makeReport`, the `dayStarts` / `dayIndexes` bucketing).
 - [ ] **Firebase setup for an Android app** — the Firebase console side is done (app
   `antoni.kalorie`, debug SHA-1, `google-services.json`). Still to add: the release and Play App
   Signing SHA-1s, and a real sign-in run to confirm the `docs/SETUP.md` Android section when the
