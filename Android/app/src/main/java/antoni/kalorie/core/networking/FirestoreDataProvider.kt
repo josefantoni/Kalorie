@@ -24,6 +24,7 @@ interface FirestoreDataProviderProtocol {
         isLessThan: Double,
         serializer: KSerializer<T>,
     ): List<T>
+    suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>)
     suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>)
     suspend fun deleteAsync(id: String, from: String)
 }
@@ -40,6 +41,12 @@ suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(
     isGreaterThanOrEqualTo: Double,
     isLessThan: Double,
 ): List<T> = loadAsync(from, field, isGreaterThanOrEqualTo, isLessThan, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.setAsync(
+    item: T,
+    id: String,
+    inCollection: String,
+): Unit = setAsync(item, id, inCollection, serializer<T>())
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.batchSetAsync(
     items: List<Pair<T, String>>,
@@ -78,6 +85,12 @@ class FirestoreDataProvider(
             .get()
             .await()
         snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+    }
+
+    override suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
+        perform {
+            firestore.collection(inCollection).document(id).set(FirestoreDataMapper.encode(item, serializer)).await()
+        }
     }
 
     override suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>) {

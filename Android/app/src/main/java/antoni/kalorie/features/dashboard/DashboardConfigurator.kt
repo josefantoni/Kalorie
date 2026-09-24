@@ -12,6 +12,7 @@ import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCase
+import antoni.kalorie.features.mealtypesheet.MealTypeSheetConfigurator
 
 class DashboardConfigurator {
 
@@ -38,6 +39,9 @@ class DashboardConfigurator {
                 deleteFoodConsumed = DeleteFoodConsumedUseCase(dataProvider, authProvider),
             )
         }
-        DashboardView(viewModel = viewModel)
+        DashboardView(
+            viewModel = viewModel,
+            router = DashboardRouter(mealTypeSheetConfigurator = MealTypeSheetConfigurator()),
+        )
     }
 }

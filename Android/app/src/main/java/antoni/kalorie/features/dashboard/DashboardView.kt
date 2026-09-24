@@ -33,6 +33,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -71,7 +72,7 @@ private enum class SelectedDayKind {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardView(viewModel: DashboardViewModel) {
+fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
 
     // MARK: - Properties
 
@@ -81,6 +82,7 @@ fun DashboardView(viewModel: DashboardViewModel) {
     val selectedDay by viewModel.selectedDay.collectAsState()
     val activeDays by viewModel.activeDaysInMonth.collectAsState()
     val showCalendarSheet by viewModel.showCalendarSheet.collectAsState()
+    val showMealTypeSheet by viewModel.showMealTypeSheet.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val isDeleteConfirmationVisible by viewModel.isDeleteConfirmationVisible.collectAsState()
     val groupedFoods = remember(mealTypes, foodsConsumed) { viewModel.groupedFoods }
@@ -95,7 +97,21 @@ fun DashboardView(viewModel: DashboardViewModel) {
 
     // MARK: - Body
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {},
+                actions = {
+                    IconButton(onClick = { viewModel.showMealTypeSheet.value = !viewModel.showMealTypeSheet.value }) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.List,
+                            contentDescription = stringResource(R.string.dashboard_button_mealLayout),
+                        )
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             Column(modifier = Modifier.fillMaxSize()) {
                 DayPickerView(
@@ -171,6 +187,14 @@ fun DashboardView(viewModel: DashboardViewModel) {
         }
     }
 
+    if (showMealTypeSheet) {
+        router.makeMealTypeSheetView(
+            mealTypes = mealTypes,
+            onDismiss = { viewModel.showMealTypeSheet.value = false },
+            onMealTypesChanged = { scope.launch { viewModel.onMealTypesChanged() } },
+        )
+    }
+
     alertItem?.let { item ->
         AlertDialog(
             onDismissRequest = { viewModel.alertItem.value = null },
@@ -236,7 +260,7 @@ private fun SectionHeader(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SwipeToDeleteRow(onDeleteRequested: () -> Unit, content: @Composable () -> Unit) {
+fun SwipeToDeleteRow(onDeleteRequested: () -> Unit, content: @Composable () -> Unit) {
     val currentOnDeleteRequested by rememberUpdatedState(onDeleteRequested)
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
