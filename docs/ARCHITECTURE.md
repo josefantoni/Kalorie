@@ -168,7 +168,8 @@ and its own backfill script, `scripts/backfill-search-terms.js`. Also optional o
 same reason. Both backfill scripts re-implement TextKit's folding and tokenisation in JS, since
 Node cannot call the compiled XCFramework; [ADR 0026](adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md)
 accepts that duplication and pins both sides to a shared fixture,
-`TextKit/fixtures/text-kit-cases.json`. Also carries optional `measure_unit` (§ 1.3), absent
+`TextKit/fixtures/text-kit-cases.json`, which the Kotlin tests now read from `jvmTest`
+([ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)). Also carries optional `measure_unit` (§ 1.3), absent
 meaning grams; there is no backfill script for it, since absent already means the correct value.
 
 **`foodConsumed`** (`FoodConsumedDTO`) — one logged entry. Values are **absolute for the logged
@@ -470,7 +471,10 @@ fallback behaviour; `iOS` for the scanner.
 list, and why an OpenFoodFacts item outside the catalogue is accepted),
 [design 0006](design/0006-own-daily-meals.md) (a created meal appearing in the same search),
 [design 0009](design/0009-catalogue-moderation.md) (the author's own pending/rejected submissions
-as a fourth such list — see § 7).
+as a fourth such list — see § 7),
+[ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) (which rules live
+in KMP and which are pinned by `fixtures/` — query derivation, the OpenFoodFacts mapping and food
+validation are here).
 
 ### 2.1 The four ways a food is found
 
@@ -518,7 +522,10 @@ catalogue name is not an expected case to search around.
 Two further concurrent queries match by **any word**, not only the first: `array-contains` over
 `cz_name_search_terms` / `eng_name_search_terms`, each holding every prefix of every word in the
 name (folded the same way). Only the **last space-separated word** of the folded query is sent to
-these two (`"polotučné ml"` queries `ml`), while the four prefix queries get the whole query. This
+these two (`"polotučné ml"` queries `ml`), while the four prefix queries get the whole query.
+That derivation — lowercased query, folded query, last non-empty word (the whole folded query when
+there is none) — is `TextKit.searchQuery`, shared with a second client
+([ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)). This
 is what lets "mlék" find "Polotučné mléko" — finding **A2-4**, fixed. The tokenisation (`searchTerms`) lives in KMP `TextKit` alongside `foldDiacritics`, for the
 same cross-client reason. See
 [ADR 0024](adr/0024-token-array-field-for-whole-word-search.md) for the field shape, the backfill
@@ -645,6 +652,9 @@ Mapping OpenFoodFacts → `FoodItemDomain` has a fixed shape:
 
 This mapping lives in `OpenFoodFactsProductDTO.asDomain()`, following the same convention every
 other DTO uses, and both external use cases call it rather than each carrying their own copy.
+`fixtures/open-food-facts-mapping-cases.json` pins it: a raw `product` object in, the mapped fields
+(or `null`) out, read by `OpenFoodFactsProductDTOTests` and, once ported, by the Android client
+([ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)).
 
 ### 2.5 Barcode scanning
 
@@ -695,7 +705,10 @@ reachable from `AddFoodSheetViewModel` at all** — its only caller now is `Appr
 
 Its validation — id a valid barcode or an uppercase UUID (§ 1.2); Czech name non-empty;
 calories > 0; weight > 0; portions — is `FoodItemValidation`, a static predicate shared with
-`SubmitFoodItemUseCase` and `UpdateFoodItemUseCase` (§ 7) so the three write paths cannot drift.
+`SubmitFoodItemUseCase` and `UpdateFoodItemUseCase` (§ 7) so the three write paths cannot drift. `fixtures/food-item-validation-cases.json` pins it: the
+`itemId` cases are read by `FoodItemValidationTests` and by `firestore-rules-tests` (the rules
+implement only the id check, § 1.6), the `foodItem` cases by the iOS tests and, once ported, the
+Android ones ([ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)).
 Each use case still wraps the result in its own error enum (`CreateFoodItemError`,
 `FoodItemSubmissionError`, `UpdateFoodItemError`) so each caller's exhaustive `switch` keeps its
 own alert strings; `AddFoodSheetViewModel` now switches over `FoodItemSubmissionError`, and
@@ -734,7 +747,9 @@ of starting out unpinned), [ADR 0031](adr/0031-meal-type-pin-resolved-by-the-cal
 (why `SaveFoodConsumedUseCase` no longer resolves that pin itself — § 4.2 covers the picker this
 enabled),
 [ADR 0035](adr/0035-meal-type-creation-rules-are-a-cross-platform-contract.md) (the name and
-minimum-length rules a second client must match when creating a meal type).
+minimum-length rules a second client must match when creating a meal type),
+[ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) (meal resolution
+lives in `MealKit`, over minutes).
 
 ### 3.1 What the Dashboard is
 
@@ -769,7 +784,8 @@ field keep `meal_type_id` absent and keep resolving dynamically through the fall
 next; they are not migrated.
 
 `groupedFoods` resolves each food to at most one meal type id up front, via
-`mealTypes.resolvedMealTypeId(for:)`: a food **pinned to it** (`mealTypeId` names a meal type that
+`mealTypes.resolvedMealTypeId(for:)` (an adapter over `MealKit.resolvedMealWindowId`, which works
+on minutes — [ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)): a food **pinned to it** (`mealTypeId` names a meal type that
 still exists) resolves to that pin; otherwise it falls back to `mealType(at:)`, which sorts the
 meal types by `startTime` and returns the first whose window contains the food's time of day.
 `startTime` is a `Date`, but `FetchMealTypesUseCase` builds it by adding `startMinutes` to *today's*
@@ -1456,6 +1472,8 @@ optimistic-concurrency token against a submission edited while under review),
 [design 0012](design/0012-report-incorrect-catalogue-data.md) (the report flow — § 7.6 — and why it
 is a signal collection, not a second write path into `foodItems`). § 1.2/1.4/1.6 cover the
 collection shape and rules; § 2.6 covers where this replaces the old direct-write path.
+[ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) covers the
+validation fixture the submission and approval paths share with the rules.
 
 ### 7.1 What exists
 
