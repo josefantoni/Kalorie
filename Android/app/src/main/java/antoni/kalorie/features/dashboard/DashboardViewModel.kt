@@ -1,5 +1,6 @@
 package antoni.kalorie.features.dashboard
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodConsumedDomain
@@ -88,6 +89,7 @@ class DashboardViewModel(
     val showCalendarSheet = MutableStateFlow(false)
     val showAccountSheet = MutableStateFlow(false)
     val alertItem = MutableStateFlow<AlertItem?>(null)
+    val backStack = mutableStateListOf<DashboardDestination>(DashboardDestination.Dashboard)
     val isDeleteConfirmationVisible = MutableStateFlow(false)
     private val _activeDaysInMonth = MutableStateFlow<Set<Int>>(emptySet())
     val activeDaysInMonth: StateFlow<Set<Int>> = _activeDaysInMonth

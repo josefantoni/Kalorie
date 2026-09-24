@@ -56,6 +56,26 @@ data class ScaledMacros private constructor(
         salt = scaled.salt,
     )
 
+    // calories is rescaled from the entry's own stored per-100g basis, not from its already-
+    // rounded absolute value — see ADR 0016, which is what removes the compounding rounding
+    // error an edit-after-edit would otherwise accumulate.
+    constructor(food: FoodConsumedDomain, newWeight: Double) : this(
+        calories = scaledCalories(caloriesPerHundredGrams = food.caloriesPerHundredGrams, ratio = newWeight / 100),
+        scaled = Macros(
+            calories = 0,
+            protein = food.protein,
+            carbohydrate = food.carbohydrate,
+            carbohydrateSugar = food.carbohydrateSugar,
+            fat = food.fat,
+            fatUnsaturated = food.fatUnsaturated,
+            fiber = food.fiber ?: 0.0,
+            salt = food.salt,
+        ).scaled(factor = weightRatio(food, newWeight)),
+        energyKJ = food.energyKJ * weightRatio(food, newWeight),
+        fatSaturated = food.fatSaturated?.let { it * weightRatio(food, newWeight) },
+        fiber = food.fiber?.let { it * weightRatio(food, newWeight) },
+    )
+
     // calories is scaled separately below: caloriesPerHundredGrams is fractional, and rounding
     // it here before .scaled() would round twice instead of once.
     constructor(item: FoodItemDomain, ratio: Double) : this(
@@ -77,3 +97,6 @@ data class ScaledMacros private constructor(
 }
 
 fun FoodItemDomain.scaled(toGrams: Double): ScaledMacros = ScaledMacros(item = this, ratio = toGrams / 100)
+
+private fun weightRatio(food: FoodConsumedDomain, newWeight: Double): Double =
+    if (food.weight > 0) newWeight / food.weight else 1.0

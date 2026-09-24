@@ -22,3 +22,7 @@ fun Double.formattedGrams(fractionDigits: Int = 1): String =
 @Composable
 fun Double.formattedAmount(measure: FoodMeasure, fractionDigits: Int = 1): String =
     formatted(fractionDigits, stringResource(measure.unitSymbolRes))
+
+@Composable
+fun Double?.formattedGrams(fractionDigits: Int = 1): String =
+    if (this == null) "–" else formattedGrams(fractionDigits)

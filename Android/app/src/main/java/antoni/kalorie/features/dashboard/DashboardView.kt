@@ -150,7 +150,12 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                             }
                             items(group.foods, key = { it.id }) { food ->
                                 SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteRequested(food) }) {
-                                    FoodConsumedView(food)
+                                    FoodConsumedView(
+                                        food,
+                                        modifier = Modifier.clickable {
+                                            viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
+                                        },
+                                    )
                                 }
                             }
                         }

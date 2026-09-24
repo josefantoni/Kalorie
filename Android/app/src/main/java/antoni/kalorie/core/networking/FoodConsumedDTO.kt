@@ -3,6 +3,7 @@ package antoni.kalorie.core.networking
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodMeasure
+import antoni.kalorie.core.utils.epochSecondsAsDouble
 import antoni.kalorie.core.utils.instantFromEpochSeconds
 import antoni.kalorie.macrokit.caloriesPerHundredGrams as derivedCaloriesPerHundredGrams
 import antoni.kalorie.macrokit.energyKJFromMacros
@@ -32,6 +33,31 @@ data class FoodConsumedDTO(
     @SerialName("meal_type_id") val mealTypeId: String? = null,
     @SerialName("measure_unit") val measureUnit: String? = null,
 ) {
+
+    // MARK: - Init
+
+    constructor(food: FoodConsumedDomain, mealTypeId: String?) : this(
+        id = food.id,
+        foodItemId = food.foodItemId,
+        foodItemKind = food.foodItemKind,
+        czName = food.czName,
+        engName = food.engName,
+        weight = food.weight,
+        date = food.date.epochSecondsAsDouble(),
+        calories = food.calories,
+        caloriesPerHundredGrams = food.caloriesPerHundredGrams,
+        energyKJ = food.energyKJ,
+        protein = food.protein,
+        carbohydrate = food.carbohydrate,
+        carbohydrateSugar = food.carbohydrateSugar,
+        fat = food.fat,
+        fatSaturated = food.fatSaturated,
+        fatUnsaturated = food.fatUnsaturated,
+        fiber = food.fiber,
+        salt = food.salt,
+        mealTypeId = mealTypeId,
+        measureUnit = food.measure.rawValue,
+    )
 
     // MARK: - Functions
 
