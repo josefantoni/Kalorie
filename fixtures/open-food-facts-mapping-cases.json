@@ -1,0 +1,84 @@
+{
+  "cases": [
+    {
+      "name": "complete product",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+    },
+    {
+      "name": "missing nutriments",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh"},
+      "expected": null
+    },
+    {
+      "name": "zero kcal",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": 0, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": null
+    },
+    {
+      "name": "negative kcal",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": -5, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": null
+    },
+    {
+      "name": "absent kcal",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "nutriments": {"energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": null
+    },
+    {
+      "name": "all three names absent",
+      "product": {"code": "8593807012345", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": null
+    },
+    {
+      "name": "product_name is empty and nothing else is present",
+      "product": {"code": "8593807012345", "product_name": "", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": null
+    },
+    {
+      "name": "empty Czech name stops the fallback chain and yields not found",
+      "product": {"code": "8593807012345", "product_name_cs": "", "product_name_en": "Cottage cheese", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": null
+    },
+    {
+      "name": "HTML entities are decoded in both names",
+      "product": {"code": "8593807012345", "product_name_cs": "Ben &amp; Jerry&#39;s &quot;Mix&quot;", "product_name_en": "Ben &amp; Jerry&#39;s", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": {"id": "8593807012345", "czName": "Ben & Jerry's \"Mix\"", "engName": "Ben & Jerry's", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+    },
+    {
+      "name": "absent Czech name falls back to the English one",
+      "product": {"code": "8593807012345", "product_name_en": "Yogurt", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": {"id": "8593807012345", "czName": "Yogurt", "engName": "Yogurt", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+    },
+    {
+      "name": "product_name is the last fallback for both names",
+      "product": {"code": "8593807012345", "product_name": "Generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": {"id": "8593807012345", "czName": "Generic", "engName": "Generic", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+    },
+    {
+      "name": "Czech name only: the original name is the Czech one",
+      "product": {"code": "8593807012345", "product_name_cs": "Rohlík", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": {"id": "8593807012345", "czName": "Rohlík", "engName": "Rohlík", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+    },
+    {
+      "name": "absent kJ is derived from the macros",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": 80, "fat_100g": 10, "saturated-fat_100g": 4, "carbohydrates_100g": 20, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 5, "salt_100g": 0.1}},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 795, "caloriesPerHundredGrams": 80, "fat": 10, "fatSaturated": 4, "fatUnsaturatedFattyAcids": 6, "carbohydrate": 20, "carbohydratePureSugar": 3, "fiber": 0, "protein": 5, "salt": 0.1}
+    },
+    {
+      "name": "saturated fat greater than fat leaves no unsaturated fat",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 2, "saturated-fat_100g": 5, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 2, "fatSaturated": 5, "fatUnsaturatedFattyAcids": 0, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+    },
+    {
+      "name": "absent sugars, fibre, salt and saturated fat default to zero",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "carbohydrates_100g": 4, "proteins_100g": 13}},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0, "fatUnsaturatedFattyAcids": 0.5, "carbohydrate": 4, "carbohydratePureSugar": 0, "fiber": 0, "protein": 13, "salt": 0}
+    },
+    {
+      "name": "a 12-digit code is carried over as the id",
+      "product": {"code": "123456789012", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": {"id": "123456789012", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+    }
+  ]
+}
