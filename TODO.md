@@ -126,6 +126,17 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    collector, as `.task(id:)` does), `displayedResults` (local list only for now), `onSelectFoodItem`
    and `isPushedToQuantityView`, and the `FoodItemRow` component. Read ARCHITECTURE § 2.1–2.3 and
    ADR 0013, 0024.
+   *Ported with deviations:* the sheet is a full-screen dialog (as in step 1) with its own Nav3 back
+   stack, which holds only the search destination until step 5 adds the quantity screen. Until
+   then `isPushedToQuantityView` is set but nothing consumes it. The two provider methods are named
+   `loadHasPrefixAsync` and `loadArrayContainsAsync`, since Kotlin cannot overload on argument labels.
+   The view model exposes `searchExampleRes` instead of `searchPlaceholder` because it has no
+   `Context`; the view formats the placeholder. The Dashboard empty state got the *Add food* button
+   iOS has (the FAB is hidden while a day is empty), without the pulse animation. `FoodItemRow`
+   takes only `item`; `isFavourite` and `submissionStatus` come with steps 7 and 12. The results
+   section header is `addFood_section_externalResults` ("Online results"), copied from iOS even
+   though the section lists local results too; `addFood_section_searchResults` is unused on iOS.
+   That looks like an iOS finding to settle before step 6.
 5. [ ] **Food quantity and saving.** This step completes the first "log a food" loop. Port
    `FoodQuantityViewModel`/`FoodQuantityView` with `quantity`, `unit`, `FoodQuantityUnit`,
    `unitOptions` (canonical portions, then `.grams`, then `.hundredGrams`; personal portions come
