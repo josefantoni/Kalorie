@@ -1206,6 +1206,15 @@ exclusively through the hand-written `L10n` enum, per
 reach — today just `NSCameraUsageDescription`, matched by key name rather than by going through
 `L10n`.
 
+**Cross-platform:** `Localizable.xcstrings` is the single source of truth for both clients. Android's
+`values/strings.xml` (`cs`) and `values-en/strings.xml` (`en`) are generated from it by
+`scripts/generate-android-strings.js` and are never edited by hand, so a key has the same name on both
+platforms whether or not the Android screen using it exists yet. The generator skips catalogue entries
+with no localizations at all (stubs Xcode harvests from `Text` literals, ADR 0019), converts `%@` /
+`%lld` to positional `%1$s` / `%1$d`, and fails on a key missing `cs` or `en`, on plurals or
+substitutions, and on leading or trailing whitespace Android would drop. `npm run
+check-android-strings` in `scripts/` fails when the generated files are stale.
+
 One thing about the app is Czech-first in a way neither catalogue covers:
 
 - `BilingualNamed.displayName` picks `czName` when the device language is `cs` or `sk`, and
