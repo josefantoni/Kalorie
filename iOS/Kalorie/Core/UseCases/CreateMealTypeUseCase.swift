@@ -11,8 +11,8 @@ import MealKit
 protocol CreateMealTypeUseCaseProtocol {
     func callAsFunction(
         name: String,
-        startTime: Date,
-        endTime: Date,
+        startMinutes: Int,
+        endMinutes: Int,
         existingMealTypes: [MealTypeDomain]
     ) async throws -> MealTypeDomain
 }
@@ -35,8 +35,8 @@ struct CreateMealTypeUseCase: CreateMealTypeUseCaseProtocol {
 
     func callAsFunction(
         name: String,
-        startTime: Date,
-        endTime: Date,
+        startMinutes: Int,
+        endMinutes: Int,
         existingMealTypes: [MealTypeDomain]
     ) async throws -> MealTypeDomain {
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -47,17 +47,15 @@ struct CreateMealTypeUseCase: CreateMealTypeUseCaseProtocol {
         }) else {
             throw CreateMealTypeError.duplicateName
         }
-        let startMinutes = startTime.minutesSinceMidnight
-        let endMinutes = endTime.minutesSinceMidnight
-        guard MealWindowsKt.isMealWindowLongEnough(startMinutes: startMinutes, endMinutes: endMinutes, minimumDurationMinutes: MealWindowsKt.MIN_MEAL_WINDOW_MINUTES) else {
+        guard MealWindowsKt.isMealWindowLongEnough(startMinutes: Int32(startMinutes), endMinutes: Int32(endMinutes), minimumDurationMinutes: MealWindowsKt.MIN_MEAL_WINDOW_MINUTES) else {
             throw CreateMealTypeError.durationTooShort
         }
         guard !existingMealTypes.contains(where: {
             MealWindowsKt.mealWindowsOverlap(
-                startMinutes: startMinutes,
-                endMinutes: endMinutes,
-                otherStartMinutes: $0.startTime.minutesSinceMidnight,
-                otherEndMinutes: $0.endTime.minutesSinceMidnight
+                startMinutes: Int32(startMinutes),
+                endMinutes: Int32(endMinutes),
+                otherStartMinutes: Int32($0.startMinutes),
+                otherEndMinutes: Int32($0.endMinutes)
             )
         }) else {
             throw CreateMealTypeError.timeConflict
@@ -67,11 +65,11 @@ struct CreateMealTypeUseCase: CreateMealTypeUseCaseProtocol {
         let dto = MealTypeDTO(
             id: newId,
             name: name,
-            startMinutes: Int(startMinutes),
-            endMinutes: Int(endMinutes)
+            startMinutes: startMinutes,
+            endMinutes: endMinutes
         )
         try await dataProvider.setAsync(dto, id: newId, in: Constants.Firestore.mealTypes(userId: userId))
-        return MealTypeDomain(id: newId, name: name, startTime: startTime, endTime: endTime)
+        return MealTypeDomain(id: newId, name: name, startMinutes: startMinutes, endMinutes: endMinutes)
     }
 }
 
@@ -82,11 +80,11 @@ struct CreateMealTypeUseCaseFake: CreateMealTypeUseCaseProtocol {
 
     func callAsFunction(
         name: String,
-        startTime: Date,
-        endTime: Date,
+        startMinutes: Int,
+        endMinutes: Int,
         existingMealTypes: [MealTypeDomain]
     ) async throws -> MealTypeDomain {
-        MealTypeDomain(id: UUID().uuidString, name: name, startTime: startTime, endTime: endTime)
+        MealTypeDomain(id: UUID().uuidString, name: name, startMinutes: startMinutes, endMinutes: endMinutes)
     }
 }
 #endif

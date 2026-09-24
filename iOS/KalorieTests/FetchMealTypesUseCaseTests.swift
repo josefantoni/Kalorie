@@ -32,6 +32,18 @@ final class FetchMealTypesUseCaseTests: XCTestCase {
         XCTAssertEqual(result[1].name, "Oběd")
     }
 
+    func test_fetchMealTypes_returnsStoredMinutesUnchanged() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedMealTypes = [
+            MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 420, endMinutes: 1410)
+        ]
+
+        let result = try await sut()
+
+        XCTAssertEqual(result[0].startMinutes, 420)
+        XCTAssertEqual(result[0].endMinutes, 1410)
+    }
+
     func test_fetchMealTypes_whenProviderThrowsDecodingError_throwsError() async {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedError = DecodingError.dataCorrupted(
@@ -54,10 +66,6 @@ final class FetchMealTypesUseCaseTests: XCTestCase {
         let dataProvider = FirestoreDataProviderStub()
         let sut = FetchMealTypesUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake())
         return (sut, dataProvider)
-    }
-
-    private func makeDate(hour: Int) -> Date {
-        Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: Date()) ?? Date()
     }
 }
 

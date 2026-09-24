@@ -187,20 +187,20 @@ struct MealTypeSheetView: View {
         MealTypeDomain(
             id: "0",
             name: L10n.DefaultMeals.breakfast,
-            startTime: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: .now) ?? .now,
-            endTime: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now
+            startMinutes: 7 * 60,
+            endMinutes: 9 * 60
         ),
         MealTypeDomain(
             id: "1",
             name: L10n.DefaultMeals.lunch,
-            startTime: Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: .now) ?? .now,
-            endTime: Calendar.current.date(bySettingHour: 14, minute: 0, second: 0, of: .now) ?? .now
+            startMinutes: 12 * 60,
+            endMinutes: 14 * 60
         ),
         MealTypeDomain(
             id: "2",
             name: L10n.DefaultMeals.dinner,
-            startTime: Calendar.current.date(bySettingHour: 18, minute: 0, second: 0, of: .now) ?? .now,
-            endTime: Calendar.current.date(bySettingHour: 20, minute: 0, second: 0, of: .now) ?? .now
+            startMinutes: 18 * 60,
+            endMinutes: 20 * 60
         )
     ])
 }

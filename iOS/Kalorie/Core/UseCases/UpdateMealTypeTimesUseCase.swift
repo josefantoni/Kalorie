@@ -34,8 +34,8 @@ struct UpdateMealTypeTimesUseCase: UpdateMealTypeTimesUseCaseProtocol {
                 item: MealTypeDTO(
                     id: mealType.id,
                     name: mealType.name,
-                    startMinutes: Int(mealType.startTime.minutesSinceMidnight),
-                    endMinutes: Int(mealType.endTime.minutesSinceMidnight)
+                    startMinutes: mealType.startMinutes,
+                    endMinutes: mealType.endMinutes
                 ),
                 id: mealType.id
             )

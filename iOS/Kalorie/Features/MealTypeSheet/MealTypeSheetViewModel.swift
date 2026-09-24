@@ -51,12 +51,12 @@ final class MealTypeSheetViewModel: ObservableObject {
         do {
             let newMeal = try await createMealType(
                 name: newMealName,
-                startTime: newMealStart,
-                endTime: newMealEnd,
+                startMinutes: Int(newMealStart.minutesSinceMidnight),
+                endMinutes: Int(newMealEnd.minutesSinceMidnight),
                 existingMealTypes: mealTypes
             )
             mealTypes.append(newMeal)
-            mealTypes.sort { $0.startTime < $1.startTime }
+            mealTypes.sort { $0.startMinutes < $1.startMinutes }
             isAddFormVisible = false
             newMealName = ""
             onMealTypesChanged()
@@ -95,15 +95,15 @@ final class MealTypeSheetViewModel: ObservableObject {
 
     @MainActor
     func onMove(from source: IndexSet, to destination: Int) {
-        let originalTimes = mealTypes.map { (startTime: $0.startTime, endTime: $0.endTime) }
+        let originalTimes = mealTypes.map { (startMinutes: $0.startMinutes, endMinutes: $0.endMinutes) }
         mealTypes.move(fromOffsets: source, toOffset: destination)
         for index in mealTypes.indices {
-            let (startTime, endTime) = originalTimes[index]
+            let (startMinutes, endMinutes) = originalTimes[index]
             mealTypes[index] = MealTypeDomain(
                 id: mealTypes[index].id,
                 name: mealTypes[index].name,
-                startTime: startTime,
-                endTime: endTime
+                startMinutes: startMinutes,
+                endMinutes: endMinutes
             )
         }
         hasPendingReorder = true
@@ -125,7 +125,15 @@ final class MealTypeSheetViewModel: ObservableObject {
     }
 
     func onShowAddForm() {
-        guard let possibleStart = mealTypes.map({ $0.endTime }).max() else {
+        guard
+            let latestEndMinutes = mealTypes.map({ $0.endMinutes }).max(),
+            let possibleStart = Calendar.current.date(
+                bySettingHour: latestEndMinutes / 60,
+                minute: latestEndMinutes % 60,
+                second: 0,
+                of: .now
+            )
+        else {
             newMealStart = Date.now
             newMealEnd = Date.now.withAddedMinutes(minutes: 30)
             isAddFormVisible = true
