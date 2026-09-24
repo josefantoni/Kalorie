@@ -17,12 +17,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -83,6 +86,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val activeDays by viewModel.activeDaysInMonth.collectAsState()
     val showCalendarSheet by viewModel.showCalendarSheet.collectAsState()
     val showMealTypeSheet by viewModel.showMealTypeSheet.collectAsState()
+    val showAddFoodSheet by viewModel.showAddFoodSheet.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val isDeleteConfirmationVisible by viewModel.isDeleteConfirmationVisible.collectAsState()
     val groupedFoods = remember(mealTypes, foodsConsumed) { viewModel.groupedFoods }
@@ -98,6 +102,13 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     // MARK: - Body
 
     Scaffold(
+        floatingActionButton = {
+            if (foodsConsumed.isNotEmpty()) {
+                FloatingActionButton(onClick = { viewModel.showAddFoodSheet.value = !viewModel.showAddFoodSheet.value }) {
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.dashboard_empty_addFood))
+                }
+            }
+        },
         topBar = {
             TopAppBar(
                 title = {},
@@ -162,7 +173,11 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                     }
 
                     if (foodsConsumed.isEmpty() && !state.isLoading) {
-                        EmptyStateView(selectedDay = selectedDay, modifier = Modifier.align(Alignment.Center))
+                        EmptyStateView(
+                            selectedDay = selectedDay,
+                            onAddFood = { viewModel.showAddFoodSheet.value = !viewModel.showAddFoodSheet.value },
+                            modifier = Modifier.align(Alignment.Center),
+                        )
                     }
                 }
             }
@@ -190,6 +205,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                 onMonthChanged = { month -> scope.launch { viewModel.onCalendarMonthChanged(month) } },
             )
         }
+    }
+
+    if (showAddFoodSheet) {
+        router.makeAddFoodSheetView(onDismiss = { viewModel.showAddFoodSheet.value = false })
     }
 
     if (showMealTypeSheet) {
@@ -296,7 +315,7 @@ fun SwipeToDeleteRow(onDeleteRequested: () -> Unit, content: @Composable () -> U
 }
 
 @Composable
-private fun EmptyStateView(selectedDay: Instant, modifier: Modifier = Modifier) {
+private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier: Modifier = Modifier) {
     val now = Instant.now()
     val kind = when {
         selectedDay.isSameDay(now) -> SelectedDayKind.TODAY
@@ -329,6 +348,9 @@ private fun EmptyStateView(selectedDay: Instant, modifier: Modifier = Modifier) 
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
+        Button(onClick = onAddFood) {
+            Text(stringResource(R.string.dashboard_empty_addFood))
+        }
     }
 }
 

@@ -11,6 +11,7 @@ object Constants {
 
     object Firestore {
         const val BATCH_WRITE_LIMIT = 500
+        const val FOOD_ITEMS = "foodItems"
 
         fun mealTypes(userId: String): String = "users/$userId/mealTypes"
         fun foodConsumed(userId: String): String = "users/$userId/foodConsumed"

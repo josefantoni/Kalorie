@@ -1,5 +1,6 @@
 package antoni.kalorie.core.networking
 
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.serialization.KSerializer
 
 @Suppress("UNCHECKED_CAST")
@@ -10,6 +11,9 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var stubbedDocuments: List<Any> = emptyList()
     var stubbedServerDocuments: List<Any> = emptyList()
     var stubbedRangeDocuments: (Double, Double) -> List<Any> = { _, _ -> emptyList() }
+    var stubbedByPrefixField: Map<String, List<Any>> = emptyMap()
+    var stubbedByArrayContainsField: Map<String, List<Any>> = emptyMap()
+    val arrayContainsValuesByField = ConcurrentHashMap<String, String>()
     var stubbedError: Exception? = null
     var batchSavedCollection: String? = null
     var batchSavedCount = 0
@@ -39,6 +43,25 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         isLessThan: Double,
         serializer: KSerializer<T>,
     ): List<T> = stubbedRangeDocuments(isGreaterThanOrEqualTo, isLessThan) as List<T>
+
+    override suspend fun <T> loadHasPrefixAsync(
+        from: String,
+        field: String,
+        hasPrefix: String,
+        limit: Int,
+        serializer: KSerializer<T>,
+    ): List<T> = stubbedByPrefixField[field].orEmpty() as List<T>
+
+    override suspend fun <T> loadArrayContainsAsync(
+        from: String,
+        field: String,
+        arrayContains: String,
+        limit: Int,
+        serializer: KSerializer<T>,
+    ): List<T> {
+        arrayContainsValuesByField[field] = arrayContains
+        return stubbedByArrayContainsField[field].orEmpty() as List<T>
+    }
 
     override suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
         setSavedItem = item

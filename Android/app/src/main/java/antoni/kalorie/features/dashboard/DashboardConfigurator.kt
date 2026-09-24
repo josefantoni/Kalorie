@@ -20,6 +20,7 @@ import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCase
+import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
 import antoni.kalorie.features.mealtypesheet.MealTypeSheetConfigurator
 import kotlinx.coroutines.launch
 
@@ -51,6 +52,7 @@ class DashboardConfigurator {
         val router = remember(dataProvider, authProvider) {
             DashboardRouter(
                 mealTypeSheetConfigurator = MealTypeSheetConfigurator(),
+                addFoodSheetConfigurator = AddFoodSheetConfigurator(dataProvider),
                 foodConsumedDetailConfigurator = FoodConsumedDetailConfigurator(dataProvider, authProvider),
             )
         }
