@@ -100,6 +100,12 @@ Consequences) — no real screen yet. What is left is deferred until porting sta
     creates the default meal sections and shows the empty state, and that the day picker and
     calendar switch days. There is no way to add food on Android yet, so a non-empty day can only
     be checked by hand later.
+- [ ] **Split CI by platform** — `.github/workflows/ci.yml` is one macOS job that runs rules tests, KMP
+  builds, ExportKit Android and the iOS tests on every pull request, whatever changed. Use path filters
+  (`iOS/`, `Android/`, `backend/` + `firestore-rules-tests/`, KMP modules) so an Android-only change
+  does not wait for the iOS simulator, and add an Android job running `:app:assembleDebug` and
+  `:app:testDebugUnitTest` (needs `google-services.json` as a secret). KMP module changes must still
+  trigger both clients.
 - [ ] **Anonymous-data merge on Android** — deferred from the Dashboard port above. On iOS
   `AuthStateObserver` resumes a pending merge (`MigrateAnonymousDataUseCase.resumeIfNeeded`) before
   publishing the user; Android leaves it out because it has no sign-in, so no merge can ever be
