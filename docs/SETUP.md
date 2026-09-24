@@ -121,9 +121,31 @@ in Release and disabled in `DEBUG` (`AppDelegate.application(_:didFinishLaunchin
 
 ## CI
 
-`.github/workflows` runs `xcodebuild test` on pull requests against `main`. It writes
-`GoogleService-Info.plist` from the `GOOGLE_SERVICE_INFO_PLIST` repository secret (base64), so a
-new Firebase project means updating that secret.
+`.github/workflows/ci.yml` runs on pull requests against `main`. A `changes` job
+(`dorny/paths-filter`) decides which of the jobs below run:
+
+| Job | Runner | Runs when a PR touches | What it does |
+|---|---|---|---|
+| `rules` | `ubuntu-latest` | `backend/`, `firestore-rules-tests/` | Firestore rules tests against the emulator |
+| `kmp` | `ubuntu-latest` | `ExportKit/`, `MacroKit/`, `MealKit/`, `TextKit/` | `jvmTest` for every module, ExportKit Android AAR |
+| `ios` | `macos-26` | `iOS/`, `scripts/build-kmp-framework.sh`, any KMP module | Builds the XCFrameworks, `xcodebuild test` |
+| `android` | `ubuntu-latest` | `Android/`, any KMP module | `:app:assembleDebug` and `:app:testDebugUnitTest` |
+
+Any change under `.github/workflows/` runs every job. `docs/`, `TODO.md`, `README.md` and
+`CLAUDE.md` run none.
+
+The `main protection` ruleset requires a status check with context `test`. The final `test` job is
+that gate: it depends on all the others, always runs, and fails when any of them failed or was
+cancelled (a skipped job counts as passed). Do not rename it, give it a `name:`, or filter the
+workflow itself with `on.pull_request.paths` — the required check would stay pending forever and
+block every merge.
+
+Secrets (both base64 of the file):
+
+- `GOOGLE_SERVICE_INFO_PLIST` → `iOS/Kalorie/Resources/GoogleService-Info.plist`
+- `GOOGLE_SERVICES_JSON` → `Android/app/google-services.json`
+
+A new Firebase project means updating both.
 
 ## Local build
 

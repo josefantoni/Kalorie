@@ -37,12 +37,6 @@ The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-module
 The Android client in `Android/` ([ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md))
 has the Dashboard screen ported. What is left is deferred until the next screen is ported.
 
-- [ ] **Split CI by platform** — `.github/workflows/ci.yml` is one macOS job that runs rules tests, KMP
-  builds, ExportKit Android and the iOS tests on every pull request, whatever changed. Use path filters
-  (`iOS/`, `Android/`, `backend/` + `firestore-rules-tests/`, KMP modules) so an Android-only change
-  does not wait for the iOS simulator, and add an Android job running `:app:assembleDebug` and
-  `:app:testDebugUnitTest` (needs `google-services.json` as a secret). KMP module changes must still
-  trigger both clients.
 - [ ] **Anonymous-data merge on Android** — deferred from the Dashboard port. On iOS
   `AuthStateObserver` resumes a pending merge (`MigrateAnonymousDataUseCase.resumeIfNeeded`) before
   publishing the user; Android leaves it out because it has no sign-in, so no merge can ever be
