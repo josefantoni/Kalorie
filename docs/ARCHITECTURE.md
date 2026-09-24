@@ -1199,21 +1199,27 @@ shown on screen.
 
 ### 5.3 Localization
 
-One `Localizable.xcstrings` catalogue, source language `cs`, with `en` alongside — reached
-exclusively through the hand-written `L10n` enum, per
+One `Localizable.xcstrings` catalogue, source language `cs`, with `en` alongside — generated
+(see below) and reached exclusively through the hand-written `L10n` enum, per
 [ADR 0019](adr/0019-l10n-enum-over-the-string-catalogue.md). A second catalogue,
 `InfoPlist.xcstrings`, covers `Info.plist` keys the OS reads directly and that `L10n` cannot
 reach — today just `NSCameraUsageDescription`, matched by key name rather than by going through
 `L10n`.
 
-**Cross-platform:** `Localizable.xcstrings` is the single source of truth for both clients. Android's
-`values/strings.xml` (`cs`) and `values-en/strings.xml` (`en`) are generated from it by
-`scripts/generate-android-strings.js` and are never edited by hand, so a key has the same name on both
-platforms whether or not the Android screen using it exists yet. The generator skips catalogue entries
-with no localizations at all (stubs Xcode harvests from `Text` literals, ADR 0019), converts `%@` /
-`%lld` to positional `%1$s` / `%1$d`, and fails on a key missing `cs` or `en`, on plurals or
-substitutions, and on leading or trailing whitespace Android would drop. `npm run
-check-android-strings` in `scripts/` fails when the generated files are stale.
+**Cross-platform:** the single source of truth for both clients is `localisation/strings.json` —
+`{ "<key>": { "cs": "…", "en": "…" } }`, edited by hand or by AI. `scripts/generate-strings.js`
+writes `Localizable.xcstrings` and Android's `values/strings.xml` (`cs`) and `values-en/strings.xml`
+(`en`) from it; **none of the three is edited by hand**, and Xcode's own string extraction is off
+(`SWIFT_EMIT_LOC_STRINGS = NO` on the app target) so a build cannot rewrite the generated catalogue.
+A key therefore has the same name on both platforms whether or not the Android screen using it exists
+yet, and a string only Android needs is still added to the source. Placeholders are written iOS-style
+(`%@` for a string, `%lld` for an integer) and kept verbatim in the catalogue; the Android output
+converts them to positional `%1$s` / `%1$d`. Keys must match `[a-z][A-Za-z0-9_]*` (an Android resource
+name), and the generator fails on a key missing `cs` or `en`, an unknown language, an empty text, or
+leading or trailing whitespace Android would drop. Plurals and per-device variations are not
+supported; the first string that needs one has to extend the generator. In `scripts/`, `npm run
+generate-strings` writes the files and `npm run check-strings` fails when any of them is stale — CI
+runs the latter.
 
 One thing about the app is Czech-first in a way neither catalogue covers:
 
