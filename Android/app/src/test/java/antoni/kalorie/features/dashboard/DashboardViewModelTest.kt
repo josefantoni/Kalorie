@@ -19,7 +19,7 @@ import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
 import java.time.Instant
 import java.time.ZoneId
-import java.time.temporal.ChronoUnit
+import java.time.ZonedDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -257,7 +257,7 @@ class DashboardViewModelTest {
     fun onAppear_calledAgainAfterInitialLoad_doesNotResetSelectedDayOrFoods() = runTest {
         val sut = makeSUT(fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(makeMealType(id = 0, hour = 8, endHour = 12))))
         sut.onAppear()
-        val yesterday = Instant.now().minus(1, ChronoUnit.DAYS)
+        val yesterday = ZonedDateTime.now(ZoneId.systemDefault()).minusDays(1).toInstant()
         sut.onDaySelected(yesterday)
         sut.foodsConsumed.value = listOf(makeFood(id = "f1", hour = 10))
 
