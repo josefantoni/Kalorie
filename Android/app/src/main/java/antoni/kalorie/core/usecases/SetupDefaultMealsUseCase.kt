@@ -7,10 +7,6 @@ import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.MealTypeDTO
 import antoni.kalorie.core.networking.batchSetAsync
 import antoni.kalorie.core.utils.Constants
-import antoni.kalorie.core.utils.minutesSinceMidnight
-import antoni.kalorie.core.utils.withAddedHours
-import java.time.Instant
-import java.time.ZoneId
 import java.util.UUID
 
 interface SetupDefaultMealsUseCaseProtocol {
@@ -27,9 +23,8 @@ class SetupDefaultMealsUseCase(
 
     override suspend fun invoke(): List<MealTypeDomain> {
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
-        val zone = ZoneId.systemDefault()
-        var startTime = Instant.now().atZone(zone).toLocalDate().atTime(DEFAULT_START_HOUR, 0).atZone(zone).toInstant()
-        var endTime = startTime.withAddedHours(hours = DEFAULT_WINDOW_HOURS)
+        var startMinutes = DEFAULT_START_HOUR * 60
+        var endMinutes = startMinutes + DEFAULT_WINDOW_HOURS * 60
         val dtos = mutableListOf<Pair<MealTypeDTO, String>>()
         val domains = mutableListOf<MealTypeDomain>()
 
@@ -38,12 +33,12 @@ class SetupDefaultMealsUseCase(
             dtos += MealTypeDTO(
                 id = id,
                 name = mealName,
-                startMinutes = startTime.minutesSinceMidnight(),
-                endMinutes = endTime.minutesSinceMidnight(),
+                startMinutes = startMinutes,
+                endMinutes = endMinutes,
             ) to id
-            domains += MealTypeDomain(id = id, name = mealName, startTime = startTime, endTime = endTime)
-            startTime = endTime
-            endTime = startTime.withAddedHours(hours = DEFAULT_WINDOW_HOURS)
+            domains += MealTypeDomain(id = id, name = mealName, startMinutes = startMinutes, endMinutes = endMinutes)
+            startMinutes = endMinutes
+            endMinutes = startMinutes + DEFAULT_WINDOW_HOURS * 60
         }
 
         dataProvider.batchSetAsync(dtos, inCollection = Constants.Firestore.mealTypes(userId))
@@ -52,6 +47,6 @@ class SetupDefaultMealsUseCase(
 
     private companion object {
         const val DEFAULT_START_HOUR = 5
-        const val DEFAULT_WINDOW_HOURS = 3.0
+        const val DEFAULT_WINDOW_HOURS = 3
     }
 }

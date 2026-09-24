@@ -116,7 +116,7 @@ class DashboardViewModel(
             }
 
             val result = mealTypes.value
-                .sortedBy { it.startTime }
+                .sortedBy { it.startMinutes }
                 .mapNotNull { mealType -> foodsByMealTypeId[mealType.id]?.let { FoodGroup(mealType, it) } }
                 .toMutableList()
             if (unassigned.isNotEmpty()) {

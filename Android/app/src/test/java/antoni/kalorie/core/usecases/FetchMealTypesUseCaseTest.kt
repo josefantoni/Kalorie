@@ -39,6 +39,19 @@ class FetchMealTypesUseCaseTest {
     }
 
     @Test
+    fun fetchMealTypes_returnsStoredMinutesUnchanged() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDocuments = listOf(
+            MealTypeDTO(id = "0", name = "Snídaně", startMinutes = 420, endMinutes = 1410),
+        )
+
+        val result = sut()
+
+        assertEquals(420, result[0].startMinutes)
+        assertEquals(1410, result[0].endMinutes)
+    }
+
+    @Test
     fun fetchMealTypes_whenProviderThrowsDecodingError_throwsError() = runTest {
         val (sut, dataProvider) = makeSUT()
         dataProvider.stubbedError = SerializationException("test")
