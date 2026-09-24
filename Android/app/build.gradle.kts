@@ -30,6 +30,12 @@ android {
         unitTests.isReturnDefaultValues = true
     }
 
+    sourceSets {
+        getByName("test") {
+            resources.directories.add(rootDir.resolve("../fixtures").path)
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -40,6 +46,7 @@ android {
 dependencies {
     implementation("kalorie:MacroKit")
     implementation("kalorie:MealKit")
+    implementation("kalorie:TextKit")
 
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-auth")
