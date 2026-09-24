@@ -36,10 +36,11 @@ jobs:
             android:
               - 'Android/**'
             l10n:
+              - 'localisation/**'
               - 'iOS/Kalorie/Resources/Localizable.xcstrings'
               - 'Android/app/src/main/res/values*/strings.xml'
-              - 'scripts/generate-android-strings.js'
-              - 'scripts/lib/android-strings*'
+              - 'scripts/generate-strings.js'
+              - 'scripts/lib/localisation*'
             ci:
               - '.github/workflows/**'
 
@@ -161,12 +162,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check generated Android strings are up to date
-        run: node scripts/generate-android-strings.js --check
+      - name: Check generated string files are up to date
+        run: node scripts/generate-strings.js --check
 
       - name: Test the generator
         working-directory: scripts
-        run: node --test lib/android-strings.test.js
+        run: node --test lib/localisation.test.js
 
   test:
     needs: [changes, rules, kmp, ios, android, l10n]
