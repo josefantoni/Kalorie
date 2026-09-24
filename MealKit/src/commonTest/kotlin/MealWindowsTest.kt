@@ -3,6 +3,7 @@ package antoni.kalorie.mealkit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MealWindowsTest {
@@ -96,5 +97,42 @@ class MealWindowsTest {
     @Test
     fun mealWindowsOverlap_wrapsMidnight_disjointFromLaterWindow_returnsFalse() {
         assertFalse(mealWindowsOverlap(startMinutes = 1430, endMinutes = 20, otherStartMinutes = 60, otherEndMinutes = 120))
+    }
+
+    private val breakfast = MealWindow(id = "breakfast", startMinutes = 360, endMinutes = 600)
+    private val lunch = MealWindow(id = "lunch", startMinutes = 660, endMinutes = 840)
+    private val night = MealWindow(id = "night", startMinutes = 1320, endMinutes = 120)
+
+    @Test
+    fun resolvedMealWindowId_pinToExistingWindow_winsOverTime() {
+        val result = resolvedMealWindowId(minutes = 400, pinnedId = "lunch", windows = listOf(breakfast, lunch))
+        assertEquals("lunch", result)
+    }
+
+    @Test
+    fun resolvedMealWindowId_pinToDeletedWindow_fallsBackToTime() {
+        val result = resolvedMealWindowId(minutes = 400, pinnedId = "deleted", windows = listOf(breakfast, lunch))
+        assertEquals("breakfast", result)
+    }
+
+    @Test
+    fun resolvedMealWindowId_noPinOutsideEveryWindow_isNull() {
+        assertNull(resolvedMealWindowId(minutes = 620, pinnedId = null, windows = listOf(breakfast, lunch)))
+    }
+
+    @Test
+    fun mealWindowAt_overlappingWindows_earliestStartWinsRegardlessOfListOrder() {
+        val early = MealWindow(id = "early", startMinutes = 360, endMinutes = 700)
+        val late = MealWindow(id = "late", startMinutes = 480, endMinutes = 720)
+        assertEquals("early", mealWindowAt(minutes = 500, windows = listOf(late, early))?.id)
+        assertEquals("early", mealWindowAt(minutes = 500, windows = listOf(early, late))?.id)
+    }
+
+    @Test
+    fun mealWindowAt_windowWrappingMidnight_matchesBothSides() {
+        val windows = listOf(breakfast, night)
+        assertEquals("night", mealWindowAt(minutes = 1400, windows = windows)?.id)
+        assertEquals("night", mealWindowAt(minutes = 60, windows = windows)?.id)
+        assertNull(mealWindowAt(minutes = 200, windows = windows))
     }
 }
