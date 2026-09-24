@@ -55,13 +55,43 @@ has the Dashboard screen ported. What is left is deferred until the next screen 
   `TextKit/fixtures/text-kit-cases.json`. Decide how much to share, and whether some of it should
   move into KMP instead — [ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md)
   item 2 sets the rule (pure, deterministic, no I/O), not which rules qualify.
-- [ ] **Shared localisation source** — strings live in `Localizable.xcstrings` behind the `L10n`
-  enum ([ADR 0019](docs/adr/0019-l10n-enum-over-the-string-catalogue.md)); Android needs its own
-  `strings.xml` and nothing keeps the two in step. Open question, not decided.
 - [ ] **Firebase setup for an Android app** — the Firebase console side is done (app
   `antoni.kalorie`, debug SHA-1, `google-services.json`). Still to add: the release and Play App
   Signing SHA-1s, and a real sign-in run to confirm the `docs/SETUP.md` Android section when the
   first sign-in screen is built.
+
+  **Handoff (analysed 2026-09-24).** Two parts left, both blocked.
+
+  1. **Real Google sign-in run — not a standalone task.** Blocked on the Account screen, which the
+     *Anonymous-data merge on Android* item above already ties to the same screen. Treat this run as
+     that port's acceptance check rather than doing it separately. What that port needs from here:
+     `app/build.gradle.kts` has no Credential Manager dependency yet — add `androidx.credentials`,
+     `androidx.credentials:credentials-play-services-auth` and `com.google.android.libraries.identity.googleid`
+     (check current versions). `setServerClientId()` takes the `client_type` 3 (Web) entry's
+     `client_id` from `google-services.json`; the file today holds one `client_type` 1 entry (the
+     debug keystore) and one `client_type` 3 entry. Read it at build time from the `default_web_client_id`
+     string resource the google-services plugin generates — never hard-code it. Verify by hand on a
+     debug build installed from the machine whose `~/.android/debug.keystore` is registered; CI's
+     runner generates its own throwaway debug keystore, so a CI-built APK fails Google sign-in with
+     `DEVELOPER_ERROR` / code 10 by design, not by bug. Once it works, delete the *"no app has signed
+     in with it yet"* sentence from `docs/SETUP.md`.
+  2. **Release and Play App Signing SHA-1s — blocked on the user, before the first Play release.**
+     No release keystore exists and `app/build.gradle.kts`'s `release` block has no `signingConfig`.
+     With Play App Signing (the default for new apps), users' installs are signed by **Google's**
+     app-signing key, so that key's SHA-1 (Play Console → App integrity) is the one Google sign-in
+     needs in production; the upload key's SHA-1 only matters for release builds signed and
+     installed locally. Neither fingerprint exists until a Play Console account exists and the app
+     is created in it. Decided 2026-09-24: the Android app will ship on Google Play alongside the
+     App Store, so this is a pre-release gate, not an open question — it waits only on the user
+     creating the Play Console developer account (one-time fee; Google Play's counterpart of App
+     Store Connect). Nothing earlier depends on it: development and testing use the already
+     registered debug keystore. When it happens: create the upload keystore with `keytool` outside the repo, wire
+     `signingConfigs.release` to read its path and passwords from `~/.gradle/gradle.properties` or
+     env vars (never committed), add both SHA-1 and SHA-256 fingerprints in Firebase → Project
+     settings → the Android app, re-download `google-services.json`, and **tell the user** to update
+     the `GOOGLE_SERVICES_JSON` CI secret (base64 of the file, `docs/SETUP.md` § CI) — nothing
+     updates it automatically. Belongs next to *Play Store account deletion*, the other
+     pre-release gate.
 - [ ] **Play Store account deletion** — Google Play's policy has, to my knowledge, required a web
   link for requesting account deletion in addition to in-app deletion. The iOS
   `DeleteAccountUseCase` exists; no web page does. Check the current policy before the first release.

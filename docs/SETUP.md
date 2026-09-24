@@ -86,12 +86,14 @@ Setting it:
 
 ## Android client
 
-No Android app exists yet; this is what has to be configured outside the repository before one can
-build and sign in. The Gradle rows were exercised with a scratch app. The Firebase rows were checked
-against Firebase's documentation and the console registration was done for real (package
-`antoni.kalorie`, debug SHA-1 added, `google-services.json` downloaded and inspected: an Android
-OAuth client whose hash matches the debug keystore, plus a Web client), but no app has signed in
-with it yet.
+This is what has to be configured outside the repository before the Android app in `Android/` can
+build and sign in. Every Gradle row below is applied in that app. The console registration was done
+for real (package `antoni.kalorie`, debug SHA-1 added, `google-services.json` downloaded and
+inspected: an Android OAuth client whose hash matches the debug keystore, plus a Web client).
+Verified end to end: the app starts, signs in **anonymously** and reads Firestore with the
+downloaded `google-services.json`. That proves the project wiring, not the SHA-1 path — anonymous
+auth does not check the signing certificate — so Google sign-in is still unexercised: no app has
+signed in with it yet.
 
 | Step | Where | Notes |
 |---|---|---|
