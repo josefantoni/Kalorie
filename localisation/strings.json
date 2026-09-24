@@ -1,0 +1,962 @@
+{
+  "account_alert_deleteConfirmMessage": {
+    "cs": "Tuto akci nelze vzít zpět. Všechna tvá data budou trvale smazána.",
+    "en": "This action can't be undone. All your data will be permanently deleted."
+  },
+  "account_alert_deleteConfirmTitle": {
+    "cs": "Opravdu smazat účet?",
+    "en": "Delete account?"
+  },
+  "account_alert_reauthenticateTitle": {
+    "cs": "Vyžadováno přihlášení",
+    "en": "Sign in required"
+  },
+  "account_anonymous_description": {
+    "cs": "Nejsi přihlášen/a. Data jsou vázaná na toto zařízení — při jeho výměně o ně můžeš přijít.",
+    "en": "You're not signed in. Your data is tied to this device — you may lose it if you switch devices."
+  },
+  "account_button_deleteAccount": {
+    "cs": "Smazat účet",
+    "en": "Delete account"
+  },
+  "account_button_reauthenticate": {
+    "cs": "Přihlásit se znovu",
+    "en": "Sign in again"
+  },
+  "account_button_signInWithApple": {
+    "cs": "Přihlásit se přes Apple",
+    "en": "Sign in with Apple"
+  },
+  "account_button_signInWithGoogle": {
+    "cs": "Přihlásit se přes Google",
+    "en": "Sign in with Google"
+  },
+  "account_button_signOut": {
+    "cs": "Odhlásit se",
+    "en": "Sign out"
+  },
+  "account_dataAttribution": {
+    "cs": "Nutriční data pro některé potraviny pochází z Open Food Facts, dostupné pod licencí Open Database License.",
+    "en": "Nutrition data for some foods comes from Open Food Facts, available under the Open Database License."
+  },
+  "account_dataAttribution_linkTitle": {
+    "cs": "openfoodfacts.org",
+    "en": "openfoodfacts.org"
+  },
+  "account_error_accountExistsWithApple": {
+    "cs": "Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.",
+    "en": "Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them."
+  },
+  "account_error_deleteFailed": {
+    "cs": "Smazání účtu se nezdařilo",
+    "en": "Failed to delete account"
+  },
+  "account_error_deleteRequiresRecentLogin": {
+    "cs": "Pro smazání účtu se prosím znovu přihlas.",
+    "en": "Please sign in again to delete your account."
+  },
+  "account_error_signInFailed": {
+    "cs": "Nepodařilo se přihlásit",
+    "en": "Sign in failed"
+  },
+  "account_error_signOutFailed": {
+    "cs": "Odhlášení se nezdařilo",
+    "en": "Sign out failed"
+  },
+  "account_navigationTitle": {
+    "cs": "Účet",
+    "en": "Account"
+  },
+  "account_signInProvider_apple": {
+    "cs": "Apple",
+    "en": "Apple"
+  },
+  "account_signInProvider_google": {
+    "cs": "Google",
+    "en": "Google"
+  },
+  "account_signedIn_defaultName": {
+    "cs": "Přihlášen/a",
+    "en": "Signed in"
+  },
+  "addFood_button_add": {
+    "cs": "Přidat",
+    "en": "Add"
+  },
+  "addFood_button_addFoodManually": {
+    "cs": "Přidat potravinu ručně",
+    "en": "Add food manually"
+  },
+  "addFood_button_addManually": {
+    "cs": "Nebo přidejte položku ručně",
+    "en": "Or add the item manually"
+  },
+  "addFood_button_openSettings": {
+    "cs": "Otevřít Nastavení",
+    "en": "Open Settings"
+  },
+  "addFood_button_scanNutritionLabel": {
+    "cs": "Vyfotit nutriční tabulku",
+    "en": "Scan nutrition label"
+  },
+  "addFood_camera_permissionAlert": {
+    "cs": "Povol v nastavení fotoaparát, nemůžeme bez něj skenovat čárový kód. 🙁",
+    "en": "Please enable camera access in settings to scan barcodes. 🙁"
+  },
+  "addFood_confirm_missingBarcode": {
+    "cs": "K jídlu nemáte přiřazený čárový kód. Opravdu chcete pokračovat?",
+    "en": "This food has no barcode assigned. Do you really want to continue?"
+  },
+  "addFood_confirm_withdrawSubmission": {
+    "cs": "Zrušit tuto položku ke schválení? Přijdeš tím i o důvod zamítnutí.",
+    "en": "Withdraw this submission? You will also lose the rejection reason."
+  },
+  "addFood_error_barcodeNotFound": {
+    "cs": "Potravina s tímto čárovým kódem nebyla nalezena",
+    "en": "No food found for this barcode"
+  },
+  "addFood_error_favouriteFailed": {
+    "cs": "Oblíbené se nepodařilo uložit",
+    "en": "Could not save favourite"
+  },
+  "addFood_error_invalidCalories": {
+    "cs": "Kalorie musí být větší než nula",
+    "en": "Calories must be greater than zero"
+  },
+  "addFood_error_invalidCode": {
+    "cs": "Neplatný čárový kód",
+    "en": "Invalid barcode"
+  },
+  "addFood_error_invalidName": {
+    "cs": "Překontroluj zadaný název",
+    "en": "Please check the entered name"
+  },
+  "addFood_error_invalidWeight": {
+    "cs": "Hmotnost musí být větší než nula",
+    "en": "Weight must be greater than zero"
+  },
+  "addFood_error_itemAlreadyExists": {
+    "cs": "Potravina s tímto čárovým kódem již v databázi existuje",
+    "en": "A food item with this barcode already exists in the database"
+  },
+  "addFood_error_loadFailed": {
+    "cs": "Nepodařilo se načíst výsledky. Zkus to prosím znovu.",
+    "en": "Failed to load results. Please try again."
+  },
+  "addFood_error_withdrawSubmissionFailed": {
+    "cs": "Položku se nepodařilo zrušit",
+    "en": "Could not withdraw the submission"
+  },
+  "addFood_field_barcode_missingLabel": {
+    "cs": "bez čárového kódu",
+    "en": "no barcode"
+  },
+  "addFood_field_barcode_placeholder": {
+    "cs": "321321...12345",
+    "en": "321321...12345"
+  },
+  "addFood_field_barcode_title": {
+    "cs": "Čárový kód potraviny",
+    "en": "Food barcode"
+  },
+  "addFood_field_caloriesPer100g": {
+    "cs": "Kalorie na 100 gramů",
+    "en": "Calories per 100g"
+  },
+  "addFood_field_caloriesPer100ml": {
+    "cs": "Kalorie na 100 mililitrů",
+    "en": "Calories per 100ml"
+  },
+  "addFood_field_carbs": {
+    "cs": "Sacharidy",
+    "en": "Carbohydrates"
+  },
+  "addFood_field_carbsSugar": {
+    "cs": "z toho cukry",
+    "en": "of which sugars"
+  },
+  "addFood_field_energyKJ": {
+    "cs": "Energie (kJ) na 100 g",
+    "en": "Energy (kJ) per 100g"
+  },
+  "addFood_field_fat": {
+    "cs": "Tuky",
+    "en": "Fat"
+  },
+  "addFood_field_fatSaturated": {
+    "cs": "z toho nasycené",
+    "en": "of which saturates"
+  },
+  "addFood_field_fatUnsaturated": {
+    "cs": "z toho nenasycené",
+    "en": "of which unsaturated"
+  },
+  "addFood_field_fiber": {
+    "cs": "Vláknina",
+    "en": "Fibre"
+  },
+  "addFood_field_measure": {
+    "cs": "Měří se v",
+    "en": "Measured in"
+  },
+  "addFood_field_name_placeholder": {
+    "cs": "Tvaroh nízkotučný",
+    "en": "Low-fat cottage cheese"
+  },
+  "addFood_field_name_title": {
+    "cs": "Název potraviny",
+    "en": "Food name"
+  },
+  "addFood_field_protein": {
+    "cs": "Bílkoviny",
+    "en": "Protein"
+  },
+  "addFood_field_salt": {
+    "cs": "Sůl",
+    "en": "Salt"
+  },
+  "addFood_field_weight": {
+    "cs": "Hmotnost",
+    "en": "Weight"
+  },
+  "addFood_mode_createMeal": {
+    "cs": "Vlastní jídlo",
+    "en": "My meal"
+  },
+  "addFood_mode_newItem": {
+    "cs": "Nová potravina",
+    "en": "New food"
+  },
+  "addFood_mode_search": {
+    "cs": "Hledat",
+    "en": "Search"
+  },
+  "addFood_navigationTitle_newItem": {
+    "cs": "Přidat potravinu do katalogu",
+    "en": "Add food to catalogue"
+  },
+  "addFood_navigationTitle_search": {
+    "cs": "Hledat v katalogu",
+    "en": "Search catalogue"
+  },
+  "addFood_nutritionLabel_barcodeScanAccessibility": {
+    "cs": "Naskenovat čárový kód",
+    "en": "Scan barcode"
+  },
+  "addFood_nutritionLabel_cameraCaptureFailed": {
+    "cs": "Fotku se nepodařilo pořídit, kamera se restartuje. Zkuste to znovu.",
+    "en": "Couldn't take the photo, restarting the camera. Try again."
+  },
+  "addFood_nutritionLabel_cameraIdleHint": {
+    "cs": "Namiřte kameru na nutriční tabulku",
+    "en": "Point the camera at the nutrition table"
+  },
+  "addFood_nutritionLabel_cameraShutterAccessibility": {
+    "cs": "Vyfotit",
+    "en": "Take photo"
+  },
+  "addFood_nutritionLabel_deniedMessage": {
+    "cs": "Pro čtení nutriční tabulky je potřeba povolit přístup ke kameře v Nastavení.",
+    "en": "Reading the nutrition table needs camera access enabled in Settings."
+  },
+  "addFood_nutritionLabel_nothingRecognized": {
+    "cs": "Na fotce se nepodařilo najít nutriční tabulku. Vyfoť tabulku na zadní straně obalu.",
+    "en": "No nutrition table found in the photo. Photograph the table on the back of the packaging."
+  },
+  "addFood_nutritionLabel_promptBody": {
+    "cs": "Vyfoťte nutriční tabulku na obalu, pak zkontrolujte hodnoty.",
+    "en": "Photograph the nutrition table on the packaging, then check the values."
+  },
+  "addFood_nutritionLabel_unsupportedMessage": {
+    "cs": "Toto zařízení neumí skenovat nutriční tabulku.",
+    "en": "This device cannot scan the nutrition table."
+  },
+  "addFood_search_example_01": {
+    "cs": "jablko 🍎",
+    "en": "apple 🍎"
+  },
+  "addFood_search_example_02": {
+    "cs": "banán 🍌",
+    "en": "banana 🍌"
+  },
+  "addFood_search_example_03": {
+    "cs": "chleba 🍞",
+    "en": "bread 🍞"
+  },
+  "addFood_search_example_04": {
+    "cs": "vejce 🥚",
+    "en": "egg 🥚"
+  },
+  "addFood_search_example_05": {
+    "cs": "kuřecí prsa 🍗",
+    "en": "chicken breast 🍗"
+  },
+  "addFood_search_example_06": {
+    "cs": "jogurt 🥛",
+    "en": "yogurt 🥛"
+  },
+  "addFood_search_example_07": {
+    "cs": "brokolice 🥦",
+    "en": "broccoli 🥦"
+  },
+  "addFood_search_example_08": {
+    "cs": "těstoviny 🍝",
+    "en": "pasta 🍝"
+  },
+  "addFood_search_placeholder": {
+    "cs": "Hledej potravinu … třeba %@",
+    "en": "Search for food … try %@"
+  },
+  "addFood_section_externalResults": {
+    "cs": "Online výsledky",
+    "en": "Online results"
+  },
+  "addFood_section_favourites": {
+    "cs": "Oblíbené",
+    "en": "Favourites"
+  },
+  "addFood_section_myCreatedMeals": {
+    "cs": "Vlastní jídla",
+    "en": "My meals"
+  },
+  "addFood_section_mySubmissions": {
+    "cs": "Moje návrhy",
+    "en": "My submissions"
+  },
+  "addFood_section_searchResults": {
+    "cs": "Vyhledaná jídla",
+    "en": "Search results"
+  },
+  "addFood_submission_pending": {
+    "cs": "Čeká na schválení",
+    "en": "Waiting for approval"
+  },
+  "addFood_submission_rejected": {
+    "cs": "Zamítnuto",
+    "en": "Rejected"
+  },
+  "addFood_submission_rejectedReason": {
+    "cs": "Zamítnuto: %@",
+    "en": "Rejected: %@"
+  },
+  "addFood_submission_submitted": {
+    "cs": "Odesláno ke schválení",
+    "en": "Submitted for approval"
+  },
+  "addFood_submission_submittedMessage": {
+    "cs": "Zadané údaje jsme odeslali správci ke schválení. Do té doby položka nebude v katalogu potravin viditelná. Stav najdeš v sekci „Moje příspěvky“, až příště otevřeš přidání potraviny.",
+    "en": "We've sent what you entered to the maintainer for approval. Until then, the item won't be visible in the food catalogue. You'll find its status under \"My submissions\" the next time you open Add food."
+  },
+  "addFood_warning_missingBarcode": {
+    "cs": "Bez čárového kódu potravinu nenajdete při vyhledávání katalogu přes čárový kod",
+    "en": "Without a barcode you won't be able to find this item by scanning."
+  },
+  "auth_button_retry": {
+    "cs": "Zkusit znovu",
+    "en": "Try again"
+  },
+  "auth_error_signInFailed": {
+    "cs": "Nepodařilo se přihlásit",
+    "en": "Sign in failed"
+  },
+  "auth_mergingMessage": {
+    "cs": "Slučujeme data z tohoto zařízení s tvým účtem…",
+    "en": "Merging this device's data into your account…"
+  },
+  "common_button_cancel": {
+    "cs": "Zrušit",
+    "en": "Cancel"
+  },
+  "common_button_done": {
+    "cs": "Hotovo",
+    "en": "Done"
+  },
+  "common_button_favourite": {
+    "cs": "Oblíbené",
+    "en": "Favourite"
+  },
+  "common_button_no": {
+    "cs": "Ne",
+    "en": "No"
+  },
+  "common_button_yes": {
+    "cs": "Ano",
+    "en": "Yes"
+  },
+  "common_error_offline": {
+    "cs": "Nepodařilo se připojit k serveru.",
+    "en": "Couldn't reach the server."
+  },
+  "common_error_offline_message": {
+    "cs": "Zkontroluj připojení k internetu a zkus to znovu.",
+    "en": "Check your connection and try again."
+  },
+  "common_error_unknown": {
+    "cs": "Nastala neznámá chyba",
+    "en": "An unknown error occurred"
+  },
+  "common_error_unknown_message": {
+    "cs": "Zkus to prosím za chvíli znovu.",
+    "en": "Please try again in a moment."
+  },
+  "common_ok": {
+    "cs": "Dobrá",
+    "en": "OK"
+  },
+  "common_unit_grams": {
+    "cs": "g",
+    "en": "g"
+  },
+  "common_unit_kilograms": {
+    "cs": "kg",
+    "en": "kg"
+  },
+  "common_unit_litres": {
+    "cs": "l",
+    "en": "l"
+  },
+  "common_unit_millilitres": {
+    "cs": "ml",
+    "en": "ml"
+  },
+  "dashboard_button_mealLayout": {
+    "cs": "rozvržení jídel",
+    "en": "Meal layout"
+  },
+  "dashboard_confirm_deleteFood": {
+    "cs": "Smazat tento záznam jídla?",
+    "en": "Delete this food entry?"
+  },
+  "dashboard_empty_addFood": {
+    "cs": "Přidat jídlo",
+    "en": "Add food"
+  },
+  "dashboard_empty_description": {
+    "cs": "Ještě jste dnes nic nesnědli, přidejme nějaké jídlo",
+    "en": "You haven't eaten anything today, let's add some food"
+  },
+  "dashboard_empty_description_future": {
+    "cs": "Záznamy teprve vzniknou — ale klidně jim dnes pomož.",
+    "en": "Records don't exist yet — but feel free to help them along today."
+  },
+  "dashboard_empty_description_past": {
+    "cs": "Zpátky do minulosti přidáním jídla! 🚀",
+    "en": "Go back and add some food! 🚀"
+  },
+  "dashboard_empty_title": {
+    "cs": "Žádné záznamy jídel",
+    "en": "No food records"
+  },
+  "dashboard_empty_title_future": {
+    "cs": "Plánuješ jídlo na budoucnost?",
+    "en": "Planning meals for the future?"
+  },
+  "dashboard_empty_title_past": {
+    "cs": "Žádné snězené jídlo.",
+    "en": "No food eaten."
+  },
+  "dashboard_error_deleteFailed": {
+    "cs": "Potravinu se nepodařilo smazat",
+    "en": "Could not delete the food"
+  },
+  "dashboard_navigation_title": {
+    "cs": "Kalorie",
+    "en": "Calories"
+  },
+  "dashboard_section_unassignedFoods": {
+    "cs": "Ostatní nezařazená jídla",
+    "en": "Other unassigned foods"
+  },
+  "defaultMeals_breakfast": {
+    "cs": "Snídaně",
+    "en": "Breakfast"
+  },
+  "defaultMeals_dinner": {
+    "cs": "Večeře",
+    "en": "Dinner"
+  },
+  "defaultMeals_lunch": {
+    "cs": "Oběd",
+    "en": "Lunch"
+  },
+  "defaultMeals_secondBreakfast": {
+    "cs": "Druhá snídaně",
+    "en": "Second breakfast"
+  },
+  "defaultMeals_snack": {
+    "cs": "Svačina",
+    "en": "Snack"
+  },
+  "export_button_export": {
+    "cs": "Exportovat",
+    "en": "Export"
+  },
+  "export_column_amount": {
+    "cs": "Množství",
+    "en": "Amount"
+  },
+  "export_column_calories": {
+    "cs": "kcal",
+    "en": "kcal"
+  },
+  "export_column_carbohydrate": {
+    "cs": "Sacharidy",
+    "en": "Carbohydrate"
+  },
+  "export_column_energyKJ": {
+    "cs": "kJ",
+    "en": "kJ"
+  },
+  "export_column_fat": {
+    "cs": "Tuky",
+    "en": "Fat"
+  },
+  "export_column_fibre": {
+    "cs": "Vláknina",
+    "en": "Fibre"
+  },
+  "export_column_food": {
+    "cs": "Jídlo",
+    "en": "Food"
+  },
+  "export_column_protein": {
+    "cs": "Bílkoviny",
+    "en": "Protein"
+  },
+  "export_column_salt": {
+    "cs": "Sůl",
+    "en": "Salt"
+  },
+  "export_column_saturatedFat": {
+    "cs": "z toho nasycené",
+    "en": "of which saturated"
+  },
+  "export_column_sugars": {
+    "cs": "z toho cukry",
+    "en": "of which sugars"
+  },
+  "export_column_unsaturatedFat": {
+    "cs": "z toho nenasycené",
+    "en": "of which unsaturated"
+  },
+  "export_datePicker_from": {
+    "cs": "Od",
+    "en": "From"
+  },
+  "export_datePicker_to": {
+    "cs": "Do",
+    "en": "To"
+  },
+  "export_format_excel": {
+    "cs": "Excel",
+    "en": "Excel"
+  },
+  "export_format_pdf": {
+    "cs": "PDF",
+    "en": "PDF"
+  },
+  "export_navigationTitle": {
+    "cs": "Export",
+    "en": "Export"
+  },
+  "export_picker_format": {
+    "cs": "Formát",
+    "en": "Format"
+  },
+  "export_report_dayTotal": {
+    "cs": "Celkem za den",
+    "en": "Day total"
+  },
+  "export_report_noEntries": {
+    "cs": "Žádné záznamy",
+    "en": "No entries"
+  },
+  "export_report_subtotal": {
+    "cs": "Mezisoučet",
+    "en": "Subtotal"
+  },
+  "export_report_title": {
+    "cs": "Jídelníček: %@",
+    "en": "Food diary: %@"
+  },
+  "foodConsumedDetail_button_save": {
+    "cs": "Uložit",
+    "en": "Save"
+  },
+  "foodConsumedDetail_label_mealType": {
+    "cs": "Zařazení",
+    "en": "Meal"
+  },
+  "foodConsumedDetail_label_time": {
+    "cs": "Čas zápisu",
+    "en": "Logged at"
+  },
+  "foodConsumedDetail_mealType_unassigned": {
+    "cs": "Podle času",
+    "en": "By time"
+  },
+  "foodItemReport_alert_placeholder": {
+    "cs": "Popište, co je u položky špatně",
+    "en": "Describe what's incorrect about this item"
+  },
+  "foodItemReport_alert_title": {
+    "cs": "Co je špatně?",
+    "en": "What's wrong?"
+  },
+  "foodItemReport_button_alreadyReported": {
+    "cs": "Již nahlášeno",
+    "en": "Already reported"
+  },
+  "foodItemReport_button_report": {
+    "cs": "Nahlásit chybný údaj",
+    "en": "Report incorrect data"
+  },
+  "foodItemReport_button_send": {
+    "cs": "Odeslat",
+    "en": "Send"
+  },
+  "foodItemReport_error_reasonRequired": {
+    "cs": "Napište prosím, co je špatně",
+    "en": "Please describe what's wrong"
+  },
+  "foodItemReport_error_reasonTooLong": {
+    "cs": "Zkraťte popis na 500 znaků",
+    "en": "Keep the description under 500 characters"
+  },
+  "foodPortion_button_add": {
+    "cs": "Přidat porci",
+    "en": "Add portion"
+  },
+  "foodPortion_error_invalidGrams": {
+    "cs": "Zadejte gramáž větší než 0",
+    "en": "Enter a weight greater than 0"
+  },
+  "foodPortion_error_invalidName": {
+    "cs": "Zadejte název porce",
+    "en": "Enter a portion name"
+  },
+  "foodPortion_error_tooMany": {
+    "cs": "Můžete přidat nejvýš 20 porcí",
+    "en": "You can add at most 20 portions"
+  },
+  "foodPortion_field_namePlaceholder": {
+    "cs": "Název (např. 1 balení)",
+    "en": "Name (e.g. 1 package)"
+  },
+  "foodPortion_quickAdd_package": {
+    "cs": "1 balení",
+    "en": "1 package"
+  },
+  "foodPortion_quickAdd_piece": {
+    "cs": "1 kus",
+    "en": "1 piece"
+  },
+  "foodPortion_quickAdd_spoon": {
+    "cs": "1 lžíce",
+    "en": "1 spoon"
+  },
+  "foodPortion_section_title": {
+    "cs": "Porce",
+    "en": "Portions"
+  },
+  "foodQuantity_button_add": {
+    "cs": "Přidat",
+    "en": "Add"
+  },
+  "foodQuantity_button_myPortions": {
+    "cs": "Moje porce",
+    "en": "My portions"
+  },
+  "foodQuantity_error_invalidQuantity": {
+    "cs": "Množství musí být větší než nula",
+    "en": "Amount must be greater than zero"
+  },
+  "foodQuantity_input_grams": {
+    "cs": "Množství",
+    "en": "Amount"
+  },
+  "foodQuantity_input_portions": {
+    "cs": "Počet porcí",
+    "en": "Servings"
+  },
+  "foodQuantity_label_mealType": {
+    "cs": "Zařazení",
+    "en": "Meal"
+  },
+  "foodQuantity_macro_calories": {
+    "cs": "Kalorie",
+    "en": "Calories"
+  },
+  "foodQuantity_macro_carbs": {
+    "cs": "Sacharidy",
+    "en": "Carbohydrates"
+  },
+  "foodQuantity_macro_fat": {
+    "cs": "Tuky",
+    "en": "Fat"
+  },
+  "foodQuantity_macro_fiber": {
+    "cs": "Vláknina",
+    "en": "Fibre"
+  },
+  "foodQuantity_macro_protein": {
+    "cs": "Bílkoviny",
+    "en": "Protein"
+  },
+  "foodQuantity_mealType_unassigned": {
+    "cs": "Podle času",
+    "en": "By time"
+  },
+  "foodQuantity_section_nutrition": {
+    "cs": "Výživa",
+    "en": "Nutrition"
+  },
+  "foodQuantity_unit_grams": {
+    "cs": "1 g",
+    "en": "1 g"
+  },
+  "foodQuantity_unit_hundredGrams": {
+    "cs": "100 g",
+    "en": "100 g"
+  },
+  "foodQuantity_unit_hundredMillilitres": {
+    "cs": "100 ml",
+    "en": "100 ml"
+  },
+  "foodQuantity_unit_millilitres": {
+    "cs": "1 ml",
+    "en": "1 ml"
+  },
+  "mealTypeSheet_button_create": {
+    "cs": "Vytvořit",
+    "en": "Create"
+  },
+  "mealTypeSheet_button_edit": {
+    "cs": "Upravit",
+    "en": "Edit"
+  },
+  "mealTypeSheet_button_editDone": {
+    "cs": "Hotovo",
+    "en": "Done"
+  },
+  "mealTypeSheet_datePicker_from": {
+    "cs": "Od",
+    "en": "From"
+  },
+  "mealTypeSheet_datePicker_to": {
+    "cs": "Do",
+    "en": "To"
+  },
+  "mealTypeSheet_error_deleteError": {
+    "cs": "Nastala chyba při mazání",
+    "en": "An error occurred while deleting"
+  },
+  "mealTypeSheet_error_duplicateName": {
+    "cs": "Jméno jídla musí být unikátní",
+    "en": "Meal name must be unique"
+  },
+  "mealTypeSheet_error_durationTooShort": {
+    "cs": "Minimální délka jídla je 30 minut",
+    "en": "Minimum meal duration is 30 minutes"
+  },
+  "mealTypeSheet_error_emptyName": {
+    "cs": "Zadej jméno jídla",
+    "en": "Enter a meal name"
+  },
+  "mealTypeSheet_error_lastMealType": {
+    "cs": "Alespoň jednou denně by se chtělo najíst 🍳😉",
+    "en": "You should eat at least once a day 🍳😉"
+  },
+  "mealTypeSheet_error_timeConflict": {
+    "cs": "Zadaný čas se překrývá s jinou kategorií jídla",
+    "en": "The entered time overlaps with another meal category"
+  },
+  "mealTypeSheet_error_unexpected": {
+    "cs": "Nastala nečekaná chyba",
+    "en": "An unexpected error occurred"
+  },
+  "mealTypeSheet_field_newMeal_placeholder": {
+    "cs": "Jedna snad, ale co druhá snídaně … 🧐?",
+    "en": "What about second breakfast … 🧐?"
+  },
+  "mealTypeSheet_section_mealLayout": {
+    "cs": "Rozvržení jídel",
+    "en": "Meal layout"
+  },
+  "moderation_button_approve": {
+    "cs": "Schválit",
+    "en": "Approve"
+  },
+  "moderation_button_reject": {
+    "cs": "Zamítnout",
+    "en": "Reject"
+  },
+  "moderation_button_resolve": {
+    "cs": "Vyřešeno",
+    "en": "Resolved"
+  },
+  "moderation_button_save": {
+    "cs": "Uložit",
+    "en": "Save"
+  },
+  "moderation_editor_saved": {
+    "cs": "Uloženo",
+    "en": "Saved"
+  },
+  "moderation_editor_searchPlaceholder": {
+    "cs": "Čárový kód",
+    "en": "Barcode"
+  },
+  "moderation_editor_title": {
+    "cs": "Úprava položky",
+    "en": "Edit catalogue item"
+  },
+  "moderation_error_alreadyExists": {
+    "cs": "Položka s tímto kódem už v katalogu je",
+    "en": "An item with this code is already in the catalogue"
+  },
+  "moderation_error_alreadyResolved": {
+    "cs": "Tuto žádost už vyřídil jiný správce",
+    "en": "This submission was already resolved by another maintainer"
+  },
+  "moderation_error_changedSinceReview": {
+    "cs": "Uživatel žádost mezitím upravil, zkontrolujte ji znovu",
+    "en": "The submission changed since you opened it — review it again"
+  },
+  "moderation_error_itemChangedSinceLoad": {
+    "cs": "Položka byla mezitím změněna, načtěte ji znovu",
+    "en": "This item changed since you loaded it — search again to see the latest version"
+  },
+  "moderation_error_reasonRequired": {
+    "cs": "Uveďte důvod zamítnutí",
+    "en": "Enter a reason for the rejection"
+  },
+  "moderation_queue_collision": {
+    "cs": "Tento čárový kód už v katalogu je",
+    "en": "This barcode is already in the catalogue"
+  },
+  "moderation_queue_empty": {
+    "cs": "Žádné položky ke schválení",
+    "en": "Nothing to review"
+  },
+  "moderation_queue_title": {
+    "cs": "Ke schválení",
+    "en": "Pending review"
+  },
+  "moderation_reject_reasonPlaceholder": {
+    "cs": "Důvod zamítnutí",
+    "en": "Reason for rejection"
+  },
+  "moderation_reports_count": {
+    "cs": "%lld× nahlášeno",
+    "en": "Reported %lld×"
+  },
+  "moderation_reports_empty": {
+    "cs": "Žádná nahlášení",
+    "en": "No reports"
+  },
+  "moderation_reports_title": {
+    "cs": "Nahlášení",
+    "en": "Reports"
+  },
+  "moderation_section_title": {
+    "cs": "Moderace",
+    "en": "Moderation"
+  },
+  "moderation_similarItems_empty": {
+    "cs": "Žádné podobné položky v katalogu",
+    "en": "No similar items in the catalogue"
+  },
+  "moderation_similarItems_title": {
+    "cs": "Podobné položky v katalogu",
+    "en": "Similar catalogue items"
+  },
+  "myCreatedMeal_button_delete": {
+    "cs": "Smazat jídlo",
+    "en": "Delete meal"
+  },
+  "myCreatedMeal_button_edit": {
+    "cs": "Upravit jídlo",
+    "en": "Edit meal"
+  },
+  "myCreatedMeal_button_save": {
+    "cs": "Uložit",
+    "en": "Save"
+  },
+  "myCreatedMeal_confirm_create": {
+    "cs": "Vytvořit toto jídlo?",
+    "en": "Create this meal?"
+  },
+  "myCreatedMeal_confirm_delete": {
+    "cs": "Smazat toto jídlo?",
+    "en": "Delete this meal?"
+  },
+  "myCreatedMeal_confirm_update": {
+    "cs": "Uložit změny?",
+    "en": "Save changes?"
+  },
+  "myCreatedMeal_error_deleteFailed": {
+    "cs": "Jídlo se nepodařilo smazat",
+    "en": "Could not delete the meal"
+  },
+  "myCreatedMeal_error_saveFailed": {
+    "cs": "Jídlo se nepodařilo uložit",
+    "en": "Could not save the meal"
+  },
+  "myCreatedMeal_field_namePlaceholder": {
+    "cs": "Název vlastního jídla … Guláš",
+    "en": "Custom meal name … Goulash"
+  },
+  "myCreatedMeal_ingredients_empty": {
+    "cs": "Vyhledej a přidej alespoň jednu potravinu",
+    "en": "Search and add at least one ingredient"
+  },
+  "myCreatedMeal_list_empty": {
+    "cs": "Zatím nemáš žádné vlastní jídlo",
+    "en": "You have no meals yet"
+  },
+  "myCreatedMeal_list_title": {
+    "cs": "Vlastní jídla",
+    "en": "My meals"
+  },
+  "myCreatedMeal_search_placeholder": {
+    "cs": "Přidej potravinu … třeba %@",
+    "en": "Add food … try %@"
+  },
+  "myCreatedMeal_section_catalogue": {
+    "cs": "Katalog potravin",
+    "en": "Food catalogue"
+  },
+  "myCreatedMeal_section_ingredients": {
+    "cs": "Potraviny",
+    "en": "Ingredients"
+  },
+  "myCreatedMeal_title_edit": {
+    "cs": "Upravit vlastní jídlo",
+    "en": "Edit meal"
+  },
+  "myCreatedMeal_title_new": {
+    "cs": "Sestav vlastní jídlo",
+    "en": "New meal"
+  },
+  "myPortions_button_save": {
+    "cs": "Uložit",
+    "en": "Save"
+  },
+  "myPortions_empty": {
+    "cs": "Zatím nemáte evidovanou žádnou vlastní porci pro danou potravinu nebo jídlo.",
+    "en": "You have not yet recorded any personal portion for this food item."
+  },
+  "myPortions_error_deleteFailed": {
+    "cs": "Porci se nepodařilo smazat",
+    "en": "Could not delete the portion"
+  },
+  "myPortions_error_saveFailed": {
+    "cs": "Porci se nepodařilo uložit",
+    "en": "Could not save the portion"
+  },
+  "myPortions_title": {
+    "cs": "Moje porce",
+    "en": "My portions"
+  }
+}

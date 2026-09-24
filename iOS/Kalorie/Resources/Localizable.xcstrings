@@ -1,34 +1,6 @@
 {
   "sourceLanguage" : "cs",
   "strings" : {
-    "" : {
-
-    },
-    "%lld" : {
-
-    },
-    "%lld kcal" : {
-
-    },
-    "%lld kcal / 100 %@" : {
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld kcal / 100 %2$@"
-          }
-        }
-      }
-    },
-    "0" : {
-
-    },
-    "1" : {
-
-    },
-    "100" : {
-
-    },
     "account_alert_deleteConfirmMessage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -318,23 +290,6 @@
         }
       }
     },
-    "account_signedIn_defaultName" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Přihlášen/a"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Signed in"
-          }
-        }
-      }
-    },
     "account_signInProvider_apple" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -365,6 +320,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Google"
+          }
+        }
+      }
+    },
+    "account_signedIn_defaultName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlášen/a"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signed in"
           }
         }
       }
@@ -1576,23 +1548,6 @@
         }
       }
     },
-    "common_button_done" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hotovo"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Done"
-          }
-        }
-      }
-    },
     "common_button_cancel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1606,6 +1561,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "common_button_done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotovo"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
           }
         }
       }
@@ -3122,12 +3094,6 @@
           }
         }
       }
-    },
-    "g" : {
-
-    },
-    "kcal" : {
-
     },
     "mealTypeSheet_button_create" : {
       "extractionState" : "manual",
