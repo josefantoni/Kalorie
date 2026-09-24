@@ -788,13 +788,13 @@ next; they are not migrated.
 `mealTypes.resolvedMealTypeId(for:)` (an adapter over `MealKit.resolvedMealWindowId`, which works
 on minutes — [ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)): a food **pinned to it** (`mealTypeId` names a meal type that
 still exists) resolves to that pin; otherwise it falls back to `mealType(at:)`, which sorts the
-meal types by `startTime` and returns the first whose window contains the food's time of day.
-`startTime` is a `Date`, but `FetchMealTypesUseCase` builds it by adding `startMinutes` to *today's*
-`startOfDay`, so the sort is by minutes since midnight and nothing else. That is the tie-break for
-overlapping windows — the one starting earlier in the day wins — and a client sorting on anything
+meal types by `startMinutes` and returns the first whose window contains the food's time of day.
+`MealTypeDomain` carries `startMinutes`/`endMinutes` exactly as stored, never a `Date`, so a DST
+transition day cannot shift a window and the sort is by minutes since midnight and nothing else.
+That is the tie-break for overlapping windows — the one starting earlier in the day wins — and a client sorting on anything
 else, or on stored dates, assigns an overlapping food to a different meal.
 Foods are grouped by their resolved id into a dictionary, then `groupedFoods` walks `mealTypes` in
-`startTime` order and emits a section for each one with a non-empty group — a meal type with
+`startMinutes` order and emits a section for each one with a non-empty group — a meal type with
 nothing resolved to it is skipped, so empty meals are not rendered. Foods that resolve to no meal
 type at all — outside every window, with no pin or an unresolvable one — collect into a trailing
 section with `mealType: nil`, rendered under `L10n.Dashboard.sectionUnassignedFoods`.

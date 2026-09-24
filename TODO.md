@@ -115,25 +115,3 @@ ones are listed below; closed findings live in git history, not here.
   implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
   much larger limit (and the read cost that implies) or the frequency data denormalised into the
   query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
-
-## Audit findings — 3. Dashboard and meal types
-
-- [ ] **A3-14 — On a DST transition day, meal windows shift by an hour, and a write that day
-  persists the shift.** Unverified — found by reading the code, not reproduced. The fix for
-  **A1-6** (`55ea1f3`) builds each window as `calendar.date(byAdding: .minute, value:
-  startMinutes, to: startOfDay(.now))` (`iOS/Kalorie/Core/UseCases/FetchMealTypesUseCase.swift:34-39`).
-  Adding minutes is elapsed time, so on the spring-forward day (e.g. 2026-03-29 in
-  `Europe/Prague`) a stored 07:00 becomes 08:00 wall-clock, and `minutesSinceMidnight` then reads
-  480 instead of 420. That skews meal assignment all day (§ 3.2). Worse, `UpdateMealTypeTimesUseCase.swift:37-38`,
-  `SetupDefaultMealsUseCase.swift:52-53` and `CreateMealTypeUseCase.swift:50-60` convert back
-  through the same `minutesSinceMidnight`, so a reorder or a new meal type that day writes the
-  shifted minutes to Firestore permanently. Fall-back day shifts the other way. Android copied the
-  same arithmetic (`FetchMealTypesUseCase.kt:29-35` with `Duration.ofMinutes`,
-  `SetupDefaultMealsUseCase.kt:41`). A1-6 traded *disappears* for *moves*.
-  [ADR 0014](docs/adr/0014-meal-assignment-by-time-of-day-only.md) Consequences already names the
-  direction: *"Storing minutes and comparing minutes is right; round-tripping them through `Date`
-  is the part that is fragile."* The likely fix is for `MealTypeDomain` to carry
-  `startMinutes`/`endMinutes`, with `Date` only for display. That reaches every meal-type use case
-  on both clients, so it wants its own analysis. Reproduce first: a `FetchMealTypesUseCase` test
-  with a `Europe/Prague` calendar and `.now` pinned to 2026-03-29 09:00.
-  The `MealKit` resolution function ([ADR 0039](docs/adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)) is compatible with either fix, since it takes minutes.
