@@ -36,9 +36,19 @@
       "expected": null
     },
     {
-      "name": "empty Czech name stops the fallback chain and yields not found",
+      "name": "empty Czech name falls through to the English one",
       "product": {"code": "8593807012345", "product_name_cs": "", "product_name_en": "Cottage cheese", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": null
+      "expected": {"id": "8593807012345", "czName": "Cottage cheese", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+    },
+    {
+      "name": "whitespace-only Czech name falls through to the English one",
+      "product": {"code": "8593807012345", "product_name_cs": "      ", "product_name_en": "Cottage cheese", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": {"id": "8593807012345", "czName": "Cottage cheese", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+    },
+    {
+      "name": "empty English name falls back to the Czech one",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
     },
     {
       "name": "HTML entities are decoded in both names",

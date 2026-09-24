@@ -52,15 +52,14 @@ struct OpenFoodFactsProductDTO: Decodable {
             let nutriments,
             let kcal = nutriments.energyKcal100g,
             kcal > 0,
-            let rawName = productNameCs ?? productNameEn ?? productName,
-            !rawName.isEmpty
+            let rawName = firstNonEmpty(productNameCs, productNameEn, productName)
         else { return nil }
         let displayName = rawName.decodingHTMLEntities()
         let fat = nutriments.fat100g ?? 0
         let saturatedFat = nutriments.saturatedFat100g ?? 0
         let carbohydrate = nutriments.carbohydrates100g ?? 0
         let protein = nutriments.proteins100g ?? 0
-        let rawOriginalName = productNameEn ?? productName ?? rawName
+        let rawOriginalName = firstNonEmpty(productNameEn, productName) ?? rawName
         return FoodItemDomain(
             id: code,
             kind: .external,
@@ -79,6 +78,12 @@ struct OpenFoodFactsProductDTO: Decodable {
             protein: protein,
             salt: nutriments.salt100g ?? 0
         )
+    }
+
+    private func firstNonEmpty(_ names: String?...) -> String? {
+        names
+            .compactMap { $0 }
+            .first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 }
 
