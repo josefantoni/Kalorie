@@ -640,9 +640,10 @@ Mapping OpenFoodFacts → `FoodItemDomain` has a fixed shape:
 - **Reject** anything without `nutriments`, without a positive `energy-kcal_100g`, or without
   any usable name. A partial item would render as 0 kcal, which is worse than "not found"; the
   caller treats `nil` as *product not found*.
-- **Name preference** is `product_name_cs` → `product_name_en` → `product_name` for the Czech
-  name, and `product_name_en` → `product_name` → the same raw name for the English one. Both
-  run through `TextKit`'s `decodingHTMLEntities()`, because OpenFoodFacts names contain raw
+- **Name preference** is the first non-empty of `product_name_cs` → `product_name_en` →
+  `product_name` for the Czech name, and of `product_name_en` → `product_name` → the same raw
+  name for the English one. A name that is empty or whitespace only is skipped; a non-empty name
+  is used as received, untrimmed. Both run through `TextKit`'s `decodingHTMLEntities()`, because OpenFoodFacts names contain raw
   entities.
 - **Every other nutrient defaults to `0`** when absent, and unsaturated fat is *derived* as
   `max(0, fat - saturatedFat)` — OpenFoodFacts does not publish it.

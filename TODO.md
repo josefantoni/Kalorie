@@ -116,14 +116,6 @@ ones are listed below; closed findings live in git history, not here.
   much larger limit (and the read cost that implies) or the frequency data denormalised into the
   query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
 
-- [ ] **A2-13 — An empty `product_name_cs` turns a usable OpenFoodFacts product into "not found".**
-  `OpenFoodFactsProductDTO.asDomain()` picks the name with `productNameCs ?? productNameEn ??
-  productName`, and `??` stops at an empty string, so a product with `product_name_cs: ""` and a
-  valid `product_name_en` fails the emptiness check and returns `nil`. Pinned as it is in
-  `fixtures/open-food-facts-mapping-cases.json` ([ADR 0039](docs/adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)
-  item 7); fixing it means changing the fixture first, then the mapping. Unverified how often
-  OpenFoodFacts sends an empty rather than an absent field.
-
 ## Audit findings — 3. Dashboard and meal types
 
 - [ ] **A3-14 — On a DST transition day, meal windows shift by an hour, and a write that day
