@@ -33,9 +33,13 @@ The app works with three kinds of data. The distinction matters for the items be
 
 ## Android readiness
 
-The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md));
-no Android app exists yet. What is left is deferred until that work starts.
+The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md)).
+A minimal scaffold exists in `Android/` ([ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md)
+Consequences) — no real screen yet. What is left is deferred until porting starts.
 
+- [ ] **Port the first real screen, replacing the scaffold** — `Android/app/.../scaffold/` is a
+  build-and-navigation proof, not a feature ([ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md)
+  Consequences); it has no iOS counterpart and should not stay once a real screen lands.
 - [ ] **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.

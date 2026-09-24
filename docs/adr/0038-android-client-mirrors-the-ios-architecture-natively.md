@@ -120,7 +120,17 @@ The day-to-day rules that follow from this are in `Android/CLAUDE.md`.
   does not cover them.
 - Rejected option B stays reachable in part: a pure piece of logic can move into KMP one module at
   a time without revisiting this record. Moving I/O into KMP would supersede item 2.
-- **Not verified:** everything above is written before an Android project exists. The first
-  scaffold must confirm that Navigation 3's ViewModel scoping (`lifecycle-viewmodel-navigation3`)
-  composes with `viewModel { ... }` from a Configurator, and that the kotlinx.serialization
-  bridge handles Firestore's `Long`/`Double` number split for fields declared `Double`.
+- Verified on 2026-09-23: a minimal scaffold in `Android/` (`app` module, `compileSdk` 37,
+  `minSdk` 26, AGP 9.4.1, `includeBuild` on all four KMP modules per ADR 0037 item 6) builds with
+  `./gradlew :app:assembleDebug` and tests with `./gradlew :app:testDebugUnitTest`. It confirms
+  Navigation 3's `NavDisplay` with `rememberViewModelStoreNavEntryDecorator()` composes with a
+  Configurator building its screen's `ViewModel` through `viewModel { ... }`, and that the
+  Configurator's screen reaches a KMP module's function (`MacroKit`'s `scaledCalories`) through the
+  substituted dependency. AGP 9's application plugin no longer takes the
+  `org.jetbrains.kotlin.android` plugin — Kotlin support is built in, unlike ExportKit's KMP
+  library plugin, which still needs it. This scaffold code has no iOS counterpart and is not a
+  feature; it is replaced once the first real screen is ported.
+- **Not verified:** the kotlinx.serialization bridge handles Firestore's `Long`/`Double` number
+  split for fields declared `Double`. Nothing in the scaffold reaches Firestore — there is no
+  `google-services.json` yet ([SETUP.md](../SETUP.md) § Android client lists what is still needed)
+  — so this waits for the first `FirestoreDataProviderProtocol` port.
