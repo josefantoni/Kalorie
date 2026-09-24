@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_ok">Dobrá</string>
+    <string name="common_error_unknown">Nastala neznámá chyba</string>
+    <string name="common_error_unknown_message">Zkus to prosím za chvíli znovu.</string>
+    <string name="common_error_offline">Nepodařilo se připojit k serveru.</string>
+    <string name="common_error_offline_message">Zkontroluj připojení k internetu a zkus to znovu.</string>
+    <string name="common_button_yes">Ano</string>
+    <string name="common_button_no">Ne</string>
+    <string name="common_unit_grams">g</string>
+    <string name="common_unit_millilitres">ml</string>
+    <string name="auth_error_signInFailed">Nepodařilo se přihlásit</string>
+    <string name="auth_button_retry">Zkusit znovu</string>
+    <string name="dashboard_section_unassignedFoods">Ostatní nezařazená jídla</string>
+    <string name="dashboard_empty_title">Žádné záznamy jídel</string>
+    <string name="dashboard_empty_description">Ještě jste dnes nic nesnědli, přidejme nějaké jídlo</string>
+    <string name="dashboard_empty_title_past">Žádné snězené jídlo.</string>
+    <string name="dashboard_empty_description_past">Zpátky do minulosti přidáním jídla! 🚀</string>
+    <string name="dashboard_empty_title_future">Plánuješ jídlo na budoucnost?</string>
+    <string name="dashboard_empty_description_future">Záznamy teprve vzniknou — ale klidně jim dnes pomož.</string>
+    <string name="dashboard_confirm_deleteFood">Smazat tento záznam jídla?</string>
+    <string name="dashboard_error_deleteFailed">Potravinu se nepodařilo smazat</string>
+    <string name="defaultMeals_breakfast">Snídaně</string>
+    <string name="defaultMeals_secondBreakfast">Druhá snídaně</string>
+    <string name="defaultMeals_lunch">Oběd</string>
+    <string name="defaultMeals_snack">Svačina</string>
+    <string name="defaultMeals_dinner">Večeře</string>
+    <string name="foodQuantity_macro_protein">Bílkoviny</string>
+    <string name="foodQuantity_macro_carbs">Sacharidy</string>
+    <string name="foodQuantity_macro_fat">Tuky</string>
+    <string name="addFood_field_carbsSugar">z toho cukry</string>
+    <string name="addFood_field_fatUnsaturated">z toho nenasycené</string>
+    <string name="addFood_field_fiber">Vláknina</string>
+    <string name="addFood_field_salt">Sůl</string>
+</resources>

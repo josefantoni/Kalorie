@@ -1,0 +1,113 @@
+package antoni.kalorie.core.networking
+
+import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.core.utils.Log
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Source
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.tasks.await
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
+
+sealed class FirestoreDataProviderError : Exception() {
+    data object Unreachable : FirestoreDataProviderError()
+}
+
+interface FirestoreDataProviderProtocol {
+    suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T>
+    suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T>
+    suspend fun <T> loadAsync(
+        from: String,
+        field: String,
+        isGreaterThanOrEqualTo: Double,
+        isLessThan: Double,
+        serializer: KSerializer<T>,
+    ): List<T>
+    suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>)
+    suspend fun deleteAsync(id: String, from: String)
+}
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(from: String): List<T> =
+    loadAsync(from, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadFromServerAsync(from: String): List<T> =
+    loadFromServerAsync(from, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(
+    from: String,
+    field: String,
+    isGreaterThanOrEqualTo: Double,
+    isLessThan: Double,
+): List<T> = loadAsync(from, field, isGreaterThanOrEqualTo, isLessThan, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.batchSetAsync(
+    items: List<Pair<T, String>>,
+    inCollection: String,
+): Unit = batchSetAsync(items, inCollection, serializer<T>())
+
+class FirestoreDataProvider(
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
+) : FirestoreDataProviderProtocol {
+
+    // MARK: - Functions
+
+    override suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T> =
+        perform {
+            val snapshot = firestore.collection(from).get().await()
+            snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+        }
+
+    override suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T> =
+        perform {
+            val snapshot = firestore.collection(from).get(Source.SERVER).await()
+            snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+        }
+
+    override suspend fun <T> loadAsync(
+        from: String,
+        field: String,
+        isGreaterThanOrEqualTo: Double,
+        isLessThan: Double,
+        serializer: KSerializer<T>,
+    ): List<T> = perform {
+        val snapshot = firestore
+            .collection(from)
+            .whereGreaterThanOrEqualTo(field, isGreaterThanOrEqualTo)
+            .whereLessThan(field, isLessThan)
+            .get()
+            .await()
+        snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+    }
+
+    override suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>) {
+        perform {
+            for (chunk in items.chunked(Constants.Firestore.BATCH_WRITE_LIMIT)) {
+                val batch = firestore.batch()
+                for ((item, id) in chunk) {
+                    batch.set(firestore.collection(inCollection).document(id), FirestoreDataMapper.encode(item, serializer))
+                }
+                batch.commit().await()
+            }
+        }
+    }
+
+    override suspend fun deleteAsync(id: String, from: String) {
+        perform {
+            firestore.collection(from).document(id).delete().await()
+        }
+    }
+
+    // MARK: - Private
+
+    private suspend fun <R> perform(block: suspend () -> R): R =
+        try {
+            block()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.FIRESTORE)
+            val isUnavailable = error is FirebaseFirestoreException && error.code == FirebaseFirestoreException.Code.UNAVAILABLE
+            throw if (isUnavailable) FirestoreDataProviderError.Unreachable else error
+        }
+}
