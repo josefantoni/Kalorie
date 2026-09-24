@@ -6,6 +6,7 @@ object Constants {
         const val FIRESTORE = "firestore"
         const val AUTH = "auth"
         const val DASHBOARD = "dashboard"
+        const val MEAL_TYPE_SHEET = "mealTypeSheet"
     }
 
     object Firestore {

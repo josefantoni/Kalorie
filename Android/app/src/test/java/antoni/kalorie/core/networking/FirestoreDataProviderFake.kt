@@ -13,6 +13,10 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var stubbedError: Exception? = null
     var batchSavedCollection: String? = null
     var batchSavedCount = 0
+    var batchSavedItems: List<Pair<Any?, String>> = emptyList()
+    var setSavedCollection: String? = null
+    var setSavedId: String? = null
+    var setSavedItem: Any? = null
     var deletedFromCollection: String? = null
     var deletedId: String? = null
 
@@ -36,7 +40,14 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         serializer: KSerializer<T>,
     ): List<T> = stubbedRangeDocuments(isGreaterThanOrEqualTo, isLessThan) as List<T>
 
+    override suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
+        setSavedItem = item
+        setSavedId = id
+        setSavedCollection = inCollection
+    }
+
     override suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>) {
+        batchSavedItems = items
         batchSavedCollection = inCollection
         batchSavedCount = items.size
     }
