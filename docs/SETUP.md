@@ -132,7 +132,7 @@ in Release and disabled in `DEBUG` (`AppDelegate.application(_:didFinishLaunchin
 | `kmp` | `ubuntu-latest` | `ExportKit/`, `MacroKit/`, `MealKit/`, `TextKit/` | `jvmTest` for every module, ExportKit Android AAR |
 | `ios` | `macos-26` | `iOS/`, `scripts/build-kmp-framework.sh`, any KMP module | Builds the XCFrameworks, `xcodebuild test` |
 | `android` | `ubuntu-latest` | `Android/`, any KMP module | `:app:assembleDebug` and `:app:testDebugUnitTest` |
-| `l10n` | `ubuntu-latest` | `Localizable.xcstrings`, Android `strings.xml`, the generator in `scripts/` | Fails when the generated Android strings differ from the catalogue (ARCHITECTURE § 5.3); runs the generator's tests |
+| `l10n` | `ubuntu-latest` | `localisation/`, the generated `Localizable.xcstrings` and Android `strings.xml`, the generator in `scripts/` | Fails when a generated string file differs from `localisation/strings.json` (ARCHITECTURE § 5.3); runs the generator's tests |
 
 Any change under `.github/workflows/` runs every job. `docs/`, `TODO.md`, `README.md` and
 `CLAUDE.md` run none.
