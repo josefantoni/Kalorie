@@ -32,3 +32,17 @@ fun isMealWindowLongEnough(
     minimumDurationMinutes: Int = MIN_MEAL_WINDOW_MINUTES
 ): Boolean =
     dayRanges(startMinutes, endMinutes).sumOf { (start, end) -> end - start } >= minimumDurationMinutes
+
+data class MealWindow(val id: String, val startMinutes: Int, val endMinutes: Int)
+
+fun mealWindowAt(minutes: Int, windows: List<MealWindow>): MealWindow? =
+    windows.sortedBy { it.startMinutes }.firstOrNull {
+        isMinuteWithinWindow(minutes, it.startMinutes, it.endMinutes)
+    }
+
+fun resolvedMealWindowId(minutes: Int, pinnedId: String?, windows: List<MealWindow>): String? =
+    if (pinnedId != null && windows.any { it.id == pinnedId }) {
+        pinnedId
+    } else {
+        mealWindowAt(minutes, windows)?.id
+    }
