@@ -40,6 +40,74 @@ Consequences) — no real screen yet. What is left is deferred until porting sta
 - [ ] **Port the first real screen, replacing the scaffold** — `Android/app/.../scaffold/` is a
   build-and-navigation proof, not a feature ([ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md)
   Consequences); it has no iOS counterpart and should not stay once a real screen lands.
+  **Decided: the first screen is the Dashboard alone, with the anonymous-data merge deferred.**
+  Handoff for the implementing session — read `Android/CLAUDE.md` first (it is local-only, the
+  global gitignore excludes `CLAUDE.md`), then ARCHITECTURE § 3 and § 6 *Read first* lists.
+  - **Android Studio is not needed to create anything.** The Gradle project exists and builds from
+    the command line; never run its New Project wizard over `Android/`. The user opens `Android/`
+    in Studio only to run the result on an emulator.
+  - **Prerequisite (user):** `google-services.json` copied into `Android/app/`. It is gitignored
+    (`.gitignore:44`) and cannot be generated.
+  - **Gradle:** add `com.google.gms.google-services` (root `apply false` + app), the Firebase BoM
+    with `firebase-auth` and `firebase-firestore`, `kotlinx-coroutines-play-services`, and
+    `implementation("kalorie:MealKit")` — `MealTypeModel.swift:9` imports MealKit, the app only
+    depends on MacroKit today. Check current versions per `docs/SETUP.md:103`. Crashlytics is out
+    of scope. CI does not build `:app` (`.github/workflows/ci.yml:41` builds ExportKit only), so no
+    CI secret is needed yet; adding `:app` to CI later needs `google-services.json` as a secret.
+  - **What to port** (same names, one Kotlin file per Swift file, packages per `Android/CLAUDE.md`):
+    - `Core/Utils/Constants.swift` (only the Firestore paths and `Time` constants used below),
+      `Core/Utils/LoadingState.swift`, `Core/Utils/AlertItem.swift`.
+    - `Core/Auth/AuthProvider.swift` + `AuthProviderFake` (`:60`).
+    - `Core/Auth/AuthStateObserver.swift` **without** `resumePendingMerge`, `isMerging`,
+      `beginMerge`/`endMerge` and `MergeStatusReporting` — see the deferred-merge item below. It
+      keeps the auth-state listener and `signInAnonymously`.
+    - `FirestoreDataProvider.swift` — the interface gets **only** the five methods the Dashboard
+      calls: `loadAsync(from:)`, `loadFromServerAsync(from:)`, the range `loadAsync(... isGreaterThanOrEqualTo:isLessThan:)`,
+      `batchSetAsync` and `deleteAsync`. The rest arrive with the use cases that need them.
+      `FirestoreDataProviderFake` lives at `iOS/KalorieTests/CreateFoodItemUseCaseTests.swift:164`;
+      port it to `app/src/test/` trimmed to the same five methods.
+    - DTOs and domain: `MealTypeDTO`, `FoodConsumedDTO`, `MealTypeModel`, `FoodConsumedModel`.
+      **Copy `CodingKeys` verbatim** — `mealTypes` uses camelCase (`startMinutes`, `endMinutes`),
+      so the `snake_case` example in `Android/CLAUDE.md` does not apply to every collection.
+    - Use cases, each with its fake (`app/src/debug/`) and its ported `…Tests.swift`:
+      `FetchMealTypes`, `FetchFoodsConsumedForMonth`, `SetupDefaultMeals`, `ConfirmMealTypesEmpty`,
+      `DeleteFoodConsumed`.
+    - `Features/Dashboard/`: `DashboardViewModel` (in full, including the `show…Sheet` flags, with
+      `DashboardViewModelTests` ported in full), `DashboardView`, `DashboardConfigurator`,
+      `DayPickerView`, `MacroSummaryView`, `MealSectionMacroView`, `MonthCalendarView`.
+    - Only the ~13 `L10n.Dashboard.*` / `L10n.Common.*` keys these views use, into
+      `res/values/strings.xml` (the xcstrings source language, `cs`) and `res/values-en/`. This does
+      not decide the *Shared localisation source* item below.
+  - **What not to port:** `DashboardRouter` and its four destinations (meal-type sheet, add-food
+    sheet, food detail, account). Leave out their entry points in the View — the FAB, the
+    meal-layout and account toolbar buttons, and the row tap. The calendar sheet, the delete
+    confirmation and the alert stay, since they are Dashboard's own. The ViewModel keeps the flags
+    so its tests stay a 1:1 port; the Router is ported with the first destination.
+  - **Gotchas:**
+    - The rebuild on auth change (`KalorieApp.swift`, `.id(authState.userId)`) needs the
+      ViewModel itself keyed by `userId` (`viewModel(key = userId) { … }`); Compose's `key()` alone
+      does not discard a `ViewModel`.
+    - Month bounds in `FetchFoodsConsumedForMonthUseCase.swift:33-35` use the device calendar and
+      time zone; use `java.time` with `ZoneId.systemDefault()` and pass epoch **seconds** as
+      `Double`.
+    - DTO decoding goes through kotlinx.serialization from `DocumentSnapshot.data`, never
+      `toObject()`. Cover the bridge with a unit test feeding a `Long` into a `Double` field —
+      ADR 0038 lists that as not verified.
+  - **Then:** delete `Android/app/.../scaffold/` and its test, point `MainActivity` at the
+    `AuthStateObserver` → `DashboardConfigurator` flow, and remove this item.
+  - **Done when:** `./gradlew :app:assembleDebug` and `:app:testDebugUnitTest` pass (report the
+    test count), and the user sees on an emulator that a fresh install signs in anonymously,
+    creates the default meal sections and shows the empty state, and that the day picker and
+    calendar switch days. There is no way to add food on Android yet, so a non-empty day can only
+    be checked by hand later.
+- [ ] **Anonymous-data merge on Android** — deferred from the Dashboard port above. On iOS
+  `AuthStateObserver` resumes a pending merge (`MigrateAnonymousDataUseCase.resumeIfNeeded`) before
+  publishing the user; Android leaves it out because it has no sign-in, so no merge can ever be
+  pending. It has to land together with the first sign-in screen (Account), with
+  `MergeStatusReporting` and the merging overlay from `KalorieApp.swift`. Read ARCHITECTURE § 6,
+  [ADR 0002](docs/adr/0002-merge-anonymous-data-before-switching-accounts.md) and
+  [ADR 0004](docs/adr/0004-migrate-usecase-exposes-two-methods.md) first — the merge algorithm is
+  `Cross-platform`.
 - [ ] **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.

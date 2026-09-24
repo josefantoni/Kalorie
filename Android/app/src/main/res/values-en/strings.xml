@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_ok">OK</string>
+    <string name="common_error_unknown">An unknown error occurred</string>
+    <string name="common_error_unknown_message">Please try again in a moment.</string>
+    <string name="common_error_offline">Couldn\'t reach the server.</string>
+    <string name="common_error_offline_message">Check your connection and try again.</string>
+    <string name="common_button_yes">Yes</string>
+    <string name="common_button_no">No</string>
+    <string name="common_unit_grams">g</string>
+    <string name="common_unit_millilitres">ml</string>
+    <string name="auth_error_signInFailed">Sign in failed</string>
+    <string name="auth_button_retry">Try again</string>
+    <string name="dashboard_section_unassignedFoods">Other unassigned foods</string>
+    <string name="dashboard_empty_title">No food records</string>
+    <string name="dashboard_empty_description">You haven\'t eaten anything today, let\'s add some food</string>
+    <string name="dashboard_empty_title_past">No food eaten.</string>
+    <string name="dashboard_empty_description_past">Go back and add some food! 🚀</string>
+    <string name="dashboard_empty_title_future">Planning meals for the future?</string>
+    <string name="dashboard_empty_description_future">Records don\'t exist yet — but feel free to help them along today.</string>
+    <string name="dashboard_confirm_deleteFood">Delete this food entry?</string>
+    <string name="dashboard_error_deleteFailed">Could not delete the food</string>
+    <string name="defaultMeals_breakfast">Breakfast</string>
+    <string name="defaultMeals_secondBreakfast">Second breakfast</string>
+    <string name="defaultMeals_lunch">Lunch</string>
+    <string name="defaultMeals_snack">Snack</string>
+    <string name="defaultMeals_dinner">Dinner</string>
+    <string name="foodQuantity_macro_protein">Protein</string>
+    <string name="foodQuantity_macro_carbs">Carbohydrates</string>
+    <string name="foodQuantity_macro_fat">Fat</string>
+    <string name="addFood_field_carbsSugar">of which sugars</string>
+    <string name="addFood_field_fatUnsaturated">of which unsaturated</string>
+    <string name="addFood_field_fiber">Fibre</string>
+    <string name="addFood_field_salt">Salt</string>
+</resources>
