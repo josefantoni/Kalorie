@@ -140,6 +140,7 @@ Android/.gradle/
 Android/.kotlin/
 Android/.idea/
 Android/local.properties
+ExportKit/local.properties
 Android/app/build/
 
 ### Admin scripts ###
