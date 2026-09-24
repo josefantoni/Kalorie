@@ -25,6 +25,7 @@ jobs:
             rules:
               - 'backend/**'
               - 'firestore-rules-tests/**'
+              - 'fixtures/**'
             kmp:
               - 'ExportKit/**'
               - 'MacroKit/**'
@@ -33,8 +34,10 @@ jobs:
             ios:
               - 'iOS/**'
               - 'scripts/build-kmp-framework.sh'
+              - 'fixtures/**'
             android:
               - 'Android/**'
+              - 'fixtures/**'
             l10n:
               - 'localisation/**'
               - 'iOS/Kalorie/Resources/Localizable.xcstrings'

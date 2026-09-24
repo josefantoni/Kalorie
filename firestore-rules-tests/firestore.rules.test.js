@@ -128,21 +128,16 @@ describe('foodItems', () => {
     await assertFails(deleteDoc(doc(maintainer(), `foodItems/${BARCODE}`)));
   });
 
-  for (const id of ['12345678', '123456789012', '1234567890123']) {
-    it(`accepts a ${id.length}-digit barcode id`, async () => {
-      await assertSucceeds(setDoc(doc(maintainer(), `foodItems/${id}`), foodItem(id)));
+  const { itemId: itemIdCases } = JSON.parse(
+    readFileSync(path.join(__dirname, '../fixtures/food-item-validation-cases.json'), 'utf8')
+  );
+
+  for (const { input, valid } of itemIdCases) {
+    it(`${valid ? 'accepts' : 'rejects'} the id "${input}"`, async () => {
+      const write = setDoc(doc(maintainer(), `foodItems/${input}`), foodItem(input));
+      await (valid ? assertSucceeds(write) : assertFails(write));
     });
   }
-
-  for (const id of ['1234567', '123456789', '12345678901234', '12345678A', UUID.toLowerCase(), 'not-an-id']) {
-    it(`rejects the id "${id}"`, async () => {
-      await assertFails(setDoc(doc(maintainer(), `foodItems/${id}`), foodItem(id)));
-    });
-  }
-
-  it('accepts an uppercase hyphenated UUID id', async () => {
-    await assertSucceeds(setDoc(doc(maintainer(), `foodItems/${UUID}`), foodItem(UUID)));
-  });
 
   it('requires the id field to equal the document id', async () => {
     await assertFails(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem('12345678')));

@@ -1,0 +1,43 @@
+{
+  "itemId": [
+    { "input": "12345678", "valid": true },
+    { "input": "123456789012", "valid": true },
+    { "input": "1234567890123", "valid": true },
+    { "input": "3F2504E0-4F89-41D3-9A0C-0305E82C3301", "valid": true },
+    { "input": "1234567", "valid": false },
+    { "input": "123456789", "valid": false },
+    { "input": "12345678901234", "valid": false },
+    { "input": "12345678A", "valid": false },
+    { "input": "3f2504e0-4f89-41d3-9a0c-0305e82c3301", "valid": false },
+    { "input": "not-an-id", "valid": false },
+    { "input": "3F2504E0-4f89-41D3-9A0C-0305E82C3301", "valid": false },
+    { "input": "3F2504E04F8941D39A0C0305E82C3301", "valid": false },
+    { "input": "1-1-1-1-1", "valid": false },
+    { "input": "١٢٣٤٥٦٧٨", "valid": false },
+    { "input": "１２３４５６７８", "valid": false }
+  ],
+  "foodItemBase": { "id": "12345678", "czName": "Tvaroh", "caloriesPerHundredGrams": 80, "weight": 200, "portions": [] },
+  "foodItem": [
+    { "name": "valid base item", "overrides": {}, "expected": null },
+    { "name": "invalid code", "overrides": {"id": "123456789"}, "expected": "invalidCode" },
+    { "name": "uppercase UUID id", "overrides": {"id": "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D"}, "expected": null },
+    { "name": "empty name", "overrides": {"czName": ""}, "expected": "invalidName" },
+    { "name": "whitespace-only name is not empty", "overrides": {"czName": "   "}, "expected": null },
+    { "name": "zero calories", "overrides": {"caloriesPerHundredGrams": 0}, "expected": "invalidCalories" },
+    { "name": "negative calories", "overrides": {"caloriesPerHundredGrams": -1}, "expected": "invalidCalories" },
+    { "name": "zero weight", "overrides": {"weight": 0}, "expected": "invalidWeight" },
+    { "name": "negative weight", "overrides": {"weight": -5}, "expected": "invalidWeight" },
+    { "name": "code and name both invalid: code is reported", "overrides": {"id": "1234567", "czName": ""}, "expected": "invalidCode" },
+    { "name": "name and calories both invalid: name is reported", "overrides": {"czName": "", "caloriesPerHundredGrams": 0}, "expected": "invalidName" },
+    { "name": "calories and weight both invalid: calories are reported", "overrides": {"caloriesPerHundredGrams": 0, "weight": 0}, "expected": "invalidCalories" },
+    { "name": "weight and portion both invalid: weight is reported", "overrides": {"weight": 0, "portions": [{"name": "", "grams": 10}]}, "expected": "invalidWeight" },
+    { "name": "blank-after-trim portion name", "overrides": {"portions": [{"name": "  \n ", "grams": 10}]}, "expected": "invalidPortion.invalidName" },
+    { "name": "portion grams 0.99", "overrides": {"portions": [{"name": "Slice", "grams": 0.99}]}, "expected": "invalidPortion.invalidGrams" },
+    { "name": "portion grams exactly 1", "overrides": {"portions": [{"name": "Slice", "grams": 1}]}, "expected": null },
+    { "name": "first invalid portion is reported: name before grams", "overrides": {"portions": [{"name": "", "grams": 10}, {"name": "B", "grams": 0}]}, "expected": "invalidPortion.invalidName" },
+    { "name": "first invalid portion is reported: grams before name", "overrides": {"portions": [{"name": "A", "grams": 0}, {"name": "", "grams": 10}]}, "expected": "invalidPortion.invalidGrams" },
+    { "name": "20 portions", "overrides": {"portions": [{"name": "P0", "grams": 10}, {"name": "P1", "grams": 10}, {"name": "P2", "grams": 10}, {"name": "P3", "grams": 10}, {"name": "P4", "grams": 10}, {"name": "P5", "grams": 10}, {"name": "P6", "grams": 10}, {"name": "P7", "grams": 10}, {"name": "P8", "grams": 10}, {"name": "P9", "grams": 10}, {"name": "P10", "grams": 10}, {"name": "P11", "grams": 10}, {"name": "P12", "grams": 10}, {"name": "P13", "grams": 10}, {"name": "P14", "grams": 10}, {"name": "P15", "grams": 10}, {"name": "P16", "grams": 10}, {"name": "P17", "grams": 10}, {"name": "P18", "grams": 10}, {"name": "P19", "grams": 10}]}, "expected": null },
+    { "name": "21 portions", "overrides": {"portions": [{"name": "P0", "grams": 10}, {"name": "P1", "grams": 10}, {"name": "P2", "grams": 10}, {"name": "P3", "grams": 10}, {"name": "P4", "grams": 10}, {"name": "P5", "grams": 10}, {"name": "P6", "grams": 10}, {"name": "P7", "grams": 10}, {"name": "P8", "grams": 10}, {"name": "P9", "grams": 10}, {"name": "P10", "grams": 10}, {"name": "P11", "grams": 10}, {"name": "P12", "grams": 10}, {"name": "P13", "grams": 10}, {"name": "P14", "grams": 10}, {"name": "P15", "grams": 10}, {"name": "P16", "grams": 10}, {"name": "P17", "grams": 10}, {"name": "P18", "grams": 10}, {"name": "P19", "grams": 10}, {"name": "P20", "grams": 10}]}, "expected": "invalidPortion.tooMany" },
+    { "name": "invalid portion is reported before too many", "overrides": {"portions": [{"name": "P0", "grams": 10}, {"name": "P1", "grams": 10}, {"name": "P2", "grams": 10}, {"name": "P3", "grams": 10}, {"name": "P4", "grams": 10}, {"name": "P5", "grams": 10}, {"name": "P6", "grams": 10}, {"name": "P7", "grams": 10}, {"name": "P8", "grams": 10}, {"name": "P9", "grams": 10}, {"name": "P10", "grams": 10}, {"name": "P11", "grams": 10}, {"name": "P12", "grams": 10}, {"name": "P13", "grams": 10}, {"name": "P14", "grams": 10}, {"name": "P15", "grams": 10}, {"name": "P16", "grams": 10}, {"name": "P17", "grams": 10}, {"name": "P18", "grams": 10}, {"name": "P19", "grams": 10}, {"name": "", "grams": 10}]}, "expected": "invalidPortion.invalidName" }
+  ]
+}
