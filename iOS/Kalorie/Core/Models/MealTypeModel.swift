@@ -20,23 +20,27 @@ struct MealTypeDomain {
 
 extension [MealTypeDomain] {
     func mealType(at date: Date) -> MealTypeDomain? {
-        let minutes = date.minutesSinceMidnight
-        return sorted { $0.startTime < $1.startTime }.first {
-            MealWindowsKt.isMinuteWithinWindow(
-                minutes: minutes,
+        guard let id = MealWindowsKt.mealWindowAt(minutes: date.minutesSinceMidnight, windows: mealWindows)?.id else {
+            return nil
+        }
+        return first { $0.id == id }
+    }
+
+    func resolvedMealTypeId(for food: FoodConsumedDomain) -> String? {
+        MealWindowsKt.resolvedMealWindowId(
+            minutes: food.date.minutesSinceMidnight,
+            pinnedId: food.mealTypeId,
+            windows: mealWindows
+        )
+    }
+
+    private var mealWindows: [MealWindow] {
+        map {
+            MealWindow(
+                id: $0.id,
                 startMinutes: $0.startTime.minutesSinceMidnight,
                 endMinutes: $0.endTime.minutesSinceMidnight
             )
         }
-    }
-
-    func resolvedMealTypeId(for food: FoodConsumedDomain) -> String? {
-        if
-            let pinnedMealTypeId = food.mealTypeId,
-            contains(where: { $0.id == pinnedMealTypeId })
-        {
-            return pinnedMealTypeId
-        }
-        return mealType(at: food.date)?.id
     }
 }

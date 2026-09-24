@@ -1,6 +1,22 @@
 {
   "sourceLanguage" : "cs",
   "strings" : {
+    "%@" : {
+
+    },
+    "%@ kcal" : {
+
+    },
+    "%@ kcal / 100 %@" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ kcal / 100 %2$@"
+          }
+        }
+      }
+    },
     "account_alert_deleteConfirmMessage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -290,6 +306,23 @@
         }
       }
     },
+    "account_signedIn_defaultName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlášen/a"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signed in"
+          }
+        }
+      }
+    },
     "account_signInProvider_apple" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -320,23 +353,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Google"
-          }
-        }
-      }
-    },
-    "account_signedIn_defaultName" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Přihlášen/a"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Signed in"
           }
         }
       }
@@ -3094,6 +3110,12 @@
           }
         }
       }
+    },
+    "g" : {
+
+    },
+    "kcal" : {
+
     },
     "mealTypeSheet_button_create" : {
       "extractionState" : "manual",
