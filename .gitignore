@@ -135,6 +135,13 @@ ExportKit/.gradle/
 ExportKit/build/
 ExportKit/.kotlin/
 
+### Android app ###
+Android/.gradle/
+Android/.kotlin/
+Android/.idea/
+Android/local.properties
+Android/app/build/
+
 ### Admin scripts ###
 scripts/secrets/
 scripts/node_modules/
