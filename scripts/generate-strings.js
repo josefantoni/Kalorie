@@ -11,8 +11,10 @@ const res = path.join(root, 'Android', 'app', 'src', 'main', 'res');
 const isCheck = process.argv.includes('--check');
 const strings = JSON.parse(fs.readFileSync(source, 'utf8'));
 const android = generateAndroidStrings(strings);
+const xcstrings = path.join(root, 'iOS', 'Kalorie', 'Resources', 'Localizable.xcstrings');
+const existingXcstrings = fs.existsSync(xcstrings) ? fs.readFileSync(xcstrings, 'utf8') : null;
 const outputs = {
-  [path.join(root, 'iOS', 'Kalorie', 'Resources', 'Localizable.xcstrings')]: generateXcstrings(strings),
+  [xcstrings]: generateXcstrings(strings, existingXcstrings),
   [path.join(res, 'values', 'strings.xml')]: android.cs,
   [path.join(res, 'values-en', 'strings.xml')]: android.en,
 };
