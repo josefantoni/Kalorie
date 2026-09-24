@@ -69,16 +69,33 @@ function xcodeJson(value, indent = '') {
   return `{\n${lines.join(',\n')}\n${indent}}`;
 }
 
-function generateXcstrings(source) {
+// Xcode orders catalogue keys ignoring case and rewrites the file on build, so match it.
+function xcodeOrder(a, b) {
+  const [x, y] = [a.toLowerCase(), b.toLowerCase()];
+  if (x !== y) return x < y ? -1 : 1;
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+// Xcode adds keys it extracts from source code; they are not in strings.json and must survive.
+function extractedEntries(existing, source) {
+  if (!existing) return {};
+  const { strings = {} } = JSON.parse(existing);
+  return Object.fromEntries(
+    Object.entries(strings).filter(([key, value]) => !(key in source) && value.extractionState !== 'manual')
+  );
+}
+
+function generateXcstrings(source, existing = null) {
   const keys = validateSource(source);
-  const strings = {};
+  const entries = extractedEntries(existing, source);
   for (const key of keys) {
     const localizations = {};
     for (const language of LANGUAGES) {
       localizations[language] = { stringUnit: { state: 'translated', value: source[key][language] } };
     }
-    strings[key] = { extractionState: 'manual', localizations };
+    entries[key] = { extractionState: 'manual', localizations };
   }
+  const strings = Object.fromEntries(Object.keys(entries).sort(xcodeOrder).map((key) => [key, entries[key]]));
   return xcodeJson({ sourceLanguage: 'cs', strings, version: '1.0' });
 }
 

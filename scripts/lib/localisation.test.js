@@ -109,6 +109,30 @@ test('xcstrings_usesXcodesLayoutSoOpeningTheFileInXcodeDoesNotReformatIt', () =>
   );
 });
 
+test('xcstrings_ordersKeysIgnoringCaseSoAnXcodeRewriteDoesNotMakeTheCheckFail', () => {
+  const output = JSON.parse(generateXcstrings({ account_signInProvider_apple: entry('Apple'), account_signedIn_name: entry('Jméno') }));
+  assert.deepEqual(Object.keys(output.strings), ['account_signedIn_name', 'account_signInProvider_apple']);
+});
+
+test('xcstrings_keepsKeysXcodeExtractedFromCodeAndDropsRemovedManualKeys', () => {
+  const existing = JSON.stringify({
+    strings: {
+      g: {},
+      removed_key: { extractionState: 'manual', localizations: {} },
+      common_ok: { extractionState: 'manual', localizations: {} },
+    },
+  });
+  const output = JSON.parse(generateXcstrings({ common_ok: entry('Dobrá', 'OK') }, existing));
+  assert.deepEqual(Object.keys(output.strings), ['common_ok', 'g']);
+  assert.equal(output.strings.common_ok.localizations.en.stringUnit.value, 'OK');
+});
+
+test('xcstrings_isStableWhenRegeneratedFromItsOwnOutput', () => {
+  const source = { common_ok: entry('Dobrá', 'OK') };
+  const first = generateXcstrings(source, JSON.stringify({ strings: { g: {} } }));
+  assert.equal(generateXcstrings(source, first), first);
+});
+
 test('xcstrings_keepsFormatSpecifiersAsWrittenInTheSource', () => {
   const output = JSON.parse(generateXcstrings({ moderation_reports_count: entry('%lld× nahlášeno', '%lld× reported') }));
   assert.equal(output.strings.moderation_reports_count.localizations.cs.stringUnit.value, '%lld× nahlášeno');
