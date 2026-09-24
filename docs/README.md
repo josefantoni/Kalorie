@@ -235,7 +235,7 @@ understanding why.
 | [0023](adr/0023-external-search-gate-includes-favourites-and-meals.md) | External search fallback gate description corrected — favourites and saved meals count as "found" | Accepted | Cross-platform |
 | [0024](adr/0024-token-array-field-for-whole-word-search.md) | A per-word prefix array closes the "second word" gap in catalogue search | Accepted | Backend, Cross-platform |
 | [0025](adr/0025-food-item-kind-discriminates-entry-origin.md) | `food_item_kind` discriminates what `food_item_id` points to | Accepted | Backend, Cross-platform |
-| [0026](adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md) | The JS backfill scripts' TextKit duplication is governed by a shared fixture | Accepted | Backend, Cross-platform |
+| [0026](adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md) | The JS backfill scripts' TextKit duplication is governed by a shared fixture | Superseded (Kotlin half) | Backend, Cross-platform |
 | [0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) | Catalogue writes require a maintainer claim, with user contributions queued for approval | Accepted | Backend, Cross-platform |
 | [0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md) | The `foodItemSubmissions` update rule validates the maintainer branch too | Accepted | Backend |
 | [0029](adr/0029-submitted-at-guards-foodItemSubmissions-concurrency.md) | `submitted_at` guards against concurrent writes to a `foodItemSubmissions` document | Accepted | Backend, Cross-platform |
@@ -248,3 +248,4 @@ understanding why.
 | [0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md) | The name shown for a food is chosen by device language at render time, never stored | Accepted | Cross-platform |
 | [0037](adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md) | Shared KMP modules target iOS and JVM and are consumed by composite build | Accepted | Cross-platform |
 | [0038](adr/0038-android-client-mirrors-the-ios-architecture-natively.md) | The Android client is native Kotlin mirroring the iOS architecture, sharing only pure logic | Accepted | Android |
+| [0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) | Swift-only rules either move into KMP or are pinned by shared golden-vector fixtures | Accepted | Cross-platform, Backend |

@@ -48,13 +48,17 @@ has the Dashboard screen ported. What is left is deferred until the next screen 
 - [ ] **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.
-- [ ] **Golden vectors for the Swift-only rules** — scaling (`FoodItemDomain.scaled(toGrams:)`),
-  meal resolution with a pin (`resolvedMealTypeId`), food validation, the OpenFoodFacts mapping, the
-  search merge order and export day bucketing live in Swift only; ARCHITECTURE states them as a
-  contract but nothing verifies a second client against it. The only shared test vector today is
-  `TextKit/fixtures/text-kit-cases.json`. Decide how much to share, and whether some of it should
-  move into KMP instead — [ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md)
-  item 2 sets the rule (pure, deterministic, no I/O), not which rules qualify.
+- [ ] **Second-client readers for the golden vectors** — what ADR 0039 defers until the screen
+  that needs it is ported:
+  - **Android readers** — `fixtures/food-item-validation-cases.json` when `FoodItemValidation` is
+    ported and `fixtures/open-food-facts-mapping-cases.json` when
+    `FetchFoodByBarcodeExternallyUseCase` is. Add `rootDir.resolve("../fixtures")` as a unit-test
+    resources directory in `Android/app/build.gradle.kts` and parse with
+    `Json.parseToJsonElement`.
+  - **Scaling fixture**, with the FoodQuantity port: a `FoodItemDomain` and grams in,
+    `ScaledMacros` out (iOS `FoodConsumedModel.swift:128-158`).
+  - **Export day-bucketing fixture**, with the Export port: `Europe/Prague`, including 2026-03-29
+    and 2026-10-25 (iOS `FoodExportReportFactory.swift:31-55`).
 - [ ] **Firebase setup for an Android app** — the Firebase console side is done (app
   `antoni.kalorie`, debug SHA-1, `google-services.json`). Still to add: the release and Play App
   Signing SHA-1s, and a real sign-in run to confirm the `docs/SETUP.md` Android section when the
@@ -111,3 +115,33 @@ ones are listed below; closed findings live in git history, not here.
   implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
   much larger limit (and the read cost that implies) or the frequency data denormalised into the
   query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.
+
+- [ ] **A2-13 — An empty `product_name_cs` turns a usable OpenFoodFacts product into "not found".**
+  `OpenFoodFactsProductDTO.asDomain()` picks the name with `productNameCs ?? productNameEn ??
+  productName`, and `??` stops at an empty string, so a product with `product_name_cs: ""` and a
+  valid `product_name_en` fails the emptiness check and returns `nil`. Pinned as it is in
+  `fixtures/open-food-facts-mapping-cases.json` ([ADR 0039](docs/adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)
+  item 7); fixing it means changing the fixture first, then the mapping. Unverified how often
+  OpenFoodFacts sends an empty rather than an absent field.
+
+## Audit findings — 3. Dashboard and meal types
+
+- [ ] **A3-14 — On a DST transition day, meal windows shift by an hour, and a write that day
+  persists the shift.** Unverified — found by reading the code, not reproduced. The fix for
+  **A1-6** (`55ea1f3`) builds each window as `calendar.date(byAdding: .minute, value:
+  startMinutes, to: startOfDay(.now))` (`iOS/Kalorie/Core/UseCases/FetchMealTypesUseCase.swift:34-39`).
+  Adding minutes is elapsed time, so on the spring-forward day (e.g. 2026-03-29 in
+  `Europe/Prague`) a stored 07:00 becomes 08:00 wall-clock, and `minutesSinceMidnight` then reads
+  480 instead of 420. That skews meal assignment all day (§ 3.2). Worse, `UpdateMealTypeTimesUseCase.swift:37-38`,
+  `SetupDefaultMealsUseCase.swift:52-53` and `CreateMealTypeUseCase.swift:50-60` convert back
+  through the same `minutesSinceMidnight`, so a reorder or a new meal type that day writes the
+  shifted minutes to Firestore permanently. Fall-back day shifts the other way. Android copied the
+  same arithmetic (`FetchMealTypesUseCase.kt:29-35` with `Duration.ofMinutes`,
+  `SetupDefaultMealsUseCase.kt:41`). A1-6 traded *disappears* for *moves*.
+  [ADR 0014](docs/adr/0014-meal-assignment-by-time-of-day-only.md) Consequences already names the
+  direction: *"Storing minutes and comparing minutes is right; round-tripping them through `Date`
+  is the part that is fragile."* The likely fix is for `MealTypeDomain` to carry
+  `startMinutes`/`endMinutes`, with `Date` only for display. That reaches every meal-type use case
+  on both clients, so it wants its own analysis. Reproduce first: a `FetchMealTypesUseCase` test
+  with a `Europe/Prague` calendar and `.now` pinned to 2026-03-29 09:00.
+  The `MealKit` resolution function ([ADR 0039](docs/adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)) is compatible with either fix, since it takes minutes.

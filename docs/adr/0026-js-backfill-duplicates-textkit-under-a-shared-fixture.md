@@ -1,6 +1,8 @@
 # 0026. The JS backfill scripts' TextKit duplication is governed by a shared fixture
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0039](0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)
+  (the Kotlin half only — the Kotlin tests now read the fixture from `jvmTest` instead of copying
+  it by hand; the JS duplication and its fixture-driven Node tests are unchanged)
 - **Scope:** Backend, Cross-platform
 - **Date:** 2026-09-08
 

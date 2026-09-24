@@ -128,10 +128,10 @@ in Release and disabled in `DEBUG` (`AppDelegate.application(_:didFinishLaunchin
 
 | Job | Runner | Runs when a PR touches | What it does |
 |---|---|---|---|
-| `rules` | `ubuntu-latest` | `backend/`, `firestore-rules-tests/` | Firestore rules tests against the emulator |
+| `rules` | `ubuntu-latest` | `backend/`, `firestore-rules-tests/`, `fixtures/` | Firestore rules tests against the emulator |
 | `kmp` | `ubuntu-latest` | `ExportKit/`, `MacroKit/`, `MealKit/`, `TextKit/` | `jvmTest` for every module, ExportKit Android AAR |
-| `ios` | `macos-26` | `iOS/`, `scripts/build-kmp-framework.sh`, any KMP module | Builds the XCFrameworks, `xcodebuild test` |
-| `android` | `ubuntu-latest` | `Android/`, any KMP module | `:app:assembleDebug` and `:app:testDebugUnitTest` |
+| `ios` | `macos-26` | `iOS/`, `scripts/build-kmp-framework.sh`, `fixtures/`, any KMP module | Builds the XCFrameworks, `xcodebuild test` |
+| `android` | `ubuntu-latest` | `Android/`, `fixtures/`, any KMP module | `:app:assembleDebug` and `:app:testDebugUnitTest` |
 | `l10n` | `ubuntu-latest` | `localisation/`, the generated `Localizable.xcstrings` and Android `strings.xml`, the generator in `scripts/` | Fails when a generated string file differs from `localisation/strings.json` (ARCHITECTURE § 5.3); runs the generator's tests |
 
 Any change under `.github/workflows/` runs every job. `docs/`, `TODO.md`, `README.md` and
