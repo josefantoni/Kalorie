@@ -12,6 +12,7 @@ jobs:
       kmp: ${{ steps.filter.outputs.kmp }}
       ios: ${{ steps.filter.outputs.ios }}
       android: ${{ steps.filter.outputs.android }}
+      l10n: ${{ steps.filter.outputs.l10n }}
       ci: ${{ steps.filter.outputs.ci }}
 
     steps:
@@ -34,6 +35,11 @@ jobs:
               - 'scripts/build-kmp-framework.sh'
             android:
               - 'Android/**'
+            l10n:
+              - 'iOS/Kalorie/Resources/Localizable.xcstrings'
+              - 'Android/app/src/main/res/values*/strings.xml'
+              - 'scripts/generate-android-strings.js'
+              - 'scripts/lib/android-strings*'
             ci:
               - '.github/workflows/**'
 
@@ -147,8 +153,23 @@ jobs:
         working-directory: Android
         run: ./gradlew :app:assembleDebug :app:testDebugUnitTest
 
+  l10n:
+    needs: changes
+    if: needs.changes.outputs.l10n == 'true' || needs.changes.outputs.ci == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check generated Android strings are up to date
+        run: node scripts/generate-android-strings.js --check
+
+      - name: Test the generator
+        working-directory: scripts
+        run: node --test lib/android-strings.test.js
+
   test:
-    needs: [changes, rules, kmp, ios, android]
+    needs: [changes, rules, kmp, ios, android, l10n]
     if: always()
     runs-on: ubuntu-latest
 
