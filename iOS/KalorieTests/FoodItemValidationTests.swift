@@ -53,7 +53,51 @@ final class FoodItemValidationTests: XCTestCase {
         )
     }
 
+    func test_isValidItemId_matchesSharedFixtureCases() throws {
+        let fixture: ValidationFixture = try FixtureLoader.load("food-item-validation-cases")
+        for itemIdCase in fixture.itemId {
+            let isValid =
+                FoodItemValidation.isValidBarcode(itemIdCase.input)
+                || FoodItemValidation.isValidSubmissionUUID(itemIdCase.input)
+            XCTAssertEqual(isValid, itemIdCase.valid, "id \"\(itemIdCase.input)\"")
+        }
+    }
+
+    func test_validate_matchesSharedFixtureCases() throws {
+        let fixture: ValidationFixture = try FixtureLoader.load("food-item-validation-cases")
+        for foodItemCase in fixture.foodItem {
+            let base = fixture.foodItemBase
+            let overrides = foodItemCase.overrides
+            let item = makeItem(
+                id: overrides.id ?? base.id,
+                name: overrides.czName ?? base.czName,
+                weight: overrides.weight ?? base.weight,
+                caloriesPerHundredGrams: overrides.caloriesPerHundredGrams ?? base.caloriesPerHundredGrams,
+                portions: (overrides.portions ?? base.portions).map {
+                    FoodPortionDomain(name: $0.name, grams: $0.grams)
+                }
+            )
+            XCTAssertEqual(
+                FoodItemValidation.validate(item).map(fixtureName),
+                foodItemCase.expected,
+                foodItemCase.name
+            )
+        }
+    }
+
     // MARK: - Helpers
+
+    private func fixtureName(_ error: FoodItemValidationError) -> String {
+        switch error {
+        case .invalidCode: return "invalidCode"
+        case .invalidName: return "invalidName"
+        case .invalidCalories: return "invalidCalories"
+        case .invalidWeight: return "invalidWeight"
+        case .invalidPortion(.invalidName): return "invalidPortion.invalidName"
+        case .invalidPortion(.invalidGrams): return "invalidPortion.invalidGrams"
+        case .invalidPortion(.tooMany): return "invalidPortion.tooMany"
+        }
+    }
 
     private func makeItem(
         id: String = "12345678",
@@ -81,5 +125,43 @@ final class FoodItemValidationTests: XCTestCase {
             salt: 0.1,
             portions: portions
         )
+    }
+
+    private struct ValidationFixture: Decodable {
+        let itemId: [ItemIdCase]
+        let foodItemBase: FoodItemFields
+        let foodItem: [FoodItemCase]
+    }
+
+    private struct ItemIdCase: Decodable {
+        let input: String
+        let valid: Bool
+    }
+
+    private struct PortionFields: Decodable {
+        let name: String
+        let grams: Double
+    }
+
+    private struct FoodItemFields: Decodable {
+        let id: String
+        let czName: String
+        let caloriesPerHundredGrams: Double
+        let weight: Double
+        let portions: [PortionFields]
+    }
+
+    private struct FoodItemOverrides: Decodable {
+        let id: String?
+        let czName: String?
+        let caloriesPerHundredGrams: Double?
+        let weight: Double?
+        let portions: [PortionFields]?
+    }
+
+    private struct FoodItemCase: Decodable {
+        let name: String
+        let overrides: FoodItemOverrides
+        let expected: String?
     }
 }
