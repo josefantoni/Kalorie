@@ -90,9 +90,9 @@ jobs:
       - name: Build ExportKit Android target
         working-directory: ExportKit
         run: |
-          if [ ! -d "$ANDROID_HOME/platforms/android-37" ]; then
+          if [ ! -d "$ANDROID_HOME/platforms/android-37.0" ]; then
             yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
-            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37"
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0"
           fi
           ./gradlew bundleAndroidMainAar
 
@@ -148,9 +148,9 @@ jobs:
 
       - name: Install Android API 37
         run: |
-          if [ ! -d "$ANDROID_HOME/platforms/android-37" ]; then
+          if [ ! -d "$ANDROID_HOME/platforms/android-37.0" ]; then
             yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
-            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37"
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0"
           fi
 
       - name: Build and test Android app
