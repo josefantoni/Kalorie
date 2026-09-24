@@ -14,8 +14,14 @@ struct MealTypeDomain {
 
     let id: String
     let name: String
-    let startTime: Date
-    let endTime: Date
+    let startMinutes: Int
+    let endMinutes: Int
+
+    // MARK: - Functions
+
+    static func clockTime(minutes: Int) -> String {
+        String(format: "%02d:%02d", minutes / 60, minutes % 60)
+    }
 }
 
 extension [MealTypeDomain] {
@@ -38,8 +44,8 @@ extension [MealTypeDomain] {
         map {
             MealWindow(
                 id: $0.id,
-                startMinutes: $0.startTime.minutesSinceMidnight,
-                endMinutes: $0.endTime.minutesSinceMidnight
+                startMinutes: Int32($0.startMinutes),
+                endMinutes: Int32($0.endMinutes)
             )
         }
     }

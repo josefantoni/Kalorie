@@ -22,11 +22,11 @@ final class MealTypeSheetViewModelTests: XCTestCase {
         sut.onMove(from: IndexSet(integer: 0), to: 3)
 
         XCTAssertEqual(sut.mealTypes[0].name, "B")
-        XCTAssertEqual(sut.mealTypes[0].startTime, meal0.startTime)
+        XCTAssertEqual(sut.mealTypes[0].startMinutes, meal0.startMinutes)
         XCTAssertEqual(sut.mealTypes[1].name, "C")
-        XCTAssertEqual(sut.mealTypes[1].startTime, meal1.startTime)
+        XCTAssertEqual(sut.mealTypes[1].startMinutes, meal1.startMinutes)
         XCTAssertEqual(sut.mealTypes[2].name, "A")
-        XCTAssertEqual(sut.mealTypes[2].startTime, meal2.startTime)
+        XCTAssertEqual(sut.mealTypes[2].startMinutes, meal2.startMinutes)
     }
 
     @MainActor
@@ -39,11 +39,11 @@ final class MealTypeSheetViewModelTests: XCTestCase {
         sut.onMove(from: IndexSet(integer: 2), to: 0)
 
         XCTAssertEqual(sut.mealTypes[0].name, "C")
-        XCTAssertEqual(sut.mealTypes[0].startTime, meal0.startTime)
+        XCTAssertEqual(sut.mealTypes[0].startMinutes, meal0.startMinutes)
         XCTAssertEqual(sut.mealTypes[1].name, "A")
-        XCTAssertEqual(sut.mealTypes[1].startTime, meal1.startTime)
+        XCTAssertEqual(sut.mealTypes[1].startMinutes, meal1.startMinutes)
         XCTAssertEqual(sut.mealTypes[2].name, "B")
-        XCTAssertEqual(sut.mealTypes[2].startTime, meal2.startTime)
+        XCTAssertEqual(sut.mealTypes[2].startMinutes, meal2.startMinutes)
     }
 
     @MainActor
@@ -140,7 +140,7 @@ final class MealTypeSheetViewModelTests: XCTestCase {
         let sut = makeSUT(mealTypes: [meal])
         sut.onShowAddForm()
         XCTAssertTrue(sut.isAddFormVisible)
-        XCTAssertEqual(sut.newMealStart, meal.endTime)
+        XCTAssertEqual(Int(sut.newMealStart.minutesSinceMidnight), meal.endMinutes)
     }
 
     func test_onShowAddForm_withNoMealTypes_makesFormVisible() {
@@ -166,10 +166,6 @@ final class MealTypeSheetViewModelTests: XCTestCase {
     }
 
     private func makeMealType(id: Int, name: String, hour: Int, endHour: Int) -> MealTypeDomain {
-        let cal = Calendar.current
-        let base = Date.now
-        let start = cal.date(bySettingHour: hour, minute: 0, second: 0, of: base) ?? base
-        let end = cal.date(bySettingHour: endHour, minute: 0, second: 0, of: base) ?? base
-        return MealTypeDomain(id: "\(id)", name: name, startTime: start, endTime: end)
+        MealTypeDomain(id: "\(id)", name: name, startMinutes: hour * 60, endMinutes: endHour * 60)
     }
 }

@@ -33,8 +33,8 @@ struct MealTypeItemView: View {
     // MARK: - Functions
 
     var formatTime: String {
-        let startTime = mealType.startTime.formatDateStyle(with: "HH:mm")
-        let endTime = mealType.endTime.formatDateStyle(with: "HH:mm")
+        let startTime = MealTypeDomain.clockTime(minutes: mealType.startMinutes)
+        let endTime = MealTypeDomain.clockTime(minutes: mealType.endMinutes)
         return "\(startTime) - \(endTime)"
     }
 }
@@ -46,8 +46,8 @@ struct MealTypeItemView: View {
         MealTypeDomain(
             id: "1",
             name: "Snídaně",
-            startTime: Calendar.current.date(bySettingHour: 7, minute: 0, second: 0, of: .now) ?? .now,
-            endTime: Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: .now) ?? .now
+            startMinutes: 7 * 60,
+            endMinutes: 9 * 60
         )
     )
 }

@@ -102,7 +102,7 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
         dataProvider: FirestoreDocumentStoreFake,
         authProvider: AuthProviderFake
     ) -> FoodConsumedDetailViewModel {
-        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: .now, endTime: .now)
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 0, endMinutes: 0)
         return FoodConsumedDetailViewModel(
             food: food,
             mealTypes: [breakfast],

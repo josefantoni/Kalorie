@@ -153,7 +153,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
     @MainActor
     func test_onMealTypeSelected_stagesTheSelectionWithoutWritingOrEnablingSaveAlone() {
-        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
         let food = makeFood(date: makeDate(hour: 14, minute: 0))
         let sut = makeSUT(food: food, mealTypes: [breakfast])
         XCTAssertNil(sut.mealTypeId, "the food's own time falls outside the breakfast window, so nothing should resolve before a pick is made")
@@ -167,7 +167,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
     @MainActor
     func test_onMealTypeSelected_reselectingTheAlreadyPinnedValue_doesNotEnableSave() {
-        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
         let sut = makeSUT(food: makeFood(mealTypeId: "breakfast"), mealTypes: [breakfast])
 
         sut.onMealTypeSelected("breakfast")
@@ -179,7 +179,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
     @MainActor
     func test_onSave_whenOnlyMealTypeWasSelected_writesThePinWithoutTouchingWeight() async {
-        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
         var didNotify = false
         let sut = makeSUT(mealTypes: [breakfast]) { didNotify = true }
         sut.onMealTypeSelected("breakfast")
@@ -203,7 +203,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
     @MainActor
     func test_onSave_whenAssignFails_leavesMealTypeIdUnchangedAndShowsAlert() async {
-        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
         let sut = makeSUT(mealTypes: [breakfast], assignFoodMealType: AssignFoodMealTypeUseCaseFake(shouldThrow: true))
         sut.onMealTypeSelected("breakfast")
 
@@ -216,7 +216,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
     @MainActor
     func test_onSave_whenMealTypeWasDeletedSinceScreenOpened_refetchesAndBlocksWithAlertInsteadOfWritingADanglingId() async {
-        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
         let food = makeFood(mealTypeId: "lunch")
         let sut = makeSUT(
             food: food,
@@ -234,7 +234,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
     @MainActor
     func test_onSave_whenSelectionMatchesTimeResolvedButUnpinnedMealType_stillCreatesPin() async {
-        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 0, minute: 0), endTime: makeDate(hour: 23, minute: 59))
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 0, endMinutes: 1439)
         let food = makeFood(mealTypeId: nil)
         var didNotify = false
         let sut = makeSUT(food: food, mealTypes: [breakfast]) { didNotify = true }
@@ -249,7 +249,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
     @MainActor
     func test_onSave_whenBothWeightAndMealTypeChanged_writesBoth() async {
-        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: makeDate(hour: 6, minute: 0), endTime: makeDate(hour: 10, minute: 0))
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
         let sut = makeSUT(mealTypes: [breakfast])
         sut.weight = 150
         sut.onMealTypeSelected("breakfast")

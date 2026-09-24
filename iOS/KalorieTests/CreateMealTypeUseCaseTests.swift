@@ -15,7 +15,7 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
     func test_createMealType_withEmptyName_throwsEmptyNameError() async throws {
         let (sut, _) = makeSUT()
         do {
-            _ = try await sut(name: "", startTime: .now, endTime: .now, existingMealTypes: [])
+            _ = try await sut(name: "", startMinutes: 0, endMinutes: 0, existingMealTypes: [])
             XCTFail("Expected emptyName error")
         } catch CreateMealTypeError.emptyName {
             // pass
@@ -27,14 +27,14 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         let existing = MealTypeDomain(
             id: "1",
             name: "Snídaně",
-            startTime: makeDate(hour: 6, minute: 0),
-            endTime: makeDate(hour: 9, minute: 0)
+            startMinutes: 360,
+            endMinutes: 540
         )
         do {
             _ = try await sut(
                 name: "Snídaně",
-                startTime: makeDate(hour: 10, minute: 0),
-                endTime: makeDate(hour: 11, minute: 0),
+                startMinutes: 600,
+                endMinutes: 660,
                 existingMealTypes: [existing]
             )
             XCTFail("Expected duplicateName error")
@@ -48,14 +48,14 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         let existing = MealTypeDomain(
             id: "1",
             name: "Snídaně",
-            startTime: makeDate(hour: 6, minute: 0),
-            endTime: makeDate(hour: 9, minute: 0)
+            startMinutes: 360,
+            endMinutes: 540
         )
         do {
             _ = try await sut(
                 name: "Druhá snídaně",
-                startTime: makeDate(hour: 7, minute: 0),
-                endTime: makeDate(hour: 8, minute: 0),
+                startMinutes: 420,
+                endMinutes: 480,
                 existingMealTypes: [existing]
             )
             XCTFail("Expected timeConflict error")
@@ -69,14 +69,14 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         let existing = MealTypeDomain(
             id: "1",
             name: "Snídaně",
-            startTime: makeDate(hour: 9, minute: 0),
-            endTime: makeDate(hour: 12, minute: 0)
+            startMinutes: 540,
+            endMinutes: 720
         )
         do {
             _ = try await sut(
                 name: "Mega snídaně",
-                startTime: makeDate(hour: 7, minute: 0),
-                endTime: makeDate(hour: 14, minute: 0),
+                startMinutes: 420,
+                endMinutes: 840,
                 existingMealTypes: [existing]
             )
             XCTFail("Expected timeConflict error")
@@ -89,8 +89,8 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         let (sut, _) = makeSUT()
         let result = try await sut(
             name: "Půlnoční svačina",
-            startTime: makeDate(hour: 23, minute: 50),
-            endTime: makeDate(hour: 0, minute: 20),
+            startMinutes: 1430,
+            endMinutes: 20,
             existingMealTypes: []
         )
         XCTAssertEqual(result.name, "Půlnoční svačina")
@@ -101,13 +101,13 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         let existing = MealTypeDomain(
             id: "1",
             name: "Snídaně",
-            startTime: makeDate(hour: 6, minute: 0),
-            endTime: makeDate(hour: 9, minute: 0)
+            startMinutes: 360,
+            endMinutes: 540
         )
         let result = try await sut(
             name: "Oběd",
-            startTime: makeDate(hour: 11, minute: 0),
-            endTime: makeDate(hour: 13, minute: 0),
+            startMinutes: 660,
+            endMinutes: 780,
             existingMealTypes: [existing]
         )
         XCTAssertEqual(result.name, "Oběd")
@@ -119,14 +119,14 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         let (sut, _) = makeSUT()
         let first = try await sut(
             name: "Snídaně",
-            startTime: makeDate(hour: 6, minute: 0),
-            endTime: makeDate(hour: 9, minute: 0),
+            startMinutes: 360,
+            endMinutes: 540,
             existingMealTypes: []
         )
         let second = try await sut(
             name: "Oběd",
-            startTime: makeDate(hour: 11, minute: 0),
-            endTime: makeDate(hour: 13, minute: 0),
+            startMinutes: 660,
+            endMinutes: 780,
             existingMealTypes: []
         )
         XCTAssertNotEqual(first.id, second.id, "two devices creating a meal type from the same stale snapshot must not collide on id and silently overwrite each other")
@@ -137,8 +137,8 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         do {
             _ = try await sut(
                 name: " \n ",
-                startTime: makeDate(hour: 10, minute: 0),
-                endTime: makeDate(hour: 11, minute: 0),
+                startMinutes: 600,
+                endMinutes: 660,
                 existingMealTypes: []
             )
             XCTFail("Expected emptyName error")
@@ -152,14 +152,14 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         let existing = MealTypeDomain(
             id: "1",
             name: "Snídaně",
-            startTime: makeDate(hour: 6, minute: 0),
-            endTime: makeDate(hour: 9, minute: 0)
+            startMinutes: 360,
+            endMinutes: 540
         )
         do {
             _ = try await sut(
                 name: "  SNÍDANĚ ",
-                startTime: makeDate(hour: 10, minute: 0),
-                endTime: makeDate(hour: 11, minute: 0),
+                startMinutes: 600,
+                endMinutes: 660,
                 existingMealTypes: [existing]
             )
             XCTFail("Expected duplicateName error")
@@ -172,8 +172,8 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         let (sut, _) = makeSUT()
         let result = try await sut(
             name: "  Oběd ",
-            startTime: makeDate(hour: 11, minute: 0),
-            endTime: makeDate(hour: 13, minute: 0),
+            startMinutes: 660,
+            endMinutes: 780,
             existingMealTypes: []
         )
         XCTAssertEqual(result.name, "Oběd")
@@ -185,9 +185,5 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         let dataProvider = FirestoreDataProviderFake()
         let sut = CreateMealTypeUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake())
         return (sut, dataProvider)
-    }
-
-    private func makeDate(hour: Int, minute: Int) -> Date {
-        Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date()) ?? Date()
     }
 }

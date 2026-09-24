@@ -29,10 +29,8 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
 
     func callAsFunction() async throws -> [MealTypeDomain] {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        guard var startTime = Calendar.current.date(bySettingHour: 5, minute: 0, second: 0, of: Date.now) else {
-            fatalError("Failed to create default start time in SetupDefaultMealsUseCase")
-        }
-        var endTime = startTime.withAddedHours(hours: 3)
+        var startMinutes = 5 * 60
+        var endMinutes = startMinutes + 3 * 60
         let mealNames = [
             L10n.DefaultMeals.breakfast,
             L10n.DefaultMeals.secondBreakfast,
@@ -49,14 +47,14 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
                 item: MealTypeDTO(
                     id: id,
                     name: mealName,
-                    startMinutes: Int(startTime.minutesSinceMidnight),
-                    endMinutes: Int(endTime.minutesSinceMidnight)
+                    startMinutes: startMinutes,
+                    endMinutes: endMinutes
                 ),
                 id: id
             ))
-            domains.append(MealTypeDomain(id: id, name: mealName, startTime: startTime, endTime: endTime))
-            startTime = endTime
-            endTime = startTime.withAddedHours(hours: 3)
+            domains.append(MealTypeDomain(id: id, name: mealName, startMinutes: startMinutes, endMinutes: endMinutes))
+            startMinutes = endMinutes
+            endMinutes = startMinutes + 3 * 60
         }
 
         try await dataProvider.batchSetAsync(dtos, in: Constants.Firestore.mealTypes(userId: userId))

@@ -48,7 +48,7 @@ struct FoodExportReportFactory {
             ExportSectionInput(
                 id: mealType.id,
                 header: "\(mealType.name) \(windowLabel(of: mealType))",
-                sortKey: mealType.startTime.minutesSinceMidnight
+                sortKey: Int32(mealType.startMinutes)
             )
         }
         let entries: [ExportEntryInput] = foods.compactMap { food in
@@ -77,7 +77,7 @@ struct FoodExportReportFactory {
     // MARK: - Private
 
     private func windowLabel(of mealType: MealTypeDomain) -> String {
-        "\(mealType.startTime.formatDateStyle(with: "HH:mm"))–\(mealType.endTime.formatDateStyle(with: "HH:mm"))"
+        "\(MealTypeDomain.clockTime(minutes: mealType.startMinutes))–\(MealTypeDomain.clockTime(minutes: mealType.endMinutes))"
     }
 
     private func makeLabels(from: Date, to: Date) -> ExportLabels {

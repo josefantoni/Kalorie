@@ -132,7 +132,7 @@ final class DashboardViewModel: ObservableObject {
         }
 
         var result: [(mealType: MealTypeDomain?, foods: [FoodConsumedDomain])] = mealTypes
-            .sorted { $0.startTime < $1.startTime }
+            .sorted { $0.startMinutes < $1.startMinutes }
             .compactMap { mealType in
                 foodsByMealTypeId[mealType.id].map { (mealType: mealType, foods: $0) }
             }

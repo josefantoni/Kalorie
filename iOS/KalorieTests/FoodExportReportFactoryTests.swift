@@ -88,13 +88,9 @@ final class FoodExportReportFactoryTests: XCTestCase {
 
     private func makeMealTypes() -> [MealTypeDomain] {
         [
-            MealTypeDomain(id: "lunch", name: "Lunch", startTime: time(11), endTime: time(14)),
-            MealTypeDomain(id: "breakfast", name: "Breakfast", startTime: time(7), endTime: time(10))
+            MealTypeDomain(id: "lunch", name: "Lunch", startMinutes: 11 * 60, endMinutes: 14 * 60),
+            MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 7 * 60, endMinutes: 10 * 60)
         ]
-    }
-
-    private func time(_ hour: Int) -> Date {
-        Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: .now) ?? .now
     }
 
     private func makeDate(day: Int, hour: Int = 0) throws -> Date {

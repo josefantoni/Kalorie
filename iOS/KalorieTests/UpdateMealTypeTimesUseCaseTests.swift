@@ -18,9 +18,9 @@ final class UpdateMealTypeTimesUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.batchSetCollection, "users/user-123/mealTypes")
     }
 
-    func test_updateMealTypeTimes_convertsTimesToMinutesSinceMidnight() async throws {
+    func test_updateMealTypeTimes_writesDomainMinutesVerbatim() async throws {
         let (sut, dataProvider) = makeSUT()
-        let mealType = makeMealType(startTime: makeDate(hour: 7, minute: 30), endTime: makeDate(hour: 9, minute: 0))
+        let mealType = makeMealType(startMinutes: 450, endMinutes: 540)
 
         try await sut([mealType])
 
@@ -70,10 +70,10 @@ final class UpdateMealTypeTimesUseCaseTests: XCTestCase {
     private func makeMealType(
         id: String = "lunch",
         name: String = "Oběd",
-        startTime: Date = Date(),
-        endTime: Date = Date()
+        startMinutes: Int = 0,
+        endMinutes: Int = 0
     ) -> MealTypeDomain {
-        MealTypeDomain(id: id, name: name, startTime: startTime, endTime: endTime)
+        MealTypeDomain(id: id, name: name, startMinutes: startMinutes, endMinutes: endMinutes)
     }
 
     private func makeDate(hour: Int, minute: Int) -> Date {

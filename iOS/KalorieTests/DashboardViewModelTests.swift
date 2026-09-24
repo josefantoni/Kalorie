@@ -337,11 +337,7 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     private func makeMealType(id: Int, hour: Int, endHour: Int, minute: Int = 0) -> MealTypeDomain {
-        let cal = Calendar.current
-        let base = Date.now
-        let start = cal.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
-        let end = cal.date(bySettingHour: endHour, minute: minute, second: 0, of: base) ?? base
-        return MealTypeDomain(id: "\(id)", name: "Meal \(id)", startTime: start, endTime: end)
+        MealTypeDomain(id: "\(id)", name: "Meal \(id)", startMinutes: hour * 60 + minute, endMinutes: endHour * 60 + minute)
     }
 
     private func makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1, mealTypeId: String? = nil) -> FoodConsumedDomain {
