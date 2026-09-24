@@ -24,6 +24,8 @@ interface FirestoreDataProviderProtocol {
         isLessThan: Double,
         serializer: KSerializer<T>,
     ): List<T>
+    suspend fun <T> loadHasPrefixAsync(from: String, field: String, hasPrefix: String, limit: Int, serializer: KSerializer<T>): List<T>
+    suspend fun <T> loadArrayContainsAsync(from: String, field: String, arrayContains: String, limit: Int, serializer: KSerializer<T>): List<T>
     suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>)
     suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>)
     suspend fun deleteAsync(id: String, from: String)
@@ -41,6 +43,20 @@ suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(
     isGreaterThanOrEqualTo: Double,
     isLessThan: Double,
 ): List<T> = loadAsync(from, field, isGreaterThanOrEqualTo, isLessThan, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadHasPrefixAsync(
+    from: String,
+    field: String,
+    hasPrefix: String,
+    limit: Int,
+): List<T> = loadHasPrefixAsync(from, field, hasPrefix, limit, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadArrayContainsAsync(
+    from: String,
+    field: String,
+    arrayContains: String,
+    limit: Int,
+): List<T> = loadArrayContainsAsync(from, field, arrayContains, limit, serializer<T>())
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.setAsync(
     item: T,
@@ -87,6 +103,39 @@ class FirestoreDataProvider(
         snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
     }
 
+    override suspend fun <T> loadHasPrefixAsync(
+        from: String,
+        field: String,
+        hasPrefix: String,
+        limit: Int,
+        serializer: KSerializer<T>,
+    ): List<T> = perform {
+        val snapshot = firestore
+            .collection(from)
+            .whereGreaterThanOrEqualTo(field, hasPrefix)
+            .whereLessThan(field, hasPrefix + PREFIX_UPPER_BOUND)
+            .limit(limit.toLong())
+            .get()
+            .await()
+        snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+    }
+
+    override suspend fun <T> loadArrayContainsAsync(
+        from: String,
+        field: String,
+        arrayContains: String,
+        limit: Int,
+        serializer: KSerializer<T>,
+    ): List<T> = perform {
+        val snapshot = firestore
+            .collection(from)
+            .whereArrayContains(field, arrayContains)
+            .limit(limit.toLong())
+            .get()
+            .await()
+        snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+    }
+
     override suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
         perform {
             firestore.collection(inCollection).document(id).set(FirestoreDataMapper.encode(item, serializer)).await()
@@ -112,6 +161,10 @@ class FirestoreDataProvider(
     }
 
     // MARK: - Private
+
+    private companion object {
+        const val PREFIX_UPPER_BOUND = "\uF8FF"
+    }
 
     private suspend fun <R> perform(block: suspend () -> R): R =
         try {

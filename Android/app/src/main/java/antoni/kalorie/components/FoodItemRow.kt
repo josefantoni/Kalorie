@@ -1,0 +1,28 @@
+package antoni.kalorie.components
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.displayName
+
+@Composable
+fun FoodItemRow(item: FoodItemDomain, modifier: Modifier = Modifier) {
+
+    // MARK: - Body
+
+    Row(
+        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(item.displayName)
+        }
+    }
+}
