@@ -192,7 +192,8 @@ it would relabel an edited millilitre entry as grams.
 **`mealTypes`** (`MealTypeDTO`) — `startMinutes` / `endMinutes` are minutes since midnight
 (0–1439), stored **unrenamed in camelCase**, unlike every other DTO except `UserProfileDTO`
 (`displayName`, `email`), which also has no `CodingKeys` and so is camelCase on the wire. A window may wrap past
-midnight (`endMinutes < startMinutes`); `MealKit` owns that arithmetic.
+midnight (`endMinutes <= startMinutes`; equal values mean a window covering the whole day);
+`MealKit` owns that arithmetic.
 
 **`favouriteFoods`** (`FavouriteFoodDTO`) — a full copy of the `FoodItemDomain` plus
 `favourited_at`, `portions` included — leaving it out would silently drop a favourited item's
