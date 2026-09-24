@@ -1,6 +1,7 @@
 package antoni.kalorie.features.dashboard
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.R
@@ -25,7 +26,8 @@ class DashboardConfigurator {
             stringResource(R.string.defaultMeals_snack),
             stringResource(R.string.defaultMeals_dinner),
         )
-        val viewModel = viewModel(key = userId) {
+        val languageTag = LocalConfiguration.current.locales[0].toLanguageTag()
+        val viewModel = viewModel(key = "$userId/$languageTag") {
             val dataProvider = FirestoreDataProvider()
             val authProvider = AuthProvider()
             DashboardViewModel(
