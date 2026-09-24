@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "name": "100 g returns the per-100 g values",
+      "item": {"energyKJ": 270, "caloriesPerHundredGrams": 64, "fat": 3.5, "fatSaturated": 2.1, "fatUnsaturatedFattyAcids": 1, "carbohydrate": 4.8, "carbohydratePureSugar": 4.8, "fiber": 0, "protein": 3.2, "salt": 0.1},
+      "grams": 100,
+      "expected": {"calories": 64, "energyKJ": 270.0, "protein": 3.2, "carbohydrate": 4.8, "carbohydrateSugar": 4.8, "fat": 3.5, "fatSaturated": 2.1, "fatUnsaturated": 1.0, "fiber": 0.0, "salt": 0.1}
+    },
+    {
+      "name": "250 g scales linearly",
+      "item": {"energyKJ": 270, "caloriesPerHundredGrams": 64, "fat": 3.5, "fatSaturated": 2.1, "fatUnsaturatedFattyAcids": 1, "carbohydrate": 4.8, "carbohydratePureSugar": 4.8, "fiber": 0, "protein": 3.2, "salt": 0.1},
+      "grams": 250,
+      "expected": {"calories": 160, "energyKJ": 675.0, "protein": 8.0, "carbohydrate": 12.0, "carbohydrateSugar": 12.0, "fat": 8.75, "fatSaturated": 5.25, "fatUnsaturated": 2.5, "fiber": 0.0, "salt": 0.25}
+    },
+    {
+      "name": "zero grams gives all zeros",
+      "item": {"energyKJ": 270, "caloriesPerHundredGrams": 64, "fat": 3.5, "fatSaturated": 2.1, "fatUnsaturatedFattyAcids": 1, "carbohydrate": 4.8, "carbohydratePureSugar": 4.8, "fiber": 0, "protein": 3.2, "salt": 0.1},
+      "grams": 0,
+      "expected": {"calories": 0, "energyKJ": 0.0, "protein": 0.0, "carbohydrate": 0.0, "carbohydrateSugar": 0.0, "fat": 0.0, "fatSaturated": 0.0, "fatUnsaturated": 0.0, "fiber": 0.0, "salt": 0.0}
+    },
+    {
+      "name": "fractional calories are rounded once, from the per-100 g basis",
+      "item": {"energyKJ": 1500, "caloriesPerHundredGrams": 358.4, "fat": 1.2, "fatSaturated": null, "fatUnsaturatedFattyAcids": 0.4, "carbohydrate": 70.5, "carbohydratePureSugar": 2.2, "fiber": null, "protein": 9.9, "salt": 0.02},
+      "grams": 33,
+      "expected": {"calories": 118, "energyKJ": 495.0, "protein": 3.267, "carbohydrate": 23.265, "carbohydrateSugar": 0.726, "fat": 0.396, "fatSaturated": null, "fatUnsaturated": 0.132, "fiber": null, "salt": 0.0066}
+    },
+    {
+      "name": "unknown saturated fat and fibre stay unknown",
+      "item": {"energyKJ": 1500, "caloriesPerHundredGrams": 358.4, "fat": 1.2, "fatSaturated": null, "fatUnsaturatedFattyAcids": 0.4, "carbohydrate": 70.5, "carbohydratePureSugar": 2.2, "fiber": null, "protein": 9.9, "salt": 0.02},
+      "grams": 60,
+      "expected": {"calories": 215, "energyKJ": 900.0, "protein": 5.94, "carbohydrate": 42.3, "carbohydrateSugar": 1.32, "fat": 0.72, "fatSaturated": null, "fatUnsaturated": 0.24, "fiber": null, "salt": 0.012}
+    },
+    {
+      "name": "calories exactly halfway round up",
+      "item": {"energyKJ": 270, "caloriesPerHundredGrams": 50, "fat": 3.5, "fatSaturated": 2.1, "fatUnsaturatedFattyAcids": 1, "carbohydrate": 4.8, "carbohydratePureSugar": 4.8, "fiber": 0, "protein": 3.2, "salt": 0.1},
+      "grams": 1,
+      "expected": {"calories": 1, "energyKJ": 2.7, "protein": 0.032, "carbohydrate": 0.048, "carbohydrateSugar": 0.048, "fat": 0.035, "fatSaturated": 0.021, "fatUnsaturated": 0.01, "fiber": 0.0, "salt": 0.001}
+    }
+  ]
+}
