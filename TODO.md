@@ -57,7 +57,7 @@ has the Dashboard screen ported. What is left is deferred until the next screen 
     `Json.parseToJsonElement`.
   - **Scaling fixture**, with the FoodQuantity port: a `FoodItemDomain` and grams in,
     `ScaledMacros` out (iOS `ScaledMacros.init(item:ratio:)` and `FoodItemDomain.scaled(toGrams:)` in
-  `FoodConsumedModel.swift`).
+    `FoodConsumedModel.swift`).
   - **Export day-bucketing fixture**, with the Export port: `Europe/Prague`, including 2026-03-29
     and 2026-10-25 (iOS `FoodExportReportFactory.makeReport`, the `dayStarts` / `dayIndexes` bucketing).
 - [ ] **Firebase setup for an Android app** — the Firebase console side is done (app
