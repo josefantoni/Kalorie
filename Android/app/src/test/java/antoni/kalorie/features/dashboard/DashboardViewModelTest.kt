@@ -410,8 +410,8 @@ class DashboardViewModelTest {
     private fun makeMealType(id: Int, hour: Int, endHour: Int, minute: Int = 0) = MealTypeDomain(
         id = "$id",
         name = "Meal $id",
-        startTime = todayAt(hour, minute),
-        endTime = todayAt(endHour, minute),
+        startMinutes = hour * 60 + minute,
+        endMinutes = endHour * 60 + minute,
     )
 
     private fun makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1.0, mealTypeId: String? = null) = FoodConsumedDomain(

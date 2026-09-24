@@ -9,8 +9,8 @@ import java.time.Instant
 data class MealTypeDomain(
     val id: String,
     val name: String,
-    val startTime: Instant,
-    val endTime: Instant,
+    val startMinutes: Int,
+    val endMinutes: Int,
 )
 
 fun List<MealTypeDomain>.mealType(date: Instant): MealTypeDomain? {
@@ -25,7 +25,7 @@ private fun List<MealTypeDomain>.mealWindows(): List<MealWindow> =
     map {
         MealWindow(
             id = it.id,
-            startMinutes = it.startTime.minutesSinceMidnight(),
-            endMinutes = it.endTime.minutesSinceMidnight(),
+            startMinutes = it.startMinutes,
+            endMinutes = it.endMinutes,
         )
     }
