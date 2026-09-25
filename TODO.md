@@ -268,6 +268,14 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     without a barcode gets an uppercase UUID id (design 0013). Nutrition-label OCR
     (`RecognizeNutritionLabelUseCase`, design 0010) is a follow-up step, with its own *Decision*
     on ML Kit text recognition. Read § 7 and design 0009.
+    *OCR follow-up, in progress:* decided to use ML Kit Text Recognition (bundled Latin model), which
+    covers the same cs/pl/de/en labels as iOS's Vision setup. The parser is ported as a separate Kotlin
+    copy (`core/nutritionlabelrecognition`), with iOS left unchanged by decision: a shared KMP parser was
+    considered and declined. The Foundation Models path (`merging`, `NutritionLabelModelExtractor`) is not
+    ported, since it is iOS-only and does not support Czech. Risk: the two parsers can drift apart as real
+    labels drive fixes. Pin them with a shared golden-vector fixture (ADR 0039) when an iOS reader test
+    is acceptable. ML Kit boxes are pixels with y down, so its wrapper converts them to Vision's
+    normalized, y-up boxes before the parser sees them.
     *Ported with deviations (without OCR):* `AddFoodSheetMode` gets `NEW_ITEM`, and the review screen is
     a Nav3 destination (`isReviewPushed` → `AddFoodSheetDestination.Review`). The new-item prompt shows
     only *Add food manually*, since the camera prompt, `cameraAccess`, `recognizedFields`,
