@@ -386,7 +386,87 @@ class DashboardViewModelTest {
         assertEquals(R.string.dashboard_error_deleteFailed, sut.alertItem.value?.titleRes)
     }
 
+    // MARK: - month cache
+
+    @Test
+    fun onDayChanged_toAnotherDayOfAnAlreadyLoadedMonth_doesNotFetchAgain() = runTest {
+        val monthFetches = FetchFoodsConsumedForMonthUseCaseSpy()
+        val sut = makeSUT(fetchFoodsConsumedForMonth = monthFetches)
+        sut.onAppear()
+
+        sut.onDayChanged(firstOfCurrentMonth())
+
+        assertEquals(1, monthFetches.months.size)
+    }
+
+    @Test
+    fun onDayChanged_toAnUnloadedMonth_fetchesItOnceAndThenServesItFromTheCache() = runTest {
+        val monthFetches = FetchFoodsConsumedForMonthUseCaseSpy()
+        val sut = makeSUT(fetchFoodsConsumedForMonth = monthFetches)
+        sut.onAppear()
+        val lastMonth = firstOfCurrentMonth().atZone(ZoneId.systemDefault()).minusMonths(1).toInstant()
+
+        sut.onDayChanged(lastMonth)
+        sut.onDayChanged(lastMonth)
+
+        assertEquals(2, monthFetches.months.size)
+    }
+
+    @Test
+    fun onFoodConsumedUpdated_dropsTheCachedMonthAndShowsTheRefetchedFoods() = runTest {
+        val monthFetches = FetchFoodsConsumedForMonthUseCaseSpy(
+            resultsPerCall = listOf(listOf(makeFood(id = "before", hour = 9)), listOf(makeFood(id = "after", hour = 9))),
+        )
+        val sut = makeSUT(fetchFoodsConsumedForMonth = monthFetches)
+        sut.onAppear()
+
+        sut.onFoodConsumedUpdated()
+
+        assertEquals(2, monthFetches.months.size)
+        assertEquals(listOf("after"), sut.foodsConsumed.value.map { it.id })
+    }
+
+    @Test
+    fun onCalendarMonthChanged_forALoadedMonth_doesNotFetchButForAnUnloadedOneDoes() = runTest {
+        val monthFetches = FetchFoodsConsumedForMonthUseCaseSpy()
+        val sut = makeSUT(fetchFoodsConsumedForMonth = monthFetches)
+        sut.onAppear()
+
+        sut.onCalendarMonthChanged(firstOfCurrentMonth())
+        assertEquals(1, monthFetches.months.size)
+
+        sut.onCalendarMonthChanged(firstOfCurrentMonth().atZone(ZoneId.systemDefault()).minusMonths(1).toInstant())
+        assertEquals(2, monthFetches.months.size)
+    }
+
+    @Test
+    fun onDaySelected_closesTheCalendarSheetAndSelectsTheDay() = runTest {
+        val sut = makeSUT()
+        sut.onAppear()
+        sut.showCalendarSheet.value = true
+        val day = firstOfCurrentMonth()
+
+        sut.onDaySelected(day)
+
+        assertFalse(sut.showCalendarSheet.value)
+        assertTrue(sut.selectedDay.value.isSameDay(day))
+    }
+
     // MARK: - Helpers
+
+    private fun firstOfCurrentMonth(): Instant = todayAt(12).atZone(ZoneId.systemDefault()).withDayOfMonth(1).toInstant()
+
+    private class FetchFoodsConsumedForMonthUseCaseSpy(
+        private val resultsPerCall: List<List<FoodConsumedDomain>> = listOf(emptyList()),
+    ) : FetchFoodsConsumedForMonthUseCaseProtocol {
+        val months = mutableListOf<Instant>()
+
+        override suspend fun invoke(month: Instant): List<FoodConsumedDomain> {
+            val result = resultsPerCall[minOf(months.size, resultsPerCall.lastIndex)]
+            months += month
+            return result
+        }
+    }
 
     private fun makeSUT(
         fetchMealTypes: FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
