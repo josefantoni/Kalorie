@@ -257,7 +257,7 @@ struct AddFoodSheetView: View {
                 }
             }
             if !viewModel.displayedResults.isEmpty || !viewModel.searchText.isEmpty {
-                Section(header: Text(L10n.AddFood.sectionExternalResults)) {
+                Section(header: Text(viewModel.displayedResults.isEmpty ? L10n.AddFood.sectionExternalResults : L10n.AddFood.sectionSearchResults)) {
                     if !viewModel.displayedResults.isEmpty {
                         ForEach(viewModel.displayedResults, id: \.id) { item in
                             FoodItemRow(item: item, isFavourite: viewModel.isFavourite(item), submissionStatus: viewModel.submissionStatus(for: item))
