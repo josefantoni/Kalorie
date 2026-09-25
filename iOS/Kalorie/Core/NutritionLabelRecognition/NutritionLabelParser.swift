@@ -17,6 +17,7 @@ enum NutritionLabelParser {
     private static let energyToleranceRatio = 0.05
     private static let derivedEnergyToleranceRatio = 0.15
     private static let maxSummedMacros = 100.0
+    private static let maxWordBoundaryKeywordLength = 3
 
     private static let weightKeywords = ["hmotnost", "netto", "obsah", "net weight", "hmotnosc"]
 
@@ -118,7 +119,7 @@ enum NutritionLabelParser {
 
         var matches: [(field: LabelField, start: String.Index, end: String.Index)] = []
         for field in LabelField.allCases {
-            guard let firstMatch = (keywords[field] ?? []).compactMap({ lower.range(of: $0) }).min(by: { $0.lowerBound < $1.lowerBound }) else { continue }
+            guard let firstMatch = (keywords[field] ?? []).compactMap({ range(ofKeyword: $0, in: lower) }).min(by: { $0.lowerBound < $1.lowerBound }) else { continue }
             matches.append((field, firstMatch.lowerBound, firstMatch.upperBound))
         }
         matches.sort { $0.start < $1.start }
@@ -150,6 +151,18 @@ enum NutritionLabelParser {
             }
         }
         return reading
+    }
+
+    // A keyword this short ("sul", "fat") also sits inside longer words such as "sulphites" or "fatty".
+    private static func range(ofKeyword keyword: String, in text: String) -> Range<String.Index>? {
+        var searchStart = text.startIndex
+        while let range = text.range(of: keyword, range: searchStart..<text.endIndex) {
+            let startsWord = range.lowerBound == text.startIndex || !text[text.index(before: range.lowerBound)].isLetter
+            let endsWord = range.upperBound == text.endIndex || !text[range.upperBound].isLetter
+            if keyword.count > maxWordBoundaryKeywordLength || (startsWord && endsWord) { return range }
+            searchStart = text.index(after: range.lowerBound)
+        }
+        return nil
     }
 
     static func merging(_ reading: NutritionLabelReading, with candidate: NutritionLabelModelCandidate, ocrText: String) -> NutritionLabelReading {
@@ -305,7 +318,7 @@ enum NutritionLabelParser {
         for unit in ["kcal", "kj", "ml", "g", "%"] {
             remainder = remainder.replacingOccurrences(of: unit, with: "")
         }
-        let allowedCharacters = CharacterSet(charactersIn: "0123456789.,<≤/| ")
+        let allowedCharacters = CharacterSet(charactersIn: "0123456789.,<≤/|() ")
         return remainder.unicodeScalars.allSatisfy(allowedCharacters.contains)
     }
 
@@ -372,6 +385,7 @@ enum NutritionLabelParser {
         var current = ""
         func flush() {
             defer { current = "" }
+            while let last = current.last, last == "," || last == "." { current.removeLast() }
             guard !current.isEmpty, let value = Double(current.replacingOccurrences(of: ",", with: ".")) else { return }
             results.append(value)
         }
