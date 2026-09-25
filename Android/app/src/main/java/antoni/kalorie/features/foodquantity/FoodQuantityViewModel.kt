@@ -196,8 +196,11 @@ class FoodQuantityViewModel(
             persistPersonalPortions()
             portionDrafts.value = listOf(FoodPortionDraft.blank)
             _showPortionCheckmark.value = true
-            delay(CHECKMARK_DURATION_MILLIS)
-            _showPortionCheckmark.value = false
+            try {
+                delay(CHECKMARK_DURATION_MILLIS)
+            } finally {
+                _showPortionCheckmark.value = false
+            }
         } catch (error: CancellationException) {
             throw error
         } catch (error: FoodPortionError) {

@@ -32,7 +32,10 @@ import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
 import java.time.Instant
 import java.time.ZonedDateTime
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -585,6 +588,19 @@ class FoodQuantityViewModelTest {
         assertNull(sut.alertItem.value)
         assertEquals(listOf(""), sut.portionDrafts.value.map { it.name })
         assertEquals(listOf(""), sut.portionDrafts.value.map { it.gramsText })
+    }
+
+    @Test
+    fun onSavePersonalPortions_whenCancelledWhileTheCheckmarkShows_hidesTheCheckmark() = runTest {
+        val sut = makeSUT()
+        sut.portionDrafts.value = listOf(FoodPortionDraft(name = "1 balení", gramsText = "33"))
+
+        val save = launch { sut.onSavePersonalPortions() }
+        yield()
+        assertTrue(sut.showPortionCheckmark.value)
+        save.cancelAndJoin()
+
+        assertFalse(sut.showPortionCheckmark.value)
     }
 
     @Test
