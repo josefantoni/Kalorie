@@ -35,7 +35,8 @@ The app works with three kinds of data. The distinction matters for the items be
 
 The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md)).
 The Android client in `Android/` ([ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md))
-has the Dashboard screen ported. What is left is deferred until the next screen is ported.
+has every screen of the iOS app ported (steps 1–15 below, all ticked). What is still open is listed under
+*Still open on Android* after the steps.
 
 ### Port order (analysed 2026-09-24)
 
@@ -68,7 +69,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
   user checks the screen by hand on a device.
 - **Stop and ask the user** at any point marked *Decision*. Do not pick a library yourself.
 
-1. [ ] **Meal type sheet.** This screen has no catalogue dependencies, so it comes first and
+1. [x] **Meal type sheet.** This screen has no catalogue dependencies, so it comes first and
    exercises the write path. Port `Features/MealTypeSheet/*` (`MealTypeSheetViewModel`,
    `MealTypeSheetView`, `MealTypeItemView`, `CreateMealTypeResult`, `MealTypeSheetConfigurator`,
    `MealTypeSheetRouter`), and `CreateMealTypeUseCase`, `DeleteMealTypeUseCase` and
@@ -86,7 +87,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    with step 14 (`makeExportView`). Every dialog configurator now creates its view model
    in a `DialogViewModelStoreOwner` (`rememberDialogViewModelStoreOwner`), which is cleared when the dialog
    leaves the composition, so instances no longer pile up in the Activity's `ViewModelStore`.
-2. [ ] **Catalogue core types, no UI.** Port `FoodItemModel.swift` (`FoodItemDomain`),
+2. [x] **Catalogue core types, no UI.** Port `FoodItemModel.swift` (`FoodItemDomain`),
    `FoodPortionModel.swift`, `FoodNutritionValues.swift`, `FoodItemValidation.swift`,
    `FoodItemDTO.swift` and `FoodPortionDTO.swift` (`asDomain()` on the DTO, domain → DTO in a
    DTO constructor, per § 1.1). Also port `ScaledMacros` and `FoodItemDomain.scaled(toGrams:)`
@@ -101,7 +102,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    the first caller. `ScaledMacros` got only the `FoodItemDomain` init here; the `FoodConsumedDomain`
    init came with step 3. `isValidSubmissionUUID` is a regex on uppercase hex, because
    `UUID.fromString` accepts input such as `1-1-1-1-1` that the fixture marks invalid.
-3. [ ] **Food consumed detail, weight and meal type only.** This step brings in Navigation 3.
+3. [x] **Food consumed detail, weight and meal type only.** This step brings in Navigation 3.
    Hold a typed back stack in `KalorieApp`/Dashboard, with a `FoodConsumedDetail(food)` key
    provided by `DashboardRouter.makeFoodConsumedDetailView`, and make the row tappable (iOS:
    `navigationDestination(for: FoodConsumedDomain.self)` in `DashboardView.swift`). Port the subset
@@ -116,7 +117,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    catalogue item and the report state, nothing about meal types, so steps 7 and 11 add it. The
    back stack lives in `DashboardViewModel.backStack`, a member iOS does not have, so it survives
    rotation. "By time" is only the label of an unresolved meal type, not a selectable option.
-4. [ ] **Add-food sheet, local search only.** Add the bottom FAB and a full-height
+4. [x] **Add-food sheet, local search only.** Add the bottom FAB and a full-height
    `ModalBottomSheet` with its own Nav3 back stack, because iOS pushes the quantity screen inside
    the sheet's `NavigationStack`. Port `SearchFoodItemsUseCase` (six concurrent queries,
    first-occurrence dedup in the fixed § 2.2 order, no re-sort, query derivation via
@@ -137,7 +138,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    section header was `addFood_section_externalResults` ("Online results") on iOS even when it listed local
    results. Both platforms now use `addFood_section_searchResults` for local results and
    `addFood_section_externalResults` only for the online list, in the add-food sheet and the meal editor.
-5. [ ] **Food quantity and saving.** This step completes the first "log a food" loop. Port
+5. [x] **Food quantity and saving.** This step completes the first "log a food" loop. Port
    `FoodQuantityViewModel`/`FoodQuantityView` with `quantity`, `unit`, `FoodQuantityUnit`,
    `unitOptions` (canonical portions, then `.grams`, then `.hundredGrams`; personal portions come
    in step 8), `defaultUnit(for:)`, `mealTypes`, `selectedMealTypeId` and `onConfirm`. Also port
@@ -157,7 +158,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    Dashboard's add-food FAB is centred as on iOS (`FabPosition.Center`) instead of the Material
    default bottom end. `SaveFoodConsumedUseCaseTest` adds two tests iOS lacks (uppercase document
    id, epoch-seconds date stamp), per the wire-contract gotchas in `Android/CLAUDE.md`.
-6. [ ] **OpenFoodFacts fallback.** *Decision:* the HTTP client. iOS uses `URLSession` directly, so
+6. [x] **OpenFoodFacts fallback.** *Decision:* the HTTP client. iOS uses `URLSession` directly, so
    the candidates are `HttpURLConnection` with no new dependency, or OkHttp/Ktor. Port
    `OpenFoodFactsProductDTO`, `SearchFoodExternallyUseCase` and
    `FetchFoodByBarcodeExternallyUseCase` with their tests. Read `open-food-facts-mapping-cases.json`
@@ -179,7 +180,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    rows as plain text like iOS. Tests beyond iOS: the exact request URL and timeout of both calls,
    the percent-encoded barcode, a 404 not being retried, and the § 2.3 gate (three characters, a
    local match suppresses the search).
-7. [ ] **Favourites.** Port `FetchFavouriteFoods`, `AddFavouriteFood`, `RemoveFavouriteFood`,
+7. [x] **Favourites.** Port `FetchFavouriteFoods`, `AddFavouriteFood`, `RemoveFavouriteFood`,
    `IsFavouriteFood` and `RefreshFavouriteFoodUseCase`, `FavouriteFoodDTO` and the
    `FavouriteButton` component. Add the remaining members to all three view models: the sheet's
    favourites section and `displayedResults` ranking step 1, the quantity screen's toggle, and the
@@ -197,7 +198,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    descending, limit)`. Tests beyond iOS: a favourite that is also a catalogue match is listed once,
    the plain lowercased prefix match without diacritics folding, `onFavouriteChanged`, and the
    three toggle tests on the quantity view model.
-8. [ ] **Personal portions.** Port `FetchFoodItemPersonalPortionsUseCase`,
+8. [x] **Personal portions.** Port `FetchFoodItemPersonalPortionsUseCase`,
    `SaveFoodItemPersonalPortionsUseCase`, `FoodItemPersonalPortionsDTO`, `FoodPortionsManagerView`
    (pushed, sharing the same `FoodQuantityViewModel`), `PortionInputRow` and the portion-draft
    members of `FoodQuantityViewModel`. Only `.catalogue` items qualify. After they load, the
@@ -212,7 +213,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    The meal branch of `isPersonalPortionsAvailable`, `persistPersonalPortions` and the
    `updateMyCreatedMeal`/`onMealUpdated` wiring wait for step 10. Tests beyond iOS: a fetch use
    case test, a failing fetch keeping the synchronous default, and the comma decimal separator.
-9. [ ] **Barcode scanner.** *Decision:* the scanner stack. The likely pick is CameraX + ML Kit
+9. [x] **Barcode scanner.** *Decision:* the scanner stack. The likely pick is CameraX + ML Kit
    barcode scanning, which is VisionKit's counterpart; it adds the CAMERA permission. Port the
    inline scanner with the close button (`BarcodeScannerOverlay`), the duplicate-delivery
    suppression, and the permission-denied path, including revocation while visible (§ 2.5).
@@ -229,7 +230,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    barcode icon is a small hand-drawn `ImageVector`, since `material-icons-extended` is not a
    dependency. Both `onScenePhaseActive` and the six `onBarcodeScanned` tests are ported verbatim,
    plus a check that the scanned code is cleared afterwards so it can be delivered again.
-10. [ ] **Created meals.** Port `FetchMyCreatedMeals`, `CreateMyCreatedMeal`, `UpdateMyCreatedMeal`
+10. [x] **Created meals.** Port `FetchMyCreatedMeals`, `CreateMyCreatedMeal`, `UpdateMyCreatedMeal`
     and `DeleteMyCreatedMealUseCase`, and `FetchFoodItemsByIdsUseCase` (provider
     `whereDocumentIdIn`). Also port `MyCreatedMealDTO`, `asFoodItem()` (MacroKit weighted mean),
     `MyCreatedMealEditor*`, the created-meal members of the sheet and quantity view models, and
@@ -251,7 +252,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     The sheet's `onAppear` loads favourites and meals concurrently, as `async let` does. Tests beyond
     iOS: the created-meal id is uppercase, and `FetchFoodItemsByIds` reads the deduplicated ids in
     order.
-11. [ ] **Catalogue reports.** Port `FetchMyFoodItemReportUseCase`, `SubmitFoodItemReportUseCase` and
+11. [x] **Catalogue reports.** Port `FetchMyFoodItemReportUseCase`, `SubmitFoodItemReportUseCase` and
     `FoodItemReportDTO` into the quantity and detail screens. The id is `{barcode}_{userId}`, there
     is no update path, and the client reads its own report first (§ 1.6, design 0012).
     *Ported with deviations:* the toolbar menu is a `MoreVert` icon button with a one-item
@@ -261,7 +262,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     `MutableStateFlow` properties, like `FavouriteToggling`. The detail view model loads the report state
     after the favourite and the catalogue item, as on iOS. The 500-character limit is `String.length`,
     which counts UTF-16 units as the rules do. Tests beyond iOS: none.
-12. [ ] **Catalogue submissions.** Port `SubmitFoodItem`, `FetchMySubmissions`, `UpdateMySubmission`
+12. [x] **Catalogue submissions.** Port `SubmitFoodItem`, `FetchMySubmissions`, `UpdateMySubmission`
     and `DeleteMySubmissionUseCase`, `FoodItemSubmissionFetcher`/`Writer` and
     `FoodItemSubmissionDTO`. Also port the new-food form components (`FoodItemFormFields`,
     `FoodItemFormSections`, `FoodPortionsSection`) and the sheet's submission members. A food
@@ -304,7 +305,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     The provider gained `loadAsync(from, field, isEqualTo, orderBy, descending)` and
     `loadFromServerAsync(id, from)`. Tests beyond iOS: the submission id is an uppercase UUID, and the
     barcode rescan copies the code into the form.
-13. [ ] **Account.** This step absorbs the anonymous-data merge and part 1 of *Firebase
+13. [x] **Account.** This step absorbs the anonymous-data merge and part 1 of *Firebase
     setup* below; read it. Port `AccountView`/`AccountViewModel`, and `SignInWithGoogle`,
     `LinkOrMergeCredential`, `MigrateAnonymousData` (plus the `resumeIfNeeded` call in
     `AuthStateObserver.kt`), `SignOut`, `Reauthenticate`, `DeleteAccount` and
@@ -323,7 +324,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     maintainer *Moderation* section came with step 15. The merge
     overlay lives in `KalorieApp`. Tests beyond iOS: the snapshot store tolerates missing optional
     collections, and `DeleteAccountUseCase` deletes the `users` document.
-14. [ ] **Export.** Port `FetchFoodsConsumedInRangeUseCase`, `GenerateFoodExportUseCase`,
+14. [x] **Export.** Port `FetchFoodsConsumedInRangeUseCase`, `GenerateFoodExportUseCase`,
     `FoodExportReportFactory` and `Export*` through ExportKit, and share the file with an
     `ACTION_SEND` intent (the counterpart of `ActivityView`). It carries the day-bucketing fixture.
     Read § 8 and design 0014.
@@ -341,7 +342,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     (PdfKmp needs an Android context), so the PDF cases of `GenerateFoodExportUseCaseTests` are left
     out and ExportKit's own `jvmTest` covers the renderer. Tests beyond iOS: `ExportViewModelTest`
     and the cleanup of an earlier export.
-15. [ ] **Moderation.** *Decision:* whether Android needs it at all. It is maintainer-only, and the
+15. [x] **Moderation.** *Decision:* whether Android needs it at all. It is maintainer-only, and the
     maintainer may keep using iOS. If yes, port `Features/Moderation/*` and its use cases last.
     *Ported with deviations (without OCR):* the decision was to port it. `CreateFoodItemUseCase`,
     `UpdateFoodItemUseCase`, `FetchPendingSubmissionsUseCase`, `ApproveSubmissionUseCase`,
@@ -360,6 +361,10 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     `PullToRefreshBox`. When a review ends with an alert (already resolved, changed since review), the
     dialog closes after the alert is acknowledged, since an alert cannot outlive its dialog. Tests beyond
     iOS: the batched barcode fetch (empty input, deduplication).
+
+### Still open on Android
+
+Steps 9 and 12 are ported but their camera parts are unit-tested only, until the emulator check below.
 
 - [ ] **Verify the camera features on an emulator** — there is no physical Android device, so the barcode
   scanner (step 9) and the nutrition-label OCR (step 12 follow-up) have only been checked by unit tests.
