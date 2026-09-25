@@ -5,7 +5,10 @@ import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodPortionDomain
+import antoni.kalorie.core.models.FoodNutritionValues
 import antoni.kalorie.core.models.MealTypeDomain
+import antoni.kalorie.core.models.MyCreatedMealDomain
+import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseFake
@@ -18,6 +21,8 @@ import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseFake
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
+import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseFake
+import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
 import java.time.Instant
 import java.time.ZonedDateTime
@@ -733,7 +738,98 @@ class FoodQuantityViewModelTest {
         assertFalse(sut.isTogglingFavourite.value)
     }
 
+    // MARK: - My created meal portions
+
+    @Test
+    fun unitOptions_forMeal_listsEachPortionOnce() {
+        val portion = FoodPortionDomain(name = "1 miska", grams = 250.0)
+        val meal = makeMeal(portions = listOf(portion))
+        val sut = makeSUT(item = meal.asFoodItem(), meal = meal)
+
+        assertEquals(
+            "the meal's portions live on the meal itself, so item.portions must not be listed a second time",
+            listOf(FoodQuantityUnit.Portion(portion), FoodQuantityUnit.Grams, FoodQuantityUnit.HundredGrams),
+            sut.unitOptions,
+        )
+    }
+
+    @Test
+    fun onSavePersonalPortions_forMeal_writesPortionsToMealAndNotifiesParent() = runTest {
+        val existing = FoodPortionDomain(name = "1 miska", grams = 250.0)
+        val meal = makeMeal(portions = listOf(existing))
+        var notifiedMeal: MyCreatedMealDomain? = null
+        val sut = makeSUT(item = meal.asFoodItem(), meal = meal, onMealUpdated = { notifiedMeal = it })
+        sut.portionDrafts.value = listOf(FoodPortionDraft(name = "1 lžíce", gramsText = "15"))
+
+        sut.onSavePersonalPortions()
+
+        val expected = listOf(existing, FoodPortionDomain(name = "1 lžíce", grams = 15.0))
+        assertEquals(expected, sut.personalPortions.value)
+        assertEquals("the parent list must see the new portion, or reopening the meal would lose it", expected, notifiedMeal?.portions)
+    }
+
+    @Test
+    fun onSavePersonalPortions_forMeal_whenSaveFails_restoresPortionsAndDoesNotNotifyParent() = runTest {
+        val existing = FoodPortionDomain(name = "1 miska", grams = 250.0)
+        val meal = makeMeal(portions = listOf(existing))
+        var wasNotified = false
+        val sut = makeSUT(
+            item = meal.asFoodItem(),
+            meal = meal,
+            updateMyCreatedMeal = UpdateMyCreatedMealUseCaseFake(shouldThrow = true),
+            onMealUpdated = { wasNotified = true },
+        )
+        sut.portionDrafts.value = listOf(FoodPortionDraft(name = "1 lžíce", gramsText = "15"))
+
+        sut.onSavePersonalPortions()
+
+        assertEquals(listOf(existing), sut.personalPortions.value)
+        assertFalse(wasNotified)
+        assertEquals(R.string.myPortions_error_saveFailed, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onDeletePersonalPortion_forMeal_removesPortionFromMealAndNotifiesParent() = runTest {
+        val portion = FoodPortionDomain(name = "1 miska", grams = 250.0)
+        val meal = makeMeal(portions = listOf(portion))
+        var notifiedMeal: MyCreatedMealDomain? = null
+        val sut = makeSUT(item = meal.asFoodItem(), meal = meal, onMealUpdated = { notifiedMeal = it })
+
+        sut.onDeletePersonalPortion(portion)
+
+        assertTrue(sut.personalPortions.value.isEmpty())
+        assertEquals(emptyList<FoodPortionDomain>(), notifiedMeal?.portions)
+    }
+
     // MARK: - Helpers
+
+    private fun makeMeal(portions: List<FoodPortionDomain>): MyCreatedMealDomain = MyCreatedMealDomain(
+        id = "meal",
+        name = "Guláš",
+        ingredients = listOf(
+            MyCreatedMealIngredientDomain(
+                foodItemId = "beef",
+                czName = "Hovězí",
+                engName = "Beef",
+                grams = 200.0,
+                nutrition = FoodNutritionValues(
+                    energyKJ = 1000.0,
+                    caloriesPerHundredGrams = 240.0,
+                    fat = 15.0,
+                    fatSaturated = 6.0,
+                    fatUnsaturatedFattyAcids = 9.0,
+                    carbohydrate = 0.0,
+                    carbohydratePureSugar = 0.0,
+                    fiber = 0.0,
+                    protein = 26.0,
+                    salt = 0.1,
+                ),
+            ),
+        ),
+        createdAt = Instant.now(),
+        updatedAt = Instant.now(),
+        portions = portions,
+    )
 
     private fun makeSUT(
         item: FoodItemDomain = makeFoodItem(),
@@ -746,7 +842,10 @@ class FoodQuantityViewModelTest {
         removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
         fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseProtocol = FetchFoodItemPersonalPortionsUseCaseFake(),
         saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseProtocol = SaveFoodItemPersonalPortionsUseCaseFake(),
+        meal: MyCreatedMealDomain? = null,
+        updateMyCreatedMeal: UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
         onSaved: () -> Unit = {},
+        onMealUpdated: (MyCreatedMealDomain) -> Unit = {},
         onFavouriteChanged: (String, Boolean) -> Unit = { _, _ -> },
         quantity: Double = 1.0,
         unit: FoodQuantityUnit = FoodQuantityUnit.HundredGrams,
@@ -761,7 +860,10 @@ class FoodQuantityViewModelTest {
         removeFavouriteFood = removeFavouriteFood,
         fetchFoodItemPersonalPortions = fetchFoodItemPersonalPortions,
         saveFoodItemPersonalPortions = saveFoodItemPersonalPortions,
+        meal = meal,
+        updateMyCreatedMeal = updateMyCreatedMeal,
         onSaved = onSaved,
+        onMealUpdated = onMealUpdated,
         onFavouriteChanged = onFavouriteChanged,
         quantity = quantity,
         unit = unit,

@@ -7,6 +7,9 @@ import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
+import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCase
+import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCase
+import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCase
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCase
@@ -18,8 +21,10 @@ import antoni.kalorie.core.usecases.SaveFoodConsumedUseCase
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCase
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
+import antoni.kalorie.features.foodquantity.FoodQuantityUnit
 import antoni.kalorie.features.foodquantity.FoodQuantityView
 import antoni.kalorie.features.foodquantity.FoodQuantityViewModel
+import antoni.kalorie.features.mycreatedmeal.MyCreatedMealEditorConfigurator
 import java.time.Instant
 import java.util.UUID
 
@@ -29,6 +34,8 @@ class AddFoodSheetConfigurator(
 ) {
 
     // MARK: - Functions
+
+    private val editorConfigurator = MyCreatedMealEditorConfigurator(dataProvider, authProvider)
 
     @Composable
     fun createView(date: Instant, mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onFoodSaved: () -> Unit = {}) {
@@ -41,13 +48,15 @@ class AddFoodSheetConfigurator(
                 fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                 fetchFavouriteFoods = FetchFavouriteFoodsUseCase(dataProvider, authProvider),
                 refreshFavouriteFood = RefreshFavouriteFoodUseCase(dataProvider, authProvider),
+                fetchMyCreatedMeals = FetchMyCreatedMealsUseCase(dataProvider, authProvider),
+                deleteMyCreatedMeal = DeleteMyCreatedMealUseCase(dataProvider, authProvider),
                 onFoodSaved = onFoodSaved,
             )
         }
         AddFoodSheetView(
             viewModel = viewModel,
             onDismiss = onDismiss,
-            makeFoodQuantityView = { item, isFavourite, onSaved, onFavouriteChanged, onBack ->
+            makeFoodQuantityView = { item, isFavourite, meal, onSaved, onFavouriteChanged, onMealUpdated, mealActions, onBack ->
                 val quantityViewModel = viewModel {
                     FoodQuantityViewModel(
                         item = item,
@@ -60,13 +69,33 @@ class AddFoodSheetConfigurator(
                         removeFavouriteFood = RemoveFavouriteFoodUseCase(dataProvider, authProvider),
                         fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
                         saveFoodItemPersonalPortions = SaveFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
+                        meal = meal,
+                        updateMyCreatedMeal = UpdateMyCreatedMealUseCase(dataProvider, authProvider),
                         onSaved = onSaved,
+                        onMealUpdated = onMealUpdated,
                         onFavouriteChanged = onFavouriteChanged,
-                        quantity = if (item.portions.isEmpty()) 100.0 else 1.0,
-                        unit = FoodQuantityViewModel.defaultUnit(item),
+                        quantity = if (meal != null) item.weight else if (item.portions.isEmpty()) 100.0 else 1.0,
+                        unit = if (meal != null) FoodQuantityUnit.Grams else FoodQuantityViewModel.defaultUnit(item),
                     )
                 }
-                FoodQuantityView(viewModel = quantityViewModel, onBack = onBack)
+                FoodQuantityView(viewModel = quantityViewModel, onBack = onBack, mealActions = mealActions)
+            },
+            makeMealEditorView = { onSaved, onDismiss, navigationIcon, header ->
+                editorConfigurator.createView(
+                    onSaved = onSaved,
+                    dismissesOnSave = false,
+                    onDismiss = onDismiss,
+                    navigationIcon = navigationIcon,
+                    header = header,
+                )
+            },
+            makeEditMealView = { meal, onSaved, onDismiss, navigationIcon ->
+                editorConfigurator.createView(
+                    existingMeal = meal,
+                    onSaved = onSaved,
+                    onDismiss = onDismiss,
+                    navigationIcon = navigationIcon,
+                )
             },
         )
     }

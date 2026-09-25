@@ -2,6 +2,13 @@ package antoni.kalorie.features.addfoodsheet
 
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.models.FoodNutritionValues
+import antoni.kalorie.core.models.MyCreatedMealDomain
+import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
+import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseFake
+import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseFake
+import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseFake
@@ -25,6 +32,113 @@ import org.junit.Test
 
 class AddFoodSheetViewModelTest {
 
+    // MARK: - mode
+
+    @Test
+    fun mode_startsInSearch() {
+        assertEquals(AddFoodSheetMode.SEARCH, makeSUT().mode.value)
+    }
+
+    @Test
+    fun onModeSelected_switchesModeAndClosesTheScanner() {
+        val sut = makeSUT(isScannerVisible = true)
+
+        sut.onModeSelected(AddFoodSheetMode.CREATE_MEAL)
+
+        assertEquals(AddFoodSheetMode.CREATE_MEAL, sut.mode.value)
+        assertFalse(sut.isScannerVisible.value)
+    }
+
+    // MARK: - displayedResults
+
+    @Test
+    fun displayedResults_hoistsMatchingFavouritesAboveCreatedMealsAndCatalog() = runTest {
+        val sut = makeSUT(
+            fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "fav", czName = "Ovar"))),
+            fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(stubbedMeals = listOf(makeMeal(id = "meal", name = "Ovesná kaše"))),
+        )
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(makeFoodItem(id = "cat", czName = "Ovoce"))
+        sut.searchText.value = "ov"
+
+        assertEquals(listOf("fav", "meal", "cat"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_createdMeal_hasCreatedMealKind() = runTest {
+        val sut = makeSUT(fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(stubbedMeals = listOf(makeMeal(id = "meal", name = "Ovesná kaše"))))
+        sut.onAppear()
+        sut.searchText.value = "ov"
+
+        assertEquals(FoodItemKind.CREATED_MEAL, sut.displayedResults.first { it.id == "meal" }.kind)
+    }
+
+    // MARK: - isMyCreatedMeal
+
+    @Test
+    fun isMyCreatedMeal_returnsTrueOnlyForCreatedMealKind() {
+        val sut = makeSUT()
+
+        assertTrue(sut.isMyCreatedMeal(makeFoodItem(kind = FoodItemKind.CREATED_MEAL)))
+        assertFalse(sut.isMyCreatedMeal(makeFoodItem(kind = FoodItemKind.CATALOGUE)))
+        assertFalse(sut.isMyCreatedMeal(makeFoodItem(kind = FoodItemKind.EXTERNAL)))
+    }
+
+    // MARK: - onDeleteMealConfirmed
+
+    @Test
+    fun onDeleteMealConfirmed_removesRowOptimistically() = runTest {
+        val sut = makeSUT(
+            fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(stubbedMeals = listOf(makeMeal(id = "1", name = "A"), makeMeal(id = "2", name = "B"))),
+        )
+        sut.onAppear()
+        sut.onDeleteMealRequested(sut.myCreatedMeals.value[0])
+
+        sut.onDeleteMealConfirmed()
+
+        assertEquals(listOf("2"), sut.myCreatedMeals.value.map { it.id })
+    }
+
+    @Test
+    fun onDeleteMealConfirmed_whenDeleteFails_restoresRowAndShowsAlert() = runTest {
+        val sut = makeSUT(
+            fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(stubbedMeals = listOf(makeMeal(id = "1", name = "A"), makeMeal(id = "2", name = "B"))),
+            deleteMyCreatedMeal = DeleteMyCreatedMealUseCaseFake(shouldThrow = true),
+        )
+        sut.onAppear()
+        sut.onDeleteMealRequested(sut.myCreatedMeals.value[0])
+
+        sut.onDeleteMealConfirmed()
+
+        assertEquals("a failed delete must restore the row at its original position", listOf("1", "2"), sut.myCreatedMeals.value.map { it.id })
+        assertEquals(R.string.myCreatedMeal_error_deleteFailed, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onDeleteMealConfirmed_withoutAPendingRequest_doesNothing() = runTest {
+        val sut = makeSUT(fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(stubbedMeals = listOf(makeMeal(id = "1", name = "A"))))
+        sut.onAppear()
+
+        sut.onDeleteMealConfirmed()
+
+        assertEquals(listOf("1"), sut.myCreatedMeals.value.map { it.id })
+    }
+
+    // MARK: - onMyCreatedMealSaved
+
+    @Test
+    fun onMyCreatedMealSaved_returnsToSearchWithTheNewMealImmediatelyLoggable() = runTest {
+        val sut = makeSUT(
+            fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(stubbedMeals = listOf(makeMeal(id = "new-meal", name = "Ovesná kaše"))),
+        )
+        sut.onModeSelected(AddFoodSheetMode.CREATE_MEAL)
+
+        sut.onMyCreatedMealSaved()
+
+        assertEquals(AddFoodSheetMode.SEARCH, sut.mode.value)
+        assertEquals("a meal just composed must be loggable without reopening the sheet", listOf("new-meal"), sut.myCreatedMeals.value.map { it.id })
+    }
+
     // MARK: - onScannerButtonTapped
 
     @Test
@@ -32,6 +146,7 @@ class AddFoodSheetViewModelTest {
         val sut = makeSUT()
         sut.onScannerButtonTapped()
         assertTrue(sut.isScannerVisible.value)
+        assertEquals(AddFoodSheetMode.SEARCH, sut.mode.value)
     }
 
     @Test
@@ -361,6 +476,8 @@ class AddFoodSheetViewModelTest {
             fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(),
             fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(),
             refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(),
+            fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(),
+            deleteMyCreatedMeal = DeleteMyCreatedMealUseCaseFake(),
             onFoodSaved = { onFoodSavedCalled = true },
         )
 
@@ -379,6 +496,8 @@ class AddFoodSheetViewModelTest {
         fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchFavouriteFoods: FetchFavouriteFoodsUseCaseProtocol = FetchFavouriteFoodsUseCaseFake(),
         refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol = RefreshFavouriteFoodUseCaseFake(),
+        fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol = FetchMyCreatedMealsUseCaseFake(),
+        deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol = DeleteMyCreatedMealUseCaseFake(),
         isScannerVisible: Boolean = false,
     ): AddFoodSheetViewModel = AddFoodSheetViewModel(
         searchFoodItems = searchFoodItems,
@@ -387,12 +506,45 @@ class AddFoodSheetViewModelTest {
         fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
         fetchFavouriteFoods = fetchFavouriteFoods,
         refreshFavouriteFood = refreshFavouriteFood,
+        fetchMyCreatedMeals = fetchMyCreatedMeals,
+        deleteMyCreatedMeal = deleteMyCreatedMeal,
         isScannerVisible = isScannerVisible,
     )
 
-    private fun makeFoodItem(id: String = "12345", czName: String = "Ovesné vločky"): FoodItemDomain = FoodItemDomain(
+    private fun makeMeal(id: String, name: String): MyCreatedMealDomain = MyCreatedMealDomain(
         id = id,
-        kind = FoodItemKind.CATALOGUE,
+        name = name,
+        ingredients = listOf(
+            MyCreatedMealIngredientDomain(
+                foodItemId = "12345",
+                czName = "Ovesné vločky",
+                engName = "Oats",
+                grams = 50.0,
+                nutrition = FoodNutritionValues(
+                    energyKJ = 648.0,
+                    caloriesPerHundredGrams = 155.0,
+                    fat = 10.0,
+                    fatSaturated = 3.0,
+                    fatUnsaturatedFattyAcids = 3.0,
+                    carbohydrate = 1.0,
+                    carbohydratePureSugar = 0.0,
+                    fiber = 0.0,
+                    protein = 13.0,
+                    salt = 0.3,
+                ),
+            ),
+        ),
+        createdAt = Instant.now(),
+        updatedAt = Instant.now(),
+    )
+
+    private fun makeFoodItem(
+        id: String = "12345",
+        czName: String = "Ovesné vločky",
+        kind: FoodItemKind = FoodItemKind.CATALOGUE,
+    ): FoodItemDomain = FoodItemDomain(
+        id = id,
+        kind = kind,
         czName = czName,
         engName = "Oats",
         weight = 80.0,

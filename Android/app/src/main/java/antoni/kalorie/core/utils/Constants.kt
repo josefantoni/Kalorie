@@ -13,6 +13,7 @@ object Constants {
         const val FOOD_QUANTITY = "foodQuantity"
         const val ADD_FOOD_SHEET = "addFoodSheet"
         const val FAVOURITES = "favourites"
+        const val MY_CREATED_MEAL = "myCreatedMeal"
     }
 
     object OpenFoodFacts {
@@ -25,11 +26,13 @@ object Constants {
 
     object Firestore {
         const val BATCH_WRITE_LIMIT = 500
+        const val IN_QUERY_LIMIT = 30
         const val FOOD_ITEMS = "foodItems"
 
         fun mealTypes(userId: String): String = "users/$userId/mealTypes"
         fun foodConsumed(userId: String): String = "users/$userId/foodConsumed"
         fun favouriteFoods(userId: String): String = "users/$userId/favouriteFoods"
         fun foodItemPortions(userId: String): String = "users/$userId/foodItemPortions"
+        fun myCreatedMeals(userId: String): String = "users/$userId/myCreatedMeals"
     }
 }

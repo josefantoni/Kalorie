@@ -3,6 +3,7 @@ package antoni.kalorie.core.networking
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.Source
@@ -18,6 +19,7 @@ sealed class FirestoreDataProviderError : Exception() {
 interface FirestoreDataProviderProtocol {
     suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadAsync(id: String, from: String, serializer: KSerializer<T>): T?
+    suspend fun <T> loadAsync(from: String, whereDocumentIdIn: List<String>, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadAsync(from: String, orderBy: String, descending: Boolean, limit: Int, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadAsync(
@@ -46,6 +48,11 @@ suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(
     descending: Boolean,
     limit: Int,
 ): List<T> = loadAsync(from, orderBy, descending, limit, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(
+    from: String,
+    whereDocumentIdIn: List<String>,
+): List<T> = loadAsync(from, whereDocumentIdIn, serializer<T>())
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.loadFromServerAsync(from: String): List<T> =
     loadFromServerAsync(from, serializer<T>())
@@ -98,6 +105,14 @@ class FirestoreDataProvider(
         perform {
             val snapshot = firestore.collection(from).document(id).get().await()
             snapshot.data?.let { FirestoreDataMapper.decode(it, serializer) }
+        }
+
+    override suspend fun <T> loadAsync(from: String, whereDocumentIdIn: List<String>, serializer: KSerializer<T>): List<T> =
+        perform {
+            whereDocumentIdIn.chunked(Constants.Firestore.IN_QUERY_LIMIT).flatMap { chunk ->
+                val snapshot = firestore.collection(from).whereIn(FieldPath.documentId(), chunk).get().await()
+                snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+            }
         }
 
     override suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T> =
