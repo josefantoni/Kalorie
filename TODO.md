@@ -268,14 +268,29 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     without a barcode gets an uppercase UUID id (design 0013). Nutrition-label OCR
     (`RecognizeNutritionLabelUseCase`, design 0010) is a follow-up step, with its own *Decision*
     on ML Kit text recognition. Read § 7 and design 0009.
-    *OCR follow-up, in progress:* decided to use ML Kit Text Recognition (bundled Latin model), which
-    covers the same cs/pl/de/en labels as iOS's Vision setup. The parser is ported as a separate Kotlin
-    copy (`core/nutritionlabelrecognition`), with iOS left unchanged by decision: a shared KMP parser was
+    *OCR follow-up, ported except for the on-device check:* ML Kit Text Recognition (bundled Latin model)
+    covers the same cs/pl/de/en labels as iOS's Vision setup. The parser is a separate Kotlin copy
+    (`core/nutritionlabelrecognition`) with iOS left unchanged by decision; a shared KMP parser was
     considered and declined. The Foundation Models path (`merging`, `NutritionLabelModelExtractor`) is not
     ported, since it is iOS-only and does not support Czech. Risk: the two parsers can drift apart as real
-    labels drive fixes. Pin them with a shared golden-vector fixture (ADR 0039) when an iOS reader test
-    is acceptable. ML Kit boxes are pixels with y down, so its wrapper converts them to Vision's
-    normalized, y-up boxes before the parser sees them.
+    labels drive fixes. Pin them with a shared golden-vector fixture (ADR 0039) when an iOS reader test is
+    acceptable. ML Kit boxes are pixels with y down, so `normalizedLine` converts them to Vision's
+    normalized, y-up boxes before the parser sees them. The camera is a CameraX
+    `LifecycleCameraController` (`NutritionLabelScannerView`, `NutritionLabelCameraView`): live frames go
+    through ML Kit at most every 300 ms and auto-capture fires on `isCompleteForAutoCapture`, as on iOS.
+    Deviations: there is no `CameraAuthorizationProvider`. The camera permission is requested by the view
+    (`rememberScannerAccess`, as for the barcode scanner), so `AddFoodSheetViewModel.cameraAccess` has only
+    `NOT_DETERMINED`, `AUTHORIZED` and `DENIED`, `onNutritionLabelPromptTapped` and
+    `onNutritionLabelCameraAccessDenied` replace the provider-driven `onNutritionLabelPromptTapped`, and the
+    review and editor view models open the camera synchronously in `onNutritionLabelCameraTapped`. The hint is
+    `nutritionLabelCameraHintRes`, a string resource. `NutritionLabelPrefilling` is an interface with default
+    methods, like `FavouriteToggling`, and its use case parameter is `recognizeNutritionLabelUseCase` in the
+    constructors. The prompt and the scan button are text-only, with no camera icon, and live text is not
+    highlighted in the preview. As on iOS, the add-food review form has no scan button. Still open: there is no
+    physical Android device, so check the OCR by faking the camera in the Android Studio emulator (Extended
+    controls → Camera → Virtual scene with a photo of a label, or the laptop webcam). ML Kit's box coordinates under a rotated frame are
+    unverified, and a wrong orientation would show up as rows and columns collapsing, the bug iOS had
+    before its orientation fix.
     *Ported with deviations (without OCR):* `AddFoodSheetMode` gets `NEW_ITEM`, and the review screen is
     a Nav3 destination (`isReviewPushed` → `AddFoodSheetDestination.Review`). The new-item prompt shows
     only *Add food manually*, since the camera prompt, `cameraAccess`, `recognizedFields`,
@@ -340,12 +355,19 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     `AccountView`'s maintainer section through `ModerationConfigurator`, and the queue and the reports
     screen push the review and editor dialogs over themselves. The review and editor view models are
     verbatim subsets without the OCR members (`NutritionLabelPrefilling`, `recognizedFields`, the camera
-    and `onFormFieldEdited`), which wait for the nutrition-label follow-up of step 12. The report
+    and `onFormFieldEdited`), which the nutrition-label follow-up of step 12 later ported. The report
     *Resolved* action is a trailing text button, not a swipe action, and pull-to-refresh is
     `PullToRefreshBox`. When a review ends with an alert (already resolved, changed since review), the
     dialog closes after the alert is acknowledged, since an alert cannot outlive its dialog. Tests beyond
     iOS: the batched barcode fetch (empty input, deduplication).
 
+- [ ] **Verify the camera features on an emulator** — there is no physical Android device, so the barcode
+  scanner (step 9) and the nutrition-label OCR (step 12 follow-up) have only been checked by unit tests.
+  Fake the camera in the Android Studio emulator (Extended controls → Camera → Virtual scene with a photo
+  of a barcode or a label, or the laptop webcam) and check: ML Kit reads cs/pl/de/en labels including
+  diacritics, box coordinates hold under a rotated frame (rows and columns must not collapse), auto-capture
+  and the shutter both work, and the permission prompt, denied state and revocation behave. Real-world
+  glare and curved packaging still need a real phone before release.
 - [ ] **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.
