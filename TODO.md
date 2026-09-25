@@ -167,6 +167,18 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    the `User-Agent` value. iOS sends `Kalorie-iOS/<version>`. Wire the external list into the
    sheet behind the § 2.3 gate (`displayedResults` empty and ≥ 3 characters; a failure is
    logged, not alerted) and add `FetchFoodItemByBarcodeUseCase` plus `loadAsync(id:)`.
+   *Ported with deviations:* the decisions were `HttpURLConnection` with no new dependency, behind
+   `HttpSessionProtocol` (the counterpart of the injected `URLSession`; tests use `HttpSessionFake`),
+   and the `User-Agent` `Kalorie-Android/<versionName>`, which needed `buildConfig` enabled. The
+   `URLError` codes map to JVM exceptions: `SocketTimeoutException` for `.timedOut`, `EOFException`
+   or a `SocketException` other than `ConnectException`/`NoRouteToHostException` for
+   `.networkConnectionLost` (both retried), and `UnknownHostException` for
+   `.notConnectedToInternet` (not retried). The provider method is `loadAsync(id, from, serializer)`.
+   `FetchFoodItemByBarcodeUseCase` has only the single-barcode call; the batched `barcodes:` variant
+   and `whereDocumentIdIn` come with steps 7 and 9. Nothing calls it yet. The sheet shows external
+   rows as plain text like iOS. Tests beyond iOS: the exact request URL and timeout of both calls,
+   the percent-encoded barcode, a 404 not being retried, and the § 2.3 gate (three characters, a
+   local match suppresses the search).
 7. [ ] **Favourites.** Port `FetchFavouriteFoods`, `AddFavouriteFood`, `RemoveFavouriteFood`,
    `IsFavouriteFood` and `RefreshFavouriteFoodUseCase`, `FavouriteFoodDTO` and the
    `FavouriteButton` component. Add the remaining members to all three view models: the sheet's
