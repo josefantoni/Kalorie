@@ -1,7 +1,7 @@
 # Design: Crash reporting and structured logging
 
 - **Status:** Implemented
-- **Scope:** iOS
+- **Scope:** iOS, Android
 - **Date:** 2026-08-30
 
 ## Context and scope
@@ -232,3 +232,11 @@ Run Script phase, and the `FirebaseCrashlyticsCollectionEnabled` opt-out mechani
 default `.private`; the `🚀`/`✅`/document-dump lines are unchanged, still behind `#if DEBUG`.
 Wiring A5-2's individual call sites with `Log.warning`/`Log.error` remains the follow-up PR this
 doc always deferred.
+
+**Android.** `core/utils/Log.kt` mirrors `Log.swift`: `Log.warning` writes to `android.util.Log`, and
+`Log.error` also records the error through `Log.errorReporting`, which `KalorieApplication` points at
+`FirebaseCrashlytics.recordException`. Collection is off in debug and on in release
+(`isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG`). The reporter is a replaceable property so unit
+tests, where Firebase is not initialised, keep a no-op. The Firebase Crashlytics Gradle plugin and the
+`firebase-crashlytics` dependency are on the app module. Release builds are not minified yet
+(`isMinifyEnabled = false`), so no mapping file is uploaded until R8 is turned on.
