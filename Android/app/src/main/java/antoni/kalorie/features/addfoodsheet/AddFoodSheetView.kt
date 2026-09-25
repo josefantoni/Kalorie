@@ -53,9 +53,11 @@ import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.AlertItem
+import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.dashboard.SwipeToDeleteRow
 import antoni.kalorie.features.foodquantity.MealActions
 import kotlinx.coroutines.launch
@@ -94,9 +96,13 @@ fun AddFoodSheetView(
     val selectedFoodItem by viewModel.selectedFoodItem.collectAsState()
     val shouldDismiss by viewModel.shouldDismiss.collectAsState()
     val scope = rememberCoroutineScope()
-    val backStack = remember(isPushedToQuantityView, selectedFoodItem) {
+    val isReviewPushed by viewModel.isReviewPushed.collectAsState()
+    val state by viewModel.state.collectAsState()
+    val alertItem by viewModel.alertItem.collectAsState()
+    val backStack = remember(isPushedToQuantityView, selectedFoodItem, isReviewPushed) {
         buildList<AddFoodSheetDestination> {
             add(AddFoodSheetDestination.Search)
+            if (isReviewPushed) add(AddFoodSheetDestination.Review)
             selectedFoodItem?.takeIf { isPushedToQuantityView }?.let { add(AddFoodSheetDestination.FoodQuantity(it)) }
         }
     }
@@ -109,9 +115,16 @@ fun AddFoodSheetView(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
     ) {
+        Box(modifier = Modifier.fillMaxSize()) {
         NavDisplay(
             backStack = backStack,
-            onBack = { if (isPushedToQuantityView) viewModel.isPushedToQuantityView.value = false else onDismiss() },
+            onBack = {
+                when {
+                    isPushedToQuantityView -> viewModel.isPushedToQuantityView.value = false
+                    isReviewPushed -> viewModel.isReviewPushed.value = false
+                    else -> onDismiss()
+                }
+            },
             entryDecorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator(),
@@ -122,6 +135,11 @@ fun AddFoodSheetView(
                         val mode by viewModel.mode.collectAsState()
                         when (mode) {
                             AddFoodSheetMode.SEARCH -> SearchContent(viewModel = viewModel, onDismiss = onDismiss)
+                            AddFoodSheetMode.NEW_ITEM -> NewItemPromptContent(
+                                viewModel = viewModel,
+                                onDismiss = onDismiss,
+                                modePicker = { ModePicker(viewModel) },
+                            )
                             AddFoodSheetMode.CREATE_MEAL -> makeMealEditorView(
                                 { scope.launch { viewModel.onMyCreatedMealSaved() } },
                                 onDismiss,
@@ -129,6 +147,9 @@ fun AddFoodSheetView(
                                 { ModePicker(viewModel) },
                             )
                         }
+                    }
+                    is AddFoodSheetDestination.Review -> NavEntry(destination) {
+                        NewItemReviewContent(viewModel = viewModel, onBack = { viewModel.isReviewPushed.value = false })
                     }
                     is AddFoodSheetDestination.FoodQuantity -> NavEntry(destination) {
                         val meal = viewModel.myCreatedMeal(destination.item)
@@ -157,6 +178,25 @@ fun AddFoodSheetView(
                 }
             },
         )
+        if (state.isLoading) {
+            Box(modifier = Modifier.fillMaxSize().clickable(enabled = false) {}, contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        }
+    }
+
+    alertItem?.let { alert ->
+        AlertDialog(
+            onDismissRequest = { viewModel.alertItem.value = null },
+            title = { Text(stringResource(alert.titleRes)) },
+            text = alert.messageRes?.let { messageRes -> { Text(stringResource(messageRes)) } },
+            confirmButton = {
+                TextButton(onClick = { viewModel.alertItem.value = null }) {
+                    Text(stringResource(R.string.common_ok))
+                }
+            },
+        )
     }
 }
 
@@ -177,8 +217,9 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
     val isScannerVisible by viewModel.isScannerVisible.collectAsState()
     val lastScannedBarcode by viewModel.lastScannedBarcode.collectAsState()
     val isBarcodeSearchLoading by viewModel.isBarcodeSearchLoading.collectAsState()
-    val alertItem by viewModel.alertItem.collectAsState()
     val myCreatedMeals by viewModel.myCreatedMeals.collectAsState()
+    val mySubmissions by viewModel.mySubmissions.collectAsState()
+    val isSubmissionDeleteConfirmationVisible by viewModel.isSubmissionDeleteConfirmationVisible.collectAsState()
     val isMealDeleteConfirmationVisible by viewModel.isMealDeleteConfirmationVisible.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val scannerAccess = rememberScannerAccess(
@@ -282,6 +323,26 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                     }
                 }
             }
+            if (searchText.isEmpty() && mySubmissions.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.addFood_section_mySubmissions),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+                items(mySubmissions, key = { "submission-${it.id}" }) { submission ->
+                    SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteSubmissionRequested(submission) }) {
+                        FoodItemRow(
+                            item = submission.item,
+                            isFavourite = false,
+                            submissionStatus = submission.status,
+                            modifier = Modifier.clickable { viewModel.onSelectSubmission(submission) },
+                        )
+                    }
+                }
+            }
             if (displayedResults.isNotEmpty() || searchText.isNotEmpty()) {
                 item {
                     Text(
@@ -296,7 +357,14 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                         FoodItemRow(
                             item = item,
                             isFavourite = item.id in favouriteIds,
-                            modifier = Modifier.clickable { viewModel.onSelectFoodItem(item) },
+                            submissionStatus = viewModel.submissionStatus(item),
+                            modifier = Modifier.clickable {
+                                if (viewModel.submissionStatus(item) == FoodItemSubmissionStatus.REJECTED) {
+                                    viewModel.onSelectRejectedSubmission(item)
+                                } else {
+                                    viewModel.onSelectFoodItem(item)
+                                }
+                            },
                         )
                     }
                 } else if (isExternalSearchLoading) {
@@ -334,6 +402,28 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
         }
     }
 
+    if (isSubmissionDeleteConfirmationVisible) {
+        AlertDialog(
+            onDismissRequest = { viewModel.isSubmissionDeleteConfirmationVisible.value = false },
+            title = { Text(stringResource(R.string.addFood_confirm_withdrawSubmission)) },
+            dismissButton = {
+                TextButton(onClick = { viewModel.isSubmissionDeleteConfirmationVisible.value = false }) {
+                    Text(stringResource(R.string.common_button_no))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.isSubmissionDeleteConfirmationVisible.value = false
+                        scope.launch { viewModel.onDeleteSubmissionConfirmed() }
+                    },
+                ) {
+                    Text(stringResource(R.string.common_button_yes))
+                }
+            },
+        )
+    }
+
     if (isMealDeleteConfirmationVisible) {
         AlertDialog(
             onDismissRequest = { viewModel.isMealDeleteConfirmationVisible.value = false },
@@ -351,19 +441,6 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                     },
                 ) {
                     Text(stringResource(R.string.common_button_yes))
-                }
-            },
-        )
-    }
-
-    alertItem?.let { alert ->
-        AlertDialog(
-            onDismissRequest = { viewModel.alertItem.value = null },
-            title = { Text(stringResource(alert.titleRes)) },
-            text = alert.messageRes?.let { messageRes -> { Text(stringResource(messageRes)) } },
-            confirmButton = {
-                TextButton(onClick = { viewModel.alertItem.value = null }) {
-                    Text(stringResource(R.string.common_ok))
                 }
             },
         )

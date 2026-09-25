@@ -8,8 +8,10 @@ import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCase
+import antoni.kalorie.core.usecases.DeleteMySubmissionUseCase
 import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCase
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCase
+import antoni.kalorie.core.usecases.FetchMySubmissionsUseCase
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCase
@@ -22,6 +24,8 @@ import antoni.kalorie.core.usecases.SaveFoodConsumedUseCase
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCase
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCase
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCase
+import antoni.kalorie.core.usecases.SubmitFoodItemUseCase
+import antoni.kalorie.core.usecases.UpdateMySubmissionUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.features.foodquantity.FoodQuantityUnit
 import antoni.kalorie.features.foodquantity.FoodQuantityView
@@ -45,6 +49,10 @@ class AddFoodSheetConfigurator(
         val viewModel = viewModel(key = instanceKey) {
             AddFoodSheetViewModel(
                 searchFoodItems = SearchFoodItemsUseCase(dataProvider),
+                submitFoodItem = SubmitFoodItemUseCase(dataProvider, authProvider),
+                fetchMySubmissions = FetchMySubmissionsUseCase(dataProvider, authProvider),
+                updateMySubmission = UpdateMySubmissionUseCase(dataProvider, authProvider),
+                deleteMySubmission = DeleteMySubmissionUseCase(dataProvider, authProvider),
                 searchFoodExternally = SearchFoodExternallyUseCase(),
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
                 fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
