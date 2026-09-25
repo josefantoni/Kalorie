@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
@@ -87,6 +88,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val activeDays by viewModel.activeDaysInMonth.collectAsState()
     val showCalendarSheet by viewModel.showCalendarSheet.collectAsState()
     val showMealTypeSheet by viewModel.showMealTypeSheet.collectAsState()
+    val showAccountSheet by viewModel.showAccountSheet.collectAsState()
     val showAddFoodSheet by viewModel.showAddFoodSheet.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val isDeleteConfirmationVisible by viewModel.isDeleteConfirmationVisible.collectAsState()
@@ -114,6 +116,14 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
         topBar = {
             TopAppBar(
                 title = {},
+                navigationIcon = {
+                    IconButton(onClick = { viewModel.showAccountSheet.value = !viewModel.showAccountSheet.value }) {
+                        Icon(
+                            Icons.Outlined.AccountCircle,
+                            contentDescription = stringResource(R.string.account_navigationTitle),
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = { viewModel.showMealTypeSheet.value = !viewModel.showMealTypeSheet.value }) {
                         Icon(
@@ -216,6 +226,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
             onDismiss = { viewModel.showAddFoodSheet.value = false },
             onFoodSaved = { scope.launch { viewModel.onFoodConsumedUpdated() } },
         )
+    }
+
+    if (showAccountSheet) {
+        router.makeAccountView(onDismiss = { viewModel.showAccountSheet.value = false })
     }
 
     if (showMealTypeSheet) {
