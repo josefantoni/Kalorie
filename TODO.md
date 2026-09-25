@@ -80,6 +80,14 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   link for requesting account deletion in addition to in-app deletion. The iOS
   `DeleteAccountUseCase` exists; no web page does. Check the current policy before the first release.
 
+## Cleanup
+
+- **Check whether `FetchFoodsConsumedUseCase` on iOS is dead code** — the Android port left it out because
+  nothing but `FetchFoodsConsumedUseCaseTests` references it (checked with a grep on 2026-09-25; the
+  Dashboard uses `FetchFoodsConsumedForMonthUseCase` and Export uses the range one). Confirm that it
+  really is unused, including any use through a protocol or a preview, then delete it and its test, or
+  record why it stays.
+
 ## Documentation baseline
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes what exists; `docs/adr/` records the

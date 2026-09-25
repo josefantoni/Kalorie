@@ -123,6 +123,11 @@ Release build that ships with the `FirebaseCrashlytics` product and the dSYM-upl
 phase (see [design doc 0007](design/0007-crash-reporting-and-logging.md)). Collection is enabled
 in Release and disabled in `DEBUG` (`AppDelegate.application(_:didFinishLaunchingWithOptions:)`).
 
+On Android the app module applies the `com.google.firebase.crashlytics` Gradle plugin and depends on
+`firebase-crashlytics`; collection is set in `KalorieApplication.onCreate` (on in release, off in debug).
+Confirm a non-fatal error shows up in the console after the first release build. If R8 minification is
+turned on later, the plugin uploads the mapping file on its own, but check that stack traces deobfuscate.
+
 ## CI
 
 `.github/workflows/ci.yml` runs on pull requests against `main`. A `changes` job

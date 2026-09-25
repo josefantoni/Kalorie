@@ -2,7 +2,16 @@ package antoni.kalorie.core.utils
 
 import android.util.Log as AndroidLog
 
+fun interface ErrorReporting {
+    fun record(error: Throwable)
+}
+
 object Log {
+
+    // MARK: - Properties
+
+    @Volatile
+    var errorReporting: ErrorReporting = ErrorReporting { }
 
     // MARK: - Functions
 
@@ -12,5 +21,6 @@ object Log {
 
     fun error(error: Throwable, category: String = "app") {
         AndroidLog.e(category, error.toString())
+        errorReporting.record(error)
     }
 }
