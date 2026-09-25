@@ -405,7 +405,8 @@ class AddFoodSheetViewModel(
             localFoodItems.value = searchFoodItems(searchText.value)
         } catch (error: CancellationException) {
             throw error
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
             localFoodItems.value = emptyList()
             externalFoodItems.value = emptyList()
             return
