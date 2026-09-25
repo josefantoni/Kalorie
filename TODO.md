@@ -146,6 +146,17 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    pin (ADR 0031; untouched default `mealTypes.mealType(at:)`). The first picker option is the
    preselected unit (ADR 0030), and portion-less items open at `100 × 1 g`. Amounts follow the
    item's `measure` label, and nutrients stay grams (design 0011). Read ARCHITECTURE § 4.1–4.4.
+   *Ported with deviations:* `FoodQuantityView` is a destination of the sheet's own Nav3 back stack,
+   which is derived from `isPushedToQuantityView` and `selectedFoodItem` as `navigationDestination
+   (isPresented:)` does on iOS, so `AddFoodSheetView` now takes a `makeFoodQuantityView` composable
+   and `AddFoodSheetConfigurator` builds the view model. The view model is a verbatim subset: no
+   favourites, personal portions, reporting, created meals or `onAppear` yet, and no
+   `hasUserSelectedUnit` (it is only read by `onAppear`, step 8). The unit picker is a dropdown
+   menu without the *My portions* entry (step 8). Numeric input sanitises to ASCII digits and one
+   separator like iOS, but the field is a Material `TextField` with the decimal keyboard, and the
+   Dashboard's add-food FAB is centred as on iOS (`FabPosition.Center`) instead of the Material
+   default bottom end. `SaveFoodConsumedUseCaseTest` adds two tests iOS lacks (uppercase document
+   id, epoch-seconds date stamp), per the wire-contract gotchas in `Android/CLAUDE.md`.
 6. [ ] **OpenFoodFacts fallback.** *Decision:* the HTTP client. iOS uses `URLSession` directly, so
    the candidates are `HttpURLConnection` with no new dependency, or OkHttp/Ktor. Port
    `OpenFoodFactsProductDTO`, `SearchFoodExternallyUseCase` and
