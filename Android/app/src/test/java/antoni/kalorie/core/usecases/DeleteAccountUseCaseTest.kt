@@ -121,10 +121,16 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_deletesTheUserProfileDocumentLast() = runTest {
         val fixture = makeSUT()
+        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
 
         fixture.sut()
 
         assertEquals(listOf(USER_ID), fixture.deleted(Constants.Firestore.USERS))
+        assertEquals(
+            "a failure part-way must leave the profile in place so the account is not half-erased",
+            listOf(Constants.Firestore.foodConsumed(USER_ID), Constants.Firestore.USERS),
+            fixture.dataProvider.deletionCollectionOrder,
+        )
     }
 
     @Test
