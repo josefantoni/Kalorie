@@ -102,12 +102,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
 
 ## Cleanup
 
-- **Check whether `FetchFoodsConsumedUseCase` on iOS is dead code** — the Android port left it out because
-  nothing but `FetchFoodsConsumedUseCaseTests` references it (checked with a grep on 2026-09-25; the
-  Dashboard uses `FetchFoodsConsumedForMonthUseCase` and Export uses the range one). Confirm that it
-  really is unused, including any use through a protocol or a preview, then delete it and its test, or
-  record why it stays.
-
 - **Fix saturates rows read as total fat in the iOS `NutritionLabelParser`** — `matchedField(for:)`
   (`iOS/Kalorie/Core/NutritionLabelRecognition/NutritionLabelParser.swift`) returns the first
   `LabelField` whose keyword the row contains, and `.fat` is checked before `.saturates`. A row such as
