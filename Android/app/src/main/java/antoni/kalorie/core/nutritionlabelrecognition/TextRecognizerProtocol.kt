@@ -25,10 +25,15 @@ class MlKitTextRecognizer : TextRecognizerProtocol, BarcodeDetectorProtocol {
 
     override suspend fun recognizeText(image: NutritionLabelImage): List<RecognizedTextLine> {
         val bitmap = image.toBitmap()
-        val isSideways = image.rotationDegrees % 180 != 0
-        val uprightWidth = if (isSideways) bitmap.height else bitmap.width
-        val uprightHeight = if (isSideways) bitmap.width else bitmap.height
-        val result = textClient.process(InputImage.fromBitmap(bitmap, image.rotationDegrees)).await()
+        val (uprightWidth, uprightHeight) = uprightSize(bitmap.width, bitmap.height, image.rotationDegrees)
+        return recognizeLines(InputImage.fromBitmap(bitmap, image.rotationDegrees), uprightWidth, uprightHeight)
+    }
+
+    override suspend fun detectBarcode(image: NutritionLabelImage): String? =
+        detectBarcode(InputImage.fromBitmap(image.toBitmap(), image.rotationDegrees))
+
+    suspend fun recognizeLines(input: InputImage, uprightWidth: Int, uprightHeight: Int): List<RecognizedTextLine> {
+        val result = textClient.process(input).await()
         return result.textBlocks
             .flatMap { it.lines }
             .mapNotNull { line ->
@@ -45,11 +50,17 @@ class MlKitTextRecognizer : TextRecognizerProtocol, BarcodeDetectorProtocol {
             }
     }
 
-    override suspend fun detectBarcode(image: NutritionLabelImage): String? {
-        val input = InputImage.fromBitmap(image.toBitmap(), image.rotationDegrees)
-        return barcodeClient.process(input).await().firstNotNullOfOrNull { it.rawValue }
+    suspend fun detectBarcode(input: InputImage): String? =
+        barcodeClient.process(input).await().firstNotNullOfOrNull { it.rawValue }
+
+    fun close() {
+        textClient.close()
+        barcodeClient.close()
     }
 }
+
+fun uprightSize(width: Int, height: Int, rotationDegrees: Int): Pair<Int, Int> =
+    if (rotationDegrees % 180 != 0) height to width else width to height
 
 // ML Kit boxes are pixels with the origin top-left and y down; the parser expects Vision's
 // normalized boxes with the origin bottom-left and y up.
