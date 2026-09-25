@@ -79,6 +79,26 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
 - **Play Store account deletion** — Google Play's policy has, to my knowledge, required a web
   link for requesting account deletion in addition to in-app deletion. The iOS
   `DeleteAccountUseCase` exists; no web page does. Check the current policy before the first release.
+- **Check the recent Android fixes by hand on an emulator or device** — they were only built and unit
+  tested; the camera and the touch handling cannot be covered that way. Auto-capture of a nutrition label
+  must take a photo (it called `takePicture` off the main thread before); the barcode scanner must release
+  the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
+  submission that was written from the iOS app must work (it failed on `submitted_at` precision).
+- **Check that the loading overlays block touches** — `AddFoodSheetView.kt`, `FoodQuantityView.kt` and
+  `ExportView.kt` cover the screen with a `Box` using `Modifier.clickable(enabled = false) {}`. It is not
+  established whether a disabled `clickable` consumes pointer events or lets them through to the content
+  below. If it lets them through, use `pointerInput(Unit) {}` instead. Moderation review has no overlay
+  guard at all, only the view model returning while it is loading, so that one is covered either way.
+- **Set up ktlint or detekt, or correct `Android/CLAUDE.md`** — it says the code style is enforced by
+  ktlint through detekt, but neither is configured in `build.gradle.kts`, the version catalogue or CI, so
+  nothing checks Kotlin formatting.
+- **Compile the release variant in CI** — the Android job runs only `:app:assembleDebug` and
+  `:app:testDebugUnitTest`, so a change that breaks only the release build (R8, signing, a debug-only
+  source set leaking into `main`) is found at release time. Adding a step to `.github/workflows/ci.yml`
+  is a CI change, so tell the user before doing it.
+- **Test `FirestoreDataProvider.perform` on Android** — it decides what is logged as a warning and what
+  is thrown as `Unreachable`, and has no test because it needs a Firebase instance. Extract the decision
+  or wrap the Firebase calls behind something a test can replace.
 
 ## Cleanup
 
@@ -120,6 +140,19 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
     matches inside "saturated fat", so a label without a separate total-fat row stores the saturates
     value as fat; and the summed-macros check drops everything once the sum passes 100, which rounding on
     a near-pure carbohydrate product can reach.
+
+- **Decide what a scanned barcode that is not found should do** — both apps clear the last delivered code
+  when a lookup ends ([ARCHITECTURE § 2.5](docs/ARCHITECTURE.md)), so while the same barcode stays in
+  frame the scanner delivers it again, the lookups (Firestore, then OpenFoodFacts) repeat and the
+  "not found" alert returns after every dismissal. Android's per-frame delivery makes the loop tighter
+  than iOS's. Intended on iOS, so a change is a product decision for both platforms: for example, keep
+  the code suppressed until it has left the frame, or until the user taps the scan button again.
+- **Decide what to do with an unreadable `pending-merge.json`** — `PendingMergeSnapshotStore.load()`
+  throws when the file is corrupt or no longer matches the DTOs, the error is logged, the file is never
+  removed and the merge is never completed, on every launch, on both platforms. The snapshot holds the
+  anonymous user's data that has not been merged yet, so deleting it after a failed decode can lose that
+  data, and leaving it blocks the merge for good. Options: leave it, delete it after a decode failure,
+  or move it aside and tell the user.
 
 ## Documentation baseline
 
