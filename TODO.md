@@ -268,6 +268,19 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     without a barcode gets an uppercase UUID id (design 0013). Nutrition-label OCR
     (`RecognizeNutritionLabelUseCase`, design 0010) is a follow-up step, with its own *Decision*
     on ML Kit text recognition. Read § 7 and design 0009.
+    *Ported with deviations (without OCR):* `AddFoodSheetMode` gets `NEW_ITEM`, and the review screen is
+    a Nav3 destination (`isReviewPushed` → `AddFoodSheetDestination.Review`). The new-item prompt shows
+    only *Add food manually*, since the camera prompt, `cameraAccess`, `recognizedFields`,
+    `NutritionLabelPrefilling`, `FoodItemFormInput.applying`, the highlighted form fields,
+    `onFieldEdited` and the nutrition-label scan button are all OCR and wait for that follow-up. The
+    barcode rescan (`isBarcodeRescanVisible`, `rescannedBarcode`) is here, since it belongs to the form.
+    `FoodItemFormInput` is an immutable data class edited through `copy`, and numeric fields are
+    `DecimalTextField`s that keep their own text and write the parsed `Double` back. The sheet's alert
+    dialog and loader moved from the search screen to the sheet root, because the review screen raises
+    alerts too. `FoodItemRow` got `submissionStatus`, and `FoodMeasure` got `thousandUnitSymbolRes`.
+    The provider gained `loadAsync(from, field, isEqualTo, orderBy, descending)` and
+    `loadFromServerAsync(id, from)`. Tests beyond iOS: the submission id is an uppercase UUID, and the
+    barcode rescan copies the code into the form.
 13. [ ] **Account.** This step absorbs *Anonymous-data merge on Android* and part 1 of *Firebase
     setup* below; read both. Port `AccountView`/`AccountViewModel`, and `SignInWithGoogle`,
     `LinkOrMergeCredential`, `MigrateAnonymousData` (plus the `resumeIfNeeded` call in
