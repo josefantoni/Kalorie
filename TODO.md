@@ -88,6 +88,16 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   really is unused, including any use through a protocol or a preview, then delete it and its test, or
   record why it stays.
 
+- **Fix saturates rows read as total fat in the iOS `NutritionLabelParser`** — `matchedField(for:)`
+  (`iOS/Kalorie/Core/NutritionLabelRecognition/NutritionLabelParser.swift`) returns the first
+  `LabelField` whose keyword the row contains, and `.fat` is checked before `.saturates`. A row such as
+  "davon gesättigte Fettsäuren" contains "fett" and "Saturated fat" contains "fat", so the saturates value
+  overwrites `fat` and `fatSaturated` stays `nil`. The Android parser was fixed by picking the field with
+  the longest matching keyword and by adding the "saturated fat" keyword; port the same change to iOS, with
+  the two tests `parse_readsGermanSaturatesRowAsSaturatesNotFat` and
+  `parse_readsEnglishSaturatedFatRowAsSaturatesNotFat` from `NutritionLabelParserTest.kt`. iOS was left
+  unchanged when the Android parser was written, so this is the deliberate exception to that decision.
+
 ## Documentation baseline
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes what exists; `docs/adr/` records the
