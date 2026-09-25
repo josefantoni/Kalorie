@@ -16,8 +16,8 @@ private val zone: ZoneId
 
 fun Instant.zoned(): ZonedDateTime = atZone(zone)
 
-fun Instant.minutesSinceMidnight(): Int {
-    val time = zoned()
+fun Instant.minutesSinceMidnight(zone: ZoneId = ZoneId.systemDefault()): Int {
+    val time = atZone(zone)
     return minutesSinceMidnight(hour = time.hour, minute = time.minute)
 }
 

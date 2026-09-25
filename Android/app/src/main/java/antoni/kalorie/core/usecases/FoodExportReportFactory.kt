@@ -43,7 +43,7 @@ class FoodExportReportFactory(
             val dayIndex = dayIndexes[food.date.atZone(zone).toLocalDate()] ?: return@mapNotNull null
             ExportEntryInput(
                 dayIndex = dayIndex,
-                sectionId = mealTypes.resolvedMealTypeId(food),
+                sectionId = mealTypes.resolvedMealTypeId(food, zone),
                 timestamp = food.date.epochSecondsAsDouble(),
                 name = food.displayName,
                 amount = food.weight.formatted(fractionDigits = 1, unitSymbol = strings.getString(food.measure.unitSymbolRes)),

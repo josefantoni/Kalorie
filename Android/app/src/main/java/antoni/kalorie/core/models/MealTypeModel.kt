@@ -5,6 +5,7 @@ import antoni.kalorie.mealkit.MealWindow
 import antoni.kalorie.mealkit.mealWindowAt
 import antoni.kalorie.mealkit.resolvedMealWindowId
 import java.time.Instant
+import java.time.ZoneId
 import java.util.Locale
 
 data class MealTypeDomain(
@@ -26,8 +27,8 @@ fun List<MealTypeDomain>.mealType(date: Instant): MealTypeDomain? {
     return firstOrNull { it.id == id }
 }
 
-fun List<MealTypeDomain>.resolvedMealTypeId(food: FoodConsumedDomain): String? =
-    resolvedMealWindowId(food.date.minutesSinceMidnight(), food.mealTypeId, mealWindows())
+fun List<MealTypeDomain>.resolvedMealTypeId(food: FoodConsumedDomain, zone: ZoneId = ZoneId.systemDefault()): String? =
+    resolvedMealWindowId(food.date.minutesSinceMidnight(zone), food.mealTypeId, mealWindows())
 
 private fun List<MealTypeDomain>.mealWindows(): List<MealWindow> =
     map {
