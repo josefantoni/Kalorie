@@ -4,20 +4,124 @@ import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseFake
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseFake
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseFake
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
+import antoni.kalorie.R
 import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AddFoodSheetViewModelTest {
+
+    // MARK: - onScannerButtonTapped
+
+    @Test
+    fun onScannerButtonTapped_makesScannerVisible() {
+        val sut = makeSUT()
+        sut.onScannerButtonTapped()
+        assertTrue(sut.isScannerVisible.value)
+    }
+
+    @Test
+    fun onScannerButtonTapped_whenScannerAlreadyVisible_keepsScannerVisible() {
+        val sut = makeSUT(isScannerVisible = true)
+        sut.onScannerButtonTapped()
+        assertTrue(sut.isScannerVisible.value)
+    }
+
+    // MARK: - onScenePhaseActive
+
+    @Test
+    fun onScenePhaseActive_whenScannerVisibleAndCameraStillAvailable_keepsScannerVisible() {
+        val sut = makeSUT(isScannerVisible = true)
+        sut.onScenePhaseActive(isCameraAvailable = true)
+        assertTrue(sut.isScannerVisible.value)
+    }
+
+    @Test
+    fun onScenePhaseActive_whenScannerVisibleAndCameraNoLongerAvailable_hidesScannerAndShowsAlert() {
+        val sut = makeSUT(isScannerVisible = true)
+        sut.onScenePhaseActive(isCameraAvailable = false)
+        assertFalse(sut.isScannerVisible.value)
+        assertEquals(R.string.addFood_camera_permissionAlert, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onScenePhaseActive_whenScannerNotVisible_doesNothing() {
+        val sut = makeSUT(isScannerVisible = false)
+        sut.onScenePhaseActive(isCameraAvailable = false)
+        assertFalse(sut.isScannerVisible.value)
+        assertNull(sut.alertItem.value)
+    }
+
+    // MARK: - onBarcodeScanned
+
+    @Test
+    fun onBarcodeScanned_withEmptyBarcode_doesNothing() = runTest {
+        val sut = makeSUT()
+        sut.lastScannedBarcode.value = ""
+        sut.onBarcodeScanned()
+        assertNull(sut.alertItem.value)
+        assertFalse(sut.isBarcodeSearchLoading.value)
+    }
+
+    @Test
+    fun onBarcodeScanned_whenNotFound_showsNotFoundAlert() = runTest {
+        val sut = makeSUT()
+        sut.lastScannedBarcode.value = "8594004428464"
+        sut.onBarcodeScanned()
+        assertEquals(R.string.addFood_error_barcodeNotFound, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onBarcodeScanned_whenNotFound_stopsLoadingAndClearsTheScannedCode() = runTest {
+        val sut = makeSUT()
+        sut.lastScannedBarcode.value = "8594004428464"
+        sut.onBarcodeScanned()
+        assertFalse(sut.isBarcodeSearchLoading.value)
+        assertEquals("the same code must be deliverable again", "", sut.lastScannedBarcode.value)
+    }
+
+    @Test
+    fun onBarcodeScanned_whenLocalFound_navigatesToQuantityView() = runTest {
+        val item = makeFoodItem(id = "8594004428464")
+        val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = item), isScannerVisible = true)
+        sut.lastScannedBarcode.value = "8594004428464"
+        sut.onBarcodeScanned()
+        assertTrue(sut.isPushedToQuantityView.value)
+        assertFalse(sut.isScannerVisible.value)
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onBarcodeScanned_whenExternalFound_navigatesToQuantityView() = runTest {
+        val item = makeFoodItem(id = "8594004428464")
+        val sut = makeSUT(fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(stubbedItem = item), isScannerVisible = true)
+        sut.lastScannedBarcode.value = "8594004428464"
+        sut.onBarcodeScanned()
+        assertTrue(sut.isPushedToQuantityView.value)
+        assertFalse(sut.isScannerVisible.value)
+    }
+
+    @Test
+    fun onBarcodeScanned_whenExternalFails_showsLoadFailedAlert() = runTest {
+        val sut = makeSUT(fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(shouldThrow = true))
+        sut.lastScannedBarcode.value = "8594004428464"
+        sut.onBarcodeScanned()
+        assertEquals(R.string.addFood_error_loadFailed, sut.alertItem.value?.titleRes)
+    }
 
     // MARK: - onSearchTextChanged
 
@@ -253,6 +357,8 @@ class AddFoodSheetViewModelTest {
         val sut = AddFoodSheetViewModel(
             searchFoodItems = SearchFoodItemsUseCaseFake(),
             searchFoodExternally = SearchFoodExternallyUseCaseFake(),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(),
+            fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(),
             fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(),
             refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(),
             onFoodSaved = { onFoodSavedCalled = true },
@@ -269,13 +375,19 @@ class AddFoodSheetViewModelTest {
     private fun makeSUT(
         searchFoodItems: SearchFoodItemsUseCaseProtocol = SearchFoodItemsUseCaseFake(),
         searchFoodExternally: SearchFoodExternallyUseCaseProtocol = SearchFoodExternallyUseCaseFake(),
+        fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
+        fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchFavouriteFoods: FetchFavouriteFoodsUseCaseProtocol = FetchFavouriteFoodsUseCaseFake(),
         refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol = RefreshFavouriteFoodUseCaseFake(),
+        isScannerVisible: Boolean = false,
     ): AddFoodSheetViewModel = AddFoodSheetViewModel(
         searchFoodItems = searchFoodItems,
         searchFoodExternally = searchFoodExternally,
+        fetchFoodItemByBarcode = fetchFoodItemByBarcode,
+        fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
         fetchFavouriteFoods = fetchFavouriteFoods,
         refreshFavouriteFood = refreshFavouriteFood,
+        isScannerVisible = isScannerVisible,
     )
 
     private fun makeFoodItem(id: String = "12345", czName: String = "Ovesné vločky"): FoodItemDomain = FoodItemDomain(

@@ -1,5 +1,21 @@
 package antoni.kalorie.features.addfoodsheet
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.materialIcon
+import androidx.compose.material.icons.materialPath
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import antoni.kalorie.components.BarcodeScannerOverlay
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +55,7 @@ import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.displayName
+import antoni.kalorie.core.utils.AlertItem
 import kotlinx.coroutines.launch
 
 @Composable
@@ -115,6 +132,32 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
     val externalFoodItems by viewModel.externalFoodItems.collectAsState()
     val isExternalSearchLoading by viewModel.isExternalSearchLoading.collectAsState()
     val displayedResults = remember(localFoodItems, favouriteFoods, searchText) { viewModel.displayedResults }
+    val isScannerVisible by viewModel.isScannerVisible.collectAsState()
+    val lastScannedBarcode by viewModel.lastScannedBarcode.collectAsState()
+    val isBarcodeSearchLoading by viewModel.isBarcodeSearchLoading.collectAsState()
+    val alertItem by viewModel.alertItem.collectAsState()
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val isCameraAvailable = { ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            viewModel.onScannerButtonTapped()
+        } else {
+            viewModel.alertItem.value = AlertItem(titleRes = R.string.addFood_camera_permissionAlert)
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.onScenePhaseActive(isCameraAvailable())
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(lastScannedBarcode) {
+        if (lastScannedBarcode.isNotEmpty()) viewModel.onBarcodeScanned()
+    }
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
 
@@ -146,6 +189,19 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                                 stringResource(viewModel.searchExampleRes),
                             ),
                         )
+                    },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                if (isCameraAvailable()) {
+                                    viewModel.onScannerButtonTapped()
+                                } else {
+                                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
+                            },
+                        ) {
+                            Icon(BarcodeIcon, contentDescription = null)
+                        }
                     },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -203,6 +259,45 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                     }
                 }
             }
+        }
+    }
+
+    if (isScannerVisible) {
+        Dialog(
+            onDismissRequest = { viewModel.isScannerVisible.value = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
+        ) {
+            BarcodeScannerOverlay(
+                onScannedCode = { viewModel.lastScannedBarcode.value = it },
+                isSearching = isBarcodeSearchLoading,
+            ) {
+                viewModel.isScannerVisible.value = false
+            }
+        }
+    }
+
+    alertItem?.let { alert ->
+        AlertDialog(
+            onDismissRequest = { viewModel.alertItem.value = null },
+            title = { Text(stringResource(alert.titleRes)) },
+            text = alert.messageRes?.let { messageRes -> { Text(stringResource(messageRes)) } },
+            confirmButton = {
+                TextButton(onClick = { viewModel.alertItem.value = null }) {
+                    Text(stringResource(R.string.common_ok))
+                }
+            },
+        )
+    }
+}
+
+private val BarcodeIcon: ImageVector = materialIcon(name = "Barcode") {
+    materialPath {
+        listOf(2f to 2f, 6f to 1f, 9f to 3f, 14f to 1f, 17f to 2f, 20f to 2f).forEach { (x, w) ->
+            moveTo(x + 0f, 5f)
+            horizontalLineToRelative(w)
+            verticalLineToRelative(14f)
+            horizontalLineToRelative(-w)
+            close()
         }
     }
 }
