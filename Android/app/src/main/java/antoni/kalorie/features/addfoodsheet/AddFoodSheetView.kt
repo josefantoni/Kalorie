@@ -232,12 +232,12 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
     val scope = rememberCoroutineScope()
     val externalFoodItems by viewModel.externalFoodItems.collectAsState()
     val isExternalSearchLoading by viewModel.isExternalSearchLoading.collectAsState()
-    val displayedResults = remember(localFoodItems, favouriteFoods, searchText) { viewModel.displayedResults }
     val isScannerVisible by viewModel.isScannerVisible.collectAsState()
     val lastScannedBarcode by viewModel.lastScannedBarcode.collectAsState()
     val isBarcodeSearchLoading by viewModel.isBarcodeSearchLoading.collectAsState()
     val myCreatedMeals by viewModel.myCreatedMeals.collectAsState()
     val mySubmissions by viewModel.mySubmissions.collectAsState()
+    val displayedResults = remember(localFoodItems, favouriteFoods, myCreatedMeals, mySubmissions, searchText) { viewModel.displayedResults }
     val isSubmissionDeleteConfirmationVisible by viewModel.isSubmissionDeleteConfirmationVisible.collectAsState()
     val isMealDeleteConfirmationVisible by viewModel.isMealDeleteConfirmationVisible.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
