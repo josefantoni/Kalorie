@@ -235,6 +235,22 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     `MyCreatedMealEditor*`, the created-meal members of the sheet and quantity view models, and
     the quantity screen's pencil and *Delete meal*. Read § 1.4 `myCreatedMeals`, § 4.2, design 0006
     and ADR 0033.
+    *Ported with deviations:* the provider method is `loadAsync(from, whereDocumentIdIn, serializer)`,
+    chunked by `Constants.Firestore.IN_QUERY_LIMIT` (30) like iOS, but as a required member of the
+    interface, not a default one; `FirestoreDataProviderFake` gained it. The sheet gets `AddFoodSheetMode`
+    with only `SEARCH` and `CREATE_MEAL` (`NEW_ITEM` comes with step 12), rendered as a segmented button
+    row that is the first list item of each mode, since the editor owns its own top bar with *Save*. In
+    create-meal mode the editor is embedded (`dismissesOnSave = false`) and its top bar has the sheet's
+    close button. The editor pushed from a created meal's quantity screen is a full-screen dialog over
+    that screen (as for `FoodPortionsManagerView`), not a Nav3 destination, and reaches the quantity screen
+    through `MealActions`, the counterpart of `.mealActions(makeEditorView:onDelete:)`. The editor view
+    model exposes `titleRes`, `confirmationTitleRes` and `searchExampleRes` instead of strings, and
+    `onDeleteIngredient` takes a `Set<Int>` for `IndexSet`. `FoodPortionsSection` is ported here for the
+    editor, since step 12 needs it too. `ScannerAccess` (shared by the sheet and the editor) wraps the
+    camera permission request that VisionKit does on its own, and `BarcodeIcon` is one shared vector.
+    The sheet's `onAppear` loads favourites and meals concurrently, as `async let` does. Tests beyond
+    iOS: the created-meal id is uppercase, and `FetchFoodItemsByIds` reads the deduplicated ids in
+    order.
 11. [ ] **Catalogue reports.** Port `FetchMyFoodItemReportUseCase`, `SubmitFoodItemReportUseCase` and
     `FoodItemReportDTO` into the quantity and detail screens. The id is `{barcode}_{userId}`, there
     is no update path, and the client reads its own report first (§ 1.6, design 0012).
