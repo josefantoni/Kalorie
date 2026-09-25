@@ -9,6 +9,9 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     // MARK: - Properties
 
     var stubbedDocuments: List<Any> = emptyList()
+    var stubbedDocumentsByCollection: Map<String, List<Any>> = emptyMap()
+    var batchSavedItemsByCollection: Map<String, List<Pair<Any?, String>>> = emptyMap()
+    var deletedIdsByCollection: Map<String, List<String>> = emptyMap()
     var stubbedServerDocuments: List<Any> = emptyList()
     var stubbedRangeDocuments: (Double, Double) -> List<Any> = { _, _ -> emptyList() }
     var stubbedByPrefixField: Map<String, List<Any>> = emptyMap()
@@ -19,6 +22,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var stubbedDocument: Any? = null
     var stubbedServerDocument: Any? = null
     var stubbedByField: List<Any> = emptyList()
+    var stubbedByFieldByCollection: Map<String, List<Any>> = emptyMap()
     var queriedField: String? = null
     var queriedValue: String? = null
     var queriedServerId: String? = null
@@ -45,7 +49,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
 
     override suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T> {
         stubbedError?.let { throw it }
-        return stubbedDocuments as List<T>
+        return (stubbedDocumentsByCollection[from] ?: stubbedDocuments) as List<T>
     }
 
     override suspend fun <T> loadAsync(id: String, from: String, serializer: KSerializer<T>): T? {
@@ -86,7 +90,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         queriedValue = isEqualTo
         queriedOrderByField = orderBy
         queriedDescending = descending
-        return stubbedByField as List<T>
+        return (stubbedByFieldByCollection[from] ?: stubbedByField) as List<T>
     }
 
     override suspend fun <T> loadFromServerAsync(id: String, from: String, serializer: KSerializer<T>): T? {
@@ -136,6 +140,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
 
     override suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>) {
         batchSavedItems = items
+        batchSavedItemsByCollection = batchSavedItemsByCollection + (inCollection to items)
         batchSavedCollection = inCollection
         batchSavedCount = items.size
     }
@@ -143,5 +148,6 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     override suspend fun deleteAsync(id: String, from: String) {
         deletedId = id
         deletedFromCollection = from
+        deletedIdsByCollection = deletedIdsByCollection + (from to (deletedIdsByCollection[from].orEmpty() + id))
     }
 }

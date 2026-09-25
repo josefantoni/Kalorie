@@ -7,6 +7,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
+        android:name="antoni.kalorie.KalorieApplication"
         android:label="Kalorie"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
