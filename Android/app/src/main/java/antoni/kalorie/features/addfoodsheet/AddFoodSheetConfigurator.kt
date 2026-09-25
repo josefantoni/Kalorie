@@ -8,10 +8,12 @@ import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCase
+import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCase
+import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCase
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.features.foodquantity.FoodQuantityView
@@ -52,6 +54,8 @@ class AddFoodSheetConfigurator(
                         isFavourite = isFavourite,
                         addFavouriteFood = AddFavouriteFoodUseCase(dataProvider, authProvider),
                         removeFavouriteFood = RemoveFavouriteFoodUseCase(dataProvider, authProvider),
+                        fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
+                        saveFoodItemPersonalPortions = SaveFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
                         onSaved = onSaved,
                         onFavouriteChanged = onFavouriteChanged,
                         quantity = if (item.portions.isEmpty()) 100.0 else 1.0,
