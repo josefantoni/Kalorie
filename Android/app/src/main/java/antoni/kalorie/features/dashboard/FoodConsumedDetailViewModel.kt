@@ -3,19 +3,29 @@ package antoni.kalorie.features.dashboard
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodConsumedDomain
+import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.ScaledMacros
 import antoni.kalorie.core.models.resolvedMealTypeId
+import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.IsFavouriteFoodUseCaseProtocol
+import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodConsumedError
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.core.utils.FavouriteToggling
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,8 +36,13 @@ class FoodConsumedDetailViewModel(
     private val updateFoodConsumed: UpdateFoodConsumedUseCaseProtocol,
     private val assignFoodMealType: AssignFoodMealTypeUseCaseProtocol,
     private val fetchMealTypes: FetchMealTypesUseCaseProtocol,
+    private val isFavouriteFood: IsFavouriteFoodUseCaseProtocol,
+    private val addFavouriteFood: AddFavouriteFoodUseCaseProtocol,
+    private val removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol,
+    private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
+    private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
     private val onFoodUpdated: () -> Unit,
-) : ViewModel() {
+) : ViewModel(), FavouriteToggling {
 
     // MARK: - Properties
 
@@ -36,7 +51,11 @@ class FoodConsumedDetailViewModel(
     val state: StateFlow<LoadingState<Unit>> = _state
     private val _showCheckmark = MutableStateFlow(false)
     val showCheckmark: StateFlow<Boolean> = _showCheckmark
-    val alertItem = MutableStateFlow<AlertItem?>(null)
+    override val alertItem = MutableStateFlow<AlertItem?>(null)
+    override val isFavourite = MutableStateFlow(false)
+    override val isTogglingFavourite = MutableStateFlow(false)
+    private val _catalogueItem = MutableStateFlow<FoodItemDomain?>(null)
+    val catalogueItem: StateFlow<FoodItemDomain?> = _catalogueItem
     private val _mealTypeId = MutableStateFlow(mealTypes.resolvedMealTypeId(food))
     val mealTypeId: StateFlow<String?> = _mealTypeId
     private val _mealTypes = MutableStateFlow(mealTypes)
@@ -60,7 +79,54 @@ class FoodConsumedDetailViewModel(
     val hasChanges: Boolean
         get() = hasWeightChanged || hasMealTypeChanged
 
+    val canShowFavouriteButton: Boolean
+        get() = isFavourite.value || _catalogueItem.value != null
+
+    val canToggleFavourite: Boolean
+        get() = !isTogglingFavourite.value && canShowFavouriteButton
+
     // MARK: - Functions
+
+    suspend fun onAppear() = coroutineScope {
+        val favourite = async { loadIsFavourite() }
+        val catalogueItem = async { loadCatalogueItem() }
+        isFavourite.value = favourite.await()
+        _catalogueItem.value = catalogueItem.await()
+    }
+
+    private suspend fun loadIsFavourite(): Boolean {
+        if (food.foodItemKind == FoodItemKind.CREATED_MEAL) return false
+        return try {
+            isFavouriteFood(food.foodItemId)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.DASHBOARD)
+            false
+        }
+    }
+
+    private suspend fun loadCatalogueItem(): FoodItemDomain? = try {
+        when (food.foodItemKind) {
+            FoodItemKind.CATALOGUE -> fetchFoodItemByBarcode(food.foodItemId)
+            FoodItemKind.EXTERNAL -> fetchFoodByBarcodeExternally(food.foodItemId)
+            FoodItemKind.CREATED_MEAL -> null
+        }
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        Log.warning(error, Constants.LogCategory.DASHBOARD)
+        null
+    }
+
+    suspend fun onFavouriteToggled() {
+        toggleFavourite(
+            item = _catalogueItem.value,
+            removalId = food.foodItemId,
+            addFavouriteFood = addFavouriteFood,
+            removeFavouriteFood = removeFavouriteFood,
+        )
+    }
 
     fun onMealTypeSelected(mealTypeId: String) {
         didSelectMealType = true

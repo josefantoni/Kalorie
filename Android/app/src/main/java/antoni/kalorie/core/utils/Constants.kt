@@ -12,6 +12,7 @@ object Constants {
         const val MEAL_TYPE_SHEET = "mealTypeSheet"
         const val FOOD_QUANTITY = "foodQuantity"
         const val ADD_FOOD_SHEET = "addFoodSheet"
+        const val FAVOURITES = "favourites"
     }
 
     object OpenFoodFacts {
@@ -28,5 +29,6 @@ object Constants {
 
         fun mealTypes(userId: String): String = "users/$userId/mealTypes"
         fun foodConsumed(userId: String): String = "users/$userId/foodConsumed"
+        fun favouriteFoods(userId: String): String = "users/$userId/favouriteFoods"
     }
 }

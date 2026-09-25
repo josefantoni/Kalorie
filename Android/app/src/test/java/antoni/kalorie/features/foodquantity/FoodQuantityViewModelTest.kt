@@ -5,8 +5,12 @@ import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.models.MealTypeDomain
+import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseFake
+import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseFake
+import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
@@ -368,6 +372,43 @@ class FoodQuantityViewModelTest {
         assertEquals(FoodQuantityUnit.Grams, FoodQuantityViewModel.defaultUnit(item))
     }
 
+    // MARK: - onFavouriteToggled
+
+    @Test
+    fun onFavouriteToggled_whenNotFavourite_marksItAndReportsTheNewValueToTheSheet() = runTest {
+        var reported: Pair<String, Boolean>? = null
+        val sut = makeSUT(onFavouriteChanged = { id, isFavourite -> reported = id to isFavourite })
+
+        sut.onFavouriteToggled()
+
+        assertTrue(sut.isFavourite.value)
+        assertEquals("test" to true, reported)
+    }
+
+    @Test
+    fun onFavouriteToggled_whenFavourite_removesItAndReportsTheNewValueToTheSheet() = runTest {
+        var reported: Pair<String, Boolean>? = null
+        val sut = makeSUT(isFavourite = true, onFavouriteChanged = { id, isFavourite -> reported = id to isFavourite })
+
+        sut.onFavouriteToggled()
+
+        assertFalse(sut.isFavourite.value)
+        assertEquals("test" to false, reported)
+    }
+
+    @Test
+    fun onFavouriteToggled_whenWriteFails_revertsShowsAlertAndDoesNotReport() = runTest {
+        var wasReported = false
+        val sut = makeSUT(addFavouriteFood = AddFavouriteFoodUseCaseFake(shouldThrow = true), onFavouriteChanged = { _, _ -> wasReported = true })
+
+        sut.onFavouriteToggled()
+
+        assertFalse(sut.isFavourite.value)
+        assertNotNull(sut.alertItem.value)
+        assertFalse(wasReported)
+        assertFalse(sut.isTogglingFavourite.value)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
@@ -376,7 +417,11 @@ class FoodQuantityViewModelTest {
         fetchMealTypes: FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
         selectedDate: Instant = Instant.now(),
         mealTypes: List<MealTypeDomain> = emptyList(),
+        isFavourite: Boolean = false,
+        addFavouriteFood: AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
+        removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
         onSaved: () -> Unit = {},
+        onFavouriteChanged: (String, Boolean) -> Unit = { _, _ -> },
         quantity: Double = 1.0,
         unit: FoodQuantityUnit = FoodQuantityUnit.HundredGrams,
     ): FoodQuantityViewModel = FoodQuantityViewModel(
@@ -385,7 +430,11 @@ class FoodQuantityViewModelTest {
         fetchMealTypes = fetchMealTypes,
         selectedDate = selectedDate,
         mealTypes = mealTypes,
+        isFavourite = isFavourite,
+        addFavouriteFood = addFavouriteFood,
+        removeFavouriteFood = removeFavouriteFood,
         onSaved = onSaved,
+        onFavouriteChanged = onFavouriteChanged,
         quantity = quantity,
         unit = unit,
     )

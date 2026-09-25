@@ -8,10 +8,13 @@ import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.ScaledMacros
 import antoni.kalorie.core.models.mealType
 import antoni.kalorie.core.models.scaled
+import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.core.utils.FavouriteToggling
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
@@ -41,10 +44,14 @@ class FoodQuantityViewModel(
     private val fetchMealTypes: FetchMealTypesUseCaseProtocol,
     private val selectedDate: Instant,
     mealTypes: List<MealTypeDomain>,
+    isFavourite: Boolean,
+    private val addFavouriteFood: AddFavouriteFoodUseCaseProtocol,
+    private val removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol,
     private val onSaved: () -> Unit,
+    private val onFavouriteChanged: (String, Boolean) -> Unit,
     quantity: Double = 1.0,
     unit: FoodQuantityUnit = FoodQuantityUnit.HundredGrams,
-) : ViewModel() {
+) : ViewModel(), FavouriteToggling {
 
     // MARK: - Properties
 
@@ -52,7 +59,9 @@ class FoodQuantityViewModel(
     val quantity = MutableStateFlow(quantity)
     private val _state = MutableStateFlow<LoadingState<Unit>>(LoadingState.Idle)
     val state: StateFlow<LoadingState<Unit>> = _state
-    val alertItem = MutableStateFlow<AlertItem?>(null)
+    override val alertItem = MutableStateFlow<AlertItem?>(null)
+    override val isFavourite = MutableStateFlow(isFavourite)
+    override val isTogglingFavourite = MutableStateFlow(false)
     private val _mealTypes = MutableStateFlow(mealTypes)
     val mealTypes: StateFlow<List<MealTypeDomain>> = _mealTypes
     val selectedMealTypeId = MutableStateFlow(mealTypes.mealType(selectedDate)?.id)
@@ -87,6 +96,16 @@ class FoodQuantityViewModel(
     fun onMealTypeSelected(mealTypeId: String) {
         hasUserSelectedMealType = true
         selectedMealTypeId.value = mealTypeId
+    }
+
+    suspend fun onFavouriteToggled() {
+        val itemId = item.id
+        toggleFavourite(
+            item = item,
+            removalId = itemId,
+            addFavouriteFood = addFavouriteFood,
+            removeFavouriteFood = removeFavouriteFood,
+        ) { newValue -> onFavouriteChanged(itemId, newValue) }
     }
 
     suspend fun onConfirm() {

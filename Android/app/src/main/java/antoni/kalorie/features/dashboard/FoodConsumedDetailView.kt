@@ -29,6 +29,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
+import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.displayName
@@ -64,12 +66,17 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
     val alertItem by viewModel.alertItem.collectAsState()
     val mealTypeId by viewModel.mealTypeId.collectAsState()
     val mealTypes by viewModel.mealTypes.collectAsState()
+    val isFavourite by viewModel.isFavourite.collectAsState()
+    val catalogueItem by viewModel.catalogueItem.collectAsState()
+    val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
     val scope = rememberCoroutineScope()
     var weightText by remember { mutableStateOf(initialWeightText(viewModel.weight.value)) }
     var isMealTypeMenuVisible by remember { mutableStateOf(false) }
     val food = viewModel.food
     val macros = viewModel.scaledMacros
     val hasChanges = viewModel.hasChanges
+
+    LaunchedEffect(Unit) { viewModel.onAppear() }
 
     // MARK: - Body
 
@@ -96,13 +103,23 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                Text(
-                    text = food.displayName,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = food.displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (isFavourite || catalogueItem != null) {
+                        FavouriteButton(isFavourite = isFavourite, isEnabled = !isTogglingFavourite) {
+                            scope.launch { viewModel.onFavouriteToggled() }
+                        }
+                    }
+                }
                 LabeledRow(label = stringResource(R.string.addFood_field_weight)) {
                     TextField(
                         value = weightText,

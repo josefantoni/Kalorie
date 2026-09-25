@@ -4,6 +4,7 @@ import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
@@ -18,6 +19,7 @@ interface FirestoreDataProviderProtocol {
     suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadAsync(id: String, from: String, serializer: KSerializer<T>): T?
     suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T>
+    suspend fun <T> loadAsync(from: String, orderBy: String, descending: Boolean, limit: Int, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadAsync(
         from: String,
         field: String,
@@ -37,6 +39,13 @@ suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(from: Str
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(id: String, from: String): T? =
     loadAsync(id, from, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(
+    from: String,
+    orderBy: String,
+    descending: Boolean,
+    limit: Int,
+): List<T> = loadAsync(from, orderBy, descending, limit, serializer<T>())
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.loadFromServerAsync(from: String): List<T> =
     loadFromServerAsync(from, serializer<T>())
@@ -94,6 +103,13 @@ class FirestoreDataProvider(
     override suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T> =
         perform {
             val snapshot = firestore.collection(from).get(Source.SERVER).await()
+            snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+        }
+
+    override suspend fun <T> loadAsync(from: String, orderBy: String, descending: Boolean, limit: Int, serializer: KSerializer<T>): List<T> =
+        perform {
+            val direction = if (descending) Query.Direction.DESCENDING else Query.Direction.ASCENDING
+            val snapshot = firestore.collection(from).orderBy(orderBy, direction).limit(limit.toLong()).get().await()
             snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
         }
 
