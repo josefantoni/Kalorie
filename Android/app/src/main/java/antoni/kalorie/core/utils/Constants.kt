@@ -15,6 +15,12 @@ object Constants {
         const val FAVOURITES = "favourites"
         const val MY_CREATED_MEAL = "myCreatedMeal"
         const val FOOD_ITEM_REPORT = "foodItemReport"
+        const val ACCOUNT = "account"
+    }
+
+    object Auth {
+        const val RECENT_LOGIN_THRESHOLD_SECONDS = 4 * 60L
+        const val MAINTAINER_CLAIM_CACHE_TTL_SECONDS = 5 * 60L
     }
 
     object OpenFoodFacts {
@@ -28,6 +34,7 @@ object Constants {
     object Firestore {
         const val BATCH_WRITE_LIMIT = 500
         const val IN_QUERY_LIMIT = 30
+        const val USERS = "users"
         const val FOOD_ITEMS = "foodItems"
         const val FOOD_ITEM_REPORTS = "foodItemReports"
         const val FOOD_ITEM_SUBMISSIONS = "foodItemSubmissions"
