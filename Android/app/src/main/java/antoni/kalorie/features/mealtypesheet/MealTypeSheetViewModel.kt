@@ -37,6 +37,7 @@ class MealTypeSheetViewModel(
     val newMealStart = MutableStateFlow(Instant.now())
     val newMealEnd = MutableStateFlow(Instant.now())
     val isAddFormVisible = MutableStateFlow(false)
+    val isExportPushed = MutableStateFlow(false)
     val alertItem = MutableStateFlow<AlertItem?>(null)
 
     // MARK: - Functions

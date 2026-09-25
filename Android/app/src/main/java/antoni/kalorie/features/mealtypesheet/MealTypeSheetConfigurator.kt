@@ -11,7 +11,9 @@ import antoni.kalorie.core.usecases.DeleteMealTypeUseCase
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCase
 import java.util.UUID
 
-class MealTypeSheetConfigurator {
+class MealTypeSheetConfigurator(
+    private val router: MealTypeSheetRouter = MealTypeSheetRouter(),
+) {
 
     // MARK: - Functions
 
@@ -29,6 +31,6 @@ class MealTypeSheetConfigurator {
                 updateMealTypeTimes = UpdateMealTypeTimesUseCase(dataProvider, authProvider),
             )
         }
-        MealTypeSheetView(viewModel = viewModel, onDismiss = onDismiss)
+        MealTypeSheetView(viewModel = viewModel, router = router, onDismiss = onDismiss)
     }
 }
