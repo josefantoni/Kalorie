@@ -216,6 +216,19 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    barcode scanning, which is VisionKit's counterpart; it adds the CAMERA permission. Port the
    inline scanner with the close button (`BarcodeScannerOverlay`), the duplicate-delivery
    suppression, and the permission-denied path, including revocation while visible (§ 2.5).
+   *Ported with deviations:* the decision was CameraX 1.6.2 + ML Kit `barcode-scanning` 17.3.0
+   (bundled model). `DataScannerRepresentable` became `DataScannerView` (a `PreviewView` with an
+   `ImageAnalysis` analyzer) and `BarcodeScannerOverlay` shows it in a full-screen dialog (as in
+   step 1) instead of a `fullScreenCover`. There is no `CameraAuthorizationProvider` yet: on iOS
+   the view model uses it only for the nutrition-label camera (step 12), so the view checks
+   `checkSelfPermission` itself as the counterpart of `DataScannerViewController.isAvailable`. VisionKit
+   asks for access on its own, so the scan button here launches the `CAMERA` permission request
+   when it is not granted and opens the scanner on approval, or shows the alert on refusal. The view
+   model gets `fetchFoodItemByBarcode`, `fetchFoodByBarcodeExternally` and `isScannerVisible`, but no
+   `isBarcodeRescanVisible`/`rescannedBarcode` (they belong to the submission form, step 12). The
+   barcode icon is a small hand-drawn `ImageVector`, since `material-icons-extended` is not a
+   dependency. Both `onScenePhaseActive` and the six `onBarcodeScanned` tests are ported verbatim,
+   plus a check that the scanned code is cleared afterwards so it can be delivered again.
 10. [ ] **Created meals.** Port `FetchMyCreatedMeals`, `CreateMyCreatedMeal`, `UpdateMyCreatedMeal`
     and `DeleteMyCreatedMealUseCase`, and `FetchFoodItemsByIdsUseCase` (provider
     `whereDocumentIdIn`). Also port `MyCreatedMealDTO`, `asFoodItem()` (MacroKit weighted mean),
