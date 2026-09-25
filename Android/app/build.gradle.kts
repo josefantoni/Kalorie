@@ -48,6 +48,7 @@ dependencies {
     implementation("kalorie:MacroKit")
     implementation("kalorie:MealKit")
     implementation("kalorie:TextKit")
+    implementation("kalorie:ExportKit")
 
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-auth")
