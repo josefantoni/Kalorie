@@ -20,6 +20,7 @@ import antoni.kalorie.core.usecases.MigrateAnonymousDataUseCase
 import antoni.kalorie.core.usecases.ReauthenticateUseCase
 import antoni.kalorie.core.usecases.SignInWithGoogleUseCase
 import antoni.kalorie.core.usecases.SignOutUseCase
+import antoni.kalorie.features.moderation.ModerationConfigurator
 import java.util.UUID
 
 class AccountConfigurator(
@@ -31,6 +32,7 @@ class AccountConfigurator(
     // MARK: - Properties
 
     private val maintainerClaimCache = MaintainerClaimCache()
+    private val moderationConfigurator = ModerationConfigurator(dataProvider, authProvider)
 
     // MARK: - Functions
 
@@ -81,6 +83,11 @@ class AccountConfigurator(
                 mergeStatusReporting = mergeStatusReporting,
             )
         }
-        AccountView(viewModel = viewModel, onDismiss = onDismiss)
+        AccountView(
+            viewModel = viewModel,
+            onDismiss = onDismiss,
+            makeModerationView = { onModerationDismiss -> moderationConfigurator.createView(onDismiss = onModerationDismiss) },
+            makeModerationReportsView = { onReportsDismiss -> moderationConfigurator.createReportsView(onDismiss = onReportsDismiss) },
+        )
     }
 }

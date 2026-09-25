@@ -79,6 +79,28 @@ class FetchFoodItemByBarcodeUseCaseTest {
         assertNull(result?.fiber)
     }
 
+    @Test
+    fun fetchByBarcodes_withOnlyEmptyBarcodes_returnsEmptyWithoutQuerying() = runTest {
+        val (sut, dataProvider) = makeSUT()
+
+        val result = sut(listOf("", ""))
+
+        assertEquals(emptyList<FoodItemDomain>(), result)
+        assertNull(dataProvider.queriedCollection)
+    }
+
+    @Test
+    fun fetchByBarcodes_queriesDeduplicatedNonEmptyBarcodesAndMapsResults() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByDocumentIds = listOf(makeDTO(id = "8594004428464"))
+
+        val result = sut(listOf("8594004428464", "", "8594004428464", "12345678"))
+
+        assertEquals(Constants.Firestore.FOOD_ITEMS, dataProvider.queriedCollection)
+        assertEquals(listOf("8594004428464", "12345678"), dataProvider.queriedDocumentIds)
+        assertEquals(listOf("8594004428464"), result.map { it.id })
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(): Pair<FetchFoodItemByBarcodeUseCase, FirestoreDataProviderFake> {

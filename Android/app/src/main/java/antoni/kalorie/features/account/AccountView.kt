@@ -24,7 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -38,7 +41,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
+fun AccountView(
+    viewModel: AccountViewModel,
+    onDismiss: () -> Unit,
+    makeModerationView: @Composable (onDismiss: () -> Unit) -> Unit,
+    makeModerationReportsView: @Composable (onDismiss: () -> Unit) -> Unit,
+) {
 
     // MARK: - Properties
 
@@ -46,6 +54,9 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
     val alertItem by viewModel.alertItem.collectAsState()
     val showDeleteConfirmation by viewModel.showDeleteConfirmation.collectAsState()
     val isReauthenticateAlertVisible by viewModel.isReauthenticateAlertVisible.collectAsState()
+    val isMaintainer by viewModel.isMaintainer.collectAsState()
+    var isModerationPushed by remember { mutableStateOf(false) }
+    var isModerationReportsPushed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
 
@@ -117,6 +128,19 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                             Text(stringResource(R.string.account_button_deleteAccount))
                         }
                     }
+                    if (isMaintainer) {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        Text(
+                            text = stringResource(R.string.moderation_section_title),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                        TextButton(onClick = { isModerationPushed = true }) {
+                            Text(stringResource(R.string.moderation_queue_title))
+                        }
+                        TextButton(onClick = { isModerationReportsPushed = true }) {
+                            Text(stringResource(R.string.moderation_reports_title))
+                        }
+                    }
                 }
                 if (state != AccountViewModel.State.IDLE) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -126,6 +150,9 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
             }
         }
     }
+
+    if (isModerationPushed) makeModerationView { isModerationPushed = false }
+    if (isModerationReportsPushed) makeModerationReportsView { isModerationReportsPushed = false }
 
     alertItem?.let { alert ->
         AlertDialog(
