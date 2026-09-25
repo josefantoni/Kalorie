@@ -113,6 +113,13 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
     matches inside "sulphites" in an ingredients list and the summed-macros check then wipes the correct
     macros (`parse_linearFormatLabel_doesNotReadSulphitesInTheIngredientsAsSalt`). Android now requires
     keywords of three letters or fewer to be whole words.
+  - A number that ends at a sentence stop ("Tuky 3,3.") fails to parse because the trailing dot stays in
+    the string (`parse_linearFormatLabel_readsANumberThatEndsAtASentenceStop`). Android now trims trailing
+    separators before parsing.
+  - Not fixed on Android either, and worth a look on both: in the linear fallback the fat keyword also
+    matches inside "saturated fat", so a label without a separate total-fat row stores the saturates
+    value as fat; and the summed-macros check drops everything once the sum passes 100, which rounding on
+    a near-pure carbohydrate product can reach.
 
 ## Documentation baseline
 
