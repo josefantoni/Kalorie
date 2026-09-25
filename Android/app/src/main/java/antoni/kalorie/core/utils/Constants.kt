@@ -30,5 +30,6 @@ object Constants {
         fun mealTypes(userId: String): String = "users/$userId/mealTypes"
         fun foodConsumed(userId: String): String = "users/$userId/foodConsumed"
         fun favouriteFoods(userId: String): String = "users/$userId/favouriteFoods"
+        fun foodItemPortions(userId: String): String = "users/$userId/foodItemPortions"
     }
 }

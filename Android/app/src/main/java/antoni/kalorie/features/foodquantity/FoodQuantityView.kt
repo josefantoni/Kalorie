@@ -30,6 +30,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +69,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
     val selectedMealTypeId by viewModel.selectedMealTypeId.collectAsState()
     val isFavourite by viewModel.isFavourite.collectAsState()
     val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
+    val isPersonalPortionsManagerPushed by viewModel.isPersonalPortionsManagerPushed.collectAsState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     var quantityText by remember { mutableStateOf(quantity.formattedTrimmed()) }
@@ -75,6 +77,9 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
     var isMealTypeMenuVisible by remember { mutableStateOf(false) }
     val item = viewModel.item
     val measure = item.measure
+
+    LaunchedEffect(Unit) { viewModel.onAppear() }
+    LaunchedEffect(unit) { quantityText = viewModel.quantity.value.formattedTrimmed() }
 
     // MARK: - Body
 
@@ -148,7 +153,17 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
                                         onClick = {
                                             isUnitMenuVisible = false
                                             viewModel.onUnitSelected(option)
-                                            quantityText = viewModel.quantity.value.formattedTrimmed()
+                                        },
+                                    )
+                                }
+                                if (viewModel.isPersonalPortionsAvailable) {
+                                    HorizontalDivider()
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.foodQuantity_button_myPortions)) },
+                                        onClick = {
+                                            isUnitMenuVisible = false
+                                            viewModel.onPortionsManagerOpened()
+                                            viewModel.isPersonalPortionsManagerPushed.value = true
                                         },
                                     )
                                 }
@@ -206,6 +221,10 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
                 }
             }
         }
+    }
+
+    if (isPersonalPortionsManagerPushed) {
+        FoodPortionsManagerView(viewModel = viewModel, onBack = { viewModel.isPersonalPortionsManagerPushed.value = false })
     }
 
     alertItem?.let { alert ->

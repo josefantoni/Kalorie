@@ -1,17 +1,22 @@
 package antoni.kalorie.features.foodquantity
 
 import antoni.kalorie.R
+import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseFake
+import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseFake
+import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseFake
+import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
 import java.time.Instant
@@ -372,6 +377,325 @@ class FoodQuantityViewModelTest {
         assertEquals(FoodQuantityUnit.Grams, FoodQuantityViewModel.defaultUnit(item))
     }
 
+    // MARK: - onAppear (personal portions)
+
+    @Test
+    fun onAppear_withCatalogueItem_fetchesPersonalPortions() = runTest {
+        val stubbedPortion = FoodPortionDomain(name = "1 balení", grams = 33.0)
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
+            fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(stubbedPortion)),
+        )
+
+        sut.onAppear()
+
+        assertEquals(listOf(stubbedPortion), sut.personalPortions.value)
+    }
+
+    @Test
+    fun onAppear_withPersonalPortions_movesDefaultToFirstPersonalPortion() = runTest {
+        val cataloguePortion = FoodPortionDomain(name = "1 balení", grams = 250.0)
+        val personalPortion = FoodPortionDomain(name = "1 hrnek", grams = 40.0)
+        val item = makeFoodItem(portions = listOf(cataloguePortion))
+        val sut = makeSUT(
+            item = item,
+            fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(personalPortion)),
+            unit = FoodQuantityViewModel.defaultUnit(item),
+        )
+
+        sut.onAppear()
+
+        assertEquals(
+            "ADR 0030: the first option in the list is always the preselected unit, so once personal portions resolve the default follows them",
+            FoodQuantityUnit.Portion(personalPortion),
+            sut.unit.value,
+        )
+        assertEquals("the step-2 reselection must not be treated as a unit change and rescale the quantity", 1.0, sut.quantity.value, 0.0)
+    }
+
+    @Test
+    fun onAppear_withPersonalPortionsAndNoCataloguePortion_resetsQuantityFromTheGramsFallbackDefault() = runTest {
+        val personalPortion = FoodPortionDomain(name = "1 hrnek", grams = 40.0)
+        val sut = makeSUT(
+            item = makeFoodItem(portions = emptyList()),
+            fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(personalPortion)),
+            quantity = 100.0,
+            unit = FoodQuantityUnit.Grams,
+        )
+
+        sut.onAppear()
+
+        assertEquals(
+            "a portion resolving into the plain-grams default (quantity 100, ADR 0030) must reset to 1, or the screen would open at 100 × 1 hrnek instead of 1 × 1 hrnek",
+            1.0,
+            sut.quantity.value,
+            0.0,
+        )
+    }
+
+    @Test
+    fun onAppear_withoutPersonalPortions_keepsSynchronousDefault() = runTest {
+        val cataloguePortion = FoodPortionDomain(name = "1 balení", grams = 250.0)
+        val sut = makeSUT(item = makeFoodItem(portions = listOf(cataloguePortion)), unit = FoodQuantityUnit.Portion(cataloguePortion))
+
+        sut.onAppear()
+
+        assertEquals(FoodQuantityUnit.Portion(cataloguePortion), sut.unit.value)
+    }
+
+    @Test
+    fun onAppear_withExternalItem_doesNotSurfacePersonalPortions() = runTest {
+        val stubbedPortion = FoodPortionDomain(name = "1 balení", grams = 33.0)
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.EXTERNAL),
+            fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(stubbedPortion)),
+        )
+
+        sut.onAppear()
+
+        assertTrue(
+            "OpenFoodFacts items have no reliable package size to key a personal portion off (design 0008)",
+            sut.personalPortions.value.isEmpty(),
+        )
+        assertFalse(sut.isPersonalPortionsAvailable)
+    }
+
+    @Test
+    fun onAppear_whenFetchFails_keepsTheSynchronousDefaultAndRaisesNoAlert() = runTest {
+        val sut = makeSUT(fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(shouldThrow = true))
+
+        sut.onAppear()
+
+        assertTrue(sut.personalPortions.value.isEmpty())
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onUnitSelected_thenOnAppearResolvesPersonalPortions_doesNotOverrideUserChoice() = runTest {
+        val cataloguePortion = FoodPortionDomain(name = "1 balení", grams = 250.0)
+        val personalPortion = FoodPortionDomain(name = "1 hrnek", grams = 40.0)
+        val sut = makeSUT(
+            item = makeFoodItem(portions = listOf(cataloguePortion)),
+            fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(personalPortion)),
+        )
+        sut.onUnitSelected(FoodQuantityUnit.Grams)
+
+        sut.onAppear()
+
+        assertEquals(
+            "a personal portion resolving after the user already picked a unit must not override that choice",
+            FoodQuantityUnit.Grams,
+            sut.unit.value,
+        )
+    }
+
+    // MARK: - onPortionsManagerOpened
+
+    @Test
+    fun onPortionsManagerOpened_seedsOneBlankDraftRegardlessOfCurrentGrams() {
+        val sut = makeSUT(quantity = 1000.0, unit = FoodQuantityUnit.Grams)
+
+        sut.onPortionsManagerOpened()
+
+        assertEquals(listOf(""), sut.portionDrafts.value.map { it.name })
+        assertEquals(
+            "a portion is a reusable shortcut; the quantity being weighed right now (e.g. a whole loaf) is not its size",
+            listOf(""),
+            sut.portionDrafts.value.map { it.gramsText },
+        )
+    }
+
+    // MARK: - portion drafts
+
+    @Test
+    fun arePortionDraftsComplete_isFalseUntilEveryDraftHasNameAndGrams() {
+        val sut = makeSUT()
+        assertFalse("the always-present empty row must keep the add button disabled", sut.arePortionDraftsComplete)
+
+        sut.portionDrafts.value = listOf(sut.portionDrafts.value[0].copy(name = "1 balení"))
+        assertFalse(sut.arePortionDraftsComplete)
+        sut.portionDrafts.value = listOf(sut.portionDrafts.value[0].copy(gramsText = "33"))
+        assertTrue(sut.arePortionDraftsComplete)
+        sut.onAddPortionDraftTapped()
+
+        assertFalse("a freshly added empty row must disable the add button again", sut.arePortionDraftsComplete)
+    }
+
+    @Test
+    fun canSavePortionDrafts_isTrueWhenAtLeastOneDraftIsCompleteEvenIfAnotherIsEmpty() {
+        val sut = makeSUT()
+        assertFalse(sut.canSavePortionDrafts)
+        sut.portionDrafts.value = listOf(FoodPortionDraft(name = "1 balení", gramsText = "33"))
+        sut.onAddPortionDraftTapped()
+
+        assertTrue(
+            "the row added with the plus button is still empty, but the completed row above it is unsaved and must be savable",
+            sut.canSavePortionDrafts,
+        )
+    }
+
+    @Test
+    fun onSavePersonalPortions_skipsEmptyDrafts() = runTest {
+        val sut = makeSUT()
+        sut.portionDrafts.value = listOf(FoodPortionDraft(name = "1 balení", gramsText = "33"), FoodPortionDraft.blank)
+
+        sut.onSavePersonalPortions()
+
+        assertEquals(listOf(FoodPortionDomain(name = "1 balení", grams = 33.0)), sut.personalPortions.value)
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onDeletePortionDraft_whenDeletingTheLastDraft_leavesOneEmptyDraft() {
+        val sut = makeSUT()
+        sut.portionDrafts.value = listOf(sut.portionDrafts.value[0].copy(name = "1 balení"))
+
+        sut.onDeletePortionDraft(sut.portionDrafts.value[0])
+
+        assertEquals("the screen must always show at least one row", listOf(""), sut.portionDrafts.value.map { it.name })
+    }
+
+    // MARK: - onSavePersonalPortions
+
+    @Test
+    fun onSavePersonalPortions_whenSaveSucceeds_appendsAllDraftsAndResetsToOneEmptyDraft() = runTest {
+        val sut = makeSUT()
+        sut.portionDrafts.value = listOf(
+            FoodPortionDraft(name = "1 balení", gramsText = "33"),
+            FoodPortionDraft(name = "1 lžíce", gramsText = "15"),
+        )
+
+        sut.onSavePersonalPortions()
+
+        assertEquals(
+            listOf(FoodPortionDomain(name = "1 balení", grams = 33.0), FoodPortionDomain(name = "1 lžíce", grams = 15.0)),
+            sut.personalPortions.value,
+        )
+        assertNull(sut.alertItem.value)
+        assertEquals(listOf(""), sut.portionDrafts.value.map { it.name })
+        assertEquals(listOf(""), sut.portionDrafts.value.map { it.gramsText })
+    }
+
+    @Test
+    fun onSavePersonalPortions_whenSaveFails_restoresPreAddSnapshotEvenWithADuplicateNameAndGrams() = runTest {
+        val existing = FoodPortionDomain(name = "1 lžíce", grams = 15.0)
+        val sut = makeSUT(
+            fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(existing)),
+            saveFoodItemPersonalPortions = SaveFoodItemPersonalPortionsUseCaseFake(shouldThrow = true),
+        )
+        sut.onAppear()
+        sut.portionDrafts.value = listOf(FoodPortionDraft(name = existing.name, gramsText = "15"))
+
+        sut.onSavePersonalPortions()
+
+        assertEquals(
+            "a failed save must restore the pre-add snapshot, not filter by (name, grams) equality — a value-based filter also drops an already-saved portion that happens to share the new one's name and grams",
+            listOf(existing),
+            sut.personalPortions.value,
+        )
+        assertEquals(R.string.myPortions_error_saveFailed, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onSavePersonalPortions_whenGramsFieldIsBlank_showsAlertAndDoesNotSave() = runTest {
+        val sut = makeSUT()
+        sut.portionDrafts.value = listOf(FoodPortionDraft(name = "1 balení", gramsText = ""))
+
+        sut.onSavePersonalPortions()
+
+        assertTrue("an unparseable grams field must not silently save a zero-gram portion", sut.personalPortions.value.isEmpty())
+        assertEquals(R.string.foodPortion_error_invalidGrams, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onSavePersonalPortions_acceptsACommaAsTheDecimalSeparator() = runTest {
+        val sut = makeSUT()
+        sut.portionDrafts.value = listOf(FoodPortionDraft(name = "1 lžíce", gramsText = "7,5"))
+
+        sut.onSavePersonalPortions()
+
+        assertEquals(listOf(FoodPortionDomain(name = "1 lžíce", grams = 7.5)), sut.personalPortions.value)
+    }
+
+    // MARK: - onDeletePersonalPortion
+
+    @Test
+    fun onDeletePersonalPortion_whenSaveSucceeds_removesPortion() = runTest {
+        val portion = FoodPortionDomain(name = "1 balení", grams = 33.0)
+        val sut = makeSUT(fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(portion)))
+        sut.onAppear()
+
+        sut.onDeletePersonalPortion(portion)
+
+        assertTrue(sut.personalPortions.value.isEmpty())
+    }
+
+    @Test
+    fun onDeletePersonalPortion_whenSaveFails_restoresPortionAndShowsAlert() = runTest {
+        val portion = FoodPortionDomain(name = "1 balení", grams = 33.0)
+        val sut = makeSUT(
+            fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(portion)),
+            saveFoodItemPersonalPortions = SaveFoodItemPersonalPortionsUseCaseFake(shouldThrow = true),
+        )
+        sut.onAppear()
+
+        sut.onDeletePersonalPortion(portion)
+
+        assertEquals(listOf(portion), sut.personalPortions.value)
+        assertEquals(R.string.myPortions_error_deleteFailed, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onDeletePersonalPortion_whenPortionIsSelectedUnit_switchesToGramsKeepingAmount() = runTest {
+        val portion = FoodPortionDomain(name = "1 hrnek", grams = 40.0)
+        val sut = makeSUT(fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(portion)))
+        sut.onAppear()
+        sut.quantity.value = 2.0
+
+        sut.onDeletePersonalPortion(portion)
+
+        assertEquals("a deleted portion is no longer a picker option, so it cannot stay selected", FoodQuantityUnit.Grams, sut.unit.value)
+        assertEquals("removing a shortcut must not change the amount the user is about to log", 80.0, sut.grams, 0.0)
+    }
+
+    @Test
+    fun onDeletePersonalPortion_whenSaveFails_restoresSelectedUnit() = runTest {
+        val portion = FoodPortionDomain(name = "1 hrnek", grams = 40.0)
+        val sut = makeSUT(
+            fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(portion)),
+            saveFoodItemPersonalPortions = SaveFoodItemPersonalPortionsUseCaseFake(shouldThrow = true),
+        )
+        sut.onAppear()
+
+        sut.onDeletePersonalPortion(portion)
+
+        assertEquals(FoodQuantityUnit.Portion(portion), sut.unit.value)
+        assertEquals(1.0, sut.quantity.value, 0.0)
+    }
+
+    @Test
+    fun unitOptions_ordersPersonalPortionsBeforeCataloguePortionsAndGenericUnits() = runTest {
+        val cataloguePortion = FoodPortionDomain(name = "1 balení", grams = 250.0)
+        val personalPortion = FoodPortionDomain(name = "1 hrnek", grams = 40.0)
+        val sut = makeSUT(
+            item = makeFoodItem(portions = listOf(cataloguePortion)),
+            fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCaseFake(stubbedPortions = listOf(personalPortion)),
+        )
+
+        sut.onAppear()
+
+        assertEquals(
+            "ADR 0030: the user's own shortcuts lead the list, ahead of the item's canonical portions",
+            listOf(
+                FoodQuantityUnit.Portion(personalPortion),
+                FoodQuantityUnit.Portion(cataloguePortion),
+                FoodQuantityUnit.Grams,
+                FoodQuantityUnit.HundredGrams,
+            ),
+            sut.unitOptions,
+        )
+    }
+
     // MARK: - onFavouriteToggled
 
     @Test
@@ -420,6 +744,8 @@ class FoodQuantityViewModelTest {
         isFavourite: Boolean = false,
         addFavouriteFood: AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
         removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
+        fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseProtocol = FetchFoodItemPersonalPortionsUseCaseFake(),
+        saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseProtocol = SaveFoodItemPersonalPortionsUseCaseFake(),
         onSaved: () -> Unit = {},
         onFavouriteChanged: (String, Boolean) -> Unit = { _, _ -> },
         quantity: Double = 1.0,
@@ -433,6 +759,8 @@ class FoodQuantityViewModelTest {
         isFavourite = isFavourite,
         addFavouriteFood = addFavouriteFood,
         removeFavouriteFood = removeFavouriteFood,
+        fetchFoodItemPersonalPortions = fetchFoodItemPersonalPortions,
+        saveFoodItemPersonalPortions = saveFoodItemPersonalPortions,
         onSaved = onSaved,
         onFavouriteChanged = onFavouriteChanged,
         quantity = quantity,

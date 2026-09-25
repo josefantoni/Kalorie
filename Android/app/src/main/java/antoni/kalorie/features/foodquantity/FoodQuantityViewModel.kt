@@ -2,16 +2,22 @@ package antoni.kalorie.features.foodquantity
 
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
+import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodPortionDomain
+import antoni.kalorie.core.models.FoodPortionError
+import antoni.kalorie.core.models.FoodPortionValidation
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.ScaledMacros
 import antoni.kalorie.core.models.mealType
 import antoni.kalorie.core.models.scaled
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
+import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.FavouriteToggling
@@ -20,6 +26,7 @@ import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
 import java.time.Instant
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -47,6 +54,8 @@ class FoodQuantityViewModel(
     isFavourite: Boolean,
     private val addFavouriteFood: AddFavouriteFoodUseCaseProtocol,
     private val removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol,
+    private val fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseProtocol,
+    private val saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseProtocol,
     private val onSaved: () -> Unit,
     private val onFavouriteChanged: (String, Boolean) -> Unit,
     quantity: Double = 1.0,
@@ -65,6 +74,13 @@ class FoodQuantityViewModel(
     private val _mealTypes = MutableStateFlow(mealTypes)
     val mealTypes: StateFlow<List<MealTypeDomain>> = _mealTypes
     val selectedMealTypeId = MutableStateFlow(mealTypes.mealType(selectedDate)?.id)
+    private val _personalPortions = MutableStateFlow<List<FoodPortionDomain>>(emptyList())
+    val personalPortions: StateFlow<List<FoodPortionDomain>> = _personalPortions
+    val isPersonalPortionsManagerPushed = MutableStateFlow(false)
+    val portionDrafts = MutableStateFlow(listOf(FoodPortionDraft.blank))
+    private val _showPortionCheckmark = MutableStateFlow(false)
+    val showPortionCheckmark: StateFlow<Boolean> = _showPortionCheckmark
+    private var hasUserSelectedUnit = false
     private var hasUserSelectedMealType = false
 
     val grams: Double
@@ -82,12 +98,39 @@ class FoodQuantityViewModel(
     val scaledFiber: Double? get() = scaledMacros.fiber
     val scaledSalt: Double get() = scaledMacros.salt
 
+    val arePortionDraftsComplete: Boolean
+        get() = portionDrafts.value.all { it.isComplete }
+
+    val canSavePortionDrafts: Boolean
+        get() = portionDrafts.value.any { it.isComplete }
+
+    val isPersonalPortionsAvailable: Boolean
+        get() = item.kind == FoodItemKind.CATALOGUE
+
     val unitOptions: List<FoodQuantityUnit>
-        get() = item.portions.map { FoodQuantityUnit.Portion(it) } + listOf(FoodQuantityUnit.Grams, FoodQuantityUnit.HundredGrams)
+        get() = (_personalPortions.value + item.portions).map { FoodQuantityUnit.Portion(it) } +
+            listOf(FoodQuantityUnit.Grams, FoodQuantityUnit.HundredGrams)
 
     // MARK: - Functions
 
+    suspend fun onAppear() {
+        if (item.kind != FoodItemKind.CATALOGUE) return
+        try {
+            _personalPortions.value = fetchFoodItemPersonalPortions(item.id)
+            val firstPersonalPortion = _personalPortions.value.firstOrNull()
+            if (!hasUserSelectedUnit && firstPersonalPortion != null) {
+                quantity.value = 1.0
+                unit.value = FoodQuantityUnit.Portion(firstPersonalPortion)
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.FOOD_QUANTITY)
+        }
+    }
+
     fun onUnitSelected(newUnit: FoodQuantityUnit) {
+        hasUserSelectedUnit = true
         val currentGrams = quantity.value * unit.value.gramsPerUnit
         unit.value = newUnit
         quantity.value = currentGrams / newUnit.gramsPerUnit
@@ -96,6 +139,78 @@ class FoodQuantityViewModel(
     fun onMealTypeSelected(mealTypeId: String) {
         hasUserSelectedMealType = true
         selectedMealTypeId.value = mealTypeId
+    }
+
+    fun onPortionsManagerOpened() {
+        portionDrafts.value = listOf(FoodPortionDraft.blank)
+    }
+
+    fun onAddPortionDraftTapped() {
+        portionDrafts.value = portionDrafts.value + FoodPortionDraft.blank
+    }
+
+    fun onDeletePortionDraft(draft: FoodPortionDraft) {
+        portionDrafts.value = portionDrafts.value.filter { it.id != draft.id }.ifEmpty { listOf(FoodPortionDraft.blank) }
+    }
+
+    suspend fun onSavePersonalPortions() {
+        val filledDrafts = portionDrafts.value.filter { it.name.isNotBlank() || it.gramsText.isNotEmpty() }
+        if (filledDrafts.isEmpty()) return
+        val newPortions = mutableListOf<FoodPortionDomain>()
+        for (draft in filledDrafts) {
+            val grams = draft.gramsText.replace(',', '.').toDoubleOrNull() ?: 0.0
+            val error = FoodPortionValidation.validate(name = draft.name, grams = grams)
+            if (error != null) {
+                alertItem.value = AlertItem(titleRes = error.alertTitleRes)
+                return
+            }
+            newPortions.add(FoodPortionDomain(name = draft.name, grams = grams))
+        }
+        val original = _personalPortions.value
+        _personalPortions.value = original + newPortions
+        try {
+            persistPersonalPortions()
+            portionDrafts.value = listOf(FoodPortionDraft.blank)
+            _showPortionCheckmark.value = true
+            delay(CHECKMARK_DURATION_MILLIS)
+            _showPortionCheckmark.value = false
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: FoodPortionError) {
+            Log.error(error, Constants.LogCategory.FOOD_QUANTITY)
+            _personalPortions.value = original
+            alertItem.value = AlertItem(titleRes = error.alertTitleRes)
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.FOOD_QUANTITY)
+            _personalPortions.value = original
+            alertItem.value = AlertItem(titleRes = R.string.myPortions_error_saveFailed)
+        }
+    }
+
+    suspend fun onDeletePersonalPortion(portion: FoodPortionDomain) {
+        val original = _personalPortions.value
+        val originalUnit = unit.value
+        val originalQuantity = quantity.value
+        _personalPortions.value = original.filter { it != portion }
+        if (unitOptions.none { it == unit.value }) {
+            quantity.value = grams
+            unit.value = FoodQuantityUnit.Grams
+        }
+        try {
+            persistPersonalPortions()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.FOOD_QUANTITY)
+            _personalPortions.value = original
+            unit.value = originalUnit
+            quantity.value = originalQuantity
+            alertItem.value = AlertItem(titleRes = R.string.myPortions_error_deleteFailed)
+        }
+    }
+
+    private suspend fun persistPersonalPortions() {
+        saveFoodItemPersonalPortions(item.id, _personalPortions.value)
     }
 
     suspend fun onFavouriteToggled() {
@@ -147,6 +262,8 @@ class FoodQuantityViewModel(
     }
 
     companion object {
+        private const val CHECKMARK_DURATION_MILLIS = 2_000L
+
         fun defaultUnit(item: FoodItemDomain): FoodQuantityUnit =
             item.portions.firstOrNull()?.let { FoodQuantityUnit.Portion(it) } ?: FoodQuantityUnit.Grams
     }
