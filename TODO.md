@@ -102,24 +102,11 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
 
 ## Cleanup
 
-- **Fix saturates rows read as total fat in the iOS `NutritionLabelParser`** — `matchedField(for:)`
-  (`iOS/Kalorie/Core/NutritionLabelRecognition/NutritionLabelParser.swift`) returns the first
-  `LabelField` whose keyword the row contains, and `.fat` is checked before `.saturates`. A row such as
-  "davon gesättigte Fettsäuren" contains "fett" and "Saturated fat" contains "fat", so the saturates value
-  overwrites `fat` and `fatSaturated` stays `nil`. The Android parser was fixed by picking the field with
-  the longest matching keyword and by adding the "saturated fat" keyword; port the same change to iOS, with
-  the two tests `parse_readsGermanSaturatesRowAsSaturatesNotFat` and
-  `parse_readsEnglishSaturatedFatRowAsSaturatesNotFat` from `NutritionLabelParserTest.kt`. iOS was left
-  unchanged when the Android parser was written, so this is the deliberate exception to that decision.
-
 - **Check whether the other Android parser fixes also apply to the iOS `NutritionLabelParser`** — the
   Android review found more defects in the Kotlin copy, and the iOS parser is the original, so most of
   them are probably present there too. None is confirmed on iOS: read the Swift, reproduce each with a
   test built from the Android one, then fix or record why not. The Android tests are in
   `NutritionLabelParserTest.kt`.
-  - Unsaturated rows overwrite a field: "mono-unsaturates", "mononenasycené mastné kyseliny",
-    "ungesättigte Fettsäuren" and "kwasy tłuszczowe jednonienasycone" contain the saturates or fat keyword
-    (`parse_unsaturatedFatRowsNeverOverwriteFatOrSaturates`). Android now gives such rows no field.
   - An energy value with the kcal in parentheses ("1046 kJ (250 kcal)") is rejected by
     `isPlausibleValueText` because `(` and `)` are not allowed
     (`parse_energyWithKcalInParentheses_stillFillsEnergy`).

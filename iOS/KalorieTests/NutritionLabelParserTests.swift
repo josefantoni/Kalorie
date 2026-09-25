@@ -251,6 +251,37 @@ final class NutritionLabelParserTests: XCTestCase {
         XCTAssertEqual(reading.weightOfProduct, 200)
     }
 
+    // MARK: - Saturates rows that also contain a fat keyword
+
+    func test_parse_readsGermanSaturatesRowAsSaturatesNotFat() {
+        let reading = NutritionLabelParser.parse(lines: fatAndSaturatesLines(fatLabel: "Fett", saturatesLabel: "davon gesättigte Fettsäuren"))
+        XCTAssertEqual(reading.fat, 12)
+        XCTAssertEqual(reading.fatSaturated, 2)
+    }
+
+    func test_parse_readsEnglishSaturatedFatRowAsSaturatesNotFat() {
+        let reading = NutritionLabelParser.parse(lines: fatAndSaturatesLines(fatLabel: "Fat", saturatesLabel: "Saturated fat"))
+        XCTAssertEqual(reading.fat, 12)
+        XCTAssertEqual(reading.fatSaturated, 2)
+    }
+
+    func test_parse_unsaturatedFatRowsNeverOverwriteFatOrSaturates() {
+        let unsaturatedLabels = [
+            "z toho mononenasycené mastné kyseliny",
+            "of which mono-unsaturates",
+            "davon einfach ungesättigte Fettsäuren",
+            "kwasy tłuszczowe jednonienasycone"
+        ]
+        for label in unsaturatedLabels {
+            var lines = fatAndSaturatesLines(fatLabel: "Fat", saturatesLabel: "Saturates")
+            lines.append(RecognizedTextLine(text: label, boundingBox: CGRect(x: 0.1, y: 0.6, width: 0.4, height: 0.05)))
+            lines.append(RecognizedTextLine(text: "5 g", boundingBox: CGRect(x: 0.6, y: 0.6, width: 0.15, height: 0.05)))
+            let reading = NutritionLabelParser.parse(lines: lines)
+            XCTAssertEqual(reading.fat, 12, label)
+            XCTAssertEqual(reading.fatSaturated, 2, label)
+        }
+    }
+
     // MARK: - Package weight
 
     func test_parse_findsPackageWeightNextToAWeightKeyword() {
@@ -325,6 +356,18 @@ final class NutritionLabelParserTests: XCTestCase {
             RecognizedTextLine(text: "10 g", boundingBox: CGRect(x: 0.6, y: 0.4, width: 0.15, height: 0.05)),
             RecognizedTextLine(text: "Sůl", boundingBox: CGRect(x: 0.1, y: 0.3, width: 0.3, height: 0.05)),
             RecognizedTextLine(text: "1 g", boundingBox: CGRect(x: 0.6, y: 0.3, width: 0.15, height: 0.05))
+        ]
+    }
+
+    private func fatAndSaturatesLines(fatLabel: String, saturatesLabel: String) -> [RecognizedTextLine] {
+        [
+            RecognizedTextLine(text: "Nutrition facts per 100 g", boundingBox: CGRect(x: 0.6, y: 0.9, width: 0.3, height: 0.03)),
+            RecognizedTextLine(text: "Energy", boundingBox: CGRect(x: 0.1, y: 0.8, width: 0.3, height: 0.05)),
+            RecognizedTextLine(text: "1550 kJ / 370 kcal", boundingBox: energyValueBox),
+            RecognizedTextLine(text: fatLabel, boundingBox: CGRect(x: 0.1, y: 0.7, width: 0.3, height: 0.05)),
+            RecognizedTextLine(text: "12 g", boundingBox: CGRect(x: 0.6, y: 0.7, width: 0.15, height: 0.05)),
+            RecognizedTextLine(text: saturatesLabel, boundingBox: CGRect(x: 0.1, y: 0.65, width: 0.4, height: 0.05)),
+            RecognizedTextLine(text: "2 g", boundingBox: saturatesValueBox)
         ]
     }
 
