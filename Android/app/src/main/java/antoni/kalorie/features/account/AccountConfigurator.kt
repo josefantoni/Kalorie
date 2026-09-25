@@ -1,9 +1,9 @@
 package antoni.kalorie.features.account
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.KalorieApplication
 import antoni.kalorie.core.auth.AuthCommandProvider
 import antoni.kalorie.core.auth.AuthProviderProtocol
@@ -21,7 +21,6 @@ import antoni.kalorie.core.usecases.ReauthenticateUseCase
 import antoni.kalorie.core.usecases.SignInWithGoogleUseCase
 import antoni.kalorie.core.usecases.SignOutUseCase
 import antoni.kalorie.features.moderation.ModerationConfigurator
-import java.util.UUID
 
 class AccountConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,
@@ -39,8 +38,7 @@ class AccountConfigurator(
     @Composable
     fun createView(onDismiss: () -> Unit) {
         val context = LocalContext.current.applicationContext
-        val instanceKey = remember { UUID.randomUUID().toString() }
-        val viewModel = viewModel(key = instanceKey) {
+        val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             val authCommandProvider = AuthCommandProvider()
             val snapshotStore = PendingMergeSnapshotStore(context.filesDir)
             val googleSignInProvider = GoogleSignInProvider(context, (context as KalorieApplication).currentActivityProvider)

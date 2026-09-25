@@ -170,7 +170,13 @@ fun MyCreatedMealEditorView(
                     )
                 }
                 if (searchText.isNotEmpty()) {
-                    item { SectionHeader(stringResource(R.string.addFood_section_externalResults)) }
+                    item {
+                        SectionHeader(
+                            stringResource(
+                                if (searchResults.isNotEmpty()) R.string.addFood_section_searchResults else R.string.addFood_section_externalResults,
+                            ),
+                        )
+                    }
                     if (searchResults.isNotEmpty()) {
                         items(searchResults, key = { "result-${it.id}" }) { item ->
                             FoodItemRow(

@@ -1,8 +1,8 @@
 package antoni.kalorie.features.addfoodsheet
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
+import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
@@ -34,7 +34,6 @@ import antoni.kalorie.features.foodquantity.FoodQuantityView
 import antoni.kalorie.features.foodquantity.FoodQuantityViewModel
 import antoni.kalorie.features.mycreatedmeal.MyCreatedMealEditorConfigurator
 import java.time.Instant
-import java.util.UUID
 
 class AddFoodSheetConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,
@@ -47,8 +46,7 @@ class AddFoodSheetConfigurator(
 
     @Composable
     fun createView(date: Instant, mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onFoodSaved: () -> Unit = {}) {
-        val instanceKey = remember { UUID.randomUUID().toString() }
-        val viewModel = viewModel(key = instanceKey) {
+        val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             AddFoodSheetViewModel(
                 searchFoodItems = SearchFoodItemsUseCase(dataProvider),
                 submitFoodItem = SubmitFoodItemUseCase(dataProvider, authProvider),
