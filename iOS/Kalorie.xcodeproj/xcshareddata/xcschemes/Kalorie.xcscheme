@@ -41,17 +41,6 @@
                ReferencedContainer = "container:Kalorie.xcodeproj">
             </BuildableReference>
          </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "860C15682C10B01C0062D6E7"
-               BuildableName = "KalorieUITests.xctest"
-               BlueprintName = "KalorieUITests"
-               ReferencedContainer = "container:Kalorie.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
