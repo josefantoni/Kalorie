@@ -254,6 +254,13 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
 11. [ ] **Catalogue reports.** Port `FetchMyFoodItemReportUseCase`, `SubmitFoodItemReportUseCase` and
     `FoodItemReportDTO` into the quantity and detail screens. The id is `{barcode}_{userId}`, there
     is no update path, and the client reads its own report first (§ 1.6, design 0012).
+    *Ported with deviations:* the toolbar menu is a `MoreVert` icon button with a one-item
+    `DropdownMenu` (the counterpart of the ellipsis `Menu`), and the reason prompt is an `AlertDialog`
+    with a text field, both shared by the quantity and detail screens as `ReportIncorrectDataMenu` and
+    `ReportReasonDialog`. `FoodItemReporting` is an interface with default methods over
+    `MutableStateFlow` properties, like `FavouriteToggling`. The detail view model loads the report state
+    after the favourite and the catalogue item, as on iOS. The 500-character limit is `String.length`,
+    which counts UTF-16 units as the rules do. Tests beyond iOS: none.
 12. [ ] **Catalogue submissions.** Port `SubmitFoodItem`, `FetchMySubmissions`, `UpdateMySubmission`
     and `DeleteMySubmissionUseCase`, `FoodItemSubmissionFetcher`/`Writer` and
     `FoodItemSubmissionDTO`. Also port the new-food form components (`FoodItemFormFields`,
