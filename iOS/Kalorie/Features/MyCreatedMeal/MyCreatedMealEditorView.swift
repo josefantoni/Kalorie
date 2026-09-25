@@ -65,7 +65,7 @@ struct MyCreatedMealEditorView: View {
             }
 
             if !viewModel.searchText.isEmpty {
-                Section(header: Text(L10n.AddFood.sectionExternalResults)) {
+                Section(header: Text(viewModel.searchResults.isEmpty ? L10n.AddFood.sectionExternalResults : L10n.AddFood.sectionSearchResults)) {
                     if !viewModel.searchResults.isEmpty {
                         ForEach(viewModel.searchResults, id: \.id) { item in
                             FoodItemRow(item: item, isFavourite: false)
