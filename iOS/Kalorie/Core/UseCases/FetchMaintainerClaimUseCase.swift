@@ -19,6 +19,7 @@ final class MaintainerClaimCache {
     struct Entry {
         let value: Bool
         let cachedAt: Date
+        let userId: String
     }
 
     var entry: Entry?
@@ -26,6 +27,17 @@ final class MaintainerClaimCache {
     // MARK: - Init
 
     init() {}
+
+    // MARK: - Functions
+
+    func freshValue(userId: String, now: Date, timeToLive: TimeInterval) -> Bool? {
+        guard
+            let entry,
+            entry.userId == userId,
+            now.timeIntervalSince(entry.cachedAt) < timeToLive
+        else { return nil }
+        return entry.value
+    }
 }
 
 struct FetchMaintainerClaimUseCase: FetchMaintainerClaimUseCaseProtocol {
@@ -43,16 +55,13 @@ struct FetchMaintainerClaimUseCase: FetchMaintainerClaimUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction() async throws -> Bool {
-        if
-            let entry = cache.entry,
-            Date.now.timeIntervalSince(entry.cachedAt) < Constants.Auth.maintainerClaimCacheTTL
-        {
-            return entry.value
-        }
         guard let user = Auth.auth().currentUser else { throw AuthError.notAuthenticated }
+        if let value = cache.freshValue(userId: user.uid, now: .now, timeToLive: Constants.Auth.maintainerClaimCacheTTL) {
+            return value
+        }
         let result = try await user.getIDTokenResult(forcingRefresh: cache.entry != nil)
         let isMaintainer = result.claims["maintainer"] as? Bool ?? false
-        cache.entry = MaintainerClaimCache.Entry(value: isMaintainer, cachedAt: .now)
+        cache.entry = MaintainerClaimCache.Entry(value: isMaintainer, cachedAt: .now, userId: user.uid)
         return isMaintainer
     }
 }
