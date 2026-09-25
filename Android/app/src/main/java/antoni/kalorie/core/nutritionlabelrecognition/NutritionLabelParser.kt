@@ -222,7 +222,7 @@ object NutritionLabelParser {
         for (unit in listOf("kcal", "kj", "ml", "g", "%")) {
             remainder = remainder.replace(unit, "")
         }
-        val allowed = "0123456789.,<≤/| "
+        val allowed = "0123456789.,<≤/|() "
         return remainder.all { it in allowed }
     }
 

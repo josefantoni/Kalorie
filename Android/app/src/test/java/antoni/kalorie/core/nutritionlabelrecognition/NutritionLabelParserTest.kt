@@ -51,6 +51,17 @@ class NutritionLabelParserTest {
     }
 
     @Test
+    fun parse_energyWithKcalInParentheses_stillFillsEnergy() {
+        val lines = czechLabelLines().filterNot { it.text == "1550 kJ / 370 kcal" } +
+            line("1550 kJ (370 kcal)", energyValueBox)
+
+        val reading = NutritionLabelParser.parse(lines)
+
+        assertEquals(1550.0, reading.energyKJ)
+        assertEquals(370.0, reading.caloriesPerHundredGrams)
+    }
+
+    @Test
     fun parse_realOilBottleLabelWithCorrectedOrientation_pairsEachRowWithItsOwnValue() {
         val lines = listOf(
             line("Výživové údaje", 0.21913699866068093, 0.6104135301927482, 0.1664751782829379, 0.019514760327717484),
