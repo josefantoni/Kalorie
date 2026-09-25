@@ -110,6 +110,18 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Cache the Kotlin/Native toolchain
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('ExportKit/build.gradle.kts', 'MacroKit/build.gradle.kts', 'MealKit/build.gradle.kts', 'TextKit/build.gradle.kts') }}
+          restore-keys: konan-${{ runner.os }}-
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
       - name: Write GoogleService-Info.plist
         run: echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}" | base64 --decode > iOS/Kalorie/Resources/GoogleService-Info.plist
 
@@ -119,15 +131,23 @@ jobs:
             SRCROOT="$GITHUB_WORKSPACE/iOS" ./scripts/build-kmp-framework.sh "$module"
           done
 
-      - name: Run tests
+      - name: Build for testing
         run: |
-          xcodebuild test \
+          xcodebuild build-for-testing \
             -project iOS/Kalorie.xcodeproj \
             -scheme Kalorie \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -skipPackagePluginValidation \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO
+
+      - name: Run tests
+        run: |
+          xcodebuild test-without-building \
+            -project iOS/Kalorie.xcodeproj \
+            -scheme Kalorie \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -only-testing:KalorieTests
 
   android:
     needs: changes
@@ -142,6 +162,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
 
       - name: Write google-services.json
         run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > Android/app/google-services.json
