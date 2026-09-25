@@ -260,6 +260,20 @@ class NutritionLabelParserTest {
     }
 
     @Test
+    fun parse_linearFormatLabel_readsANumberThatEndsAtASentenceStop() {
+        val lines = listOf(
+            line("Výživové údaje na 100 g: Energetická hodnota 303 kJ / 72 kcal. Tuky 3,3. Sacharidy 3,0. Bílkoviny 7,3. Sůl 1,6.", 0.3, 0.42, 0.6, 0.03),
+        )
+
+        val reading = NutritionLabelParser.parse(lines)
+
+        assertEquals(3.3, reading.fat)
+        assertEquals(3.0, reading.carbohydrate)
+        assertEquals(7.3, reading.protein)
+        assertEquals(1.6, reading.salt)
+    }
+
+    @Test
     fun parse_linearFormatLabel_doesNotReadSulphitesInTheIngredientsAsSalt() {
         val lines = listOf(
             line("Ingredients: wheat flour, sulphites (E220).", 0.1, 0.6, 0.8, 0.03),
