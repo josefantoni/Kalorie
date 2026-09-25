@@ -83,9 +83,9 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    description, as on iOS) instead of a `ModalBottomSheet`, since that is the native Android
    pattern for a full-height editing form. Reorder uses up/down buttons instead of drag handles.
    `MealTypeSheetRouter` and the export toolbar button with `isExportPushed` are left out and come
-   with step 14 (`makeExportView`). The view model is created with a per-opening key in the
-   Activity's `ViewModelStore`, so old instances live until the Activity is destroyed. Moving it
-   into a Nav3 entry would fix that.
+   with step 14 (`makeExportView`). Every dialog configurator now creates its view model
+   in a `DialogViewModelStoreOwner` (`rememberDialogViewModelStoreOwner`), which is cleared when the dialog
+   leaves the composition, so instances no longer pile up in the Activity's `ViewModelStore`.
 2. [ ] **Catalogue core types, no UI.** Port `FoodItemModel.swift` (`FoodItemDomain`),
    `FoodPortionModel.swift`, `FoodNutritionValues.swift`, `FoodItemValidation.swift`,
    `FoodItemDTO.swift` and `FoodPortionDTO.swift` (`asDomain()` on the DTO, domain → DTO in a
@@ -132,11 +132,11 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    `loadHasPrefixAsync` and `loadArrayContainsAsync`, since Kotlin cannot overload on argument labels.
    The view model exposes `searchExampleRes` instead of `searchPlaceholder` because it has no
    `Context`; the view formats the placeholder. The Dashboard empty state got the *Add food* button
-   iOS has (the FAB is hidden while a day is empty), without the pulse animation. `FoodItemRow`
+   iOS has (the FAB is hidden while a day is empty), with the same 3 s pulse to 1.2× over 0.7 s. `FoodItemRow`
    takes only `item`; `isFavourite` and `submissionStatus` come with steps 7 and 12. The results
-   section header is `addFood_section_externalResults` ("Online results"), copied from iOS even
-   though the section lists local results too; `addFood_section_searchResults` is unused on iOS.
-   That looks like an iOS finding to settle before step 6.
+   section header was `addFood_section_externalResults` ("Online results") on iOS even when it listed local
+   results. Both platforms now use `addFood_section_searchResults` for local results and
+   `addFood_section_externalResults` only for the online list, in the add-food sheet and the meal editor.
 5. [ ] **Food quantity and saving.** This step completes the first "log a food" loop. Port
    `FoodQuantityViewModel`/`FoodQuantityView` with `quantity`, `unit`, `FoodQuantityUnit`,
    `unitOptions` (canonical portions, then `.grams`, then `.hundredGrams`; personal portions come
