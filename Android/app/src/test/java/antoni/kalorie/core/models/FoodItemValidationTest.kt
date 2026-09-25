@@ -44,6 +44,16 @@ class FoodItemValidationTest {
     }
 
     @Test
+    fun validate_withNaNWeight_returnsInvalidWeight() {
+        assertEquals(FoodItemValidationError.InvalidWeight, FoodItemValidation.validate(makeItem(weight = Double.NaN)))
+    }
+
+    @Test
+    fun validate_withNaNCalories_returnsInvalidCalories() {
+        assertEquals(FoodItemValidationError.InvalidCalories, FoodItemValidation.validate(makeItem(caloriesPerHundredGrams = Double.NaN)))
+    }
+
+    @Test
     fun validate_withInvalidPortion_returnsInvalidPortion() {
         val item = makeItem(portions = listOf(FoodPortionDomain(name = "", grams = 30.0)))
         assertEquals(
