@@ -5,18 +5,27 @@ import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.models.FoodItemSubmissionDomain
+import antoni.kalorie.core.models.FoodItemSubmissionError
+import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
+import antoni.kalorie.core.usecases.DeleteMySubmissionUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMySubmissionsUseCaseProtocol
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitFoodItemUseCaseProtocol
+import antoni.kalorie.core.usecases.UpdateMySubmissionUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
+import antoni.kalorie.core.utils.isFirestoreUnreachable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -26,11 +35,16 @@ import kotlinx.coroutines.flow.StateFlow
 
 enum class AddFoodSheetMode(@StringRes val titleRes: Int) {
     SEARCH(R.string.addFood_mode_search),
+    NEW_ITEM(R.string.addFood_mode_newItem),
     CREATE_MEAL(R.string.addFood_mode_createMeal),
 }
 
 class AddFoodSheetViewModel(
     private val searchFoodItems: SearchFoodItemsUseCaseProtocol,
+    private val submitFoodItem: SubmitFoodItemUseCaseProtocol,
+    private val fetchMySubmissions: FetchMySubmissionsUseCaseProtocol,
+    private val updateMySubmission: UpdateMySubmissionUseCaseProtocol,
+    private val deleteMySubmission: DeleteMySubmissionUseCaseProtocol,
     private val searchFoodExternally: SearchFoodExternallyUseCaseProtocol,
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
     private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
@@ -56,6 +70,20 @@ class AddFoodSheetViewModel(
     val mode: StateFlow<AddFoodSheetMode> = _mode
     val myCreatedMeals = MutableStateFlow<List<MyCreatedMealDomain>>(emptyList())
     val isMealDeleteConfirmationVisible = MutableStateFlow(false)
+    private val _state = MutableStateFlow<LoadingState<Unit>>(LoadingState.Idle)
+    val state: StateFlow<LoadingState<Unit>> = _state
+    val formInput = MutableStateFlow(FoodItemFormInput())
+    val isReviewPushed = MutableStateFlow(false)
+    val mySubmissions = MutableStateFlow<List<FoodItemSubmissionDomain>>(emptyList())
+    val isSubmissionConfirmationVisible = MutableStateFlow(false)
+    private val _rejectionReasonBeingEdited = MutableStateFlow<String?>(null)
+    val rejectionReasonBeingEdited: StateFlow<String?> = _rejectionReasonBeingEdited
+    val isSubmissionDeleteConfirmationVisible = MutableStateFlow(false)
+    val isMissingBarcodeConfirmationVisible = MutableStateFlow(false)
+    val isBarcodeRescanVisible = MutableStateFlow(false)
+    val rescannedBarcode = MutableStateFlow("")
+    private var editingSubmissionId: String? = null
+    private var submissionPendingDeletion: FoodItemSubmissionDomain? = null
     private var mealPendingDeletion: MyCreatedMealDomain? = null
     val isScannerVisible = MutableStateFlow(isScannerVisible)
     val lastScannedBarcode = MutableStateFlow("")
@@ -69,6 +97,9 @@ class AddFoodSheetViewModel(
     val shouldDismiss: StateFlow<Boolean> = _shouldDismiss
     @StringRes val searchExampleRes: Int = searchExamples.random()
 
+    val isEditingSubmission: Boolean
+        get() = editingSubmissionId != null
+
     val displayedResults: List<FoodItemDomain>
         get() {
             val query = searchText.value.lowercase()
@@ -80,8 +111,13 @@ class AddFoodSheetViewModel(
             val matchingMeals = myCreatedMeals.value
                 .map { it.asFoodItem() }
                 .filter { it.czName.lowercase().startsWith(query) && it.id !in favouriteIds }
-            val matchingIds = favouriteIds + matchingMeals.map { it.id }
-            return matchingFavourites + matchingMeals + localFoodItems.value.filter { it.id !in matchingIds }
+            val seenSubmissionIds = (favouriteIds + matchingMeals.map { it.id }).toMutableSet()
+            val matchingSubmissions = mySubmissions.value
+                .map { it.item }
+                .filter { it.czName.lowercase().startsWith(query) || it.engName.lowercase().startsWith(query) }
+                .filter { seenSubmissionIds.add(it.id) }
+            val matchingIds = favouriteIds + matchingMeals.map { it.id } + matchingSubmissions.map { it.id }
+            return matchingFavourites + matchingMeals + matchingSubmissions + localFoodItems.value.filter { it.id !in matchingIds }
         }
 
     // MARK: - Functions
@@ -95,6 +131,127 @@ class AddFoodSheetViewModel(
         if (mode == _mode.value) return
         _mode.value = mode
         isScannerVisible.value = false
+        isReviewPushed.value = false
+        if (mode != AddFoodSheetMode.NEW_ITEM) return
+        formInput.value = FoodItemFormInput()
+        editingSubmissionId = null
+        _rejectionReasonBeingEdited.value = null
+    }
+
+    fun onAddManuallyTapped() {
+        formInput.value = FoodItemFormInput()
+        editingSubmissionId = null
+        _rejectionReasonBeingEdited.value = null
+        isReviewPushed.value = true
+    }
+
+    fun onBarcodeRescanTapped() {
+        isBarcodeRescanVisible.value = true
+    }
+
+    fun onBarcodeRescanned() {
+        if (rescannedBarcode.value.isEmpty()) return
+        formInput.value = formInput.value.copy(scannedCode = rescannedBarcode.value)
+        rescannedBarcode.value = ""
+        isBarcodeRescanVisible.value = false
+    }
+
+    fun submissionStatus(item: FoodItemDomain): FoodItemSubmissionStatus? =
+        mySubmissions.value.firstOrNull { it.item.id == item.id }?.status
+
+    fun onSelectRejectedSubmission(item: FoodItemDomain) {
+        val submission = mySubmissions.value.firstOrNull { it.item.id == item.id } ?: return
+        openEditingForm(submission)
+    }
+
+    fun onSelectSubmission(submission: FoodItemSubmissionDomain) {
+        if (submission.status != FoodItemSubmissionStatus.REJECTED) {
+            onSelectFoodItem(submission.item)
+            return
+        }
+        openEditingForm(submission)
+    }
+
+    fun onSubmissionConfirmationDismissed() {
+        isSubmissionConfirmationVisible.value = false
+        _shouldDismiss.value = true
+    }
+
+    fun onDeleteSubmissionRequested(submission: FoodItemSubmissionDomain) {
+        submissionPendingDeletion = submission
+        isSubmissionDeleteConfirmationVisible.value = true
+    }
+
+    suspend fun onDeleteSubmissionConfirmed() {
+        val submission = submissionPendingDeletion ?: return
+        submissionPendingDeletion = null
+        val index = mySubmissions.value.indexOfFirst { it.id == submission.id }
+        mySubmissions.value = mySubmissions.value.filter { it.id != submission.id }
+        try {
+            deleteMySubmission(submission.id)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.ADD_FOOD_SHEET)
+            if (index >= 0) {
+                mySubmissions.value = mySubmissions.value.toMutableList().also { it.add(minOf(index, it.size), submission) }
+            }
+            alertItem.value = AlertItem(titleRes = R.string.addFood_error_withdrawSubmissionFailed)
+        }
+    }
+
+    suspend fun onCreateFoodItem() {
+        if (formInput.value.scannedCode.isNotEmpty()) {
+            writeFoodItem()
+            return
+        }
+        isMissingBarcodeConfirmationVisible.value = true
+    }
+
+    suspend fun onMissingBarcodeConfirmed() {
+        isMissingBarcodeConfirmationVisible.value = false
+        writeFoodItem()
+    }
+
+    private suspend fun writeFoodItem() {
+        _state.value = LoadingState.Loading
+        val item = formInput.value.asFoodItemDomain()
+        try {
+            val submissionId = editingSubmissionId
+            if (submissionId != null) {
+                updateMySubmission(submissionId, item)
+            } else {
+                submitFoodItem(item)
+            }
+            editingSubmissionId = null
+            _rejectionReasonBeingEdited.value = null
+            isSubmissionConfirmationVisible.value = true
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.ADD_FOOD_SHEET)
+            alertItem.value = when {
+                error.isFirestoreUnreachable ->
+                    AlertItem(titleRes = R.string.common_error_offline, messageRes = R.string.common_error_offline_message)
+                error is FoodItemSubmissionError.InvalidCode -> AlertItem(titleRes = R.string.addFood_error_invalidCode)
+                error is FoodItemSubmissionError.InvalidName -> AlertItem(titleRes = R.string.addFood_error_invalidName)
+                error is FoodItemSubmissionError.InvalidCalories -> AlertItem(titleRes = R.string.addFood_error_invalidCalories)
+                error is FoodItemSubmissionError.InvalidWeight -> AlertItem(titleRes = R.string.addFood_error_invalidWeight)
+                error is FoodItemSubmissionError.InvalidPortion -> AlertItem(titleRes = error.error.alertTitleRes)
+                error is FoodItemSubmissionError.ItemAlreadyExists -> AlertItem(titleRes = R.string.addFood_error_itemAlreadyExists)
+                else -> AlertItem(titleRes = R.string.common_error_unknown)
+            }
+        } finally {
+            _state.value = LoadingState.loaded
+        }
+    }
+
+    private fun openEditingForm(submission: FoodItemSubmissionDomain) {
+        formInput.value = FoodItemFormInput.from(submission.item)
+        editingSubmissionId = submission.id
+        _rejectionReasonBeingEdited.value = submission.rejectReason
+        _mode.value = AddFoodSheetMode.NEW_ITEM
+        isReviewPushed.value = true
     }
 
     fun onDeleteMealRequested(meal: MyCreatedMealDomain) {
@@ -260,7 +417,17 @@ class AddFoodSheetViewModel(
                     null
                 }
             }
-            val meals = async {
+            val submissions = async {
+            try {
+                fetchMySubmissions()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+                null
+            }
+        }
+        val meals = async {
                 try {
                     fetchMyCreatedMeals()
                 } catch (error: CancellationException) {
@@ -275,6 +442,7 @@ class AddFoodSheetViewModel(
                 _favouriteIds.value = items.map { it.id }.toSet()
             }
             meals.await()?.let { myCreatedMeals.value = it }
+            submissions.await()?.let { mySubmissions.value = it }
         }
     }
 

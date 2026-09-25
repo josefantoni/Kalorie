@@ -2,13 +2,20 @@ package antoni.kalorie.features.addfoodsheet
 
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.models.FoodItemSubmissionDomain
+import antoni.kalorie.core.models.FoodItemSubmissionError
+import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.FoodNutritionValues
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseFake
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
+import antoni.kalorie.core.usecases.DeleteMySubmissionUseCaseFake
+import antoni.kalorie.core.usecases.DeleteMySubmissionUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseFake
 import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMySubmissionsUseCaseFake
+import antoni.kalorie.core.usecases.FetchMySubmissionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseFake
@@ -21,6 +28,10 @@ import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseFake
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseFake
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitFoodItemUseCaseFake
+import antoni.kalorie.core.usecases.SubmitFoodItemUseCaseProtocol
+import antoni.kalorie.core.usecases.UpdateMySubmissionUseCaseFake
+import antoni.kalorie.core.usecases.UpdateMySubmissionUseCaseProtocol
 import antoni.kalorie.R
 import java.time.Instant
 import kotlinx.coroutines.test.runTest
@@ -71,6 +82,290 @@ class AddFoodSheetViewModelTest {
         sut.searchText.value = "ov"
 
         assertEquals(FoodItemKind.CREATED_MEAL, sut.displayedResults.first { it.id == "meal" }.kind)
+    }
+
+    // MARK: - own submissions in displayedResults
+
+    @Test
+    fun displayedResults_includesMatchingOwnSubmission() = runTest {
+        val sut = makeSUT(
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(makeSubmission(barcode = "sub-item", status = FoodItemSubmissionStatus.REJECTED))),
+        )
+        sut.onAppear()
+        sut.searchText.value = "ov"
+
+        assertTrue(sut.displayedResults.map { it.id }.contains("sub-item"))
+    }
+
+    @Test
+    fun submissionStatus_forMatchingSubmission_returnsItsStatus() = runTest {
+        val sut = makeSUT(
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(makeSubmission(barcode = "sub-item", status = FoodItemSubmissionStatus.REJECTED))),
+        )
+        sut.onAppear()
+
+        assertEquals(FoodItemSubmissionStatus.REJECTED, sut.submissionStatus(makeFoodItem(id = "sub-item")))
+        assertNull(sut.submissionStatus(makeFoodItem(id = "other-item")))
+    }
+
+    // MARK: - onSelectRejectedSubmission
+
+    @Test
+    fun onSelectRejectedSubmission_prefillsFormAndShowsRejectionReason() = runTest {
+        val submission = makeSubmission(id = "sub-1", barcode = "87654321", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
+        val sut = makeSUT(fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(submission)))
+        sut.onAppear()
+
+        sut.onSelectRejectedSubmission(makeFoodItem(id = "87654321", czName = "Ovar"))
+
+        assertEquals(AddFoodSheetMode.NEW_ITEM, sut.mode.value)
+        assertEquals("87654321", sut.formInput.value.scannedCode)
+        assertEquals("Ovar", sut.formInput.value.name)
+        assertEquals("Wrong calories", sut.rejectionReasonBeingEdited.value)
+        assertTrue("the barcode must be locked while resubmitting, or approving it can orphan entries logged under the old barcode", sut.isEditingSubmission)
+        assertTrue("editing a rejected submission must push the review screen directly, skipping the prompt", sut.isReviewPushed.value)
+    }
+
+    // MARK: - onModeSelected (new item)
+
+    @Test
+    fun onModeSelected_afterClosingRejectedSubmissionEdit_reopensAsFreshFormAndSubmitsNewItem() = runTest {
+        val submission = makeSubmission(id = "sub-1", barcode = "sub-item", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
+        val submitFoodItem = SubmitFoodItemUseCaseSpy()
+        val updateMySubmission = UpdateMySubmissionUseCaseSpy()
+        val sut = makeSUT(
+            submitFoodItem = submitFoodItem,
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(submission)),
+            updateMySubmission = updateMySubmission,
+        )
+        sut.onAppear()
+        sut.onSelectRejectedSubmission(makeFoodItem(id = "sub-item", czName = "Ovar"))
+        assertEquals(AddFoodSheetMode.NEW_ITEM, sut.mode.value)
+
+        sut.onModeSelected(AddFoodSheetMode.SEARCH)
+        assertEquals("closing the form must not leave it silently pointed at the old submission", AddFoodSheetMode.SEARCH, sut.mode.value)
+        assertFalse("leaving the new item tab must close a review pushed for the old submission", sut.isReviewPushed.value)
+
+        sut.onModeSelected(AddFoodSheetMode.NEW_ITEM)
+        assertEquals(AddFoodSheetMode.NEW_ITEM, sut.mode.value)
+        assertNull(sut.rejectionReasonBeingEdited.value)
+        assertEquals("", sut.formInput.value.scannedCode)
+        assertFalse("a freshly reopened form must allow a barcode again", sut.isEditingSubmission)
+        assertFalse("reopening the tab must show the prompt again, not the old review screen", sut.isReviewPushed.value)
+
+        sut.formInput.value = sut.formInput.value.copy(scannedCode = "99999999", name = "Nová položka", weightOfProduct = 100.0, caloriesPerHundredGrams = 50.0)
+        sut.onCreateFoodItem()
+
+        assertEquals("a freshly reopened form must submit a new submission", "99999999", submitFoodItem.receivedItem?.id)
+        assertNull("it must not silently overwrite the previously edited submission", updateMySubmission.receivedId)
+    }
+
+    @Test
+    fun onModeSelected_withAlreadyActiveMode_keepsHalfTypedForm() {
+        val sut = makeSUT()
+        sut.onModeSelected(AddFoodSheetMode.NEW_ITEM)
+        sut.formInput.value = sut.formInput.value.copy(name = "Ovar")
+
+        sut.onModeSelected(AddFoodSheetMode.NEW_ITEM)
+
+        assertEquals("re-tapping the active segment must not wipe a half-typed form", "Ovar", sut.formInput.value.name)
+    }
+
+    // MARK: - onSelectSubmission
+
+    @Test
+    fun onSelectSubmission_forRejectedSubmission_opensThatExactSubmissionDespiteDuplicateBarcode() = runTest {
+        val rejected = makeSubmission(id = "sub-old", barcode = "shared-barcode", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
+        val pending = makeSubmission(id = "sub-new", barcode = "shared-barcode", status = FoodItemSubmissionStatus.PENDING)
+        val sut = makeSUT(fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(pending, rejected)))
+        sut.onAppear()
+
+        sut.onSelectSubmission(rejected)
+
+        assertEquals(AddFoodSheetMode.NEW_ITEM, sut.mode.value)
+        assertEquals("Wrong calories", sut.rejectionReasonBeingEdited.value)
+    }
+
+    @Test
+    fun onSelectSubmission_forPendingSubmission_navigatesToFoodItemDespiteDuplicateBarcode() = runTest {
+        val rejected = makeSubmission(id = "sub-old", barcode = "shared-barcode", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
+        val pending = makeSubmission(id = "sub-new", barcode = "shared-barcode", status = FoodItemSubmissionStatus.PENDING)
+        val sut = makeSUT(fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(pending, rejected)))
+        sut.onAppear()
+
+        sut.onSelectSubmission(pending)
+
+        assertTrue(sut.isPushedToQuantityView.value)
+        assertEquals(AddFoodSheetMode.SEARCH, sut.mode.value)
+    }
+
+    // MARK: - onCreateFoodItem
+
+    @Test
+    fun onCreateFoodItem_withNoEditingSubmission_submitsNewFoodItem() = runTest {
+        val submitFoodItem = SubmitFoodItemUseCaseSpy()
+        val sut = makeSUT(submitFoodItem = submitFoodItem)
+        fillValidForm(sut, scannedCode = "12345678")
+
+        sut.onCreateFoodItem()
+
+        assertEquals("12345678", submitFoodItem.receivedItem?.id)
+        assertTrue(sut.isSubmissionConfirmationVisible.value)
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onCreateFoodItem_whenResubmittingRejectedSubmission_callsUpdateMySubmission() = runTest {
+        val submission = makeSubmission(id = "sub-1", barcode = "87654321", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
+        val updateMySubmission = UpdateMySubmissionUseCaseSpy()
+        val sut = makeSUT(
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(submission)),
+            updateMySubmission = updateMySubmission,
+        )
+        sut.onAppear()
+        sut.onSelectRejectedSubmission(makeFoodItem(id = "87654321", czName = "Ovar"))
+        sut.formInput.value = sut.formInput.value.copy(weightOfProduct = 200.0, caloriesPerHundredGrams = 80.0)
+
+        sut.onCreateFoodItem()
+
+        assertEquals("sub-1", updateMySubmission.receivedId)
+        assertTrue(sut.isSubmissionConfirmationVisible.value)
+        assertNull("resolving the resubmission must clear the rejection banner", sut.rejectionReasonBeingEdited.value)
+    }
+
+    @Test
+    fun onCreateFoodItem_whenBarcodeAlreadyExists_showsAlertAndKeepsFormOpen() = runTest {
+        val sut = makeSUT(submitFoodItem = SubmitFoodItemUseCaseFake(errorToThrow = FoodItemSubmissionError.ItemAlreadyExists))
+        fillValidForm(sut, scannedCode = "12345678")
+
+        sut.onCreateFoodItem()
+
+        assertEquals(R.string.addFood_error_itemAlreadyExists, sut.alertItem.value?.titleRes)
+        assertFalse(sut.isSubmissionConfirmationVisible.value)
+    }
+
+    @Test
+    fun onCreateFoodItem_withEmptyBarcode_showsConfirmationAndWritesNothingUntilConfirmed() = runTest {
+        val submitFoodItem = SubmitFoodItemUseCaseSpy()
+        val sut = makeSUT(submitFoodItem = submitFoodItem)
+        fillValidForm(sut, scannedCode = "")
+
+        sut.onCreateFoodItem()
+
+        assertTrue("a food with no barcode must be confirmed explicitly before it is submitted", sut.isMissingBarcodeConfirmationVisible.value)
+        assertNull("nothing may be written before the user confirms", submitFoodItem.receivedItem)
+        assertFalse(sut.isSubmissionConfirmationVisible.value)
+    }
+
+    @Test
+    fun onMissingBarcodeConfirmed_submitsTheBarcodelessItemAndHidesTheConfirmation() = runTest {
+        val submitFoodItem = SubmitFoodItemUseCaseSpy()
+        val sut = makeSUT(submitFoodItem = submitFoodItem)
+        fillValidForm(sut, scannedCode = "")
+        sut.onCreateFoodItem()
+
+        sut.onMissingBarcodeConfirmed()
+
+        assertFalse(sut.isMissingBarcodeConfirmationVisible.value)
+        assertEquals("the writer, not the form, assigns the submission's identity when there is no barcode", "", submitFoodItem.receivedItem?.id)
+        assertTrue(sut.isSubmissionConfirmationVisible.value)
+    }
+
+    // MARK: - onAddManuallyTapped
+
+    @Test
+    fun onAddManuallyTapped_resetsFormAndPushesReview() {
+        val sut = makeSUT()
+
+        sut.onAddManuallyTapped()
+
+        assertTrue(sut.isReviewPushed.value)
+        assertEquals("", sut.formInput.value.scannedCode)
+        assertEquals("", sut.formInput.value.name)
+    }
+
+    // MARK: - barcode rescan
+
+    @Test
+    fun onBarcodeRescanned_copiesTheCodeIntoTheFormAndClosesTheScanner() {
+        val sut = makeSUT()
+        sut.isBarcodeRescanVisible.value = true
+        sut.rescannedBarcode.value = "8594004428464"
+
+        sut.onBarcodeRescanned()
+
+        assertEquals("8594004428464", sut.formInput.value.scannedCode)
+        assertEquals("", sut.rescannedBarcode.value)
+        assertFalse(sut.isBarcodeRescanVisible.value)
+    }
+
+    // MARK: - onSubmissionConfirmationDismissed
+
+    @Test
+    fun onSubmissionConfirmationDismissed_dismissesSheet() {
+        val sut = makeSUT()
+        sut.isSubmissionConfirmationVisible.value = true
+
+        sut.onSubmissionConfirmationDismissed()
+
+        assertFalse(sut.isSubmissionConfirmationVisible.value)
+        assertTrue(sut.shouldDismiss.value)
+    }
+
+    // MARK: - onDeleteSubmissionRequested / onDeleteSubmissionConfirmed
+
+    @Test
+    fun onDeleteSubmissionRequested_withoutConfirming_deletesNothing() = runTest {
+        val deleteMySubmission = DeleteMySubmissionUseCaseSpy()
+        val submission = makeSubmission(id = "sub-1", barcode = "sub-item", status = FoodItemSubmissionStatus.PENDING)
+        val sut = makeSUT(
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(submission)),
+            deleteMySubmission = deleteMySubmission,
+        )
+        sut.onAppear()
+
+        sut.onDeleteSubmissionRequested(submission)
+
+        assertTrue(sut.isSubmissionDeleteConfirmationVisible.value)
+        assertNull(deleteMySubmission.receivedId)
+        assertEquals(listOf("sub-1"), sut.mySubmissions.value.map { it.id })
+    }
+
+    @Test
+    fun onDeleteSubmissionConfirmed_onSuccess_removesEntryAndClearsSubmissionStatus() = runTest {
+        val deleteMySubmission = DeleteMySubmissionUseCaseSpy()
+        val submission = makeSubmission(id = "sub-1", barcode = "sub-item", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
+        val sut = makeSUT(
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(submission)),
+            deleteMySubmission = deleteMySubmission,
+        )
+        sut.onAppear()
+        sut.onDeleteSubmissionRequested(submission)
+
+        sut.onDeleteSubmissionConfirmed()
+
+        assertEquals("sub-1", deleteMySubmission.receivedId)
+        assertTrue(sut.mySubmissions.value.isEmpty())
+        assertNull(sut.submissionStatus(makeFoodItem(id = "sub-item")))
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onDeleteSubmissionConfirmed_onFailure_restoresEntryAndShowsAlert() = runTest {
+        val deleteMySubmission = DeleteMySubmissionUseCaseSpy(errorToThrow = RuntimeException("unknown"))
+        val submission = makeSubmission(id = "sub-1", barcode = "sub-item", status = FoodItemSubmissionStatus.PENDING)
+        val sut = makeSUT(
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(submission)),
+            deleteMySubmission = deleteMySubmission,
+        )
+        sut.onAppear()
+        sut.onDeleteSubmissionRequested(submission)
+
+        sut.onDeleteSubmissionConfirmed()
+
+        assertEquals("sub-1", deleteMySubmission.receivedId)
+        assertEquals("a failed withdrawal must restore the entry, not silently drop it", listOf("sub-1"), sut.mySubmissions.value.map { it.id })
+        assertEquals(R.string.addFood_error_withdrawSubmissionFailed, sut.alertItem.value?.titleRes)
     }
 
     // MARK: - isMyCreatedMeal
@@ -471,6 +766,10 @@ class AddFoodSheetViewModelTest {
         var onFoodSavedCalled = false
         val sut = AddFoodSheetViewModel(
             searchFoodItems = SearchFoodItemsUseCaseFake(),
+            submitFoodItem = SubmitFoodItemUseCaseFake(),
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(),
+            updateMySubmission = UpdateMySubmissionUseCaseFake(),
+            deleteMySubmission = DeleteMySubmissionUseCaseFake(),
             searchFoodExternally = SearchFoodExternallyUseCaseFake(),
             fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(),
             fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(),
@@ -491,6 +790,10 @@ class AddFoodSheetViewModelTest {
 
     private fun makeSUT(
         searchFoodItems: SearchFoodItemsUseCaseProtocol = SearchFoodItemsUseCaseFake(),
+        submitFoodItem: SubmitFoodItemUseCaseProtocol = SubmitFoodItemUseCaseFake(),
+        fetchMySubmissions: FetchMySubmissionsUseCaseProtocol = FetchMySubmissionsUseCaseFake(),
+        updateMySubmission: UpdateMySubmissionUseCaseProtocol = UpdateMySubmissionUseCaseFake(),
+        deleteMySubmission: DeleteMySubmissionUseCaseProtocol = DeleteMySubmissionUseCaseFake(),
         searchFoodExternally: SearchFoodExternallyUseCaseProtocol = SearchFoodExternallyUseCaseFake(),
         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
@@ -501,6 +804,10 @@ class AddFoodSheetViewModelTest {
         isScannerVisible: Boolean = false,
     ): AddFoodSheetViewModel = AddFoodSheetViewModel(
         searchFoodItems = searchFoodItems,
+        submitFoodItem = submitFoodItem,
+        fetchMySubmissions = fetchMySubmissions,
+        updateMySubmission = updateMySubmission,
+        deleteMySubmission = deleteMySubmission,
         searchFoodExternally = searchFoodExternally,
         fetchFoodItemByBarcode = fetchFoodItemByBarcode,
         fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
@@ -510,6 +817,73 @@ class AddFoodSheetViewModelTest {
         deleteMyCreatedMeal = deleteMyCreatedMeal,
         isScannerVisible = isScannerVisible,
     )
+
+    private fun fillValidForm(sut: AddFoodSheetViewModel, scannedCode: String) {
+        sut.formInput.value = sut.formInput.value.copy(
+            scannedCode = scannedCode,
+            name = "Tvaroh",
+            weightOfProduct = 200.0,
+            caloriesPerHundredGrams = 80.0,
+        )
+    }
+
+    private fun makeSubmission(
+        id: String = "sub-1",
+        barcode: String,
+        status: FoodItemSubmissionStatus,
+        rejectReason: String? = null,
+    ): FoodItemSubmissionDomain = FoodItemSubmissionDomain(
+        id = id,
+        barcode = barcode,
+        submittedBy = "test-user",
+        status = status,
+        submittedAt = Instant.now(),
+        rejectReason = rejectReason,
+        item = makeFoodItem(id = barcode, czName = "Ovar"),
+    )
+
+    private class SubmitFoodItemUseCaseSpy : SubmitFoodItemUseCaseProtocol {
+        var receivedItem: FoodItemDomain? = null
+
+        override suspend fun invoke(item: FoodItemDomain): FoodItemSubmissionDomain {
+            receivedItem = item
+            return FoodItemSubmissionDomain(
+                id = "new-id",
+                barcode = item.id,
+                submittedBy = "test-user",
+                status = FoodItemSubmissionStatus.PENDING,
+                submittedAt = Instant.now(),
+                rejectReason = null,
+                item = item,
+            )
+        }
+    }
+
+    private class UpdateMySubmissionUseCaseSpy : UpdateMySubmissionUseCaseProtocol {
+        var receivedId: String? = null
+
+        override suspend fun invoke(id: String, item: FoodItemDomain): FoodItemSubmissionDomain {
+            receivedId = id
+            return FoodItemSubmissionDomain(
+                id = id,
+                barcode = item.id,
+                submittedBy = "test-user",
+                status = FoodItemSubmissionStatus.PENDING,
+                submittedAt = Instant.now(),
+                rejectReason = null,
+                item = item,
+            )
+        }
+    }
+
+    private class DeleteMySubmissionUseCaseSpy(private val errorToThrow: Exception? = null) : DeleteMySubmissionUseCaseProtocol {
+        var receivedId: String? = null
+
+        override suspend fun invoke(id: String) {
+            receivedId = id
+            errorToThrow?.let { throw it }
+        }
+    }
 
     private fun makeMeal(id: String, name: String): MyCreatedMealDomain = MyCreatedMealDomain(
         id = id,

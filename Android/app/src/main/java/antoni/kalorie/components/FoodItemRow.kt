@@ -12,12 +12,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.displayName
 
 @Composable
-fun FoodItemRow(item: FoodItemDomain, isFavourite: Boolean, modifier: Modifier = Modifier) {
+fun FoodItemRow(
+    item: FoodItemDomain,
+    isFavourite: Boolean,
+    modifier: Modifier = Modifier,
+    submissionStatus: FoodItemSubmissionStatus? = null,
+) {
 
     // MARK: - Body
 
@@ -27,6 +35,18 @@ fun FoodItemRow(item: FoodItemDomain, isFavourite: Boolean, modifier: Modifier =
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(item.displayName)
+            if (submissionStatus != null) {
+                Text(
+                    text = stringResource(
+                        when (submissionStatus) {
+                            FoodItemSubmissionStatus.PENDING -> R.string.addFood_submission_pending
+                            FoodItemSubmissionStatus.REJECTED -> R.string.addFood_submission_rejected
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         if (isFavourite) {
             Icon(
