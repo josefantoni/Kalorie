@@ -72,6 +72,7 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.6.2")
     implementation("androidx.camera:camera-view:1.6.2")
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
