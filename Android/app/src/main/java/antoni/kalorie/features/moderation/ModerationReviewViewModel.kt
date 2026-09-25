@@ -18,6 +18,7 @@ import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.NutritionLabelPrefilling
+import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.addfoodsheet.FoodItemFormInput
 import java.time.Instant
 import kotlinx.coroutines.CancellationException
@@ -81,6 +82,7 @@ class ModerationReviewViewModel(
     }
 
     suspend fun onApproveTapped() {
+        if (_state.value.isLoading) return
         _state.value = LoadingState.Loading
         val editedItem = formInput.value.asFoodItemDomain(date = submission.item.date)
         try {
@@ -116,6 +118,7 @@ class ModerationReviewViewModel(
     }
 
     suspend fun onRejectConfirmed() {
+        if (_state.value.isLoading) return
         _state.value = LoadingState.Loading
         try {
             rejectSubmission(submission, rejectReason.value)

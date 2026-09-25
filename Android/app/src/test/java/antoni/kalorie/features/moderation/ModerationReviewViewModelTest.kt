@@ -19,7 +19,10 @@ import antoni.kalorie.core.usecases.RejectSubmissionUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseFake
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
 import java.time.Instant
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -53,6 +56,37 @@ class ModerationReviewViewModelTest {
         sut.onApproveTapped()
 
         assertEquals("Cottage cheese", approveSubmission.receivedItem?.engName)
+    }
+
+    @Test
+    fun onApproveTapped_whileAnApprovalIsInFlight_isIgnored() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val approveSubmission = ApproveSubmissionUseCaseSpy(gate = gate)
+        val sut = makeSUT(approveSubmission = approveSubmission)
+
+        val firstTap = launch { sut.onApproveTapped() }
+        yield()
+        sut.onApproveTapped()
+        gate.complete(Unit)
+        firstTap.join()
+
+        assertEquals(1, approveSubmission.callCount)
+    }
+
+    @Test
+    fun onRejectConfirmed_whileARejectionIsInFlight_isIgnored() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val rejectSubmission = RejectSubmissionUseCaseSpy(gate = gate)
+        val sut = makeSUT(rejectSubmission = rejectSubmission)
+        sut.rejectReason.value = "Wrong calories"
+
+        val firstTap = launch { sut.onRejectConfirmed() }
+        yield()
+        sut.onRejectConfirmed()
+        gate.complete(Unit)
+        firstTap.join()
+
+        assertEquals(1, rejectSubmission.callCount)
     }
 
     // MARK: - onApproveTapped error handling
@@ -230,17 +264,37 @@ class ModerationReviewViewModelTest {
 
 private class ApproveSubmissionUseCaseSpy(
     private val errorToThrow: Exception? = null,
+    private val gate: CompletableDeferred<Unit>? = null,
 ) : ApproveSubmissionUseCaseProtocol {
 
     // MARK: - Properties
 
     var receivedItem: FoodItemDomain? = null
+    var callCount = 0
 
     // MARK: - Functions
 
     override suspend fun invoke(submission: FoodItemSubmissionDomain, item: FoodItemDomain) {
+        callCount++
         receivedItem = item
+        gate?.await()
         errorToThrow?.let { throw it }
+    }
+}
+
+private class RejectSubmissionUseCaseSpy(
+    private val gate: CompletableDeferred<Unit>,
+) : RejectSubmissionUseCaseProtocol {
+
+    // MARK: - Properties
+
+    var callCount = 0
+
+    // MARK: - Functions
+
+    override suspend fun invoke(submission: FoodItemSubmissionDomain, reason: String) {
+        callCount++
+        gate.await()
     }
 }
 
