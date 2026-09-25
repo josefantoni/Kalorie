@@ -36,6 +36,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -158,6 +159,7 @@ fun NutritionLabelScannerView(
         onDispose {
             controller.clearImageAnalysisAnalyzer()
             controller.unbind()
+            analysisScope.cancel()
             recognizer.close()
             executor.shutdown()
         }
