@@ -23,6 +23,8 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var stubbedServerDocument: Any? = null
     var stubbedServerDocumentSequence: List<Any?> = emptyList()
     var stubbedServerReadError: Exception? = null
+    var serverReadsBeforeError = 0
+    private var serverReadAttempts = 0
     var stubbedSetError: Exception? = null
     var stubbedDeleteError: Exception? = null
     private var serverReadCount = 0
@@ -100,7 +102,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
 
     override suspend fun <T> loadFromServerAsync(id: String, from: String, serializer: KSerializer<T>): T? {
         stubbedError?.let { throw it }
-        stubbedServerReadError?.let { throw it }
+        stubbedServerReadError?.let { if (serverReadAttempts++ >= serverReadsBeforeError) throw it }
         queriedServerId = id
         queriedServerCollection = from
         if (stubbedServerDocumentSequence.isNotEmpty()) {
