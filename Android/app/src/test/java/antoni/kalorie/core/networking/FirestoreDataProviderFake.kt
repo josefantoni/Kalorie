@@ -12,6 +12,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var stubbedDocumentsByCollection: Map<String, List<Any>> = emptyMap()
     var batchSavedItemsByCollection: Map<String, List<Pair<Any?, String>>> = emptyMap()
     var deletedIdsByCollection: Map<String, List<String>> = emptyMap()
+    var deletionCollectionOrder: List<String> = emptyList()
     var stubbedServerDocuments: List<Any> = emptyList()
     var stubbedRangeDocuments: (Double, Double) -> List<Any> = { _, _ -> emptyList() }
     var stubbedByPrefixField: Map<String, List<Any>> = emptyMap()
@@ -162,5 +163,6 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         deletedId = id
         deletedFromCollection = from
         deletedIdsByCollection = deletedIdsByCollection + (from to (deletedIdsByCollection[from].orEmpty() + id))
+        deletionCollectionOrder = deletionCollectionOrder + from
     }
 }
