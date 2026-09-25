@@ -304,6 +304,20 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     `FoodExportReportFactory` and `Export*` through ExportKit, and share the file with an
     `ACTION_SEND` intent (the counterpart of `ActivityView`). It carries the day-bucketing fixture
     from *Second-client readers*. Read § 8 and design 0014.
+    *Ported with deviations:* the fixture `fixtures/export-day-bucketing-cases.json` came first, with
+    an iOS reader (`FoodExportDayBucketingTests`) in its own commit, then the Kotlin reader in
+    `FoodExportReportFactoryTest`. Both read entries as ISO offset date-times and check only the day
+    count and each entry's day index, not the locale-dependent labels. `FoodExportReportFactory` takes a
+    `StringProvider` (a `Context`-free counterpart of `L10n`), a `ZoneId` and a `Locale`, and formats the
+    day labels with `FormatStyle.FULL`. The file goes to `cacheDir/exports`, and the folder is emptied
+    before each export instead of deleting the file after sharing, because `ACTION_SEND` never reports
+    when the receiving app has finished reading the URI. The share sheet is a `Intent.createChooser`
+    over a `FileProvider` URI. The export screen is a full-screen dialog over the meal type sheet,
+    and `MealTypeSheetRouter` and `isExportPushed` from step 1 arrive here with the toolbar button.
+    The date pickers are Material `DatePickerDialog`s. PDF rendering cannot run in the JVM unit tests
+    (PdfKmp needs an Android context), so the PDF cases of `GenerateFoodExportUseCaseTests` are left
+    out and ExportKit's own `jvmTest` covers the renderer. Tests beyond iOS: `ExportViewModelTest`
+    and the cleanup of an earlier export.
 15. [ ] **Moderation.** *Decision:* whether Android needs it at all. It is maintainer-only, and the
     maintainer may keep using iOS. If yes, port `Features/Moderation/*` and its use cases last.
 
@@ -320,8 +334,6 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
   - **Scaling fixture**, with the FoodQuantity port: a `FoodItemDomain` and grams in,
     `ScaledMacros` out (iOS `ScaledMacros.init(item:ratio:)` and `FoodItemDomain.scaled(toGrams:)` in
     `FoodConsumedModel.swift`).
-  - **Export day-bucketing fixture**, with the Export port: `Europe/Prague`, including 2026-03-29
-    and 2026-10-25 (iOS `FoodExportReportFactory.makeReport`, the `dayStarts` / `dayIndexes` bucketing).
 - [ ] **Firebase setup for an Android app** — the Firebase console side is done (app
   `antoni.kalorie`, debug SHA-1, `google-services.json`). Still to add: the release and Play App
   Signing SHA-1s, and a real sign-in run to confirm the `docs/SETUP.md` Android section when the
