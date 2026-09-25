@@ -276,6 +276,25 @@ class NutritionLabelParserTest {
         assertEquals(2.0, reading.fatSaturated)
     }
 
+    @Test
+    fun parse_unsaturatedFatRowsNeverOverwriteFatOrSaturates() {
+        val unsaturatedLabels = listOf(
+            "z toho mononenasycené mastné kyseliny",
+            "of which mono-unsaturates",
+            "davon einfach ungesättigte Fettsäuren",
+            "kwasy tłuszczowe jednonienasycone",
+        )
+
+        unsaturatedLabels.forEach { label ->
+            val lines = fatAndSaturatesLines("Fat", "Saturates") + line(label, 0.1, 0.6, 0.4, 0.05) + line("5 g", 0.6, 0.6, 0.15, 0.05)
+
+            val reading = NutritionLabelParser.parse(lines)
+
+            assertEquals(label, 12.0, reading.fat)
+            assertEquals(label, 2.0, reading.fatSaturated)
+        }
+    }
+
     // MARK: - Package weight
 
     @Test

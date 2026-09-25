@@ -198,8 +198,13 @@ object NutritionLabelParser {
         }
     }
 
+    // Unsaturated fat is derived from fat minus saturates, so its own rows carry no field; left
+    // alone they match "saturates" (unsaturates, nenasycené mastné) or "fat" (ungesättigte Fettsäuren).
+    private val unsaturatedMarkers = listOf("unsaturate", "nenasycen", "nienasycon", "ungesättigt", "ungesattigt")
+
     private fun matchedField(label: String): LabelField? {
         val lower = label.lowercase()
+        if (unsaturatedMarkers.any { lower.contains(it) }) return null
         return LabelField.entries
             .mapNotNull { field ->
                 val longest = keywords[field].orEmpty().filter { lower.contains(it) }.maxOfOrNull { it.length }
