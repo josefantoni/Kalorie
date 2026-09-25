@@ -16,6 +16,7 @@ object Constants {
         const val MY_CREATED_MEAL = "myCreatedMeal"
         const val FOOD_ITEM_REPORT = "foodItemReport"
         const val ACCOUNT = "account"
+        const val EXPORT = "export"
     }
 
     object Auth {
