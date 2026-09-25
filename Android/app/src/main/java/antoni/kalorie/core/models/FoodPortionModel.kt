@@ -34,7 +34,7 @@ object FoodPortionValidation {
 
     fun validate(name: String, grams: Double): FoodPortionError? {
         if (name.isBlank()) return FoodPortionError.InvalidName
-        if (grams < 1) return FoodPortionError.InvalidGrams
+        if (grams.isNaN() || grams < 1) return FoodPortionError.InvalidGrams
         return null
     }
 

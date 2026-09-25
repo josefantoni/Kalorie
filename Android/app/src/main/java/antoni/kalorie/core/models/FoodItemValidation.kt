@@ -40,8 +40,8 @@ object FoodItemValidation {
     fun validate(item: FoodItemDomain): FoodItemValidationError? {
         if (!isValidBarcode(item.id) && !isValidSubmissionUUID(item.id)) return FoodItemValidationError.InvalidCode
         if (item.czName.isEmpty()) return FoodItemValidationError.InvalidName
-        if (item.caloriesPerHundredGrams <= 0) return FoodItemValidationError.InvalidCalories
-        if (item.weight <= 0) return FoodItemValidationError.InvalidWeight
+        if (item.caloriesPerHundredGrams.isNaN() || item.caloriesPerHundredGrams <= 0) return FoodItemValidationError.InvalidCalories
+        if (item.weight.isNaN() || item.weight <= 0) return FoodItemValidationError.InvalidWeight
         for (portion in item.portions) {
             FoodPortionValidation.validate(portion.name, portion.grams)?.let {
                 return FoodItemValidationError.InvalidPortion(it)

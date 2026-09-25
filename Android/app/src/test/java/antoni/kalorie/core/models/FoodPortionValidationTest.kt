@@ -24,6 +24,11 @@ class FoodPortionValidationTest {
     }
 
     @Test
+    fun validate_withNaNGrams_returnsInvalidGrams() {
+        assertEquals(FoodPortionError.InvalidGrams, FoodPortionValidation.validate(name = "1 balení", grams = Double.NaN))
+    }
+
+    @Test
     fun validate_withValidNameAndGrams_returnsNil() {
         assertNull(FoodPortionValidation.validate(name = "1 balení", grams = 33.0))
     }
