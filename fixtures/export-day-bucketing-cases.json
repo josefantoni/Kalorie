@@ -1,0 +1,45 @@
+{
+  "timeZone": "Europe/Prague",
+  "cases": [
+    {
+      "name": "one day interval keeps the first and last minute of the day and drops the next day",
+      "from": "2026-09-10T09:00:00+02:00",
+      "to": "2026-09-10T18:00:00+02:00",
+      "entries": ["2026-09-10T00:00:00+02:00", "2026-09-10T23:59:59+02:00", "2026-09-11T00:00:00+02:00", "2026-09-09T23:59:59+02:00"],
+      "expectedDayCount": 1,
+      "expectedDayIndexes": [0, 0, null, null]
+    },
+    {
+      "name": "the time of day of from and to does not shrink the first and last day",
+      "from": "2026-09-10T20:00:00+02:00",
+      "to": "2026-09-11T06:00:00+02:00",
+      "entries": ["2026-09-10T00:30:00+02:00", "2026-09-11T23:00:00+02:00"],
+      "expectedDayCount": 2,
+      "expectedDayIndexes": [0, 1]
+    },
+    {
+      "name": "spring DST day is one day of 23 hours",
+      "from": "2026-03-28T12:00:00+01:00",
+      "to": "2026-03-30T12:00:00+02:00",
+      "entries": ["2026-03-28T23:59:59+01:00", "2026-03-29T00:00:00+01:00", "2026-03-29T03:30:00+02:00", "2026-03-29T23:59:59+02:00", "2026-03-30T00:00:00+02:00"],
+      "expectedDayCount": 3,
+      "expectedDayIndexes": [0, 1, 1, 1, 2]
+    },
+    {
+      "name": "autumn DST day is one day of 25 hours",
+      "from": "2026-10-24T12:00:00+02:00",
+      "to": "2026-10-26T12:00:00+01:00",
+      "entries": ["2026-10-24T23:59:59+02:00", "2026-10-25T00:00:00+02:00", "2026-10-25T02:30:00+02:00", "2026-10-25T02:30:00+01:00", "2026-10-25T23:59:59+01:00", "2026-10-26T00:00:00+01:00"],
+      "expectedDayCount": 3,
+      "expectedDayIndexes": [0, 1, 1, 1, 1, 2]
+    },
+    {
+      "name": "a reversed interval has no days and takes no entries",
+      "from": "2026-09-12T10:00:00+02:00",
+      "to": "2026-09-10T10:00:00+02:00",
+      "entries": ["2026-09-11T10:00:00+02:00"],
+      "expectedDayCount": 0,
+      "expectedDayIndexes": [null]
+    }
+  ]
+}
