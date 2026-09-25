@@ -289,7 +289,7 @@ object NutritionLabelParser {
         val results = mutableListOf<Double>()
         var current = StringBuilder()
         fun flush() {
-            if (current.isNotEmpty()) current.toString().replace(",", ".").toDoubleOrNull()?.let { results.add(it) }
+            if (current.isNotEmpty()) current.toString().trimEnd(',', '.').replace(",", ".").toDoubleOrNull()?.let { results.add(it) }
             current = StringBuilder()
         }
         for (char in joiningThousandsSeparators(text)) {
