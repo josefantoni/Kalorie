@@ -1554,10 +1554,9 @@ submission row and goes somewhere else:
 ### 7.4 What this does not do
 
 Per design 0009's Non-goals: no packaging photo (Storage isn't configured), no push notification of
-the outcome, no `delete` on `foodItems` for anyone including the maintainer, and no second-platform
-admin panel — an Android client ships without one, which is an accepted consequence of hosting it in
-the iOS client alone. All three are tracked in `TODO.md`, not here, per this document's own rule
-that open work lives in the backlog, not in the description of what exists. The fourth item design
+the outcome, and no `delete` on `foodItems` for anyone including the maintainer. All three are tracked
+in `TODO.md`, not here, per this document's own rule that open work lives in the backlog, not in the
+description of what exists. The fourth item design
 0009 listed here — a report-a-problem channel for an existing catalogue item — is no longer a gap;
 see § 7.6.
 

@@ -297,7 +297,7 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     `AccountViewModel.onSignOutTapped` are `suspend` since clearing the Google session is. User
     cancellation is `GetCredentialCancellationException`. The snapshot is stored in `filesDir` through
     kotlinx.serialization. `AccountView` is a full-screen dialog with only the Google button, and its
-    maintainer *Moderation* section waits for step 15 although `isMaintainer` is loaded already. The merge
+    maintainer *Moderation* section came with step 15. The merge
     overlay lives in `KalorieApp`. Tests beyond iOS: the snapshot store tolerates missing optional
     collections, and `DeleteAccountUseCase` deletes the `users` document.
 14. [ ] **Export.** Port `FetchFoodsConsumedInRangeUseCase`, `GenerateFoodExportUseCase`,
@@ -320,6 +320,23 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     and the cleanup of an earlier export.
 15. [ ] **Moderation.** *Decision:* whether Android needs it at all. It is maintainer-only, and the
     maintainer may keep using iOS. If yes, port `Features/Moderation/*` and its use cases last.
+    *Ported with deviations (without OCR):* the decision was to port it. `CreateFoodItemUseCase`,
+    `UpdateFoodItemUseCase`, `FetchPendingSubmissionsUseCase`, `ApproveSubmissionUseCase`,
+    `RejectSubmissionUseCase`, `FetchFoodItemReportsUseCase` and `DeleteFoodItemReportUseCase` come with
+    their tests. `FetchFoodItemByBarcodeUseCase` gained the batched `invoke(barcodes)` that step 6 had
+    deferred, as a default interface method like on iOS. A denied Firestore write is recognised by
+    `Throwable.isFirestorePermissionDenied` (`FirebaseFirestoreException.Code.PERMISSION_DENIED`), the
+    counterpart of `matches(domain:code:)`. `FirestoreDataProviderFake` gained `stubbedSetError`,
+    `stubbedDeleteError`, `stubbedServerReadError` and `stubbedServerDocumentSequence`, since iOS tests
+    used a private fake per test. The four screens are full-screen dialogs (as in step 1), opened from
+    `AccountView`'s maintainer section through `ModerationConfigurator`, and the queue and the reports
+    screen push the review and editor dialogs over themselves. The review and editor view models are
+    verbatim subsets without the OCR members (`NutritionLabelPrefilling`, `recognizedFields`, the camera
+    and `onFormFieldEdited`), which wait for the nutrition-label follow-up of step 12. The report
+    *Resolved* action is a trailing text button, not a swipe action, and pull-to-refresh is
+    `PullToRefreshBox`. When a review ends with an alert (already resolved, changed since review), the
+    dialog closes after the alert is acknowledged, since an alert cannot outlive its dialog. Tests beyond
+    iOS: the batched barcode fetch (empty input, deduplication).
 
 - [ ] **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
