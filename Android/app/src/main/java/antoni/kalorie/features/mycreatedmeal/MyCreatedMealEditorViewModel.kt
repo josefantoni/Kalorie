@@ -165,7 +165,8 @@ class MyCreatedMealEditorViewModel(
             _searchResults.value = searchFoodItems(searchText.value)
         } catch (error: CancellationException) {
             throw error
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.MY_CREATED_MEAL)
             _searchResults.value = emptyList()
         }
         if (_searchResults.value.isNotEmpty() || searchText.value.length < EXTERNAL_SEARCH_MIN_LENGTH) {
