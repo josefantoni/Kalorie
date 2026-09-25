@@ -81,6 +81,19 @@ class AddFoodSheetViewModelTest {
         assertFalse(sut.localFoodItems.value.isNotEmpty())
     }
 
+    // MARK: - onFoodConsumedSaved
+
+    @Test
+    fun onFoodConsumedSaved_notifiesTheDashboardAndRequestsDismissal() {
+        var onFoodSavedCalled = false
+        val sut = AddFoodSheetViewModel(searchFoodItems = SearchFoodItemsUseCaseFake(), onFoodSaved = { onFoodSavedCalled = true })
+
+        sut.onFoodConsumedSaved()
+
+        assertTrue(onFoodSavedCalled)
+        assertTrue(sut.shouldDismiss.value)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(

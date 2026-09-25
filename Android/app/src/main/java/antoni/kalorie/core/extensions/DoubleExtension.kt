@@ -15,6 +15,8 @@ fun Double.formatted(fractionDigits: Int, unitSymbol: String): String {
     return "${formatter.format(this)} $unitSymbol"
 }
 
+fun Double.formattedTrimmed(): String = String.format(Locale.ROOT, "%.2f", this).trimEnd('0').trimEnd('.')
+
 @Composable
 fun Double.formattedGrams(fractionDigits: Int = 1): String =
     formatted(fractionDigits, stringResource(R.string.common_unit_grams))

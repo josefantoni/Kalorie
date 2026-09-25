@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -34,13 +33,28 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemRow
+import antoni.kalorie.core.models.FoodItemDomain
 
 @Composable
-fun AddFoodSheetView(viewModel: AddFoodSheetViewModel, onDismiss: () -> Unit) {
+fun AddFoodSheetView(
+    viewModel: AddFoodSheetViewModel,
+    onDismiss: () -> Unit,
+    makeFoodQuantityView: @Composable (item: FoodItemDomain, onSaved: () -> Unit, onBack: () -> Unit) -> Unit,
+) {
 
     // MARK: - Properties
 
-    val backStack = remember { mutableStateListOf<AddFoodSheetDestination>(AddFoodSheetDestination.Search) }
+    val isPushedToQuantityView by viewModel.isPushedToQuantityView.collectAsState()
+    val selectedFoodItem by viewModel.selectedFoodItem.collectAsState()
+    val shouldDismiss by viewModel.shouldDismiss.collectAsState()
+    val backStack = remember(isPushedToQuantityView, selectedFoodItem) {
+        buildList<AddFoodSheetDestination> {
+            add(AddFoodSheetDestination.Search)
+            selectedFoodItem?.takeIf { isPushedToQuantityView }?.let { add(AddFoodSheetDestination.FoodQuantity(it)) }
+        }
+    }
+
+    LaunchedEffect(shouldDismiss) { if (shouldDismiss) onDismiss() }
 
     // MARK: - Body
 
@@ -50,7 +64,7 @@ fun AddFoodSheetView(viewModel: AddFoodSheetViewModel, onDismiss: () -> Unit) {
     ) {
         NavDisplay(
             backStack = backStack,
-            onBack = { if (backStack.size > 1) backStack.removeLastOrNull() else onDismiss() },
+            onBack = { if (isPushedToQuantityView) viewModel.isPushedToQuantityView.value = false else onDismiss() },
             entryDecorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator(),
@@ -59,6 +73,13 @@ fun AddFoodSheetView(viewModel: AddFoodSheetViewModel, onDismiss: () -> Unit) {
                 when (destination) {
                     is AddFoodSheetDestination.Search -> NavEntry(destination) {
                         SearchContent(viewModel = viewModel, onDismiss = onDismiss)
+                    }
+                    is AddFoodSheetDestination.FoodQuantity -> NavEntry(destination) {
+                        makeFoodQuantityView(
+                            destination.item,
+                            viewModel::onFoodConsumedSaved,
+                            { viewModel.isPushedToQuantityView.value = false },
+                        )
                     }
                 }
             },
