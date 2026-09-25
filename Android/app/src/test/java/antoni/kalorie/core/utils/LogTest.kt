@@ -1,5 +1,6 @@
 package antoni.kalorie.core.utils
 
+import antoni.kalorie.core.networking.FirestoreDataProviderError
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -27,6 +28,16 @@ class LogTest {
         Log.error(failure, "test")
 
         assertEquals(listOf<Throwable>(failure), recorded)
+    }
+
+    @Test
+    fun error_whenFirestoreIsUnreachable_isNotRecordedWithTheReporter() {
+        val recorded = mutableListOf<Throwable>()
+        Log.errorReporting = ErrorReporting { recorded.add(it) }
+
+        Log.error(FirestoreDataProviderError.Unreachable, "test")
+
+        assertTrue(recorded.isEmpty())
     }
 
     @Test

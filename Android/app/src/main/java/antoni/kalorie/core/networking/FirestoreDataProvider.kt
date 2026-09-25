@@ -252,12 +252,9 @@ class FirestoreDataProvider(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.FIRESTORE)
             val isUnavailable = error is FirebaseFirestoreException && error.code == FirebaseFirestoreException.Code.UNAVAILABLE
-            if (isUnavailable) {
-                Log.warning(error, Constants.LogCategory.FIRESTORE)
-                throw FirestoreDataProviderError.Unreachable
-            }
-            Log.error(error, Constants.LogCategory.FIRESTORE)
+            if (isUnavailable) throw FirestoreDataProviderError.Unreachable
             throw error
         }
 }

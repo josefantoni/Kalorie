@@ -20,6 +20,10 @@ object Log {
     }
 
     fun error(error: Throwable, category: String = "app") {
+        if (error.isFirestoreUnreachable) {
+            warning(error, category)
+            return
+        }
         AndroidLog.e(category, error.toString())
         errorReporting.record(error)
     }
