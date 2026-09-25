@@ -203,6 +203,15 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    members of `FoodQuantityViewModel`. Only `.catalogue` items qualify. After they load, the
    selection moves to `personalPortions.first` unless the user has already picked a unit
    (ADR 0030 step 2). Read § 4.2 and design 0008.
+   *Ported with deviations:* `FoodPortionsManagerView` is a full-screen dialog over the quantity
+   screen (as in step 1), not a Nav3 destination, and it shares the same `FoodQuantityViewModel`.
+   Its errors show in the quantity screen's alert dialog rather than in a second one, so two
+   dialogs never stack. The unit picker is a dropdown menu with a divider and the *My portions*
+   item, and the quick-add chips are Material `AssistChip`s spread across the row. Drafts are
+   `FoodPortionDraft` values in a `StateFlow` list, and swipe-to-delete reuses `SwipeToDeleteRow`.
+   The meal branch of `isPersonalPortionsAvailable`, `persistPersonalPortions` and the
+   `updateMyCreatedMeal`/`onMealUpdated` wiring wait for step 10. Tests beyond iOS: a fetch use
+   case test, a failing fetch keeping the synchronous default, and the comma decimal separator.
 9. [ ] **Barcode scanner.** *Decision:* the scanner stack. The likely pick is CameraX + ML Kit
    barcode scanning, which is VisionKit's counterpart; it adds the CAMERA permission. Port the
    inline scanner with the close button (`BarcodeScannerOverlay`), the duplicate-delivery
