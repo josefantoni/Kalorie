@@ -1,8 +1,8 @@
 package antoni.kalorie.features.moderation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
+import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
@@ -17,7 +17,6 @@ import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCase
 import antoni.kalorie.core.usecases.RejectSubmissionUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCase
-import java.util.UUID
 
 class ModerationConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,
@@ -28,8 +27,7 @@ class ModerationConfigurator(
 
     @Composable
     fun createView(onDismiss: () -> Unit) {
-        val instanceKey = remember { UUID.randomUUID().toString() }
-        val viewModel = viewModel(key = instanceKey) {
+        val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationQueueViewModel(
                 fetchPendingSubmissions = FetchPendingSubmissionsUseCase(dataProvider, authProvider),
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
@@ -49,8 +47,7 @@ class ModerationConfigurator(
 
     @Composable
     fun createReportsView(onDismiss: () -> Unit) {
-        val instanceKey = remember { UUID.randomUUID().toString() }
-        val viewModel = viewModel(key = instanceKey) {
+        val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationReportsViewModel(
                 fetchFoodItemReports = FetchFoodItemReportsUseCase(dataProvider, authProvider),
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
@@ -70,8 +67,7 @@ class ModerationConfigurator(
 
     @Composable
     private fun MakeReviewView(submission: FoodItemSubmissionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) {
-        val instanceKey = remember { UUID.randomUUID().toString() }
-        val viewModel = viewModel(key = instanceKey) {
+        val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationReviewViewModel(
                 submission = submission,
                 approveSubmission = ApproveSubmissionUseCase(
@@ -90,8 +86,7 @@ class ModerationConfigurator(
 
     @Composable
     private fun MakeCatalogueEditorView(initialBarcode: String?, onDismiss: () -> Unit) {
-        val instanceKey = remember { UUID.randomUUID().toString() }
-        val viewModel = viewModel(key = instanceKey) {
+        val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
                 updateFoodItem = UpdateFoodItemUseCase(dataProvider, authProvider),

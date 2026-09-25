@@ -44,6 +44,9 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -67,6 +71,7 @@ import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
 import java.time.Instant
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private enum class SelectedDayKind {
@@ -335,6 +340,10 @@ fun SwipeToDeleteRow(onDeleteRequested: () -> Unit, content: @Composable () -> U
     }
 }
 
+private const val PULSE_INTERVAL_MILLIS = 3000L
+private const val PULSE_DURATION_MILLIS = 700
+private const val PULSE_SCALE = 1.2f
+
 @Composable
 private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier: Modifier = Modifier) {
     val now = Instant.now()
@@ -354,6 +363,16 @@ private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier
         SelectedDayKind.FUTURE -> R.string.dashboard_empty_description_future
     }
 
+    val pulseScale = remember { Animatable(1f) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(PULSE_INTERVAL_MILLIS)
+            pulseScale.animateTo(PULSE_SCALE, tween(PULSE_DURATION_MILLIS, easing = FastOutSlowInEasing))
+            launch { pulseScale.animateTo(1f, tween(PULSE_DURATION_MILLIS, easing = FastOutSlowInEasing)) }
+        }
+    }
+
     Column(
         modifier = modifier.padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -369,7 +388,13 @@ private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        Button(onClick = onAddFood) {
+        Button(
+            onClick = onAddFood,
+            modifier = Modifier.graphicsLayer {
+                scaleX = pulseScale.value
+                scaleY = pulseScale.value
+            },
+        ) {
             Text(stringResource(R.string.dashboard_empty_addFood))
         }
     }

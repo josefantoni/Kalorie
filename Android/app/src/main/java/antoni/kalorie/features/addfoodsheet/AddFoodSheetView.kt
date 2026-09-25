@@ -365,7 +365,9 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
             if (displayedResults.isNotEmpty() || searchText.isNotEmpty()) {
                 item {
                     Text(
-                        text = stringResource(R.string.addFood_section_externalResults),
+                        text = stringResource(
+                            if (displayedResults.isNotEmpty()) R.string.addFood_section_searchResults else R.string.addFood_section_externalResults,
+                        ),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
