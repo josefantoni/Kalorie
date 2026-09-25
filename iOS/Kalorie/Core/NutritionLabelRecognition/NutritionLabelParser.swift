@@ -29,12 +29,16 @@ enum NutritionLabelParser {
         case energy, fat, saturates, carbohydrate, sugars, fiber, protein, salt
     }
 
+    // Unsaturated fat is derived from fat minus saturates, so its own rows carry no field; left
+    // alone they match "saturates" (unsaturates, nenasycené mastné) or "fat" (ungesättigte Fettsäuren).
+    private static let unsaturatedMarkers = ["unsaturate", "nenasycen", "nienasycon", "ungesättigt", "ungesattigt"]
+
     private static let keywords: [LabelField: [String]] = [
         .energy: ["energeticka hodnota", "energetická hodnota", "energie", "energia", "wartość energetyczna", "wartosc energetyczna", "brennwert", "energy"],
         .fat: ["tuky", "tłuszcz", "tluszcz", "fett", "fat"],
         .saturates: [
             "z toho nasycene", "z toho nasycené", "nasycené mastné", "nasycene mastne",
-            "w tym kwasy nasycone", "davon gesättigte", "davon gesattigte", "of which saturates", "saturates"
+            "w tym kwasy nasycone", "davon gesättigte", "davon gesattigte", "of which saturates", "saturated fat", "saturates"
         ],
         .carbohydrate: ["sacharidy", "węglowodany", "weglowodany", "kohlenhydrate", "carbohydrate"],
         .sugars: ["z toho cukry", "cukry", "davon zucker", "of which sugars", "sugars"],
@@ -280,9 +284,14 @@ enum NutritionLabelParser {
 
     private static func matchedField(for label: String) -> LabelField? {
         let lower = label.lowercased()
-        return LabelField.allCases.first { field in
-            keywords[field]?.contains { lower.contains($0) } ?? false
-        }
+        guard !unsaturatedMarkers.contains(where: { lower.contains($0) }) else { return nil }
+        return LabelField.allCases
+            .compactMap { field -> (field: LabelField, keywordLength: Int)? in
+                guard let longest = keywords[field]?.filter({ lower.contains($0) }).map(\.count).max() else { return nil }
+                return (field, longest)
+            }
+            .max { $0.keywordLength < $1.keywordLength }?
+            .field
     }
 
     // A row's nearest-to-column candidate is picked by geometry alone, which cannot tell a genuine
