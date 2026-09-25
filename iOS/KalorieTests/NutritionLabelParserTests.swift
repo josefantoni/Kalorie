@@ -38,6 +38,15 @@ final class NutritionLabelParserTests: XCTestCase {
         XCTAssertEqual(reading.protein, 10)
     }
 
+    func test_parse_energyWithKcalInParentheses_stillFillsEnergy() {
+        var lines = czechLabelLines()
+        lines.removeAll { $0.text == "1550 kJ / 370 kcal" }
+        lines.append(RecognizedTextLine(text: "1550 kJ (370 kcal)", boundingBox: energyValueBox))
+        let reading = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(reading.energyKJ, 1550)
+        XCTAssertEqual(reading.caloriesPerHundredGrams, 370)
+    }
+
     func test_parse_energyLabelledWithTheShortCzechWord_stillFillsEnergy() {
         var lines = czechLabelLines()
         lines.removeAll { $0.text == "Energetická hodnota" }
@@ -240,6 +249,27 @@ final class NutritionLabelParserTests: XCTestCase {
         ]
         let reading = NutritionLabelParser.parse(lines: lines)
         XCTAssertEqual(reading.salt, 1.6, "the ingredients list mentions salt three times before the real value; the nutrition-section anchor must skip all of them")
+    }
+
+    func test_parse_linearFormatLabel_readsANumberThatEndsAtASentenceStop() {
+        let lines = [
+            RecognizedTextLine(text: "Výživové údaje na 100 g: Energetická hodnota 303 kJ / 72 kcal. Tuky 3,3. Sacharidy 3,0. Bílkoviny 7,3. Sůl 1,6.", boundingBox: CGRect(x: 0.3, y: 0.42, width: 0.6, height: 0.03))
+        ]
+        let reading = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(reading.fat, 3.3)
+        XCTAssertEqual(reading.carbohydrate, 3.0)
+        XCTAssertEqual(reading.protein, 7.3)
+        XCTAssertEqual(reading.salt, 1.6)
+    }
+
+    func test_parse_linearFormatLabel_doesNotReadSulphitesInTheIngredientsAsSalt() {
+        let lines = [
+            RecognizedTextLine(text: "Ingredients: wheat flour, sulphites (E220).", boundingBox: CGRect(x: 0.1, y: 0.6, width: 0.8, height: 0.03)),
+            RecognizedTextLine(text: "Per 100 g: Energy 303 kJ / 72 kcal. Fat 3.3 g. Carbohydrate 3.0 g. Protein 7.3 g. Salt 1.6 g.", boundingBox: CGRect(x: 0.3, y: 0.42, width: 0.6, height: 0.03))
+        ]
+        let reading = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(reading.salt, 1.6)
+        XCTAssertEqual(reading.fat, 3.3)
     }
 
     func test_parse_weightLabelAboveALargeValueOnASeparateLine_stillFindsIt() {
