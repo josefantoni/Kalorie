@@ -452,7 +452,8 @@ class AddFoodSheetViewModel(
     }
 
     suspend fun onAppear() {
-        coroutineScope {            val favourites = async {
+        coroutineScope {
+            val favourites = async {
                 try {
                     fetchFavouriteFoods()
                 } catch (error: CancellationException) {
@@ -463,16 +464,16 @@ class AddFoodSheetViewModel(
                 }
             }
             val submissions = async {
-            try {
-                fetchMySubmissions()
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Exception) {
-                Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
-                null
+                try {
+                    fetchMySubmissions()
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+                    null
+                }
             }
-        }
-        val meals = async {
+            val meals = async {
                 try {
                     fetchMyCreatedMeals()
                 } catch (error: CancellationException) {
