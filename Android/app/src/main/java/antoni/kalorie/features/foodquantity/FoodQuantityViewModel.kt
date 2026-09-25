@@ -9,6 +9,7 @@ import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.models.FoodPortionError
 import antoni.kalorie.core.models.FoodPortionValidation
 import antoni.kalorie.core.models.MealTypeDomain
+import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.ScaledMacros
 import antoni.kalorie.core.models.mealType
 import antoni.kalorie.core.models.scaled
@@ -18,6 +19,7 @@ import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
+import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.FavouriteToggling
@@ -56,7 +58,10 @@ class FoodQuantityViewModel(
     private val removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol,
     private val fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseProtocol,
     private val saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseProtocol,
+    private var meal: MyCreatedMealDomain?,
+    private val updateMyCreatedMeal: UpdateMyCreatedMealUseCaseProtocol,
     private val onSaved: () -> Unit,
+    private val onMealUpdated: (MyCreatedMealDomain) -> Unit,
     private val onFavouriteChanged: (String, Boolean) -> Unit,
     quantity: Double = 1.0,
     unit: FoodQuantityUnit = FoodQuantityUnit.HundredGrams,
@@ -74,7 +79,7 @@ class FoodQuantityViewModel(
     private val _mealTypes = MutableStateFlow(mealTypes)
     val mealTypes: StateFlow<List<MealTypeDomain>> = _mealTypes
     val selectedMealTypeId = MutableStateFlow(mealTypes.mealType(selectedDate)?.id)
-    private val _personalPortions = MutableStateFlow<List<FoodPortionDomain>>(emptyList())
+    private val _personalPortions = MutableStateFlow(meal?.portions ?: emptyList())
     val personalPortions: StateFlow<List<FoodPortionDomain>> = _personalPortions
     val isPersonalPortionsManagerPushed = MutableStateFlow(false)
     val portionDrafts = MutableStateFlow(listOf(FoodPortionDraft.blank))
@@ -105,10 +110,10 @@ class FoodQuantityViewModel(
         get() = portionDrafts.value.any { it.isComplete }
 
     val isPersonalPortionsAvailable: Boolean
-        get() = item.kind == FoodItemKind.CATALOGUE
+        get() = item.kind == FoodItemKind.CATALOGUE || meal != null
 
     val unitOptions: List<FoodQuantityUnit>
-        get() = (_personalPortions.value + item.portions).map { FoodQuantityUnit.Portion(it) } +
+        get() = (_personalPortions.value + (if (meal == null) item.portions else emptyList())).map { FoodQuantityUnit.Portion(it) } +
             listOf(FoodQuantityUnit.Grams, FoodQuantityUnit.HundredGrams)
 
     // MARK: - Functions
@@ -210,7 +215,15 @@ class FoodQuantityViewModel(
     }
 
     private suspend fun persistPersonalPortions() {
-        saveFoodItemPersonalPortions(item.id, _personalPortions.value)
+        val currentMeal = meal
+        if (currentMeal == null) {
+            saveFoodItemPersonalPortions(item.id, _personalPortions.value)
+            return
+        }
+        val updated = currentMeal.copy(portions = _personalPortions.value)
+        updateMyCreatedMeal(updated)
+        meal = updated
+        onMealUpdated(updated)
     }
 
     suspend fun onFavouriteToggled() {

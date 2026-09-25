@@ -4,9 +4,13 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.models.MyCreatedMealDomain
+import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseProtocol
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
@@ -14,9 +18,16 @@ import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+
+enum class AddFoodSheetMode(@StringRes val titleRes: Int) {
+    SEARCH(R.string.addFood_mode_search),
+    CREATE_MEAL(R.string.addFood_mode_createMeal),
+}
 
 class AddFoodSheetViewModel(
     private val searchFoodItems: SearchFoodItemsUseCaseProtocol,
@@ -25,6 +36,8 @@ class AddFoodSheetViewModel(
     private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
     private val fetchFavouriteFoods: FetchFavouriteFoodsUseCaseProtocol,
     private val refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol,
+    private val fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol,
+    private val deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol,
     private val onFoodSaved: () -> Unit = {},
     isScannerVisible: Boolean = false,
 ) : ViewModel() {
@@ -39,6 +52,11 @@ class AddFoodSheetViewModel(
     private val _favouriteIds = MutableStateFlow<Set<String>>(emptySet())
     val favouriteIds: StateFlow<Set<String>> = _favouriteIds
     val searchText = MutableStateFlow("")
+    private val _mode = MutableStateFlow(AddFoodSheetMode.SEARCH)
+    val mode: StateFlow<AddFoodSheetMode> = _mode
+    val myCreatedMeals = MutableStateFlow<List<MyCreatedMealDomain>>(emptyList())
+    val isMealDeleteConfirmationVisible = MutableStateFlow(false)
+    private var mealPendingDeletion: MyCreatedMealDomain? = null
     val isScannerVisible = MutableStateFlow(isScannerVisible)
     val lastScannedBarcode = MutableStateFlow("")
     private val _isBarcodeSearchLoading = MutableStateFlow(false)
@@ -58,14 +76,78 @@ class AddFoodSheetViewModel(
             val matchingFavourites = favouriteFoods.value.filter {
                 it.czName.lowercase().startsWith(query) || it.engName.lowercase().startsWith(query)
             }
-            val matchingIds = matchingFavourites.map { it.id }.toSet()
-            return matchingFavourites + localFoodItems.value.filter { it.id !in matchingIds }
+            val favouriteIds = matchingFavourites.map { it.id }.toSet()
+            val matchingMeals = myCreatedMeals.value
+                .map { it.asFoodItem() }
+                .filter { it.czName.lowercase().startsWith(query) && it.id !in favouriteIds }
+            val matchingIds = favouriteIds + matchingMeals.map { it.id }
+            return matchingFavourites + matchingMeals + localFoodItems.value.filter { it.id !in matchingIds }
         }
 
     // MARK: - Functions
 
     fun onScannerButtonTapped() {
+        _mode.value = AddFoodSheetMode.SEARCH
         isScannerVisible.value = true
+    }
+
+    fun onModeSelected(mode: AddFoodSheetMode) {
+        if (mode == _mode.value) return
+        _mode.value = mode
+        isScannerVisible.value = false
+    }
+
+    fun onDeleteMealRequested(meal: MyCreatedMealDomain) {
+        mealPendingDeletion = meal
+        isMealDeleteConfirmationVisible.value = true
+    }
+
+    suspend fun onDeleteMealConfirmed() {
+        val meal = mealPendingDeletion ?: return
+        mealPendingDeletion = null
+        onDeleteMealConfirmed(meal)
+    }
+
+    suspend fun onDeleteMealConfirmed(meal: MyCreatedMealDomain) {
+        isPushedToQuantityView.value = false
+        val index = myCreatedMeals.value.indexOfFirst { it.id == meal.id }
+        myCreatedMeals.value = myCreatedMeals.value.filter { it.id != meal.id }
+        try {
+            deleteMyCreatedMeal(meal.id)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.ADD_FOOD_SHEET)
+            if (index >= 0) {
+                myCreatedMeals.value = myCreatedMeals.value.toMutableList().also { it.add(minOf(index, it.size), meal) }
+            }
+            alertItem.value = AlertItem(titleRes = R.string.myCreatedMeal_error_deleteFailed)
+        }
+    }
+
+    suspend fun onMyCreatedMealSaved() {
+        _mode.value = AddFoodSheetMode.SEARCH
+        isPushedToQuantityView.value = false
+        try {
+            myCreatedMeals.value = fetchMyCreatedMeals()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+        }
+    }
+
+    fun isMyCreatedMeal(item: FoodItemDomain): Boolean = item.kind == FoodItemKind.CREATED_MEAL
+
+    fun myCreatedMeal(item: FoodItemDomain): MyCreatedMealDomain? {
+        if (!isMyCreatedMeal(item)) return null
+        return myCreatedMeals.value.firstOrNull { it.id == item.id }
+    }
+
+    fun onMyCreatedMealUpdated(meal: MyCreatedMealDomain) {
+        val index = myCreatedMeals.value.indexOfFirst { it.id == meal.id }
+        if (index < 0) return
+        myCreatedMeals.value = myCreatedMeals.value.toMutableList().also { it[index] = meal }
     }
 
     fun onScenePhaseActive(isCameraAvailable: Boolean) {
@@ -168,14 +250,31 @@ class AddFoodSheetViewModel(
     }
 
     suspend fun onAppear() {
-        try {
-            val items = fetchFavouriteFoods()
-            favouriteFoods.value = items
-            _favouriteIds.value = items.map { it.id }.toSet()
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+        coroutineScope {            val favourites = async {
+                try {
+                    fetchFavouriteFoods()
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+                    null
+                }
+            }
+            val meals = async {
+                try {
+                    fetchMyCreatedMeals()
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+                    null
+                }
+            }
+            favourites.await()?.let { items ->
+                favouriteFoods.value = items
+                _favouriteIds.value = items.map { it.id }.toSet()
+            }
+            meals.await()?.let { myCreatedMeals.value = it }
         }
     }
 
@@ -196,9 +295,9 @@ class AddFoodSheetViewModel(
         _shouldDismiss.value = true
     }
 
-    private companion object {
-        const val SEARCH_DEBOUNCE_MILLIS = 300L
-        const val EXTERNAL_SEARCH_MIN_LENGTH = 3
+    companion object {
+        private const val SEARCH_DEBOUNCE_MILLIS = 300L
+        private const val EXTERNAL_SEARCH_MIN_LENGTH = 3
 
         val searchExamples = listOf(
             R.string.addFood_search_example_01,

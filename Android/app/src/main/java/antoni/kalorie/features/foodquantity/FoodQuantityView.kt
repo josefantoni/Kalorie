@@ -15,7 +15,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -45,6 +47,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.core.extensions.formattedAmount
@@ -55,9 +59,14 @@ import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.isLoading
 import kotlinx.coroutines.launch
 
+class MealActions(
+    val makeEditorView: @Composable (onBack: () -> Unit) -> Unit,
+    val onDelete: () -> Unit,
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
+fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealActions: MealActions? = null) {
 
     // MARK: - Properties
 
@@ -75,6 +84,8 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
     var quantityText by remember { mutableStateOf(quantity.formattedTrimmed()) }
     var isUnitMenuVisible by remember { mutableStateOf(false) }
     var isMealTypeMenuVisible by remember { mutableStateOf(false) }
+    var isMealEditorPushed by remember { mutableStateOf(false) }
+    var isDeleteConfirmationVisible by remember { mutableStateOf(false) }
     val item = viewModel.item
     val measure = item.measure
 
@@ -93,6 +104,11 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
                     }
                 },
                 actions = {
+                    if (mealActions != null) {
+                        IconButton(onClick = { isMealEditorPushed = true }) {
+                            Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.myCreatedMeal_button_edit))
+                        }
+                    }
                     TextButton(
                         enabled = !state.isLoading,
                         onClick = {
@@ -210,6 +226,16 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
                 LabeledRow(label = stringResource(R.string.addFood_field_fatSaturated)) { Text(viewModel.scaledFatSaturated.formattedGrams()) }
                 LabeledRow(label = stringResource(R.string.foodQuantity_macro_fiber)) { Text(viewModel.scaledFiber.formattedGrams()) }
                 LabeledRow(label = stringResource(R.string.addFood_field_salt)) { Text(viewModel.scaledSalt.formattedGrams(fractionDigits = 2)) }
+
+                if (mealActions != null) {
+                    TextButton(
+                        onClick = { isDeleteConfirmationVisible = true },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    ) {
+                        Text(stringResource(R.string.myCreatedMeal_button_delete))
+                    }
+                }
             }
 
             if (state.isLoading) {
@@ -225,6 +251,38 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
 
     if (isPersonalPortionsManagerPushed) {
         FoodPortionsManagerView(viewModel = viewModel, onBack = { viewModel.isPersonalPortionsManagerPushed.value = false })
+    }
+
+    if (isMealEditorPushed && mealActions != null) {
+        Dialog(
+            onDismissRequest = { isMealEditorPushed = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
+        ) {
+            mealActions.makeEditorView { isMealEditorPushed = false }
+        }
+    }
+
+    if (isDeleteConfirmationVisible && mealActions != null) {
+        AlertDialog(
+            onDismissRequest = { isDeleteConfirmationVisible = false },
+            title = { Text(stringResource(R.string.myCreatedMeal_confirm_delete)) },
+            dismissButton = {
+                TextButton(onClick = { isDeleteConfirmationVisible = false }) {
+                    Text(stringResource(R.string.common_button_cancel))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        isDeleteConfirmationVisible = false
+                        mealActions.onDelete()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) {
+                    Text(stringResource(R.string.myCreatedMeal_button_delete))
+                }
+            },
+        )
     }
 
     alertItem?.let { alert ->

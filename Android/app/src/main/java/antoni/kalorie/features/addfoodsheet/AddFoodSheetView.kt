@@ -1,23 +1,20 @@
 package antoni.kalorie.features.addfoodsheet
 
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material.icons.materialIcon
-import androidx.compose.material.icons.materialPath
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.BarcodeScannerOverlay
+import antoni.kalorie.components.rememberScannerAccess
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -25,6 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,8 +53,11 @@ import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.AlertItem
+import antoni.kalorie.features.dashboard.SwipeToDeleteRow
+import antoni.kalorie.features.foodquantity.MealActions
 import kotlinx.coroutines.launch
 
 @Composable
@@ -65,9 +67,24 @@ fun AddFoodSheetView(
     makeFoodQuantityView: @Composable (
         item: FoodItemDomain,
         isFavourite: Boolean,
+        meal: MyCreatedMealDomain?,
         onSaved: () -> Unit,
         onFavouriteChanged: (String, Boolean) -> Unit,
+        onMealUpdated: (MyCreatedMealDomain) -> Unit,
+        mealActions: MealActions?,
         onBack: () -> Unit,
+    ) -> Unit,
+    makeMealEditorView: @Composable (
+        onSaved: () -> Unit,
+        onDismiss: () -> Unit,
+        navigationIcon: @Composable () -> Unit,
+        header: @Composable () -> Unit,
+    ) -> Unit,
+    makeEditMealView: @Composable (
+        meal: MyCreatedMealDomain,
+        onSaved: () -> Unit,
+        onDismiss: () -> Unit,
+        navigationIcon: @Composable () -> Unit,
     ) -> Unit,
 ) {
 
@@ -76,6 +93,7 @@ fun AddFoodSheetView(
     val isPushedToQuantityView by viewModel.isPushedToQuantityView.collectAsState()
     val selectedFoodItem by viewModel.selectedFoodItem.collectAsState()
     val shouldDismiss by viewModel.shouldDismiss.collectAsState()
+    val scope = rememberCoroutineScope()
     val backStack = remember(isPushedToQuantityView, selectedFoodItem) {
         buildList<AddFoodSheetDestination> {
             add(AddFoodSheetDestination.Search)
@@ -101,14 +119,38 @@ fun AddFoodSheetView(
             entryProvider = { destination ->
                 when (destination) {
                     is AddFoodSheetDestination.Search -> NavEntry(destination) {
-                        SearchContent(viewModel = viewModel, onDismiss = onDismiss)
+                        val mode by viewModel.mode.collectAsState()
+                        when (mode) {
+                            AddFoodSheetMode.SEARCH -> SearchContent(viewModel = viewModel, onDismiss = onDismiss)
+                            AddFoodSheetMode.CREATE_MEAL -> makeMealEditorView(
+                                { scope.launch { viewModel.onMyCreatedMealSaved() } },
+                                onDismiss,
+                                { CloseButton(onDismiss) },
+                                { ModePicker(viewModel) },
+                            )
+                        }
                     }
                     is AddFoodSheetDestination.FoodQuantity -> NavEntry(destination) {
+                        val meal = viewModel.myCreatedMeal(destination.item)
                         makeFoodQuantityView(
                             destination.item,
                             viewModel.isFavourite(destination.item),
+                            meal,
                             viewModel::onFoodConsumedSaved,
                             { id, isFavourite -> viewModel.onFavouriteChanged(id, isFavourite, destination.item) },
+                            viewModel::onMyCreatedMealUpdated,
+                            meal?.let {
+                                MealActions(
+                                    makeEditorView = { onBack ->
+                                        makeEditMealView(
+                                            it,
+                                            { scope.launch { viewModel.onMyCreatedMealSaved() } },
+                                            onBack,
+                                        ) { BackButton(onBack) }
+                                    },
+                                    onDelete = { scope.launch { viewModel.onDeleteMealConfirmed(it) } },
+                                )
+                            },
                             { viewModel.isPushedToQuantityView.value = false },
                         )
                     }
@@ -136,20 +178,17 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
     val lastScannedBarcode by viewModel.lastScannedBarcode.collectAsState()
     val isBarcodeSearchLoading by viewModel.isBarcodeSearchLoading.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
-    val context = LocalContext.current
+    val myCreatedMeals by viewModel.myCreatedMeals.collectAsState()
+    val isMealDeleteConfirmationVisible by viewModel.isMealDeleteConfirmationVisible.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
-    val isCameraAvailable = { ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED }
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) {
-            viewModel.onScannerButtonTapped()
-        } else {
-            viewModel.alertItem.value = AlertItem(titleRes = R.string.addFood_camera_permissionAlert)
-        }
-    }
+    val scannerAccess = rememberScannerAccess(
+        onGranted = viewModel::onScannerButtonTapped,
+        onDenied = { viewModel.alertItem.value = AlertItem(titleRes = R.string.addFood_camera_permissionAlert) },
+    )
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) viewModel.onScenePhaseActive(isCameraAvailable())
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.onScenePhaseActive(scannerAccess.isAvailable())
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -178,6 +217,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
         },
     ) { innerPadding ->
         LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
+            item { ModePicker(viewModel) }
             item {
                 TextField(
                     value = searchText,
@@ -191,15 +231,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                         )
                     },
                     trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                if (isCameraAvailable()) {
-                                    viewModel.onScannerButtonTapped()
-                                } else {
-                                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                                }
-                            },
-                        ) {
+                        IconButton(onClick = scannerAccess.open) {
                             Icon(BarcodeIcon, contentDescription = null)
                         }
                     },
@@ -222,6 +254,32 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                         isFavourite = true,
                         modifier = Modifier.clickable { scope.launch { viewModel.onSelectFavouriteFood(item) } },
                     )
+                }
+            }
+            if (searchText.isEmpty() && myCreatedMeals.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.addFood_section_myCreatedMeals),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+                items(myCreatedMeals, key = { "meal-${it.id}" }) { meal ->
+                    SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteMealRequested(meal) }) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().clickable { viewModel.onSelectFoodItem(meal.asFoodItem()) },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            FoodItemRow(item = meal.asFoodItem(), isFavourite = false, modifier = Modifier.weight(1f))
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(end = 12.dp),
+                            )
+                        }
+                    }
                 }
             }
             if (displayedResults.isNotEmpty() || searchText.isNotEmpty()) {
@@ -276,6 +334,28 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
         }
     }
 
+    if (isMealDeleteConfirmationVisible) {
+        AlertDialog(
+            onDismissRequest = { viewModel.isMealDeleteConfirmationVisible.value = false },
+            title = { Text(stringResource(R.string.myCreatedMeal_confirm_delete)) },
+            dismissButton = {
+                TextButton(onClick = { viewModel.isMealDeleteConfirmationVisible.value = false }) {
+                    Text(stringResource(R.string.common_button_no))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.isMealDeleteConfirmationVisible.value = false
+                        scope.launch { viewModel.onDeleteMealConfirmed() }
+                    },
+                ) {
+                    Text(stringResource(R.string.common_button_yes))
+                }
+            },
+        )
+    }
+
     alertItem?.let { alert ->
         AlertDialog(
             onDismissRequest = { viewModel.alertItem.value = null },
@@ -290,14 +370,34 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
     }
 }
 
-private val BarcodeIcon: ImageVector = materialIcon(name = "Barcode") {
-    materialPath {
-        listOf(2f to 2f, 6f to 1f, 9f to 3f, 14f to 1f, 17f to 2f, 20f to 2f).forEach { (x, w) ->
-            moveTo(x + 0f, 5f)
-            horizontalLineToRelative(w)
-            verticalLineToRelative(14f)
-            horizontalLineToRelative(-w)
-            close()
+@Composable
+private fun CloseButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(Icons.Filled.Close, contentDescription = null)
+    }
+}
+
+@Composable
+private fun BackButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModePicker(viewModel: AddFoodSheetViewModel) {
+    val mode by viewModel.mode.collectAsState()
+    val modes = AddFoodSheetMode.entries
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+        modes.forEachIndexed { index, entry ->
+            SegmentedButton(
+                selected = mode == entry,
+                onClick = { viewModel.onModeSelected(entry) },
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size),
+            ) {
+                Text(stringResource(entry.titleRes))
+            }
         }
     }
 }

@@ -93,7 +93,7 @@ fun PortionInputRow(
     }
 }
 
-private fun sanitizedGramsText(text: String): String {
+internal fun sanitizedGramsText(text: String): String {
     var seenSeparator = false
     return text.filter { char ->
         if (char == '.' || char == ',') {
