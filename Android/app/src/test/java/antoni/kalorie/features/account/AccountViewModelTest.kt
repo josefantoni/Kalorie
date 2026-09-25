@@ -71,6 +71,16 @@ class AccountViewModelTest {
     }
 
     @Test
+    fun onSignOutTapped_whenSucceeds_clearsTheMaintainerFlag() = runTest {
+        val sut = makeSUT(fetchMaintainerClaim = FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer = true))
+        sut.onAppear()
+
+        sut.onSignOutTapped()
+
+        assertFalse(sut.isMaintainer.value)
+    }
+
+    @Test
     fun onSignOutTapped_whenFails_showsAlert() = runTest {
         val sut = makeSUT(signOut = SignOutUseCaseFake(shouldThrow = true))
 
