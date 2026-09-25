@@ -156,11 +156,13 @@ class FoodConsumedDetailViewModel(
             }
         }
         val scaled = scaledMacros
+        var hasPersistedWeight = false
         try {
             if (hasWeightChanged) {
                 updateFoodConsumed(food, weight.value)
                 food = food.withScaledWeight(weight.value, scaled)
                 savedWeight = weight.value
+                hasPersistedWeight = true
             }
             val selectedMealTypeId = _mealTypeId.value
             if (hasMealTypeChanged && selectedMealTypeId != null) {
@@ -180,6 +182,7 @@ class FoodConsumedDetailViewModel(
             _state.value = LoadingState.loaded
         } catch (error: Exception) {
             Log.error(error, Constants.LogCategory.DASHBOARD)
+            if (hasPersistedWeight) onFoodUpdated()
             alertItem.value = AlertItem(titleRes = R.string.common_error_unknown)
             _state.value = LoadingState.loaded
         }
