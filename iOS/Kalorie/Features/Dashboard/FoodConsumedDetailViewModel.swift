@@ -168,11 +168,13 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
             }
         }
         let scaled = scaledMacros
+        var hasPersistedWeight = false
         do {
             if hasWeightChanged {
                 try await updateFoodConsumed(food, newWeight: weight)
                 food = food.withScaledWeight(weight, scaled: scaled)
                 savedWeight = weight
+                hasPersistedWeight = true
             }
             if hasMealTypeChanged, let mealTypeId {
                 try await assignFoodMealType(food, mealTypeId: mealTypeId)
@@ -189,6 +191,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
             state = .loaded
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
+            if hasPersistedWeight { onFoodUpdated() }
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
             state = .loaded
         }

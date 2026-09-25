@@ -228,6 +228,16 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem)
     }
 
+    func test_onSearchTextChanged_whenLocalSearchFails_dropsResultsOfThePreviousQuery() async {
+        let sut = makeSUT(searchFoodItems: SearchFoodItemsUseCaseFake(shouldThrow: true))
+        sut.localFoodItems = [makeFoodItem(id: "stale-local")]
+        sut.externalFoodItems = [makeFoodItem(id: "stale-external")]
+        sut.searchText = "tvaroh"
+        await sut.onSearchTextChanged()
+        XCTAssertTrue(sut.localFoodItems.isEmpty, "stale results would read as results for the query the user typed last")
+        XCTAssertTrue(sut.externalFoodItems.isEmpty)
+    }
+
     func test_onSearchTextChanged_whenExternalSearchFails_externalItemsAreEmptyAndNoAlert() async {
         let sut = makeSUT(searchFoodExternally: SearchFoodExternallyUseCaseFake(shouldThrow: true))
         sut.searchText = "tvaroh"

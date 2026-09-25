@@ -461,6 +461,8 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         do {
             localFoodItems = try await searchFoodItems(query: searchText)
         } catch {
+            localFoodItems = []
+            externalFoodItems = []
             return
         }
         guard displayedResults.isEmpty && searchText.count >= 3 else {
