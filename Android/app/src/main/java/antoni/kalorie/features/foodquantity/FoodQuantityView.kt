@@ -51,6 +51,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.FavouriteButton
+import antoni.kalorie.components.ReportIncorrectDataMenu
+import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.extensions.formattedTrimmed
@@ -78,6 +80,9 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
     val selectedMealTypeId by viewModel.selectedMealTypeId.collectAsState()
     val isFavourite by viewModel.isFavourite.collectAsState()
     val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
+    val hasReportedCurrentItem by viewModel.hasReportedCurrentItem.collectAsState()
+    val isReportReasonAlertVisible by viewModel.isReportReasonAlertVisible.collectAsState()
+    val reportReasonText by viewModel.reportReasonText.collectAsState()
     val isPersonalPortionsManagerPushed by viewModel.isPersonalPortionsManagerPushed.collectAsState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -108,6 +113,9 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                         IconButton(onClick = { isMealEditorPushed = true }) {
                             Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.myCreatedMeal_button_edit))
                         }
+                    }
+                    if (viewModel.canReportIncorrectData) {
+                        ReportIncorrectDataMenu(hasReportedCurrentItem = hasReportedCurrentItem, onReportTapped = viewModel::onReportIncorrectDataTapped)
                     }
                     TextButton(
                         enabled = !state.isLoading,
@@ -281,6 +289,18 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                 ) {
                     Text(stringResource(R.string.myCreatedMeal_button_delete))
                 }
+            },
+        )
+    }
+
+    if (isReportReasonAlertVisible) {
+        ReportReasonDialog(
+            text = reportReasonText,
+            onTextChange = { viewModel.reportReasonText.value = it },
+            onDismiss = { viewModel.isReportReasonAlertVisible.value = false },
+            onSend = {
+                viewModel.isReportReasonAlertVisible.value = false
+                scope.launch { viewModel.onReportSubmitted() }
             },
         )
     }

@@ -3,6 +3,8 @@ package antoni.kalorie.features.dashboard
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.models.FoodItemReportDomain
+import antoni.kalorie.core.models.FoodItemReportError
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
@@ -14,10 +16,14 @@ import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseFake
+import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.IsFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.IsFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseFake
+import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseProtocol
 import java.time.Instant
@@ -31,6 +37,70 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FoodConsumedDetailViewModelTest {
+
+    // MARK: - Reporting incorrect data
+
+    @Test
+    fun canReportIncorrectData_onlyTrueForCatalogueKind() {
+        assertTrue(makeSUT(food = makeFood(kind = FoodItemKind.CATALOGUE)).canReportIncorrectData)
+        assertFalse(
+            "an OpenFoodFacts item is not ours to correct",
+            makeSUT(food = makeFood(kind = FoodItemKind.EXTERNAL)).canReportIncorrectData,
+        )
+        assertFalse(
+            "a created meal is private, owner-only data",
+            makeSUT(food = makeFood(kind = FoodItemKind.CREATED_MEAL)).canReportIncorrectData,
+        )
+    }
+
+    @Test
+    fun onAppear_whenAlreadyReported_setsHasReportedCurrentItem() = runTest {
+        val sut = makeSUT(
+            food = makeFood(kind = FoodItemKind.CATALOGUE),
+            fetchMyFoodItemReport = FetchMyFoodItemReportUseCaseFake(
+                stubbedReport = FoodItemReportDomain(barcode = "12345", reportedBy = "test-user-id", reason = "wrong", reportedAt = Instant.now()),
+            ),
+        )
+
+        sut.onAppear()
+
+        assertTrue(sut.hasReportedCurrentItem.value)
+    }
+
+    @Test
+    fun onReportIncorrectDataTapped_whenAlreadyReported_doesNotShowAlert() {
+        val sut = makeSUT(food = makeFood(kind = FoodItemKind.CATALOGUE))
+        sut.hasReportedCurrentItem.value = true
+
+        sut.onReportIncorrectDataTapped()
+
+        assertFalse("an already-reported item must not offer a second report", sut.isReportReasonAlertVisible.value)
+    }
+
+    @Test
+    fun onReportSubmitted_withEmptyReason_showsAlertAndDoesNotMarkAsReported() = runTest {
+        val sut = makeSUT(
+            food = makeFood(kind = FoodItemKind.CATALOGUE),
+            submitFoodItemReport = SubmitFoodItemReportUseCaseFake(errorToThrow = FoodItemReportError.ReasonRequired),
+        )
+        sut.reportReasonText.value = ""
+
+        sut.onReportSubmitted()
+
+        assertFalse(sut.hasReportedCurrentItem.value)
+        assertNotNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onReportSubmitted_whenSucceeds_marksAsReported() = runTest {
+        val sut = makeSUT(food = makeFood(kind = FoodItemKind.CATALOGUE))
+        sut.reportReasonText.value = "wrong calories"
+
+        sut.onReportSubmitted()
+
+        assertTrue(sut.hasReportedCurrentItem.value)
+        assertNull(sut.alertItem.value)
+    }
 
     // MARK: - onMealTypeSelected (staging only, no write)
 
@@ -283,6 +353,8 @@ class FoodConsumedDetailViewModelTest {
         removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeCatalogueItem()),
         fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
+        fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
+        submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
         onFoodUpdated: () -> Unit = {},
     ): FoodConsumedDetailViewModel =
         FoodConsumedDetailViewModel(
@@ -296,6 +368,8 @@ class FoodConsumedDetailViewModelTest {
             removeFavouriteFood = removeFavouriteFood,
             fetchFoodItemByBarcode = fetchFoodItemByBarcode,
             fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
+            fetchMyFoodItemReport = fetchMyFoodItemReport,
+            submitFoodItemReport = submitFoodItemReport,
             onFoodUpdated = onFoodUpdated,
         )
 

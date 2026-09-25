@@ -45,6 +45,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
 import antoni.kalorie.components.FavouriteButton
+import antoni.kalorie.components.ReportIncorrectDataMenu
+import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.displayName
@@ -66,6 +68,9 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
     val alertItem by viewModel.alertItem.collectAsState()
     val mealTypeId by viewModel.mealTypeId.collectAsState()
     val mealTypes by viewModel.mealTypes.collectAsState()
+    val hasReportedCurrentItem by viewModel.hasReportedCurrentItem.collectAsState()
+    val isReportReasonAlertVisible by viewModel.isReportReasonAlertVisible.collectAsState()
+    val reportReasonText by viewModel.reportReasonText.collectAsState()
     val isFavourite by viewModel.isFavourite.collectAsState()
     val catalogueItem by viewModel.catalogueItem.collectAsState()
     val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
@@ -90,6 +95,9 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                     }
                 },
                 actions = {
+                    if (viewModel.canReportIncorrectData) {
+                        ReportIncorrectDataMenu(hasReportedCurrentItem = hasReportedCurrentItem, onReportTapped = viewModel::onReportIncorrectDataTapped)
+                    }
                     SaveToolbarButton(
                         title = stringResource(R.string.foodConsumedDetail_button_save),
                         showCheckmark = showCheckmark,
@@ -187,6 +195,18 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                 }
             }
         }
+    }
+
+    if (isReportReasonAlertVisible) {
+        ReportReasonDialog(
+            text = reportReasonText,
+            onTextChange = { viewModel.reportReasonText.value = it },
+            onDismiss = { viewModel.isReportReasonAlertVisible.value = false },
+            onSend = {
+                viewModel.isReportReasonAlertVisible.value = false
+                scope.launch { viewModel.onReportSubmitted() }
+            },
+        )
     }
 
     alertItem?.let { item ->

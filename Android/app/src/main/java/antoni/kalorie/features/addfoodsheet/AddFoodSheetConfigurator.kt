@@ -9,6 +9,7 @@ import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCase
+import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCase
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCase
@@ -20,6 +21,7 @@ import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCase
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCase
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCase
+import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.features.foodquantity.FoodQuantityUnit
 import antoni.kalorie.features.foodquantity.FoodQuantityView
@@ -69,6 +71,8 @@ class AddFoodSheetConfigurator(
                         removeFavouriteFood = RemoveFavouriteFoodUseCase(dataProvider, authProvider),
                         fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
                         saveFoodItemPersonalPortions = SaveFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
+                        fetchMyFoodItemReport = FetchMyFoodItemReportUseCase(dataProvider, authProvider),
+                        submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider),
                         meal = meal,
                         updateMyCreatedMeal = UpdateMyCreatedMealUseCase(dataProvider, authProvider),
                         onSaved = onSaved,

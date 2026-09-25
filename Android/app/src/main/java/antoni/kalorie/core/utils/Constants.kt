@@ -14,6 +14,7 @@ object Constants {
         const val ADD_FOOD_SHEET = "addFoodSheet"
         const val FAVOURITES = "favourites"
         const val MY_CREATED_MEAL = "myCreatedMeal"
+        const val FOOD_ITEM_REPORT = "foodItemReport"
     }
 
     object OpenFoodFacts {
@@ -28,6 +29,8 @@ object Constants {
         const val BATCH_WRITE_LIMIT = 500
         const val IN_QUERY_LIMIT = 30
         const val FOOD_ITEMS = "foodItems"
+        const val FOOD_ITEM_REPORTS = "foodItemReports"
+        const val REPORT_REASON_MAX_LENGTH = 500
 
         fun mealTypes(userId: String): String = "users/$userId/mealTypes"
         fun foodConsumed(userId: String): String = "users/$userId/foodConsumed"

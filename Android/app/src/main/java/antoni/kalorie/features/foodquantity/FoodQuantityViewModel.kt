@@ -15,14 +15,17 @@ import antoni.kalorie.core.models.mealType
 import antoni.kalorie.core.models.scaled
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.FavouriteToggling
+import antoni.kalorie.core.utils.FoodItemReporting
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
@@ -58,6 +61,8 @@ class FoodQuantityViewModel(
     private val removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol,
     private val fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseProtocol,
     private val saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseProtocol,
+    private val fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol,
+    private val submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol,
     private var meal: MyCreatedMealDomain?,
     private val updateMyCreatedMeal: UpdateMyCreatedMealUseCaseProtocol,
     private val onSaved: () -> Unit,
@@ -65,7 +70,7 @@ class FoodQuantityViewModel(
     private val onFavouriteChanged: (String, Boolean) -> Unit,
     quantity: Double = 1.0,
     unit: FoodQuantityUnit = FoodQuantityUnit.HundredGrams,
-) : ViewModel(), FavouriteToggling {
+) : ViewModel(), FavouriteToggling, FoodItemReporting {
 
     // MARK: - Properties
 
@@ -76,6 +81,10 @@ class FoodQuantityViewModel(
     override val alertItem = MutableStateFlow<AlertItem?>(null)
     override val isFavourite = MutableStateFlow(isFavourite)
     override val isTogglingFavourite = MutableStateFlow(false)
+    override val hasReportedCurrentItem = MutableStateFlow(false)
+    override val isSubmittingReport = MutableStateFlow(false)
+    override val isReportReasonAlertVisible = MutableStateFlow(false)
+    override val reportReasonText = MutableStateFlow("")
     private val _mealTypes = MutableStateFlow(mealTypes)
     val mealTypes: StateFlow<List<MealTypeDomain>> = _mealTypes
     val selectedMealTypeId = MutableStateFlow(mealTypes.mealType(selectedDate)?.id)
@@ -112,6 +121,9 @@ class FoodQuantityViewModel(
     val isPersonalPortionsAvailable: Boolean
         get() = item.kind == FoodItemKind.CATALOGUE || meal != null
 
+    val canReportIncorrectData: Boolean
+        get() = item.kind == FoodItemKind.CATALOGUE
+
     val unitOptions: List<FoodQuantityUnit>
         get() = (_personalPortions.value + (if (meal == null) item.portions else emptyList())).map { FoodQuantityUnit.Portion(it) } +
             listOf(FoodQuantityUnit.Grams, FoodQuantityUnit.HundredGrams)
@@ -119,6 +131,9 @@ class FoodQuantityViewModel(
     // MARK: - Functions
 
     suspend fun onAppear() {
+        if (canReportIncorrectData) {
+            loadReportState(item.id, fetchMyFoodItemReport)
+        }
         if (item.kind != FoodItemKind.CATALOGUE) return
         try {
             _personalPortions.value = fetchFoodItemPersonalPortions(item.id)
@@ -132,6 +147,10 @@ class FoodQuantityViewModel(
         } catch (error: Exception) {
             Log.warning(error, Constants.LogCategory.FOOD_QUANTITY)
         }
+    }
+
+    suspend fun onReportSubmitted() {
+        onReportSubmitted(item.id, submitFoodItemReport)
     }
 
     fun onUnitSelected(newUnit: FoodQuantityUnit) {
