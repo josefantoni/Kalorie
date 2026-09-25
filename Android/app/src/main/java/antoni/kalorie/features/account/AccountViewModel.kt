@@ -68,6 +68,7 @@ class AccountViewModel(
     suspend fun onSignOutTapped() {
         try {
             signOut()
+            _isMaintainer.value = false
             refreshAuthState()
         } catch (error: CancellationException) {
             throw error
