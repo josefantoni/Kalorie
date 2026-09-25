@@ -41,7 +41,10 @@ import antoni.kalorie.core.usecases.UpdateMySubmissionUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMySubmissionUseCaseProtocol
 import antoni.kalorie.R
 import java.time.Instant
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -693,6 +696,22 @@ class AddFoodSheetViewModelTest {
         sut.onSearchTextChanged()
 
         assertTrue(sut.localFoodItems.value.isEmpty())
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onSearchTextChanged_whenTheQueryChangesDuringTheDebounce_searchesOnlyTheLatestQuery() = runTest {
+        val searchFoodItems = SearchFoodItemsUseCaseSpy()
+        val sut = makeSUT(searchFoodItems = searchFoodItems)
+        sut.searchText.value = "tv"
+        val firstSearch = launch { sut.onSearchTextChanged() }
+        yield()
+        firstSearch.cancelAndJoin()
+        sut.searchText.value = "tvaroh"
+
+        sut.onSearchTextChanged()
+
+        assertEquals(listOf("tvaroh"), searchFoodItems.queries)
     }
 
     @Test
@@ -994,6 +1013,15 @@ class AddFoodSheetViewModelTest {
         rejectReason = rejectReason,
         item = makeFoodItem(id = barcode, czName = "Ovar"),
     )
+
+    private class SearchFoodItemsUseCaseSpy : SearchFoodItemsUseCaseProtocol {
+        val queries = mutableListOf<String>()
+
+        override suspend fun invoke(query: String): List<FoodItemDomain> {
+            queries += query
+            return emptyList()
+        }
+    }
 
     private class SubmitFoodItemUseCaseSpy : SubmitFoodItemUseCaseProtocol {
         var receivedItem: FoodItemDomain? = null
