@@ -16,6 +16,7 @@ sealed class FirestoreDataProviderError : Exception() {
 
 interface FirestoreDataProviderProtocol {
     suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T>
+    suspend fun <T> loadAsync(id: String, from: String, serializer: KSerializer<T>): T?
     suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadAsync(
         from: String,
@@ -33,6 +34,9 @@ interface FirestoreDataProviderProtocol {
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(from: String): List<T> =
     loadAsync(from, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(id: String, from: String): T? =
+    loadAsync(id, from, serializer<T>())
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.loadFromServerAsync(from: String): List<T> =
     loadFromServerAsync(from, serializer<T>())
@@ -79,6 +83,12 @@ class FirestoreDataProvider(
         perform {
             val snapshot = firestore.collection(from).get().await()
             snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+        }
+
+    override suspend fun <T> loadAsync(id: String, from: String, serializer: KSerializer<T>): T? =
+        perform {
+            val snapshot = firestore.collection(from).document(id).get().await()
+            snapshot.data?.let { FirestoreDataMapper.decode(it, serializer) }
         }
 
     override suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T> =
