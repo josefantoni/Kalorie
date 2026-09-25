@@ -260,6 +260,19 @@ class NutritionLabelParserTest {
     }
 
     @Test
+    fun parse_linearFormatLabel_doesNotReadSulphitesInTheIngredientsAsSalt() {
+        val lines = listOf(
+            line("Ingredients: wheat flour, sulphites (E220).", 0.1, 0.6, 0.8, 0.03),
+            line("Per 100 g: Energy 303 kJ / 72 kcal. Fat 3.3 g. Carbohydrate 3.0 g. Protein 7.3 g. Salt 1.6 g.", 0.3, 0.42, 0.6, 0.03),
+        )
+
+        val reading = NutritionLabelParser.parse(lines)
+
+        assertEquals(1.6, reading.salt)
+        assertEquals(3.3, reading.fat)
+    }
+
+    @Test
     fun parse_weightLabelAboveALargeValueOnASeparateLine_stillFindsIt() {
         val lines = listOf(
             line("Hmotnost:", 0.1, 0.28, 0.15, 0.02),

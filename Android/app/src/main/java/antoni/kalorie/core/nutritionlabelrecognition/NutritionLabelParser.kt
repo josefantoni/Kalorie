@@ -16,6 +16,7 @@ object NutritionLabelParser {
     private const val ENERGY_TOLERANCE_RATIO = 0.05
     private const val DERIVED_ENERGY_TOLERANCE_RATIO = 0.15
     private const val MAX_SUMMED_MACROS = 100.0
+    private const val MAX_WORD_BOUNDARY_KEYWORD_LENGTH = 3
 
     private val weightKeywords = listOf("hmotnost", "netto", "obsah", "net weight", "hmotnosc")
 
@@ -114,7 +115,7 @@ object NutritionLabelParser {
 
         val matches = LabelField.entries.mapNotNull { field ->
             val firstMatch = (keywords[field] ?: emptyList())
-                .mapNotNull { keyword -> lower.indexOf(keyword).takeIf { it >= 0 }?.let { it to it + keyword.length } }
+                .mapNotNull { keyword -> indexOfKeyword(lower, keyword)?.let { it to it + keyword.length } }
                 .minByOrNull { it.first }
                 ?: return@mapNotNull null
             Match(field, firstMatch.first, firstMatch.second)
@@ -140,6 +141,18 @@ object NutritionLabelParser {
             }
         }
         return reading
+    }
+
+    // A keyword this short ("sul", "fat") also sits inside longer words such as "sulphites" or "fatty".
+    private fun indexOfKeyword(text: String, keyword: String): Int? {
+        var index = text.indexOf(keyword)
+        while (index >= 0) {
+            val end = index + keyword.length
+            val isWholeWord = (index == 0 || !text[index - 1].isLetter()) && (end == text.length || !text[end].isLetter())
+            if (keyword.length > MAX_WORD_BOUNDARY_KEYWORD_LENGTH || isWholeWord) return index
+            index = text.indexOf(keyword, index + 1)
+        }
+        return null
     }
 
     // MARK: - Row grouping and column detection
