@@ -13,13 +13,16 @@ import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.IsFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodConsumedError
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.FavouriteToggling
+import antoni.kalorie.core.utils.FoodItemReporting
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
@@ -41,8 +44,10 @@ class FoodConsumedDetailViewModel(
     private val removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol,
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
     private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
+    private val fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol,
+    private val submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol,
     private val onFoodUpdated: () -> Unit,
-) : ViewModel(), FavouriteToggling {
+) : ViewModel(), FavouriteToggling, FoodItemReporting {
 
     // MARK: - Properties
 
@@ -54,6 +59,10 @@ class FoodConsumedDetailViewModel(
     override val alertItem = MutableStateFlow<AlertItem?>(null)
     override val isFavourite = MutableStateFlow(false)
     override val isTogglingFavourite = MutableStateFlow(false)
+    override val hasReportedCurrentItem = MutableStateFlow(false)
+    override val isSubmittingReport = MutableStateFlow(false)
+    override val isReportReasonAlertVisible = MutableStateFlow(false)
+    override val reportReasonText = MutableStateFlow("")
     private val _catalogueItem = MutableStateFlow<FoodItemDomain?>(null)
     val catalogueItem: StateFlow<FoodItemDomain?> = _catalogueItem
     private val _mealTypeId = MutableStateFlow(mealTypes.resolvedMealTypeId(food))
@@ -82,6 +91,9 @@ class FoodConsumedDetailViewModel(
     val canShowFavouriteButton: Boolean
         get() = isFavourite.value || _catalogueItem.value != null
 
+    val canReportIncorrectData: Boolean
+        get() = food.foodItemKind == FoodItemKind.CATALOGUE
+
     val canToggleFavourite: Boolean
         get() = !isTogglingFavourite.value && canShowFavouriteButton
 
@@ -92,6 +104,13 @@ class FoodConsumedDetailViewModel(
         val catalogueItem = async { loadCatalogueItem() }
         isFavourite.value = favourite.await()
         _catalogueItem.value = catalogueItem.await()
+        if (canReportIncorrectData) {
+            loadReportState(food.foodItemId, fetchMyFoodItemReport)
+        }
+    }
+
+    suspend fun onReportSubmitted() {
+        onReportSubmitted(food.foodItemId, submitFoodItemReport)
     }
 
     private suspend fun loadIsFavourite(): Boolean {

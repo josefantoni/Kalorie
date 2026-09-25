@@ -5,6 +5,8 @@ import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodPortionDomain
+import antoni.kalorie.core.models.FoodItemReportDomain
+import antoni.kalorie.core.models.FoodItemReportError
 import antoni.kalorie.core.models.FoodNutritionValues
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.MyCreatedMealDomain
@@ -15,12 +17,16 @@ import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseFake
+import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseFake
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseFake
+import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
@@ -738,6 +744,66 @@ class FoodQuantityViewModelTest {
         assertFalse(sut.isTogglingFavourite.value)
     }
 
+    // MARK: - Reporting incorrect data
+
+    @Test
+    fun canReportIncorrectData_onlyTrueForCatalogueKind() {
+        assertTrue(makeSUT(item = makeFoodItem(kind = FoodItemKind.CATALOGUE)).canReportIncorrectData)
+        assertFalse(
+            "an OpenFoodFacts item is not ours to correct",
+            makeSUT(item = makeFoodItem(kind = FoodItemKind.EXTERNAL)).canReportIncorrectData,
+        )
+    }
+
+    @Test
+    fun onAppear_whenAlreadyReported_setsHasReportedCurrentItem() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
+            fetchMyFoodItemReport = FetchMyFoodItemReportUseCaseFake(
+                stubbedReport = FoodItemReportDomain(barcode = "test", reportedBy = "test-user-id", reason = "wrong", reportedAt = Instant.now()),
+            ),
+        )
+
+        sut.onAppear()
+
+        assertTrue(sut.hasReportedCurrentItem.value)
+    }
+
+    @Test
+    fun onReportSubmitted_whenSucceeds_marksAsReported() = runTest {
+        val sut = makeSUT(item = makeFoodItem(kind = FoodItemKind.CATALOGUE))
+        sut.reportReasonText.value = "wrong calories"
+
+        sut.onReportSubmitted()
+
+        assertTrue(sut.hasReportedCurrentItem.value)
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onReportSubmitted_whenReasonTooLong_showsAlertAndDoesNotMarkAsReported() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
+            submitFoodItemReport = SubmitFoodItemReportUseCaseFake(errorToThrow = FoodItemReportError.ReasonTooLong),
+        )
+        sut.reportReasonText.value = "a".repeat(501)
+
+        sut.onReportSubmitted()
+
+        assertFalse(sut.hasReportedCurrentItem.value)
+        assertEquals(R.string.foodItemReport_error_reasonTooLong, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onReportIncorrectDataTapped_whenAlreadyReported_doesNotShowAlert() {
+        val sut = makeSUT(item = makeFoodItem(kind = FoodItemKind.CATALOGUE))
+        sut.hasReportedCurrentItem.value = true
+
+        sut.onReportIncorrectDataTapped()
+
+        assertFalse("an already-reported item must not offer a second report", sut.isReportReasonAlertVisible.value)
+    }
+
     // MARK: - My created meal portions
 
     @Test
@@ -842,6 +908,8 @@ class FoodQuantityViewModelTest {
         removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
         fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseProtocol = FetchFoodItemPersonalPortionsUseCaseFake(),
         saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseProtocol = SaveFoodItemPersonalPortionsUseCaseFake(),
+        fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
+        submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
         meal: MyCreatedMealDomain? = null,
         updateMyCreatedMeal: UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
         onSaved: () -> Unit = {},
@@ -860,6 +928,8 @@ class FoodQuantityViewModelTest {
         removeFavouriteFood = removeFavouriteFood,
         fetchFoodItemPersonalPortions = fetchFoodItemPersonalPortions,
         saveFoodItemPersonalPortions = saveFoodItemPersonalPortions,
+        fetchMyFoodItemReport = fetchMyFoodItemReport,
+        submitFoodItemReport = submitFoodItemReport,
         meal = meal,
         updateMyCreatedMeal = updateMyCreatedMeal,
         onSaved = onSaved,

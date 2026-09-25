@@ -11,8 +11,10 @@ import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCase
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
+import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCase
 import antoni.kalorie.core.usecases.IsFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCase
+import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCase
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCase
 
 class FoodConsumedDetailConfigurator(
@@ -41,6 +43,8 @@ class FoodConsumedDetailConfigurator(
                 removeFavouriteFood = RemoveFavouriteFoodUseCase(dataProvider, authProvider),
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
                 fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
+                fetchMyFoodItemReport = FetchMyFoodItemReportUseCase(dataProvider, authProvider),
+                submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider),
                 onFoodUpdated = onFoodUpdated,
             )
         }
