@@ -38,6 +38,9 @@ import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.FoodItemFormSections
+import antoni.kalorie.components.rememberScannerAccess
+import antoni.kalorie.core.utils.AlertItem
+import antoni.kalorie.features.addfoodsheet.NutritionLabelCameraView
 import antoni.kalorie.core.utils.isLoading
 import kotlinx.coroutines.launch
 
@@ -53,7 +56,15 @@ fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel,
     val state by viewModel.state.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val didSave by viewModel.didSave.collectAsState()
+    val recognizedFields by viewModel.recognizedFields.collectAsState()
+    val isNutritionLabelCameraVisible by viewModel.isNutritionLabelCameraVisible.collectAsState()
+    val isRecognizingNutritionLabel by viewModel.isRecognizingNutritionLabel.collectAsState()
+    val nutritionLabelCameraHintRes by viewModel.nutritionLabelCameraHintRes.collectAsState()
     val scope = rememberCoroutineScope()
+    val scannerAccess = rememberScannerAccess(
+        onGranted = viewModel::onNutritionLabelCameraTapped,
+        onDenied = { viewModel.alertItem.value = AlertItem(titleRes = R.string.addFood_camera_permissionAlert) },
+    )
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
 
@@ -97,6 +108,9 @@ fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel,
                         FoodItemFormSections(
                             formInput = formInput,
                             onFormInputChange = { viewModel.formInput.value = it },
+                            highlightedFields = recognizedFields,
+                            onNutritionLabelScanTapped = scannerAccess.open,
+                            onFieldEdited = viewModel::onFormFieldEdited,
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -121,6 +135,20 @@ fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel,
                     }
                 }
             }
+        }
+    }
+
+    if (isNutritionLabelCameraVisible) {
+        Dialog(
+            onDismissRequest = { viewModel.isNutritionLabelCameraVisible.value = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
+        ) {
+            NutritionLabelCameraView(
+                isRecognizing = isRecognizingNutritionLabel,
+                hint = nutritionLabelCameraHintRes?.let { stringResource(it) },
+                onCaptured = viewModel::onNutritionLabelCaptured,
+                onClose = { viewModel.isNutritionLabelCameraVisible.value = false },
+            )
         }
     }
 

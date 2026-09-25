@@ -12,6 +12,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -49,6 +51,9 @@ fun FoodItemFormSections(
     onFormInputChange: (FoodItemFormInput) -> Unit,
     modifier: Modifier = Modifier,
     barcodeRow: FoodItemFormBarcodeRow = FoodItemFormBarcodeRow.Hidden,
+    highlightedFields: Set<FoodItemFormField> = emptySet(),
+    onNutritionLabelScanTapped: (() -> Unit)? = null,
+    onFieldEdited: (FoodItemFormField) -> Unit = {},
 ) {
 
     // MARK: - Body
@@ -61,9 +66,13 @@ fun FoodItemFormSections(
         )
         TextField(
             value = formInput.name,
-            onValueChange = { onFormInputChange(formInput.copy(name = it)) },
+            onValueChange = {
+                onFormInputChange(formInput.copy(name = it))
+                onFieldEdited(FoodItemFormField.NAME)
+            },
             label = { Text(stringResource(R.string.addFood_field_name_title)) },
             placeholder = { Text(stringResource(R.string.addFood_field_name_placeholder)) },
+            textStyle = LocalTextStyle.current.copy(fontWeight = highlightWeight(FoodItemFormField.NAME in highlightedFields)),
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         )
@@ -108,18 +117,39 @@ fun FoodItemFormSections(
                 }
             }
         }
-        FoodItemFormFields(formInput = formInput, onFormInputChange = onFormInputChange)
+        onNutritionLabelScanTapped?.let { onScanTapped ->
+            TextButton(onClick = onScanTapped, modifier = Modifier.padding(horizontal = 8.dp)) {
+                Text(stringResource(R.string.addFood_button_scanNutritionLabel))
+            }
+        }
+        FoodItemFormFields(
+            formInput = formInput,
+            onFormInputChange = onFormInputChange,
+            highlightedFields = highlightedFields,
+            onFieldEdited = onFieldEdited,
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FoodItemFormFields(formInput: FoodItemFormInput, onFormInputChange: (FoodItemFormInput) -> Unit, modifier: Modifier = Modifier) {
+fun FoodItemFormFields(
+    formInput: FoodItemFormInput,
+    onFormInputChange: (FoodItemFormInput) -> Unit,
+    modifier: Modifier = Modifier,
+    highlightedFields: Set<FoodItemFormField> = emptySet(),
+    onFieldEdited: (FoodItemFormField) -> Unit = {},
+) {
 
     // MARK: - Properties
 
     var isWeightUnitMenuVisible by remember { mutableStateOf(false) }
     val measures = FoodMeasure.entries
+    fun edit(field: FoodItemFormField, transform: FoodItemFormInput.() -> FoodItemFormInput) {
+        onFormInputChange(formInput.transform())
+        onFieldEdited(field)
+    }
+    fun isHighlighted(field: FoodItemFormField) = field in highlightedFields
 
     // MARK: - Body
 
@@ -128,12 +158,16 @@ fun FoodItemFormFields(formInput: FoodItemFormInput, onFormInputChange: (FoodIte
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = stringResource(R.string.addFood_field_measure), modifier = Modifier.weight(1f))
+            Text(
+                text = stringResource(R.string.addFood_field_measure),
+                fontWeight = highlightWeight(isHighlighted(FoodItemFormField.MEASURE)),
+                modifier = Modifier.weight(1f),
+            )
             SingleChoiceSegmentedButtonRow(modifier = Modifier.width(180.dp)) {
                 measures.forEachIndexed { index, measure ->
                     SegmentedButton(
                         selected = formInput.measure == measure,
-                        onClick = { onFormInputChange(formInput.copy(measure = measure)) },
+                        onClick = { edit(FoodItemFormField.MEASURE) { copy(measure = measure) } },
                         shape = SegmentedButtonDefaults.itemShape(index = index, count = measures.size),
                     ) {
                         Text(stringResource(measure.unitSymbolRes))
@@ -146,10 +180,15 @@ fun FoodItemFormFields(formInput: FoodItemFormInput, onFormInputChange: (FoodIte
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(text = stringResource(R.string.addFood_field_weight), modifier = Modifier.weight(1f))
+            Text(
+                text = stringResource(R.string.addFood_field_weight),
+                fontWeight = highlightWeight(isHighlighted(FoodItemFormField.WEIGHT)),
+                modifier = Modifier.weight(1f),
+            )
             DecimalTextField(
                 value = formInput.weightOfProduct,
-                onValueChange = { onFormInputChange(formInput.copy(weightOfProduct = it)) },
+                onValueChange = { edit(FoodItemFormField.WEIGHT) { copy(weightOfProduct = it) } },
+                isHighlighted = isHighlighted(FoodItemFormField.WEIGHT),
                 modifier = Modifier.width(100.dp),
             )
             TextButton(onClick = { isWeightUnitMenuVisible = true }) {
@@ -173,46 +212,68 @@ fun FoodItemFormFields(formInput: FoodItemFormInput, onFormInputChange: (FoodIte
             }
         }
         val grams = stringResource(R.string.common_unit_grams)
-        FormDoubleRow(stringResource(R.string.addFood_field_energyKJ), "kJ", formInput.energyKJ) { onFormInputChange(formInput.copy(energyKJ = it)) }
+        FormDoubleRow(stringResource(R.string.addFood_field_energyKJ), "kJ", formInput.energyKJ, isHighlighted(FoodItemFormField.ENERGY_KJ)) {
+            edit(FoodItemFormField.ENERGY_KJ) { copy(energyKJ = it) }
+        }
         FormDoubleRow(
             title = stringResource(
                 if (formInput.measure == FoodMeasure.GRAMS) R.string.addFood_field_caloriesPer100g else R.string.addFood_field_caloriesPer100ml,
             ),
             unit = "kcal",
             value = formInput.caloriesPerHundredGrams,
-        ) { onFormInputChange(formInput.copy(caloriesPerHundredGrams = it)) }
-        FormDoubleRow(stringResource(R.string.addFood_field_protein), grams, formInput.protein) { onFormInputChange(formInput.copy(protein = it)) }
-        FormDoubleRow(stringResource(R.string.addFood_field_carbs), grams, formInput.carbohydrate) { onFormInputChange(formInput.copy(carbohydrate = it)) }
-        FormDoubleRow(stringResource(R.string.addFood_field_carbsSugar), grams, formInput.carbohydratePureSugar) {
-            onFormInputChange(formInput.copy(carbohydratePureSugar = it))
+            isHighlighted = isHighlighted(FoodItemFormField.CALORIES),
+        ) { edit(FoodItemFormField.CALORIES) { copy(caloriesPerHundredGrams = it) } }
+        FormDoubleRow(stringResource(R.string.addFood_field_protein), grams, formInput.protein, isHighlighted(FoodItemFormField.PROTEIN)) {
+            edit(FoodItemFormField.PROTEIN) { copy(protein = it) }
         }
-        FormDoubleRow(stringResource(R.string.addFood_field_fiber), grams, formInput.fiber ?: 0.0) { onFormInputChange(formInput.copy(fiber = it)) }
-        FormDoubleRow(stringResource(R.string.addFood_field_fat), grams, formInput.fat) { onFormInputChange(formInput.copy(fat = it)) }
-        FormDoubleRow(stringResource(R.string.addFood_field_fatSaturated), grams, formInput.fatSaturated ?: 0.0) {
-            onFormInputChange(formInput.copy(fatSaturated = it))
+        FormDoubleRow(stringResource(R.string.addFood_field_carbs), grams, formInput.carbohydrate, isHighlighted(FoodItemFormField.CARBOHYDRATE)) {
+            edit(FoodItemFormField.CARBOHYDRATE) { copy(carbohydrate = it) }
         }
-        FormDoubleRow(stringResource(R.string.addFood_field_fatUnsaturated), grams, formInput.fatUnsaturatedFattyAcids) {
-            onFormInputChange(formInput.copy(fatUnsaturatedFattyAcids = it))
+        FormDoubleRow(
+            stringResource(R.string.addFood_field_carbsSugar),
+            grams,
+            formInput.carbohydratePureSugar,
+            isHighlighted(FoodItemFormField.CARBOHYDRATE_SUGAR),
+        ) { edit(FoodItemFormField.CARBOHYDRATE_SUGAR) { copy(carbohydratePureSugar = it) } }
+        FormDoubleRow(stringResource(R.string.addFood_field_fiber), grams, formInput.fiber ?: 0.0, isHighlighted(FoodItemFormField.FIBER)) {
+            edit(FoodItemFormField.FIBER) { copy(fiber = it) }
         }
-        FormDoubleRow(stringResource(R.string.addFood_field_salt), grams, formInput.salt) { onFormInputChange(formInput.copy(salt = it)) }
+        FormDoubleRow(stringResource(R.string.addFood_field_fat), grams, formInput.fat, isHighlighted(FoodItemFormField.FAT)) {
+            edit(FoodItemFormField.FAT) { copy(fat = it) }
+        }
+        FormDoubleRow(
+            stringResource(R.string.addFood_field_fatSaturated),
+            grams,
+            formInput.fatSaturated ?: 0.0,
+            isHighlighted(FoodItemFormField.FAT_SATURATED),
+        ) { edit(FoodItemFormField.FAT_SATURATED) { copy(fatSaturated = it) } }
+        FormDoubleRow(
+            stringResource(R.string.addFood_field_fatUnsaturated),
+            grams,
+            formInput.fatUnsaturatedFattyAcids,
+            isHighlighted(FoodItemFormField.FAT_UNSATURATED),
+        ) { edit(FoodItemFormField.FAT_UNSATURATED) { copy(fatUnsaturatedFattyAcids = it) } }
+        FormDoubleRow(stringResource(R.string.addFood_field_salt), grams, formInput.salt, isHighlighted(FoodItemFormField.SALT)) {
+            edit(FoodItemFormField.SALT) { copy(salt = it) }
+        }
     }
 }
 
 @Composable
-private fun FormDoubleRow(title: String, unit: String, value: Double, onValueChange: (Double) -> Unit) {
+private fun FormDoubleRow(title: String, unit: String, value: Double, isHighlighted: Boolean, onValueChange: (Double) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(text = title, modifier = Modifier.weight(1f))
-        DecimalTextField(value = value, onValueChange = onValueChange, modifier = Modifier.width(100.dp))
+        DecimalTextField(value = value, onValueChange = onValueChange, isHighlighted = isHighlighted, modifier = Modifier.width(100.dp))
         Text(text = unit, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(40.dp))
     }
 }
 
 @Composable
-private fun DecimalTextField(value: Double, onValueChange: (Double) -> Unit, modifier: Modifier = Modifier) {
+private fun DecimalTextField(value: Double, onValueChange: (Double) -> Unit, isHighlighted: Boolean, modifier: Modifier = Modifier) {
     var text by remember { mutableStateOf(formattedDecimal(value)) }
 
     LaunchedEffect(value) {
@@ -228,7 +289,7 @@ private fun DecimalTextField(value: Double, onValueChange: (Double) -> Unit, mod
         },
         placeholder = { Text("0") },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End, fontWeight = highlightWeight(isHighlighted)),
         singleLine = true,
         modifier = modifier,
     )
@@ -244,3 +305,5 @@ private fun FoodItemFormInput.withWeightInThousands(newValue: Boolean): FoodItem
         isWeightInThousands = newValue,
     )
 }
+
+private fun highlightWeight(isHighlighted: Boolean): FontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Normal

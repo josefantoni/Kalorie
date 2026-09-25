@@ -3,12 +3,15 @@ package antoni.kalorie.features.addfoodsheet
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
+import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionError
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.MyCreatedMealDomain
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelImage
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteMySubmissionUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
@@ -22,9 +25,11 @@ import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
 import antoni.kalorie.core.usecases.SubmitFoodItemUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMySubmissionUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
+import antoni.kalorie.core.utils.CameraAccess
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
+import antoni.kalorie.core.utils.NutritionLabelPrefilling
 import antoni.kalorie.core.utils.isFirestoreUnreachable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -52,9 +57,10 @@ class AddFoodSheetViewModel(
     private val refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol,
     private val fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol,
     private val deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol,
+    private val recognizeNutritionLabelUseCase: RecognizeNutritionLabelUseCaseProtocol,
     private val onFoodSaved: () -> Unit = {},
     isScannerVisible: Boolean = false,
-) : ViewModel() {
+) : ViewModel(), NutritionLabelPrefilling {
 
     // MARK: - Properties
 
@@ -72,7 +78,13 @@ class AddFoodSheetViewModel(
     val isMealDeleteConfirmationVisible = MutableStateFlow(false)
     private val _state = MutableStateFlow<LoadingState<Unit>>(LoadingState.Idle)
     val state: StateFlow<LoadingState<Unit>> = _state
-    val formInput = MutableStateFlow(FoodItemFormInput())
+    override val formInput = MutableStateFlow(FoodItemFormInput())
+    override val recognizedFields = MutableStateFlow<Set<FoodItemFormField>>(emptySet())
+    override val isRecognizingNutritionLabel = MutableStateFlow(false)
+    override val isNutritionLabelCameraVisible = MutableStateFlow(false)
+    override val nutritionLabelCameraHintRes = MutableStateFlow<Int?>(null)
+    val cameraAccess = MutableStateFlow(CameraAccess.NOT_DETERMINED)
+    private var isNutritionLabelCameraReviewPending = false
     val isReviewPushed = MutableStateFlow(false)
     val mySubmissions = MutableStateFlow<List<FoodItemSubmissionDomain>>(emptyList())
     val isSubmissionConfirmationVisible = MutableStateFlow(false)
@@ -133,15 +145,33 @@ class AddFoodSheetViewModel(
         isScannerVisible.value = false
         isReviewPushed.value = false
         if (mode != AddFoodSheetMode.NEW_ITEM) return
-        formInput.value = FoodItemFormInput()
-        editingSubmissionId = null
-        _rejectionReasonBeingEdited.value = null
+        startFreshNewItem()
+    }
+
+    fun onNutritionLabelPromptTapped() {
+        startFreshNewItem()
+        cameraAccess.value = CameraAccess.AUTHORIZED
+        isNutritionLabelCameraVisible.value = true
+    }
+
+    fun onNutritionLabelCameraAccessDenied() {
+        startFreshNewItem()
+        cameraAccess.value = CameraAccess.DENIED
     }
 
     fun onAddManuallyTapped() {
-        formInput.value = FoodItemFormInput()
-        editingSubmissionId = null
-        _rejectionReasonBeingEdited.value = null
+        startFreshNewItem()
+        isReviewPushed.value = true
+    }
+
+    suspend fun onNutritionLabelCaptured(image: NutritionLabelImage, liveBarcode: String?) {
+        val succeeded = recognizeNutritionLabel(image, liveBarcode, recognizeNutritionLabelUseCase)
+        if (succeeded) isNutritionLabelCameraReviewPending = true
+    }
+
+    fun onNutritionLabelCameraDismissed() {
+        if (!isNutritionLabelCameraReviewPending) return
+        isNutritionLabelCameraReviewPending = false
         isReviewPushed.value = true
     }
 
@@ -246,8 +276,16 @@ class AddFoodSheetViewModel(
         }
     }
 
+    private fun startFreshNewItem() {
+        formInput.value = FoodItemFormInput()
+        recognizedFields.value = emptySet()
+        editingSubmissionId = null
+        _rejectionReasonBeingEdited.value = null
+    }
+
     private fun openEditingForm(submission: FoodItemSubmissionDomain) {
         formInput.value = FoodItemFormInput.from(submission.item)
+        recognizedFields.value = emptySet()
         editingSubmissionId = submission.id
         _rejectionReasonBeingEdited.value = submission.rejectReason
         _mode.value = AddFoodSheetMode.NEW_ITEM
@@ -308,6 +346,12 @@ class AddFoodSheetViewModel(
     }
 
     fun onScenePhaseActive(isCameraAvailable: Boolean) {
+        cameraAccess.value = when {
+            isCameraAvailable -> CameraAccess.AUTHORIZED
+            cameraAccess.value == CameraAccess.AUTHORIZED -> CameraAccess.DENIED
+            else -> cameraAccess.value
+        }
+        if (isNutritionLabelCameraVisible.value && !isCameraAvailable) isNutritionLabelCameraVisible.value = false
         if (!isScannerVisible.value || isCameraAvailable) return
         isScannerVisible.value = false
         alertItem.value = AlertItem(titleRes = R.string.addFood_camera_permissionAlert)

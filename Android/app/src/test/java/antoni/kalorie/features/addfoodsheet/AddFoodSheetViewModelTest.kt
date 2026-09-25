@@ -1,5 +1,12 @@
 package antoni.kalorie.features.addfoodsheet
 
+import antoni.kalorie.components.FoodItemFormField
+import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelRecognitionError
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseFake
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
+import antoni.kalorie.core.utils.CameraAccess
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
@@ -476,6 +483,149 @@ class AddFoodSheetViewModelTest {
         assertNull(sut.alertItem.value)
     }
 
+    // MARK: - onNutritionLabelPromptTapped
+
+    @Test
+    fun onNutritionLabelPromptTapped_opensCamera() {
+        val sut = makeSUT()
+
+        sut.onNutritionLabelPromptTapped()
+
+        assertTrue(sut.isNutritionLabelCameraVisible.value)
+        assertEquals(CameraAccess.AUTHORIZED, sut.cameraAccess.value)
+    }
+
+    @Test
+    fun onNutritionLabelCameraAccessDenied_recordsDeniedAndKeepsCameraClosed() {
+        val sut = makeSUT()
+
+        sut.onNutritionLabelCameraAccessDenied()
+
+        assertEquals(CameraAccess.DENIED, sut.cameraAccess.value)
+        assertFalse(sut.isNutritionLabelCameraVisible.value)
+    }
+
+    @Test
+    fun onNutritionLabelPromptTapped_afterEditingRejectedSubmission_startsAFreshUneditedItem() = runTest {
+        val submission = makeSubmission(id = "sub-1", barcode = "sub-item", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
+        val sut = makeSUT(fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(submission)))
+        sut.onAppear()
+        sut.onSelectRejectedSubmission(makeFoodItem(id = "sub-item", czName = "Ovar"))
+        assertTrue(sut.isEditingSubmission)
+
+        sut.onNutritionLabelPromptTapped()
+
+        assertFalse(sut.isEditingSubmission)
+        assertNull(sut.rejectionReasonBeingEdited.value)
+        assertEquals("", sut.formInput.value.scannedCode)
+    }
+
+    // MARK: - onNutritionLabelCaptured / onNutritionLabelCameraDismissed
+
+    @Test
+    fun onNutritionLabelCaptured_onSuccess_closesCameraAndPushesOnlyAfterDismissed() = runTest {
+        val reading = NutritionLabelReading(caloriesPerHundredGrams = 80.0, fat = 12.0, carbohydrate = 55.0, protein = 10.0)
+        val sut = makeSUT(recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(stubbedReading = reading))
+        sut.isNutritionLabelCameraVisible.value = true
+
+        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = null)
+
+        assertFalse(sut.isNutritionLabelCameraVisible.value)
+        assertFalse(sut.isReviewPushed.value)
+
+        sut.onNutritionLabelCameraDismissed()
+
+        assertTrue(sut.isReviewPushed.value)
+    }
+
+    @Test
+    fun onNutritionLabelCameraDismissed_afterAFailedCapture_doesNotPush() = runTest {
+        val sut = makeSUT(
+            recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(errorToThrow = NutritionLabelRecognitionError.NothingRecognized),
+        )
+        sut.isNutritionLabelCameraVisible.value = true
+
+        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = null)
+        sut.onNutritionLabelCameraDismissed()
+
+        assertFalse(sut.isReviewPushed.value)
+    }
+
+    @Test
+    fun onNutritionLabelCaptured_nothingRecognized_keepsCameraOpenSetsHintAndLeavesFormUntouched() = runTest {
+        val sut = makeSUT(
+            recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(errorToThrow = NutritionLabelRecognitionError.NothingRecognized),
+        )
+        sut.isNutritionLabelCameraVisible.value = true
+
+        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = null)
+
+        assertTrue(sut.isNutritionLabelCameraVisible.value)
+        assertEquals(R.string.addFood_nutritionLabel_nothingRecognized, sut.nutritionLabelCameraHintRes.value)
+        assertNull(sut.alertItem.value)
+        assertEquals("", sut.formInput.value.name)
+    }
+
+    @Test
+    fun onNutritionLabelCaptured_readingWithOnlyABarcode_isTreatedAsNothingRecognized() = runTest {
+        val sut = makeSUT(recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(stubbedReading = NutritionLabelReading(scannedCode = "12345678")))
+        sut.isNutritionLabelCameraVisible.value = true
+
+        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = null)
+
+        assertTrue(sut.isNutritionLabelCameraVisible.value)
+        assertEquals(R.string.addFood_nutritionLabel_nothingRecognized, sut.nutritionLabelCameraHintRes.value)
+    }
+
+    @Test
+    fun onNutritionLabelCaptured_liveBarcodeFillsScannedCodeWhenStillHadNone() = runTest {
+        val reading = NutritionLabelReading(caloriesPerHundredGrams = 80.0, fat = 12.0, carbohydrate = 55.0, protein = 10.0)
+        val sut = makeSUT(recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(stubbedReading = reading))
+
+        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = "8594004428464")
+
+        assertEquals("8594004428464", sut.formInput.value.scannedCode)
+    }
+
+    @Test
+    fun onNutritionLabelCaptured_liveBarcodeDoesNotOverwriteALockedBarcode() = runTest {
+        val submission = makeSubmission(id = "sub-1", barcode = "87654321", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
+        val reading = NutritionLabelReading(caloriesPerHundredGrams = 80.0, fat = 12.0, carbohydrate = 55.0, protein = 10.0)
+        val sut = makeSUT(
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(submission)),
+            recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(stubbedReading = reading),
+        )
+        sut.onAppear()
+        sut.onSelectRejectedSubmission(makeFoodItem(id = "87654321", czName = "Ovar"))
+
+        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = "8594004428464")
+
+        assertEquals("87654321", sut.formInput.value.scannedCode)
+    }
+
+    @Test
+    fun onNutritionLabelCaptured_marksTheFilledFieldsAsRecognizedUntilTheyAreEdited() = runTest {
+        val reading = NutritionLabelReading(caloriesPerHundredGrams = 80.0, fat = 12.0, carbohydrate = 55.0, protein = 10.0)
+        val sut = makeSUT(recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(stubbedReading = reading))
+
+        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = null)
+
+        assertTrue(FoodItemFormField.FAT in sut.recognizedFields.value)
+        sut.onFormFieldEdited(FoodItemFormField.FAT)
+        assertFalse(FoodItemFormField.FAT in sut.recognizedFields.value)
+    }
+
+    @Test
+    fun onScenePhaseActive_whenCameraPermissionWasRevoked_closesTheNutritionLabelCameraAndRecordsDenied() {
+        val sut = makeSUT()
+        sut.onNutritionLabelPromptTapped()
+
+        sut.onScenePhaseActive(isCameraAvailable = false)
+
+        assertFalse(sut.isNutritionLabelCameraVisible.value)
+        assertEquals(CameraAccess.DENIED, sut.cameraAccess.value)
+    }
+
     // MARK: - onBarcodeScanned
 
     @Test
@@ -777,6 +927,7 @@ class AddFoodSheetViewModelTest {
             refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(),
             fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(),
             deleteMyCreatedMeal = DeleteMyCreatedMealUseCaseFake(),
+            recognizeNutritionLabelUseCase = RecognizeNutritionLabelUseCaseFake(),
             onFoodSaved = { onFoodSavedCalled = true },
         )
 
@@ -801,6 +952,7 @@ class AddFoodSheetViewModelTest {
         refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol = RefreshFavouriteFoodUseCaseFake(),
         fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol = FetchMyCreatedMealsUseCaseFake(),
         deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol = DeleteMyCreatedMealUseCaseFake(),
+        recognizeNutritionLabel: RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
         isScannerVisible: Boolean = false,
     ): AddFoodSheetViewModel = AddFoodSheetViewModel(
         searchFoodItems = searchFoodItems,
@@ -815,6 +967,7 @@ class AddFoodSheetViewModelTest {
         refreshFavouriteFood = refreshFavouriteFood,
         fetchMyCreatedMeals = fetchMyCreatedMeals,
         deleteMyCreatedMeal = deleteMyCreatedMeal,
+        recognizeNutritionLabelUseCase = recognizeNutritionLabel,
         isScannerVisible = isScannerVisible,
     )
 

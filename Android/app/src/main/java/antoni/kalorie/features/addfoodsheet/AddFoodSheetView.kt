@@ -99,6 +99,9 @@ fun AddFoodSheetView(
     val isReviewPushed by viewModel.isReviewPushed.collectAsState()
     val state by viewModel.state.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
+    val isNutritionLabelCameraVisible by viewModel.isNutritionLabelCameraVisible.collectAsState()
+    val isRecognizingNutritionLabel by viewModel.isRecognizingNutritionLabel.collectAsState()
+    val nutritionLabelCameraHintRes by viewModel.nutritionLabelCameraHintRes.collectAsState()
     val backStack = remember(isPushedToQuantityView, selectedFoodItem, isReviewPushed) {
         buildList<AddFoodSheetDestination> {
             add(AddFoodSheetDestination.Search)
@@ -108,6 +111,8 @@ fun AddFoodSheetView(
     }
 
     LaunchedEffect(shouldDismiss) { if (shouldDismiss) onDismiss() }
+
+    LaunchedEffect(isNutritionLabelCameraVisible) { if (!isNutritionLabelCameraVisible) viewModel.onNutritionLabelCameraDismissed() }
 
     // MARK: - Body
 
@@ -183,6 +188,20 @@ fun AddFoodSheetView(
                 CircularProgressIndicator()
             }
         }
+        }
+    }
+
+    if (isNutritionLabelCameraVisible) {
+        Dialog(
+            onDismissRequest = { viewModel.isNutritionLabelCameraVisible.value = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
+        ) {
+            NutritionLabelCameraView(
+                isRecognizing = isRecognizingNutritionLabel,
+                hint = nutritionLabelCameraHintRes?.let { stringResource(it) },
+                onCaptured = viewModel::onNutritionLabelCaptured,
+                onClose = { viewModel.isNutritionLabelCameraVisible.value = false },
+            )
         }
     }
 

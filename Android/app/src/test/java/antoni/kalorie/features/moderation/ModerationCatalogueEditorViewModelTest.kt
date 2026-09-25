@@ -1,6 +1,11 @@
 package antoni.kalorie.features.moderation
 
 import antoni.kalorie.R
+import antoni.kalorie.components.FoodItemFormField
+import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseFake
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
@@ -78,6 +83,38 @@ class ModerationCatalogueEditorViewModelTest {
         assertFalse(sut.didSave.value)
     }
 
+    // MARK: - onNutritionLabelCaptured
+
+    @Test
+    fun onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() = runTest {
+        val sut = makeSUT(
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
+            recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(stubbedReading = NutritionLabelReading(fat = 999.0, fiber = 1.0)),
+        )
+        sut.barcodeQuery.value = "12345678"
+        sut.onSearchTapped()
+        sut.isNutritionLabelCameraVisible.value = true
+        val originalFat = sut.formInput.value.fat
+
+        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = null)
+
+        assertFalse(sut.isNutritionLabelCameraVisible.value)
+        assertEquals(originalFat, sut.formInput.value.fat, 0.0)
+        assertEquals(1.0, sut.formInput.value.fiber ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun onSearchTapped_clearsThePreviousRecognizedFields() = runTest {
+        val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()))
+        sut.barcodeQuery.value = "12345678"
+        sut.onSearchTapped()
+        sut.recognizedFields.value = setOf(FoodItemFormField.FAT)
+
+        sut.onSearchTapped()
+
+        assertTrue(sut.recognizedFields.value.isEmpty())
+    }
+
     // MARK: - onAppear (initialBarcode)
 
     @Test
@@ -107,10 +144,12 @@ class ModerationCatalogueEditorViewModelTest {
     private fun makeSUT(
         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         updateFoodItem: UpdateFoodItemUseCaseProtocol = UpdateFoodItemUseCaseFake(),
+        recognizeNutritionLabel: RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
         initialBarcode: String? = null,
     ): ModerationCatalogueEditorViewModel = ModerationCatalogueEditorViewModel(
         fetchFoodItemByBarcode = fetchFoodItemByBarcode,
         updateFoodItem = updateFoodItem,
+        recognizeNutritionLabelUseCase = recognizeNutritionLabel,
         initialBarcode = initialBarcode,
     )
 
