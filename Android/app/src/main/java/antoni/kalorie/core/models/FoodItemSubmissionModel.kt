@@ -5,9 +5,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class FoodItemSubmissionStatus {
-    @SerialName("pending") PENDING,
-    @SerialName("rejected") REJECTED,
+enum class FoodItemSubmissionStatus(val wireValue: String) {
+    @SerialName("pending") PENDING("pending"),
+    @SerialName("rejected") REJECTED("rejected"),
 }
 
 data class FoodItemSubmissionDomain(

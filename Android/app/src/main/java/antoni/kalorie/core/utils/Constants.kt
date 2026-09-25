@@ -17,6 +17,7 @@ object Constants {
         const val FOOD_ITEM_REPORT = "foodItemReport"
         const val ACCOUNT = "account"
         const val EXPORT = "export"
+        const val MODERATION = "moderation"
     }
 
     object Auth {
@@ -40,6 +41,7 @@ object Constants {
         const val FOOD_ITEM_REPORTS = "foodItemReports"
         const val FOOD_ITEM_SUBMISSIONS = "foodItemSubmissions"
         const val REPORT_REASON_MAX_LENGTH = 500
+        const val REPORTS_PAGE_LIMIT = 50
 
         fun mealTypes(userId: String): String = "users/$userId/mealTypes"
         fun foodConsumed(userId: String): String = "users/$userId/foodConsumed"

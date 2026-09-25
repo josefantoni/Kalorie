@@ -21,6 +21,11 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var queriedDocumentIds: List<String> = emptyList()
     var stubbedDocument: Any? = null
     var stubbedServerDocument: Any? = null
+    var stubbedServerDocumentSequence: List<Any?> = emptyList()
+    var stubbedServerReadError: Exception? = null
+    var stubbedSetError: Exception? = null
+    var stubbedDeleteError: Exception? = null
+    private var serverReadCount = 0
     var stubbedByField: List<Any> = emptyList()
     var stubbedByFieldByCollection: Map<String, List<Any>> = emptyMap()
     var queriedField: String? = null
@@ -95,8 +100,12 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
 
     override suspend fun <T> loadFromServerAsync(id: String, from: String, serializer: KSerializer<T>): T? {
         stubbedError?.let { throw it }
+        stubbedServerReadError?.let { throw it }
         queriedServerId = id
         queriedServerCollection = from
+        if (stubbedServerDocumentSequence.isNotEmpty()) {
+            return stubbedServerDocumentSequence[minOf(serverReadCount++, stubbedServerDocumentSequence.lastIndex)] as T?
+        }
         return stubbedServerDocument as T?
     }
 
@@ -133,6 +142,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     }
 
     override suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
+        stubbedSetError?.let { throw it }
         setSavedItem = item
         setSavedId = id
         setSavedCollection = inCollection
@@ -146,6 +156,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     }
 
     override suspend fun deleteAsync(id: String, from: String) {
+        stubbedDeleteError?.let { throw it }
         deletedId = id
         deletedFromCollection = from
         deletedIdsByCollection = deletedIdsByCollection + (from to (deletedIdsByCollection[from].orEmpty() + id))
