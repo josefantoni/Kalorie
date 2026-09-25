@@ -248,6 +248,20 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onSave_whenWeightIsSavedButAssignFails_stillNotifiesSoTheDashboardShowsTheNewWeight() async {
+        let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
+        var didNotify = false
+        let sut = makeSUT(mealTypes: [breakfast], assignFoodMealType: AssignFoodMealTypeUseCaseFake(shouldThrow: true)) { didNotify = true }
+        sut.weight = 150
+        sut.onMealTypeSelected("breakfast")
+
+        await sut.onSave()
+
+        XCTAssertTrue(didNotify, "the weight write already reached Firestore, so the dashboard must reload")
+        XCTAssertNotNil(sut.alertItem)
+    }
+
+    @MainActor
     func test_onSave_whenBothWeightAndMealTypeChanged_writesBoth() async {
         let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
         let sut = makeSUT(mealTypes: [breakfast])
