@@ -14,12 +14,14 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.core.auth.AuthProvider
+import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.networking.FirestoreDataProvider
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCase
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCase
+import antoni.kalorie.features.account.AccountConfigurator
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
 import antoni.kalorie.features.mealtypesheet.MealTypeSheetConfigurator
 import kotlinx.coroutines.launch
@@ -29,7 +31,7 @@ class DashboardConfigurator {
     // MARK: - Functions
 
     @Composable
-    fun createView(userId: String?) {
+    fun createView(userId: String?, mergeStatusReporting: MergeStatusReporting) {
         val mealNames = listOf(
             stringResource(R.string.defaultMeals_breakfast),
             stringResource(R.string.defaultMeals_secondBreakfast),
@@ -49,8 +51,9 @@ class DashboardConfigurator {
                 deleteFoodConsumed = DeleteFoodConsumedUseCase(dataProvider, authProvider),
             )
         }
-        val router = remember(dataProvider, authProvider) {
+        val router = remember(dataProvider, authProvider, mergeStatusReporting) {
             DashboardRouter(
+                accountConfigurator = AccountConfigurator(dataProvider, authProvider, mergeStatusReporting),
                 mealTypeSheetConfigurator = MealTypeSheetConfigurator(),
                 addFoodSheetConfigurator = AddFoodSheetConfigurator(dataProvider, authProvider),
                 foodConsumedDetailConfigurator = FoodConsumedDetailConfigurator(dataProvider, authProvider),

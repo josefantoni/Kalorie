@@ -3,17 +3,24 @@ package antoni.kalorie.features.dashboard
 import androidx.compose.runtime.Composable
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
+import antoni.kalorie.features.account.AccountConfigurator
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
 import antoni.kalorie.features.mealtypesheet.MealTypeSheetConfigurator
 import java.time.Instant
 
 class DashboardRouter(
+    private val accountConfigurator: AccountConfigurator,
     private val mealTypeSheetConfigurator: MealTypeSheetConfigurator,
     private val addFoodSheetConfigurator: AddFoodSheetConfigurator,
     private val foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator,
 ) {
 
     // MARK: - Functions
+
+    @Composable
+    fun makeAccountView(onDismiss: () -> Unit) {
+        accountConfigurator.createView(onDismiss = onDismiss)
+    }
 
     @Composable
     fun makeMealTypeSheetView(mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onMealTypesChanged: () -> Unit = {}) {
