@@ -9,7 +9,7 @@ import antoni.kalorie.core.networking.FoodItemSubmissionDTO
 import antoni.kalorie.core.networking.loadFromServerAsync
 import antoni.kalorie.core.networking.setAsync
 import antoni.kalorie.core.utils.Constants
-import antoni.kalorie.core.utils.epochSecondsAsDouble
+import antoni.kalorie.core.utils.epochSecondsAsExactDouble
 import antoni.kalorie.core.utils.isFirestorePermissionDenied
 import kotlinx.coroutines.CancellationException
 
@@ -59,7 +59,7 @@ class RejectSubmissionUseCase(
                 throw writeError
             }
             if (current == null) throw RejectSubmissionError.AlreadyResolved
-            if (current.submittedAt != submission.submittedAt.epochSecondsAsDouble()) throw RejectSubmissionError.ChangedSinceReview
+            if (current.submittedAt != submission.submittedAt.epochSecondsAsExactDouble()) throw RejectSubmissionError.ChangedSinceReview
             throw writeError
         }
     }

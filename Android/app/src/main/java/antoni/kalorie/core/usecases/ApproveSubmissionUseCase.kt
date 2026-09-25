@@ -9,7 +9,7 @@ import antoni.kalorie.core.networking.FoodItemSubmissionDTO
 import antoni.kalorie.core.networking.loadFromServerAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
-import antoni.kalorie.core.utils.epochSecondsAsDouble
+import antoni.kalorie.core.utils.epochSecondsAsExactDouble
 import kotlinx.coroutines.CancellationException
 
 sealed class ApproveSubmissionError : Exception() {
@@ -35,7 +35,7 @@ class ApproveSubmissionUseCase(
             id = submission.id,
             from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS,
         ) ?: throw ApproveSubmissionError.AlreadyResolved
-        if (current.submittedAt != submission.submittedAt.epochSecondsAsDouble()) throw ApproveSubmissionError.ChangedSinceReview
+        if (current.submittedAt != submission.submittedAt.epochSecondsAsExactDouble()) throw ApproveSubmissionError.ChangedSinceReview
         createFoodItem(item)
         try {
             dataProvider.deleteAsync(id = submission.id, from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS)
