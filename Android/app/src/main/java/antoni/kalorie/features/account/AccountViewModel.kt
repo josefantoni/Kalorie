@@ -48,11 +48,10 @@ class AccountViewModel(
     val isMaintainer: StateFlow<Boolean> = _isMaintainer
     private var isDataAlreadyWiped = false
 
-    val isAnonymous: Boolean
-        get() = authProvider.isAnonymous
-
-    val displayName: String?
-        get() = authProvider.displayName
+    private val _isAnonymous = MutableStateFlow(authProvider.isAnonymous)
+    val isAnonymous: StateFlow<Boolean> = _isAnonymous
+    private val _displayName = MutableStateFlow(authProvider.displayName)
+    val displayName: StateFlow<String?> = _displayName
 
     // MARK: - Functions
 
@@ -69,6 +68,7 @@ class AccountViewModel(
     suspend fun onSignOutTapped() {
         try {
             signOut()
+            refreshAuthState()
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
@@ -93,6 +93,7 @@ class AccountViewModel(
             }
         } finally {
             mergeStatusReporting.endMerge()
+            refreshAuthState()
             _state.value = State.IDLE
         }
     }
@@ -102,6 +103,7 @@ class AccountViewModel(
         try {
             performDelete()
         } finally {
+            refreshAuthState()
             _state.value = State.IDLE
         }
     }
@@ -119,11 +121,17 @@ class AccountViewModel(
                 alertItem.value = AlertItem(titleRes = R.string.account_error_signInFailed)
             }
         } finally {
+            refreshAuthState()
             _state.value = State.IDLE
         }
     }
 
     // MARK: - Private
+
+    private fun refreshAuthState() {
+        _isAnonymous.value = authProvider.isAnonymous
+        _displayName.value = authProvider.displayName
+    }
 
     private fun isUserCancellation(error: Throwable): Boolean = error is GetCredentialCancellationException
 

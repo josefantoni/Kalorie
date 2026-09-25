@@ -51,12 +51,12 @@ class AccountViewModelTest {
 
     @Test
     fun isAnonymous_reflectsAuthProvider() {
-        assertTrue(makeSUT(authProvider = AuthProviderFake(isAnonymous = true)).isAnonymous)
+        assertTrue(makeSUT(authProvider = AuthProviderFake(isAnonymous = true)).isAnonymous.value)
     }
 
     @Test
     fun displayName_reflectsAuthProvider() {
-        assertEquals("Josef", makeSUT(authProvider = AuthProviderFake(isAnonymous = false, displayName = "Josef")).displayName)
+        assertEquals("Josef", makeSUT(authProvider = AuthProviderFake(isAnonymous = false, displayName = "Josef")).displayName.value)
     }
 
     // MARK: - onSignOutTapped

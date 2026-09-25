@@ -55,6 +55,8 @@ fun AccountView(
     val showDeleteConfirmation by viewModel.showDeleteConfirmation.collectAsState()
     val isReauthenticateAlertVisible by viewModel.isReauthenticateAlertVisible.collectAsState()
     val isMaintainer by viewModel.isMaintainer.collectAsState()
+    val isAnonymous by viewModel.isAnonymous.collectAsState()
+    val displayName by viewModel.displayName.collectAsState()
     var isModerationPushed by remember { mutableStateOf(false) }
     var isModerationReportsPushed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -97,7 +99,7 @@ fun AccountView(
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                 Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                    if (viewModel.isAnonymous) {
+                    if (isAnonymous) {
                         Text(
                             text = stringResource(R.string.account_anonymous_description),
                             style = MaterialTheme.typography.bodyMedium,
@@ -111,7 +113,7 @@ fun AccountView(
                         }
                     } else {
                         Text(
-                            text = viewModel.displayName ?: stringResource(R.string.account_signedIn_defaultName),
+                            text = displayName ?: stringResource(R.string.account_signedIn_defaultName),
                             style = MaterialTheme.typography.titleMedium,
                         )
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
