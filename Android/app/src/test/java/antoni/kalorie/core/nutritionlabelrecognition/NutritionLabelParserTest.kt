@@ -258,6 +258,24 @@ class NutritionLabelParserTest {
         assertEquals(200.0, NutritionLabelParser.parse(lines).weightOfProduct)
     }
 
+    // MARK: - Saturates rows that also contain a fat keyword
+
+    @Test
+    fun parse_readsGermanSaturatesRowAsSaturatesNotFat() {
+        val reading = NutritionLabelParser.parse(fatAndSaturatesLines("Fett", "davon gesättigte Fettsäuren"))
+
+        assertEquals(12.0, reading.fat)
+        assertEquals(2.0, reading.fatSaturated)
+    }
+
+    @Test
+    fun parse_readsEnglishSaturatedFatRowAsSaturatesNotFat() {
+        val reading = NutritionLabelParser.parse(fatAndSaturatesLines("Fat", "Saturated fat"))
+
+        assertEquals(12.0, reading.fat)
+        assertEquals(2.0, reading.fatSaturated)
+    }
+
     // MARK: - Package weight
 
     @Test
@@ -301,6 +319,16 @@ class NutritionLabelParserTest {
         line("10 g", 0.6, 0.4, 0.15, 0.05),
         line("Sůl", 0.1, 0.3, 0.3, 0.05),
         line("1 g", 0.6, 0.3, 0.15, 0.05),
+    )
+
+    private fun fatAndSaturatesLines(fatLabel: String, saturatesLabel: String): List<RecognizedTextLine> = listOf(
+        line("Nutrition facts per 100 g", 0.6, 0.9, 0.3, 0.03),
+        line("Energy", 0.1, 0.8, 0.3, 0.05),
+        line("1550 kJ / 370 kcal", energyValueBox),
+        line(fatLabel, 0.1, 0.7, 0.3, 0.05),
+        line("12 g", 0.6, 0.7, 0.15, 0.05),
+        line(saturatesLabel, 0.1, 0.65, 0.4, 0.05),
+        line("2 g", saturatesValueBox),
     )
 
     private fun multiLanguageLabelLines(): List<RecognizedTextLine> = listOf(

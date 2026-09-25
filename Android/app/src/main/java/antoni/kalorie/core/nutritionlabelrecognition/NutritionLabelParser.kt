@@ -34,7 +34,7 @@ object NutritionLabelParser {
         LabelField.FAT to listOf("tuky", "tłuszcz", "tluszcz", "fett", "fat"),
         LabelField.SATURATES to listOf(
             "z toho nasycene", "z toho nasycené", "nasycené mastné", "nasycene mastne",
-            "w tym kwasy nasycone", "davon gesättigte", "davon gesattigte", "of which saturates", "saturates",
+            "w tym kwasy nasycone", "davon gesättigte", "davon gesattigte", "of which saturates", "saturated fat", "saturates",
         ),
         LabelField.CARBOHYDRATE to listOf("sacharidy", "węglowodany", "weglowodany", "kohlenhydrate", "carbohydrate"),
         LabelField.SUGARS to listOf("z toho cukry", "cukry", "davon zucker", "of which sugars", "sugars"),
@@ -200,7 +200,13 @@ object NutritionLabelParser {
 
     private fun matchedField(label: String): LabelField? {
         val lower = label.lowercase()
-        return LabelField.entries.firstOrNull { field -> keywords[field]?.any { lower.contains(it) } ?: false }
+        return LabelField.entries
+            .mapNotNull { field ->
+                val longest = keywords[field].orEmpty().filter { lower.contains(it) }.maxOfOrNull { it.length }
+                longest?.let { field to it }
+            }
+            .maxByOrNull { it.second }
+            ?.first
     }
 
     // A nearest-to-column candidate is picked by geometry alone, which cannot tell a value cell from
