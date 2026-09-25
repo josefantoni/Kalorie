@@ -2,8 +2,11 @@ package antoni.kalorie.features.moderation
 
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
+import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelImage
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
 import antoni.kalorie.core.usecases.ApproveSubmissionError
 import antoni.kalorie.core.usecases.ApproveSubmissionUseCaseProtocol
 import antoni.kalorie.core.usecases.CreateFoodItemError
@@ -14,6 +17,7 @@ import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
+import antoni.kalorie.core.utils.NutritionLabelPrefilling
 import antoni.kalorie.features.addfoodsheet.FoodItemFormInput
 import java.time.Instant
 import kotlinx.coroutines.CancellationException
@@ -25,12 +29,17 @@ class ModerationReviewViewModel(
     private val approveSubmission: ApproveSubmissionUseCaseProtocol,
     private val rejectSubmission: RejectSubmissionUseCaseProtocol,
     private val searchFoodItems: SearchFoodItemsUseCaseProtocol,
+    private val recognizeNutritionLabelUseCase: RecognizeNutritionLabelUseCaseProtocol,
     private val onResolved: () -> Unit,
-) : ViewModel() {
+) : ViewModel(), NutritionLabelPrefilling {
 
     // MARK: - Properties
 
-    val formInput = MutableStateFlow(FoodItemFormInput.from(submission.item))
+    override val formInput = MutableStateFlow(FoodItemFormInput.from(submission.item))
+    override val recognizedFields = MutableStateFlow<Set<FoodItemFormField>>(emptySet())
+    override val isRecognizingNutritionLabel = MutableStateFlow(false)
+    override val isNutritionLabelCameraVisible = MutableStateFlow(false)
+    override val nutritionLabelCameraHintRes = MutableStateFlow<Int?>(null)
     private val _state = MutableStateFlow<LoadingState<Unit>>(LoadingState.Idle)
     val state: StateFlow<LoadingState<Unit>> = _state
     val alertItem = MutableStateFlow<AlertItem?>(null)
@@ -61,6 +70,14 @@ class ModerationReviewViewModel(
             Log.warning(error, Constants.LogCategory.MODERATION)
             _isSimilarCatalogueItemsSectionAvailable.value = false
         }
+    }
+
+    suspend fun onNutritionLabelCaptured(image: NutritionLabelImage, liveBarcode: String?) {
+        recognizeNutritionLabel(image, liveBarcode, recognizeNutritionLabelUseCase)
+    }
+
+    fun onNutritionLabelCameraTapped() {
+        isNutritionLabelCameraVisible.value = true
     }
 
     suspend fun onApproveTapped() {

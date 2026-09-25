@@ -6,6 +6,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
+import antoni.kalorie.core.nutritionlabelrecognition.MlKitTextRecognizer
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCase
 import antoni.kalorie.core.usecases.ApproveSubmissionUseCase
 import antoni.kalorie.core.usecases.CreateFoodItemUseCase
 import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCase
@@ -79,6 +81,7 @@ class ModerationConfigurator(
                 ),
                 rejectSubmission = RejectSubmissionUseCase(dataProvider, authProvider),
                 searchFoodItems = SearchFoodItemsUseCase(dataProvider),
+                recognizeNutritionLabelUseCase = MlKitTextRecognizer().let { RecognizeNutritionLabelUseCase(it, it) },
                 onResolved = onResolved,
             )
         }
@@ -92,6 +95,7 @@ class ModerationConfigurator(
             ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
                 updateFoodItem = UpdateFoodItemUseCase(dataProvider, authProvider),
+                recognizeNutritionLabelUseCase = MlKitTextRecognizer().let { RecognizeNutritionLabelUseCase(it, it) },
                 initialBarcode = initialBarcode,
             )
         }

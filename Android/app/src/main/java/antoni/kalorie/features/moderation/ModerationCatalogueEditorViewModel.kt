@@ -2,7 +2,10 @@ package antoni.kalorie.features.moderation
 
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
+import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelImage
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodItemError
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseProtocol
@@ -10,6 +13,7 @@ import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
+import antoni.kalorie.core.utils.NutritionLabelPrefilling
 import antoni.kalorie.features.addfoodsheet.FoodItemFormInput
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,15 +22,20 @@ import kotlinx.coroutines.flow.StateFlow
 class ModerationCatalogueEditorViewModel(
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
     private val updateFoodItem: UpdateFoodItemUseCaseProtocol,
+    private val recognizeNutritionLabelUseCase: RecognizeNutritionLabelUseCaseProtocol,
     private val initialBarcode: String? = null,
-) : ViewModel() {
+) : ViewModel(), NutritionLabelPrefilling {
 
     // MARK: - Properties
 
     val barcodeQuery = MutableStateFlow(initialBarcode ?: "")
     private val _loadedItem = MutableStateFlow<FoodItemDomain?>(null)
     val loadedItem: StateFlow<FoodItemDomain?> = _loadedItem
-    val formInput = MutableStateFlow(FoodItemFormInput())
+    override val formInput = MutableStateFlow(FoodItemFormInput())
+    override val recognizedFields = MutableStateFlow<Set<FoodItemFormField>>(emptySet())
+    override val isRecognizingNutritionLabel = MutableStateFlow(false)
+    override val isNutritionLabelCameraVisible = MutableStateFlow(false)
+    override val nutritionLabelCameraHintRes = MutableStateFlow<Int?>(null)
     private val _state = MutableStateFlow<LoadingState<Unit>>(LoadingState.Idle)
     val state: StateFlow<LoadingState<Unit>> = _state
     val alertItem = MutableStateFlow<AlertItem?>(null)
@@ -42,6 +51,14 @@ class ModerationCatalogueEditorViewModel(
         onSearchTapped()
     }
 
+    suspend fun onNutritionLabelCaptured(image: NutritionLabelImage, liveBarcode: String?) {
+        recognizeNutritionLabel(image, liveBarcode, recognizeNutritionLabelUseCase)
+    }
+
+    fun onNutritionLabelCameraTapped() {
+        isNutritionLabelCameraVisible.value = true
+    }
+
     suspend fun onSearchTapped() {
         val query = barcodeQuery.value
         if (query.isEmpty()) return
@@ -55,6 +72,7 @@ class ModerationCatalogueEditorViewModel(
             }
             _loadedItem.value = item
             formInput.value = FoodItemFormInput.from(item)
+            recognizedFields.value = emptySet()
             _didSave.value = false
         } catch (error: CancellationException) {
             throw error
