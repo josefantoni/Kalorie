@@ -5,9 +5,12 @@ import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
+import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import kotlinx.coroutines.CancellationException
@@ -18,9 +21,12 @@ import kotlinx.coroutines.flow.StateFlow
 class AddFoodSheetViewModel(
     private val searchFoodItems: SearchFoodItemsUseCaseProtocol,
     private val searchFoodExternally: SearchFoodExternallyUseCaseProtocol,
+    private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
+    private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
     private val fetchFavouriteFoods: FetchFavouriteFoodsUseCaseProtocol,
     private val refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol,
     private val onFoodSaved: () -> Unit = {},
+    isScannerVisible: Boolean = false,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -33,6 +39,11 @@ class AddFoodSheetViewModel(
     private val _favouriteIds = MutableStateFlow<Set<String>>(emptySet())
     val favouriteIds: StateFlow<Set<String>> = _favouriteIds
     val searchText = MutableStateFlow("")
+    val isScannerVisible = MutableStateFlow(isScannerVisible)
+    val lastScannedBarcode = MutableStateFlow("")
+    private val _isBarcodeSearchLoading = MutableStateFlow(false)
+    val isBarcodeSearchLoading: StateFlow<Boolean> = _isBarcodeSearchLoading
+    val alertItem = MutableStateFlow<AlertItem?>(null)
     val isPushedToQuantityView = MutableStateFlow(false)
     private val _selectedFoodItem = MutableStateFlow<FoodItemDomain?>(null)
     val selectedFoodItem: StateFlow<FoodItemDomain?> = _selectedFoodItem
@@ -52,6 +63,52 @@ class AddFoodSheetViewModel(
         }
 
     // MARK: - Functions
+
+    fun onScannerButtonTapped() {
+        isScannerVisible.value = true
+    }
+
+    fun onScenePhaseActive(isCameraAvailable: Boolean) {
+        if (!isScannerVisible.value || isCameraAvailable) return
+        isScannerVisible.value = false
+        alertItem.value = AlertItem(titleRes = R.string.addFood_camera_permissionAlert)
+    }
+
+    suspend fun onBarcodeScanned() {
+        val barcode = lastScannedBarcode.value
+        if (barcode.isEmpty()) return
+        _isBarcodeSearchLoading.value = true
+        try {
+            try {
+                fetchFoodItemByBarcode(barcode)?.let { local ->
+                    isScannerVisible.value = false
+                    onSelectFoodItem(local)
+                    return
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+            }
+            try {
+                fetchFoodByBarcodeExternally(barcode)?.let { external ->
+                    isScannerVisible.value = false
+                    onSelectFoodItem(external)
+                    return
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.error(error, Constants.LogCategory.ADD_FOOD_SHEET)
+                alertItem.value = AlertItem(titleRes = R.string.addFood_error_loadFailed)
+                return
+            }
+            alertItem.value = AlertItem(titleRes = R.string.addFood_error_barcodeNotFound)
+        } finally {
+            lastScannedBarcode.value = ""
+            _isBarcodeSearchLoading.value = false
+        }
+    }
 
     suspend fun onSearchTextChanged() {
         if (isPushedToQuantityView.value) return

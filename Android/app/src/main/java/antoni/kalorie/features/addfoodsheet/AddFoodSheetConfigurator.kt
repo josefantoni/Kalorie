@@ -9,6 +9,8 @@ import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCase
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCase
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCase
@@ -35,6 +37,8 @@ class AddFoodSheetConfigurator(
             AddFoodSheetViewModel(
                 searchFoodItems = SearchFoodItemsUseCase(dataProvider),
                 searchFoodExternally = SearchFoodExternallyUseCase(),
+                fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
+                fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                 fetchFavouriteFoods = FetchFavouriteFoodsUseCase(dataProvider, authProvider),
                 refreshFavouriteFood = RefreshFavouriteFoodUseCase(dataProvider, authProvider),
                 onFoodSaved = onFoodSaved,
