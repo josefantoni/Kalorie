@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
+import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.extensions.formattedTrimmed
@@ -65,6 +66,8 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
     val quantity by viewModel.quantity.collectAsState()
     val mealTypes by viewModel.mealTypes.collectAsState()
     val selectedMealTypeId by viewModel.selectedMealTypeId.collectAsState()
+    val isFavourite by viewModel.isFavourite.collectAsState()
+    val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     var quantityText by remember { mutableStateOf(quantity.formattedTrimmed()) }
@@ -100,13 +103,21 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                Text(
-                    text = item.displayName,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = item.displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    FavouriteButton(isFavourite = isFavourite, isEnabled = !isTogglingFavourite) {
+                        scope.launch { viewModel.onFavouriteToggled() }
+                    }
+                }
                 LabeledRow(label = stringResource(R.string.foodQuantity_input_grams)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         TextField(

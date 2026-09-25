@@ -2,6 +2,10 @@ package antoni.kalorie.features.addfoodsheet
 
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseFake
+import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
+import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseFake
+import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseFake
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseFake
@@ -139,6 +143,95 @@ class AddFoodSheetViewModelTest {
         assertTrue(sut.externalFoodItems.value.isEmpty())
     }
 
+    // MARK: - onSelectFavouriteFood
+
+    @Test
+    fun onSelectFavouriteFood_whenCatalogueCorrectedItem_selectsAndReplacesWithFreshItem() = runTest {
+        val stale = makeFoodItem(id = "fav", czName = "Ovar")
+        val corrected = makeFoodItem(id = "fav", czName = "Ovar opravený")
+        val sut = makeSUT(
+            fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(stale)),
+            refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(stubbedItem = corrected),
+        )
+        sut.onAppear()
+
+        sut.onSelectFavouriteFood(stale)
+
+        assertEquals(corrected, sut.selectedFoodItem.value)
+        assertEquals(listOf(corrected), sut.favouriteFoods.value)
+        assertTrue(sut.isPushedToQuantityView.value)
+    }
+
+    @Test
+    fun onSelectFavouriteFood_whenRefreshFails_stillSelectsTheStoredSnapshot() = runTest {
+        val stale = makeFoodItem(id = "fav", czName = "Ovar")
+        val sut = makeSUT(refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(shouldThrow = true))
+
+        sut.onSelectFavouriteFood(stale)
+
+        assertEquals(stale, sut.selectedFoodItem.value)
+        assertTrue(sut.isPushedToQuantityView.value)
+    }
+
+    // MARK: - displayedResults
+
+    @Test
+    fun displayedResults_hoistsMatchingFavouritesAboveCatalog() = runTest {
+        val sut = makeSUT(fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "fav", czName = "Ovar"))))
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(makeFoodItem(id = "cat", czName = "Ovoce"))
+        sut.searchText.value = "ov"
+
+        assertEquals(listOf("fav", "cat"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_whenAFavouriteIsAlsoACatalogueMatch_listsItOnce() = runTest {
+        val favourite = makeFoodItem(id = "fav", czName = "Ovar")
+        val sut = makeSUT(fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(favourite)))
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(makeFoodItem(id = "fav", czName = "Ovar"), makeFoodItem(id = "cat", czName = "Ovoce"))
+        sut.searchText.value = "ov"
+
+        assertEquals(listOf("fav", "cat"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_matchesFavouritesByLowercasedPrefixWithoutFoldingDiacritics() = runTest {
+        val sut = makeSUT(fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "fav", czName = "Řepa"))))
+        sut.onAppear()
+        sut.searchText.value = "repa"
+
+        assertTrue("the local favourite match is a plain lowercased prefix, unlike the folded server search", sut.displayedResults.isEmpty())
+    }
+
+    // MARK: - onFavouriteChanged
+
+    @Test
+    fun onFavouriteChanged_whenFavourited_putsTheItemFirstAndMarksItFavourite() = runTest {
+        val existing = makeFoodItem(id = "old")
+        val sut = makeSUT(fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(existing)))
+        sut.onAppear()
+        val added = makeFoodItem(id = "new")
+
+        sut.onFavouriteChanged(id = "new", isFavourite = true, item = added)
+
+        assertEquals(listOf("new", "old"), sut.favouriteFoods.value.map { it.id })
+        assertTrue(sut.isFavourite(added))
+    }
+
+    @Test
+    fun onFavouriteChanged_whenUnfavourited_removesTheItemAndItsMark() = runTest {
+        val existing = makeFoodItem(id = "old")
+        val sut = makeSUT(fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(existing)))
+        sut.onAppear()
+
+        sut.onFavouriteChanged(id = "old", isFavourite = false, item = existing)
+
+        assertTrue(sut.favouriteFoods.value.isEmpty())
+        assertFalse(sut.isFavourite(existing))
+    }
+
     // MARK: - onFoodConsumedSaved
 
     @Test
@@ -147,6 +240,8 @@ class AddFoodSheetViewModelTest {
         val sut = AddFoodSheetViewModel(
             searchFoodItems = SearchFoodItemsUseCaseFake(),
             searchFoodExternally = SearchFoodExternallyUseCaseFake(),
+            fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(),
+            refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(),
             onFoodSaved = { onFoodSavedCalled = true },
         )
 
@@ -161,12 +256,19 @@ class AddFoodSheetViewModelTest {
     private fun makeSUT(
         searchFoodItems: SearchFoodItemsUseCaseProtocol = SearchFoodItemsUseCaseFake(),
         searchFoodExternally: SearchFoodExternallyUseCaseProtocol = SearchFoodExternallyUseCaseFake(),
-    ): AddFoodSheetViewModel = AddFoodSheetViewModel(searchFoodItems = searchFoodItems, searchFoodExternally = searchFoodExternally)
+        fetchFavouriteFoods: FetchFavouriteFoodsUseCaseProtocol = FetchFavouriteFoodsUseCaseFake(),
+        refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol = RefreshFavouriteFoodUseCaseFake(),
+    ): AddFoodSheetViewModel = AddFoodSheetViewModel(
+        searchFoodItems = searchFoodItems,
+        searchFoodExternally = searchFoodExternally,
+        fetchFavouriteFoods = fetchFavouriteFoods,
+        refreshFavouriteFood = refreshFavouriteFood,
+    )
 
-    private fun makeFoodItem(id: String = "12345"): FoodItemDomain = FoodItemDomain(
+    private fun makeFoodItem(id: String = "12345", czName: String = "Ovesné vločky"): FoodItemDomain = FoodItemDomain(
         id = id,
         kind = FoodItemKind.CATALOGUE,
-        czName = "Ovesné vločky",
+        czName = czName,
         engName = "Oats",
         weight = 80.0,
         date = Instant.now(),

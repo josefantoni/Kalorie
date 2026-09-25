@@ -4,6 +4,8 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
+import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
 import antoni.kalorie.core.utils.Constants
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.StateFlow
 class AddFoodSheetViewModel(
     private val searchFoodItems: SearchFoodItemsUseCaseProtocol,
     private val searchFoodExternally: SearchFoodExternallyUseCaseProtocol,
+    private val fetchFavouriteFoods: FetchFavouriteFoodsUseCaseProtocol,
+    private val refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol,
     private val onFoodSaved: () -> Unit = {},
 ) : ViewModel() {
 
@@ -25,6 +29,9 @@ class AddFoodSheetViewModel(
     val externalFoodItems = MutableStateFlow<List<FoodItemDomain>>(emptyList())
     private val _isExternalSearchLoading = MutableStateFlow(false)
     val isExternalSearchLoading: StateFlow<Boolean> = _isExternalSearchLoading
+    val favouriteFoods = MutableStateFlow<List<FoodItemDomain>>(emptyList())
+    private val _favouriteIds = MutableStateFlow<Set<String>>(emptySet())
+    val favouriteIds: StateFlow<Set<String>> = _favouriteIds
     val searchText = MutableStateFlow("")
     val isPushedToQuantityView = MutableStateFlow(false)
     private val _selectedFoodItem = MutableStateFlow<FoodItemDomain?>(null)
@@ -34,7 +41,15 @@ class AddFoodSheetViewModel(
     @StringRes val searchExampleRes: Int = searchExamples.random()
 
     val displayedResults: List<FoodItemDomain>
-        get() = localFoodItems.value
+        get() {
+            val query = searchText.value.lowercase()
+            if (query.isEmpty()) return localFoodItems.value
+            val matchingFavourites = favouriteFoods.value.filter {
+                it.czName.lowercase().startsWith(query) || it.engName.lowercase().startsWith(query)
+            }
+            val matchingIds = matchingFavourites.map { it.id }.toSet()
+            return matchingFavourites + localFoodItems.value.filter { it.id !in matchingIds }
+        }
 
     // MARK: - Functions
 
@@ -74,6 +89,47 @@ class AddFoodSheetViewModel(
         if (isPushedToQuantityView.value) return
         _selectedFoodItem.value = item
         isPushedToQuantityView.value = true
+    }
+
+    suspend fun onSelectFavouriteFood(item: FoodItemDomain) {
+        if (isPushedToQuantityView.value) return
+        var resolved = item
+        try {
+            resolved = refreshFavouriteFood(item)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+        }
+        val index = favouriteFoods.value.indexOfFirst { it.id == item.id }
+        if (resolved != item && index >= 0) {
+            favouriteFoods.value = favouriteFoods.value.toMutableList().also { it[index] = resolved }
+        }
+        onSelectFoodItem(resolved)
+    }
+
+    suspend fun onAppear() {
+        try {
+            val items = fetchFavouriteFoods()
+            favouriteFoods.value = items
+            _favouriteIds.value = items.map { it.id }.toSet()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+        }
+    }
+
+    fun isFavourite(item: FoodItemDomain): Boolean = item.id in _favouriteIds.value
+
+    fun onFavouriteChanged(id: String, isFavourite: Boolean, item: FoodItemDomain) {
+        favouriteFoods.value = favouriteFoods.value.filter { it.id != id }
+        if (isFavourite) {
+            _favouriteIds.value = _favouriteIds.value + id
+            favouriteFoods.value = listOf(item) + favouriteFoods.value
+        } else {
+            _favouriteIds.value = _favouriteIds.value - id
+        }
     }
 
     fun onFoodConsumedSaved() {

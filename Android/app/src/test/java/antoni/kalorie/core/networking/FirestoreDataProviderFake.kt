@@ -15,6 +15,12 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var stubbedByArrayContainsField: Map<String, List<Any>> = emptyMap()
     val arrayContainsValuesByField = ConcurrentHashMap<String, String>()
     var stubbedDocument: Any? = null
+    var stubbedDocumentByCollection: Map<String, Any?> = emptyMap()
+    var loadedIdCollections: List<String> = emptyList()
+    var queriedCollection: String? = null
+    var queriedOrderByField: String? = null
+    var queriedDescending: Boolean? = null
+    var queriedLimit: Int? = null
     var lastQueriedId: String? = null
     var lastQueriedCollection: String? = null
     var stubbedError: Exception? = null
@@ -38,7 +44,17 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         stubbedError?.let { throw it }
         lastQueriedId = id
         lastQueriedCollection = from
-        return stubbedDocument as T?
+        loadedIdCollections = loadedIdCollections + from
+        return (if (stubbedDocumentByCollection.containsKey(from)) stubbedDocumentByCollection[from] else stubbedDocument) as T?
+    }
+
+    override suspend fun <T> loadAsync(from: String, orderBy: String, descending: Boolean, limit: Int, serializer: KSerializer<T>): List<T> {
+        stubbedError?.let { throw it }
+        queriedCollection = from
+        queriedOrderByField = orderBy
+        queriedDescending = descending
+        queriedLimit = limit
+        return stubbedDocuments as List<T>
     }
 
     override suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T> {

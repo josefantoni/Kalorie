@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -38,12 +39,19 @@ import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.displayName
+import kotlinx.coroutines.launch
 
 @Composable
 fun AddFoodSheetView(
     viewModel: AddFoodSheetViewModel,
     onDismiss: () -> Unit,
-    makeFoodQuantityView: @Composable (item: FoodItemDomain, onSaved: () -> Unit, onBack: () -> Unit) -> Unit,
+    makeFoodQuantityView: @Composable (
+        item: FoodItemDomain,
+        isFavourite: Boolean,
+        onSaved: () -> Unit,
+        onFavouriteChanged: (String, Boolean) -> Unit,
+        onBack: () -> Unit,
+    ) -> Unit,
 ) {
 
     // MARK: - Properties
@@ -81,7 +89,9 @@ fun AddFoodSheetView(
                     is AddFoodSheetDestination.FoodQuantity -> NavEntry(destination) {
                         makeFoodQuantityView(
                             destination.item,
+                            viewModel.isFavourite(destination.item),
                             viewModel::onFoodConsumedSaved,
+                            { id, isFavourite -> viewModel.onFavouriteChanged(id, isFavourite, destination.item) },
                             { viewModel.isPushedToQuantityView.value = false },
                         )
                     }
@@ -99,9 +109,14 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
 
     val searchText by viewModel.searchText.collectAsState()
     val localFoodItems by viewModel.localFoodItems.collectAsState()
+    val favouriteFoods by viewModel.favouriteFoods.collectAsState()
+    val favouriteIds by viewModel.favouriteIds.collectAsState()
+    val scope = rememberCoroutineScope()
     val externalFoodItems by viewModel.externalFoodItems.collectAsState()
     val isExternalSearchLoading by viewModel.isExternalSearchLoading.collectAsState()
-    val displayedResults = remember(localFoodItems) { viewModel.displayedResults }
+    val displayedResults = remember(localFoodItems, favouriteFoods, searchText) { viewModel.displayedResults }
+
+    LaunchedEffect(Unit) { viewModel.onAppear() }
 
     LaunchedEffect(searchText) { viewModel.onSearchTextChanged() }
 
@@ -136,6 +151,23 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
+            if (searchText.isEmpty() && favouriteFoods.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.addFood_section_favourites),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+                items(favouriteFoods, key = { "favourite-${it.id}" }) { item ->
+                    FoodItemRow(
+                        item = item,
+                        isFavourite = true,
+                        modifier = Modifier.clickable { scope.launch { viewModel.onSelectFavouriteFood(item) } },
+                    )
+                }
+            }
             if (displayedResults.isNotEmpty() || searchText.isNotEmpty()) {
                 item {
                     Text(
@@ -147,7 +179,11 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                 }
                 if (displayedResults.isNotEmpty()) {
                     items(displayedResults, key = { it.id }) { item ->
-                        FoodItemRow(item = item, modifier = Modifier.clickable { viewModel.onSelectFoodItem(item) })
+                        FoodItemRow(
+                            item = item,
+                            isFavourite = item.id in favouriteIds,
+                            modifier = Modifier.clickable { viewModel.onSelectFoodItem(item) },
+                        )
                     }
                 } else if (isExternalSearchLoading) {
                     item {

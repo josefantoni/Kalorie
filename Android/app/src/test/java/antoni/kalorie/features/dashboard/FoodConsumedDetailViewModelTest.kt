@@ -1,12 +1,23 @@
 package antoni.kalorie.features.dashboard
 
 import antoni.kalorie.core.models.FoodConsumedDomain
+import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.MealTypeDomain
+import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseFake
+import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseFake
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseFake
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.IsFavouriteFoodUseCaseFake
+import antoni.kalorie.core.usecases.IsFavouriteFoodUseCaseProtocol
+import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseFake
+import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseProtocol
 import java.time.Instant
@@ -51,6 +62,96 @@ class FoodConsumedDetailViewModelTest {
         sut.onMealTypeSelected("breakfast")
 
         assertFalse("picking the value that is already pinned is not a pending change", sut.hasChanges)
+    }
+
+    // MARK: - Favourites
+
+    @Test
+    fun onAppear_whenCatalogueItemNoLongerResolves_disablesAddingButKeepsButtonVisible() = runTest {
+        val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = null))
+
+        sut.onAppear()
+
+        assertFalse(sut.isFavourite.value)
+        assertFalse(
+            "with no catalogue item to snapshot, adding must stay disabled rather than crash or write garbage",
+            sut.canToggleFavourite,
+        )
+    }
+
+    @Test
+    fun onFavouriteToggled_whenAlreadyFavouriteAndCatalogueItemMissing_stillAllowsUnfavouriting() = runTest {
+        val sut = makeSUT(
+            isFavouriteFood = IsFavouriteFoodUseCaseFake(stubbedResult = true),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = null),
+        )
+        sut.onAppear()
+        assertTrue(sut.isFavourite.value)
+        assertTrue("removal needs only the id, so it must stay possible even when the catalogue item vanished", sut.canToggleFavourite)
+
+        sut.onFavouriteToggled()
+
+        assertFalse(sut.isFavourite.value)
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onFavouriteToggled_whenNotFavouriteAndCatalogueItemMissing_revertsAndShowsAlert() = runTest {
+        val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = null))
+        sut.onAppear()
+        assertFalse(sut.isFavourite.value)
+
+        sut.onFavouriteToggled()
+
+        assertFalse("adding needs the catalogue item, so a missing snapshot must not leave the toggle stuck on", sut.isFavourite.value)
+        assertNotNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onAppear_whenFoodItemKindIsExternalAndAlreadyFavourite_showsButtonRegardlessOfExternalLookup() = runTest {
+        val sut = makeSUT(
+            food = makeFood(kind = FoodItemKind.EXTERNAL),
+            isFavouriteFood = IsFavouriteFoodUseCaseFake(stubbedResult = true),
+            fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(stubbedItem = null),
+        )
+
+        sut.onAppear()
+
+        assertTrue("an external item is favouritable via its own id, independent of the catalogue", sut.isFavourite.value)
+        assertTrue(
+            "already being a favourite must show the button even when the external lookup finds nothing",
+            sut.canShowFavouriteButton,
+        )
+    }
+
+    @Test
+    fun onAppear_whenFoodItemKindIsExternalAndNotYetFavourite_showsFavouriteButtonFromExternalLookup() = runTest {
+        val sut = makeSUT(
+            food = makeFood(kind = FoodItemKind.EXTERNAL),
+            fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(stubbedItem = makeCatalogueItem()),
+        )
+
+        sut.onAppear()
+
+        assertFalse(sut.isFavourite.value)
+        assertTrue(
+            "an OpenFoodFacts item is favouritable before it is favourited too; it has no Firestore catalogue entry, so it is resolved via OpenFoodFacts instead",
+            sut.canShowFavouriteButton,
+        )
+    }
+
+    @Test
+    fun onAppear_whenFoodItemKindIsCreatedMeal_skipsFavouriteAndCatalogueLookups() = runTest {
+        val sut = makeSUT(
+            food = makeFood(kind = FoodItemKind.CREATED_MEAL),
+            isFavouriteFood = IsFavouriteFoodUseCaseFake(stubbedResult = true),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeCatalogueItem()),
+        )
+
+        sut.onAppear()
+
+        assertFalse("a created meal has no catalogue counterpart to favourite, so the Dashboard never offers it", sut.isFavourite.value)
+        assertFalse(sut.canShowFavouriteButton)
     }
 
     // MARK: - onSave — meal type pin
@@ -159,6 +260,11 @@ class FoodConsumedDetailViewModelTest {
         updateFoodConsumed: UpdateFoodConsumedUseCaseProtocol = UpdateFoodConsumedUseCaseFake(),
         assignFoodMealType: AssignFoodMealTypeUseCaseProtocol = AssignFoodMealTypeUseCaseFake(),
         fetchMealTypes: FetchMealTypesUseCaseProtocol? = null,
+        isFavouriteFood: IsFavouriteFoodUseCaseProtocol = IsFavouriteFoodUseCaseFake(),
+        addFavouriteFood: AddFavouriteFoodUseCaseProtocol = AddFavouriteFoodUseCaseFake(),
+        removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
+        fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeCatalogueItem()),
+        fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         onFoodUpdated: () -> Unit = {},
     ): FoodConsumedDetailViewModel =
         FoodConsumedDetailViewModel(
@@ -167,8 +273,32 @@ class FoodConsumedDetailViewModelTest {
             updateFoodConsumed = updateFoodConsumed,
             assignFoodMealType = assignFoodMealType,
             fetchMealTypes = fetchMealTypes ?: FetchMealTypesUseCaseFake(stubbedTypes = mealTypes),
+            isFavouriteFood = isFavouriteFood,
+            addFavouriteFood = addFavouriteFood,
+            removeFavouriteFood = removeFavouriteFood,
+            fetchFoodItemByBarcode = fetchFoodItemByBarcode,
+            fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
             onFoodUpdated = onFoodUpdated,
         )
+
+    private fun makeCatalogueItem(): FoodItemDomain = FoodItemDomain(
+        id = "12345",
+        kind = FoodItemKind.CATALOGUE,
+        czName = "Ovesné vločky",
+        engName = "Oats",
+        weight = 100.0,
+        date = Instant.now(),
+        energyKJ = 1500.0,
+        caloriesPerHundredGrams = 370.0,
+        fat = 7.0,
+        fatSaturated = 1.0,
+        fatUnsaturatedFattyAcids = 6.0,
+        carbohydrate = 65.0,
+        carbohydratePureSugar = 1.0,
+        fiber = 10.0,
+        protein = 13.0,
+        salt = 0.0,
+    )
 
     private fun makeDate(hour: Int, minute: Int): Instant =
         ZonedDateTime.now().withHour(hour).withMinute(minute).withSecond(0).withNano(0).toInstant()

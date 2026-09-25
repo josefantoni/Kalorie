@@ -6,8 +6,13 @@ import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
+import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCase
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCase
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
+import antoni.kalorie.core.usecases.IsFavouriteFoodUseCase
+import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCase
 
 class FoodConsumedDetailConfigurator(
@@ -31,6 +36,11 @@ class FoodConsumedDetailConfigurator(
                 updateFoodConsumed = UpdateFoodConsumedUseCase(dataProvider, authProvider),
                 assignFoodMealType = AssignFoodMealTypeUseCase(dataProvider, authProvider),
                 fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider),
+                isFavouriteFood = IsFavouriteFoodUseCase(dataProvider, authProvider),
+                addFavouriteFood = AddFavouriteFoodUseCase(dataProvider, authProvider),
+                removeFavouriteFood = RemoveFavouriteFoodUseCase(dataProvider, authProvider),
+                fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
+                fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                 onFoodUpdated = onFoodUpdated,
             )
         }
