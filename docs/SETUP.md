@@ -91,9 +91,11 @@ build and sign in. Every Gradle row below is applied in that app. The console re
 for real (package `antoni.kalorie`, debug SHA-1 added, `google-services.json` downloaded and
 inspected: an Android OAuth client whose hash matches the debug keystore, plus a Web client).
 Verified end to end: the app starts, signs in **anonymously** and reads Firestore with the
-downloaded `google-services.json`. That proves the project wiring, not the SHA-1 path — anonymous
-auth does not check the signing certificate — so Google sign-in is still unexercised: no app has
-signed in with it yet.
+downloaded `google-services.json`. Anonymous auth does not check the signing certificate, so that
+alone did not prove the SHA-1 path; a real Google sign-in and sign-out on a debug build installed from
+the machine whose `~/.android/debug.keystore` is registered later did. A CI-built APK is signed with
+the runner's own throwaway debug keystore and fails Google sign-in with `DEVELOPER_ERROR` / code 10
+by design.
 
 | Step | Where | Notes |
 |---|---|---|

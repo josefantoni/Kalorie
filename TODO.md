@@ -93,8 +93,8 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    from `FoodConsumedModel.swift`. Add `implementation("kalorie:TextKit")` (the `includeBuild` is
    already in `settings.gradle.kts`). Add `rootDir.resolve("../fixtures")` as unit-test resources
    and read `food-item-validation-cases.json` in `FoodItemValidationTest`. Optionality of every
-   field comes from ARCHITECTURE § 1.7, not from guessing. The scaling fixture from *Second-client
-   readers* below also lands here: add it to `fixtures/` with an iOS reader test in a separate
+   field comes from ARCHITECTURE § 1.7, not from guessing. The scaling fixture also lands
+   here: add it to `fixtures/` with an iOS reader test in a separate
    `iOS/` commit first, then the Kotlin reader. Read ARCHITECTURE § 1.3, § 1.4, § 1.7, § 2.6 and
    ADR 0039.
    *Ported with deviations:* `FoodItemValidationError.mapped` is left out and comes with step 12,
@@ -287,8 +287,8 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     `AuthStateObserver.kt`), `SignOut`, `Reauthenticate`, `DeleteAccount` and
     `FetchMaintainerClaimUseCase`. Add the top-leading toolbar button. Apple sign-in stays out
     (*Apple sign-in on Android*). Read § 6, ADR 0002 and ADR 0004.
-    *Ported with deviations:* the code is done, the real sign-in run is the user's acceptance check
-    (see *Firebase setup* below). Credential Manager 1.6.0 with `googleid` 1.2.1, using
+    *Ported with deviations:* the code is done and a real sign-in and sign-out run passed by hand.
+    Credential Manager 1.6.0 with `googleid` 1.2.1, using
     `GetSignInWithGoogleOption` (the button flow, which always shows the account chooser) and the
     `default_web_client_id` resource. `GoogleSignInProvider` finds the presenting activity through
     `CurrentActivityProvider`, held by the new `KalorieApplication`, the counterpart of iOS's
@@ -302,8 +302,8 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     collections, and `DeleteAccountUseCase` deletes the `users` document.
 14. [ ] **Export.** Port `FetchFoodsConsumedInRangeUseCase`, `GenerateFoodExportUseCase`,
     `FoodExportReportFactory` and `Export*` through ExportKit, and share the file with an
-    `ACTION_SEND` intent (the counterpart of `ActivityView`). It carries the day-bucketing fixture
-    from *Second-client readers*. Read § 8 and design 0014.
+    `ACTION_SEND` intent (the counterpart of `ActivityView`). It carries the day-bucketing fixture.
+    Read § 8 and design 0014.
     *Ported with deviations:* the fixture `fixtures/export-day-bucketing-cases.json` came first, with
     an iOS reader (`FoodExportDayBucketingTests`) in its own commit, then the Kotlin reader in
     `FoodExportReportFactoryTest`. Both read entries as ISO offset date-times and check only the day
@@ -341,30 +341,13 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
 - [ ] **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.
-- [ ] **Second-client readers for the golden vectors** — what ADR 0039 defers until the screen
-  that needs it is ported:
-  - **Android readers** — `fixtures/food-item-validation-cases.json` when `FoodItemValidation` is
-    ported and `fixtures/open-food-facts-mapping-cases.json` when
-    `FetchFoodByBarcodeExternallyUseCase` is. Add `rootDir.resolve("../fixtures")` as a unit-test
-    resources directory in `Android/app/build.gradle.kts` and parse with
-    `Json.parseToJsonElement`.
-  - **Scaling fixture**, with the FoodQuantity port: a `FoodItemDomain` and grams in,
-    `ScaledMacros` out (iOS `ScaledMacros.init(item:ratio:)` and `FoodItemDomain.scaled(toGrams:)` in
-    `FoodConsumedModel.swift`).
 - [ ] **Firebase setup for an Android app** — the Firebase console side is done (app
-  `antoni.kalorie`, debug SHA-1, `google-services.json`). Still to add: the release and Play App
-  Signing SHA-1s, and a real sign-in run to confirm the `docs/SETUP.md` Android section when the
-  first sign-in screen is built.
+  `antoni.kalorie`, debug SHA-1, `google-services.json`), and Google sign-in was verified by hand on a
+  debug build (`docs/SETUP.md` Android section). Still to add: the release and Play App Signing SHA-1s.
 
-  **Handoff (analysed 2026-09-24).** Two parts left, both blocked.
+  **Handoff (analysed 2026-09-24).** One part left, blocked on the user.
 
-  1. **Real Google sign-in run — the acceptance check of step 13, blocked on the user.** The code is
-     in place (Credential Manager, `default_web_client_id`). Verify by hand on a debug build installed
-     from the machine whose `~/.android/debug.keystore` is registered; CI's runner generates its own
-     throwaway debug keystore, so a CI-built APK fails Google sign-in with `DEVELOPER_ERROR` / code 10
-     by design, not by bug. Once it works, delete the *"no app has signed in with it yet"* sentence
-     from `docs/SETUP.md`.
-  2. **Release and Play App Signing SHA-1s — blocked on the user, before the first Play release.**
+  1. **Release and Play App Signing SHA-1s — blocked on the user, before the first Play release.**
      No release keystore exists and `app/build.gradle.kts`'s `release` block has no `signingConfig`.
      With Play App Signing (the default for new apps), users' installs are signed by **Google's**
      app-signing key, so that key's SHA-1 (Play Console → App integrity) is the one Google sign-in
