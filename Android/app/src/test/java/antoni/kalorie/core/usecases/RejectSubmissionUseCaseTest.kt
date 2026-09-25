@@ -108,6 +108,17 @@ class RejectSubmissionUseCaseTest {
     }
 
     @Test
+    fun reject_writesSubmittedAtUnchangedSoTheRulesAcceptASubMillisecondValue() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        val stored = makeDTO(makeSubmission()).copy(submittedAt = 1_758_800_000.123456)
+
+        sut(stored.asDomain(), "Wrong calories")
+
+        val written = dataProvider.setSavedItem as FoodItemSubmissionDTO
+        assertEquals(stored.submittedAt, written.submittedAt, 0.0)
+    }
+
+    @Test
     fun reject_whenWriteDeniedAndReReadFails_rethrowsOriginalWriteError() = runTest {
         val (sut, dataProvider) = makeSUT()
         val deniedError = permissionDenied()

@@ -92,6 +92,18 @@ class ApproveSubmissionUseCaseTest {
     }
 
     @Test
+    fun approve_whenSubmissionWasWrittenWithSubMillisecondPrecision_createsTheItemInsteadOfReportingAChange() = runTest {
+        val (sut, dataProvider, createFoodItem) = makeSUT()
+        val stored = makeDTO(makeSubmission()).copy(submittedAt = 1_758_800_000.123456)
+        val submission = stored.asDomain()
+        dataProvider.stubbedServerDocument = stored
+
+        sut(submission, submission.item)
+
+        assertEquals(submission.item.id, createFoodItem.receivedItem?.id)
+    }
+
+    @Test
     fun approve_whenSubmissionDeleteFailsAfterCreate_swallowsTheErrorSinceTheCatalogueWriteAlreadySucceeded() = runTest {
         val (sut, dataProvider, createFoodItem) = makeSUT()
         val submission = makeSubmission()
