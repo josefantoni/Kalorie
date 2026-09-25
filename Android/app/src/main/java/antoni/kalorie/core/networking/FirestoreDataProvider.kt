@@ -20,6 +20,15 @@ interface FirestoreDataProviderProtocol {
     suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadAsync(id: String, from: String, serializer: KSerializer<T>): T?
     suspend fun <T> loadAsync(from: String, whereDocumentIdIn: List<String>, serializer: KSerializer<T>): List<T>
+    suspend fun <T> loadAsync(
+        from: String,
+        field: String,
+        isEqualTo: String,
+        orderBy: String,
+        descending: Boolean,
+        serializer: KSerializer<T>,
+    ): List<T>
+    suspend fun <T> loadFromServerAsync(id: String, from: String, serializer: KSerializer<T>): T?
     suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadAsync(from: String, orderBy: String, descending: Boolean, limit: Int, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadAsync(
@@ -53,6 +62,17 @@ suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(
     from: String,
     whereDocumentIdIn: List<String>,
 ): List<T> = loadAsync(from, whereDocumentIdIn, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(
+    from: String,
+    field: String,
+    isEqualTo: String,
+    orderBy: String,
+    descending: Boolean,
+): List<T> = loadAsync(from, field, isEqualTo, orderBy, descending, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadFromServerAsync(id: String, from: String): T? =
+    loadFromServerAsync(id, from, serializer<T>())
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.loadFromServerAsync(from: String): List<T> =
     loadFromServerAsync(from, serializer<T>())
@@ -113,6 +133,25 @@ class FirestoreDataProvider(
                 val snapshot = firestore.collection(from).whereIn(FieldPath.documentId(), chunk).get().await()
                 snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
             }
+        }
+
+    override suspend fun <T> loadAsync(
+        from: String,
+        field: String,
+        isEqualTo: String,
+        orderBy: String,
+        descending: Boolean,
+        serializer: KSerializer<T>,
+    ): List<T> = perform {
+        val direction = if (descending) Query.Direction.DESCENDING else Query.Direction.ASCENDING
+        val snapshot = firestore.collection(from).whereEqualTo(field, isEqualTo).orderBy(orderBy, direction).get().await()
+        snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+    }
+
+    override suspend fun <T> loadFromServerAsync(id: String, from: String, serializer: KSerializer<T>): T? =
+        perform {
+            val snapshot = firestore.collection(from).document(id).get(Source.SERVER).await()
+            snapshot.data?.let { FirestoreDataMapper.decode(it, serializer) }
         }
 
     override suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T> =

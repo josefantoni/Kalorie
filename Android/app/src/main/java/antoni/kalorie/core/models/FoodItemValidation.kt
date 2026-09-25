@@ -6,6 +6,22 @@ sealed class FoodItemValidationError : Exception() {
     data object InvalidCalories : FoodItemValidationError()
     data object InvalidWeight : FoodItemValidationError()
     data class InvalidPortion(val error: FoodPortionError) : FoodItemValidationError()
+
+    // MARK: - Functions
+
+    fun <T> mapped(
+        invalidCode: T,
+        invalidName: T,
+        invalidCalories: T,
+        invalidWeight: T,
+        invalidPortion: (FoodPortionError) -> T,
+    ): T = when (this) {
+        InvalidCode -> invalidCode
+        InvalidName -> invalidName
+        InvalidCalories -> invalidCalories
+        InvalidWeight -> invalidWeight
+        is InvalidPortion -> invalidPortion(error)
+    }
 }
 
 object FoodItemValidation {

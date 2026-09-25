@@ -17,6 +17,12 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var stubbedByDocumentIds: List<Any> = emptyList()
     var queriedDocumentIds: List<String> = emptyList()
     var stubbedDocument: Any? = null
+    var stubbedServerDocument: Any? = null
+    var stubbedByField: List<Any> = emptyList()
+    var queriedField: String? = null
+    var queriedValue: String? = null
+    var queriedServerId: String? = null
+    var queriedServerCollection: String? = null
     var stubbedDocumentByCollection: Map<String, Any?> = emptyMap()
     var loadedIdCollections: List<String> = emptyList()
     var queriedCollection: String? = null
@@ -64,6 +70,30 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         queriedCollection = from
         queriedDocumentIds = whereDocumentIdIn
         return stubbedByDocumentIds as List<T>
+    }
+
+    override suspend fun <T> loadAsync(
+        from: String,
+        field: String,
+        isEqualTo: String,
+        orderBy: String,
+        descending: Boolean,
+        serializer: KSerializer<T>,
+    ): List<T> {
+        stubbedError?.let { throw it }
+        queriedCollection = from
+        queriedField = field
+        queriedValue = isEqualTo
+        queriedOrderByField = orderBy
+        queriedDescending = descending
+        return stubbedByField as List<T>
+    }
+
+    override suspend fun <T> loadFromServerAsync(id: String, from: String, serializer: KSerializer<T>): T? {
+        stubbedError?.let { throw it }
+        queriedServerId = id
+        queriedServerCollection = from
+        return stubbedServerDocument as T?
     }
 
     override suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T> {
