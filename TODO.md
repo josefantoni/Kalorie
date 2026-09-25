@@ -281,12 +281,25 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
     The provider gained `loadAsync(from, field, isEqualTo, orderBy, descending)` and
     `loadFromServerAsync(id, from)`. Tests beyond iOS: the submission id is an uppercase UUID, and the
     barcode rescan copies the code into the form.
-13. [ ] **Account.** This step absorbs *Anonymous-data merge on Android* and part 1 of *Firebase
-    setup* below; read both. Port `AccountView`/`AccountViewModel`, and `SignInWithGoogle`,
+13. [ ] **Account.** This step absorbs the anonymous-data merge and part 1 of *Firebase
+    setup* below; read it. Port `AccountView`/`AccountViewModel`, and `SignInWithGoogle`,
     `LinkOrMergeCredential`, `MigrateAnonymousData` (plus the `resumeIfNeeded` call in
     `AuthStateObserver.kt`), `SignOut`, `Reauthenticate`, `DeleteAccount` and
     `FetchMaintainerClaimUseCase`. Add the top-leading toolbar button. Apple sign-in stays out
     (*Apple sign-in on Android*). Read § 6, ADR 0002 and ADR 0004.
+    *Ported with deviations:* the code is done, the real sign-in run is the user's acceptance check
+    (see *Firebase setup* below). Credential Manager 1.6.0 with `googleid` 1.2.1, using
+    `GetSignInWithGoogleOption` (the button flow, which always shows the account chooser) and the
+    `default_web_client_id` resource. `GoogleSignInProvider` finds the presenting activity through
+    `CurrentActivityProvider`, held by the new `KalorieApplication`, the counterpart of iOS's
+    `UIApplication.shared`. `AuthProviderKind` has only `GOOGLE`, `AuthProvider.linkedProviderKind`
+    skips the synthetic `firebase` provider entry, and `SignOutUseCase` and
+    `AccountViewModel.onSignOutTapped` are `suspend` since clearing the Google session is. User
+    cancellation is `GetCredentialCancellationException`. The snapshot is stored in `filesDir` through
+    kotlinx.serialization. `AccountView` is a full-screen dialog with only the Google button, and its
+    maintainer *Moderation* section waits for step 15 although `isMaintainer` is loaded already. The merge
+    overlay lives in `KalorieApp`. Tests beyond iOS: the snapshot store tolerates missing optional
+    collections, and `DeleteAccountUseCase` deletes the `users` document.
 14. [ ] **Export.** Port `FetchFoodsConsumedInRangeUseCase`, `GenerateFoodExportUseCase`,
     `FoodExportReportFactory` and `Export*` through ExportKit, and share the file with an
     `ACTION_SEND` intent (the counterpart of `ActivityView`). It carries the day-bucketing fixture
@@ -294,14 +307,6 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
 15. [ ] **Moderation.** *Decision:* whether Android needs it at all. It is maintainer-only, and the
     maintainer may keep using iOS. If yes, port `Features/Moderation/*` and its use cases last.
 
-- [ ] **Anonymous-data merge on Android** — deferred from the Dashboard port. On iOS
-  `AuthStateObserver` resumes a pending merge (`MigrateAnonymousDataUseCase.resumeIfNeeded`) before
-  publishing the user; Android leaves it out because it has no sign-in, so no merge can ever be
-  pending. It has to land together with the first sign-in screen (Account), with
-  `MergeStatusReporting` and the merging overlay from `KalorieApp.swift`. Read ARCHITECTURE § 6,
-  [ADR 0002](docs/adr/0002-merge-anonymous-data-before-switching-accounts.md) and
-  [ADR 0004](docs/adr/0004-migrate-usecase-exposes-two-methods.md) first — the merge algorithm is
-  `Cross-platform`.
 - [ ] **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.
@@ -324,19 +329,12 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
 
   **Handoff (analysed 2026-09-24).** Two parts left, both blocked.
 
-  1. **Real Google sign-in run — not a standalone task.** Blocked on the Account screen, which the
-     *Anonymous-data merge on Android* item above already ties to the same screen. Treat this run as
-     that port's acceptance check rather than doing it separately. What that port needs from here:
-     `app/build.gradle.kts` has no Credential Manager dependency yet — add `androidx.credentials`,
-     `androidx.credentials:credentials-play-services-auth` and `com.google.android.libraries.identity.googleid`
-     (check current versions). `setServerClientId()` takes the `client_type` 3 (Web) entry's
-     `client_id` from `google-services.json`; the file today holds one `client_type` 1 entry (the
-     debug keystore) and one `client_type` 3 entry. Read it at build time from the `default_web_client_id`
-     string resource the google-services plugin generates — never hard-code it. Verify by hand on a
-     debug build installed from the machine whose `~/.android/debug.keystore` is registered; CI's
-     runner generates its own throwaway debug keystore, so a CI-built APK fails Google sign-in with
-     `DEVELOPER_ERROR` / code 10 by design, not by bug. Once it works, delete the *"no app has signed
-     in with it yet"* sentence from `docs/SETUP.md`.
+  1. **Real Google sign-in run — the acceptance check of step 13, blocked on the user.** The code is
+     in place (Credential Manager, `default_web_client_id`). Verify by hand on a debug build installed
+     from the machine whose `~/.android/debug.keystore` is registered; CI's runner generates its own
+     throwaway debug keystore, so a CI-built APK fails Google sign-in with `DEVELOPER_ERROR` / code 10
+     by design, not by bug. Once it works, delete the *"no app has signed in with it yet"* sentence
+     from `docs/SETUP.md`.
   2. **Release and Play App Signing SHA-1s — blocked on the user, before the first Play release.**
      No release keystore exists and `app/build.gradle.kts`'s `release` block has no `signingConfig`.
      With Play App Signing (the default for new apps), users' installs are signed by **Google's**
