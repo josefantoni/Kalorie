@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 class AddFoodSheetViewModel(
     private val searchFoodItems: SearchFoodItemsUseCaseProtocol,
+    private val onFoodSaved: () -> Unit = {},
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -21,6 +22,8 @@ class AddFoodSheetViewModel(
     val isPushedToQuantityView = MutableStateFlow(false)
     private val _selectedFoodItem = MutableStateFlow<FoodItemDomain?>(null)
     val selectedFoodItem: StateFlow<FoodItemDomain?> = _selectedFoodItem
+    private val _shouldDismiss = MutableStateFlow(false)
+    val shouldDismiss: StateFlow<Boolean> = _shouldDismiss
     @StringRes val searchExampleRes: Int = searchExamples.random()
 
     val displayedResults: List<FoodItemDomain>
@@ -48,6 +51,11 @@ class AddFoodSheetViewModel(
         if (isPushedToQuantityView.value) return
         _selectedFoodItem.value = item
         isPushedToQuantityView.value = true
+    }
+
+    fun onFoodConsumedSaved() {
+        onFoodSaved()
+        _shouldDismiss.value = true
     }
 
     private companion object {

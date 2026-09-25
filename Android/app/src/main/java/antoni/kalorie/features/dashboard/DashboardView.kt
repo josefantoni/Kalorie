@@ -25,6 +25,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -102,6 +103,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     // MARK: - Body
 
     Scaffold(
+        floatingActionButtonPosition = FabPosition.Center,
         floatingActionButton = {
             if (foodsConsumed.isNotEmpty()) {
                 FloatingActionButton(onClick = { viewModel.showAddFoodSheet.value = !viewModel.showAddFoodSheet.value }) {
@@ -208,7 +210,12 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     }
 
     if (showAddFoodSheet) {
-        router.makeAddFoodSheetView(onDismiss = { viewModel.showAddFoodSheet.value = false })
+        router.makeAddFoodSheetView(
+            date = selectedDay,
+            mealTypes = mealTypes,
+            onDismiss = { viewModel.showAddFoodSheet.value = false },
+            onFoodSaved = { scope.launch { viewModel.onFoodConsumedUpdated() } },
+        )
     }
 
     if (showMealTypeSheet) {

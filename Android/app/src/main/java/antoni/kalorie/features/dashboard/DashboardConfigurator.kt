@@ -52,7 +52,7 @@ class DashboardConfigurator {
         val router = remember(dataProvider, authProvider) {
             DashboardRouter(
                 mealTypeSheetConfigurator = MealTypeSheetConfigurator(),
-                addFoodSheetConfigurator = AddFoodSheetConfigurator(dataProvider),
+                addFoodSheetConfigurator = AddFoodSheetConfigurator(dataProvider, authProvider),
                 foodConsumedDetailConfigurator = FoodConsumedDetailConfigurator(dataProvider, authProvider),
             )
         }
