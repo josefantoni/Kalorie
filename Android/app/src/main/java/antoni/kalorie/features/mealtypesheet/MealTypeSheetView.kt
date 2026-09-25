@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.AddCircle
@@ -58,7 +59,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, onDismiss: () -> Unit) {
+fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRouter, onDismiss: () -> Unit) {
 
     // MARK: - Properties
 
@@ -66,6 +67,7 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, onDismiss: () -> Unit) 
     val mealTypes by viewModel.mealTypes.collectAsState()
     val isAddFormVisible by viewModel.isAddFormVisible.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
+    val isExportPushed by viewModel.isExportPushed.collectAsState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     var isEditing by remember { mutableStateOf(false) }
@@ -84,6 +86,13 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, onDismiss: () -> Unit) 
                         if (!isEditing) {
                             IconButton(onClick = onDismiss) {
                                 Icon(Icons.Filled.Close, contentDescription = null)
+                            }
+                        }
+                    },
+                    actions = {
+                        if (!isEditing) {
+                            IconButton(onClick = { viewModel.isExportPushed.value = true }) {
+                                Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.export_navigationTitle))
                             }
                         }
                     },
@@ -158,6 +167,15 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, onDismiss: () -> Unit) 
                     }
                 }
             }
+        }
+    }
+
+    if (isExportPushed) {
+        Dialog(
+            onDismissRequest = { viewModel.isExportPushed.value = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
+        ) {
+            router.makeExportView(mealTypes = mealTypes, onBack = { viewModel.isExportPushed.value = false })
         }
     }
 
