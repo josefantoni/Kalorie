@@ -11,6 +11,7 @@ import antoni.kalorie.core.networking.FoodItemSubmissionDTO
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.firestore.FirebaseFirestoreException
 import java.time.Instant
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -104,6 +105,20 @@ class RejectSubmissionUseCaseTest {
             sut(submission, "Wrong calories")
             fail("Expected changedSinceReview error")
         } catch (_: RejectSubmissionError.ChangedSinceReview) {
+        }
+    }
+
+    @Test
+    fun reject_whenTheReReadAfterADeniedWriteIsCancelled_rethrowsTheCancellation() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedSetError = permissionDenied()
+        dataProvider.stubbedServerReadError = CancellationException("cancelled")
+
+        try {
+            sut(makeSubmission(), "Wrong calories")
+            fail("Expected the cancellation")
+        } catch (error: CancellationException) {
+            assertEquals("cancelled", error.message)
         }
     }
 

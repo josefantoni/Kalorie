@@ -10,6 +10,7 @@ import antoni.kalorie.core.networking.loadFromServerAsync
 import antoni.kalorie.core.networking.setAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isFirestorePermissionDenied
+import kotlinx.coroutines.CancellationException
 
 sealed class CreateFoodItemError : Exception() {
     data object InvalidCode : CreateFoodItemError()
@@ -53,6 +54,8 @@ class CreateFoodItemUseCase(
             // auth session mid-request denies with the same code, so re-read before relabelling.
             val confirmedExisting: FoodItemDTO? = try {
                 dataProvider.loadFromServerAsync(id = item.id, from = Constants.Firestore.FOOD_ITEMS)
+            } catch (error: CancellationException) {
+                throw error
             } catch (_: Exception) {
                 null
             }

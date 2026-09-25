@@ -53,8 +53,8 @@ class RejectSubmissionUseCase(
             // unchanged) and an expired session with the same code, so re-read to tell them apart.
             val current: FoodItemSubmissionDTO? = try {
                 dataProvider.loadFromServerAsync(id = submission.id, from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS)
-            } catch (_: CancellationException) {
-                throw writeError
+            } catch (error: CancellationException) {
+                throw error
             } catch (_: Exception) {
                 throw writeError
             }

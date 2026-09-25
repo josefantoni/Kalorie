@@ -7,6 +7,7 @@ import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodItemDTO
 import com.google.firebase.firestore.FirebaseFirestoreException
 import java.time.Instant
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -141,6 +142,21 @@ class CreateFoodItemUseCaseTest {
             fail("Should not relabel the failure without confirming a duplicate exists")
         } catch (error: FirebaseFirestoreException) {
             assertSame(deniedError, error)
+        }
+    }
+
+    @Test
+    fun createFoodItem_whenTheReReadAfterARejectedWriteIsCancelled_rethrowsTheCancellation() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedSetError = permissionDenied()
+        dataProvider.stubbedServerReadError = CancellationException("cancelled")
+        dataProvider.serverReadsBeforeError = 1
+
+        try {
+            sut(makeItem())
+            fail("Expected the cancellation")
+        } catch (error: CancellationException) {
+            assertEquals("cancelled", error.message)
         }
     }
 
