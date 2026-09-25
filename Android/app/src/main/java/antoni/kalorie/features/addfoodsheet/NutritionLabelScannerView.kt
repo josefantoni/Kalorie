@@ -34,8 +34,10 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val PARSE_THROTTLE_MILLIS = 300L
 
@@ -76,29 +78,35 @@ fun NutritionLabelScannerView(
     fun capture() {
         if (!isCapturing.compareAndSet(false, true)) return
         val barcode = liveState.liveBarcode
-        controller.takePicture(
-            executor,
-            object : ImageCapture.OnImageCapturedCallback() {
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    val bitmap = image.toBitmap()
-                    val rotationDegrees = image.imageInfo.rotationDegrees
-                    image.close()
-                    scope.launch {
-                        try {
-                            currentOnCaptured(BitmapNutritionLabelImage(bitmap, rotationDegrees), barcode)
-                        } finally {
-                            isCapturing.set(false)
+        try {
+            controller.takePicture(
+                executor,
+                object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        val bitmap = image.toBitmap()
+                        val rotationDegrees = image.imageInfo.rotationDegrees
+                        image.close()
+                        scope.launch {
+                            try {
+                                currentOnCaptured(BitmapNutritionLabelImage(bitmap, rotationDegrees), barcode)
+                            } finally {
+                                isCapturing.set(false)
+                            }
                         }
                     }
-                }
 
-                override fun onError(exception: ImageCaptureException) {
-                    Log.warning(exception, Constants.LogCategory.NUTRITION_LABEL_RECOGNITION)
-                    isCapturing.set(false)
-                    scope.launch { currentOnCaptureFailed() }
-                }
-            },
-        )
+                    override fun onError(exception: ImageCaptureException) {
+                        Log.warning(exception, Constants.LogCategory.NUTRITION_LABEL_RECOGNITION)
+                        isCapturing.set(false)
+                        scope.launch { currentOnCaptureFailed() }
+                    }
+                },
+            )
+        } catch (error: IllegalStateException) {
+            Log.warning(error, Constants.LogCategory.NUTRITION_LABEL_RECOGNITION)
+            isCapturing.set(false)
+            scope.launch { currentOnCaptureFailed() }
+        }
     }
 
     suspend fun processLiveFrame(input: InputImage, width: Int, height: Int, rotationDegrees: Int) {
@@ -111,7 +119,8 @@ fun NutritionLabelScannerView(
         liveState.lastParseAtMillis = now
         val (uprightWidth, uprightHeight) = uprightSize(width, height, rotationDegrees)
         val lines = recognizer.recognizeLines(input, uprightWidth, uprightHeight)
-        if (NutritionLabelParser.parse(lines).isCompleteForAutoCapture) capture()
+        // CameraController.takePicture throws when called off the main thread, and frames arrive on the executor.
+        if (NutritionLabelParser.parse(lines).isCompleteForAutoCapture) withContext(Dispatchers.Main) { capture() }
     }
 
     LaunchedEffect(manualCaptureRequest) {
