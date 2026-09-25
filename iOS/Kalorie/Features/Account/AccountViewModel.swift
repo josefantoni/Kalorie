@@ -76,6 +76,7 @@ final class AccountViewModel: ObservableObject {
     func onSignOutTapped() {
         do {
             try signOut()
+            isMaintainer = false
         } catch {
             Log.error(error, category: Constants.LogCategory.account)
             alertItem = AlertItem(title: L10n.Account.errorSignOutFailed)

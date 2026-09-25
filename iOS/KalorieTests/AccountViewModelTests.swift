@@ -46,6 +46,14 @@ final class AccountViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem)
     }
 
+    @MainActor
+    func test_onSignOutTapped_whenSucceeds_clearsTheMaintainerFlag() async {
+        let sut = makeSUT(fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer: true))
+        await sut.onAppear()
+        sut.onSignOutTapped()
+        XCTAssertFalse(sut.isMaintainer)
+    }
+
     func test_onSignOutTapped_whenFails_showsAlert() {
         let sut = makeSUT(signOut: SignOutUseCaseFake(shouldThrow: true))
         sut.onSignOutTapped()
