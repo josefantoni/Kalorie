@@ -66,6 +66,8 @@ class AddFoodSheetViewModel(
         } catch (error: CancellationException) {
             throw error
         } catch (_: Exception) {
+            localFoodItems.value = emptyList()
+            externalFoodItems.value = emptyList()
             return
         }
         if (displayedResults.isNotEmpty() || searchText.value.length < EXTERNAL_SEARCH_MIN_LENGTH) {

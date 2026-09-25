@@ -238,6 +238,24 @@ class FoodConsumedDetailViewModelTest {
     }
 
     @Test
+    fun onSave_whenWeightIsSavedButAssignFails_stillNotifiesSoTheDashboardShowsTheNewWeight() = runTest {
+        val breakfast = MealTypeDomain(id = "breakfast", name = "Breakfast", startMinutes = 360, endMinutes = 600)
+        var didNotify = false
+        val sut = makeSUT(
+            mealTypes = listOf(breakfast),
+            assignFoodMealType = AssignFoodMealTypeUseCaseFake(shouldThrow = true),
+            onFoodUpdated = { didNotify = true },
+        )
+        sut.weight.value = 150.0
+        sut.onMealTypeSelected("breakfast")
+
+        sut.onSave()
+
+        assertTrue("the weight write already reached Firestore, so the dashboard must reload", didNotify)
+        assertNotNull(sut.alertItem.value)
+    }
+
+    @Test
     fun onSave_whenBothWeightAndMealTypeChanged_writesBoth() = runTest {
         val breakfast = MealTypeDomain(id = "breakfast", name = "Breakfast", startMinutes = 360, endMinutes = 600)
         val sut = makeSUT(mealTypes = listOf(breakfast))

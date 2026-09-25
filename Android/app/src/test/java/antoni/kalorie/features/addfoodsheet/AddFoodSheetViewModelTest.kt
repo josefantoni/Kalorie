@@ -32,6 +32,19 @@ class AddFoodSheetViewModelTest {
     }
 
     @Test
+    fun onSearchTextChanged_whenLocalSearchFails_dropsResultsOfThePreviousQuery() = runTest {
+        val sut = makeSUT(searchFoodItems = SearchFoodItemsUseCaseFake(shouldThrow = true))
+        sut.localFoodItems.value = listOf(makeFoodItem(id = "stale-local"))
+        sut.externalFoodItems.value = listOf(makeFoodItem(id = "stale-external"))
+        sut.searchText.value = "tvaroh"
+
+        sut.onSearchTextChanged()
+
+        assertTrue("stale results would read as results for the query the user typed last", sut.localFoodItems.value.isEmpty())
+        assertTrue(sut.externalFoodItems.value.isEmpty())
+    }
+
+    @Test
     fun onSearchTextChanged_withResults_publishesThemAsDisplayedResults() = runTest {
         val sut = makeSUT(searchFoodItems = SearchFoodItemsUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "abc"))))
         sut.searchText.value = "tvaroh"
