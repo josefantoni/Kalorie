@@ -67,7 +67,8 @@ class ModerationQueueViewModel(
             fetchFoodItemByBarcode(barcodes)
         } catch (error: CancellationException) {
             throw error
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.MODERATION)
             emptyList()
         }
         _collidingBarcodes.value = existing.map { it.id }.toSet()

@@ -87,7 +87,8 @@ class ModerationReportsViewModel(
             fetchFoodItemByBarcode(barcodes)
         } catch (error: CancellationException) {
             throw error
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.MODERATION)
             emptyList()
         }
         val namesByBarcode = buildMap { items.forEach { putIfAbsent(it.id, it.displayName) } }
