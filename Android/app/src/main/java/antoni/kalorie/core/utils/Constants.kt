@@ -30,6 +30,7 @@ object Constants {
         const val IN_QUERY_LIMIT = 30
         const val FOOD_ITEMS = "foodItems"
         const val FOOD_ITEM_REPORTS = "foodItemReports"
+        const val FOOD_ITEM_SUBMISSIONS = "foodItemSubmissions"
         const val REPORT_REASON_MAX_LENGTH = 500
 
         fun mealTypes(userId: String): String = "users/$userId/mealTypes"
