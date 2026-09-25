@@ -186,6 +186,17 @@ Rules for every step. Each one is one PR, `Android/` only unless the step says o
    detail screen's toggle and `loadCatalogueItem`. Note that the local match is
    `searchText.lowercased()` with no fold, which differs from the server search on purpose
    (§ 2.2). Read design 0003 and ADR 0023.
+   *Ported with deviations:* the sheet's `displayedResults` ranks only favourites above the
+   catalogue matches for now; created meals and own submissions join it in steps 10 and 12. The
+   favourites section is a heading plus rows in the one list, with no `Section` grouping, and
+   `makeFoodQuantityView` gained `isFavourite` and `onFavouriteChanged` as on iOS. `FavouriteToggling`
+   is an interface with a default `toggleFavourite`, over `MutableStateFlow` properties instead of
+   `@Published` ones. The detail view model's `onAppear` covers only the favourite state and the
+   catalogue lookup (the report state joins in step 11), and the button shows when the entry is a
+   favourite or its item resolves, as on iOS. The provider method is `loadAsync(from, orderBy,
+   descending, limit)`. Tests beyond iOS: a favourite that is also a catalogue match is listed once,
+   the plain lowercased prefix match without diacritics folding, `onFavouriteChanged`, and the
+   three toggle tests on the quantity view model.
 8. [ ] **Personal portions.** Port `FetchFoodItemPersonalPortionsUseCase`,
    `SaveFoodItemPersonalPortionsUseCase`, `FoodItemPersonalPortionsDTO`, `FoodPortionsManagerView`
    (pushed, sharing the same `FoodQuantityViewModel`), `PortionInputRow` and the portion-draft
