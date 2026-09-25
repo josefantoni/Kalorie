@@ -2,6 +2,8 @@ package antoni.kalorie.features.addfoodsheet
 
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseFake
+import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseFake
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
 import java.time.Instant
@@ -81,12 +83,72 @@ class AddFoodSheetViewModelTest {
         assertFalse(sut.localFoodItems.value.isNotEmpty())
     }
 
+    @Test
+    fun onSearchTextChanged_whenExternalSearchFails_externalItemsAreEmptyAndNoErrorIsRaised() = runTest {
+        val sut = makeSUT(searchFoodExternally = SearchFoodExternallyUseCaseFake(shouldThrow = true))
+        sut.searchText.value = "tvaroh"
+
+        sut.onSearchTextChanged()
+
+        assertTrue(sut.externalFoodItems.value.isEmpty())
+        assertFalse(sut.isExternalSearchLoading.value)
+    }
+
+    @Test
+    fun onSearchTextChanged_whenNothingLocalMatchesAndTextHasThreeCharacters_publishesExternalResults() = runTest {
+        val sut = makeSUT(searchFoodExternally = SearchFoodExternallyUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "ext"))))
+        sut.searchText.value = "tvo"
+
+        sut.onSearchTextChanged()
+
+        assertEquals(listOf("ext"), sut.externalFoodItems.value.map { it.id })
+    }
+
+    @Test
+    fun onSearchTextChanged_whenTextIsShorterThanThreeCharacters_doesNotSearchExternally() = runTest {
+        val sut = makeSUT(searchFoodExternally = SearchFoodExternallyUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "ext"))))
+        sut.searchText.value = "tv"
+
+        sut.onSearchTextChanged()
+
+        assertTrue(sut.externalFoodItems.value.isEmpty())
+    }
+
+    @Test
+    fun onSearchTextChanged_whenALocalResultMatches_doesNotSearchExternally() = runTest {
+        val sut = makeSUT(
+            searchFoodItems = SearchFoodItemsUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "local"))),
+            searchFoodExternally = SearchFoodExternallyUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "ext"))),
+        )
+        sut.searchText.value = "tvaroh"
+
+        sut.onSearchTextChanged()
+
+        assertTrue("one local match is treated as sufficient, so the network fallback is skipped", sut.externalFoodItems.value.isEmpty())
+    }
+
+    @Test
+    fun onSearchTextChanged_withEmptyText_clearsExternalResults() = runTest {
+        val sut = makeSUT(searchFoodExternally = SearchFoodExternallyUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "ext"))))
+        sut.searchText.value = "tvaroh"
+        sut.onSearchTextChanged()
+        sut.searchText.value = ""
+
+        sut.onSearchTextChanged()
+
+        assertTrue(sut.externalFoodItems.value.isEmpty())
+    }
+
     // MARK: - onFoodConsumedSaved
 
     @Test
     fun onFoodConsumedSaved_notifiesTheDashboardAndRequestsDismissal() {
         var onFoodSavedCalled = false
-        val sut = AddFoodSheetViewModel(searchFoodItems = SearchFoodItemsUseCaseFake(), onFoodSaved = { onFoodSavedCalled = true })
+        val sut = AddFoodSheetViewModel(
+            searchFoodItems = SearchFoodItemsUseCaseFake(),
+            searchFoodExternally = SearchFoodExternallyUseCaseFake(),
+            onFoodSaved = { onFoodSavedCalled = true },
+        )
 
         sut.onFoodConsumedSaved()
 
@@ -98,7 +160,8 @@ class AddFoodSheetViewModelTest {
 
     private fun makeSUT(
         searchFoodItems: SearchFoodItemsUseCaseProtocol = SearchFoodItemsUseCaseFake(),
-    ): AddFoodSheetViewModel = AddFoodSheetViewModel(searchFoodItems = searchFoodItems)
+        searchFoodExternally: SearchFoodExternallyUseCaseProtocol = SearchFoodExternallyUseCaseFake(),
+    ): AddFoodSheetViewModel = AddFoodSheetViewModel(searchFoodItems = searchFoodItems, searchFoodExternally = searchFoodExternally)
 
     private fun makeFoodItem(id: String = "12345"): FoodItemDomain = FoodItemDomain(
         id = id,

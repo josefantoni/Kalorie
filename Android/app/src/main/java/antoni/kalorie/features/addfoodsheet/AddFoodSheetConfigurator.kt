@@ -8,6 +8,7 @@ import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCase
+import antoni.kalorie.core.usecases.SearchFoodExternallyUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.features.foodquantity.FoodQuantityView
 import antoni.kalorie.features.foodquantity.FoodQuantityViewModel
@@ -27,6 +28,7 @@ class AddFoodSheetConfigurator(
         val viewModel = viewModel(key = instanceKey) {
             AddFoodSheetViewModel(
                 searchFoodItems = SearchFoodItemsUseCase(dataProvider),
+                searchFoodExternally = SearchFoodExternallyUseCase(),
                 onFoodSaved = onFoodSaved,
             )
         }

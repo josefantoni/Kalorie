@@ -1,6 +1,7 @@
 package antoni.kalorie.features.addfoodsheet
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -34,6 +37,7 @@ import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.displayName
 
 @Composable
 fun AddFoodSheetView(
@@ -95,6 +99,8 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
 
     val searchText by viewModel.searchText.collectAsState()
     val localFoodItems by viewModel.localFoodItems.collectAsState()
+    val externalFoodItems by viewModel.externalFoodItems.collectAsState()
+    val isExternalSearchLoading by viewModel.isExternalSearchLoading.collectAsState()
     val displayedResults = remember(localFoodItems) { viewModel.displayedResults }
 
     LaunchedEffect(searchText) { viewModel.onSearchTextChanged() }
@@ -139,8 +145,26 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
-                items(displayedResults, key = { it.id }) { item ->
-                    FoodItemRow(item = item, modifier = Modifier.clickable { viewModel.onSelectFoodItem(item) })
+                if (displayedResults.isNotEmpty()) {
+                    items(displayedResults, key = { it.id }) { item ->
+                        FoodItemRow(item = item, modifier = Modifier.clickable { viewModel.onSelectFoodItem(item) })
+                    }
+                } else if (isExternalSearchLoading) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                } else {
+                    items(externalFoodItems, key = { it.id }) { item ->
+                        Text(
+                            text = item.displayName,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { viewModel.onSelectFoodItem(item) }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                        )
+                    }
                 }
             }
         }

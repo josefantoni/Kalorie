@@ -1,5 +1,8 @@
 package antoni.kalorie.core.utils
 
+import antoni.kalorie.BuildConfig
+import kotlin.time.Duration.Companion.milliseconds
+
 object Constants {
 
     object LogCategory {
@@ -8,6 +11,15 @@ object Constants {
         const val DASHBOARD = "dashboard"
         const val MEAL_TYPE_SHEET = "mealTypeSheet"
         const val FOOD_QUANTITY = "foodQuantity"
+        const val ADD_FOOD_SHEET = "addFoodSheet"
+    }
+
+    object OpenFoodFacts {
+        const val HOST = "world.openfoodfacts.org"
+        const val REQUEST_TIMEOUT_MILLIS = 10_000
+        const val MAX_ATTEMPTS = 3
+        val RETRY_DELAY = 500.milliseconds
+        val USER_AGENT: String = "Kalorie-Android/${BuildConfig.VERSION_NAME}"
     }
 
     object Firestore {
