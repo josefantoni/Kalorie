@@ -18,6 +18,7 @@ object Constants {
         const val ACCOUNT = "account"
         const val EXPORT = "export"
         const val MODERATION = "moderation"
+        const val NUTRITION_LABEL_RECOGNITION = "nutritionLabelRecognition"
     }
 
     object Auth {
