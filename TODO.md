@@ -100,15 +100,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   is thrown as `Unreachable`, and has no test because it needs a Firebase instance. Extract the decision
   or wrap the Firebase calls behind something a test can replace.
 
-## Cleanup
-
-- **Decide what a scanned barcode that is not found should do** — both apps clear the last delivered code
-  when a lookup ends ([ARCHITECTURE § 2.5](docs/ARCHITECTURE.md)), so while the same barcode stays in
-  frame the scanner delivers it again, the lookups (Firestore, then OpenFoodFacts) repeat and the
-  "not found" alert returns after every dismissal. Android's per-frame delivery makes the loop tighter
-  than iOS's. Intended on iOS, so a change is a product decision for both platforms: for example, keep
-  the code suppressed until it has left the frame, or until the user taps the scan button again.
-
 ## Documentation baseline
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes what exists; `docs/adr/` records the

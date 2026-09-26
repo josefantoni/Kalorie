@@ -676,14 +676,27 @@ The delivery path is deliberately indirect: the coordinator writes into a `@Bind
 `viewModel.lastScannedBarcode`, and the view's `.onChange` on that property calls
 `onBarcodeScanned()`. The view model then clears the property, so the same code can be
 delivered again later. The coordinator keeps its own `lastDeliveredCode` to suppress the
-repeated callbacks VisionKit fires while a barcode stays in frame, and clears it once a lookup
-ends: `updateUIViewController` reports every `isSearching` change to the coordinator, and the
-`true → false` transition — the same transition that resumes scanning — is what resets
-`lastDeliveredCode` to `nil`. A rescan of the same barcode after a failed lookup therefore
-produces a new callback instead of silence.
+repeated callbacks VisionKit fires while a barcode stays in frame; it is never reset while the
+scanner is open, because the scanner is closed at the end of every lookup (below) and the next
+one starts with a fresh coordinator.
 
 Scanning is stopped while a lookup is in flight (`isSearching` → `stopScanning()`), and a
 `ProgressView` over `.ultraThinMaterial` covers the camera preview.
+
+Every lookup outcome other than a cancelled one closes the scanner, on both platforms, in
+`AddFoodSheetViewModel` and `MyCreatedMealEditorViewModel`: a hit closes it and opens the item, and
+a code that resolves to nothing (neither in `foodItems` nor at OpenFoodFacts) or a failed lookup
+(network or server error, after the retries of § 2.4) closes it *before* raising the "not found" /
+"load failed" alert. The scanner used to stay open in the last two cases and reset `lastDeliveredCode`
+when the lookup ended, so while the same barcode stayed in frame it was delivered again, the
+Firestore and OpenFoodFacts lookups repeated (up to 3 OpenFoodFacts attempts each) and the alert
+returned after every dismissal — and on iOS the alert was raised under the `fullScreenCover` that
+hosts the scanner. One scan is now one lookup; scanning the same code again means reopening the
+scanner. A `lastDeliveredCode` reset on `isSearching` (`true → false`) that once let the user rescan
+the same code with the scanner still open (finding **A2-8**) was removed with this change, since no
+path keeps the scanner open after a lookup any more. The moderation
+editor's barcode field (`ModerationCatalogueEditorViewModel`) is a single lookup with no scanner and
+was never affected.
 
 `AddFoodSheetView`'s inline scanner, `MyCreatedMealEditorView`'s identical one, and the barcode-rescan
 `fullScreenCover` on the nutrition-label review screen (§ 7.5) all go through `BarcodeScannerOverlay`
