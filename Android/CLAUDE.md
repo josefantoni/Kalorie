@@ -76,7 +76,7 @@ Packages mirror the iOS folders under `antoni.kalorie`: `core.usecases`, `core.m
 
 ## Code style
 
-- Official Kotlin coding conventions, enforced by ktlint through detekt. The Swift formatting rules
+- Official Kotlin coding conventions, enforced by ktlint (`./gradlew :app:ktlintCheck`, fix with `ktlintFormat`; rules in `Android/.editorconfig`). The Swift formatting rules
   in `iOS/CLAUDE.md` do not carry over.
 - **Never use `!!`.** Use `?: throw`, `?: fallback`, or restructure so the nullable never appears.
 - Trailing lambda syntax whenever the last parameter is a function.
