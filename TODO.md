@@ -76,9 +76,13 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
      the `GOOGLE_SERVICES_JSON` CI secret (base64 of the file, `docs/SETUP.md` § CI) — nothing
      updates it automatically. Belongs next to *Play Store account deletion*, the other
      pre-release gate.
-- **Play Store account deletion** — Google Play's policy has, to my knowledge, required a web
-  link for requesting account deletion in addition to in-app deletion. The iOS
-  `DeleteAccountUseCase` exists; no web page does. Check the current policy before the first release.
+- **Play Store account deletion** — Google Play requires a web link for requesting account
+  deletion in addition to in-app deletion (policy checked 2026-09-26; an email request pathway is
+  enough). Designed in [design 0015](docs/design/0015-account-deletion-web-page.md); the page
+  (`backend/hosting/`) and the runbook (`docs/SETUP.md`) are written. Left: deploy with
+  `firebase deploy --only hosting` from `backend/`, check `https://kalorie-bf11c.web.app/delete-account`
+  on a phone (readable, `mailto:` opens with the subject filled), paste the URL into Play Console →
+  Data safety once the app exists there, then remove this item.
 - **Check the recent Android fixes by hand on an emulator or device** — they were only built and unit
   tested; the camera and the touch handling cannot be covered that way. Auto-capture of a nutrition label
   must take a photo (it called `takePicture` off the main thread before); the barcode scanner must release
