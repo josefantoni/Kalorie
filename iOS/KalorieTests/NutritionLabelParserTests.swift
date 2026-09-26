@@ -272,6 +272,38 @@ final class NutritionLabelParserTests: XCTestCase {
         XCTAssertEqual(reading.fat, 3.3)
     }
 
+    func test_parse_linearFormatLabel_withoutAFatRow_doesNotStoreTheSaturatesValueAsFat() {
+        let labels = [
+            "Per 100 g: Energy 303 kJ / 72 kcal. Saturated fat 2 g. Carbohydrate 3.0 g. Protein 7.3 g.",
+            "Pro 100 g: Brennwert 303 kJ / 72 kcal. davon gesättigte Fettsäuren 2 g. Kohlenhydrate 3,0 g. Eiweiß 7,3 g."
+        ]
+        for label in labels {
+            let reading = NutritionLabelParser.parse(lines: [
+                RecognizedTextLine(text: label, boundingBox: CGRect(x: 0.3, y: 0.42, width: 0.6, height: 0.03))
+            ])
+            XCTAssertNil(reading.fat, label)
+            XCTAssertEqual(reading.fatSaturated, 2, label)
+        }
+    }
+
+    func test_parse_linearFormatLabel_stillReadsFatBeforeTheSaturatesRow() {
+        let lines = [
+            RecognizedTextLine(text: "Per 100 g: Energy 303 kJ / 72 kcal. Fat 3.3 g of which saturated fat 0.6 g. Carbohydrate 3.0 g.", boundingBox: CGRect(x: 0.3, y: 0.42, width: 0.6, height: 0.03))
+        ]
+        let reading = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(reading.fat, 3.3)
+        XCTAssertEqual(reading.fatSaturated, 0.6)
+    }
+
+    func test_parse_whenLessThanBoundsPushTheSumJustPastAHundredGrams_keepsTheFields() {
+        let lines = [
+            RecognizedTextLine(text: "Per 100 g: Energy 3696 kJ / 899 kcal. Fat 100 g. Carbohydrate <0.5 g. Protein <0.5 g. Salt <0.5 g.", boundingBox: CGRect(x: 0.3, y: 0.42, width: 0.6, height: 0.03))
+        ]
+        let reading = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(reading.fat, 100)
+        XCTAssertEqual(reading.protein, 0.5)
+    }
+
     func test_parse_weightLabelAboveALargeValueOnASeparateLine_stillFindsIt() {
         let lines = [
             RecognizedTextLine(text: "Hmotnost:", boundingBox: CGRect(x: 0.1, y: 0.28, width: 0.15, height: 0.02)),

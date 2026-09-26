@@ -16,7 +16,8 @@ enum NutritionLabelParser {
     private static let rowOverlapThreshold: CGFloat = 0.4
     private static let energyToleranceRatio = 0.05
     private static let derivedEnergyToleranceRatio = 0.15
-    private static let maxSummedMacros = 100.0
+    // 100 g plus the "<0,5 g" bounds and rounding that a near-pure fat or carbohydrate product can add up.
+    private static let maxSummedMacros = 103.0
     private static let maxWordBoundaryKeywordLength = 3
 
     private static let weightKeywords = ["hmotnost", "netto", "obsah", "net weight", "hmotnosc"]
@@ -117,9 +118,20 @@ enum NutritionLabelParser {
         let sectionStart = nutritionSectionKeywords.compactMap { fullText.range(of: $0) }.min { $0.lowerBound < $1.lowerBound }
         let lower = sectionStart.map { String(fullText[$0.upperBound...]) } ?? fullText
 
+        let saturatesStarts = (keywords[.saturates] ?? []).flatMap { ranges(ofKeyword: $0, in: lower) }.map(\.lowerBound)
+        // "saturated fat" and "davon gesättigte Fettsäuren" carry the fat keyword inside the saturates
+        // label; a fat keyword reached from a saturates keyword with no value in between is that label's tail.
+        func isTailOfSaturatesLabel(_ range: Range<String.Index>) -> Bool {
+            saturatesStarts.contains { start in
+                start <= range.lowerBound && !lower[start..<range.lowerBound].contains(where: \.isNumber)
+            }
+        }
+
         var matches: [(field: LabelField, start: String.Index, end: String.Index)] = []
         for field in LabelField.allCases {
-            guard let firstMatch = (keywords[field] ?? []).compactMap({ range(ofKeyword: $0, in: lower) }).min(by: { $0.lowerBound < $1.lowerBound }) else { continue }
+            let candidates = (keywords[field] ?? []).flatMap { ranges(ofKeyword: $0, in: lower) }
+            let usable = field == .fat ? candidates.filter { !isTailOfSaturatesLabel($0) } : candidates
+            guard let firstMatch = usable.min(by: { $0.lowerBound < $1.lowerBound }) else { continue }
             matches.append((field, firstMatch.lowerBound, firstMatch.upperBound))
         }
         matches.sort { $0.start < $1.start }
@@ -154,15 +166,16 @@ enum NutritionLabelParser {
     }
 
     // A keyword this short ("sul", "fat") also sits inside longer words such as "sulphites" or "fatty".
-    private static func range(ofKeyword keyword: String, in text: String) -> Range<String.Index>? {
+    private static func ranges(ofKeyword keyword: String, in text: String) -> [Range<String.Index>] {
+        var found: [Range<String.Index>] = []
         var searchStart = text.startIndex
         while let range = text.range(of: keyword, range: searchStart..<text.endIndex) {
             let startsWord = range.lowerBound == text.startIndex || !text[text.index(before: range.lowerBound)].isLetter
             let endsWord = range.upperBound == text.endIndex || !text[range.upperBound].isLetter
-            if keyword.count > maxWordBoundaryKeywordLength || (startsWord && endsWord) { return range }
+            if keyword.count > maxWordBoundaryKeywordLength || (startsWord && endsWord) { found.append(range) }
             searchStart = text.index(after: range.lowerBound)
         }
-        return nil
+        return found
     }
 
     static func merging(_ reading: NutritionLabelReading, with candidate: NutritionLabelModelCandidate, ocrText: String) -> NutritionLabelReading {
