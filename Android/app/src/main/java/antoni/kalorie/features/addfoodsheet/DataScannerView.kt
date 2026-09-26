@@ -10,7 +10,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,15 +41,9 @@ fun DataScannerView(onScannedCode: (String) -> Unit, isSearching: Boolean, modif
     val currentOnScannedCode by rememberUpdatedState(onScannedCode)
     val currentIsSearching by rememberUpdatedState(isSearching)
     var lastDeliveredCode by remember { mutableStateOf<String?>(null) }
-    var wasSearching by remember { mutableStateOf(false) }
     val executor = remember { Executors.newSingleThreadExecutor() }
     val scanner = remember { BarcodeScanning.getClient() }
     val boundCamera = remember { BoundCamera() }
-
-    LaunchedEffect(isSearching) {
-        if (wasSearching && !isSearching) lastDeliveredCode = null
-        wasSearching = isSearching
-    }
 
     DisposableEffect(Unit) {
         onDispose {
