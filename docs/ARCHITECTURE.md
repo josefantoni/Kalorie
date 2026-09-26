@@ -1397,6 +1397,15 @@ snapshot before signing out, for a mirror-image reason: sign-out immediately pro
 anonymous UID, and a snapshot destined for the *previous* account would otherwise be resumed
 against it on the next launch.
 
+A snapshot that cannot be read — `PendingMergeSnapshotStore.load()` throws on both platforms — is
+deliberately left in place: `resumePendingMergeOnce` logs the error and launch continues, every
+launch. Deleting it would be irreversible, and `load()` also throws on a transient I/O error (on iOS
+a background launch before the first unlock, under data protection), where the file is fine. Writes
+are atomic, and the snapshot decodes the same DTOs every Firestore read does, so a decode failure
+would mean every stored document is already unreadable. The file does not linger for good: sign-out
+deletes it without loading it, and the next live `migrate` overwrites it. There is no UI for it, since
+the anonymous account's data is unreachable from the client and the user could do nothing about it.
+
 `AuthStateObserver.isMerging` is a counter (`activeMergeCount`), not a plain `Bool`, because two
 independent call sites raise it concurrently — this resume, and the live merge
 `AccountViewModel.onSignInWithAppleTapped` / `onSignInWithGoogleTapped` start via the same
