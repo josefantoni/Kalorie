@@ -108,7 +108,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         let sut = DeleteAccountUseCase(
             dataProvider: DeleteAccountDataProviderFake(log: log),
             authProvider: AuthProviderFake(userId: nil),
-            authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log)
+            authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
+            snapshotStore: PendingMergeSnapshotStoreFake()
         )
 
         do {
@@ -126,10 +127,13 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         let dataProvider = DeleteAccountDataProviderFake(log: log)
         dataProvider.stubbedMealTypes = [MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60)]
         dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        let snapshotStore = PendingMergeSnapshotStoreFake()
+        snapshotStore.stubbedSnapshot = makeSnapshot()
         let sut = DeleteAccountUseCase(
             dataProvider: dataProvider,
             authProvider: AuthProviderFake(lastSignInDate: Date().addingTimeInterval(-10 * 60)),
-            authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log)
+            authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
+            snapshotStore: snapshotStore
         )
 
         do {
@@ -138,6 +142,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         } catch DeleteAccountError.requiresRecentLogin(let dataAlreadyDeleted) {
             XCTAssertTrue(log.entries.isEmpty, "A stale session must be rejected before any data is deleted, otherwise the account survives but its history does not")
             XCTAssertFalse(dataAlreadyDeleted, "nothing was deleted yet, so a retry must not skip the wipe")
+            XCTAssertNotNil(snapshotStore.stubbedSnapshot, "a rejected attempt must leave everything intact so the user can simply retry")
         } catch {
             XCTFail("Expected requiresRecentLogin but got \(error)")
         }
@@ -150,7 +155,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         let sut = DeleteAccountUseCase(
             dataProvider: DeleteAccountDataProviderFake(log: log),
             authProvider: AuthProviderFake(),
-            authCommandProvider: authCommandProvider
+            authCommandProvider: authCommandProvider,
+            snapshotStore: PendingMergeSnapshotStoreFake()
         )
 
         do {
@@ -175,6 +181,44 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertEqual(log.entries, ["deleteCurrentUser"])
     }
 
+    func test_callAsFunction_discardsPendingMergeSnapshot() async throws {
+        let log = OperationLog()
+        let snapshotStore = PendingMergeSnapshotStoreFake()
+        snapshotStore.stubbedSnapshot = makeSnapshot()
+        let sut = makeSUT(dataProvider: DeleteAccountDataProviderFake(log: log), log: log, snapshotStore: snapshotStore)
+
+        try await sut()
+
+        XCTAssertNil(snapshotStore.stubbedSnapshot, "a snapshot surviving the deletion would be resumed into the fresh anonymous account on the next launch")
+    }
+
+    func test_callAsFunction_whenSkipDataWipeIsTrue_stillDiscardsPendingMergeSnapshot() async throws {
+        let log = OperationLog()
+        let snapshotStore = PendingMergeSnapshotStoreFake()
+        snapshotStore.stubbedSnapshot = makeSnapshot()
+        let sut = makeSUT(dataProvider: DeleteAccountDataProviderFake(log: log), log: log, snapshotStore: snapshotStore)
+
+        try await sut(skipDataWipe: true)
+
+        XCTAssertNil(snapshotStore.stubbedSnapshot, "the first attempt may have failed before reaching the snapshot, so the retry must still clear it")
+    }
+
+    func test_callAsFunction_whenSnapshotDeleteFails_deletesNothingElse() async {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        let snapshotStore = PendingMergeSnapshotStoreFake()
+        snapshotStore.deleteError = URLError(.unknown)
+        let sut = makeSUT(dataProvider: dataProvider, log: log, snapshotStore: snapshotStore)
+
+        do {
+            try await sut()
+            XCTFail("Expected the snapshot error to be thrown")
+        } catch {
+            XCTAssertTrue(log.entries.isEmpty, "the account must survive intact when the snapshot cannot be cleared, so the user can retry")
+        }
+    }
+
     func test_callAsFunction_whenDeleteFailsWithOtherError_propagatesError() async {
         let log = OperationLog()
         let authCommandProvider = DeleteAccountAuthCommandProviderFake(log: log)
@@ -182,7 +226,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         let sut = DeleteAccountUseCase(
             dataProvider: DeleteAccountDataProviderFake(log: log),
             authProvider: AuthProviderFake(),
-            authCommandProvider: authCommandProvider
+            authCommandProvider: authCommandProvider,
+            snapshotStore: PendingMergeSnapshotStoreFake()
         )
 
         do {
@@ -197,12 +242,21 @@ final class DeleteAccountUseCaseTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func makeSUT(dataProvider: DeleteAccountDataProviderFake, log: OperationLog) -> DeleteAccountUseCase {
+    private func makeSUT(
+        dataProvider: DeleteAccountDataProviderFake,
+        log: OperationLog,
+        snapshotStore: PendingMergeSnapshotStoreFake = PendingMergeSnapshotStoreFake()
+    ) -> DeleteAccountUseCase {
         DeleteAccountUseCase(
             dataProvider: dataProvider,
             authProvider: AuthProviderFake(),
-            authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log)
+            authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
+            snapshotStore: snapshotStore
         )
+    }
+
+    private func makeSnapshot() -> PendingMergeSnapshot {
+        PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [], favouriteFoods: [], myCreatedMeals: [])
     }
 
     private func makeFood(id: String) -> FoodConsumedDTO {

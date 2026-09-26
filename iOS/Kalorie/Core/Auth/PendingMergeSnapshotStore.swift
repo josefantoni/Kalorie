@@ -82,6 +82,7 @@ final class PendingMergeSnapshotStoreFake: PendingMergeSnapshotStoreProtocol {
 
     var stubbedSnapshot: PendingMergeSnapshot?
     var saveError: Error?
+    var deleteError: Error?
     private(set) var deleteCallCount = 0
 
     // MARK: - Functions
@@ -97,6 +98,7 @@ final class PendingMergeSnapshotStoreFake: PendingMergeSnapshotStoreProtocol {
 
     func delete() throws {
         deleteCallCount += 1
+        if let deleteError { throw deleteError }
         stubbedSnapshot = nil
     }
 }
