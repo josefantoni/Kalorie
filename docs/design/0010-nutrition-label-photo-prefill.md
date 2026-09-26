@@ -196,7 +196,9 @@ than pre-filled with a likely-misread number.
 
 - kJ ≈ kcal × 4.184, within a small tolerance. On a mismatch, neither is filled.
 - Saturates ≤ fat, sugars ≤ carbohydrate.
-- Fat + carbohydrate + protein + salt + fibre ≤ 100 g.
+- Fat + carbohydrate + protein + salt + fibre ≤ 103 g — 100 g plus 3 g of slack, because a `<0,5 g`
+  bound is read as 0,5 and rounding can add up on a near-pure fat or carbohydrate product (a
+  100 g fat oil with three `<0,5 g` rows sums to 101,5).
 - Declared kJ within a tolerance of `MacroKit.energyKJFromMacros(fat:carbohydrate:protein:)`, the
   same EU conversion factors ADR 0007 uses. This check catches a single misread digit, the most
   likely OCR error.
