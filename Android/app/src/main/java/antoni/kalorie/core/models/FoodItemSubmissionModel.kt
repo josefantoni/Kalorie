@@ -1,13 +1,16 @@
 package antoni.kalorie.core.models
 
-import java.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
 @Serializable
 enum class FoodItemSubmissionStatus(val wireValue: String) {
-    @SerialName("pending") PENDING("pending"),
-    @SerialName("rejected") REJECTED("rejected"),
+    @SerialName("pending")
+    PENDING("pending"),
+
+    @SerialName("rejected")
+    REJECTED("rejected"),
 }
 
 data class FoodItemSubmissionDomain(

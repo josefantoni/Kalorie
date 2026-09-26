@@ -13,7 +13,6 @@ import antoni.kalorie.core.models.MealTypeDomain
 
 @Composable
 fun MealTypeItemView(mealType: MealTypeDomain, modifier: Modifier = Modifier) {
-
     // MARK: - Body
 
     Row(

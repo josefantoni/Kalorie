@@ -14,7 +14,6 @@ class ScannerAccess(val isAvailable: () -> Boolean, val open: () -> Unit)
 
 @Composable
 fun rememberScannerAccess(onGranted: () -> Unit, onDenied: () -> Unit): ScannerAccess {
-
     // MARK: - Properties
 
     val context = LocalContext.current

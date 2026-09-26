@@ -17,9 +17,6 @@ import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseFake
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -27,6 +24,9 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class DashboardViewModelTest {
 

@@ -4,11 +4,11 @@ import antoni.kalorie.core.models.FoodExportFormat
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.exportkit.renderPdf
 import antoni.kalorie.exportkit.renderXlsx
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.time.Instant
 import java.time.ZoneId
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 interface GenerateFoodExportUseCaseProtocol {
     suspend operator fun invoke(from: Instant, to: Instant, format: FoodExportFormat, mealTypes: List<MealTypeDomain>): File

@@ -38,13 +38,12 @@ import antoni.kalorie.components.PortionDraftListView
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.features.dashboard.SwipeToDeleteRow
-import java.util.UUID
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit) {
-
     // MARK: - Properties
 
     val personalPortions by viewModel.personalPortions.collectAsState()
@@ -125,6 +124,5 @@ fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit
                 )
             }
         }
-
     }
 }

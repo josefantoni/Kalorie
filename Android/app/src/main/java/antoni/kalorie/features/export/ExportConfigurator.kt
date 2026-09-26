@@ -3,7 +3,6 @@ package antoni.kalorie.features.export
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.core.auth.AuthProvider
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProvider
@@ -11,6 +10,7 @@ import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCase
 import antoni.kalorie.core.usecases.FoodExportReportFactory
 import antoni.kalorie.core.usecases.GenerateFoodExportUseCase
 import antoni.kalorie.core.utils.ContextStringProvider
+import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import java.io.File
 
 class ExportConfigurator {

@@ -40,11 +40,9 @@ class SearchFoodItemsUseCase(
 
     // MARK: - Private
 
-    private suspend fun loadByPrefix(field: String, prefix: String): List<FoodItemDTO> =
-        dataProvider.loadHasPrefixAsync(from = Constants.Firestore.FOOD_ITEMS, field = field, hasPrefix = prefix, limit = RESULT_LIMIT)
+    private suspend fun loadByPrefix(field: String, prefix: String): List<FoodItemDTO> = dataProvider.loadHasPrefixAsync(from = Constants.Firestore.FOOD_ITEMS, field = field, hasPrefix = prefix, limit = RESULT_LIMIT)
 
-    private suspend fun loadByToken(field: String, token: String): List<FoodItemDTO> =
-        dataProvider.loadArrayContainsAsync(from = Constants.Firestore.FOOD_ITEMS, field = field, arrayContains = token, limit = RESULT_LIMIT)
+    private suspend fun loadByToken(field: String, token: String): List<FoodItemDTO> = dataProvider.loadArrayContainsAsync(from = Constants.Firestore.FOOD_ITEMS, field = field, arrayContains = token, limit = RESULT_LIMIT)
 
     private companion object {
         const val RESULT_LIMIT = 10

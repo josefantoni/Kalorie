@@ -3,9 +3,9 @@ package antoni.kalorie.core.networking
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodMeasure
-import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.time.Instant
 
 class FoodItemDTOTest {
 
@@ -34,8 +34,7 @@ class FoodItemDTOTest {
 
     // MARK: - Helpers
 
-    private fun encodedJSON(): MutableMap<String, Any?> =
-        FirestoreDataMapper.encode(FoodItemDTO(makeItem()), FoodItemDTO.serializer()).toMutableMap()
+    private fun encodedJSON(): MutableMap<String, Any?> = FirestoreDataMapper.encode(FoodItemDTO(makeItem()), FoodItemDTO.serializer()).toMutableMap()
 
     private fun decode(json: Map<String, Any?>): FoodItemDTO = FirestoreDataMapper.decode(json, FoodItemDTO.serializer())
 

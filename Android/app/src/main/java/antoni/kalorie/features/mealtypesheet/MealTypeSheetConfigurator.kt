@@ -2,13 +2,13 @@ package antoni.kalorie.features.mealtypesheet
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
-import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.core.auth.AuthProvider
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProvider
 import antoni.kalorie.core.usecases.CreateMealTypeUseCase
 import antoni.kalorie.core.usecases.DeleteMealTypeUseCase
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCase
+import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 
 class MealTypeSheetConfigurator(
     private val router: MealTypeSheetRouter = MealTypeSheetRouter(),

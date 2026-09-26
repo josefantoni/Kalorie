@@ -2,7 +2,6 @@ package antoni.kalorie.features.moderation
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
-import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
@@ -17,6 +16,7 @@ import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCase
 import antoni.kalorie.core.usecases.RejectSubmissionUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCase
+import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 
 class ModerationConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,

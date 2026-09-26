@@ -4,9 +4,9 @@ import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FoodConsumedDTO
 import antoni.kalorie.core.networking.FoodItemPersonalPortionsDTO
 import antoni.kalorie.core.networking.MyCreatedMealDTO
-import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.File
 
 @Serializable
 data class PendingMergeSnapshot(

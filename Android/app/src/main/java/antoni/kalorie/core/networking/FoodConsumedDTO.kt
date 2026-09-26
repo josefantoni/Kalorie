@@ -5,10 +5,10 @@ import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodMeasure
 import antoni.kalorie.core.utils.epochSecondsAsDouble
 import antoni.kalorie.core.utils.instantFromEpochSeconds
-import antoni.kalorie.macrokit.caloriesPerHundredGrams as derivedCaloriesPerHundredGrams
 import antoni.kalorie.macrokit.energyKJFromMacros
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import antoni.kalorie.macrokit.caloriesPerHundredGrams as derivedCaloriesPerHundredGrams
 
 @Serializable
 data class FoodConsumedDTO(

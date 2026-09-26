@@ -3,16 +3,16 @@ package antoni.kalorie.core.usecases
 import antoni.kalorie.core.networking.HttpResponse
 import antoni.kalorie.core.networking.HttpSessionFake
 import antoni.kalorie.core.utils.Constants
-import java.io.IOException
-import java.net.SocketException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
-import kotlin.time.Duration
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Test
+import java.io.IOException
+import java.net.SocketException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import kotlin.time.Duration
 
 class FetchFoodByBarcodeExternallyUseCaseTest {
 
@@ -160,9 +160,8 @@ class FetchFoodByBarcodeExternallyUseCaseTest {
         return FetchFoodByBarcodeExternallyUseCase(session = session, retryDelay = Duration.ZERO) to session
     }
 
-    private fun makeBarcodeResponseBody(status: Int): String =
-        if (status == 1) {
-            """
+    private fun makeBarcodeResponseBody(status: Int): String = if (status == 1) {
+        """
             {
                 "status": 1,
                 "product": {
@@ -171,8 +170,8 @@ class FetchFoodByBarcodeExternallyUseCaseTest {
                     "nutriments": { "energy-kcal_100g": 60 }
                 }
             }
-            """.trimIndent()
-        } else {
-            """{ "status": 0 }"""
-        }
+        """.trimIndent()
+    } else {
+        """{ "status": 0 }"""
+    }
 }

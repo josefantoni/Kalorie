@@ -5,9 +5,9 @@ import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.utils.epochSecondsAsExactDouble
 import antoni.kalorie.core.utils.instantFromEpochSecondsExact
-import java.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
 @Serializable
 data class FoodItemSubmissionDTO(

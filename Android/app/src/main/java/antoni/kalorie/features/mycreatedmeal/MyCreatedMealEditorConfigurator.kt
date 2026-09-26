@@ -2,7 +2,6 @@ package antoni.kalorie.features.mycreatedmeal
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
-import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
@@ -13,6 +12,7 @@ import antoni.kalorie.core.usecases.FetchFoodItemsByIdsUseCase
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCase
+import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 
 class MyCreatedMealEditorConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,

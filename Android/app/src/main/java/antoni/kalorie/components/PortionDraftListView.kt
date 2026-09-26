@@ -50,7 +50,6 @@ fun PortionDraftListView(
     modifier: Modifier = Modifier,
     measure: FoodMeasure = FoodMeasure.GRAMS,
 ) {
-
     // MARK: - Body
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -78,7 +77,6 @@ fun PortionDraftListView(
 
 @Composable
 fun PortionDraftAddSection(drafts: List<FoodPortionDraft>, onAdd: (FoodPortionDraft) -> Unit, modifier: Modifier = Modifier) {
-
     // MARK: - Body
 
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {

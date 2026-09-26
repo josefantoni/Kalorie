@@ -28,11 +28,9 @@ fun Instant.isSameMonth(other: Instant): Boolean {
     return first.year == second.year && first.month == second.month
 }
 
-fun Instant.formatDateStyle(pattern: String): String =
-    DateTimeFormatter.ofPattern(pattern, Locale.getDefault()).format(zoned())
+fun Instant.formatDateStyle(pattern: String): String = DateTimeFormatter.ofPattern(pattern, Locale.getDefault()).format(zoned())
 
-fun Instant.formatCacheKey(pattern: String): String =
-    DateTimeFormatter.ofPattern(pattern, Locale.ROOT).format(zoned())
+fun Instant.formatCacheKey(pattern: String): String = DateTimeFormatter.ofPattern(pattern, Locale.ROOT).format(zoned())
 
 fun Instant.withAddedMinutes(minutes: Double): Instant = plusMillis((minutes * 60_000).toLong())
 

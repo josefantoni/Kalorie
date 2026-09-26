@@ -64,8 +64,7 @@ class FoodExportReportFactory(
 
     // MARK: - Private
 
-    private fun windowLabel(mealType: MealTypeDomain): String =
-        "${MealTypeDomain.clockTime(mealType.startMinutes)}–${MealTypeDomain.clockTime(mealType.endMinutes)}"
+    private fun windowLabel(mealType: MealTypeDomain): String = "${MealTypeDomain.clockTime(mealType.startMinutes)}–${MealTypeDomain.clockTime(mealType.endMinutes)}"
 
     private fun makeLabels(from: Instant, to: Instant): ExportLabels {
         val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale)

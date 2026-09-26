@@ -27,14 +27,12 @@ fun List<MealTypeDomain>.mealType(date: Instant): MealTypeDomain? {
     return firstOrNull { it.id == id }
 }
 
-fun List<MealTypeDomain>.resolvedMealTypeId(food: FoodConsumedDomain, zone: ZoneId = ZoneId.systemDefault()): String? =
-    resolvedMealWindowId(food.date.minutesSinceMidnight(zone), food.mealTypeId, mealWindows())
+fun List<MealTypeDomain>.resolvedMealTypeId(food: FoodConsumedDomain, zone: ZoneId = ZoneId.systemDefault()): String? = resolvedMealWindowId(food.date.minutesSinceMidnight(zone), food.mealTypeId, mealWindows())
 
-private fun List<MealTypeDomain>.mealWindows(): List<MealWindow> =
-    map {
-        MealWindow(
-            id = it.id,
-            startMinutes = it.startMinutes,
-            endMinutes = it.endMinutes,
-        )
-    }
+private fun List<MealTypeDomain>.mealWindows(): List<MealWindow> = map {
+    MealWindow(
+        id = it.id,
+        startMinutes = it.startMinutes,
+        endMinutes = it.endMinutes,
+    )
+}

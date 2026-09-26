@@ -1,6 +1,10 @@
 package antoni.kalorie.core.networking
 
 import antoni.kalorie.core.utils.Constants
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.io.EOFException
 import java.io.IOException
 import java.net.ConnectException
@@ -10,10 +14,6 @@ import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.URL
 import kotlin.time.Duration
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 
 data class HttpRequest(
     val url: String,

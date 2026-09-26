@@ -1,9 +1,9 @@
 package antoni.kalorie.core.usecases
 
-import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.time.Instant
 
 class MaintainerClaimCacheTest {
 

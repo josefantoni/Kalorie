@@ -8,13 +8,13 @@ import antoni.kalorie.core.models.MyCreatedMealError
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.MyCreatedMealDTO
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Test
+import java.time.Instant
 
 class UpdateMyCreatedMealUseCaseTest {
 

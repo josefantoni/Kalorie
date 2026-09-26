@@ -10,13 +10,13 @@ import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCaseProtocol
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class ModerationReportsViewModelTest {
 
@@ -163,8 +163,7 @@ class ModerationReportsViewModelTest {
         deleteFoodItemReport = deleteFoodItemReport,
     )
 
-    private fun makeReport(barcode: String, reportedBy: String): FoodItemReportDomain =
-        FoodItemReportDomain(barcode = barcode, reportedBy = reportedBy, reason = "wrong data", reportedAt = Instant.now())
+    private fun makeReport(barcode: String, reportedBy: String): FoodItemReportDomain = FoodItemReportDomain(barcode = barcode, reportedBy = reportedBy, reason = "wrong data", reportedAt = Instant.now())
 
     private fun makeItem(id: String = "12345678", czName: String = "Tvaroh", date: Instant = Instant.now()): FoodItemDomain = FoodItemDomain(
         id = id,

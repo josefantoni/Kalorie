@@ -38,6 +38,5 @@ object FoodPortionValidation {
         return null
     }
 
-    fun validate(portions: List<FoodPortionDomain>): FoodPortionError? =
-        if (portions.size > MAX_PORTIONS) FoodPortionError.TooMany else null
+    fun validate(portions: List<FoodPortionDomain>): FoodPortionError? = if (portions.size > MAX_PORTIONS) FoodPortionError.TooMany else null
 }

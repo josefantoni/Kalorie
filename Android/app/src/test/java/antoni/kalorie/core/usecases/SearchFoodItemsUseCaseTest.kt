@@ -5,10 +5,10 @@ import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.networking.FirestoreDataMapper
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodItemDTO
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.time.Instant
 
 class SearchFoodItemsUseCaseTest {
 

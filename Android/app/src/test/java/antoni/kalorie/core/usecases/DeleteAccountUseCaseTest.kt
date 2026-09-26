@@ -23,7 +23,6 @@ import antoni.kalorie.core.networking.MealTypeDTO
 import antoni.kalorie.core.networking.MyCreatedMealDTO
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -32,6 +31,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import java.time.Instant
 
 class DeleteAccountUseCaseTest {
 

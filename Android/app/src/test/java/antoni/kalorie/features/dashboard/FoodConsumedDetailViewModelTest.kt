@@ -26,8 +26,6 @@ import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseFake
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseProtocol
-import java.time.Instant
-import java.time.ZonedDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -35,6 +33,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
+import java.time.ZonedDateTime
 
 class FoodConsumedDetailViewModelTest {
 
@@ -356,22 +356,21 @@ class FoodConsumedDetailViewModelTest {
         fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
         submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
         onFoodUpdated: () -> Unit = {},
-    ): FoodConsumedDetailViewModel =
-        FoodConsumedDetailViewModel(
-            food = food ?: makeFood(),
-            mealTypes = mealTypes,
-            updateFoodConsumed = updateFoodConsumed,
-            assignFoodMealType = assignFoodMealType,
-            fetchMealTypes = fetchMealTypes ?: FetchMealTypesUseCaseFake(stubbedTypes = mealTypes),
-            isFavouriteFood = isFavouriteFood,
-            addFavouriteFood = addFavouriteFood,
-            removeFavouriteFood = removeFavouriteFood,
-            fetchFoodItemByBarcode = fetchFoodItemByBarcode,
-            fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
-            fetchMyFoodItemReport = fetchMyFoodItemReport,
-            submitFoodItemReport = submitFoodItemReport,
-            onFoodUpdated = onFoodUpdated,
-        )
+    ): FoodConsumedDetailViewModel = FoodConsumedDetailViewModel(
+        food = food ?: makeFood(),
+        mealTypes = mealTypes,
+        updateFoodConsumed = updateFoodConsumed,
+        assignFoodMealType = assignFoodMealType,
+        fetchMealTypes = fetchMealTypes ?: FetchMealTypesUseCaseFake(stubbedTypes = mealTypes),
+        isFavouriteFood = isFavouriteFood,
+        addFavouriteFood = addFavouriteFood,
+        removeFavouriteFood = removeFavouriteFood,
+        fetchFoodItemByBarcode = fetchFoodItemByBarcode,
+        fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
+        fetchMyFoodItemReport = fetchMyFoodItemReport,
+        submitFoodItemReport = submitFoodItemReport,
+        onFoodUpdated = onFoodUpdated,
+    )
 
     private fun makeCatalogueItem(): FoodItemDomain = FoodItemDomain(
         id = "12345",
@@ -392,8 +391,7 @@ class FoodConsumedDetailViewModelTest {
         salt = 0.0,
     )
 
-    private fun makeDate(hour: Int, minute: Int): Instant =
-        ZonedDateTime.now().withHour(hour).withMinute(minute).withSecond(0).withNano(0).toInstant()
+    private fun makeDate(hour: Int, minute: Int): Instant = ZonedDateTime.now().withHour(hour).withMinute(minute).withSecond(0).withNano(0).toInstant()
 
     private fun makeFood(
         foodItemId: String = "12345",

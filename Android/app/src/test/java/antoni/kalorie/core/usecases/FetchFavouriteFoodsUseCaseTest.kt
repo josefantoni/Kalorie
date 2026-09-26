@@ -8,12 +8,12 @@ import antoni.kalorie.core.models.FoodMeasure
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataMapper
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Test
+import java.time.Instant
 
 class FetchFavouriteFoodsUseCaseTest {
 

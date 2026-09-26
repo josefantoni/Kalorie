@@ -3,9 +3,9 @@ package antoni.kalorie.core.usecases
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.tasks.await
 import java.time.Duration
 import java.time.Instant
-import kotlinx.coroutines.tasks.await
 
 interface FetchMaintainerClaimUseCaseProtocol {
     suspend operator fun invoke(): Boolean

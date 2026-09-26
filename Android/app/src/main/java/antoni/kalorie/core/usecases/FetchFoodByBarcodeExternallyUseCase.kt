@@ -7,9 +7,9 @@ import antoni.kalorie.core.networking.HttpURLConnectionSession
 import antoni.kalorie.core.networking.OpenFoodFactsBarcodeResponseDTO
 import antoni.kalorie.core.networking.OpenFoodFactsTransientRequest
 import antoni.kalorie.core.utils.Constants
+import kotlinx.serialization.json.Json
 import java.net.URLEncoder
 import kotlin.time.Duration
-import kotlinx.serialization.json.Json
 
 sealed class FetchFoodByBarcodeExternallyError : Exception() {
     data object InvalidURL : FetchFoodByBarcodeExternallyError()

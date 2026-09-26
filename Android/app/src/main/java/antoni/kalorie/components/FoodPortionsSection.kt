@@ -24,7 +24,6 @@ fun FoodPortionsSection(
     modifier: Modifier = Modifier,
     measure: FoodMeasure = FoodMeasure.GRAMS,
 ) {
-
     // MARK: - Properties
 
     var focusedPortionId by remember { mutableStateOf<UUID?>(null) }

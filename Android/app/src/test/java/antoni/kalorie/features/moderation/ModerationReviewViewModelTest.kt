@@ -1,14 +1,14 @@
 package antoni.kalorie.features.moderation
 
 import antoni.kalorie.R
-import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
-import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseFake
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseFake
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
+import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
 import antoni.kalorie.core.usecases.ApproveSubmissionError
 import antoni.kalorie.core.usecases.ApproveSubmissionUseCaseFake
 import antoni.kalorie.core.usecases.ApproveSubmissionUseCaseProtocol
@@ -18,7 +18,6 @@ import antoni.kalorie.core.usecases.RejectSubmissionUseCaseFake
 import antoni.kalorie.core.usecases.RejectSubmissionUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseFake
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
-import java.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -29,6 +28,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class ModerationReviewViewModelTest {
 

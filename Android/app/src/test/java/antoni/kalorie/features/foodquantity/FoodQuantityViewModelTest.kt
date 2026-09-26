@@ -4,10 +4,10 @@ import antoni.kalorie.R
 import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
-import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemReportError
 import antoni.kalorie.core.models.FoodNutritionValues
+import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
@@ -22,16 +22,14 @@ import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseFake
+import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseFake
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
-import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseFake
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
-import java.time.Instant
-import java.time.ZonedDateTime
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -42,6 +40,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
+import java.time.ZonedDateTime
 
 class FoodQuantityViewModelTest {
 
@@ -955,11 +955,9 @@ class FoodQuantityViewModelTest {
         unit = unit,
     )
 
-    private fun makeDate(hour: Int): Instant =
-        ZonedDateTime.now().withHour(hour).withMinute(0).withSecond(0).withNano(0).toInstant()
+    private fun makeDate(hour: Int): Instant = ZonedDateTime.now().withHour(hour).withMinute(0).withSecond(0).withNano(0).toInstant()
 
-    private fun makeMealType(id: String, hour: Int, endHour: Int): MealTypeDomain =
-        MealTypeDomain(id = id, name = "Meal $id", startMinutes = hour * 60, endMinutes = endHour * 60)
+    private fun makeMealType(id: String, hour: Int, endHour: Int): MealTypeDomain = MealTypeDomain(id = id, name = "Meal $id", startMinutes = hour * 60, endMinutes = endHour * 60)
 
     private fun makeFoodItem(
         kind: FoodItemKind = FoodItemKind.CATALOGUE,

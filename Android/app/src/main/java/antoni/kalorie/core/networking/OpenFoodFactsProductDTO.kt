@@ -4,9 +4,9 @@ import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.macrokit.energyKJFromMacros
 import antoni.kalorie.textkit.decodeHtmlEntities
-import java.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
 @Serializable
 data class OpenFoodFactsResponseDTO(

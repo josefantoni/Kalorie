@@ -8,12 +8,12 @@ import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCaseFake
 import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCaseProtocol
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class ModerationQueueViewModelTest {
 

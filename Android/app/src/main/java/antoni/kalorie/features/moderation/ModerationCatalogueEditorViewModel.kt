@@ -24,7 +24,8 @@ class ModerationCatalogueEditorViewModel(
     private val updateFoodItem: UpdateFoodItemUseCaseProtocol,
     private val recognizeNutritionLabelUseCase: RecognizeNutritionLabelUseCaseProtocol,
     private val initialBarcode: String? = null,
-) : ViewModel(), NutritionLabelPrefilling {
+) : ViewModel(),
+    NutritionLabelPrefilling {
 
     // MARK: - Properties
 

@@ -20,10 +20,10 @@ import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.NutritionLabelPrefilling
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.addfoodsheet.FoodItemFormInput
-import java.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Instant
 
 class ModerationReviewViewModel(
     private val submission: FoodItemSubmissionDomain,
@@ -32,7 +32,8 @@ class ModerationReviewViewModel(
     private val searchFoodItems: SearchFoodItemsUseCaseProtocol,
     private val recognizeNutritionLabelUseCase: RecognizeNutritionLabelUseCaseProtocol,
     private val onResolved: () -> Unit,
-) : ViewModel(), NutritionLabelPrefilling {
+) : ViewModel(),
+    NutritionLabelPrefilling {
 
     // MARK: - Properties
 

@@ -52,14 +52,13 @@ import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.zoned
+import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () -> Unit) {
-
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()
@@ -237,8 +236,7 @@ private fun LabeledRow(label: String, content: @Composable () -> Unit) {
     }
 }
 
-private fun initialWeightText(weight: Double): String =
-    if (weight % 1 == 0.0) weight.toLong().toString() else weight.toString()
+private fun initialWeightText(weight: Double): String = if (weight % 1 == 0.0) weight.toLong().toString() else weight.toString()
 
 private fun sanitizedWeightText(text: String): String {
     var seenSeparator = false

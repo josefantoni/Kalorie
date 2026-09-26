@@ -3,12 +3,12 @@ package antoni.kalorie.core.networking
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
-import java.time.Instant
 import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Test
+import java.time.Instant
 
 class DTOWireShapeTest {
 

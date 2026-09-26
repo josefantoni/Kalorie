@@ -33,7 +33,6 @@ private class BoundCamera {
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun DataScannerView(onScannedCode: (String) -> Unit, isSearching: Boolean, modifier: Modifier = Modifier) {
-
     // MARK: - Properties
 
     val context = LocalContext.current

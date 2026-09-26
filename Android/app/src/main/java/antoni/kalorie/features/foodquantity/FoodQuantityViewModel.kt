@@ -15,8 +15,8 @@ import antoni.kalorie.core.models.mealType
 import antoni.kalorie.core.models.scaled
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseProtocol
-import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
@@ -29,11 +29,11 @@ import antoni.kalorie.core.utils.FoodItemReporting
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
-import java.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Instant
 
 sealed interface FoodQuantityUnit {
     data object HundredGrams : FoodQuantityUnit
@@ -70,7 +70,9 @@ class FoodQuantityViewModel(
     private val onFavouriteChanged: (String, Boolean) -> Unit,
     quantity: Double = 1.0,
     unit: FoodQuantityUnit = FoodQuantityUnit.HundredGrams,
-) : ViewModel(), FavouriteToggling, FoodItemReporting {
+) : ViewModel(),
+    FavouriteToggling,
+    FoodItemReporting {
 
     // MARK: - Properties
 
@@ -299,7 +301,6 @@ class FoodQuantityViewModel(
     companion object {
         private const val CHECKMARK_DURATION_MILLIS = 2_000L
 
-        fun defaultUnit(item: FoodItemDomain): FoodQuantityUnit =
-            item.portions.firstOrNull()?.let { FoodQuantityUnit.Portion(it) } ?: FoodQuantityUnit.Grams
+        fun defaultUnit(item: FoodItemDomain): FoodQuantityUnit = item.portions.firstOrNull()?.let { FoodQuantityUnit.Portion(it) } ?: FoodQuantityUnit.Grams
     }
 }

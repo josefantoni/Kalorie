@@ -36,7 +36,6 @@ fun PortionInputRow(
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester = FocusRequester(),
 ) {
-
     // MARK: - Properties
 
     val focusManager = LocalFocusManager.current

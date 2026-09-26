@@ -1,12 +1,7 @@
 package antoni.kalorie.features.addfoodsheet
 
+import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormField
-import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
-import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
-import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelRecognitionError
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseFake
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
-import antoni.kalorie.core.utils.CameraAccess
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
@@ -15,20 +10,25 @@ import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.FoodNutritionValues
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelRecognitionError
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseFake
+import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
+import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseFake
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteMySubmissionUseCaseFake
 import antoni.kalorie.core.usecases.DeleteMySubmissionUseCaseProtocol
-import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseFake
-import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseProtocol
-import antoni.kalorie.core.usecases.FetchMySubmissionsUseCaseFake
-import antoni.kalorie.core.usecases.FetchMySubmissionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseFake
+import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMySubmissionsUseCaseFake
+import antoni.kalorie.core.usecases.FetchMySubmissionsUseCaseProtocol
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SearchFoodExternallyUseCaseFake
@@ -39,8 +39,7 @@ import antoni.kalorie.core.usecases.SubmitFoodItemUseCaseFake
 import antoni.kalorie.core.usecases.SubmitFoodItemUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMySubmissionUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMySubmissionUseCaseProtocol
-import antoni.kalorie.R
-import java.time.Instant
+import antoni.kalorie.core.utils.CameraAccess
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -50,6 +49,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class AddFoodSheetViewModelTest {
 

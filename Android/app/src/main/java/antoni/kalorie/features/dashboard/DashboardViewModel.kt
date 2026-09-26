@@ -20,10 +20,10 @@ import antoni.kalorie.core.utils.isFirestoreUnreachable
 import antoni.kalorie.core.utils.isSameDay
 import antoni.kalorie.macrokit.Macros
 import antoni.kalorie.macrokit.total
-import java.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Instant
 
 data class DailyMacros(
     val calories: Int,
@@ -49,7 +49,7 @@ data class DailyMacros(
                     salt = it.salt,
                 )
             }
-            .total()
+            .total(),
     )
 
     private constructor(total: Macros) : this(
@@ -218,12 +218,11 @@ class DashboardViewModel(
         }
     }
 
-    private fun unknownErrorAlertItem(error: Throwable): AlertItem =
-        if (error.isFirestoreUnreachable) {
-            AlertItem(titleRes = R.string.common_error_offline, messageRes = R.string.common_error_offline_message)
-        } else {
-            AlertItem(titleRes = R.string.common_error_unknown, messageRes = R.string.common_error_unknown_message)
-        }
+    private fun unknownErrorAlertItem(error: Throwable): AlertItem = if (error.isFirestoreUnreachable) {
+        AlertItem(titleRes = R.string.common_error_offline, messageRes = R.string.common_error_offline_message)
+    } else {
+        AlertItem(titleRes = R.string.common_error_unknown, messageRes = R.string.common_error_unknown_message)
+    }
 
     private suspend fun refreshMealTypes() {
         var types = fetchMealTypes()

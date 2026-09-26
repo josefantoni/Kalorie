@@ -19,7 +19,6 @@ import antoni.kalorie.features.addfoodsheet.DataScannerView
 
 @Composable
 fun BarcodeScannerOverlay(onScannedCode: (String) -> Unit, isSearching: Boolean, onClose: () -> Unit) {
-
     // MARK: - Body
 
     Box(modifier = Modifier.fillMaxSize()) {

@@ -3,9 +3,9 @@ package antoni.kalorie.core.networking
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.utils.epochSecondsAsDouble
 import antoni.kalorie.core.utils.instantFromEpochSeconds
-import java.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
 @Serializable
 data class FoodItemReportDTO(

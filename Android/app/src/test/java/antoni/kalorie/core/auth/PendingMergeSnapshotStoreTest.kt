@@ -2,12 +2,12 @@ package antoni.kalorie.core.auth
 
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.networking.FoodConsumedDTO
-import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.time.Instant
 
 class PendingMergeSnapshotStoreTest {
 

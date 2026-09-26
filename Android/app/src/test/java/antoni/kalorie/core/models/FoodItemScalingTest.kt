@@ -1,7 +1,6 @@
 package antoni.kalorie.core.models
 
 import antoni.kalorie.FixtureLoader
-import java.time.Instant
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -13,6 +12,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.time.Instant
 
 class FoodItemScalingTest {
 
@@ -51,8 +51,7 @@ class FoodItemScalingTest {
 
     private fun JsonObject.double(key: String): Double = getValue(key).jsonPrimitive.double
 
-    private fun JsonObject.optionalDouble(key: String): Double? =
-        getValue(key).let { element: JsonElement -> if (element is JsonNull) null else element.jsonPrimitive.double }
+    private fun JsonObject.optionalDouble(key: String): Double? = getValue(key).let { element: JsonElement -> if (element is JsonNull) null else element.jsonPrimitive.double }
 
     private fun makeItem(fields: JsonObject): FoodItemDomain = FoodItemDomain(
         id = "12345678",

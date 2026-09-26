@@ -30,8 +30,6 @@ import antoni.kalorie.core.nutritionlabelrecognition.uprightSize
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import com.google.mlkit.vision.common.InputImage
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,11 +37,14 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val PARSE_THROTTLE_MILLIS = 300L
 
 private class LiveScanState {
     @Volatile var liveBarcode: String? = null
+
     @Volatile var lastParseAtMillis: Long = 0L
 }
 
@@ -57,7 +58,6 @@ fun NutritionLabelScannerView(
     onCaptureFailed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
     // MARK: - Properties
 
     val context = LocalContext.current

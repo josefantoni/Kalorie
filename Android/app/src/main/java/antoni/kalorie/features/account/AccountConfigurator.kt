@@ -3,7 +3,6 @@ package antoni.kalorie.features.account
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.KalorieApplication
 import antoni.kalorie.core.auth.AuthCommandProvider
 import antoni.kalorie.core.auth.AuthProviderProtocol
@@ -20,6 +19,7 @@ import antoni.kalorie.core.usecases.MigrateAnonymousDataUseCase
 import antoni.kalorie.core.usecases.ReauthenticateUseCase
 import antoni.kalorie.core.usecases.SignInWithGoogleUseCase
 import antoni.kalorie.core.usecases.SignOutUseCase
+import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.features.moderation.ModerationConfigurator
 
 class AccountConfigurator(

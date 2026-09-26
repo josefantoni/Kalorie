@@ -8,12 +8,12 @@ import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
 import antoni.kalorie.core.networking.FirestoreDataMapper
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.MyCreatedMealDTO
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Test
+import java.time.Instant
 
 class FetchMyCreatedMealsUseCaseTest {
 
@@ -57,6 +57,7 @@ class FetchMyCreatedMealsUseCaseTest {
     fun fetchMyCreatedMeals_whenIngredientFatSaturatedAndFiberMissingFromStoredDocument_stayNullInsteadOfZero() = runTest {
         val (sut, dataProvider) = makeSUT()
         val stored = FirestoreDataMapper.encode(makeDTO(id = "meal-1", name = "Kaše"), MyCreatedMealDTO.serializer())
+
         @Suppress("UNCHECKED_CAST")
         val ingredients = (stored["ingredients"] as List<Map<String, Any?>>).map { it - "fat_saturated" - "fiber" }
         dataProvider.stubbedDocuments = listOf(
@@ -76,8 +77,7 @@ class FetchMyCreatedMealsUseCaseTest {
         return FetchMyCreatedMealsUseCase(dataProvider, AuthProviderFake(userId = userId)) to dataProvider
     }
 
-    private fun makeDTO(id: String, name: String): MyCreatedMealDTO =
-        MyCreatedMealDTO(MyCreatedMealDomain(id = id, name = name, ingredients = listOf(makeIngredient()), createdAt = Instant.now(), updatedAt = Instant.now()))
+    private fun makeDTO(id: String, name: String): MyCreatedMealDTO = MyCreatedMealDTO(MyCreatedMealDomain(id = id, name = name, ingredients = listOf(makeIngredient()), createdAt = Instant.now(), updatedAt = Instant.now()))
 
     private fun makeIngredient(): MyCreatedMealIngredientDomain = MyCreatedMealIngredientDomain(
         foodItemId = "12345",

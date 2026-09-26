@@ -69,7 +69,6 @@ class MealActions(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealActions: MealActions? = null) {
-
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()

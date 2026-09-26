@@ -5,7 +5,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class FoodItemKind {
-    @SerialName("catalogue") CATALOGUE,
-    @SerialName("external") EXTERNAL,
-    @SerialName("created_meal") CREATED_MEAL,
+    @SerialName("catalogue")
+    CATALOGUE,
+
+    @SerialName("external")
+    EXTERNAL,
+
+    @SerialName("created_meal")
+    CREATED_MEAL,
 }
