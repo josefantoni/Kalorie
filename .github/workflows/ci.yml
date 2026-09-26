@@ -178,9 +178,9 @@ jobs:
             "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0"
           fi
 
-      - name: Build and test Android app
+      - name: Lint, build and test Android app
         working-directory: Android
-        run: ./gradlew :app:assembleDebug :app:testDebugUnitTest
+        run: ./gradlew :app:ktlintCheck :app:assembleDebug :app:testDebugUnitTest
 
   l10n:
     needs: changes
