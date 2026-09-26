@@ -439,9 +439,11 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
             return
         } catch {
             Log.error(error, category: Constants.LogCategory.addFoodSheet)
+            isScannerVisible = false
             alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
             return
         }
+        isScannerVisible = false
         alertItem = AlertItem(title: L10n.AddFood.errorBarcodeNotFound)
     }
 

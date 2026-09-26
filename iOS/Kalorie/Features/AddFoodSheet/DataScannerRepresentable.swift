@@ -21,17 +21,9 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
     class Coordinator: NSObject, DataScannerViewControllerDelegate {
         var parent: DataScannerRepresentable
         private var lastDeliveredCode: String?
-        private var wasSearching = false
 
         init(_ parent: DataScannerRepresentable) {
             self.parent = parent
-        }
-
-        func resetIfSearchEnded(isSearching: Bool) {
-            if wasSearching && !isSearching {
-                lastDeliveredCode = nil
-            }
-            wasSearching = isSearching
         }
 
         func dataScanner(_ dataScanner: DataScannerViewController, didUpdate updatedItems: [RecognizedItem], allItems: [RecognizedItem]) {
@@ -68,7 +60,6 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {
-        context.coordinator.resetIfSearchEnded(isSearching: isSearching)
         if isSearching {
             uiViewController.stopScanning()
         } else {
