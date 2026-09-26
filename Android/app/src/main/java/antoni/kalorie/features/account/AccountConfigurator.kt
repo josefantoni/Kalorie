@@ -71,6 +71,7 @@ class AccountConfigurator(
                     dataProvider = dataProvider,
                     authProvider = authProvider,
                     authCommandProvider = authCommandProvider,
+                    snapshotStore = snapshotStore,
                 ),
                 reauthenticate = ReauthenticateUseCase(
                     googleSignInProvider = googleSignInProvider,
