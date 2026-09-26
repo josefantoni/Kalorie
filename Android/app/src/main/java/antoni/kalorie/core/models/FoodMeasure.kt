@@ -5,7 +5,8 @@ import antoni.kalorie.R
 
 enum class FoodMeasure(val rawValue: String) {
     GRAMS("grams"),
-    MILLILITRES("millilitres");
+    MILLILITRES("millilitres"),
+    ;
 
     // MARK: - Properties
 

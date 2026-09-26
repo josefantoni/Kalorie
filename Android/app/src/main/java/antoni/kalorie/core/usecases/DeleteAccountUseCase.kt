@@ -17,9 +17,9 @@ import antoni.kalorie.core.networking.loadAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
+import kotlinx.coroutines.CancellationException
 import java.time.Duration
 import java.time.Instant
-import kotlinx.coroutines.CancellationException
 
 sealed class DeleteAccountError : Exception() {
     data class RequiresRecentLogin(val dataAlreadyDeleted: Boolean) : DeleteAccountError()

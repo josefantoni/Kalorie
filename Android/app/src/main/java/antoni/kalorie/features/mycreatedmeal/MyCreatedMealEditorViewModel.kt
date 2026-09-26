@@ -23,12 +23,12 @@ import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetViewModel
-import java.time.Instant
-import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Instant
+import java.util.UUID
 
 data class MyCreatedMealIngredientDraft(
     val id: UUID = UUID.randomUUID(),
@@ -92,6 +92,7 @@ class MyCreatedMealEditorViewModel(
     val isSaveConfirmationVisible = MutableStateFlow(false)
     private val _shouldDismiss = MutableStateFlow(false)
     val shouldDismiss: StateFlow<Boolean> = _shouldDismiss
+
     @StringRes val searchExampleRes: Int = AddFoodSheetViewModel.searchExamples.random()
 
     private val initialName = name.value
@@ -289,26 +290,23 @@ class MyCreatedMealEditorViewModel(
         const val SEARCH_DEBOUNCE_MILLIS = 300L
         const val EXTERNAL_SEARCH_MIN_LENGTH = 3
 
-        fun ingredientDomains(ingredients: List<MyCreatedMealIngredientDraft>): List<MyCreatedMealIngredientDomain> =
-            ingredients.map { draft ->
-                MyCreatedMealIngredientDomain(
-                    foodItemId = draft.item.id,
-                    czName = draft.item.czName,
-                    engName = draft.item.engName,
-                    grams = parsedGrams(draft.gramsText),
-                    nutrition = draft.item.nutrition,
-                )
-            }
+        fun ingredientDomains(ingredients: List<MyCreatedMealIngredientDraft>): List<MyCreatedMealIngredientDomain> = ingredients.map { draft ->
+            MyCreatedMealIngredientDomain(
+                foodItemId = draft.item.id,
+                czName = draft.item.czName,
+                engName = draft.item.engName,
+                grams = parsedGrams(draft.gramsText),
+                nutrition = draft.item.nutrition,
+            )
+        }
 
         fun parsedGrams(text: String): Double = text.replace(',', '.').toDoubleOrNull() ?: 0.0
 
-        fun parsedPortions(drafts: List<FoodPortionDraft>): List<FoodPortionDomain> =
-            drafts.mapNotNull { draft ->
-                val grams = parsedGrams(draft.gramsText)
-                if (grams >= 1) FoodPortionDomain(name = draft.name, grams = grams) else null
-            }
+        fun parsedPortions(drafts: List<FoodPortionDraft>): List<FoodPortionDomain> = drafts.mapNotNull { draft ->
+            val grams = parsedGrams(draft.gramsText)
+            if (grams >= 1) FoodPortionDomain(name = draft.name, grams = grams) else null
+        }
 
-        fun formattedGrams(value: Double): String =
-            if (value % 1.0 == 0.0) value.toLong().toString() else value.toString()
+        fun formattedGrams(value: Double): String = if (value % 1.0 == 0.0) value.toLong().toString() else value.toString()
     }
 }

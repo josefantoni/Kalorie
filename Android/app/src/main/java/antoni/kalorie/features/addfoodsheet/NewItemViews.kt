@@ -53,7 +53,6 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewItemPromptContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Unit, modePicker: @Composable () -> Unit) {
-
     val cameraAccess by viewModel.cameraAccess.collectAsState()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -83,7 +82,7 @@ fun NewItemPromptContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Unit
                 },
             )
         },
-        ) { innerPadding ->
+    ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             modePicker()
             Column(
@@ -133,7 +132,6 @@ fun NewItemPromptContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Unit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewItemReviewContent(viewModel: AddFoodSheetViewModel, onBack: () -> Unit) {
-
     // MARK: - Properties
 
     val formInput by viewModel.formInput.collectAsState()

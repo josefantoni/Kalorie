@@ -43,17 +43,16 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodExportFormat
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
-
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()

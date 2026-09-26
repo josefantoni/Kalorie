@@ -6,11 +6,6 @@ import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.utils.StringProviderFake
-import java.time.Instant
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.util.Locale
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
@@ -21,6 +16,11 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.Locale
 
 class FoodExportReportFactoryTest {
 
@@ -144,8 +144,7 @@ class FoodExportReportFactoryTest {
 
     private fun makeDate(day: Int, hour: Int = 0): Instant = ZonedDateTime.of(2026, 9, day, hour, 0, 0, 0, ZONE).toInstant()
 
-    private fun makeFood(id: String, day: Int, hour: Int, mealTypeId: String? = null, fiber: Double? = 1.0): FoodConsumedDomain =
-        makeFood(id = id, date = makeDate(day, hour), mealTypeId = mealTypeId, fiber = fiber)
+    private fun makeFood(id: String, day: Int, hour: Int, mealTypeId: String? = null, fiber: Double? = 1.0): FoodConsumedDomain = makeFood(id = id, date = makeDate(day, hour), mealTypeId = mealTypeId, fiber = fiber)
 
     private fun makeFood(id: String, date: Instant, mealTypeId: String? = null, fiber: Double? = 1.0) = FoodConsumedDomain(
         id = id,

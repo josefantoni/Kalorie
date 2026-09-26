@@ -19,8 +19,7 @@ object FirestoreDataMapper {
 
     // MARK: - Functions
 
-    fun <T> decode(data: Map<String, Any?>, serializer: KSerializer<T>): T =
-        json.decodeFromJsonElement(serializer, toJsonElement(data))
+    fun <T> decode(data: Map<String, Any?>, serializer: KSerializer<T>): T = json.decodeFromJsonElement(serializer, toJsonElement(data))
 
     fun <T> encode(item: T, serializer: KSerializer<T>): Map<String, Any?> {
         val element = json.encodeToJsonElement(serializer, item)

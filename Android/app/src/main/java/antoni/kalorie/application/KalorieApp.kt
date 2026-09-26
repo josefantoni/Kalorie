@@ -37,7 +37,6 @@ import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun KalorieApp() {
-
     // MARK: - Properties
 
     val context = LocalContext.current.applicationContext

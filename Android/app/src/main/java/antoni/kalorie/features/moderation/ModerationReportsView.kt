@@ -48,7 +48,6 @@ fun ModerationReportsView(
     onDismiss: () -> Unit,
     makeCatalogueEditorView: @Composable (barcode: String?, onDismiss: () -> Unit) -> Unit,
 ) {
-
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()

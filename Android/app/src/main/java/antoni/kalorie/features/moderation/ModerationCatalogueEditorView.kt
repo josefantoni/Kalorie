@@ -40,14 +40,13 @@ import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.utils.AlertItem
-import antoni.kalorie.features.addfoodsheet.NutritionLabelCameraView
 import antoni.kalorie.core.utils.isLoading
+import antoni.kalorie.features.addfoodsheet.NutritionLabelCameraView
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel, onDismiss: () -> Unit) {
-
     // MARK: - Properties
 
     val barcodeQuery by viewModel.barcodeQuery.collectAsState()

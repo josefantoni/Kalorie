@@ -47,7 +47,9 @@ class FoodConsumedDetailViewModel(
     private val fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol,
     private val submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol,
     private val onFoodUpdated: () -> Unit,
-) : ViewModel(), FavouriteToggling, FoodItemReporting {
+) : ViewModel(),
+    FavouriteToggling,
+    FoodItemReporting {
 
     // MARK: - Properties
 

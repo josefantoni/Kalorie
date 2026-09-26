@@ -5,11 +5,11 @@ import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodItemReportDTO
 import antoni.kalorie.core.utils.Constants
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Test
+import java.time.Instant
 
 class FetchFoodItemReportsUseCaseTest {
 

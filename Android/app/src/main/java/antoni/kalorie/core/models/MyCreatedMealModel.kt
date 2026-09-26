@@ -25,8 +25,7 @@ data class MyCreatedMealDomain(
     fun asFoodItem(): FoodItemDomain {
         val gramsList = ingredients.map { it.grams }
         val totalGrams = gramsList.sum()
-        fun density(value: (FoodNutritionValues) -> Double): Double =
-            weightedMeanPerHundredGrams(values = ingredients.map { value(it.nutrition) }, grams = gramsList)
+        fun density(value: (FoodNutritionValues) -> Double): Double = weightedMeanPerHundredGrams(values = ingredients.map { value(it.nutrition) }, grams = gramsList)
         fun densityOptional(value: (FoodNutritionValues) -> Double?): Double? {
             val values = ingredients.map { value(it.nutrition) ?: return null }
             return weightedMeanPerHundredGrams(values = values, grams = gramsList)

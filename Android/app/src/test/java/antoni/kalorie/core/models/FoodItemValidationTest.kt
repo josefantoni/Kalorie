@@ -1,7 +1,6 @@
 package antoni.kalorie.core.models
 
 import antoni.kalorie.FixtureLoader
-import java.time.Instant
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -13,6 +12,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.time.Instant
 
 class FoodItemValidationTest {
 

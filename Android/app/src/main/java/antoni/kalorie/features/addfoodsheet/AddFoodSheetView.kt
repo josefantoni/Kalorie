@@ -1,17 +1,5 @@
 package antoni.kalorie.features.addfoodsheet
 
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import antoni.kalorie.components.BarcodeIcon
-import antoni.kalorie.components.BarcodeScannerOverlay
-import antoni.kalorie.components.rememberScannerAccess
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -25,16 +13,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,16 +36,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
+import antoni.kalorie.components.BarcodeIcon
+import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FoodItemRow
+import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.MyCreatedMealDomain
@@ -89,7 +89,6 @@ fun AddFoodSheetView(
         navigationIcon: @Composable () -> Unit,
     ) -> Unit,
 ) {
-
     // MARK: - Properties
 
     val isPushedToQuantityView by viewModel.isPushedToQuantityView.collectAsState()
@@ -121,73 +120,73 @@ fun AddFoodSheetView(
         properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-        NavDisplay(
-            backStack = backStack,
-            onBack = {
-                when {
-                    isPushedToQuantityView -> viewModel.isPushedToQuantityView.value = false
-                    isReviewPushed -> viewModel.isReviewPushed.value = false
-                    else -> onDismiss()
-                }
-            },
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator(),
-            ),
-            entryProvider = { destination ->
-                when (destination) {
-                    is AddFoodSheetDestination.Search -> NavEntry(destination) {
-                        val mode by viewModel.mode.collectAsState()
-                        when (mode) {
-                            AddFoodSheetMode.SEARCH -> SearchContent(viewModel = viewModel, onDismiss = onDismiss)
-                            AddFoodSheetMode.NEW_ITEM -> NewItemPromptContent(
-                                viewModel = viewModel,
-                                onDismiss = onDismiss,
-                                modePicker = { ModePicker(viewModel) },
-                            )
-                            AddFoodSheetMode.CREATE_MEAL -> makeMealEditorView(
-                                { scope.launch { viewModel.onMyCreatedMealSaved() } },
-                                onDismiss,
-                                { CloseButton(onDismiss) },
-                                { ModePicker(viewModel) },
+            NavDisplay(
+                backStack = backStack,
+                onBack = {
+                    when {
+                        isPushedToQuantityView -> viewModel.isPushedToQuantityView.value = false
+                        isReviewPushed -> viewModel.isReviewPushed.value = false
+                        else -> onDismiss()
+                    }
+                },
+                entryDecorators = listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                ),
+                entryProvider = { destination ->
+                    when (destination) {
+                        is AddFoodSheetDestination.Search -> NavEntry(destination) {
+                            val mode by viewModel.mode.collectAsState()
+                            when (mode) {
+                                AddFoodSheetMode.SEARCH -> SearchContent(viewModel = viewModel, onDismiss = onDismiss)
+                                AddFoodSheetMode.NEW_ITEM -> NewItemPromptContent(
+                                    viewModel = viewModel,
+                                    onDismiss = onDismiss,
+                                    modePicker = { ModePicker(viewModel) },
+                                )
+                                AddFoodSheetMode.CREATE_MEAL -> makeMealEditorView(
+                                    { scope.launch { viewModel.onMyCreatedMealSaved() } },
+                                    onDismiss,
+                                    { CloseButton(onDismiss) },
+                                    { ModePicker(viewModel) },
+                                )
+                            }
+                        }
+                        is AddFoodSheetDestination.Review -> NavEntry(destination) {
+                            NewItemReviewContent(viewModel = viewModel, onBack = { viewModel.isReviewPushed.value = false })
+                        }
+                        is AddFoodSheetDestination.FoodQuantity -> NavEntry(destination) {
+                            val meal = viewModel.myCreatedMeal(destination.item)
+                            makeFoodQuantityView(
+                                destination.item,
+                                viewModel.isFavourite(destination.item),
+                                meal,
+                                viewModel::onFoodConsumedSaved,
+                                { id, isFavourite -> viewModel.onFavouriteChanged(id, isFavourite, destination.item) },
+                                viewModel::onMyCreatedMealUpdated,
+                                meal?.let {
+                                    MealActions(
+                                        makeEditorView = { onBack ->
+                                            makeEditMealView(
+                                                it,
+                                                { scope.launch { viewModel.onMyCreatedMealSaved() } },
+                                                onBack,
+                                            ) { BackButton(onBack) }
+                                        },
+                                        onDelete = { scope.launch { viewModel.onDeleteMealConfirmed(it) } },
+                                    )
+                                },
+                                { viewModel.isPushedToQuantityView.value = false },
                             )
                         }
                     }
-                    is AddFoodSheetDestination.Review -> NavEntry(destination) {
-                        NewItemReviewContent(viewModel = viewModel, onBack = { viewModel.isReviewPushed.value = false })
-                    }
-                    is AddFoodSheetDestination.FoodQuantity -> NavEntry(destination) {
-                        val meal = viewModel.myCreatedMeal(destination.item)
-                        makeFoodQuantityView(
-                            destination.item,
-                            viewModel.isFavourite(destination.item),
-                            meal,
-                            viewModel::onFoodConsumedSaved,
-                            { id, isFavourite -> viewModel.onFavouriteChanged(id, isFavourite, destination.item) },
-                            viewModel::onMyCreatedMealUpdated,
-                            meal?.let {
-                                MealActions(
-                                    makeEditorView = { onBack ->
-                                        makeEditMealView(
-                                            it,
-                                            { scope.launch { viewModel.onMyCreatedMealSaved() } },
-                                            onBack,
-                                        ) { BackButton(onBack) }
-                                    },
-                                    onDelete = { scope.launch { viewModel.onDeleteMealConfirmed(it) } },
-                                )
-                            },
-                            { viewModel.isPushedToQuantityView.value = false },
-                        )
-                    }
+                },
+            )
+            if (state.isLoading) {
+                Box(modifier = Modifier.fillMaxSize().clickable(enabled = false) {}, contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            },
-        )
-        if (state.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().clickable(enabled = false) {}, contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
             }
-        }
         }
     }
 
@@ -222,7 +221,6 @@ fun AddFoodSheetView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Unit) {
-
     // MARK: - Properties
 
     val searchText by viewModel.searchText.collectAsState()

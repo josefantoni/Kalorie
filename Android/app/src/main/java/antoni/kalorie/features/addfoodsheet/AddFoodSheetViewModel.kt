@@ -60,7 +60,8 @@ class AddFoodSheetViewModel(
     private val recognizeNutritionLabelUseCase: RecognizeNutritionLabelUseCaseProtocol,
     private val onFoodSaved: () -> Unit = {},
     isScannerVisible: Boolean = false,
-) : ViewModel(), NutritionLabelPrefilling {
+) : ViewModel(),
+    NutritionLabelPrefilling {
 
     // MARK: - Properties
 
@@ -107,6 +108,7 @@ class AddFoodSheetViewModel(
     val selectedFoodItem: StateFlow<FoodItemDomain?> = _selectedFoodItem
     private val _shouldDismiss = MutableStateFlow(false)
     val shouldDismiss: StateFlow<Boolean> = _shouldDismiss
+
     @StringRes val searchExampleRes: Int = searchExamples.random()
 
     val isEditingSubmission: Boolean
@@ -186,8 +188,7 @@ class AddFoodSheetViewModel(
         isBarcodeRescanVisible.value = false
     }
 
-    fun submissionStatus(item: FoodItemDomain): FoodItemSubmissionStatus? =
-        mySubmissions.value.firstOrNull { it.item.id == item.id }?.status
+    fun submissionStatus(item: FoodItemDomain): FoodItemSubmissionStatus? = mySubmissions.value.firstOrNull { it.item.id == item.id }?.status
 
     fun onSelectRejectedSubmission(item: FoodItemDomain) {
         val submission = mySubmissions.value.firstOrNull { it.item.id == item.id } ?: return

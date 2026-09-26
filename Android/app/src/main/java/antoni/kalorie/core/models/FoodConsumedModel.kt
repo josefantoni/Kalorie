@@ -98,5 +98,4 @@ data class ScaledMacros private constructor(
 
 fun FoodItemDomain.scaled(toGrams: Double): ScaledMacros = ScaledMacros(item = this, ratio = toGrams / 100)
 
-private fun weightRatio(food: FoodConsumedDomain, newWeight: Double): Double =
-    if (food.weight > 0) newWeight / food.weight else 1.0
+private fun weightRatio(food: FoodConsumedDomain, newWeight: Double): Double = if (food.weight > 0) newWeight / food.weight else 1.0

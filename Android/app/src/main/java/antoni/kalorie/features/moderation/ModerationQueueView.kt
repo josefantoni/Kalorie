@@ -51,7 +51,6 @@ fun ModerationQueueView(
     makeReviewView: @Composable (submission: FoodItemSubmissionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) -> Unit,
     makeCatalogueEditorView: @Composable (barcode: String?, onDismiss: () -> Unit) -> Unit,
 ) {
-
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()

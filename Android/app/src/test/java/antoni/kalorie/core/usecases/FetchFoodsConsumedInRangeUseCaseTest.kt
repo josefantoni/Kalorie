@@ -5,13 +5,13 @@ import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodConsumedDTO
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Test
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class FetchFoodsConsumedInRangeUseCaseTest {
 
@@ -51,8 +51,7 @@ class FetchFoodsConsumedInRangeUseCaseTest {
         return FetchFoodsConsumedInRangeUseCase(dataProvider, AuthProviderFake(userId = userId), ZONE) to dataProvider
     }
 
-    private fun makeDate(day: Int, hour: Int = 0, minute: Int = 0): Instant =
-        ZonedDateTime.of(2026, 9, day, hour, minute, 0, 0, ZONE).toInstant()
+    private fun makeDate(day: Int, hour: Int = 0, minute: Int = 0): Instant = ZonedDateTime.of(2026, 9, day, hour, minute, 0, 0, ZONE).toInstant()
 
     private fun makeDTO(id: String, date: Instant) = FoodConsumedDTO(
         id = id,

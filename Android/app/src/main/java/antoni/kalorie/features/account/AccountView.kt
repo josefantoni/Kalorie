@@ -47,7 +47,6 @@ fun AccountView(
     makeModerationView: @Composable (onDismiss: () -> Unit) -> Unit,
     makeModerationReportsView: @Composable (onDismiss: () -> Unit) -> Unit,
 ) {
-
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()

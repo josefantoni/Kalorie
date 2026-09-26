@@ -38,17 +38,16 @@ import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.rememberScannerAccess
-import antoni.kalorie.core.utils.AlertItem
-import antoni.kalorie.features.addfoodsheet.NutritionLabelCameraView
 import antoni.kalorie.core.models.displayName
+import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
-import kotlin.math.roundToInt
+import antoni.kalorie.features.addfoodsheet.NutritionLabelCameraView
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> Unit) {
-
     // MARK: - Properties
 
     val formInput by viewModel.formInput.collectAsState()

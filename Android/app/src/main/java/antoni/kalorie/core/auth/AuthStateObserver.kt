@@ -20,7 +20,8 @@ interface MergeStatusReporting {
 class AuthStateObserver(
     private val auth: FirebaseAuth,
     private val resumePendingMerge: MigrateAnonymousDataUseCaseProtocol,
-) : ViewModel(), MergeStatusReporting {
+) : ViewModel(),
+    MergeStatusReporting {
 
     // MARK: - Properties
 

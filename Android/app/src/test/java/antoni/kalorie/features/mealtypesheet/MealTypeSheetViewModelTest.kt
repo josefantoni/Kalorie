@@ -191,14 +191,12 @@ class MealTypeSheetViewModelTest {
         createMealType: CreateMealTypeUseCaseProtocol = CreateMealTypeUseCaseFake(),
         deleteMealType: DeleteMealTypeUseCaseProtocol = DeleteMealTypeUseCaseFake(),
         updateMealTypeTimes: UpdateMealTypeTimesUseCaseProtocol = UpdateMealTypeTimesUseCaseFake(),
-    ): MealTypeSheetViewModel =
-        MealTypeSheetViewModel(
-            mealTypes = mealTypes,
-            createMealType = createMealType,
-            deleteMealType = deleteMealType,
-            updateMealTypeTimes = updateMealTypeTimes,
-        )
+    ): MealTypeSheetViewModel = MealTypeSheetViewModel(
+        mealTypes = mealTypes,
+        createMealType = createMealType,
+        deleteMealType = deleteMealType,
+        updateMealTypeTimes = updateMealTypeTimes,
+    )
 
-    private fun makeMealType(id: Int, name: String, hour: Int, endHour: Int): MealTypeDomain =
-        MealTypeDomain(id = "$id", name = name, startMinutes = hour * 60, endMinutes = endHour * 60)
+    private fun makeMealType(id: Int, name: String, hour: Int, endHour: Int): MealTypeDomain = MealTypeDomain(id = "$id", name = name, startMinutes = hour * 60, endMinutes = endHour * 60)
 }

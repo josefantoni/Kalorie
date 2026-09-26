@@ -53,8 +53,8 @@ import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.dashboard.SwipeToDeleteRow
-import java.util.UUID
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +64,6 @@ fun MyCreatedMealEditorView(
     navigationIcon: @Composable () -> Unit,
     header: @Composable () -> Unit = {},
 ) {
-
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()

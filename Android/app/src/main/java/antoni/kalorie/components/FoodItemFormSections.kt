@@ -55,7 +55,6 @@ fun FoodItemFormSections(
     onNutritionLabelScanTapped: (() -> Unit)? = null,
     onFieldEdited: (FoodItemFormField) -> Unit = {},
 ) {
-
     // MARK: - Body
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -140,7 +139,6 @@ fun FoodItemFormFields(
     highlightedFields: Set<FoodItemFormField> = emptySet(),
     onFieldEdited: (FoodItemFormField) -> Unit = {},
 ) {
-
     // MARK: - Properties
 
     var isWeightUnitMenuVisible by remember { mutableStateOf(false) }
@@ -295,8 +293,7 @@ private fun DecimalTextField(value: Double, onValueChange: (Double) -> Unit, isH
     )
 }
 
-private fun formattedDecimal(value: Double): String =
-    if (value == 0.0) "" else BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
+private fun formattedDecimal(value: Double): String = if (value == 0.0) "" else BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
 
 private fun FoodItemFormInput.withWeightInThousands(newValue: Boolean): FoodItemFormInput {
     if (newValue == isWeightInThousands) return this

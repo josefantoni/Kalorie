@@ -3,17 +3,17 @@ package antoni.kalorie.core.usecases
 import antoni.kalorie.core.networking.HttpResponse
 import antoni.kalorie.core.networking.HttpSessionFake
 import antoni.kalorie.core.utils.Constants
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Test
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import kotlin.time.Duration
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
-import org.junit.Test
 
 class SearchFoodExternallyUseCaseTest {
 

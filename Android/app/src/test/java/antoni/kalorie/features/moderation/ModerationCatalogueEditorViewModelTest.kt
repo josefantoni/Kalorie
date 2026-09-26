@@ -2,24 +2,24 @@ package antoni.kalorie.features.moderation
 
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormField
-import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
+import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
 import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseFake
 import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
-import antoni.kalorie.core.models.FoodItemDomain
-import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodItemError
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseFake
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseProtocol
-import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class ModerationCatalogueEditorViewModelTest {
 

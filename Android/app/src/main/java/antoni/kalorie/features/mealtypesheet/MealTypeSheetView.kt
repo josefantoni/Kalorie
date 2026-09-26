@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -13,9 +12,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -54,13 +53,12 @@ import antoni.kalorie.core.utils.minutesSinceMidnight
 import antoni.kalorie.core.utils.withAddedMinutes
 import antoni.kalorie.core.utils.zoned
 import antoni.kalorie.features.dashboard.SwipeToDeleteRow
-import java.time.Instant
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRouter, onDismiss: () -> Unit) {
-
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()

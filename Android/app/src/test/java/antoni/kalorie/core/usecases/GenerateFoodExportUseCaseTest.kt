@@ -3,11 +3,6 @@ package antoni.kalorie.core.usecases
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.models.FoodExportFormat
 import antoni.kalorie.core.utils.StringProviderFake
-import java.io.File
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.util.Locale
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -15,6 +10,11 @@ import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.Locale
 
 class GenerateFoodExportUseCaseTest {
 

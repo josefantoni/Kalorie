@@ -394,8 +394,7 @@ class NutritionLabelParserTest {
     private val carbohydrateValueBox = NormalizedRect(0.6, 0.55, 0.15, 0.05)
     private val energyValueBox = NormalizedRect(0.6, 0.8, 0.3, 0.05)
 
-    private fun line(text: String, x: Double, y: Double, width: Double, height: Double) =
-        RecognizedTextLine(text, NormalizedRect(x, y, width, height))
+    private fun line(text: String, x: Double, y: Double, width: Double, height: Double) = RecognizedTextLine(text, NormalizedRect(x, y, width, height))
 
     private fun line(text: String, box: NormalizedRect) = RecognizedTextLine(text, box)
 

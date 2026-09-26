@@ -14,7 +14,9 @@ interface BarcodeDetectorProtocol {
     suspend fun detectBarcode(image: NutritionLabelImage): String?
 }
 
-class MlKitTextRecognizer : TextRecognizerProtocol, BarcodeDetectorProtocol {
+class MlKitTextRecognizer :
+    TextRecognizerProtocol,
+    BarcodeDetectorProtocol {
 
     // MARK: - Properties
 
@@ -29,8 +31,7 @@ class MlKitTextRecognizer : TextRecognizerProtocol, BarcodeDetectorProtocol {
         return recognizeLines(InputImage.fromBitmap(bitmap, image.rotationDegrees), uprightWidth, uprightHeight)
     }
 
-    override suspend fun detectBarcode(image: NutritionLabelImage): String? =
-        detectBarcode(InputImage.fromBitmap(image.toBitmap(), image.rotationDegrees))
+    override suspend fun detectBarcode(image: NutritionLabelImage): String? = detectBarcode(InputImage.fromBitmap(image.toBitmap(), image.rotationDegrees))
 
     suspend fun recognizeLines(input: InputImage, uprightWidth: Int, uprightHeight: Int): List<RecognizedTextLine> {
         val result = textClient.process(input).await()
@@ -50,8 +51,7 @@ class MlKitTextRecognizer : TextRecognizerProtocol, BarcodeDetectorProtocol {
             }
     }
 
-    suspend fun detectBarcode(input: InputImage): String? =
-        barcodeClient.process(input).await().firstNotNullOfOrNull { it.rawValue }
+    suspend fun detectBarcode(input: InputImage): String? = barcodeClient.process(input).await().firstNotNullOfOrNull { it.rawValue }
 
     fun close() {
         textClient.close()
@@ -59,8 +59,7 @@ class MlKitTextRecognizer : TextRecognizerProtocol, BarcodeDetectorProtocol {
     }
 }
 
-fun uprightSize(width: Int, height: Int, rotationDegrees: Int): Pair<Int, Int> =
-    if (rotationDegrees % 180 != 0) height to width else width to height
+fun uprightSize(width: Int, height: Int, rotationDegrees: Int): Pair<Int, Int> = if (rotationDegrees % 180 != 0) height to width else width to height
 
 // ML Kit boxes are pixels with the origin top-left and y down; the parser expects Vision's
 // normalized boxes with the origin bottom-left and y up.

@@ -31,7 +31,6 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun FavouriteButton(isFavourite: Boolean, isEnabled: Boolean = true, onClick: () -> Unit) {
-
     // MARK: - Properties
 
     var isLabelVisible by remember { mutableStateOf(false) }

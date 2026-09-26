@@ -13,10 +13,10 @@ import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.minutesSinceMidnight
 import antoni.kalorie.core.utils.withAddedMinutes
 import antoni.kalorie.core.utils.zoned
-import java.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Instant
 
 class MealTypeSheetViewModel(
     mealTypes: List<MealTypeDomain>,

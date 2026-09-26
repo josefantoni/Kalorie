@@ -12,6 +12,5 @@ class CreateMealTypeUseCaseFake : CreateMealTypeUseCaseProtocol {
         startMinutes: Int,
         endMinutes: Int,
         existingMealTypes: List<MealTypeDomain>,
-    ): MealTypeDomain =
-        MealTypeDomain(id = UUID.randomUUID().toString().uppercase(), name = name, startMinutes = startMinutes, endMinutes = endMinutes)
+    ): MealTypeDomain = MealTypeDomain(id = UUID.randomUUID().toString().uppercase(), name = name, startMinutes = startMinutes, endMinutes = endMinutes)
 }

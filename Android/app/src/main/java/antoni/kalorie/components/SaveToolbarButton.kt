@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun SaveToolbarButton(title: String, showCheckmark: Boolean, isEnabled: Boolean, onClick: () -> Unit) {
-
     // MARK: - Body
 
     TextButton(onClick = onClick, enabled = isEnabled) {

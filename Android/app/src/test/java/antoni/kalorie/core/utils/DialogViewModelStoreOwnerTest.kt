@@ -2,11 +2,11 @@ package antoni.kalorie.core.utils
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import kotlin.reflect.KClass
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.reflect.KClass
 
 class DialogViewModelStoreOwnerTest {
 
@@ -35,8 +35,7 @@ class DialogViewModelStoreOwnerTest {
     private fun makeViewModel(owner: DialogViewModelStoreOwner): TrackedViewModel {
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: KClass<T>, extras: androidx.lifecycle.viewmodel.CreationExtras): T =
-                TrackedViewModel() as T
+            override fun <T : ViewModel> create(modelClass: KClass<T>, extras: androidx.lifecycle.viewmodel.CreationExtras): T = TrackedViewModel() as T
         }
         return ViewModelProvider.create(owner, factory)[TrackedViewModel::class]
     }

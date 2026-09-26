@@ -26,7 +26,6 @@ fun FoodItemRow(
     modifier: Modifier = Modifier,
     submissionStatus: FoodItemSubmissionStatus? = null,
 ) {
-
     // MARK: - Body
 
     Row(

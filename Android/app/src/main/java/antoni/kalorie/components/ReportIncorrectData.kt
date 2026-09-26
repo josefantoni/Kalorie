@@ -20,7 +20,6 @@ import antoni.kalorie.R
 
 @Composable
 fun ReportIncorrectDataMenu(hasReportedCurrentItem: Boolean, onReportTapped: () -> Unit) {
-
     // MARK: - Properties
 
     var isMenuVisible by remember { mutableStateOf(false) }

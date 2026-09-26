@@ -10,7 +10,6 @@ import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodItemSubmissionDTO
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.firestore.FirebaseFirestoreException
-import java.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -18,6 +17,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.fail
 import org.junit.Test
+import java.time.Instant
 
 class RejectSubmissionUseCaseTest {
 

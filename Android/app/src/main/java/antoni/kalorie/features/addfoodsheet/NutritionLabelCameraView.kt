@@ -44,7 +44,6 @@ fun NutritionLabelCameraView(
     onCaptured: suspend (NutritionLabelImage, String?) -> Unit,
     onClose: () -> Unit,
 ) {
-
     // MARK: - Properties
 
     var manualCaptureRequest by remember { mutableIntStateOf(0) }

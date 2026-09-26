@@ -15,6 +15,7 @@ object NutritionLabelParser {
     private const val ROW_OVERLAP_THRESHOLD = 0.4
     private const val ENERGY_TOLERANCE_RATIO = 0.05
     private const val DERIVED_ENERGY_TOLERANCE_RATIO = 0.15
+
     // 100 g plus the "<0,5 g" bounds and rounding that a near-pure fat or carbohydrate product can add up.
     private const val MAX_SUMMED_MACROS = 103.0
     private const val MAX_WORD_BOUNDARY_KEYWORD_LENGTH = 3
@@ -30,8 +31,14 @@ object NutritionLabelParser {
 
     private val keywords: Map<LabelField, List<String>> = mapOf(
         LabelField.ENERGY to listOf(
-            "energeticka hodnota", "energetická hodnota", "energie", "energia",
-            "wartość energetyczna", "wartosc energetyczna", "brennwert", "energy",
+            "energeticka hodnota",
+            "energetická hodnota",
+            "energie",
+            "energia",
+            "wartość energetyczna",
+            "wartosc energetyczna",
+            "brennwert",
+            "energy",
         ),
         LabelField.FAT to listOf("tuky", "tłuszcz", "tluszcz", "fett", "fat"),
         LabelField.SATURATES to listOf(
@@ -83,12 +90,11 @@ object NutritionLabelParser {
         return if (hasMl) FoodMeasure.MILLILITRES else FoodMeasure.GRAMS
     }
 
-    private fun hasNoMacros(reading: NutritionLabelReading): Boolean =
-        reading.energyKJ == null &&
-            reading.fat == null &&
-            reading.carbohydrate == null &&
-            reading.protein == null &&
-            reading.salt == null
+    private fun hasNoMacros(reading: NutritionLabelReading): Boolean = reading.energyKJ == null &&
+        reading.fat == null &&
+        reading.carbohydrate == null &&
+        reading.protein == null &&
+        reading.salt == null
 
     private fun hasNutritionContext(lines: List<RecognizedTextLine>): Boolean {
         val text = lines.joinToString(" ") { it.text }.lowercase()
@@ -115,10 +121,10 @@ object NutritionLabelParser {
         data class Match(val field: LabelField, val start: Int, val end: Int)
 
         val saturatesStarts = (keywords[LabelField.SATURATES] ?: emptyList()).flatMap { indicesOfKeyword(lower, it) }
+
         // "saturated fat" and "davon gesättigte Fettsäuren" carry the fat keyword inside the saturates
         // label; a fat keyword reached from a saturates keyword with no value in between is that label's tail.
-        fun isTailOfSaturatesLabel(start: Int) =
-            saturatesStarts.any { it <= start && lower.substring(it, start).none { char -> char.isDigit() } }
+        fun isTailOfSaturatesLabel(start: Int) = saturatesStarts.any { it <= start && lower.substring(it, start).none { char -> char.isDigit() } }
 
         val matches = LabelField.entries.mapNotNull { field ->
             val firstMatch = (keywords[field] ?: emptyList())
@@ -270,10 +276,9 @@ object NutritionLabelParser {
         return value to measure
     }
 
-    private fun nearestLineBelow(line: RecognizedTextLine, lines: List<RecognizedTextLine>): RecognizedTextLine? =
-        lines
-            .filter { it.boundingBox.maxY <= line.boundingBox.minY }
-            .maxByOrNull { it.boundingBox.maxY }
+    private fun nearestLineBelow(line: RecognizedTextLine, lines: List<RecognizedTextLine>): RecognizedTextLine? = lines
+        .filter { it.boundingBox.maxY <= line.boundingBox.minY }
+        .maxByOrNull { it.boundingBox.maxY }
 
     private fun weightValue(text: String): Pair<Double, String>? {
         val match = weightRegex.find(text.lowercase()) ?: return null

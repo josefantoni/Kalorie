@@ -5,14 +5,14 @@ import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodConsumedDTO
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 class FetchFoodsConsumedForMonthUseCaseTest {
 

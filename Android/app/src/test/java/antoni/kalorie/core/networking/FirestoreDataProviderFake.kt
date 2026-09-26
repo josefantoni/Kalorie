@@ -1,7 +1,7 @@
 package antoni.kalorie.core.networking
 
-import java.util.concurrent.ConcurrentHashMap
 import kotlinx.serialization.KSerializer
+import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("UNCHECKED_CAST")
 class FirestoreDataProviderFake : FirestoreDataProviderProtocol {

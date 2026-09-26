@@ -79,11 +79,10 @@ class RecognizeNutritionLabelUseCaseTest {
 
     // MARK: - Helpers
 
-    private fun makeSUT(textLines: List<RecognizedTextLine>, barcode: String?): RecognizeNutritionLabelUseCase =
-        RecognizeNutritionLabelUseCase(
-            textRecognizer = TextRecognizerFake(stubbedLines = textLines),
-            barcodeDetector = BarcodeDetectorFake(stubbedBarcode = barcode),
-        )
+    private fun makeSUT(textLines: List<RecognizedTextLine>, barcode: String?): RecognizeNutritionLabelUseCase = RecognizeNutritionLabelUseCase(
+        textRecognizer = TextRecognizerFake(stubbedLines = textLines),
+        barcodeDetector = BarcodeDetectorFake(stubbedBarcode = barcode),
+    )
 
     private object FakeImage : NutritionLabelImage {
         override val rotationDegrees: Int = 0
