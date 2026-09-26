@@ -15,7 +15,8 @@ object NutritionLabelParser {
     private const val ROW_OVERLAP_THRESHOLD = 0.4
     private const val ENERGY_TOLERANCE_RATIO = 0.05
     private const val DERIVED_ENERGY_TOLERANCE_RATIO = 0.15
-    private const val MAX_SUMMED_MACROS = 100.0
+    // 100 g plus the "<0,5 g" bounds and rounding that a near-pure fat or carbohydrate product can add up.
+    private const val MAX_SUMMED_MACROS = 103.0
     private const val MAX_WORD_BOUNDARY_KEYWORD_LENGTH = 3
 
     private val weightKeywords = listOf("hmotnost", "netto", "obsah", "net weight", "hmotnosc")
@@ -113,9 +114,16 @@ object NutritionLabelParser {
 
         data class Match(val field: LabelField, val start: Int, val end: Int)
 
+        val saturatesStarts = (keywords[LabelField.SATURATES] ?: emptyList()).flatMap { indicesOfKeyword(lower, it) }
+        // "saturated fat" and "davon gesättigte Fettsäuren" carry the fat keyword inside the saturates
+        // label; a fat keyword reached from a saturates keyword with no value in between is that label's tail.
+        fun isTailOfSaturatesLabel(start: Int) =
+            saturatesStarts.any { it <= start && lower.substring(it, start).none { char -> char.isDigit() } }
+
         val matches = LabelField.entries.mapNotNull { field ->
             val firstMatch = (keywords[field] ?: emptyList())
-                .mapNotNull { keyword -> indexOfKeyword(lower, keyword)?.let { it to it + keyword.length } }
+                .flatMap { keyword -> indicesOfKeyword(lower, keyword).map { it to it + keyword.length } }
+                .filter { field != LabelField.FAT || !isTailOfSaturatesLabel(it.first) }
                 .minByOrNull { it.first }
                 ?: return@mapNotNull null
             Match(field, firstMatch.first, firstMatch.second)
@@ -144,15 +152,16 @@ object NutritionLabelParser {
     }
 
     // A keyword this short ("sul", "fat") also sits inside longer words such as "sulphites" or "fatty".
-    private fun indexOfKeyword(text: String, keyword: String): Int? {
+    private fun indicesOfKeyword(text: String, keyword: String): List<Int> {
+        val found = mutableListOf<Int>()
         var index = text.indexOf(keyword)
         while (index >= 0) {
             val end = index + keyword.length
             val isWholeWord = (index == 0 || !text[index - 1].isLetter()) && (end == text.length || !text[end].isLetter())
-            if (keyword.length > MAX_WORD_BOUNDARY_KEYWORD_LENGTH || isWholeWord) return index
+            if (keyword.length > MAX_WORD_BOUNDARY_KEYWORD_LENGTH || isWholeWord) found.add(index)
             index = text.indexOf(keyword, index + 1)
         }
-        return null
+        return found
     }
 
     // MARK: - Row grouping and column detection

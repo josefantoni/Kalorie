@@ -287,6 +287,45 @@ class NutritionLabelParserTest {
     }
 
     @Test
+    fun parse_linearFormatLabel_withoutAFatRow_doesNotStoreTheSaturatesValueAsFat() {
+        val labels = listOf(
+            "Per 100 g: Energy 303 kJ / 72 kcal. Saturated fat 2 g. Carbohydrate 3.0 g. Protein 7.3 g.",
+            "Pro 100 g: Brennwert 303 kJ / 72 kcal. davon gesättigte Fettsäuren 2 g. Kohlenhydrate 3,0 g. Eiweiß 7,3 g.",
+        )
+
+        labels.forEach { label ->
+            val reading = NutritionLabelParser.parse(listOf(line(label, 0.3, 0.42, 0.6, 0.03)))
+
+            assertNull(label, reading.fat)
+            assertEquals(label, 2.0, reading.fatSaturated)
+        }
+    }
+
+    @Test
+    fun parse_linearFormatLabel_stillReadsFatBeforeTheSaturatesRow() {
+        val lines = listOf(
+            line("Per 100 g: Energy 303 kJ / 72 kcal. Fat 3.3 g of which saturated fat 0.6 g. Carbohydrate 3.0 g.", 0.3, 0.42, 0.6, 0.03),
+        )
+
+        val reading = NutritionLabelParser.parse(lines)
+
+        assertEquals(3.3, reading.fat)
+        assertEquals(0.6, reading.fatSaturated)
+    }
+
+    @Test
+    fun parse_whenLessThanBoundsPushTheSumJustPastAHundredGrams_keepsTheFields() {
+        val lines = listOf(
+            line("Per 100 g: Energy 3696 kJ / 899 kcal. Fat 100 g. Carbohydrate <0.5 g. Protein <0.5 g. Salt <0.5 g.", 0.3, 0.42, 0.6, 0.03),
+        )
+
+        val reading = NutritionLabelParser.parse(lines)
+
+        assertEquals(100.0, reading.fat)
+        assertEquals(0.5, reading.protein)
+    }
+
+    @Test
     fun parse_weightLabelAboveALargeValueOnASeparateLine_stillFindsIt() {
         val lines = listOf(
             line("Hmotnost:", 0.1, 0.28, 0.15, 0.02),
