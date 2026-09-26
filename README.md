@@ -32,7 +32,7 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 - Report incorrect catalogue data
 - Export logged food to PDF or Excel
 - Anonymous device identity out of the box, Google sign-in to keep data across devices (Apple sign-in is pending)
-- Czech, Slovak and English
+- Czech and English
 
 ## Repository layout
 
