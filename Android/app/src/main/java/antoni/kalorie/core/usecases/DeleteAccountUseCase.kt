@@ -3,6 +3,7 @@ package antoni.kalorie.core.usecases
 import antoni.kalorie.core.auth.AuthCommandProviderProtocol
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
+import antoni.kalorie.core.auth.PendingMergeSnapshotStoreProtocol
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
@@ -32,6 +33,7 @@ class DeleteAccountUseCase(
     private val dataProvider: FirestoreDataProviderProtocol,
     private val authProvider: AuthProviderProtocol,
     private val authCommandProvider: AuthCommandProviderProtocol,
+    private val snapshotStore: PendingMergeSnapshotStoreProtocol,
 ) : DeleteAccountUseCaseProtocol {
 
     // MARK: - Functions
@@ -42,6 +44,9 @@ class DeleteAccountUseCase(
         if (lastSignInDate != null && Duration.between(lastSignInDate, Instant.now()).seconds > Constants.Auth.RECENT_LOGIN_THRESHOLD_SECONDS) {
             throw DeleteAccountError.RequiresRecentLogin(dataAlreadyDeleted = false)
         }
+        // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
+        // account that follows the deletion. Idempotent, so a retry with skipDataWipe is safe.
+        snapshotStore.delete()
         if (!skipDataWipe) wipeFirestoreData(userId)
         try {
             authCommandProvider.deleteCurrentUser()

@@ -3,6 +3,8 @@ package antoni.kalorie.core.usecases
 import antoni.kalorie.core.auth.AuthCommandProviderFake
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderFake
+import antoni.kalorie.core.auth.PendingMergeSnapshot
+import antoni.kalorie.core.auth.PendingMergeSnapshotStoreFake
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
@@ -25,6 +27,8 @@ import java.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -148,11 +152,13 @@ class DeleteAccountUseCaseTest {
     fun invoke_whenLastSignInIsStale_throwsBeforeDeletingAnyData() = runTest {
         val fixture = makeSUT(authProvider = AuthProviderFake(userId = USER_ID, lastSignInDate = Instant.now().minusSeconds(10 * 60)))
         fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
+        fixture.snapshotStore.stubbedSnapshot = makeSnapshot()
 
         try {
             fixture.sut()
             fail("Expected DeleteAccountError.RequiresRecentLogin to be thrown")
         } catch (error: DeleteAccountError.RequiresRecentLogin) {
+            assertNotNull("a rejected attempt must leave everything intact so the user can simply retry", fixture.snapshotStore.stubbedSnapshot)
             assertTrue(
                 "a stale session must be rejected before any data is deleted, otherwise the account survives but its history does not",
                 fixture.dataProvider.deletedIdsByCollection.isEmpty(),
@@ -188,6 +194,50 @@ class DeleteAccountUseCaseTest {
     }
 
     @Test
+    fun invoke_discardsPendingMergeSnapshot() = runTest {
+        val fixture = makeSUT()
+        fixture.snapshotStore.stubbedSnapshot = makeSnapshot()
+
+        fixture.sut()
+
+        assertNull(
+            "a snapshot surviving the deletion would be resumed into the fresh anonymous account on the next launch",
+            fixture.snapshotStore.stubbedSnapshot,
+        )
+    }
+
+    @Test
+    fun invoke_whenSkipDataWipeIsTrue_stillDiscardsPendingMergeSnapshot() = runTest {
+        val fixture = makeSUT()
+        fixture.snapshotStore.stubbedSnapshot = makeSnapshot()
+
+        fixture.sut(skipDataWipe = true)
+
+        assertNull(
+            "the first attempt may have failed before reaching the snapshot, so the retry must still clear it",
+            fixture.snapshotStore.stubbedSnapshot,
+        )
+    }
+
+    @Test
+    fun invoke_whenSnapshotDeleteFails_deletesNothingElse() = runTest {
+        val fixture = makeSUT()
+        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
+        fixture.snapshotStore.deleteError = IllegalStateException("disk")
+
+        try {
+            fixture.sut()
+            fail("Expected the snapshot error to be thrown")
+        } catch (_: IllegalStateException) {
+            assertTrue(
+                "the account must survive intact when the snapshot cannot be cleared, so the user can retry",
+                fixture.dataProvider.deletedIdsByCollection.isEmpty(),
+            )
+            assertEquals(0, fixture.authCommandProvider.deleteCallCount)
+        }
+    }
+
+    @Test
     fun invoke_whenDeleteFailsWithOtherError_propagatesError() = runTest {
         val fixture = makeSUT()
         fixture.authCommandProvider.deleteError = RuntimeException("offline")
@@ -206,6 +256,7 @@ class DeleteAccountUseCaseTest {
     private class Fixture(
         val dataProvider: FirestoreDataProviderFake,
         val authCommandProvider: AuthCommandProviderFake,
+        val snapshotStore: PendingMergeSnapshotStoreFake,
         val sut: DeleteAccountUseCase,
         val snapshots: MutableList<Map<String, List<String>>>,
     ) {
@@ -220,9 +271,17 @@ class DeleteAccountUseCaseTest {
         val snapshots = mutableListOf<Map<String, List<String>>>()
         val authCommandProvider = AuthCommandProviderFake()
         authCommandProvider.onDelete = { snapshots += dataProvider.deletedIdsByCollection }
-        val sut = DeleteAccountUseCase(dataProvider = dataProvider, authProvider = authProvider, authCommandProvider = authCommandProvider)
-        return Fixture(dataProvider, authCommandProvider, sut, snapshots)
+        val snapshotStore = PendingMergeSnapshotStoreFake()
+        val sut = DeleteAccountUseCase(
+            dataProvider = dataProvider,
+            authProvider = authProvider,
+            authCommandProvider = authCommandProvider,
+            snapshotStore = snapshotStore,
+        )
+        return Fixture(dataProvider, authCommandProvider, snapshotStore, sut, snapshots)
     }
+
+    private fun makeSnapshot() = PendingMergeSnapshot(sourceAnonymousUserId = "anon-1", foodConsumed = emptyList())
 
     private fun makeFood(id: String) = FoodConsumedDTO(
         id = id,

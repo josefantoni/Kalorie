@@ -6,6 +6,7 @@ class PendingMergeSnapshotStoreFake : PendingMergeSnapshotStoreProtocol {
 
     var stubbedSnapshot: PendingMergeSnapshot? = null
     var saveError: Exception? = null
+    var deleteError: Exception? = null
     var deleteCallCount = 0
         private set
 
@@ -20,6 +21,7 @@ class PendingMergeSnapshotStoreFake : PendingMergeSnapshotStoreProtocol {
 
     override fun delete() {
         deleteCallCount += 1
+        deleteError?.let { throw it }
         stubbedSnapshot = null
     }
 }
