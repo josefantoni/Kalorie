@@ -102,14 +102,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
 
 ## Cleanup
 
-- **Fix two parser defects still open in both `NutritionLabelParser`s** — found in the Android review,
-  confirmed on iOS, fixed on neither platform (the other Android review defects are fixed on both).
-  - In the linear fallback the fat keyword also matches inside "saturated fat", so a label without a
-    separate total-fat row stores the saturates value as fat.
-  - The summed-macros check drops every macro once fat + carbohydrate + protein + salt + fibre passes
-    100, which rounding on a near-pure carbohydrate product can reach (99.8 g carbohydrate + 0.5 g fibre).
-  Reproduce each with a test on both platforms, then fix.
-
 - **Decide what a scanned barcode that is not found should do** — both apps clear the last delivered code
   when a lookup ends ([ARCHITECTURE § 2.5](docs/ARCHITECTURE.md)), so while the same barcode stays in
   frame the scanner delivers it again, the lookups (Firestore, then OpenFoodFacts) repeat and the
