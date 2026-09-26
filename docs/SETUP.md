@@ -128,6 +128,29 @@ On Android the app module applies the `com.google.firebase.crashlytics` Gradle p
 Confirm a non-fatal error shows up in the console after the first release build. If R8 minification is
 turned on later, the plugin uploads the mapping file on its own, but check that stack traces deobfuscate.
 
+## Handling an account deletion request
+
+Requests arrive by email from the page in [design doc 0015](design/0015-account-deletion-web-page.md).
+Act only on mail sent **from** the account's sign-in address; never delete on a request that only
+names an address.
+
+1. Firebase Console → Authentication → Users → search the sender's email → copy the **User UID**.
+   If there is no match, reply that no account exists for that address, and stop.
+2. Delete the user subtree (covers `mealTypes`, `foodConsumed`, `favouriteFoods`, `myCreatedMeals`,
+   `foodItemPortions` and the `users/{uid}` document):
+   `firebase firestore:delete users/<UID> --recursive --project kalorie-bf11c`
+3. Firestore console → `foodItemSubmissions` → filter `submitted_by == <UID>` → delete each document.
+4. Firestore console → `foodItemReports` → filter `reported_by == <UID>` → delete each document
+   (ids have the form `<barcode>_<UID>`).
+5. Authentication → the user → *Delete account*.
+6. Reply to the requester that it is done.
+
+The collection list must match `wipeFirestoreData` in both `DeleteAccountUseCase` files (iOS and
+Android). Whoever adds a new per-user collection updates both places and this list.
+
+Deploy the page from `backend/` with `firebase deploy --only hosting`. Never run a bare
+`firebase deploy`: it would redeploy the Firestore rules and indexes as well.
+
 ## CI
 
 `.github/workflows/ci.yml` runs on pull requests against `main`. A `changes` job
