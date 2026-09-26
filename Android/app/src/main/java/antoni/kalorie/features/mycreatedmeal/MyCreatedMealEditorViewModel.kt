@@ -216,9 +216,11 @@ class MyCreatedMealEditorViewModel(
                 throw error
             } catch (error: Exception) {
                 Log.error(error, Constants.LogCategory.MY_CREATED_MEAL)
+                isScannerVisible.value = false
                 alertItem.value = AlertItem(titleRes = R.string.addFood_error_loadFailed)
                 return
             }
+            isScannerVisible.value = false
             alertItem.value = AlertItem(titleRes = R.string.addFood_error_barcodeNotFound)
         } finally {
             lastScannedBarcode.value = ""

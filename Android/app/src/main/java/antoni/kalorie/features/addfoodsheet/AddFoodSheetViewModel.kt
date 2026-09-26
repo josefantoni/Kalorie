@@ -383,9 +383,11 @@ class AddFoodSheetViewModel(
                 throw error
             } catch (error: Exception) {
                 Log.error(error, Constants.LogCategory.ADD_FOOD_SHEET)
+                isScannerVisible.value = false
                 alertItem.value = AlertItem(titleRes = R.string.addFood_error_loadFailed)
                 return
             }
+            isScannerVisible.value = false
             alertItem.value = AlertItem(titleRes = R.string.addFood_error_barcodeNotFound)
         } finally {
             lastScannedBarcode.value = ""

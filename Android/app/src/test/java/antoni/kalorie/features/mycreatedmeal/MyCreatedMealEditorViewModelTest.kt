@@ -162,6 +162,17 @@ class MyCreatedMealEditorViewModelTest {
     }
 
     @Test
+    fun onBarcodeScanned_whenNotFound_closesScanner() = runTest {
+        val sut = makeSUT()
+        sut.isScannerVisible.value = true
+        sut.lastScannedBarcode.value = "8594004428464"
+
+        sut.onBarcodeScanned()
+
+        assertFalse("a scanner left open would rescan the same code in frame and repeat the lookup", sut.isScannerVisible.value)
+    }
+
+    @Test
     fun onBarcodeScanned_whenLocalFound_appendsIngredientAndHidesScanner() = runTest {
         val item = makeFoodItem(id = "8594004428464")
         val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = item))
@@ -202,6 +213,17 @@ class MyCreatedMealEditorViewModelTest {
 
         assertEquals(R.string.addFood_error_loadFailed, sut.alertItem.value?.titleRes)
         assertTrue(sut.ingredients.value.isEmpty())
+    }
+
+    @Test
+    fun onBarcodeScanned_whenExternalFails_closesScanner() = runTest {
+        val sut = makeSUT(fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(shouldThrow = true))
+        sut.isScannerVisible.value = true
+        sut.lastScannedBarcode.value = "8594004428464"
+
+        sut.onBarcodeScanned()
+
+        assertFalse("a scanner left open would rescan the same code in frame and repeat the failing lookup", sut.isScannerVisible.value)
     }
 
     // MARK: - onSearchTextChanged (external fallback)
