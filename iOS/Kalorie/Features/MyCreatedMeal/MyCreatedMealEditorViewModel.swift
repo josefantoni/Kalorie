@@ -216,9 +216,11 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
             return
         } catch {
             Log.error(error, category: Constants.LogCategory.myCreatedMeal)
+            isScannerVisible = false
             alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
             return
         }
+        isScannerVisible = false
         alertItem = AlertItem(title: L10n.AddFood.errorBarcodeNotFound)
     }
 

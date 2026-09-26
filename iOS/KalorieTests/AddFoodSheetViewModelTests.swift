@@ -185,6 +185,14 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorBarcodeNotFound)
     }
 
+    func test_onBarcodeScanned_whenNotFound_closesScanner() async {
+        let sut = makeSUT()
+        sut.isScannerVisible = true
+        sut.lastScannedBarcode = "8594004428464"
+        await sut.onBarcodeScanned()
+        XCTAssertFalse(sut.isScannerVisible, "a scanner left open would rescan the same code in frame and repeat the lookup")
+    }
+
     func test_onBarcodeScanned_whenNotFound_stopsLoading() async {
         let sut = makeSUT()
         sut.lastScannedBarcode = "8594004428464"
@@ -216,6 +224,14 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         sut.lastScannedBarcode = "8594004428464"
         await sut.onBarcodeScanned()
         XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorLoadFailed)
+    }
+
+    func test_onBarcodeScanned_whenExternalFails_closesScanner() async {
+        let sut = makeSUT(fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(shouldThrow: true))
+        sut.isScannerVisible = true
+        sut.lastScannedBarcode = "8594004428464"
+        await sut.onBarcodeScanned()
+        XCTAssertFalse(sut.isScannerVisible, "a scanner left open would rescan the same code in frame and repeat the failing lookup")
     }
 
     // MARK: - onSearchTextChanged
