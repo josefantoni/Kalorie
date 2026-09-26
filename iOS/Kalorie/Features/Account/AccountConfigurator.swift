@@ -69,7 +69,8 @@ struct AccountConfigurator {
                 deleteAccount: DeleteAccountUseCase(
                     dataProvider: dataProvider,
                     authProvider: authProvider,
-                    authCommandProvider: authCommandProvider
+                    authCommandProvider: authCommandProvider,
+                    snapshotStore: snapshotStore
                 ),
                 reauthenticate: ReauthenticateUseCase(
                     appleSignInProvider: AppleSignInProvider(),

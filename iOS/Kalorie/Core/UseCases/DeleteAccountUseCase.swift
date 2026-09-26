@@ -23,17 +23,20 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
     private let authCommandProvider: any AuthCommandProviderProtocol
+    private let snapshotStore: any PendingMergeSnapshotStoreProtocol
 
     // MARK: - Init
 
     init(
         dataProvider: any FirestoreDataProviderProtocol,
         authProvider: any AuthProviderProtocol,
-        authCommandProvider: any AuthCommandProviderProtocol
+        authCommandProvider: any AuthCommandProviderProtocol,
+        snapshotStore: any PendingMergeSnapshotStoreProtocol
     ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
         self.authCommandProvider = authCommandProvider
+        self.snapshotStore = snapshotStore
     }
 
     // MARK: - Functions
@@ -47,6 +50,10 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         {
             throw DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: false)
         }
+
+        // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
+        // account that follows the deletion. Idempotent, so a retry with skipDataWipe is safe.
+        try snapshotStore.delete()
 
         if !skipDataWipe {
             try await wipeFirestoreData(userId: userId)
