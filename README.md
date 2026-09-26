@@ -5,19 +5,6 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 - **iOS** (`iOS/`) — feature complete, ready for alpha distribution
 - **Android** (`Android/`) — every screen ported from iOS; camera features still need on-device verification before release
 
-## What it does
-
-- Log food with calories, protein, carbs, fat, saturates, sugar, salt and fibre; per-entry weight or portion
-- Find food by typed search (whole-word, diacritics-insensitive) or barcode, with OpenFoodFacts as a fallback when the shared catalogue has no match
-- Add a missing food by hand or by photographing its nutrition label (on-device OCR); submissions go through maintainer moderation before entering the shared catalogue
-- Named portions on a food, plus personal portions per user
-- Favourites and your own composed meals, searchable and loggable like any other food
-- Customisable meal windows with drag-to-reorder; entries can be moved between meals
-- Millilitre foods next to gram foods
-- Report incorrect catalogue data
-- Export logged food to PDF or Excel
-- Anonymous device identity out of the box, Google sign-in to keep data across devices (Apple sign-in is pending)
-- Czech, Slovak and English
 <table>
   <tr>
     <th align="center">iOS (SwiftUI)</th>
@@ -32,6 +19,20 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
     <td align="center"><img src="https://github.com/user-attachments/assets/de71bdbd-981c-4f48-a1a0-1d765cc70ba9" width="250" alt="Android add food"></td>
   </tr>
 </table>
+
+## What it does
+
+- Log food with calories, protein, carbs, fat, saturates, sugar, salt and fibre; per-entry weight or portion
+- Find food by typed search (whole-word, diacritics-insensitive) or barcode, with OpenFoodFacts as a fallback when the shared catalogue has no match
+- Add a missing food by hand or by photographing its nutrition label (on-device OCR); submissions go through maintainer moderation before entering the shared catalogue
+- Named portions on a food, plus personal portions per user
+- Favourites and your own composed meals, searchable and loggable like any other food
+- Customisable meal windows with drag-to-reorder; entries can be moved between meals
+- Millilitre foods next to gram foods
+- Report incorrect catalogue data
+- Export logged food to PDF or Excel
+- Anonymous device identity out of the box, Google sign-in to keep data across devices (Apple sign-in is pending)
+- Czech, Slovak and English
 
 ## Repository layout
 
