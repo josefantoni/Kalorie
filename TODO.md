@@ -108,12 +108,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   "not found" alert returns after every dismissal. Android's per-frame delivery makes the loop tighter
   than iOS's. Intended on iOS, so a change is a product decision for both platforms: for example, keep
   the code suppressed until it has left the frame, or until the user taps the scan button again.
-- **Delete the pending-merge snapshot when an account is deleted** — `DeleteAccountUseCase` does not
-  touch `PendingMergeSnapshotStore` on either platform. A readable snapshot left by a failed merge
-  survives the deletion, the next launch runs under a fresh anonymous UID that differs from the snapshot's
-  `sourceAnonymousUserId`, and `resumeIfNeeded` writes the previous account's data into it. This is the
-  case `SignOutUseCase` already guards ([ARCHITECTURE § 6.2](docs/ARCHITECTURE.md)). Delete the snapshot
-  in `DeleteAccountUseCase` before the account is removed, with a test on both platforms.
 
 ## Documentation baseline
 
