@@ -53,7 +53,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     private let fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol
     private let submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol
     private let updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol
-    private let selectedDate: Date
+    private var selectedDate: Date
     private let onSaved: () -> Void
     private let onFavouriteChanged: (String, Bool) -> Void
     private let onMealUpdated: (MyCreatedMealDomain) -> Void
@@ -143,6 +143,12 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
 
     @MainActor
     func onAppear() async {
+        if Calendar.current.isDateInToday(selectedDate) {
+            selectedDate = .now
+            if !hasUserSelectedMealType {
+                selectedMealTypeId = mealTypes.mealType(at: selectedDate)?.id
+            }
+        }
         if canReportIncorrectData {
             await loadReportState(barcode: item.id, fetchMyFoodItemReport: fetchMyFoodItemReport)
         }

@@ -276,6 +276,38 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertNil(sut.selectedMealTypeId)
     }
 
+    // MARK: - onAppear — refreshing a stale today
+
+    @MainActor
+    func test_onAppear_whenSelectedDateIsEarlierToday_refreshesItToNowAndUpdatesTheMealTypeDefault() async {
+        let cal = Calendar.current
+        let staleTime = cal.date(byAdding: .hour, value: -6, to: .now) ?? .now
+        let spy = SaveFoodConsumedUseCaseSpy()
+        let sut = makeSUT(saveFoodConsumed: spy, selectedDate: staleTime)
+
+        await sut.onAppear()
+        await sut.onConfirm()
+
+        let capturedDate = try? XCTUnwrap(spy.capturedDate)
+        XCTAssertLessThan(
+            abs((capturedDate ?? .distantPast).timeIntervalSinceNow),
+            5,
+            "the quantity screen must stamp a same-day entry with the time it was actually opened, not a snapshot taken hours earlier by the Dashboard — otherwise it keeps landing in whatever meal window was current back then"
+        )
+    }
+
+    @MainActor
+    func test_onAppear_whenUserAlreadyPickedAMealType_doesNotOverrideItWhileRefreshingTheDate() async {
+        let cal = Calendar.current
+        let staleTime = cal.date(byAdding: .hour, value: -6, to: .now) ?? .now
+        let sut = makeSUT(selectedDate: staleTime, mealTypes: [makeMealType(id: "dinner", hour: 18, endHour: 21)])
+        sut.onMealTypeSelected("dinner")
+
+        await sut.onAppear()
+
+        XCTAssertEqual(sut.selectedMealTypeId, "dinner", "refreshing the stale date on appear must not clobber an explicit user pick")
+    }
+
     // MARK: - unitOptions
 
     func test_unitOptions_ordersCataloguePortionBeforeGramsBeforeHundredGrams() {
@@ -765,11 +797,13 @@ private final class SaveFoodConsumedUseCaseSpy: SaveFoodConsumedUseCaseProtocol 
 
     private(set) var wasCalled = false
     private(set) var capturedMealTypeId: String?
+    private(set) var capturedDate: Date?
 
     // MARK: - Functions
 
     func callAsFunction(_ item: FoodItemDomain, grams: Double, date: Date, mealTypeId: String?) async throws {
         wasCalled = true
         capturedMealTypeId = mealTypeId
+        capturedDate = date
     }
 }

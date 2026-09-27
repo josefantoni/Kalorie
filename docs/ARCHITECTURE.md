@@ -905,6 +905,13 @@ changing the day carry over a sensible time of day:
 - `MonthCalendarView.selectDay` rebuilds the date from year/month/day components, then sets its
   time from `Date.now` if the picked day is today, otherwise from `selectedDay`'s own time — so
   it never resolves to local midnight.
+- `selectedDay` itself is only refreshed to `Date.now` at cold launch and at a calendar-day
+  rollover (`advanceSelectedDayIfNeeded`, § 3.6) — a session left open across many hours without
+  either of those firing would otherwise hand `FoodQuantityViewModel` a stale time-of-day. That
+  view model does not trust the snapshot for a today-entry: its own `onAppear()` re-reads
+  `Date.now` whenever `selectedDate` falls on today, before preselecting `selectedMealTypeId` and
+  before that date is used as the entry's timestamp — so the value logged is always "now" at the
+  moment the quantity screen was opened, not whatever `selectedDay` happened to hold.
 
 ### 3.6 Refresh triggers
 
