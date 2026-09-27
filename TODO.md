@@ -89,10 +89,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   must take a photo (it called `takePicture` off the main thread before); the barcode scanner must release
   the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
   submission that was written from the iOS app must work (it failed on `submitted_at` precision).
-- **Compile the release variant in CI** — the Android job runs only `:app:assembleDebug` and
-  `:app:testDebugUnitTest`, so a change that breaks only the release build (R8, signing, a debug-only
-  source set leaking into `main`) is found at release time. Adding a step to `.github/workflows/ci.yml`
-  is a CI change, so tell the user before doing it.
 - **Test `FirestoreDataProvider.perform` on Android** — it decides what is logged as a warning and what
   is thrown as `Unreachable`, and has no test because it needs a Firebase instance. Extract the decision
   or wrap the Firebase calls behind something a test can replace.
