@@ -79,10 +79,11 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
 - **Play Store account deletion** — Google Play requires a web link for requesting account
   deletion in addition to in-app deletion (policy checked 2026-09-26; an email request pathway is
   enough). Designed in [design 0015](docs/design/0015-account-deletion-web-page.md); the page
-  (`backend/hosting/`) and the runbook (`docs/SETUP.md`) are written. Left: deploy with
-  `firebase deploy --only hosting` from `backend/`, check `https://kalorie-bf11c.web.app/delete-account`
-  on a phone (readable, `mailto:` opens with the subject filled), paste the URL into Play Console →
-  Data safety once the app exists there, then remove this item.
+  (`backend/hosting/`) and the runbook (`docs/SETUP.md`) are written, deployed to
+  `https://kalorie-bf11c.web.app/delete-account`, and checked by hand on an Android phone
+  (readable, `mailto:` opens with the subject filled). Left, blocked on the same Play Console
+  account as the SHA-1 item above: paste the URL into Play Console → Data safety once the app
+  exists there, then remove this item.
 - **Check the recent Android fixes by hand on an emulator or device** — they were only built and unit
   tested; the camera and the touch handling cannot be covered that way. Auto-capture of a nutrition label
   must take a photo (it called `takePicture` off the main thread before); the barcode scanner must release
