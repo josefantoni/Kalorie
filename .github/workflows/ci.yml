@@ -180,7 +180,7 @@ jobs:
 
       - name: Lint, build and test Android app
         working-directory: Android
-        run: ./gradlew :app:ktlintCheck :app:assembleDebug :app:testDebugUnitTest
+        run: ./gradlew :app:ktlintCheck :app:assembleDebug :app:testDebugUnitTest :app:assembleRelease
 
   l10n:
     needs: changes
