@@ -105,23 +105,34 @@ suspend inline fun <reified T> FirestoreDataProviderProtocol.batchSetAsync(
     inCollection: String,
 ): Unit = batchSetAsync(items, inCollection, serializer<T>())
 
+internal suspend fun <R> performFirestoreCall(block: suspend () -> R): R = try {
+    block()
+} catch (error: CancellationException) {
+    throw error
+} catch (error: Exception) {
+    Log.warning(error, Constants.LogCategory.FIRESTORE)
+    val isUnavailable = error is FirebaseFirestoreException && error.code == FirebaseFirestoreException.Code.UNAVAILABLE
+    if (isUnavailable) throw FirestoreDataProviderError.Unreachable
+    throw error
+}
+
 class FirestoreDataProvider(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
 ) : FirestoreDataProviderProtocol {
 
     // MARK: - Functions
 
-    override suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T> = perform {
+    override suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T> = performFirestoreCall {
         val snapshot = firestore.collection(from).get().await()
         snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
     }
 
-    override suspend fun <T> loadAsync(id: String, from: String, serializer: KSerializer<T>): T? = perform {
+    override suspend fun <T> loadAsync(id: String, from: String, serializer: KSerializer<T>): T? = performFirestoreCall {
         val snapshot = firestore.collection(from).document(id).get().await()
         snapshot.data?.let { FirestoreDataMapper.decode(it, serializer) }
     }
 
-    override suspend fun <T> loadAsync(from: String, whereDocumentIdIn: List<String>, serializer: KSerializer<T>): List<T> = perform {
+    override suspend fun <T> loadAsync(from: String, whereDocumentIdIn: List<String>, serializer: KSerializer<T>): List<T> = performFirestoreCall {
         whereDocumentIdIn.chunked(Constants.Firestore.IN_QUERY_LIMIT).flatMap { chunk ->
             val snapshot = firestore.collection(from).whereIn(FieldPath.documentId(), chunk).get().await()
             snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
@@ -135,23 +146,23 @@ class FirestoreDataProvider(
         orderBy: String,
         descending: Boolean,
         serializer: KSerializer<T>,
-    ): List<T> = perform {
+    ): List<T> = performFirestoreCall {
         val direction = if (descending) Query.Direction.DESCENDING else Query.Direction.ASCENDING
         val snapshot = firestore.collection(from).whereEqualTo(field, isEqualTo).orderBy(orderBy, direction).get().await()
         snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
     }
 
-    override suspend fun <T> loadFromServerAsync(id: String, from: String, serializer: KSerializer<T>): T? = perform {
+    override suspend fun <T> loadFromServerAsync(id: String, from: String, serializer: KSerializer<T>): T? = performFirestoreCall {
         val snapshot = firestore.collection(from).document(id).get(Source.SERVER).await()
         snapshot.data?.let { FirestoreDataMapper.decode(it, serializer) }
     }
 
-    override suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T> = perform {
+    override suspend fun <T> loadFromServerAsync(from: String, serializer: KSerializer<T>): List<T> = performFirestoreCall {
         val snapshot = firestore.collection(from).get(Source.SERVER).await()
         snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
     }
 
-    override suspend fun <T> loadAsync(from: String, orderBy: String, descending: Boolean, limit: Int, serializer: KSerializer<T>): List<T> = perform {
+    override suspend fun <T> loadAsync(from: String, orderBy: String, descending: Boolean, limit: Int, serializer: KSerializer<T>): List<T> = performFirestoreCall {
         val direction = if (descending) Query.Direction.DESCENDING else Query.Direction.ASCENDING
         val snapshot = firestore.collection(from).orderBy(orderBy, direction).limit(limit.toLong()).get().await()
         snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
@@ -163,7 +174,7 @@ class FirestoreDataProvider(
         isGreaterThanOrEqualTo: Double,
         isLessThan: Double,
         serializer: KSerializer<T>,
-    ): List<T> = perform {
+    ): List<T> = performFirestoreCall {
         val snapshot = firestore
             .collection(from)
             .whereGreaterThanOrEqualTo(field, isGreaterThanOrEqualTo)
@@ -179,7 +190,7 @@ class FirestoreDataProvider(
         hasPrefix: String,
         limit: Int,
         serializer: KSerializer<T>,
-    ): List<T> = perform {
+    ): List<T> = performFirestoreCall {
         val snapshot = firestore
             .collection(from)
             .whereGreaterThanOrEqualTo(field, hasPrefix)
@@ -196,7 +207,7 @@ class FirestoreDataProvider(
         arrayContains: String,
         limit: Int,
         serializer: KSerializer<T>,
-    ): List<T> = perform {
+    ): List<T> = performFirestoreCall {
         val snapshot = firestore
             .collection(from)
             .whereArrayContains(field, arrayContains)
@@ -207,13 +218,13 @@ class FirestoreDataProvider(
     }
 
     override suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
-        perform {
+        performFirestoreCall {
             firestore.collection(inCollection).document(id).set(FirestoreDataMapper.encode(item, serializer)).await()
         }
     }
 
     override suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>) {
-        perform {
+        performFirestoreCall {
             for (chunk in items.chunked(Constants.Firestore.BATCH_WRITE_LIMIT)) {
                 val batch = firestore.batch()
                 for ((item, id) in chunk) {
@@ -225,7 +236,7 @@ class FirestoreDataProvider(
     }
 
     override suspend fun deleteAsync(id: String, from: String) {
-        perform {
+        performFirestoreCall {
             firestore.collection(from).document(id).delete().await()
         }
     }
@@ -234,16 +245,5 @@ class FirestoreDataProvider(
 
     private companion object {
         const val PREFIX_UPPER_BOUND = "\uF8FF"
-    }
-
-    private suspend fun <R> perform(block: suspend () -> R): R = try {
-        block()
-    } catch (error: CancellationException) {
-        throw error
-    } catch (error: Exception) {
-        Log.warning(error, Constants.LogCategory.FIRESTORE)
-        val isUnavailable = error is FirebaseFirestoreException && error.code == FirebaseFirestoreException.Code.UNAVAILABLE
-        if (isUnavailable) throw FirestoreDataProviderError.Unreachable
-        throw error
     }
 }
