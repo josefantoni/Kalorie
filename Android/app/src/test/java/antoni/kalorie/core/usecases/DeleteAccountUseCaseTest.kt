@@ -220,21 +220,19 @@ class DeleteAccountUseCaseTest {
     }
 
     @Test
-    fun invoke_whenSnapshotDeleteFails_deletesNothingElse() = runTest {
+    fun invoke_whenSnapshotDeleteFails_stillDeletesTheAccount() = runTest {
         val fixture = makeSUT()
         fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
         fixture.snapshotStore.deleteError = IllegalStateException("disk")
 
-        try {
-            fixture.sut()
-            fail("Expected the snapshot error to be thrown")
-        } catch (_: IllegalStateException) {
-            assertTrue(
-                "the account must survive intact when the snapshot cannot be cleared, so the user can retry",
-                fixture.dataProvider.deletedIdsByCollection.isEmpty(),
-            )
-            assertEquals(0, fixture.authCommandProvider.deleteCallCount)
-        }
+        fixture.sut()
+
+        assertEquals(
+            "a stray snapshot file is harmless and gets overwritten or ignored on the next merge, so it must not block account deletion",
+            listOf("f1"),
+            fixture.deleted(Constants.Firestore.foodConsumed(USER_ID)),
+        )
+        assertEquals(1, fixture.authCommandProvider.deleteCallCount)
     }
 
     @Test
