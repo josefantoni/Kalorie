@@ -1597,7 +1597,10 @@ geometry for the table format most labels use, and a keyword-position fallback (
 after a nutrition-section cue, when one is found) for the **linear** format small packages are
 legally allowed to use instead — one sentence, no table at all. The fallback only runs when the
 table pass found none of the five macro fields, so a label with neither format present still
-correctly fills nothing. The same pass also sets the reading's `measure` — from the per-100
+correctly fills nothing. `fixtures/nutrition-label-parsing-cases.json` pins `NutritionLabelParser.parse`
+on both clients: an OCR line list in, the reading's twelve fields out, read by `NutritionLabelParserTests`
+and by the Android port's `NutritionLabelParserTest`
+([ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)). The same pass also sets the reading's `measure` — from the per-100
 column header if it names `ml` or `g`, else from the linear fallback's own header test, else from
 the package-weight unit, else `nil` — and `FoodItemFormInput.applying(_:)` fills the form's
 `measure` from it only while the form is still at its `.grams` default, per the same

@@ -45,11 +45,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   diacritics, box coordinates hold under a rotated frame (rows and columns must not collapse), auto-capture
   and the shutter both work, and the permission prompt, denied state and revocation behave. Real-world
   glare and curved packaging still need a real phone before release.
-- **Pin the two nutrition-label parsers with a shared fixture** — the Android parser
-  (`core/nutritionlabelrecognition`) is a Kotlin copy of iOS's `NutritionLabelParser`, with iOS left
-  unchanged by decision (a shared KMP parser was declined). Real labels will keep driving fixes, so the two
-  can drift apart. Add a golden-vector fixture in `fixtures/` per ADR 0039 when an iOS reader test is
-  acceptable. The Foundation Models path is iOS-only by design and not ported.
 - **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.
