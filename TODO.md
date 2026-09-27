@@ -89,11 +89,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   must take a photo (it called `takePicture` off the main thread before); the barcode scanner must release
   the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
   submission that was written from the iOS app must work (it failed on `submitted_at` precision).
-- **Check that the loading overlays block touches** — `AddFoodSheetView.kt`, `FoodQuantityView.kt` and
-  `ExportView.kt` cover the screen with a `Box` using `Modifier.clickable(enabled = false) {}`. It is not
-  established whether a disabled `clickable` consumes pointer events or lets them through to the content
-  below. If it lets them through, use `pointerInput(Unit) {}` instead. Moderation review has no overlay
-  guard at all, only the view model returning while it is loading, so that one is covered either way.
 - **Compile the release variant in CI** — the Android job runs only `:app:assembleDebug` and
   `:app:testDebugUnitTest`, so a change that breaks only the release build (R8, signing, a debug-only
   source set leaking into `main`) is found at release time. Adding a step to `.github/workflows/ci.yml`
