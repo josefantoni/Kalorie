@@ -89,9 +89,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   must take a photo (it called `takePicture` off the main thread before); the barcode scanner must release
   the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
   submission that was written from the iOS app must work (it failed on `submitted_at` precision).
-- **Test `FirestoreDataProvider.perform` on Android** — it decides what is logged as a warning and what
-  is thrown as `Unreachable`, and has no test because it needs a Firebase instance. Extract the decision
-  or wrap the Firebase calls behind something a test can replace.
 
 ## Documentation baseline
 
