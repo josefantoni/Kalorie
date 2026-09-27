@@ -53,7 +53,13 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
 
         // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
         // account that follows the deletion. Idempotent, so a retry with skipDataWipe is safe.
-        try snapshotStore.delete()
+        // A local I/O failure here is not worth blocking deletion over: a stray snapshot file is
+        // harmless, it is overwritten or ignored on the next merge.
+        do {
+            try snapshotStore.delete()
+        } catch {
+            Log.error(error, category: Constants.LogCategory.account)
+        }
 
         if !skipDataWipe {
             try await wipeFirestoreData(userId: userId)
