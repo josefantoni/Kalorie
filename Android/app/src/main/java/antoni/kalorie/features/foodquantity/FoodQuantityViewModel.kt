@@ -29,6 +29,7 @@ import antoni.kalorie.core.utils.FoodItemReporting
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
+import antoni.kalorie.core.utils.isSameDay
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,7 +55,7 @@ class FoodQuantityViewModel(
     val item: FoodItemDomain,
     private val saveFoodConsumed: SaveFoodConsumedUseCaseProtocol,
     private val fetchMealTypes: FetchMealTypesUseCaseProtocol,
-    private val selectedDate: Instant,
+    private var selectedDate: Instant,
     mealTypes: List<MealTypeDomain>,
     isFavourite: Boolean,
     private val addFavouriteFood: AddFavouriteFoodUseCaseProtocol,
@@ -133,6 +134,12 @@ class FoodQuantityViewModel(
     // MARK: - Functions
 
     suspend fun onAppear() {
+        if (selectedDate.isSameDay(Instant.now())) {
+            selectedDate = Instant.now()
+            if (!hasUserSelectedMealType) {
+                selectedMealTypeId.value = _mealTypes.value.mealType(selectedDate)?.id
+            }
+        }
         if (canReportIncorrectData) {
             loadReportState(item.id, fetchMyFoodItemReport)
         }

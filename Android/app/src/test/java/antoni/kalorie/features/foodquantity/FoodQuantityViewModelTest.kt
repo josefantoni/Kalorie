@@ -40,6 +40,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Duration
 import java.time.Instant
 import java.time.ZonedDateTime
 
@@ -354,6 +355,35 @@ class FoodQuantityViewModelTest {
         val sut = makeSUT(selectedDate = makeDate(hour = 3), mealTypes = listOf(makeMealType(id = "breakfast", hour = 6, endHour = 10)))
 
         assertNull(sut.selectedMealTypeId.value)
+    }
+
+    // MARK: - onAppear — refreshing a stale today
+
+    @Test
+    fun onAppear_whenSelectedDateIsEarlierToday_refreshesItToNowAndUpdatesTheMealTypeDefault() = runTest {
+        val staleTime = Instant.now().minusSeconds(6 * 3600)
+        val spy = SaveFoodConsumedUseCaseSpy()
+        val sut = makeSUT(saveFoodConsumed = spy, selectedDate = staleTime)
+
+        sut.onAppear()
+        sut.onConfirm()
+
+        val capturedDate = spy.capturedDate
+        assertTrue(
+            "the quantity screen must stamp a same-day entry with the time it was actually opened, not a snapshot taken hours earlier by the Dashboard — otherwise it keeps landing in whatever meal window was current back then",
+            capturedDate != null && Duration.between(capturedDate, Instant.now()).abs().seconds < 5,
+        )
+    }
+
+    @Test
+    fun onAppear_whenUserAlreadyPickedAMealType_doesNotOverrideItWhileRefreshingTheDate() = runTest {
+        val staleTime = Instant.now().minusSeconds(6 * 3600)
+        val sut = makeSUT(selectedDate = staleTime, mealTypes = listOf(makeMealType(id = "dinner", hour = 18, endHour = 21)))
+        sut.onMealTypeSelected("dinner")
+
+        sut.onAppear()
+
+        assertEquals("refreshing the stale date on appear must not clobber an explicit user pick", "dinner", sut.selectedMealTypeId.value)
     }
 
     // MARK: - unitOptions
@@ -993,11 +1023,14 @@ private class SaveFoodConsumedUseCaseSpy : SaveFoodConsumedUseCaseProtocol {
         private set
     var capturedMealTypeId: String? = null
         private set
+    var capturedDate: Instant? = null
+        private set
 
     // MARK: - Functions
 
     override suspend fun invoke(item: FoodItemDomain, grams: Double, date: Instant, mealTypeId: String?) {
         wasCalled = true
         capturedMealTypeId = mealTypeId
+        capturedDate = date
     }
 }
