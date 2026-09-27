@@ -161,7 +161,7 @@ Deploy the page from `backend/` with `firebase deploy --only hosting`. Never run
 | `rules` | `ubuntu-latest` | `backend/`, `firestore-rules-tests/`, `fixtures/` | Firestore rules tests against the emulator |
 | `kmp` | `ubuntu-latest` | `ExportKit/`, `MacroKit/`, `MealKit/`, `TextKit/` | `jvmTest` for every module, ExportKit Android AAR |
 | `ios` | `macos-26` | `iOS/`, `scripts/build-kmp-framework.sh`, `fixtures/`, any KMP module | Builds the XCFrameworks, `xcodebuild test` |
-| `android` | `ubuntu-latest` | `Android/`, `fixtures/`, any KMP module | `:app:assembleDebug` and `:app:testDebugUnitTest` |
+| `android` | `ubuntu-latest` | `Android/`, `fixtures/`, any KMP module | `:app:ktlintCheck`, `:app:assembleDebug`, `:app:testDebugUnitTest`, `:app:assembleRelease` |
 | `l10n` | `ubuntu-latest` | `localisation/`, the generated `Localizable.xcstrings` and Android `strings.xml`, the generator in `scripts/` | Fails when a generated string file differs from `localisation/strings.json` (ARCHITECTURE § 5.3); runs the generator's tests |
 
 Any change under `.github/workflows/` runs every job. `docs/`, `TODO.md`, `README.md` and
