@@ -151,6 +151,9 @@ firestore-rules-tests/node_modules/
 ### Firebase emulator ###
 firestore-debug.log
 
+### Firebase CLI ###
+.firebase/
+
 
 # Project instructions must be tracked despite the global ignore
 !CLAUDE.md

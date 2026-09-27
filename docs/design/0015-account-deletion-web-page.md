@@ -80,16 +80,21 @@ no language switcher.
 
 Sections, in this order:
 
-1. **Heading** with the app name and developer name **exactly as on the Play store listing**
-   (placeholder until the listing exists, see *Open inputs*).
+1. **Heading** with the app name **exactly as on the Play store listing** (placeholder until the
+   listing exists, see *Open inputs*). The developer name goes at the end of the section instead
+   of next to the heading: the policy only requires it to be present somewhere on the page, and
+   the deletion pathway is what needs to be prominent, not the attribution line.
 2. **Delete in the app** (the fastest way): *Account* screen (the person icon in the dashboard
    toolbar) → *Delete account*. Before writing the button label, check the exact text in the
    `account_*` keys of `localisation/strings.json`. Mention that the app may ask the user to sign
    in again first.
 3. **Delete without the app**: send an email to the support address from the email the account
    uses to sign in (the Google account; on iOS, possibly an Apple private relay address), with the
-   subject `Delete account`. Include a `mailto:` link with the subject prefilled. State the
-   response time: deletion within 30 days, confirmation email when it is done.
+   subject matching `account_button_deleteAccount` in `localisation/strings.json` for that
+   section's language (`Smazat účet` / `Delete account`). Include a `mailto:` link with the
+   subject prefilled. State the response time: deletion within 30 days, confirmation email when
+   it is done. The runbook matches requests by sender address, not subject text, so either
+   subject is handled the same way.
 4. **What is deleted**: food diary entries, meal types, favourite foods, own meals, personal
    portions, pending or rejected catalogue submissions, open incorrect-data reports, and the
    sign-in account itself.
