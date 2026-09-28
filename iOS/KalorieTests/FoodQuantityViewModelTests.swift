@@ -10,8 +10,6 @@ import XCTest
 
 final class FoodQuantityViewModelTests: XCTestCase {
 
-    // MARK: - grams
-
     func test_grams_withOneHundredGramUnit_is100() {
         let sut = makeSUT()
         sut.unit = .hundredGrams
@@ -32,8 +30,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         sut.quantity = 150
         XCTAssertEqual(sut.grams, 150)
     }
-
-    // MARK: - scaledCalories
 
     func test_scaledCalories_calculatesFromGrams() {
         let sut = makeSUT(item: makeFoodItem(caloriesPerHundredGrams: 200))
@@ -63,14 +59,10 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.scaledCalories, 200)
     }
 
-    // MARK: - scaledFiber
-
     func test_scaledFiber_whenItemsFiberIsUnknown_staysNil() {
         let sut = makeSUT(item: makeFoodItem(fiber: nil))
         XCTAssertNil(sut.scaledFiber)
     }
-
-    // MARK: - init defaults
 
     func test_init_withoutQuantityOrUnit_defaultsToOneHundredGram() {
         let sut = makeSUT()
@@ -83,8 +75,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.quantity, 340)
         XCTAssertEqual(sut.unit, .grams)
     }
-
-    // MARK: - onUnitSelected
 
     func test_onUnitSelected_toGrams_convertsQuantity() {
         let sut = makeSUT()
@@ -150,8 +140,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
             "a personal portion resolving after the user already picked a unit must not override that choice"
         )
     }
-
-    // MARK: - onConfirm
 
     @MainActor
     func test_onConfirm_withZeroQuantity_showsInvalidQuantityAlert() async {
@@ -260,8 +248,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.alertItem?.title, L10n.Common.errorUnknown)
     }
 
-    // MARK: - selectedMealTypeId (init)
-
     func test_init_preselectsTheMealTypeResolvedFromTimeOfDay() {
         let cal = Calendar.current
         let loggedAt = cal.date(bySettingHour: 12, minute: 0, second: 0, of: .now) ?? .now
@@ -275,8 +261,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         let sut = makeSUT(selectedDate: loggedAt, mealTypes: [makeMealType(id: "breakfast", hour: 6, endHour: 10)])
         XCTAssertNil(sut.selectedMealTypeId)
     }
-
-    // MARK: - onAppear — refreshing a stale today
 
     @MainActor
     func test_onAppear_whenSelectedDateIsEarlierToday_refreshesItToNowAndUpdatesTheMealTypeDefault() async {
@@ -308,8 +292,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.selectedMealTypeId, "dinner", "refreshing the stale date on appear must not clobber an explicit user pick")
     }
 
-    // MARK: - unitOptions
-
     func test_unitOptions_ordersCataloguePortionBeforeGramsBeforeHundredGrams() {
         let slice = FoodPortionDomain(name: "1 plátek", grams: 30)
         let sut = makeSUT(item: makeFoodItem(portions: [slice]))
@@ -332,8 +314,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         )
     }
 
-    // MARK: - defaultUnit(for:)
-
     func test_defaultUnit_withCataloguePortions_returnsFirstPortion() {
         let firstPortion = FoodPortionDomain(name: "1 balení", grams: 80)
         let secondPortion = FoodPortionDomain(name: "1 plátek", grams: 30)
@@ -349,8 +329,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         let item = makeFoodItem(portions: [])
         XCTAssertEqual(FoodQuantityViewModel.defaultUnit(for: item), .grams)
     }
-
-    // MARK: - onAppear (personal portions)
 
     @MainActor
     func test_onAppear_withCatalogueItem_fetchesPersonalPortions() async {
@@ -424,8 +402,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         )
     }
 
-    // MARK: - Reporting incorrect data
-
     func test_canReportIncorrectData_onlyTrueForCatalogueKind() {
         XCTAssertTrue(makeSUT(item: makeFoodItem(kind: .catalogue)).canReportIncorrectData)
         XCTAssertFalse(makeSUT(item: makeFoodItem(kind: .external)).canReportIncorrectData, "an OpenFoodFacts item is not ours to correct")
@@ -464,8 +440,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.alertItem?.title, L10n.FoodItemReport.errorReasonTooLong)
     }
 
-    // MARK: - onPortionsManagerOpened
-
     @MainActor
     func test_onPortionsManagerOpened_seedsOneBlankDraftRegardlessOfCurrentGrams() {
         let sut = makeSUT(quantity: 1000, unit: .grams)
@@ -477,8 +451,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
             "a portion is a reusable shortcut; the quantity being weighed right now (e.g. a whole loaf) is not its size"
         )
     }
-
-    // MARK: - portion drafts
 
     @MainActor
     func test_arePortionDraftsComplete_isFalseUntilEveryDraftHasNameAndGrams() {
@@ -524,8 +496,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         sut.onDeletePortionDraft(sut.portionDrafts[0])
         XCTAssertEqual(sut.portionDrafts.map(\.name), [""], "the screen must always show at least one row")
     }
-
-    // MARK: - onSavePersonalPortions
 
     @MainActor
     func test_onSavePersonalPortions_whenSaveSucceeds_appendsAllDraftsAndResetsToOneEmptyDraft() async {
@@ -575,8 +545,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.alertItem?.title, L10n.FoodPortion.errorInvalidGrams)
     }
 
-    // MARK: - onDeletePersonalPortion
-
     @MainActor
     func test_onDeletePersonalPortion_whenSaveSucceeds_removesPortion() async {
         let portion = FoodPortionDomain(name: "1 balení", grams: 33)
@@ -622,8 +590,6 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.unit, .portion(portion))
         XCTAssertEqual(sut.quantity, 1)
     }
-
-    // MARK: - My created meal portions
 
     @MainActor
     func test_unitOptions_forMeal_listsEachPortionOnce() {

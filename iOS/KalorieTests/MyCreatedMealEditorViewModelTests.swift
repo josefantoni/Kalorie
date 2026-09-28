@@ -10,8 +10,6 @@ import XCTest
 
 final class MyCreatedMealEditorViewModelTests: XCTestCase {
 
-    // MARK: - canSave
-
     func test_canSave_withNoIngredients_isFalse() {
         let sut = makeSUT()
         XCTAssertFalse(sut.canSave)
@@ -53,8 +51,6 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         XCTAssertTrue(sut.canSave)
     }
 
-    // MARK: - onSelectSearchResult / onDeleteIngredient
-
     func test_onSelectSearchResult_appendsIngredientWithoutNavigating() {
         let sut = makeSUT()
         sut.onSelectSearchResult(makeFoodItem(id: "1"))
@@ -87,8 +83,6 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         sut.onDeleteIngredient(at: IndexSet(integer: 0))
         XCTAssertEqual(sut.ingredients.map { $0.item.id }, ["2"])
     }
-
-    // MARK: - onScannerButtonTapped / onBarcodeScanned
 
     func test_onScannerButtonTapped_makesScannerVisible() {
         let sut = makeSUT()
@@ -162,8 +156,6 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isScannerVisible, "a scanner left open would rescan the same code in frame and repeat the failing lookup")
     }
 
-    // MARK: - onSearchTextChanged (external fallback)
-
     func test_onSearchTextChanged_whenLocalEmptyAndQueryLongEnough_fallsBackToExternal() async {
         let externalItem = makeFoodItem(id: "off-1")
         let sut = makeSUT(
@@ -193,8 +185,6 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         XCTAssertTrue(sut.externalSearchResults.isEmpty, "the catalogue already answered the query — hitting OpenFoodFacts on top would be a wasted network call")
     }
 
-    // MARK: - onGramsFieldDefocused
-
     func test_onGramsFieldDefocused_withEmptyGrams_fillsDefaultOfHundred() {
         let sut = makeSUT()
         let id = sut.onSelectSearchResult(makeFoodItem())
@@ -214,8 +204,6 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         XCTAssertEqual(sut.ingredients.first?.gramsText, "50")
     }
 
-    // MARK: - onSaveTapped
-
     func test_onSaveTapped_whenCannotSave_doesNotShowConfirmation() {
         let sut = makeSUT()
         sut.onSaveTapped()
@@ -230,8 +218,6 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         sut.onSaveTapped()
         XCTAssertTrue(sut.isSaveConfirmationVisible)
     }
-
-    // MARK: - onSaveConfirmed (create)
 
     @MainActor
     func test_onSaveConfirmed_whenCreating_createsMealAndDismisses() async {
@@ -275,8 +261,6 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         XCTAssertFalse(sut.shouldDismiss)
     }
 
-    // MARK: - onSaveConfirmed (edit)
-
     @MainActor
     func test_onSaveConfirmed_whenEditing_preservesCreatedAt() async {
         var updatedMeal: MyCreatedMealDomain?
@@ -305,8 +289,6 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         let editingSUT = makeSUT(existingMeal: MyCreatedMealDomain(id: "1", name: "Kaše", ingredients: [makeIngredientDomain()], createdAt: .now, updatedAt: .now))
         XCTAssertTrue(editingSUT.isEditing)
     }
-
-    // MARK: - onAppear (catalogue refresh)
 
     @MainActor
     func test_onAppear_whenCatalogueWasCorrected_updatesIngredientAndMarksMealAsChanged() async {

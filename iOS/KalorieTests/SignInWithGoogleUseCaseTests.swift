@@ -11,8 +11,6 @@ import FirebaseAuth
 
 final class SignInWithGoogleUseCaseTests: XCTestCase {
 
-    // MARK: - saveProfileIfNeeded
-
     func test_saveProfileIfNeeded_withNameAndEmail_updatesDisplayNameAndSavesProfile() async {
         let (sut, authCommandProvider, dataProvider) = makeSUT()
 
@@ -50,8 +48,6 @@ final class SignInWithGoogleUseCaseTests: XCTestCase {
         XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 1)
         XCTAssertNil(dataProvider.savedProfile, "bez userId není kam profil uložit")
     }
-
-    // MARK: - callAsFunction
 
     func test_callAsFunction_whenProviderFails_propagatesError() async {
         let (sut, _, _) = makeSUT(googleSignInProvider: GoogleSignInProviderFake(errorToThrow: URLError(.notConnectedToInternet)))

@@ -94,8 +94,6 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         XCTAssertFalse(sut.canShowFavouriteButton)
     }
 
-    // MARK: - Reporting incorrect data
-
     @MainActor
     func test_canReportIncorrectData_onlyTrueForCatalogueKind() {
         XCTAssertTrue(makeSUT(food: makeFood(kind: .catalogue)).canReportIncorrectData)
@@ -149,8 +147,6 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem)
     }
 
-    // MARK: - onMealTypeSelected (staging only, no write)
-
     @MainActor
     func test_onMealTypeSelected_stagesTheSelectionWithoutWritingOrEnablingSaveAlone() {
         let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
@@ -174,8 +170,6 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
         XCTAssertFalse(sut.hasChanges, "picking the value that is already pinned is not a pending change")
     }
-
-    // MARK: - onSave — meal type pin
 
     @MainActor
     func test_onSave_whenOnlyMealTypeWasSelected_writesThePinWithoutTouchingWeight() async {

@@ -11,8 +11,6 @@ import FirebaseAuth
 
 final class MigrateAnonymousDataUseCaseTests: XCTestCase {
 
-    // MARK: - migrate
-
     func test_migrate_carriesFavouriteFoodsThroughWithSameLifecycleAsFoodConsumed() async throws {
         let (sut, dataProvider, _, _) = makeSUT()
         dataProvider.stubbedFavouriteFoods = [makeFavourite(id: "fav1")]
@@ -69,8 +67,6 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
 
         XCTAssertEqual(dataProvider.batchSavedItemCount, 2, "opakovaný setAsync se stejným id přepíše, nevytvoří duplicitu")
     }
-
-    // MARK: - resumeIfNeeded
 
     func test_resumeIfNeeded_withNoSnapshot_doesNothing() async throws {
         let (sut, dataProvider, authCommandProvider, _) = makeSUT()

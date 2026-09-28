@@ -10,8 +10,6 @@ import XCTest
 
 final class SignInWithAppleUseCaseTests: XCTestCase {
 
-    // MARK: - saveProfileIfNeeded
-
     func test_saveProfileIfNeeded_withNameAndEmail_updatesDisplayNameAndSavesProfile() async {
         let (sut, authCommandProvider, dataProvider) = makeSUT()
         var fullName = PersonNameComponents()

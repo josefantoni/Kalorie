@@ -10,8 +10,6 @@ import XCTest
 
 final class FoodPortionValidationTests: XCTestCase {
 
-    // MARK: - validate(name:grams:)
-
     func test_validate_withEmptyName_returnsInvalidName() {
         XCTAssertEqual(FoodPortionValidation.validate(name: "", grams: 33), .invalidName)
     }
@@ -27,8 +25,6 @@ final class FoodPortionValidationTests: XCTestCase {
     func test_validate_withValidNameAndGrams_returnsNil() {
         XCTAssertNil(FoodPortionValidation.validate(name: "1 balení", grams: 33))
     }
-
-    // MARK: - validate(portions:)
 
     func test_validate_withPortionsAtLimit_returnsNil() {
         let portions = (0..<FoodPortionValidation.maxPortions).map { FoodPortionDomain(name: "Porce \($0)", grams: 10) }

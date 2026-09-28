@@ -10,8 +10,6 @@ import XCTest
 
 final class SettingsViewModelTests: XCTestCase {
 
-    // MARK: - onMove
-
     @MainActor
     func test_onMove_movingFirstItemToLast_keepsTimeSlotsAtPositions() {
         let meal0 = makeMealType(id: 0, name: "A", hour: 8, endHour: 12)
@@ -57,8 +55,6 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertTrue(sut.hasPendingReorder)
     }
 
-    // MARK: - onSaveReorder
-
     @MainActor
     func test_onSaveReorder_afterMove_clearsHasPendingReorder() async {
         let meal0 = makeMealType(id: 0, name: "A", hour: 8, endHour: 12)
@@ -100,8 +96,6 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem, "a delete-only edit session has nothing to persist, so Done must be able to close the sheet without a failing network call")
     }
 
-    // MARK: - onDelete
-
     @MainActor
     func test_onDelete_withSingleMealType_showsAlertAndKeepsIt() async {
         let sut = makeSUT(mealTypes: [makeMealType(id: 0, name: "A", hour: 8, endHour: 12)])
@@ -133,8 +127,6 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(sut.mealTypes.count, 2)
     }
 
-    // MARK: - onShowAddForm
-
     func test_onShowAddForm_withExistingMealTypes_setsStartAfterLastEnd() {
         let meal = makeMealType(id: 0, name: "A", hour: 8, endHour: 12)
         let sut = makeSUT(mealTypes: [meal])
@@ -148,8 +140,6 @@ final class SettingsViewModelTests: XCTestCase {
         sut.onShowAddForm()
         XCTAssertTrue(sut.isAddFormVisible)
     }
-
-    // MARK: - onAppear
 
     @MainActor
     func test_onAppear_whenMaintainerClaimIsTrue_setsIsMaintainer() async {

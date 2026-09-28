@@ -10,8 +10,6 @@ import XCTest
 
 final class NutritionLabelReadingTests: XCTestCase {
 
-    // MARK: - isCompleteForAutoCapture
-
     func test_isCompleteForAutoCapture_withKcalFatCarbsProtein_isTrue() {
         let reading = NutritionLabelReading(caloriesPerHundredGrams: 370, fat: 12, carbohydrate: 55, protein: 10)
         XCTAssertTrue(reading.isCompleteForAutoCapture, "a live read with the four macros the predicate needs must fire capture, or the shutter is the only way in")

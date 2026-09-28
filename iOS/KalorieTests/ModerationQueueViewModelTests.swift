@@ -10,8 +10,6 @@ import XCTest
 
 final class ModerationQueueViewModelTests: XCTestCase {
 
-    // MARK: - onAppear
-
     @MainActor
     func test_onAppear_marksSubmissionsWithCollidingBarcodesAsColliding() async {
         let submissionA = makeSubmission(id: "a", barcode: "111")
@@ -24,8 +22,6 @@ final class ModerationQueueViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isColliding(submissionA))
         XCTAssertFalse(sut.isColliding(submissionB))
     }
-
-    // MARK: - onSubmissionResolved
 
     @MainActor
     func test_onSubmissionResolved_removesOnlyThatSubmissionWithoutRefetchingTheQueue() async {

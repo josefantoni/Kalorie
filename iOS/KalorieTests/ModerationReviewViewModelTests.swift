@@ -10,8 +10,6 @@ import XCTest
 
 final class ModerationReviewViewModelTests: XCTestCase {
 
-    // MARK: - onApproveTapped
-
     @MainActor
     func test_onApproveTapped_preservesTheOriginalSubmissionsDate() async {
         let originalDate = Date(timeIntervalSince1970: 1_700_000_000)
@@ -37,8 +35,6 @@ final class ModerationReviewViewModelTests: XCTestCase {
 
         XCTAssertEqual(approveSubmission.receivedItem?.engName, "Cottage cheese", "editing an unrelated field must not blank the English name")
     }
-
-    // MARK: - onApproveTapped error handling
 
     @MainActor
     func test_onApproveTapped_whenValidationFails_showsFieldSpecificMessageAndDoesNotDismiss() async {
@@ -88,8 +84,6 @@ final class ModerationReviewViewModelTests: XCTestCase {
         XCTAssertTrue(sut.shouldDismiss)
     }
 
-    // MARK: - onRejectConfirmed error handling
-
     @MainActor
     func test_onRejectConfirmed_whenSubmissionChangedSinceReview_showsMessageAndDismisses() async {
         let rejectSubmission = RejectSubmissionUseCaseFake(errorToThrow: RejectSubmissionError.changedSinceReview)
@@ -101,8 +95,6 @@ final class ModerationReviewViewModelTests: XCTestCase {
         XCTAssertEqual(sut.alertItem?.title, L10n.Moderation.errorChangedSinceReview)
         XCTAssertTrue(sut.shouldDismiss)
     }
-
-    // MARK: - onNutritionLabelCaptured
 
     @MainActor
     func test_onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() async {
@@ -120,8 +112,6 @@ final class ModerationReviewViewModelTests: XCTestCase {
         XCTAssertEqual(sut.formInput.fat, originalFat, "a field already holding a submitted value must never be overwritten by the photo")
         XCTAssertEqual(sut.formInput.fiber, 1, "a field still at its default must be filled")
     }
-
-    // MARK: - onAppear / similar catalogue items
 
     @MainActor
     func test_onAppear_withBarcode_doesNotSearchForSimilarItems() async {
