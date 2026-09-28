@@ -95,7 +95,7 @@ struct FoodItemFormFields: View {
                 .font(.system(size: .smallPlus))
                 .fontWeight(highlightedFields.contains(.measure) ? .bold : .regular)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text("100")
+            Text(verbatim: "100")
                 .font(.system(size: .smallPlus))
             Picker("", selection: measureBinding) {
                 Text(L10n.Common.unitGrams).tag(FoodMeasure.grams)
