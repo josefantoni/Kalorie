@@ -123,6 +123,9 @@
     <string name="dashboard_error_deleteFailed">Potravinu se nepodařilo smazat</string>
     <string name="dashboard_navigation_title">Kalorie</string>
     <string name="dashboard_section_unassignedFoods">Ostatní nezařazená jídla</string>
+    <string name="dashboard_signInSpotlight_actionSignIn">Přihlásit se</string>
+    <string name="dashboard_signInSpotlight_message">Po přihlášení zůstane tvůj deník zachovaný, i když telefon ztratíš nebo vyměníš, a najdeš ho i na jiném zařízení.</string>
+    <string name="dashboard_signInSpotlight_title">Ochraň svůj deník</string>
     <string name="defaultMeals_breakfast">Snídaně</string>
     <string name="defaultMeals_dinner">Večeře</string>
     <string name="defaultMeals_lunch">Oběd</string>
