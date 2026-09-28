@@ -148,7 +148,8 @@ These are the contract a second client has to match exactly.
 
 **`foodItems`** (`FoodItemDTO`) — the catalogue. Values are **per 100 g**
 (`calories_per_hundred_grams`) except `weight`, which is the package weight the entry was read
-from. Also carries an optional `portions` — named gram shortcuts (`FoodPortionDomain`: `name`,
+from. The new-item and catalogue-editor forms no longer ask for it: a new item stores `100` (as
+external products do), and an edit writes back whatever the loaded item had. Also carries an optional `portions` — named gram shortcuts (`FoodPortionDomain`: `name`,
 `grams`) set once at creation and never updated afterward, since `foodItems` has no `allow update`
 rule to write through (see [design 0008](design/0008-food-portions.md) for why that write-once
 shape is deliberate). Absent on every document written before this shipped, decoded as `nil → []`.
@@ -719,7 +720,7 @@ reachable from `AddFoodSheetViewModel` at all** — its only caller now is `Appr
 `SubmitFoodItemUseCase` instead, which writes to `foodItemSubmissions`, not `foodItems`.
 
 Its validation — id a valid barcode or an uppercase UUID (§ 1.2); Czech name non-empty;
-calories > 0; weight > 0; portions — is `FoodItemValidation`, a static predicate shared with
+calories > 0; portions (`weight` is not validated, since it feeds no calculation) — is `FoodItemValidation`, a static predicate shared with
 `SubmitFoodItemUseCase` and `UpdateFoodItemUseCase` (§ 7) so the three write paths cannot drift. `fixtures/food-item-validation-cases.json` pins it: the
 `itemId` cases are read by `FoodItemValidationTests` and by `firestore-rules-tests` (the rules
 implement only the id check, § 1.6), the `foodItem` cases by the iOS tests and, once ported, the
@@ -1610,11 +1611,11 @@ on both clients: an OCR line list in, the reading's twelve fields out, read by `
 and by the Android port's `NutritionLabelParserTest`
 ([ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)). The same pass also sets the reading's `measure` — from the per-100
 column header if it names `ml` or `g`, else from the linear fallback's own header test, else from
-the package-weight unit, else `nil` — and `FoodItemFormInput.applying(_:)` fills the form's
+the package-weight unit, else `nil` (the package weight itself is never copied into the form) — and `FoodItemFormInput.applying(_:)` fills the form's
 `measure` from it only while the form is still at its `.grams` default, per the same
 still-at-default rule as every other field. See
 [design 0011](design/0011-food-measure-grams-or-millilitres.md). Only when `SystemLanguageModel.default.availability == .available` does
-`FoundationModelExtractor` fill what neither deterministic pass can (name, package weight,
+`FoundationModelExtractor` fill what neither deterministic pass can (name,
 portions), grounded against the OCR text and never overriding a value either pass already found.
 
 **The new-item tab is camera-first.** `AddFoodSheetMode.newItem` opens on a capture prompt, not a

@@ -86,7 +86,7 @@ Sources: [How to get Apple Intelligence](https://support.apple.com/en-us/121115)
 - One tap on a camera button fills every field the photo supports, on **every** iOS 26 device,
   with Apple Intelligence off.
 - On a device where Foundation Models is available, fields the deterministic path could not fill
-  (name, package weight, portions) are filled as well.
+  (name, portions) are filled as well.
 - A value is never invented: each pre-filled number appears in the recognised text, and passes the
   consistency checks below, or the field is left untouched.
 - Pre-filled fields are visibly marked in the form until the user edits them. The mark is UI state
@@ -214,7 +214,7 @@ skipped silently, since the base path has already done its job and this path is 
 
 - **Input:** the OCR text, not the image (see *What was verified*). Instructions are in English;
   the label text is passed as data.
-- **Output:** a `@Generable` struct with optional fields (name, package weight, portions, and the
+- **Output:** a `@Generable` struct with optional fields (name, portions, and the
   table values), each with a `@Guide`, so the model returns typed values instead of prose.
 - **Grounding:** every number the model returns must appear in the OCR text. A number that does
   not is discarded. A name must be a substring of the OCR text.

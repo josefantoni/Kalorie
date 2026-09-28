@@ -242,7 +242,8 @@ mean something different and whose row tap goes somewhere else.
    `myCreatedMeals` already use).
 2. Reports are **grouped by `barcode`** in the view model — a computed property over the loaded
    list, the same way `DashboardViewModel.groupedFoods` derives its sections. One row per catalogue
-   item, showing the item's name, how many users reported it, and their reasons.
+   item, showing the item's name and how many users reported it. Their reasons are shown at the
+   top of the editor the row opens (point 4), as plain `Text` and never as markup.
 3. Names come from one call to `FetchFoodItemByBarcodeUseCase.callAsFunction(barcodes:)` for the
    unique barcodes, reusing the batched lookup `ModerationQueueViewModel` already calls for its own
    collision check. Chunking past `Constants.Firestore.inQueryLimit` (30) is not the view model's
@@ -260,7 +261,10 @@ mean something different and whose row tap goes somewhere else.
 
 The catalogue editor is reached two ways after this — its existing toolbar button on the
 submissions queue (search by barcode) and a report row (barcode supplied). Its view model gains an
-optional barcode to load on appear; nothing else about it changes.
+optional barcode to load on appear. Opened from a report it also takes that group's reports and
+lists their reasons as the first section, shows the barcode as a locked form row instead of the
+search field, and hides the "scan nutrition label" button. The queue path keeps the search and the
+scan button.
 
 ### File-by-file impact
 
