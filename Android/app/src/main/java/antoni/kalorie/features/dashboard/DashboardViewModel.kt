@@ -2,7 +2,9 @@ package antoni.kalorie.features.dashboard
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import antoni.kalorie.BuildConfig
 import antoni.kalorie.R
+import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.mealType
@@ -26,6 +28,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Duration
 import java.time.Instant
 
 data class DailyMacros(
@@ -73,6 +76,7 @@ data class FoodGroup(
 )
 
 private const val COPY_CHECKMARK_MILLIS = 1000L
+private val SIGN_IN_SPOTLIGHT_INTERVAL = Duration.ofDays(7)
 
 class DashboardViewModel(
     private val fetchMealTypes: FetchMealTypesUseCaseProtocol,
@@ -81,6 +85,9 @@ class DashboardViewModel(
     private val confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseProtocol,
     private val deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol,
     private val copyFoodsConsumed: CopyFoodsConsumedUseCaseProtocol,
+    private val authProvider: AuthProviderProtocol,
+    private val signInSpotlightStore: SignInSpotlightStoreProtocol,
+    private val now: () -> Instant = { Instant.now() },
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -98,6 +105,9 @@ class DashboardViewModel(
     val backStack = mutableStateListOf<DashboardDestination>(DashboardDestination.Dashboard)
     val isDeleteConfirmationVisible = MutableStateFlow(false)
     val copyPopoverIndex = MutableStateFlow<Int?>(null)
+    val macroPopoverIndex = MutableStateFlow<Int?>(null)
+    private val _isSignInSpotlightVisible = MutableStateFlow(false)
+    val isSignInSpotlightVisible: StateFlow<Boolean> = _isSignInSpotlightVisible
     val copyTargetDay = MutableStateFlow(Instant.now())
     val copyTargetMealTypeId = MutableStateFlow<String?>(null)
     private val _isCopying = MutableStateFlow(false)
@@ -151,6 +161,7 @@ class DashboardViewModel(
             refreshMealTypes()
             loadMonth(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
+            showSignInSpotlightIfNeeded()
         }
         _state.value = LoadingState.loaded
         hasCompletedInitialLoad = true
@@ -164,7 +175,21 @@ class DashboardViewModel(
             invalidateCache(selectedDay.value)
             loadMonth(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
+            showSignInSpotlightIfNeeded()
         }
+    }
+
+    fun onSignInSpotlightSignInTapped() {
+        _isSignInSpotlightVisible.value = false
+        showAccountSheet.value = true
+    }
+
+    fun onSignInSpotlightDismissed() {
+        _isSignInSpotlightVisible.value = false
+    }
+
+    fun onSignInSpotlightDebugTriggered() {
+        if (BuildConfig.DEBUG) _isSignInSpotlightVisible.value = true
     }
 
     suspend fun onFoodConsumedUpdated() {
@@ -252,6 +277,25 @@ class DashboardViewModel(
     }
 
     // MARK: - Private
+
+    private val isAnyPresentationActive: Boolean
+        get() = showSettings.value ||
+            showAddFoodSheet.value ||
+            showCalendarSheet.value ||
+            showAccountSheet.value ||
+            alertItem.value != null ||
+            isDeleteConfirmationVisible.value ||
+            copyPopoverIndex.value != null ||
+            macroPopoverIndex.value != null
+
+    private fun showSignInSpotlightIfNeeded() {
+        if (!authProvider.isAnonymous || monthCache.isEmpty() || _isSignInSpotlightVisible.value || isAnyPresentationActive) return
+        val currentInstant = now()
+        val lastShownAt = signInSpotlightStore.lastShownAt
+        if (lastShownAt != null && Duration.between(lastShownAt, currentInstant) < SIGN_IN_SPOTLIGHT_INTERVAL) return
+        signInSpotlightStore.lastShownAt = currentInstant
+        _isSignInSpotlightVisible.value = true
+    }
 
     private suspend fun perform(
         onFailure: (Exception) -> Unit = { alertItem.value = unknownErrorAlertItem(it) },

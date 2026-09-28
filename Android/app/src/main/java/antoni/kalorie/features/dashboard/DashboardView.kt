@@ -4,11 +4,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,7 +63,10 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -66,6 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import antoni.kalorie.BuildConfig
 import antoni.kalorie.R
 import antoni.kalorie.components.CopyIcon
 import antoni.kalorie.components.FoodConsumedView
@@ -102,124 +111,162 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val groupedFoods = remember(mealTypes, foodsConsumed) { viewModel.groupedFoods }
     val dailyMacros = remember(foodsConsumed) { viewModel.dailyMacros }
     val scope = rememberCoroutineScope()
-    var macroPopoverIndex by remember { mutableStateOf<Int?>(null) }
+    val macroPopoverIndex by viewModel.macroPopoverIndex.collectAsState()
+    val isSignInSpotlightVisible by viewModel.isSignInSpotlightVisible.collectAsState()
+    var accountIconBounds by remember { mutableStateOf(Rect.Zero) }
     var isRefreshing by remember { mutableStateOf(false) }
+    val fabInteractionSource = remember { MutableInteractionSource() }
+    val isFabPressed by fabInteractionSource.collectIsPressedAsState()
+    var fabLongPressFired by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
+    LaunchedEffect(isFabPressed) {
+        if (isFabPressed && BuildConfig.DEBUG) {
+            delay(FAB_LONG_PRESS_MILLIS)
+            fabLongPressFired = true
+            viewModel.onSignInSpotlightDebugTriggered()
+        }
+    }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { scope.launch { viewModel.onRefresh() } }
     DayChangeEffect { scope.launch { viewModel.onRefresh() } }
 
     // MARK: - Body
 
-    Scaffold(
-        floatingActionButtonPosition = FabPosition.Center,
-        floatingActionButton = {
-            if (foodsConsumed.isNotEmpty()) {
-                FloatingActionButton(onClick = { viewModel.showAddFoodSheet.value = !viewModel.showAddFoodSheet.value }) {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.dashboard_empty_addFood))
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            floatingActionButtonPosition = FabPosition.Center,
+            floatingActionButton = {
+                if (foodsConsumed.isNotEmpty()) {
+                    FloatingActionButton(
+                        onClick = {
+                            if (fabLongPressFired) {
+                                fabLongPressFired = false
+                            } else {
+                                viewModel.showAddFoodSheet.value = !viewModel.showAddFoodSheet.value
+                            }
+                        },
+                        interactionSource = fabInteractionSource,
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.dashboard_empty_addFood))
+                    }
                 }
-            }
-        },
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = { viewModel.showAccountSheet.value = !viewModel.showAccountSheet.value }) {
-                        Icon(
-                            Icons.Outlined.AccountCircle,
-                            contentDescription = stringResource(R.string.account_navigationTitle),
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { viewModel.showSettings.value = !viewModel.showSettings.value }) {
-                        Icon(
-                            Icons.Outlined.Settings,
-                            contentDescription = stringResource(R.string.dashboard_button_settings),
-                        )
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                DayPickerView(
-                    selectedDay = selectedDay,
-                    onSelectedDayChange = { viewModel.selectedDay.value = it },
-                    activeDays = activeDays,
-                    onDayChanged = { day -> scope.launch { viewModel.onDayChanged(day) } },
-                    onTapSelectedDay = { viewModel.showCalendarSheet.value = true },
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
-                )
-
-                PullToRefreshBox(
-                    isRefreshing = isRefreshing,
-                    onRefresh = {
-                        scope.launch {
-                            isRefreshing = true
-                            viewModel.onRefresh()
-                            isRefreshing = false
+            },
+            topBar = {
+                TopAppBar(
+                    title = {},
+                    navigationIcon = {
+                        IconButton(
+                            onClick = { viewModel.showAccountSheet.value = !viewModel.showAccountSheet.value },
+                            modifier = Modifier.onGloballyPositioned { accountIconBounds = it.boundsInWindow() },
+                        ) {
+                            Icon(
+                                Icons.Outlined.AccountCircle,
+                                contentDescription = stringResource(R.string.account_navigationTitle),
+                            )
                         }
                     },
-                    modifier = Modifier.weight(1f),
-                ) {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        if (foodsConsumed.isNotEmpty()) {
-                            item { MacroSummaryView(macros = dailyMacros) }
+                    actions = {
+                        IconButton(onClick = { viewModel.showSettings.value = !viewModel.showSettings.value }) {
+                            Icon(
+                                Icons.Outlined.Settings,
+                                contentDescription = stringResource(R.string.dashboard_button_settings),
+                            )
                         }
-                        groupedFoods.forEachIndexed { index, group ->
-                            item {
-                                val sectionName = group.mealType?.name ?: stringResource(R.string.dashboard_section_unassignedFoods)
-                                SectionHeader(
-                                    name = sectionName,
-                                    foods = group.foods,
-                                    isPopoverVisible = macroPopoverIndex == index,
-                                    onPopoverRequested = { macroPopoverIndex = index },
-                                    onPopoverDismissed = { macroPopoverIndex = null },
-                                    onCopyRequested = { viewModel.onCopyRequested(group.mealType, index) },
-                                    copyView = {
-                                        MealSectionCopyView(
-                                            viewModel = viewModel,
-                                            isVisible = copyPopoverIndex == index,
-                                            name = sectionName,
-                                            mealType = group.mealType,
-                                            foods = group.foods,
-                                        )
-                                    },
-                                )
+                    },
+                )
+            },
+        ) { innerPadding ->
+            Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    DayPickerView(
+                        selectedDay = selectedDay,
+                        onSelectedDayChange = { viewModel.selectedDay.value = it },
+                        activeDays = activeDays,
+                        onDayChanged = { day -> scope.launch { viewModel.onDayChanged(day) } },
+                        onTapSelectedDay = { viewModel.showCalendarSheet.value = true },
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
+                    )
+
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = {
+                            scope.launch {
+                                isRefreshing = true
+                                viewModel.onRefresh()
+                                isRefreshing = false
                             }
-                            items(group.foods, key = { it.id }) { food ->
-                                SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteRequested(food) }) {
-                                    FoodConsumedView(
-                                        food,
-                                        modifier = Modifier.clickable {
-                                            viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            if (foodsConsumed.isNotEmpty()) {
+                                item { MacroSummaryView(macros = dailyMacros) }
+                            }
+                            groupedFoods.forEachIndexed { index, group ->
+                                item {
+                                    val sectionName = group.mealType?.name ?: stringResource(R.string.dashboard_section_unassignedFoods)
+                                    SectionHeader(
+                                        name = sectionName,
+                                        foods = group.foods,
+                                        isPopoverVisible = macroPopoverIndex == index,
+                                        onPopoverRequested = { viewModel.macroPopoverIndex.value = index },
+                                        onPopoverDismissed = { viewModel.macroPopoverIndex.value = null },
+                                        onCopyRequested = { viewModel.onCopyRequested(group.mealType, index) },
+                                        copyView = {
+                                            MealSectionCopyView(
+                                                viewModel = viewModel,
+                                                isVisible = copyPopoverIndex == index,
+                                                name = sectionName,
+                                                mealType = group.mealType,
+                                                foods = group.foods,
+                                            )
                                         },
                                     )
                                 }
+                                items(group.foods, key = { it.id }) { food ->
+                                    SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteRequested(food) }) {
+                                        FoodConsumedView(
+                                            food,
+                                            modifier = Modifier.clickable {
+                                                viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
+                                            },
+                                        )
+                                    }
+                                }
                             }
                         }
-                    }
 
-                    if (foodsConsumed.isEmpty() && !state.isLoading) {
-                        EmptyStateView(
-                            selectedDay = selectedDay,
-                            onAddFood = { viewModel.showAddFoodSheet.value = !viewModel.showAddFoodSheet.value },
-                            modifier = Modifier.align(Alignment.Center),
-                        )
+                        if (foodsConsumed.isEmpty() && !state.isLoading) {
+                            EmptyStateView(
+                                selectedDay = selectedDay,
+                                onAddFood = { viewModel.showAddFoodSheet.value = !viewModel.showAddFoodSheet.value },
+                                modifier = Modifier.align(Alignment.Center),
+                            )
+                        }
+                    }
+                }
+
+                if (state.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
             }
+        }
 
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
+        AnimatedVisibility(
+            visible = isSignInSpotlightVisible,
+            enter = fadeIn(tween(SPOTLIGHT_FADE_MILLIS)),
+            exit = fadeOut(tween(SPOTLIGHT_FADE_MILLIS)),
+        ) {
+            SignInSpotlightView(
+                targetBounds = accountIconBounds,
+                onSignIn = viewModel::onSignInSpotlightSignInTapped,
+                onDismiss = viewModel::onSignInSpotlightDismissed,
+            )
         }
     }
 
@@ -370,6 +417,8 @@ fun SwipeToDeleteRow(onDeleteRequested: () -> Unit, content: @Composable () -> U
 private const val PULSE_INTERVAL_MILLIS = 3000L
 private const val PULSE_DURATION_MILLIS = 700
 private const val PULSE_SCALE = 1.2f
+private const val SPOTLIGHT_FADE_MILLIS = 250
+private const val FAB_LONG_PRESS_MILLIS = 600L
 
 @Composable
 private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier: Modifier = Modifier) {

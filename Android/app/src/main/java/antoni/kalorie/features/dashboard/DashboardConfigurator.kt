@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -43,6 +44,8 @@ class DashboardConfigurator {
         val languageTag = LocalConfiguration.current.locales[0].toLanguageTag()
         val dataProvider = remember { FirestoreDataProvider() }
         val authProvider = remember { AuthProvider() }
+        val context = LocalContext.current
+        val signInSpotlightStore = remember { SignInSpotlightStore(context.applicationContext) }
         val viewModel = viewModel(key = "$userId/$languageTag") {
             DashboardViewModel(
                 fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider),
@@ -51,6 +54,8 @@ class DashboardConfigurator {
                 confirmMealTypesEmpty = ConfirmMealTypesEmptyUseCase(dataProvider, authProvider),
                 deleteFoodConsumed = DeleteFoodConsumedUseCase(dataProvider, authProvider),
                 copyFoodsConsumed = CopyFoodsConsumedUseCase(dataProvider, authProvider),
+                authProvider = authProvider,
+                signInSpotlightStore = signInSpotlightStore,
             )
         }
         val router = remember(dataProvider, authProvider, mergeStatusReporting) {
