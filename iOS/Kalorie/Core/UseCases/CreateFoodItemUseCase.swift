@@ -12,7 +12,6 @@ enum CreateFoodItemError: Error {
     case invalidCode
     case invalidName
     case invalidCalories
-    case invalidWeight
     case invalidPortion(FoodPortionError)
     case itemAlreadyExists
 
@@ -20,8 +19,7 @@ enum CreateFoodItemError: Error {
         self = validationError.mapped(
             invalidCode: .invalidCode,
             invalidName: .invalidName,
-            invalidCalories: .invalidCalories,
-            invalidWeight: .invalidWeight
+            invalidCalories: .invalidCalories
         ) { .invalidPortion($0) }
     }
 }

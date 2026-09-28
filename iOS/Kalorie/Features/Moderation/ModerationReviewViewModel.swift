@@ -112,8 +112,6 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidName)
             case .invalidCalories:
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidCalories)
-            case .invalidWeight:
-                alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
             case .invalidPortion(let portionError):
                 alertItem = AlertItem(title: portionError.alertTitle)
             case .itemAlreadyExists:

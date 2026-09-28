@@ -8,7 +8,7 @@
 import SwiftUI
 
 enum FoodItemFormField: CaseIterable {
-    case name, measure, weight, energyKJ, calories, protein, carbohydrate, carbohydrateSugar, fiber, fat, fatSaturated, fatUnsaturated, salt
+    case name, measure, energyKJ, calories, protein, carbohydrate, carbohydrateSugar, fiber, fat, fatSaturated, fatUnsaturated, salt
 }
 
 struct FoodItemFormFields: View {
@@ -24,7 +24,6 @@ struct FoodItemFormFields: View {
     var body: some View {
         Group {
             measureRow
-            weightRow
             BaseDoubleTextField(
                 title: L10n.AddFood.fieldEnergyKJ,
                 unit: "kJ",
@@ -96,6 +95,8 @@ struct FoodItemFormFields: View {
                 .font(.system(size: .smallPlus))
                 .fontWeight(highlightedFields.contains(.measure) ? .bold : .regular)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            Text("100")
+                .font(.system(size: .smallPlus))
             Picker("", selection: measureBinding) {
                 Text(L10n.Common.unitGrams).tag(FoodMeasure.grams)
                 Text(L10n.Common.unitMillilitres).tag(FoodMeasure.millilitres)
@@ -105,38 +106,11 @@ struct FoodItemFormFields: View {
         }
     }
 
-    private var weightRow: some View {
-        HStack {
-            Text(L10n.AddFood.fieldWeight)
-                .font(.system(size: .smallPlus))
-                .frame(maxWidth: .infinity, alignment: .leading)
-            TextField("0", value: doubleBinding(\.weightOfProduct, field: .weight), formatter: NumberFormatter.decimal)
-                .keyboardType(.decimalPad)
-                .fontWeight(highlightedFields.contains(.weight) ? .bold : .regular)
-                .multilineTextAlignment(.trailing)
-                .frame(width: 100, alignment: .center)
-            Menu {
-                Button(formInput.measure.unitSymbol) { setWeightInThousands(false) }
-                Button(formInput.measure.thousandUnitSymbol) { setWeightInThousands(true) }
-            } label: {
-                Text(formInput.isWeightInThousands ? formInput.measure.thousandUnitSymbol : formInput.measure.unitSymbol)
-                    .frame(alignment: .trailing)
-                    .padding(.horizontal, 8)
-            }
-        }
-    }
-
     private var measureBinding: Binding<FoodMeasure> {
         Binding(
             get: { formInput.measure },
             set: { formInput.measure = $0; onFieldEdited(.measure) }
         )
-    }
-
-    private func setWeightInThousands(_ newValue: Bool) {
-        guard newValue != formInput.isWeightInThousands else { return }
-        formInput.weightOfProduct = newValue ? formInput.weightOfProduct / 1000 : formInput.weightOfProduct * 1000
-        formInput.isWeightInThousands = newValue
     }
 
     private func doubleBinding(_ keyPath: WritableKeyPath<FoodItemFormInput, Double>, field: FoodItemFormField) -> Binding<Double> {

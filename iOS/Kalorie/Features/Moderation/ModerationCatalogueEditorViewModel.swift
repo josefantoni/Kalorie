@@ -29,6 +29,8 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
     private let initialBarcode: String?
 
+    var isOpenedFromReport: Bool { initialBarcode != nil }
+
     // MARK: - Init
 
     init(
@@ -110,8 +112,6 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidName)
             case .invalidCalories:
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidCalories)
-            case .invalidWeight:
-                alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
             case .invalidPortion(let portionError):
                 alertItem = AlertItem(title: portionError.alertTitle)
             case .changedSinceLoad:

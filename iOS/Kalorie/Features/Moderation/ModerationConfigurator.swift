@@ -57,14 +57,17 @@ struct ModerationConfigurator {
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 deleteFoodItemReport: DeleteFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider)
             )
-        ) { [self] barcode in
-            makeCatalogueEditorView(initialBarcode: barcode)
+        ) { [self] barcode, reports in
+            makeCatalogueEditorView(initialBarcode: barcode, reports: reports)
         }
     }
 
     // MARK: - Private
 
-    private func makeCatalogueEditorView(initialBarcode: String?) -> ModerationCatalogueEditorView {
+    private func makeCatalogueEditorView(
+        initialBarcode: String?,
+        reports: [FoodItemReportDomain] = []
+    ) -> ModerationCatalogueEditorView {
         ModerationCatalogueEditorView(
             viewModel: ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
@@ -72,7 +75,8 @@ struct ModerationConfigurator {
                 recognizeNutritionLabel: RecognizeNutritionLabelUseCase(),
                 cameraAuthorizationProvider: CameraAuthorizationProvider(),
                 initialBarcode: initialBarcode
-            )
+            ),
+            reports: reports
         )
     }
 }
