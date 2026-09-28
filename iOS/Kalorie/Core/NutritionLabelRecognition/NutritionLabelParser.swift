@@ -52,8 +52,8 @@ enum NutritionLabelParser {
     // MARK: - Functions
 
     static func parse(lines: [RecognizedTextLine]) -> NutritionLabelReading {
-        let weightResult = packageWeight(in: lines)
-        var reading = NutritionLabelReading(weightOfProduct: weightResult?.value)
+        let packageMeasure = packageWeight(in: lines)?.measure
+        var reading = NutritionLabelReading()
 
         let header = perHundredHeader(in: lines)
         if let header {
@@ -67,16 +67,14 @@ enum NutritionLabelParser {
         // but only where there is an actual per-100g signal, so a label with no nutrition
         // declaration at all still fills nothing (design's own "no header, no data" guarantee).
         if hasNoMacros(reading), hasNutritionContext(lines: lines) {
-            var linear = applyingConsistencyChecks(parseLinear(lines: lines))
-            linear.weightOfProduct = reading.weightOfProduct
-            reading = linear
+            reading = applyingConsistencyChecks(parseLinear(lines: lines))
         } else {
             reading = applyingConsistencyChecks(reading)
         }
 
         // The nutrition basis (what the numbers mean) always outranks the package line, which is
         // only a hint — see design 0011's "core rule".
-        reading.measure = header?.measure ?? linearMeasure(lines: lines) ?? weightResult?.measure
+        reading.measure = header?.measure ?? linearMeasure(lines: lines) ?? packageMeasure
 
         reading = derivingUnsaturated(reading)
         return reading
@@ -189,13 +187,6 @@ enum NutritionLabelParser {
             text.contains(name.lowercased())
         {
             merged.name = name
-        }
-        if
-            merged.weightOfProduct == nil,
-            let weight = candidate.packageWeightGrams,
-            isGrounded(weight, in: text)
-        {
-            merged.weightOfProduct = weight
         }
         if
             merged.portions?.isEmpty ?? true,

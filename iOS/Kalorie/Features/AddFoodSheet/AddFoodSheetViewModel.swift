@@ -15,7 +15,7 @@ struct FoodItemFormInput {
     var scannedCode = ""
     var name = ""
     var engName = ""
-    var weightOfProduct: Double = 0
+    var weightOfProduct: Double = 100
     var energyKJ: Double = 0
     var caloriesPerHundredGrams: Double = 0
     var fat: Double = 0
@@ -28,17 +28,15 @@ struct FoodItemFormInput {
     var salt: Double = 0
     var portions: [FoodPortionDraft] = [FoodPortionDraft.blank]
     var measure: FoodMeasure = .grams
-    var isWeightInThousands = false
 }
 
 extension FoodItemFormInput {
     init(item: FoodItemDomain) {
-        let weightDisplay = Self.weightDisplay(for: item.weight)
         self.init(
             scannedCode: item.barcode ?? "",
             name: item.czName,
             engName: item.engName,
-            weightOfProduct: weightDisplay.value,
+            weightOfProduct: item.weight,
             energyKJ: item.energyKJ,
             caloriesPerHundredGrams: item.caloriesPerHundredGrams,
             fat: item.fat,
@@ -52,13 +50,8 @@ extension FoodItemFormInput {
             portions: item.portions.isEmpty
                 ? [FoodPortionDraft.blank]
                 : item.portions.map { FoodPortionDraft(name: $0.name, gramsText: String(format: "%g", $0.grams)) },
-            measure: item.measure,
-            isWeightInThousands: weightDisplay.isInThousands
+            measure: item.measure
         )
-    }
-
-    static func weightDisplay(for weight: Double) -> (value: Double, isInThousands: Bool) {
-        weight >= 1000 ? (weight / 1000, true) : (weight, false)
     }
 
     func asFoodItemDomain(kind: FoodItemKind = .catalogue, date: Date = .now) -> FoodItemDomain {
@@ -67,7 +60,7 @@ extension FoodItemFormInput {
             kind: kind,
             czName: name,
             engName: engName,
-            weight: isWeightInThousands ? weightOfProduct * 1000 : weightOfProduct,
+            weight: weightOfProduct,
             date: date,
             energyKJ: energyKJ,
             caloriesPerHundredGrams: caloriesPerHundredGrams,
@@ -122,15 +115,6 @@ extension FoodItemFormInput {
         {
             name = value
             applied.insert(.name)
-        }
-        if
-            weightOfProduct == 0,
-            let value = reading.weightOfProduct
-        {
-            let display = Self.weightDisplay(for: value)
-            weightOfProduct = display.value
-            isWeightInThousands = display.isInThousands
-            applied.insert(.weight)
         }
         if
             measure == .grams,
@@ -659,8 +643,6 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidName)
             case .invalidCalories:
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidCalories)
-            case .invalidWeight:
-                alertItem = AlertItem(title: L10n.AddFood.errorInvalidWeight)
             case .invalidPortion(let portionError):
                 alertItem = AlertItem(title: portionError.alertTitle)
             case .itemAlreadyExists:

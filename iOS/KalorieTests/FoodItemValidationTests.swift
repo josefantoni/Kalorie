@@ -28,8 +28,8 @@ final class FoodItemValidationTests: XCTestCase {
         XCTAssertEqual(FoodItemValidation.validate(makeItem(caloriesPerHundredGrams: 0)), .invalidCalories)
     }
 
-    func test_validate_withZeroWeight_returnsInvalidWeight() {
-        XCTAssertEqual(FoodItemValidation.validate(makeItem(weight: 0)), .invalidWeight)
+    func test_validate_withZeroWeight_isValidBecausePackageWeightFeedsNoCalculation() {
+        XCTAssertNil(FoodItemValidation.validate(makeItem(weight: 0)))
     }
 
     func test_validate_withInvalidPortion_returnsInvalidPortion() {
@@ -92,7 +92,6 @@ final class FoodItemValidationTests: XCTestCase {
         case .invalidCode: return "invalidCode"
         case .invalidName: return "invalidName"
         case .invalidCalories: return "invalidCalories"
-        case .invalidWeight: return "invalidWeight"
         case .invalidPortion(.invalidName): return "invalidPortion.invalidName"
         case .invalidPortion(.invalidGrams): return "invalidPortion.invalidGrams"
         case .invalidPortion(.tooMany): return "invalidPortion.tooMany"
