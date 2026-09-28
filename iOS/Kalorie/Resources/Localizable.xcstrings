@@ -3423,23 +3423,6 @@
         }
       }
     },
-    "moderation_editor_saved" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uloženo"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saved"
-          }
-        }
-      }
-    },
     "moderation_editor_searchPlaceholder" : {
       "extractionState" : "manual",
       "localizations" : {
