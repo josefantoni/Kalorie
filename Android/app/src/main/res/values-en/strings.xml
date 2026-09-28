@@ -200,7 +200,6 @@
     <string name="moderation_button_reject">Reject</string>
     <string name="moderation_button_resolve">Resolved</string>
     <string name="moderation_button_save">Save</string>
-    <string name="moderation_editor_saved">Saved</string>
     <string name="moderation_editor_searchPlaceholder">Barcode</string>
     <string name="moderation_editor_title">Edit catalogue item</string>
     <string name="moderation_error_alreadyExists">An item with this code is already in the catalogue</string>
