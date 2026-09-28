@@ -1,5 +1,5 @@
 //
-//  MealTypeSheetViewModelTests.swift
+//  SettingsViewModelTests.swift
 //  KalorieTests
 //
 //  Created by Josef Antoni on 27.07.2026.
@@ -8,7 +8,7 @@
 import XCTest
 @testable import Kalorie
 
-final class MealTypeSheetViewModelTests: XCTestCase {
+final class SettingsViewModelTests: XCTestCase {
 
     // MARK: - onMove
 
@@ -149,19 +149,37 @@ final class MealTypeSheetViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isAddFormVisible)
     }
 
+    // MARK: - onAppear
+
+    @MainActor
+    func test_onAppear_whenMaintainerClaimIsTrue_setsIsMaintainer() async {
+        let sut = makeSUT(fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer: true))
+        await sut.onAppear()
+        XCTAssertTrue(sut.isMaintainer)
+    }
+
+    @MainActor
+    func test_onAppear_whenMaintainerClaimIsFalse_leavesIsMaintainerFalse() async {
+        let sut = makeSUT(fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer: false))
+        await sut.onAppear()
+        XCTAssertFalse(sut.isMaintainer)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         mealTypes: [MealTypeDomain] = [],
         createMealType: any CreateMealTypeUseCaseProtocol = CreateMealTypeUseCaseFake(),
         deleteMealType: any DeleteMealTypeUseCaseProtocol = DeleteMealTypeUseCaseFake(),
-        updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol = UpdateMealTypeTimesUseCaseFake()
-    ) -> MealTypeSheetViewModel {
-        MealTypeSheetViewModel(
+        updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol = UpdateMealTypeTimesUseCaseFake(),
+        fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake()
+    ) -> SettingsViewModel {
+        SettingsViewModel(
             mealTypes: mealTypes,
             createMealType: createMealType,
             deleteMealType: deleteMealType,
-            updateMealTypeTimes: updateMealTypeTimes
+            updateMealTypeTimes: updateMealTypeTimes,
+            fetchMaintainerClaim: fetchMaintainerClaim
         )
     }
 

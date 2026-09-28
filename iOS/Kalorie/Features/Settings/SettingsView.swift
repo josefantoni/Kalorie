@@ -1,5 +1,5 @@
 //
-//  MealTypeSheetView.swift
+//  SettingsView.swift
 //  Kalorie
 //
 //  Created by Josef Antoni on 08.06.2024.
@@ -8,12 +8,12 @@
 import Foundation
 import SwiftUI
 
-struct MealTypeSheetView: View {
+struct SettingsView: View {
 
     // MARK: - Properties
 
-    @StateObject var viewModel: MealTypeSheetViewModel
-    private let router: MealTypeSheetRouter
+    @StateObject var viewModel: SettingsViewModel
+    private let router: SettingsRouter
     @FocusState private var focusedField: Field?
     @State private var editMode: EditMode = .inactive
 
@@ -23,7 +23,7 @@ struct MealTypeSheetView: View {
 
     // MARK: - Init
 
-    init(router: MealTypeSheetRouter, viewModel: MealTypeSheetViewModel) {
+    init(router: SettingsRouter, viewModel: SettingsViewModel) {
         self.router = router
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -36,7 +36,7 @@ struct MealTypeSheetView: View {
                 List {
                     Section(
                         header: HStack {
-                            Text(L10n.MealTypeSheet.sectionMealLayout)
+                            Text(L10n.Settings.sectionMealLayout)
                             Spacer()
                             Button {
                                 if editMode == .active {
@@ -46,7 +46,7 @@ struct MealTypeSheetView: View {
                                     withAnimation { editMode = .active }
                                 }
                             } label: {
-                                Text(editMode == .active ? L10n.MealTypeSheet.buttonEditDone : L10n.MealTypeSheet.buttonEdit)
+                                Text(editMode == .active ? L10n.Settings.buttonEditDone : L10n.Settings.buttonEdit)
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 8)
                             }
@@ -79,7 +79,7 @@ struct MealTypeSheetView: View {
                     }
 
                     if editMode == .inactive {
-                        Section(header: Text(L10n.MealTypeSheet.sectionOther)) {
+                        Section(header: Text(L10n.Settings.sectionOther)) {
                             Button {
                                 viewModel.isExportPushed = true
                             } label: {
@@ -94,12 +94,30 @@ struct MealTypeSheetView: View {
                             }
                             .buttonStyle(.plain)
                         }
+
+                        if viewModel.isMaintainer {
+                            Section(header: Text(L10n.Moderation.sectionTitle)) {
+                                NavigationLink {
+                                    router.makeModerationQueueView()
+                                } label: {
+                                    Text(L10n.Moderation.queueTitle)
+                                }
+                                NavigationLink {
+                                    router.makeModerationReportsView()
+                                } label: {
+                                    Text(L10n.Moderation.reportsTitle)
+                                }
+                            }
+                        }
                     }
                 }
                 .environment(\.editMode, $editMode)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
             .keyboardDoneToolbar()
+            .task { await viewModel.onAppear() }
+            .navigationTitle(L10n.Settings.navigationTitle)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if editMode == .inactive {
                     DismissToolbarItem()
@@ -135,7 +153,7 @@ struct MealTypeSheetView: View {
         } else {
             VStack {
                 VStack {
-                    TextField(L10n.MealTypeSheet.fieldNewMealPlaceholder, text: $viewModel.newMealName)
+                    TextField(L10n.Settings.fieldNewMealPlaceholder, text: $viewModel.newMealName)
                         .padding(.horizontal, 20)
                         .font(.system(size: .smallPlus))
                         .padding(.top, 20)
@@ -144,7 +162,7 @@ struct MealTypeSheetView: View {
                     Divider()
 
                     HStack {
-                        DatePicker(L10n.MealTypeSheet.datePickerFrom, selection: $viewModel.newMealStart, displayedComponents: .hourAndMinute)
+                        DatePicker(L10n.Settings.datePickerFrom, selection: $viewModel.newMealStart, displayedComponents: .hourAndMinute)
                             .datePickerStyle(GraphicalDatePickerStyle())
                             .onChange(of: viewModel.newMealStart) {
                                 if viewModel.newMealStart >= viewModel.newMealEnd {
@@ -152,7 +170,7 @@ struct MealTypeSheetView: View {
                                 }
                             }
                         Divider()
-                        DatePicker(L10n.MealTypeSheet.datePickerTo, selection: $viewModel.newMealEnd, displayedComponents: .hourAndMinute)
+                        DatePicker(L10n.Settings.datePickerTo, selection: $viewModel.newMealEnd, displayedComponents: .hourAndMinute)
                             .datePickerStyle(CompactDatePickerStyle())
                             .onChange(of: viewModel.newMealEnd) {
                                 if viewModel.newMealStart >= viewModel.newMealEnd {
@@ -171,7 +189,7 @@ struct MealTypeSheetView: View {
                     Task { await viewModel.onCreateMealType() }
                     focusedField = nil
                 } label: {
-                    Text(L10n.MealTypeSheet.buttonCreate)
+                    Text(L10n.Settings.buttonCreate)
                         .padding()
                         .frame(maxWidth: .infinity)
                 }
@@ -194,7 +212,7 @@ struct MealTypeSheetView: View {
 // MARK: - Preview
 
 #Preview {
-    MealTypeSheetConfigurator().createView(mealTypes: [
+    SettingsConfigurator().createView(mealTypes: [
         MealTypeDomain(
             id: "0",
             name: L10n.DefaultMeals.breakfast,

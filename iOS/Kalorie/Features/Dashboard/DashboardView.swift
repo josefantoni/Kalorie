@@ -128,15 +128,15 @@ struct DashboardView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        viewModel.showMealTypeSheet.toggle()
+                        viewModel.showSettings.toggle()
                     } label: {
-                        Image(systemName: "list.bullet.circle")
+                        Image(systemName: "gearshape")
                     }
-                    .accessibilityLabel(L10n.Dashboard.buttonMealLayout)
+                    .accessibilityLabel(L10n.Dashboard.buttonSettings)
                 }
             }
-            .sheet(isPresented: $viewModel.showMealTypeSheet) {
-                router.makeMealTypeSheetView(mealTypes: viewModel.mealTypes) {
+            .sheet(isPresented: $viewModel.showSettings) {
+                router.makeSettingsView(mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onMealTypesChanged() }
                 }
             }
@@ -322,7 +322,7 @@ struct DashboardView: View {
     return DashboardView(
         viewModel: viewModel,
         router: DashboardRouter(
-            mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
+            settingsConfigurator: SettingsConfigurator(),
             addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
             foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
             accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: MergeStatusReportingFake())

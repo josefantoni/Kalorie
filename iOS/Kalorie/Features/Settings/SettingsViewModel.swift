@@ -1,5 +1,5 @@
 //
-//  MealTypeSheetViewModel.swift
+//  SettingsViewModel.swift
 //  Kalorie
 //
 //  Created by Josef Antoni on 12.06.2024.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class MealTypeSheetViewModel: ObservableObject {
+final class SettingsViewModel: ObservableObject {
 
     // MARK: - Properties
 
@@ -19,12 +19,14 @@ final class MealTypeSheetViewModel: ObservableObject {
     @Published var newMealEnd = Date.now
     @Published var isAddFormVisible = false
     @Published var isExportPushed = false
+    @Published private(set) var isMaintainer = false
     @Published var alertItem: AlertItem?
 
     private let onMealTypesChanged: () -> Void
     private let createMealType: any CreateMealTypeUseCaseProtocol
     private let deleteMealType: any DeleteMealTypeUseCaseProtocol
     private let updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol
+    private let fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol
 
     // MARK: - Init
 
@@ -33,16 +35,27 @@ final class MealTypeSheetViewModel: ObservableObject {
         onMealTypesChanged: @escaping () -> Void = {},
         createMealType: any CreateMealTypeUseCaseProtocol,
         deleteMealType: any DeleteMealTypeUseCaseProtocol,
-        updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol
+        updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol,
+        fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol
     ) {
         self.mealTypes = mealTypes
         self.onMealTypesChanged = onMealTypesChanged
         self.createMealType = createMealType
         self.deleteMealType = deleteMealType
         self.updateMealTypeTimes = updateMealTypeTimes
+        self.fetchMaintainerClaim = fetchMaintainerClaim
     }
 
     // MARK: - Functions
+
+    @MainActor
+    func onAppear() async {
+        do {
+            isMaintainer = try await fetchMaintainerClaim()
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.settings)
+        }
+    }
 
     @MainActor
     func onCreateMealType() async {
@@ -61,23 +74,23 @@ final class MealTypeSheetViewModel: ObservableObject {
             newMealName = ""
             onMealTypesChanged()
         } catch CreateMealTypeError.emptyName {
-            alertItem = AlertItem(title: L10n.MealTypeSheet.errorEmptyName)
+            alertItem = AlertItem(title: L10n.Settings.errorEmptyName)
         } catch CreateMealTypeError.duplicateName {
-            alertItem = AlertItem(title: L10n.MealTypeSheet.errorDuplicateName)
+            alertItem = AlertItem(title: L10n.Settings.errorDuplicateName)
         } catch CreateMealTypeError.timeConflict {
-            alertItem = AlertItem(title: L10n.MealTypeSheet.errorTimeConflict)
+            alertItem = AlertItem(title: L10n.Settings.errorTimeConflict)
         } catch CreateMealTypeError.durationTooShort {
-            alertItem = AlertItem(title: L10n.MealTypeSheet.errorDurationTooShort)
+            alertItem = AlertItem(title: L10n.Settings.errorDurationTooShort)
         } catch {
-            Log.error(error, category: Constants.LogCategory.mealTypeSheet)
-            alertItem = AlertItem(title: L10n.MealTypeSheet.errorUnexpected)
+            Log.error(error, category: Constants.LogCategory.settings)
+            alertItem = AlertItem(title: L10n.Settings.errorUnexpected)
         }
     }
 
     @MainActor
     func onDelete(at index: Int) async {
         guard mealTypes.count > 1 else {
-            alertItem = AlertItem(title: L10n.MealTypeSheet.errorLastMealType)
+            alertItem = AlertItem(title: L10n.Settings.errorLastMealType)
             return
         }
         state = .loading
@@ -88,8 +101,8 @@ final class MealTypeSheetViewModel: ObservableObject {
             mealTypes.removeAll { $0.id == mealType.id }
             onMealTypesChanged()
         } catch {
-            Log.error(error, category: Constants.LogCategory.mealTypeSheet)
-            alertItem = AlertItem(title: L10n.MealTypeSheet.errorDeleteError)
+            Log.error(error, category: Constants.LogCategory.settings)
+            alertItem = AlertItem(title: L10n.Settings.errorDeleteError)
         }
     }
 
@@ -119,8 +132,8 @@ final class MealTypeSheetViewModel: ObservableObject {
             try await updateMealTypeTimes(mealTypes)
             onMealTypesChanged()
         } catch {
-            Log.error(error, category: Constants.LogCategory.mealTypeSheet)
-            alertItem = AlertItem(title: L10n.MealTypeSheet.errorUnexpected)
+            Log.error(error, category: Constants.LogCategory.settings)
+            alertItem = AlertItem(title: L10n.Settings.errorUnexpected)
         }
     }
 
