@@ -17,7 +17,7 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
     @Published var formInput = FoodItemFormInput()
     @Published private(set) var state: LoadingState<Void> = .idle
     @Published var alertItem: AlertItem?
-    @Published private(set) var didSave = false
+    @Published private(set) var showCheckmark = false
     @Published var recognizedFields: Set<FoodItemFormField> = []
     @Published var isRecognizingNutritionLabel = false
     @Published var isNutritionLabelCameraVisible = false
@@ -81,7 +81,7 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
             loadedItem = item
             formInput = FoodItemFormInput(item: item)
             recognizedFields = []
-            didSave = false
+            showCheckmark = false
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
@@ -97,7 +97,10 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
         do {
             try await updateFoodItem(item, previouslyLoaded: loadedItem)
             self.loadedItem = item
-            didSave = true
+            state = .loaded
+            showCheckmark = true
+            try? await Task.sleep(for: .seconds(2))
+            showCheckmark = false
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)
             switch error as? UpdateFoodItemError {
