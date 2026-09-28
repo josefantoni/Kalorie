@@ -77,6 +77,11 @@ final class DashboardViewModel: ObservableObject {
     @Published var showAccountSheet = false
     @Published var alertItem: AlertItem?
     @Published var isDeleteConfirmationVisible = false
+    @Published var copyPopoverIndex: Int?
+    @Published var copyTargetDay = Date.now
+    @Published var copyTargetMealTypeId: String?
+    @Published private(set) var isCopying = false
+    @Published private(set) var showCopyCheckmark = false
     @Published private(set) var activeDaysInMonth: Set<Int> = []
 
     private var isViewingToday = true
@@ -91,6 +96,7 @@ final class DashboardViewModel: ObservableObject {
     private let setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol
     private let confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol
     private let deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
+    private let copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol
 
     // MARK: - Init
 
@@ -99,13 +105,15 @@ final class DashboardViewModel: ObservableObject {
         fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol,
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol,
         confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol,
-        deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
+        deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol,
+        copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol
     ) {
         self.fetchMealTypes = fetchMealTypes
         self.fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth
         self.setupDefaultMeals = setupDefaultMeals
         self.confirmMealTypesEmpty = confirmMealTypesEmpty
         self.deleteFoodConsumed = deleteFoodConsumed
+        self.copyFoodsConsumed = copyFoodsConsumed
         observeDayChange()
     }
 
@@ -209,6 +217,49 @@ final class DashboardViewModel: ObservableObject {
         }
     }
 
+    func onCopyRequested(from mealType: MealTypeDomain?, at index: Int) {
+        copyTargetDay = Date.now
+        copyTargetMealTypeId = mealTypes.mealType(at: Date.now)?.id ?? mealType?.id ?? mealTypes.first?.id
+        copyPopoverIndex = index
+    }
+
+    func canCopy(from mealType: MealTypeDomain?) -> Bool {
+        guard
+            !isCopying,
+            !showCopyCheckmark,
+            let targetMealTypeId = copyTargetMealTypeId
+        else {
+            return false
+        }
+        let isSameDay = Calendar.current.isDate(copyTargetDay, inSameDayAs: selectedDay)
+        return !(isSameDay && targetMealTypeId == mealType?.id)
+    }
+
+    @MainActor
+    func onCopyConfirmed(_ foods: [FoodConsumedDomain], from mealType: MealTypeDomain?) async {
+        guard
+            canCopy(from: mealType),
+            let targetMealTypeId = copyTargetMealTypeId
+        else {
+            return
+        }
+        isCopying = true
+        do {
+            try await copyFoodsConsumed(foods, toDay: copyTargetDay, mealTypeId: targetMealTypeId, mealTypes: mealTypes)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
+            alertItem = AlertItem(title: L10n.Dashboard.errorCopyFailed)
+            isCopying = false
+            return
+        }
+        isCopying = false
+        showCopyCheckmark = true
+        await reloadAfterCopy()
+        try? await Task.sleep(for: .seconds(1))
+        copyPopoverIndex = nil
+        showCopyCheckmark = false
+    }
+
     @MainActor
     func onMealTypesChanged() async {
         do {
@@ -255,6 +306,19 @@ final class DashboardViewModel: ObservableObject {
             AlertItem(title: L10n.Common.errorOffline, message: L10n.Common.errorOfflineMessage)
         } else {
             AlertItem(title: L10n.Common.errorUnknown, message: L10n.Common.errorUnknownMessage)
+        }
+    }
+
+    @MainActor
+    private func reloadAfterCopy() async {
+        invalidateCache(for: copyTargetDay)
+        guard monthCacheKey(for: copyTargetDay) == monthCacheKey(for: selectedDay) else { return }
+        do {
+            try await loadMonth(for: selectedDay)
+            foodsConsumed = foodsFromCache(for: selectedDay)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
+            alertItem = unknownErrorAlertItem(for: error)
         }
     }
 

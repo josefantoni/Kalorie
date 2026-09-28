@@ -56,6 +56,27 @@ struct DashboardView: View {
                             Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
                             Spacer()
                             Button {
+                                viewModel.onCopyRequested(from: group.mealType, at: index)
+                            } label: {
+                                Image(systemName: "doc.on.doc")
+                                    .font(.title2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(L10n.Dashboard.buttonCopy)
+                            .popover(isPresented: Binding(
+                                get: { viewModel.copyPopoverIndex == index },
+                                set: { if !$0 { viewModel.copyPopoverIndex = nil } }
+                            )) {
+                                MealSectionCopyView(
+                                    viewModel: viewModel,
+                                    name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
+                                    mealType: group.mealType,
+                                    foods: group.foods
+                                )
+                                .presentationCompactAdaptation(.popover)
+                            }
+                            Button {
                                 macroPopoverIndex = index
                             } label: {
                                 Image(systemName: "info.circle")
@@ -314,7 +335,8 @@ struct DashboardView: View {
         ]),
         setupDefaultMeals: SetupDefaultMealsUseCaseFake(),
         confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseFake(),
-        deleteFoodConsumed: DeleteFoodConsumedUseCaseFake()
+        deleteFoodConsumed: DeleteFoodConsumedUseCaseFake(),
+        copyFoodsConsumed: CopyFoodsConsumedUseCaseFake()
     )
 
     let dataProvider = FirestoreDataProvider()

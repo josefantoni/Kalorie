@@ -79,15 +79,15 @@ struct FoodConsumedDTO: Codable {
 }
 
 extension FoodConsumedDTO {
-    init(food: FoodConsumedDomain, mealTypeId: String?) {
+    init(food: FoodConsumedDomain, mealTypeId: String?, id: String? = nil, date: Date? = nil) {
         self.init(
-            id: food.id,
+            id: id ?? food.id,
             foodItemId: food.foodItemId,
             foodItemKind: food.foodItemKind,
             czName: food.czName,
             engName: food.engName,
             weight: food.weight,
-            date: food.date.timeIntervalSince1970,
+            date: (date ?? food.date).timeIntervalSince1970,
             calories: food.calories,
             caloriesPerHundredGrams: food.caloriesPerHundredGrams,
             energyKJ: food.energyKJ,
