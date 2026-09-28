@@ -39,13 +39,8 @@ class FoodItemValidationTest {
     }
 
     @Test
-    fun validate_withZeroWeight_returnsInvalidWeight() {
-        assertEquals(FoodItemValidationError.InvalidWeight, FoodItemValidation.validate(makeItem(weight = 0.0)))
-    }
-
-    @Test
-    fun validate_withNaNWeight_returnsInvalidWeight() {
-        assertEquals(FoodItemValidationError.InvalidWeight, FoodItemValidation.validate(makeItem(weight = Double.NaN)))
+    fun validate_withZeroWeight_isValidBecausePackageWeightFeedsNoCalculation() {
+        assertNull(FoodItemValidation.validate(makeItem(weight = 0.0)))
     }
 
     @Test
@@ -131,7 +126,6 @@ class FoodItemValidationTest {
         FoodItemValidationError.InvalidCode -> "invalidCode"
         FoodItemValidationError.InvalidName -> "invalidName"
         FoodItemValidationError.InvalidCalories -> "invalidCalories"
-        FoodItemValidationError.InvalidWeight -> "invalidWeight"
         is FoodItemValidationError.InvalidPortion -> when (error.error) {
             FoodPortionError.InvalidName -> "invalidPortion.invalidName"
             FoodPortionError.InvalidGrams -> "invalidPortion.invalidGrams"

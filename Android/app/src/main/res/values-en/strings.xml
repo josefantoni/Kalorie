@@ -49,7 +49,7 @@
     <string name="addFood_field_fatSaturated">of which saturates</string>
     <string name="addFood_field_fatUnsaturated">of which unsaturated</string>
     <string name="addFood_field_fiber">Fibre</string>
-    <string name="addFood_field_measure">Measured in</string>
+    <string name="addFood_field_measure">Nutrition per</string>
     <string name="addFood_field_name_placeholder">Low-fat cottage cheese</string>
     <string name="addFood_field_name_title">Food name</string>
     <string name="addFood_field_protein">Protein</string>

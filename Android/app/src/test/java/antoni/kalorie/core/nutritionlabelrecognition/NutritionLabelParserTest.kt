@@ -33,7 +33,6 @@ class NutritionLabelParserTest {
 
             val expectedMeasure = expected.getValue("measure").let { if (it is JsonNull) null else FoodMeasure.fromRawValue(it.jsonPrimitive.content) }
             assertEquals(name, expectedMeasure, reading.measure)
-            assertOptionalEquals(name, expected.optionalDouble("weightOfProduct"), reading.weightOfProduct)
             assertOptionalEquals(name, expected.optionalDouble("energyKJ"), reading.energyKJ)
             assertOptionalEquals(name, expected.optionalDouble("caloriesPerHundredGrams"), reading.caloriesPerHundredGrams)
             assertOptionalEquals(name, expected.optionalDouble("fat"), reading.fat)

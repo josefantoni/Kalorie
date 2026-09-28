@@ -66,15 +66,6 @@ class FoodItemFormInputApplyingTest {
     }
 
     @Test
-    fun applying_weightAtOrAboveAThousand_isShownInThousands() {
-        val (result, applied) = FoodItemFormInput().applying(NutritionLabelReading(weightOfProduct = 1500.0))
-
-        assertEquals(1.5, result.weightOfProduct, 0.0)
-        assertTrue(result.isWeightInThousands)
-        assertTrue(FoodItemFormField.WEIGHT in applied)
-    }
-
-    @Test
     fun applying_portionsOnlyWhenTheFormHasNone() {
         val reading = NutritionLabelReading(portions = listOf(FoodPortionDomain(name = "1 balení", grams = 250.0)))
 

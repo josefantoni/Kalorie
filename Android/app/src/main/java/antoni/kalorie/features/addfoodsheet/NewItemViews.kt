@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -48,6 +47,7 @@ import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.CameraAccess
+import antoni.kalorie.core.utils.isLoading
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,6 +141,7 @@ fun NewItemReviewContent(viewModel: AddFoodSheetViewModel, onBack: () -> Unit) {
     val isMissingBarcodeConfirmationVisible by viewModel.isMissingBarcodeConfirmationVisible.collectAsState()
     val isBarcodeRescanVisible by viewModel.isBarcodeRescanVisible.collectAsState()
     val rescannedBarcode by viewModel.rescannedBarcode.collectAsState()
+    val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
     val scannerAccess = rememberScannerAccess(
         onGranted = viewModel::onBarcodeRescanTapped,
@@ -160,15 +161,15 @@ fun NewItemReviewContent(viewModel: AddFoodSheetViewModel, onBack: () -> Unit) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
                 },
+                actions = {
+                    TextButton(
+                        enabled = !state.isLoading,
+                        onClick = { scope.launch { viewModel.onCreateFoodItem() } },
+                    ) {
+                        Text(stringResource(R.string.addFood_button_add))
+                    }
+                },
             )
-        },
-        bottomBar = {
-            Button(
-                onClick = { scope.launch { viewModel.onCreateFoodItem() } },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            ) {
-                Text(stringResource(R.string.addFood_button_add))
-            }
         },
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {

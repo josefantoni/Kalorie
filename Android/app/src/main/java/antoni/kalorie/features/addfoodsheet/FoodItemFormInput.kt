@@ -13,7 +13,7 @@ data class FoodItemFormInput(
     val scannedCode: String = "",
     val name: String = "",
     val engName: String = "",
-    val weightOfProduct: Double = 0.0,
+    val weightOfProduct: Double = 100.0,
     val energyKJ: Double = 0.0,
     val caloriesPerHundredGrams: Double = 0.0,
     val fat: Double = 0.0,
@@ -26,7 +26,6 @@ data class FoodItemFormInput(
     val salt: Double = 0.0,
     val portions: List<FoodPortionDraft> = listOf(FoodPortionDraft.blank),
     val measure: FoodMeasure = FoodMeasure.GRAMS,
-    val isWeightInThousands: Boolean = false,
 ) {
 
     // MARK: - Functions
@@ -36,7 +35,7 @@ data class FoodItemFormInput(
         kind = kind,
         czName = name,
         engName = engName,
-        weight = if (isWeightInThousands) weightOfProduct * 1000 else weightOfProduct,
+        weight = weightOfProduct,
         date = date,
         energyKJ = energyKJ,
         caloriesPerHundredGrams = caloriesPerHundredGrams,
@@ -75,12 +74,6 @@ data class FoodItemFormInput(
             result = result.copy(name = readName)
             applied.add(FoodItemFormField.NAME)
         }
-        val readWeight = reading.weightOfProduct
-        if (weightOfProduct == 0.0 && readWeight != null) {
-            val (display, isInThousands) = weightDisplay(readWeight)
-            result = result.copy(weightOfProduct = display, isWeightInThousands = isInThousands)
-            applied.add(FoodItemFormField.WEIGHT)
-        }
         val readMeasure = reading.measure
         if (measure == FoodMeasure.GRAMS && readMeasure != null) {
             result = result.copy(measure = readMeasure)
@@ -111,32 +104,26 @@ data class FoodItemFormInput(
         get() = portions.all { it.name.isBlank() && it.gramsText.isEmpty() }
 
     companion object {
-        fun from(item: FoodItemDomain): FoodItemFormInput {
-            val weightDisplay = weightDisplay(item.weight)
-            return FoodItemFormInput(
-                scannedCode = item.barcode ?: "",
-                name = item.czName,
-                engName = item.engName,
-                weightOfProduct = weightDisplay.first,
-                energyKJ = item.energyKJ,
-                caloriesPerHundredGrams = item.caloriesPerHundredGrams,
-                fat = item.fat,
-                fatSaturated = item.fatSaturated,
-                fatUnsaturatedFattyAcids = item.fatUnsaturatedFattyAcids,
-                carbohydrate = item.carbohydrate,
-                carbohydratePureSugar = item.carbohydratePureSugar,
-                fiber = item.fiber,
-                protein = item.protein,
-                salt = item.salt,
-                portions = item.portions.ifEmpty { null }
-                    ?.map { FoodPortionDraft(name = it.name, gramsText = formattedGrams(it.grams)) }
-                    ?: listOf(FoodPortionDraft.blank),
-                measure = item.measure,
-                isWeightInThousands = weightDisplay.second,
-            )
-        }
-
-        fun weightDisplay(weight: Double): Pair<Double, Boolean> = if (weight >= 1000) weight / 1000 to true else weight to false
+        fun from(item: FoodItemDomain): FoodItemFormInput = FoodItemFormInput(
+            scannedCode = item.barcode ?: "",
+            name = item.czName,
+            engName = item.engName,
+            weightOfProduct = item.weight,
+            energyKJ = item.energyKJ,
+            caloriesPerHundredGrams = item.caloriesPerHundredGrams,
+            fat = item.fat,
+            fatSaturated = item.fatSaturated,
+            fatUnsaturatedFattyAcids = item.fatUnsaturatedFattyAcids,
+            carbohydrate = item.carbohydrate,
+            carbohydratePureSugar = item.carbohydratePureSugar,
+            fiber = item.fiber,
+            protein = item.protein,
+            salt = item.salt,
+            portions = item.portions.ifEmpty { null }
+                ?.map { FoodPortionDraft(name = it.name, gramsText = formattedGrams(it.grams)) }
+                ?: listOf(FoodPortionDraft.blank),
+            measure = item.measure,
+        )
 
         fun parsedPortions(drafts: List<FoodPortionDraft>): List<FoodPortionDomain> = drafts.mapNotNull { draft ->
             val grams = draft.gramsText.replace(',', '.').toDoubleOrNull() ?: 0.0

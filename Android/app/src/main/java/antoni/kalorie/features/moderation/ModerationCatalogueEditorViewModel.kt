@@ -30,6 +30,7 @@ class ModerationCatalogueEditorViewModel(
 
     // MARK: - Properties
 
+    val isOpenedFromReport: Boolean = initialBarcode != null
     val barcodeQuery = MutableStateFlow(initialBarcode ?: "")
     private val _loadedItem = MutableStateFlow<FoodItemDomain?>(null)
     val loadedItem: StateFlow<FoodItemDomain?> = _loadedItem
@@ -109,7 +110,6 @@ class ModerationCatalogueEditorViewModel(
                     is UpdateFoodItemError.InvalidCode -> R.string.addFood_error_invalidCode
                     is UpdateFoodItemError.InvalidName -> R.string.addFood_error_invalidName
                     is UpdateFoodItemError.InvalidCalories -> R.string.addFood_error_invalidCalories
-                    is UpdateFoodItemError.InvalidWeight -> R.string.addFood_error_invalidWeight
                     is UpdateFoodItemError.InvalidPortion -> error.error.alertTitleRes
                     is UpdateFoodItemError.ChangedSinceLoad -> R.string.moderation_error_itemChangedSinceLoad
                     else -> R.string.common_error_unknown
