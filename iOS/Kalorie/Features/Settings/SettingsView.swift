@@ -47,11 +47,8 @@ struct SettingsView: View {
                                 }
                             } label: {
                                 Text(editMode == .active ? L10n.Settings.buttonEditDone : L10n.Settings.buttonEdit)
-                                    .padding(.horizontal, 14)
-                                    .padding(.vertical, 8)
                             }
-                            .background(Color(.systemGray5))
-                            .clipShape(Capsule())
+                            .buttonStyle(.glass)
                         },
                         footer: Group {
                             if editMode == .active {
@@ -151,7 +148,7 @@ struct SettingsView: View {
             }
             .frame(maxWidth: .infinity)
         } else {
-            VStack {
+            VStack(spacing: 12) {
                 VStack {
                     TextField(L10n.Settings.fieldNewMealPlaceholder, text: $viewModel.newMealName)
                         .padding(.horizontal, 20)
@@ -184,26 +181,22 @@ struct SettingsView: View {
                 }
                 .padding(.bottom, 20)
                 .background(Color(.secondarySystemBackground))
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.accentColor, lineWidth: 1)
+                )
 
                 Button {
                     Task { await viewModel.onCreateMealType() }
                     focusedField = nil
                 } label: {
                     Text(L10n.Settings.buttonCreate)
-                        .padding()
                         .frame(maxWidth: .infinity)
                 }
-                .foregroundStyle(.white)
-                .background(.blue)
-                .frame(maxWidth: .infinity)
-                .padding(.top, -10)
-                .font(.system(size: .basic, weight: .bold))
+                .buttonStyle(.glassProminent)
+                .controlSize(.large)
             }
-            .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(.blue, lineWidth: 1)
-            )
         }
     }
 
