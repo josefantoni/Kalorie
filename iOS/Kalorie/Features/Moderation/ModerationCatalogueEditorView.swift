@@ -46,24 +46,21 @@ struct ModerationCatalogueEditorView: View {
                 ) { field in
                     viewModel.onFormFieldEdited(field)
                 }
-                Section {
-                    Button {
-                        Task { await viewModel.onSaveTapped() }
-                    } label: {
-                        HStack {
-                            Text(L10n.Moderation.buttonSave)
-                            if viewModel.didSave {
-                                Spacer()
-                                Text(L10n.Moderation.editorSaved)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                }
             }
         }
         .navigationTitle(L10n.Moderation.editorTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                SaveToolbarButton(
+                    title: L10n.Moderation.buttonSave,
+                    showCheckmark: viewModel.showCheckmark,
+                    isEnabled: viewModel.loadedItem != nil && !viewModel.state.isLoading
+                ) {
+                    Task { await viewModel.onSaveTapped() }
+                }
+            }
+        }
         .keyboardDoneToolbar()
         .loader(viewModel.state.isLoading)
         .task { await viewModel.onAppear() }
