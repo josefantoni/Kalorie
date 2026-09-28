@@ -1719,8 +1719,9 @@ unknown value, zero in a sum), [ADR 0034](adr/0034-kotlin-toolchain-pinned-at-2.
 
 ### 8.1 What it does
 
-The user opens the meal types sheet from the Dashboard, taps the export button in its toolbar, picks
-a from/to date and PDF or Excel, and gets a file in the system share sheet. Both formats show the
+The user opens the meal types sheet from the Dashboard, taps the *Export* row under its *Other*
+section (below the meal layout), picks a from/to date and PDF or Excel, and gets a file in the system
+share sheet. Both formats show the
 same hierarchy: day → meal (with its window) → foods, a subtotal after each meal and a total after
 each day. Every day of the interval appears; a day without entries shows a "no entries" row, and an
 interval without any entries still yields a file.

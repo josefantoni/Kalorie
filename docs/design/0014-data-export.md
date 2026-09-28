@@ -332,3 +332,12 @@ so the export has no offline behaviour of its own. The server-only provider meth
 `loadFromServerAsync(from:where:isGreaterThanOrEqualTo:isLessThan:)`, `FoodExportError.offline`, its
 alert and the *Offline* concern were dropped; `FetchFoodsConsumedInRangeUseCase` uses the ordinary
 range read like every other feature.
+
+**Update — 2026-09-28 (entry point moved out of the top bar).** The *Entry point* bullet above no
+longer holds. The export is not a top-bar button of the meal types sheet any more; it is a row
+labelled *Export* under a second section, *Other* (`mealTypeSheet_section_other`), placed below the
+*Meal layout* section on both platforms. The row shows a trailing chevron and is hidden while the
+meal layout is being edited, as the button was. Navigation is unchanged: it still sets
+`isExportPushed` on `MealTypeSheetViewModel` and pushes `ExportView` (Android: the same flag opens
+the export dialog). Only the trigger moved, so `ExportView`, its view model and the use cases are
+untouched.
