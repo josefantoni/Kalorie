@@ -17,7 +17,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,6 +37,7 @@ import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.FoodItemFormSections
+import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
@@ -54,7 +54,7 @@ fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel,
     val formInput by viewModel.formInput.collectAsState()
     val state by viewModel.state.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
-    val didSave by viewModel.didSave.collectAsState()
+    val showCheckmark by viewModel.showCheckmark.collectAsState()
     val recognizedFields by viewModel.recognizedFields.collectAsState()
     val isNutritionLabelCameraVisible by viewModel.isNutritionLabelCameraVisible.collectAsState()
     val isRecognizingNutritionLabel by viewModel.isRecognizingNutritionLabel.collectAsState()
@@ -80,6 +80,15 @@ fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel,
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        }
+                    },
+                    actions = {
+                        SaveToolbarButton(
+                            title = stringResource(R.string.moderation_button_save),
+                            showCheckmark = showCheckmark,
+                            isEnabled = loadedItem != null && !state.isLoading,
+                        ) {
+                            scope.launch { viewModel.onSaveTapped() }
                         }
                     },
                 )
@@ -111,21 +120,6 @@ fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel,
                             onNutritionLabelScanTapped = scannerAccess.open,
                             onFieldEdited = viewModel::onFormFieldEdited,
                         )
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            TextButton(onClick = { scope.launch { viewModel.onSaveTapped() } }) {
-                                Text(stringResource(R.string.moderation_button_save))
-                            }
-                            if (didSave) {
-                                Text(
-                                    text = stringResource(R.string.moderation_editor_saved),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(start = 12.dp),
-                                )
-                            }
-                        }
                     }
                 }
                 if (state.isLoading) {
