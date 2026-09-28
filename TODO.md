@@ -13,8 +13,6 @@ The app works with three kinds of data. The distinction matters for the items be
 
 ## Planned features
 
-- **Prompt to sign in** — the account screen is only reachable from the toolbar icon; add an
-  unobtrusive prompt after the first logged meal so users on a second device sign in early
 - **Packaging photo on a submission** — the other half of the user-submitted-food flow shipped
   in [design 0009](docs/design/0009-catalogue-moderation.md), deferred by that design's Non-goals:
   Firebase Storage is not configured in this project, and whether the project's plan includes free

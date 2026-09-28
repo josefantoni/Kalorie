@@ -206,6 +206,7 @@ understanding why.
 | [0013](design/0013-catalogue-item-without-barcode.md) | Manual entry of a catalogue item without a barcode | Implemented | Backend, Cross-platform, iOS |
 | [0014](design/0014-data-export.md) | Exporting consumed food to PDF or Excel | Implemented | Cross-platform, iOS |
 | [0016](design/0016-copy-meal-to-another-window.md) | Copying a meal to another window and day | Implemented | Cross-platform, iOS, Android |
+| [0017](design/0017-sign-in-spotlight.md) | Sign-in spotlight | Implemented | Cross-platform, iOS, Android |
 
 ### Decision records
 
