@@ -196,6 +196,7 @@
     <string name="mealTypeSheet_error_unexpected">Nastala nečekaná chyba</string>
     <string name="mealTypeSheet_field_newMeal_placeholder">Jedna snad, ale co druhá snídaně … 🧐?</string>
     <string name="mealTypeSheet_section_mealLayout">Rozvržení jídel</string>
+    <string name="mealTypeSheet_section_other">Ostatní</string>
     <string name="moderation_button_approve">Schválit</string>
     <string name="moderation_button_reject">Zamítnout</string>
     <string name="moderation_button_resolve">Vyřešeno</string>
