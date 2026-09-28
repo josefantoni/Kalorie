@@ -43,12 +43,12 @@ final class ModerationReviewViewModelTests: XCTestCase {
     @MainActor
     func test_onApproveTapped_whenValidationFails_showsFieldSpecificMessageAndDoesNotDismiss() async {
         let approveSubmission = ApproveSubmissionUseCaseSpy()
-        approveSubmission.errorToThrow = CreateFoodItemError.invalidWeight
+        approveSubmission.errorToThrow = CreateFoodItemError.invalidCalories
         let sut = makeSUT(submission: makeSubmission(), approveSubmission: approveSubmission)
 
         await sut.onApproveTapped()
 
-        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorInvalidWeight)
+        XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorInvalidCalories)
         XCTAssertFalse(sut.shouldDismiss)
     }
 

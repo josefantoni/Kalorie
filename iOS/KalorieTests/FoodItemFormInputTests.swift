@@ -54,28 +54,20 @@ final class FoodItemFormInputTests: XCTestCase {
         XCTAssertEqual(sut.asFoodItemDomain().fatSaturated, 3)
     }
 
-    // MARK: - Measure and thousands display
+    // MARK: - Measure and package weight
 
-    func test_asFoodItemDomain_whenWeightEnteredInLitres_convertsToBaseMillilitresAndKeepsMeasure() {
+    func test_asFoodItemDomain_forNewItem_writesHundredAsPackageWeightBecauseTheUserNoLongerEntersIt() {
         var sut = FoodItemFormInput()
         sut.measure = .millilitres
-        sut.weightOfProduct = 1.5
-        sut.isWeightInThousands = true
         let result = sut.asFoodItemDomain()
-        XCTAssertEqual(result.weight, 1500)
+        XCTAssertEqual(result.weight, 100)
         XCTAssertEqual(result.measure, .millilitres)
     }
 
-    func test_initFromItem_withWeightAtOrAboveAThousand_displaysInThousands() {
+    func test_initFromItem_keepsStoredPackageWeightUntouchedAcrossARoundTrip() {
         let sut = FoodItemFormInput(item: makeItem(weight: 1500))
-        XCTAssertEqual(sut.weightOfProduct, 1.5)
-        XCTAssertTrue(sut.isWeightInThousands)
-    }
-
-    func test_initFromItem_withWeightBelowAThousand_staysInBaseUnit() {
-        let sut = FoodItemFormInput(item: makeItem(weight: 999))
-        XCTAssertEqual(sut.weightOfProduct, 999)
-        XCTAssertFalse(sut.isWeightInThousands)
+        XCTAssertEqual(sut.weightOfProduct, 1500)
+        XCTAssertEqual(sut.asFoodItemDomain().weight, 1500)
     }
 
     // MARK: - applying(_:)

@@ -13,7 +13,6 @@ struct NutritionLabelReading: Equatable {
 
     var scannedCode: String?
     var name: String?
-    var weightOfProduct: Double?
     var energyKJ: Double?
     var caloriesPerHundredGrams: Double?
     var fat: Double?
@@ -32,7 +31,6 @@ struct NutritionLabelReading: Equatable {
     init(
         scannedCode: String? = nil,
         name: String? = nil,
-        weightOfProduct: Double? = nil,
         energyKJ: Double? = nil,
         caloriesPerHundredGrams: Double? = nil,
         fat: Double? = nil,
@@ -48,7 +46,6 @@ struct NutritionLabelReading: Equatable {
     ) {
         self.scannedCode = scannedCode
         self.name = name
-        self.weightOfProduct = weightOfProduct
         self.energyKJ = energyKJ
         self.caloriesPerHundredGrams = caloriesPerHundredGrams
         self.fat = fat
@@ -71,7 +68,6 @@ extension NutritionLabelReading {
     var recognizedFields: Set<FoodItemFormField> {
         var fields: Set<FoodItemFormField> = []
         if name != nil { fields.insert(.name) }
-        if weightOfProduct != nil { fields.insert(.weight) }
         if energyKJ != nil { fields.insert(.energyKJ) }
         if caloriesPerHundredGrams != nil { fields.insert(.calories) }
         if fat != nil { fields.insert(.fat) }

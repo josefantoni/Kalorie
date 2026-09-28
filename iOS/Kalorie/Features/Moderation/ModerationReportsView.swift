@@ -12,13 +12,13 @@ struct ModerationReportsView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: ModerationReportsViewModel
-    private let makeCatalogueEditorView: (String?) -> ModerationCatalogueEditorView
+    private let makeCatalogueEditorView: (String, [FoodItemReportDomain]) -> ModerationCatalogueEditorView
 
     // MARK: - Init
 
     init(
         viewModel: ModerationReportsViewModel,
-        makeCatalogueEditorView: @escaping (String?) -> ModerationCatalogueEditorView
+        makeCatalogueEditorView: @escaping (String, [FoodItemReportDomain]) -> ModerationCatalogueEditorView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeCatalogueEditorView = makeCatalogueEditorView
@@ -35,7 +35,7 @@ struct ModerationReportsView: View {
             }
             ForEach(viewModel.groups) { group in
                 NavigationLink {
-                    makeCatalogueEditorView(group.barcode)
+                    makeCatalogueEditorView(group.barcode, group.reports)
                 } label: {
                     VStack(alignment: .leading) {
                         Text(group.itemName ?? group.barcode)
@@ -76,7 +76,7 @@ struct ModerationReportsView: View {
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                 deleteFoodItemReport: DeleteFoodItemReportUseCaseFake()
             )
-        ) { barcode in
+        ) { barcode, reports in
             ModerationCatalogueEditorView(
                 viewModel: ModerationCatalogueEditorViewModel(
                     fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
@@ -84,7 +84,8 @@ struct ModerationReportsView: View {
                     recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
                     cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
                     initialBarcode: barcode
-                )
+                ),
+                reports: reports
             )
         }
     }

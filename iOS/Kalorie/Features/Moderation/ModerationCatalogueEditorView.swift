@@ -12,27 +12,39 @@ struct ModerationCatalogueEditorView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: ModerationCatalogueEditorViewModel
+    private let reports: [FoodItemReportDomain]
 
     // MARK: - Init
 
-    init(viewModel: ModerationCatalogueEditorViewModel) {
+    init(viewModel: ModerationCatalogueEditorViewModel, reports: [FoodItemReportDomain] = []) {
         self._viewModel = StateObject(wrappedValue: viewModel)
+        self.reports = reports
     }
 
     // MARK: - Body
 
     var body: some View {
         List {
-            Section {
-                HStack {
-                    TextField(L10n.Moderation.editorSearchPlaceholder, text: $viewModel.barcodeQuery)
-                        .keyboardType(.numberPad)
-                    BaseButton(
-                        style: .plain,
-                        imageName: .barCode,
-                        imageSize: .medium
-                    ) {
-                        Task { await viewModel.onSearchTapped() }
+            if !reports.isEmpty {
+                Section(L10n.Moderation.reportsTitle) {
+                    ForEach(reports, id: \.reportedBy) { report in
+                        Text(report.reason)
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            if !viewModel.isOpenedFromReport {
+                Section {
+                    HStack {
+                        TextField(L10n.Moderation.editorSearchPlaceholder, text: $viewModel.barcodeQuery)
+                            .keyboardType(.numberPad)
+                        BaseButton(
+                            style: .plain,
+                            imageName: .barCode,
+                            imageSize: .medium
+                        ) {
+                            Task { await viewModel.onSearchTapped() }
+                        }
                     }
                 }
             }
@@ -40,7 +52,8 @@ struct ModerationCatalogueEditorView: View {
                 FoodItemFormSections(
                     formInput: $viewModel.formInput,
                     highlightedFields: viewModel.recognizedFields,
-                    onNutritionLabelScanTapped: {
+                    barcodeRow: viewModel.isOpenedFromReport ? .locked : .hidden,
+                    onNutritionLabelScanTapped: viewModel.isOpenedFromReport ? nil : {
                         Task { await viewModel.onNutritionLabelCameraTapped() }
                     }
                 ) { field in

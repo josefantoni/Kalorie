@@ -856,13 +856,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Měří se v"
+            "value" : "Nutriční hodnoty na"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measured in"
+            "value" : "Nutrition per"
           }
         }
       }

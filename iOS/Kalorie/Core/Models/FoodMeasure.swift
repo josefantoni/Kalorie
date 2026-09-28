@@ -22,11 +22,4 @@ extension FoodMeasure {
         case .millilitres: L10n.Common.unitMillilitres
         }
     }
-
-    var thousandUnitSymbol: String {
-        switch self {
-        case .grams: L10n.Common.unitKilograms
-        case .millilitres: L10n.Common.unitLitres
-        }
-    }
 }

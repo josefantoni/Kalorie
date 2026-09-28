@@ -360,36 +360,38 @@ struct AddFoodSheetView: View {
     }
 
     var newItemReviewView: some View {
-        VStack(spacing: 0) {
-            List {
-                if let rejectionReason = viewModel.rejectionReasonBeingEdited {
-                    Section {
-                        Text(L10n.AddFood.submissionRejectedReason(reason: rejectionReason))
-                            .foregroundStyle(.red)
-                    }
+        List {
+            if let rejectionReason = viewModel.rejectionReasonBeingEdited {
+                Section {
+                    Text(L10n.AddFood.submissionRejectedReason(reason: rejectionReason))
+                        .foregroundStyle(.red)
                 }
-                FoodItemFormSections(
-                    formInput: $viewModel.formInput,
-                    highlightedFields: viewModel.recognizedFields,
-                    barcodeRow: viewModel.isEditingSubmission ? .locked : .editable {
-                        if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-                            viewModel.onBarcodeRescanTapped()
-                        } else {
-                            viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
-                        }
-                    },
-                    // Unlabeled trailing closure would be matched backward past the omitted onNutritionLabelScanTapped.
-                    // swiftlint:disable:next trailing_closure
-                    onFieldEdited: { field in
-                        viewModel.onFormFieldEdited(field)
-                    }
-                )
             }
-            .contentMargins(.top, 0, for: .scrollContent)
-            addButton
-                .padding(.horizontal)
-                .padding(.vertical, 12)
-                .background(Color(.secondarySystemBackground))
+            FoodItemFormSections(
+                formInput: $viewModel.formInput,
+                highlightedFields: viewModel.recognizedFields,
+                barcodeRow: viewModel.isEditingSubmission ? .locked : .editable {
+                    if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
+                        viewModel.onBarcodeRescanTapped()
+                    } else {
+                        viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
+                    }
+                },
+                // Unlabeled trailing closure would be matched backward past the omitted onNutritionLabelScanTapped.
+                // swiftlint:disable:next trailing_closure
+                onFieldEdited: { field in
+                    viewModel.onFormFieldEdited(field)
+                }
+            )
+        }
+        .contentMargins(.top, 0, for: .scrollContent)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(L10n.AddFood.buttonAdd) {
+                    Task { await viewModel.onCreateFoodItem() }
+                }
+                .disabled(viewModel.state.isLoading)
+            }
         }
         .navigationTitle(L10n.AddFood.navigationTitleNewItem)
         .navigationBarTitleDisplayMode(.inline)
@@ -405,18 +407,6 @@ struct AddFoodSheetView: View {
                 Task { await viewModel.onMissingBarcodeConfirmed() }
             }
         }
-    }
-
-    var addButton: some View {
-        Button {
-            Task { await viewModel.onCreateFoodItem() }
-        } label: {
-            Text(L10n.AddFood.buttonAdd)
-                .frame(maxWidth: .infinity)
-                .frame(height: 35)
-                .font(.system(size: .basic, weight: .bold))
-        }
-        .buttonStyle(.borderedProminent)
     }
 }
 

@@ -17,7 +17,6 @@ struct NutritionLabelPortionCandidate {
 @Generable
 struct NutritionLabelModelCandidate {
     @Guide(description: "The product's name exactly as printed on the packaging") var name: String?
-    @Guide(description: "The total package weight in grams, e.g. 250 for '250 g'. Nil if not printed.") var packageWeightGrams: Double?
     @Guide(description: "Named portion sizes with their gram amount, if any are printed on the packaging") var portions: [NutritionLabelPortionCandidate]?
     @Guide(description: "Energy in kJ per 100 g, from the nutrition table's 100 g column") var energyKJPer100g: Double?
     @Guide(description: "Energy in kcal per 100 g, from the nutrition table's 100 g column") var caloriesPer100g: Double?
@@ -31,7 +30,6 @@ struct NutritionLabelModelCandidate {
 
     init(
         name: String? = nil,
-        packageWeightGrams: Double? = nil,
         portions: [NutritionLabelPortionCandidate]? = nil,
         energyKJPer100g: Double? = nil,
         caloriesPer100g: Double? = nil,
@@ -44,7 +42,6 @@ struct NutritionLabelModelCandidate {
         saltPer100g: Double? = nil
     ) {
         self.name = name
-        self.packageWeightGrams = packageWeightGrams
         self.portions = portions
         self.energyKJPer100g = energyKJPer100g
         self.caloriesPer100g = caloriesPer100g

@@ -23,7 +23,6 @@ final class NutritionLabelParserTests: XCTestCase {
             let name = parsingCase.name
 
             XCTAssertEqual(reading.measure, expected.measure, name)
-            assertEqual(reading.weightOfProduct, expected.weightOfProduct, name)
             assertEqual(reading.energyKJ, expected.energyKJ, name)
             assertEqual(reading.caloriesPerHundredGrams, expected.caloriesPerHundredGrams, name)
             assertEqual(reading.fat, expected.fat, name)
@@ -43,7 +42,6 @@ final class NutritionLabelParserTests: XCTestCase {
         let reading = NutritionLabelParser.parse(lines: czechLabelLines())
         let candidate = NutritionLabelModelCandidate(
             name: "Tvaroh",
-            packageWeightGrams: nil,
             portions: [NutritionLabelPortionCandidate(name: "1 balení", grams: 250)]
         )
         let ocrText = (czechLabelLines().map(\.text) + ["Tvaroh", "1 balení 250 g"]).joined(separator: "\n")
@@ -66,10 +64,10 @@ final class NutritionLabelParserTests: XCTestCase {
 
     func test_merging_discardsAModelNumberThatDoesNotAppearInTheOCRText() {
         let reading = NutritionLabelReading()
-        let candidate = NutritionLabelModelCandidate(packageWeightGrams: 250)
+        let candidate = NutritionLabelModelCandidate(fatPer100g: 250)
         let merged = NutritionLabelParser.merging(reading, with: candidate, ocrText: "no numbers here at all")
 
-        XCTAssertNil(merged.weightOfProduct, "an ungrounded number must never be written into the form")
+        XCTAssertNil(merged.fat, "an ungrounded number must never be written into the form")
     }
 
     // MARK: - Helpers
@@ -130,7 +128,6 @@ final class NutritionLabelParserTests: XCTestCase {
     }
 
     private struct ExpectedReading: Decodable {
-        let weightOfProduct: Double?
         let energyKJ: Double?
         let caloriesPerHundredGrams: Double?
         let fat: Double?
