@@ -65,6 +65,9 @@ enum L10n {
             String(format: String(localized: "dashboard_copy_message"), name)
         }
         static var sectionUnassignedFoods: String { String(localized: "dashboard_section_unassignedFoods") }
+        static var signInSpotlightTitle: String { String(localized: "dashboard_signInSpotlight_title") }
+        static var signInSpotlightMessage: String { String(localized: "dashboard_signInSpotlight_message") }
+        static var signInSpotlightActionSignIn: String { String(localized: "dashboard_signInSpotlight_actionSignIn") }
         static var emptyTitle: String { String(localized: "dashboard_empty_title") }
         static var emptyDescription: String { String(localized: "dashboard_empty_description") }
         static var emptyTitlePast: String { String(localized: "dashboard_empty_title_past") }

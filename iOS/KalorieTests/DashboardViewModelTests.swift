@@ -468,7 +468,122 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertEqual(sut.copyPopoverIndex, 0)
     }
 
+    // MARK: - Sign-in spotlight
+
+    @MainActor
+    func test_onAppear_whenAnonymousWithLoggedFoodAndNeverShown_showsSpotlightAndStoresNow() async {
+        let store = SignInSpotlightStoreFake()
+        let now = Date.now
+        let sut = makeSpotlightSUT(store: store, now: now)
+        await sut.onAppear()
+        XCTAssertTrue(sut.isSignInSpotlightVisible, "an anonymous user's diary is lost with the device, so it must be warned")
+        XCTAssertEqual(store.lastShownAt, now)
+    }
+
+    @MainActor
+    func test_onAppear_whenSignedIn_neverShowsSpotlight() async {
+        let store = SignInSpotlightStoreFake()
+        let sut = makeSpotlightSUT(store: store, authProvider: AuthProviderFake(isAnonymous: false))
+        await sut.onAppear()
+        XCTAssertFalse(sut.isSignInSpotlightVisible, "a signed-in user's diary is already safe, so the prompt would be noise")
+        XCTAssertNil(store.lastShownAt)
+    }
+
+    @MainActor
+    func test_onAppear_whenNoFoodLogged_doesNotShowSpotlight() async {
+        let sut = makeSpotlightSUT(foods: [])
+        await sut.onAppear()
+        XCTAssertFalse(sut.isSignInSpotlightVisible, "there is nothing to lose yet, and the spotlight on a first launch is noise")
+    }
+
+    @MainActor
+    func test_onRefresh_whenShownSixDaysAgo_doesNotShowSpotlight() async {
+        let now = Date.now
+        let store = SignInSpotlightStoreFake(lastShownAt: now.addingTimeInterval(-6 * 24 * 60 * 60))
+        let sut = makeSpotlightSUT(store: store, now: now)
+        await sut.onAppear()
+        await sut.onRefresh()
+        XCTAssertFalse(sut.isSignInSpotlightVisible, "the spotlight repeats weekly, not more often")
+    }
+
+    @MainActor
+    func test_onRefresh_whenShownSevenDaysAgo_showsSpotlight() async {
+        let now = Date.now
+        let store = SignInSpotlightStoreFake(lastShownAt: now.addingTimeInterval(-7 * 24 * 60 * 60))
+        let sut = makeSpotlightSUT(store: store, now: now)
+        await sut.onAppear()
+        XCTAssertTrue(sut.isSignInSpotlightVisible, "a process that stays alive for days must still show it once the week has passed")
+        XCTAssertEqual(store.lastShownAt, now)
+    }
+
+    @MainActor
+    func test_onAppear_whenAnyPresentationIsActive_doesNotShowSpotlightOrBurnTheWeek() async {
+        let presentations: [(name: String, present: (DashboardViewModel) -> Void)] = [
+            ("settings", { $0.showSettings = true }),
+            ("add food", { $0.showAddFoodSheet = true }),
+            ("calendar", { $0.showCalendarSheet = true }),
+            ("account", { $0.showAccountSheet = true }),
+            ("alert", { $0.alertItem = AlertItem(title: "Error") }),
+            ("delete confirmation", { $0.isDeleteConfirmationVisible = true }),
+            ("copy popover", { $0.copyPopoverIndex = 0 }),
+            ("macro popover", { $0.macroPopoverIndex = 0 })
+        ]
+        for presentation in presentations {
+            let store = SignInSpotlightStoreFake()
+            let sut = makeSpotlightSUT(store: store)
+            presentation.present(sut)
+            await sut.onAppear()
+            XCTAssertFalse(sut.isSignInSpotlightVisible, "\(presentation.name) is up, and SwiftUI would drop a second presentation")
+            XCTAssertNil(store.lastShownAt, "a dropped presentation must not burn the week (\(presentation.name))")
+        }
+    }
+
+    @MainActor
+    func test_onSignInSpotlightSignInTapped_hidesSpotlightAndOpensAccountSheet() async {
+        let sut = makeSpotlightSUT()
+        await sut.onAppear()
+        sut.onSignInSpotlightSignInTapped()
+        XCTAssertFalse(sut.isSignInSpotlightVisible)
+        XCTAssertTrue(sut.showAccountSheet, "the bubble is a way into the existing sign-in flow, not a new one")
+    }
+
+    @MainActor
+    func test_onSignInSpotlightDismissed_hidesSpotlightWithoutOpeningAccountSheetOrChangingLastShown() async {
+        let store = SignInSpotlightStoreFake()
+        let now = Date.now
+        let sut = makeSpotlightSUT(store: store, now: now)
+        await sut.onAppear()
+        sut.onSignInSpotlightDismissed()
+        XCTAssertFalse(sut.isSignInSpotlightVisible)
+        XCTAssertFalse(sut.showAccountSheet)
+        XCTAssertEqual(store.lastShownAt, now, "a dismissed spotlight still counts as shown")
+    }
+
+    @MainActor
+    func test_onAppear_whenFetchFails_doesNotShowSpotlight() async {
+        let sut = makeSpotlightSUT(fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(shouldThrow: true))
+        await sut.onAppear()
+        XCTAssertFalse(sut.isSignInSpotlightVisible, "the spotlight must not appear over an error alert")
+    }
+
     // MARK: - Helpers
+
+    private func makeSpotlightSUT(
+        store: SignInSpotlightStoreFake = SignInSpotlightStoreFake(),
+        authProvider: any AuthProviderProtocol = AuthProviderFake(),
+        foods: [FoodConsumedDomain]? = nil,
+        fetchFoodsConsumedForMonth: (any FetchFoodsConsumedForMonthUseCaseProtocol)? = nil,
+        now: Date = .now
+    ) -> DashboardViewModel {
+        makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [makeMealType(id: 0, hour: 0, endHour: 23)]),
+            fetchFoodsConsumedForMonth: fetchFoodsConsumedForMonth
+                ?? FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: foods ?? [makeFood(id: "f1", hour: 9)]),
+            authProvider: authProvider,
+            signInSpotlightStore: store,
+            now: { now }
+        )
+    }
 
     private func makeSUT(
         fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
@@ -476,7 +591,10 @@ final class DashboardViewModelTests: XCTestCase {
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol = SetupDefaultMealsUseCaseFake(),
         confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult: true),
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
-        copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol = CopyFoodsConsumedUseCaseFake()
+        copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol = CopyFoodsConsumedUseCaseFake(),
+        authProvider: any AuthProviderProtocol = AuthProviderFake(),
+        signInSpotlightStore: any SignInSpotlightStoreProtocol = SignInSpotlightStoreFake(),
+        now: @escaping () -> Date = { Date.now }
     ) -> DashboardViewModel {
         let sut = DashboardViewModel(
             fetchMealTypes: fetchMealTypes,
@@ -484,7 +602,10 @@ final class DashboardViewModelTests: XCTestCase {
             setupDefaultMeals: setupDefaultMeals,
             confirmMealTypesEmpty: confirmMealTypesEmpty,
             deleteFoodConsumed: deleteFoodConsumed,
-            copyFoodsConsumed: copyFoodsConsumed
+            copyFoodsConsumed: copyFoodsConsumed,
+            authProvider: authProvider,
+            signInSpotlightStore: signInSpotlightStore,
+            now: now
         )
         addTeardownBlock { [weak sut] in
             XCTAssertNil(sut, "DashboardViewModel leaked — potential retain cycle")

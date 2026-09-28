@@ -21,7 +21,9 @@ struct DashboardConfigurator {
                 setupDefaultMeals: SetupDefaultMealsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteFoodConsumed: DeleteFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                copyFoodsConsumed: CopyFoodsConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
+                copyFoodsConsumed: CopyFoodsConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                authProvider: authProvider,
+                signInSpotlightStore: SignInSpotlightStore()
             ),
             router: DashboardRouter(
                 settingsConfigurator: SettingsConfigurator(),
