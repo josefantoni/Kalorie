@@ -57,6 +57,13 @@ enum L10n {
     enum Dashboard {
         static var navigationTitle: String { String(localized: "dashboard_navigation_title") }
         static var buttonSettings: String { String(localized: "dashboard_button_settings") }
+        static var buttonCopy: String { String(localized: "dashboard_button_copy") }
+        static var copyButton: String { String(localized: "dashboard_copy_button") }
+        static var copyDay: String { String(localized: "dashboard_copy_day") }
+        static var copyMeal: String { String(localized: "dashboard_copy_meal") }
+        static func copyMessage(name: String) -> String {
+            String(format: String(localized: "dashboard_copy_message"), name)
+        }
         static var sectionUnassignedFoods: String { String(localized: "dashboard_section_unassignedFoods") }
         static var emptyTitle: String { String(localized: "dashboard_empty_title") }
         static var emptyDescription: String { String(localized: "dashboard_empty_description") }
@@ -67,6 +74,7 @@ enum L10n {
         static var emptyAddFood: String { String(localized: "dashboard_empty_addFood") }
         static var confirmDeleteFood: String { String(localized: "dashboard_confirm_deleteFood") }
         static var errorDeleteFailed: String { String(localized: "dashboard_error_deleteFailed") }
+        static var errorCopyFailed: String { String(localized: "dashboard_error_copyFailed") }
     }
 
     enum AddFood {

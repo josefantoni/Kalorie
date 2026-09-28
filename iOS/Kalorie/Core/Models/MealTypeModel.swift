@@ -32,6 +32,16 @@ extension [MealTypeDomain] {
         return first { $0.id == id }
     }
 
+    func copyTargetMinutes(nowMinutes: Int?, targetId: String) -> Int? {
+        // Kotlin/Native exports functions starting with "copy" as "doCopy…" (Obj-C copy family).
+        let minutes = MealWindowsKt.doCopyTargetMinutes(
+            nowMinutes: nowMinutes.map { KotlinInt(int: Int32($0)) },
+            targetId: targetId,
+            windows: mealWindows
+        )
+        return minutes.map { Int(truncating: $0) }
+    }
+
     func resolvedMealTypeId(for food: FoodConsumedDomain) -> String? {
         MealWindowsKt.resolvedMealWindowId(
             minutes: food.date.minutesSinceMidnight,

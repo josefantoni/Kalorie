@@ -314,6 +314,160 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.alertItem)
     }
 
+    // MARK: - Copy — defaults
+
+    func test_onCopyRequested_opensTheBoxOnTodayAndTheWindowTheCurrentTimeFallsIn() {
+        let sut = makeSUT()
+        let wholeDay = makeMealType(id: 0, hour: 0, endHour: 24)
+        let source = makeMealType(id: 1, hour: 1, endHour: 2)
+        sut.mealTypes = [source, wholeDay]
+
+        sut.onCopyRequested(from: source, at: 2)
+
+        XCTAssertEqual(sut.copyPopoverIndex, 2)
+        XCTAssertTrue(Calendar.current.isDateInToday(sut.copyTargetDay))
+        XCTAssertEqual(sut.copyTargetMealTypeId, "0")
+    }
+
+    func test_onCopyRequested_whenNoWindowContainsNow_defaultsToTheSourceMealType() {
+        let sut = makeSUT()
+        let source = makeMealTypeExcludingNow(id: 1)
+        sut.mealTypes = [makeMealTypeExcludingNow(id: 0, offsetMinutes: 300), source]
+
+        sut.onCopyRequested(from: source, at: 0)
+
+        XCTAssertEqual(sut.copyTargetMealTypeId, "1")
+    }
+
+    func test_onCopyRequested_whenNoWindowContainsNowAndSourceIsUnassigned_defaultsToTheFirstMealType() {
+        let sut = makeSUT()
+        sut.mealTypes = [makeMealTypeExcludingNow(id: 0), makeMealTypeExcludingNow(id: 1, offsetMinutes: 300)]
+
+        sut.onCopyRequested(from: nil, at: 0)
+
+        XCTAssertEqual(sut.copyTargetMealTypeId, "0")
+    }
+
+    // MARK: - Copy — canCopy
+
+    func test_canCopy_whenTargetIsTheSameDayAndSameMealType_isFalse() {
+        let sut = makeSUT()
+        let source = makeMealType(id: 0, hour: 8, endHour: 12)
+        sut.mealTypes = [source]
+        sut.copyTargetDay = sut.selectedDay
+        sut.copyTargetMealTypeId = "0"
+
+        XCTAssertFalse(sut.canCopy(from: source), "copying a section onto itself would duplicate it in place, which was rejected as an accidental tap")
+    }
+
+    func test_canCopy_whenOnlyTheMealTypeDiffers_isTrue() {
+        let sut = makeSUT()
+        let source = makeMealType(id: 0, hour: 8, endHour: 12)
+        sut.copyTargetDay = sut.selectedDay
+        sut.copyTargetMealTypeId = "1"
+
+        XCTAssertTrue(sut.canCopy(from: source))
+    }
+
+    func test_canCopy_whenOnlyTheDayDiffers_isTrue() {
+        let sut = makeSUT()
+        let source = makeMealType(id: 0, hour: 8, endHour: 12)
+        sut.copyTargetDay = Calendar.current.date(byAdding: .day, value: -1, to: sut.selectedDay) ?? sut.selectedDay
+        sut.copyTargetMealTypeId = "0"
+
+        XCTAssertTrue(sut.canCopy(from: source))
+    }
+
+    func test_canCopy_whenSourceIsUnassigned_anyTargetCountsAsDifferent() {
+        let sut = makeSUT()
+        sut.copyTargetDay = sut.selectedDay
+        sut.copyTargetMealTypeId = "0"
+
+        XCTAssertTrue(sut.canCopy(from: nil))
+    }
+
+    func test_canCopy_withoutATargetMealType_isFalse() {
+        let sut = makeSUT()
+        sut.copyTargetMealTypeId = nil
+
+        XCTAssertFalse(sut.canCopy(from: nil))
+    }
+
+    // MARK: - Copy — confirm
+
+    @MainActor
+    func test_onCopyConfirmed_whenCopySucceeds_reloadsTheDayAndClosesTheBox() async {
+        let source = makeFood(id: "f1", hour: 8)
+        let copied = makeFood(id: "f2", hour: 12)
+        let sut = makeSUT(fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [source, copied]))
+        let sourceType = makeMealType(id: 0, hour: 8, endHour: 10)
+        sut.mealTypes = [sourceType, makeMealType(id: 1, hour: 11, endHour: 14)]
+        sut.foodsConsumed = [source]
+        sut.copyTargetDay = sut.selectedDay
+        sut.copyTargetMealTypeId = "1"
+        sut.copyPopoverIndex = 0
+
+        await sut.onCopyConfirmed([source], from: sourceType)
+
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f1", "f2"], "the target section must show the copy without the user refreshing")
+        XCTAssertNil(sut.copyPopoverIndex)
+        XCTAssertFalse(sut.showCopyCheckmark)
+        XCTAssertFalse(sut.isCopying)
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onCopyConfirmed_whenTargetIsAnotherMonth_keepsTheDisplayedDay() async {
+        let source = makeFood(id: "f1", hour: 8)
+        let sut = makeSUT(fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [source, makeFood(id: "f2", hour: 12)]))
+        let sourceType = makeMealType(id: 0, hour: 8, endHour: 10)
+        sut.mealTypes = [sourceType, makeMealType(id: 1, hour: 11, endHour: 14)]
+        let displayedDay = Calendar.current.date(byAdding: .month, value: -2, to: Date.now) ?? Date.now
+        sut.selectedDay = displayedDay
+        sut.foodsConsumed = [source]
+        sut.copyTargetDay = Date.now
+        sut.copyTargetMealTypeId = "1"
+
+        await sut.onCopyConfirmed([source], from: sourceType)
+
+        XCTAssertEqual(sut.selectedDay, displayedDay, "a user who scrolled back must not lose their place")
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f1"])
+    }
+
+    @MainActor
+    func test_onCopyConfirmed_whenCopyFails_showsAlertAndKeepsTheBoxOpenWithoutCheckmark() async {
+        let source = makeFood(id: "f1", hour: 8)
+        let sut = makeSUT(copyFoodsConsumed: CopyFoodsConsumedUseCaseFake(shouldThrow: true))
+        let sourceType = makeMealType(id: 0, hour: 8, endHour: 10)
+        sut.mealTypes = [sourceType, makeMealType(id: 1, hour: 11, endHour: 14)]
+        sut.copyTargetDay = sut.selectedDay
+        sut.copyTargetMealTypeId = "1"
+        sut.copyPopoverIndex = 0
+
+        await sut.onCopyConfirmed([source], from: sourceType)
+
+        XCTAssertNotNil(sut.alertItem)
+        XCTAssertEqual(sut.copyPopoverIndex, 0)
+        XCTAssertFalse(sut.showCopyCheckmark)
+        XCTAssertFalse(sut.isCopying, "a stuck flag would leave Copy disabled after a failure and the user could not retry")
+    }
+
+    @MainActor
+    func test_onCopyConfirmed_whenTargetIsTheSource_doesNothing() async {
+        let source = makeFood(id: "f1", hour: 8)
+        let sut = makeSUT(copyFoodsConsumed: CopyFoodsConsumedUseCaseFake(shouldThrow: true))
+        let sourceType = makeMealType(id: 0, hour: 8, endHour: 10)
+        sut.mealTypes = [sourceType]
+        sut.copyTargetDay = sut.selectedDay
+        sut.copyTargetMealTypeId = "0"
+        sut.copyPopoverIndex = 0
+
+        await sut.onCopyConfirmed([source], from: sourceType)
+
+        XCTAssertNil(sut.alertItem, "the use case must not even be called when the target is the source")
+        XCTAssertEqual(sut.copyPopoverIndex, 0)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
@@ -321,14 +475,16 @@ final class DashboardViewModelTests: XCTestCase {
         fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol = FetchFoodsConsumedForMonthUseCaseFake(),
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol = SetupDefaultMealsUseCaseFake(),
         confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult: true),
-        deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake()
+        deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
+        copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol = CopyFoodsConsumedUseCaseFake()
     ) -> DashboardViewModel {
         let sut = DashboardViewModel(
             fetchMealTypes: fetchMealTypes,
             fetchFoodsConsumedForMonth: fetchFoodsConsumedForMonth,
             setupDefaultMeals: setupDefaultMeals,
             confirmMealTypesEmpty: confirmMealTypesEmpty,
-            deleteFoodConsumed: deleteFoodConsumed
+            deleteFoodConsumed: deleteFoodConsumed,
+            copyFoodsConsumed: copyFoodsConsumed
         )
         addTeardownBlock { [weak sut] in
             XCTAssertNil(sut, "DashboardViewModel leaked — potential retain cycle")
@@ -338,6 +494,12 @@ final class DashboardViewModelTests: XCTestCase {
 
     private func makeMealType(id: Int, hour: Int, endHour: Int, minute: Int = 0) -> MealTypeDomain {
         MealTypeDomain(id: "\(id)", name: "Meal \(id)", startMinutes: hour * 60 + minute, endMinutes: endHour * 60 + minute)
+    }
+
+    private func makeMealTypeExcludingNow(id: Int, offsetMinutes: Int = 120) -> MealTypeDomain {
+        let nowMinutes = Int(Date.now.minutesSinceMidnight)
+        let start = (nowMinutes + offsetMinutes) % 1440
+        return MealTypeDomain(id: "\(id)", name: "Meal \(id)", startMinutes: start, endMinutes: (start + 60) % 1440)
     }
 
     private func makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1, mealTypeId: String? = nil) -> FoodConsumedDomain {
