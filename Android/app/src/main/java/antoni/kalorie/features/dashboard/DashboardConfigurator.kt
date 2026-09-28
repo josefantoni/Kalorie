@@ -17,6 +17,7 @@ import antoni.kalorie.core.auth.AuthProvider
 import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.networking.FirestoreDataProvider
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCase
+import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCase
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
@@ -49,6 +50,7 @@ class DashboardConfigurator {
                 setupDefaultMeals = SetupDefaultMealsUseCase(dataProvider, authProvider, mealNames),
                 confirmMealTypesEmpty = ConfirmMealTypesEmptyUseCase(dataProvider, authProvider),
                 deleteFoodConsumed = DeleteFoodConsumedUseCase(dataProvider, authProvider),
+                copyFoodsConsumed = CopyFoodsConsumedUseCase(dataProvider, authProvider),
             )
         }
         val router = remember(dataProvider, authProvider, mergeStatusReporting) {

@@ -28,6 +28,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     private var serverReadAttempts = 0
     var stubbedSetError: Exception? = null
     var stubbedDeleteError: Exception? = null
+    var stubbedBatchError: Exception? = null
     private var serverReadCount = 0
     var stubbedByField: List<Any> = emptyList()
     var stubbedByFieldByCollection: Map<String, List<Any>> = emptyMap()
@@ -152,6 +153,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     }
 
     override suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>) {
+        stubbedBatchError?.let { throw it }
         batchSavedItems = items
         batchSavedItemsByCollection = batchSavedItemsByCollection + (inCollection to items)
         batchSavedCollection = inCollection

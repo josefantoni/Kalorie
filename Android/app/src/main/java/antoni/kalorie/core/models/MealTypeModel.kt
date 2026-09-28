@@ -7,6 +7,7 @@ import antoni.kalorie.mealkit.resolvedMealWindowId
 import java.time.Instant
 import java.time.ZoneId
 import java.util.Locale
+import antoni.kalorie.mealkit.copyTargetMinutes as mealKitCopyTargetMinutes
 
 data class MealTypeDomain(
     val id: String,
@@ -26,6 +27,8 @@ fun List<MealTypeDomain>.mealType(date: Instant): MealTypeDomain? {
     val id = mealWindowAt(date.minutesSinceMidnight(), mealWindows())?.id ?: return null
     return firstOrNull { it.id == id }
 }
+
+fun List<MealTypeDomain>.copyTargetMinutes(nowMinutes: Int?, targetId: String): Int? = mealKitCopyTargetMinutes(nowMinutes, targetId, mealWindows())
 
 fun List<MealTypeDomain>.resolvedMealTypeId(food: FoodConsumedDomain, zone: ZoneId = ZoneId.systemDefault()): String? = resolvedMealWindowId(food.date.minutesSinceMidnight(zone), food.mealTypeId, mealWindows())
 

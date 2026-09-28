@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
+import antoni.kalorie.core.models.mealType
 import antoni.kalorie.core.models.resolvedMealTypeId
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCaseProtocol
+import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
@@ -21,6 +23,7 @@ import antoni.kalorie.core.utils.isSameDay
 import antoni.kalorie.macrokit.Macros
 import antoni.kalorie.macrokit.total
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Instant
@@ -69,12 +72,15 @@ data class FoodGroup(
     val foods: List<FoodConsumedDomain>,
 )
 
+private const val COPY_CHECKMARK_MILLIS = 1000L
+
 class DashboardViewModel(
     private val fetchMealTypes: FetchMealTypesUseCaseProtocol,
     private val fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseProtocol,
     private val setupDefaultMeals: SetupDefaultMealsUseCaseProtocol,
     private val confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseProtocol,
     private val deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol,
+    private val copyFoodsConsumed: CopyFoodsConsumedUseCaseProtocol,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -91,6 +97,13 @@ class DashboardViewModel(
     val alertItem = MutableStateFlow<AlertItem?>(null)
     val backStack = mutableStateListOf<DashboardDestination>(DashboardDestination.Dashboard)
     val isDeleteConfirmationVisible = MutableStateFlow(false)
+    val copyPopoverIndex = MutableStateFlow<Int?>(null)
+    val copyTargetDay = MutableStateFlow(Instant.now())
+    val copyTargetMealTypeId = MutableStateFlow<String?>(null)
+    private val _isCopying = MutableStateFlow(false)
+    val isCopying: StateFlow<Boolean> = _isCopying
+    private val _showCopyCheckmark = MutableStateFlow(false)
+    val showCopyCheckmark: StateFlow<Boolean> = _showCopyCheckmark
     private val _activeDaysInMonth = MutableStateFlow<Set<Int>>(emptySet())
     val activeDaysInMonth: StateFlow<Set<Int>> = _activeDaysInMonth
 
@@ -178,6 +191,42 @@ class DashboardViewModel(
         }
     }
 
+    fun onCopyRequested(mealType: MealTypeDomain?, index: Int) {
+        val now = Instant.now()
+        copyTargetDay.value = now
+        copyTargetMealTypeId.value = mealTypes.value.mealType(now)?.id ?: mealType?.id ?: mealTypes.value.firstOrNull()?.id
+        copyPopoverIndex.value = index
+    }
+
+    fun canCopy(mealType: MealTypeDomain?): Boolean {
+        val targetMealTypeId = copyTargetMealTypeId.value
+        if (_isCopying.value || _showCopyCheckmark.value || targetMealTypeId == null) return false
+        val isSameDay = copyTargetDay.value.isSameDay(selectedDay.value)
+        return !(isSameDay && targetMealTypeId == mealType?.id)
+    }
+
+    suspend fun onCopyConfirmed(foods: List<FoodConsumedDomain>, mealType: MealTypeDomain?) {
+        val targetMealTypeId = copyTargetMealTypeId.value
+        if (!canCopy(mealType) || targetMealTypeId == null) return
+        _isCopying.value = true
+        var isCopied = false
+        perform(onFailure = { alertItem.value = AlertItem(titleRes = R.string.dashboard_error_copyFailed) }) {
+            copyFoodsConsumed(foods, copyTargetDay.value, targetMealTypeId, mealTypes.value)
+            isCopied = true
+        }
+        _isCopying.value = false
+        if (!isCopied) return
+        _showCopyCheckmark.value = true
+        // The caller's scope can be cancelled mid-delay (rotation); the flags must still reset or Copy stays disabled.
+        try {
+            reloadAfterCopy()
+            delay(COPY_CHECKMARK_MILLIS)
+        } finally {
+            copyPopoverIndex.value = null
+            _showCopyCheckmark.value = false
+        }
+    }
+
     suspend fun onMealTypesChanged() {
         perform { refreshMealTypes() }
     }
@@ -222,6 +271,15 @@ class DashboardViewModel(
         AlertItem(titleRes = R.string.common_error_offline, messageRes = R.string.common_error_offline_message)
     } else {
         AlertItem(titleRes = R.string.common_error_unknown, messageRes = R.string.common_error_unknown_message)
+    }
+
+    private suspend fun reloadAfterCopy() {
+        invalidateCache(copyTargetDay.value)
+        if (monthCacheKey(copyTargetDay.value) != monthCacheKey(selectedDay.value)) return
+        perform {
+            loadMonth(selectedDay.value)
+            foodsConsumed.value = foodsFromCache(selectedDay.value)
+        }
     }
 
     private suspend fun refreshMealTypes() {
