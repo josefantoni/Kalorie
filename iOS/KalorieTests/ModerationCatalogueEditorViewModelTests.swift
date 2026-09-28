@@ -13,13 +13,13 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
     // MARK: - onSearchTapped
 
     @MainActor
-    func test_onSearchTapped_whenFound_prefillsFormAndClearsPreviousSavedFlag() async {
+    func test_onSearchTapped_whenFound_prefillsFormAndHidesPreviousCheckmark() async {
         let item = makeItem()
         let sut = makeSUT(fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item))
         sut.barcodeQuery = "12345678"
         await sut.onSearchTapped()
         XCTAssertEqual(sut.formInput.scannedCode, "12345678")
-        XCTAssertFalse(sut.didSave)
+        XCTAssertFalse(sut.showCheckmark)
         XCTAssertNil(sut.alertItem)
     }
 
@@ -49,11 +49,10 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         await sut.onSaveTapped()
 
         XCTAssertEqual(updateFoodItem.receivedItem?.date, originalDate, "correcting a field must not silently reset the item's original date")
-        XCTAssertTrue(sut.didSave)
     }
 
     @MainActor
-    func test_onSaveTapped_whenItemChangedSinceLoad_showsAlertAndDoesNotMarkSaved() async {
+    func test_onSaveTapped_whenItemChangedSinceLoad_showsAlertAndDoesNotShowCheckmark() async {
         let item = makeItem()
         let updateFoodItem = UpdateFoodItemUseCaseFake(errorToThrow: UpdateFoodItemError.changedSinceLoad)
         let sut = makeSUT(
@@ -67,7 +66,7 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         await sut.onSaveTapped()
 
         XCTAssertEqual(sut.alertItem?.title, L10n.Moderation.errorItemChangedSinceLoad)
-        XCTAssertFalse(sut.didSave)
+        XCTAssertFalse(sut.showCheckmark)
     }
 
     // MARK: - onNutritionLabelCaptured
