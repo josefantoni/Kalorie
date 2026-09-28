@@ -7,6 +7,8 @@ import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderError
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCaseFake
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCaseProtocol
+import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseFake
+import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseFake
@@ -17,6 +19,7 @@ import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseFake
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
+import antoni.kalorie.core.utils.minutesSinceMidnight
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -27,6 +30,7 @@ import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 class DashboardViewModelTest {
 
@@ -452,6 +456,168 @@ class DashboardViewModelTest {
         assertTrue(sut.selectedDay.value.isSameDay(day))
     }
 
+    // MARK: - Copy — defaults
+
+    @Test
+    fun onCopyRequested_opensTheBoxOnTodayAndTheWindowTheCurrentTimeFallsIn() {
+        val sut = makeSUT()
+        val wholeDay = makeMealType(id = 0, hour = 0, endHour = 24)
+        val source = makeMealType(id = 1, hour = 1, endHour = 2)
+        sut.mealTypes.value = listOf(source, wholeDay)
+
+        sut.onCopyRequested(source, index = 2)
+
+        assertEquals(2, sut.copyPopoverIndex.value)
+        assertTrue(sut.copyTargetDay.value.isSameDay(Instant.now()))
+        assertEquals("0", sut.copyTargetMealTypeId.value)
+    }
+
+    @Test
+    fun onCopyRequested_whenNoWindowContainsNow_defaultsToTheSourceMealType() {
+        val sut = makeSUT()
+        val source = makeMealTypeExcludingNow(id = 1)
+        sut.mealTypes.value = listOf(makeMealTypeExcludingNow(id = 0, offsetMinutes = 300), source)
+
+        sut.onCopyRequested(source, index = 0)
+
+        assertEquals("1", sut.copyTargetMealTypeId.value)
+    }
+
+    @Test
+    fun onCopyRequested_whenNoWindowContainsNowAndSourceIsUnassigned_defaultsToTheFirstMealType() {
+        val sut = makeSUT()
+        sut.mealTypes.value = listOf(makeMealTypeExcludingNow(id = 0), makeMealTypeExcludingNow(id = 1, offsetMinutes = 300))
+
+        sut.onCopyRequested(null, index = 0)
+
+        assertEquals("0", sut.copyTargetMealTypeId.value)
+    }
+
+    // MARK: - Copy — canCopy
+
+    @Test
+    fun canCopy_whenTargetIsTheSameDayAndSameMealType_isFalse() {
+        val sut = makeSUT()
+        val source = makeMealType(id = 0, hour = 8, endHour = 12)
+        sut.mealTypes.value = listOf(source)
+        sut.copyTargetDay.value = sut.selectedDay.value
+        sut.copyTargetMealTypeId.value = "0"
+
+        assertFalse(sut.canCopy(source))
+    }
+
+    @Test
+    fun canCopy_whenOnlyTheMealTypeDiffers_isTrue() {
+        val sut = makeSUT()
+        val source = makeMealType(id = 0, hour = 8, endHour = 12)
+        sut.copyTargetDay.value = sut.selectedDay.value
+        sut.copyTargetMealTypeId.value = "1"
+
+        assertTrue(sut.canCopy(source))
+    }
+
+    @Test
+    fun canCopy_whenOnlyTheDayDiffers_isTrue() {
+        val sut = makeSUT()
+        val source = makeMealType(id = 0, hour = 8, endHour = 12)
+        sut.copyTargetDay.value = sut.selectedDay.value.minus(1, ChronoUnit.DAYS)
+        sut.copyTargetMealTypeId.value = "0"
+
+        assertTrue(sut.canCopy(source))
+    }
+
+    @Test
+    fun canCopy_whenSourceIsUnassigned_anyTargetCountsAsDifferent() {
+        val sut = makeSUT()
+        sut.copyTargetDay.value = sut.selectedDay.value
+        sut.copyTargetMealTypeId.value = "0"
+
+        assertTrue(sut.canCopy(null))
+    }
+
+    @Test
+    fun canCopy_withoutATargetMealType_isFalse() {
+        val sut = makeSUT()
+        sut.copyTargetMealTypeId.value = null
+
+        assertFalse(sut.canCopy(null))
+    }
+
+    // MARK: - Copy — confirm
+
+    @Test
+    fun onCopyConfirmed_whenCopySucceeds_reloadsTheDayAndClosesTheBox() = runTest {
+        val source = makeFood(id = "f1", hour = 8)
+        val copied = makeFood(id = "f2", hour = 12)
+        val sut = makeSUT(fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(source, copied)))
+        val sourceType = makeMealType(id = 0, hour = 8, endHour = 10)
+        sut.mealTypes.value = listOf(sourceType, makeMealType(id = 1, hour = 11, endHour = 14))
+        sut.foodsConsumed.value = listOf(source)
+        sut.copyTargetDay.value = sut.selectedDay.value
+        sut.copyTargetMealTypeId.value = "1"
+        sut.copyPopoverIndex.value = 0
+
+        sut.onCopyConfirmed(listOf(source), sourceType)
+
+        assertEquals(listOf("f1", "f2"), sut.foodsConsumed.value.map { it.id })
+        assertNull(sut.copyPopoverIndex.value)
+        assertFalse(sut.showCopyCheckmark.value)
+        assertFalse(sut.isCopying.value)
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onCopyConfirmed_whenTargetIsAnotherMonth_keepsTheDisplayedDay() = runTest {
+        val source = makeFood(id = "f1", hour = 8)
+        val sut = makeSUT(fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(source, makeFood(id = "f2", hour = 12))))
+        val sourceType = makeMealType(id = 0, hour = 8, endHour = 10)
+        sut.mealTypes.value = listOf(sourceType, makeMealType(id = 1, hour = 11, endHour = 14))
+        val displayedDay = ZonedDateTime.now().minusMonths(2).toInstant()
+        sut.selectedDay.value = displayedDay
+        sut.foodsConsumed.value = listOf(source)
+        sut.copyTargetDay.value = Instant.now()
+        sut.copyTargetMealTypeId.value = "1"
+
+        sut.onCopyConfirmed(listOf(source), sourceType)
+
+        assertEquals(displayedDay, sut.selectedDay.value)
+        assertEquals(listOf("f1"), sut.foodsConsumed.value.map { it.id })
+    }
+
+    @Test
+    fun onCopyConfirmed_whenCopyFails_showsAlertAndKeepsTheBoxOpenWithoutCheckmark() = runTest {
+        val source = makeFood(id = "f1", hour = 8)
+        val sut = makeSUT(copyFoodsConsumed = CopyFoodsConsumedUseCaseFake(shouldThrow = true))
+        val sourceType = makeMealType(id = 0, hour = 8, endHour = 10)
+        sut.mealTypes.value = listOf(sourceType, makeMealType(id = 1, hour = 11, endHour = 14))
+        sut.copyTargetDay.value = sut.selectedDay.value
+        sut.copyTargetMealTypeId.value = "1"
+        sut.copyPopoverIndex.value = 0
+
+        sut.onCopyConfirmed(listOf(source), sourceType)
+
+        assertNotNull(sut.alertItem.value)
+        assertEquals(0, sut.copyPopoverIndex.value)
+        assertFalse(sut.showCopyCheckmark.value)
+        assertFalse(sut.isCopying.value)
+    }
+
+    @Test
+    fun onCopyConfirmed_whenTargetIsTheSource_doesNothing() = runTest {
+        val source = makeFood(id = "f1", hour = 8)
+        val sut = makeSUT(copyFoodsConsumed = CopyFoodsConsumedUseCaseFake(shouldThrow = true))
+        val sourceType = makeMealType(id = 0, hour = 8, endHour = 10)
+        sut.mealTypes.value = listOf(sourceType)
+        sut.copyTargetDay.value = sut.selectedDay.value
+        sut.copyTargetMealTypeId.value = "0"
+        sut.copyPopoverIndex.value = 0
+
+        sut.onCopyConfirmed(listOf(source), sourceType)
+
+        assertNull(sut.alertItem.value)
+        assertEquals(0, sut.copyPopoverIndex.value)
+    }
+
     // MARK: - Helpers
 
     private fun firstOfCurrentMonth(): Instant = todayAt(12).atZone(ZoneId.systemDefault()).withDayOfMonth(1).toInstant()
@@ -474,12 +640,14 @@ class DashboardViewModelTest {
         setupDefaultMeals: SetupDefaultMealsUseCaseProtocol = SetupDefaultMealsUseCaseFake(),
         confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult = true),
         deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
+        copyFoodsConsumed: CopyFoodsConsumedUseCaseProtocol = CopyFoodsConsumedUseCaseFake(),
     ): DashboardViewModel = DashboardViewModel(
         fetchMealTypes = fetchMealTypes,
         fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth,
         setupDefaultMeals = setupDefaultMeals,
         confirmMealTypesEmpty = confirmMealTypesEmpty,
         deleteFoodConsumed = deleteFoodConsumed,
+        copyFoodsConsumed = copyFoodsConsumed,
     )
 
     private fun todayAt(hour: Int, minute: Int = 0): Instant {
@@ -493,6 +661,11 @@ class DashboardViewModelTest {
         startMinutes = hour * 60 + minute,
         endMinutes = endHour * 60 + minute,
     )
+
+    private fun makeMealTypeExcludingNow(id: Int, offsetMinutes: Int = 120): MealTypeDomain {
+        val start = (Instant.now().minutesSinceMidnight() + offsetMinutes) % 1440
+        return MealTypeDomain(id = "$id", name = "Meal $id", startMinutes = start, endMinutes = (start + 60) % 1440)
+    }
 
     private fun makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1.0, mealTypeId: String? = null) = FoodConsumedDomain(
         id = id,

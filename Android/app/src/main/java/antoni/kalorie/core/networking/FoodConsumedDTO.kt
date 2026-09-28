@@ -8,6 +8,7 @@ import antoni.kalorie.core.utils.instantFromEpochSeconds
 import antoni.kalorie.macrokit.energyKJFromMacros
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.time.Instant
 import antoni.kalorie.macrokit.caloriesPerHundredGrams as derivedCaloriesPerHundredGrams
 
 @Serializable
@@ -36,14 +37,14 @@ data class FoodConsumedDTO(
 
     // MARK: - Init
 
-    constructor(food: FoodConsumedDomain, mealTypeId: String?) : this(
-        id = food.id,
+    constructor(food: FoodConsumedDomain, mealTypeId: String?, id: String? = null, date: Instant? = null) : this(
+        id = id ?: food.id,
         foodItemId = food.foodItemId,
         foodItemKind = food.foodItemKind,
         czName = food.czName,
         engName = food.engName,
         weight = food.weight,
-        date = food.date.epochSecondsAsDouble(),
+        date = (date ?: food.date).epochSecondsAsDouble(),
         calories = food.calories,
         caloriesPerHundredGrams = food.caloriesPerHundredGrams,
         energyKJ = food.energyKJ,

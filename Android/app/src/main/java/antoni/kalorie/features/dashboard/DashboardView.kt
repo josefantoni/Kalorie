@@ -67,6 +67,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import antoni.kalorie.R
+import antoni.kalorie.components.CopyIcon
 import antoni.kalorie.components.FoodConsumedView
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.utils.isLoading
@@ -97,6 +98,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val showAddFoodSheet by viewModel.showAddFoodSheet.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val isDeleteConfirmationVisible by viewModel.isDeleteConfirmationVisible.collectAsState()
+    val copyPopoverIndex by viewModel.copyPopoverIndex.collectAsState()
     val groupedFoods = remember(mealTypes, foodsConsumed) { viewModel.groupedFoods }
     val dailyMacros = remember(foodsConsumed) { viewModel.dailyMacros }
     val scope = rememberCoroutineScope()
@@ -168,12 +170,23 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         }
                         groupedFoods.forEachIndexed { index, group ->
                             item {
+                                val sectionName = group.mealType?.name ?: stringResource(R.string.dashboard_section_unassignedFoods)
                                 SectionHeader(
-                                    name = group.mealType?.name ?: stringResource(R.string.dashboard_section_unassignedFoods),
+                                    name = sectionName,
                                     foods = group.foods,
                                     isPopoverVisible = macroPopoverIndex == index,
                                     onPopoverRequested = { macroPopoverIndex = index },
                                     onPopoverDismissed = { macroPopoverIndex = null },
+                                    onCopyRequested = { viewModel.onCopyRequested(group.mealType, index) },
+                                    copyView = {
+                                        MealSectionCopyView(
+                                            viewModel = viewModel,
+                                            isVisible = copyPopoverIndex == index,
+                                            name = sectionName,
+                                            mealType = group.mealType,
+                                            foods = group.foods,
+                                        )
+                                    },
                                 )
                             }
                             items(group.foods, key = { it.id }) { food ->
@@ -290,6 +303,8 @@ private fun SectionHeader(
     isPopoverVisible: Boolean,
     onPopoverRequested: () -> Unit,
     onPopoverDismissed: () -> Unit,
+    onCopyRequested: () -> Unit,
+    copyView: @Composable () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp),
@@ -297,12 +312,24 @@ private fun SectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(text = name, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Box {
-            IconButton(onClick = onPopoverRequested) {
-                Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box {
+                IconButton(onClick = onCopyRequested) {
+                    Icon(
+                        CopyIcon,
+                        contentDescription = stringResource(R.string.dashboard_button_copy),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                copyView()
             }
-            DropdownMenu(expanded = isPopoverVisible, onDismissRequest = onPopoverDismissed) {
-                MealSectionMacroView(name = name, foods = foods)
+            Box {
+                IconButton(onClick = onPopoverRequested) {
+                    Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                DropdownMenu(expanded = isPopoverVisible, onDismissRequest = onPopoverDismissed) {
+                    MealSectionMacroView(name = name, foods = foods)
+                }
             }
         }
     }
