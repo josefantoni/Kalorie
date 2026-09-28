@@ -254,6 +254,7 @@ enum L10n {
 
     enum MealTypeSheet {
         static var sectionMealLayout: String { String(localized: "mealTypeSheet_section_mealLayout") }
+        static var sectionOther: String { String(localized: "mealTypeSheet_section_other") }
         static var fieldNewMealPlaceholder: String { String(localized: "mealTypeSheet_field_newMeal_placeholder") }
         static var datePickerFrom: String { String(localized: "mealTypeSheet_datePicker_from") }
         static var datePickerTo: String { String(localized: "mealTypeSheet_datePicker_to") }
