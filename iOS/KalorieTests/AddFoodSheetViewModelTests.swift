@@ -10,8 +10,6 @@ import XCTest
 
 final class AddFoodSheetViewModelTests: XCTestCase {
 
-    // MARK: - onScannerButtonTapped
-
     func test_onScannerButtonTapped_makesScannerVisible() {
         let sut = makeSUT()
         sut.onScannerButtonTapped()
@@ -24,8 +22,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         sut.onScannerButtonTapped()
         XCTAssertTrue(sut.isScannerVisible)
     }
-
-    // MARK: - onScenePhaseActive
 
     func test_onScenePhaseActive_whenScannerVisibleAndCameraStillAvailable_keepsScannerVisible() {
         let sut = makeSUT(isScannerVisible: true)
@@ -47,8 +43,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isScannerVisible)
         XCTAssertNil(sut.alertItem)
     }
-
-    // MARK: - onNutritionLabelPromptTapped
 
     @MainActor
     func test_onNutritionLabelPromptTapped_notDeterminedAndGranted_opensCamera() async {
@@ -88,8 +82,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertNil(sut.rejectionReasonBeingEdited)
         XCTAssertEqual(sut.formInput.scannedCode, "")
     }
-
-    // MARK: - onNutritionLabelCaptured / onNutritionLabelCameraDismissed
 
     @MainActor
     func test_onNutritionLabelCaptured_onSuccess_closesCameraAndPushesOnlyAfterDismissed() async {
@@ -168,8 +160,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.formInput.scannedCode, "87654321", "the resubmission's barcode is locked; a live scan must never silently redirect it to a different item")
     }
 
-    // MARK: - onBarcodeScanned
-
     func test_onBarcodeScanned_withEmptyBarcode_doesNothing() async {
         let sut = makeSUT()
         sut.lastScannedBarcode = ""
@@ -234,8 +224,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isScannerVisible, "a scanner left open would rescan the same code in frame and repeat the failing lookup")
     }
 
-    // MARK: - onSearchTextChanged
-
     func test_onSearchTextChanged_whenLocalSearchFails_localItemsAreEmptyAndNoAlert() async {
         let sut = makeSUT(searchFoodItems: SearchFoodItemsUseCaseFake(shouldThrow: true))
         sut.searchText = "tvaroh"
@@ -262,8 +250,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem)
     }
 
-    // MARK: - onSelectFoodItem
-
     @MainActor
     func test_onSelectFoodItem_setsSelectedFoodItemAndNavigates() {
         let sut = makeSUT()
@@ -280,8 +266,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.selectedFoodItem?.id, "A")
         XCTAssertTrue(sut.isPushedToQuantityView)
     }
-
-    // MARK: - onSelectFavouriteFood
 
     @MainActor
     func test_onSelectFavouriteFood_whenCatalogueCorrectedItem_selectsAndReplacesWithFreshItem() async {
@@ -307,8 +291,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isPushedToQuantityView)
     }
 
-    // MARK: - displayedResults
-
     @MainActor
     func test_displayedResults_hoistsMatchingFavouritesAboveCreatedMealsAndCatalog() async {
         let sut = makeSUT(
@@ -329,8 +311,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.displayedResults.first { $0.id == "meal" }?.kind, .createdMeal)
     }
 
-    // MARK: - isMyCreatedMeal
-
     @MainActor
     func test_isMyCreatedMeal_returnsTrueOnlyForCreatedMealKind() {
         let sut = makeSUT()
@@ -338,8 +318,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isMyCreatedMeal(makeFoodItem(kind: .catalogue)))
         XCTAssertFalse(sut.isMyCreatedMeal(makeFoodItem(kind: .external)))
     }
-
-    // MARK: - own submissions in displayedResults
 
     @MainActor
     func test_displayedResults_includesMatchingOwnSubmission() async {
@@ -357,8 +335,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertNil(sut.submissionStatus(for: makeFoodItem(id: "other-item")))
     }
 
-    // MARK: - onSelectRejectedSubmission
-
     @MainActor
     func test_onSelectRejectedSubmission_prefillsFormAndShowsRejectionReason() async {
         let submission = makeSubmission(id: "sub-1", barcode: "87654321", status: .rejected, rejectReason: "Wrong calories")
@@ -372,8 +348,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isEditingSubmission, "the barcode must be locked while resubmitting, or approving it can orphan entries logged under the old barcode")
         XCTAssertTrue(sut.isReviewPushed, "editing a rejected submission must push the review screen directly, skipping the camera prompt")
     }
-
-    // MARK: - onModeSelected
 
     @MainActor
     func test_onModeSelected_afterClosingRejectedSubmissionEdit_reopensAsFreshFormAndSubmitsNewItem() async {
@@ -421,8 +395,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.formInput.name, "Ovar", "re-tapping the active segment must not wipe a half-typed form")
     }
 
-    // MARK: - onSelectSubmission
-
     @MainActor
     func test_onSelectSubmission_forRejectedSubmission_opensThatExactSubmissionDespiteDuplicateBarcode() async {
         let rejected = makeSubmission(id: "sub-old", barcode: "shared-barcode", status: .rejected, rejectReason: "Wrong calories")
@@ -448,8 +420,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isPushedToQuantityView)
         XCTAssertEqual(sut.mode, .search)
     }
-
-    // MARK: - onCreateFoodItem
 
     @MainActor
     func test_onCreateFoodItem_withNoEditingSubmission_submitsNewFoodItem() async {
@@ -528,8 +498,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isSubmissionConfirmationVisible)
     }
 
-    // MARK: - onAddManuallyTapped
-
     @MainActor
     func test_onAddManuallyTapped_resetsFormAndPushesReviewWithoutOpeningCamera() {
         let sut = makeSUT()
@@ -542,8 +510,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.formInput.name, "")
     }
 
-    // MARK: - onSubmissionConfirmationDismissed
-
     @MainActor
     func test_onSubmissionConfirmationDismissed_dismissesSheet() {
         let sut = makeSUT()
@@ -552,8 +518,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isSubmissionConfirmationVisible)
         XCTAssertTrue(sut.shouldDismiss)
     }
-
-    // MARK: - onDeleteSubmissionRequested / onDeleteSubmissionConfirmed
 
     @MainActor
     func test_onDeleteSubmissionRequested_withoutConfirming_deletesNothing() async {
@@ -609,8 +573,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorWithdrawSubmissionFailed)
     }
 
-    // MARK: - delete created meal
-
     @MainActor
     func test_onDeleteMealConfirmed_removesRowOptimistically() async {
         let sut = makeSUT(fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "1", name: "A"), makeMeal(id: "2", name: "B")]))
@@ -648,8 +610,6 @@ final class AddFoodSheetViewModelTests: XCTestCase {
 
         XCTAssertEqual(sut.myCreatedMeals.map(\.id), ["1"])
     }
-
-    // MARK: - onMyCreatedMealSaved
 
     @MainActor
     func test_onMyCreatedMealSaved_returnsToSearchWithTheNewMealImmediatelyLoggable() async {

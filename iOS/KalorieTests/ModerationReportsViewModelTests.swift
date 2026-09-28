@@ -10,8 +10,6 @@ import XCTest
 
 final class ModerationReportsViewModelTests: XCTestCase {
 
-    // MARK: - onAppear
-
     @MainActor
     func test_onAppear_groupsReportsByBarcode() async {
         let reports = [
@@ -121,8 +119,6 @@ final class ModerationReportsViewModelTests: XCTestCase {
 
         XCTAssertEqual(sut.groups.count, 2, "a duplicate id from the name lookup must not trap and wipe out the whole queue")
     }
-
-    // MARK: - onResolveTapped
 
     @MainActor
     func test_onResolveTapped_deletesEveryReportInTheGroupAndRemovesIt() async throws {

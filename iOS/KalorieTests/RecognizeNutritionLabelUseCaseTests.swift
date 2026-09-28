@@ -56,8 +56,6 @@ final class RecognizeNutritionLabelUseCaseTests: XCTestCase {
         }
     }
 
-    // MARK: - Image orientation
-
     func test_cgImagePropertyOrientation_matchesEachUIImageOrientationOneToOne() {
         // A UIImage's cgImage carries only raw sensor pixels, never the UIImage's own
         // imageOrientation — passing the wrong Vision orientation reads a portrait photo's text

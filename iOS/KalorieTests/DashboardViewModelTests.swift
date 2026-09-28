@@ -10,14 +10,10 @@ import XCTest
 
 final class DashboardViewModelTests: XCTestCase {
 
-    // MARK: - DailyMacros
-
     func test_dailyMacros_whenAFoodsFiberIsUnknown_showsZeroInsteadOfExcludingIt() {
         let macros = DailyMacros(foods: [makeFood(id: "1", hour: 8, fiber: nil), makeFood(id: "2", hour: 9, fiber: 3)])
         XCTAssertEqual(macros.fiber, 3)
     }
-
-    // MARK: - groupedFoods — no foods
 
     func test_groupedFoods_withNoFoodsConsumed_returnsEmpty() {
         let sut = makeSUT()
@@ -25,8 +21,6 @@ final class DashboardViewModelTests: XCTestCase {
         sut.foodsConsumed = []
         XCTAssertTrue(sut.groupedFoods.isEmpty)
     }
-
-    // MARK: - groupedFoods — assignment
 
     func test_groupedFoods_foodWithinRange_isAssignedToMealType() {
         let sut = makeSUT()
@@ -66,8 +60,6 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertNil(groups[0].mealType)
     }
 
-    // MARK: - groupedFoods — ordering
-
     func test_groupedFoods_nilGroupAppearsLast() {
         let sut = makeSUT()
         sut.mealTypes = [makeMealType(id: 0, hour: 8, endHour: 12)]
@@ -106,8 +98,6 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertEqual(groups.count, 1)
         XCTAssertEqual(groups[0].mealType?.id, "0")
     }
-
-    // MARK: - groupedFoods — pinning (ADR 0022)
 
     func test_groupedFoods_pinnedFood_isAssignedToPinnedMealTypeRegardlessOfTime_andKeepsItsLoggedDate() {
         let sut = makeSUT()
@@ -173,8 +163,6 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertEqual(groups.count, 1)
         XCTAssertEqual(groups[0].mealType?.id, "0")
     }
-
-    // MARK: - onAppear
 
     @MainActor
     func test_onAppear_whenMealTypesEmpty_callsSetupDefaultMeals() async {
@@ -249,8 +237,6 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.alertItem)
     }
 
-    // MARK: - onRefresh
-
     @MainActor
     func test_onRefresh_beforeInitialLoadCompletes_doesNothing() async {
         let sut = makeSUT(fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [makeMealType(id: 0, hour: 8, endHour: 12)]))
@@ -265,8 +251,6 @@ final class DashboardViewModelTests: XCTestCase {
         await sut.onRefresh()
         XCTAssertFalse(sut.mealTypes.isEmpty)
     }
-
-    // MARK: - delete
 
     @MainActor
     func test_onDeleteRequested_showsConfirmation() {
@@ -314,8 +298,6 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.alertItem)
     }
 
-    // MARK: - Copy — defaults
-
     func test_onCopyRequested_opensTheBoxOnTodayAndTheWindowTheCurrentTimeFallsIn() {
         let sut = makeSUT()
         let wholeDay = makeMealType(id: 0, hour: 0, endHour: 24)
@@ -347,8 +329,6 @@ final class DashboardViewModelTests: XCTestCase {
 
         XCTAssertEqual(sut.copyTargetMealTypeId, "0")
     }
-
-    // MARK: - Copy — canCopy
 
     func test_canCopy_whenTargetIsTheSameDayAndSameMealType_isFalse() {
         let sut = makeSUT()
@@ -392,8 +372,6 @@ final class DashboardViewModelTests: XCTestCase {
 
         XCTAssertFalse(sut.canCopy(from: nil))
     }
-
-    // MARK: - Copy — confirm
 
     @MainActor
     func test_onCopyConfirmed_whenCopySucceeds_reloadsTheDayAndClosesTheBox() async {
@@ -467,8 +445,6 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem, "the use case must not even be called when the target is the source")
         XCTAssertEqual(sut.copyPopoverIndex, 0)
     }
-
-    // MARK: - Sign-in spotlight
 
     @MainActor
     func test_onAppear_whenAnonymousWithLoggedFoodAndNeverShown_showsSpotlightAndStoresNow() async {

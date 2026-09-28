@@ -10,8 +10,6 @@ import XCTest
 
 final class NonceGeneratorTests: XCTestCase {
 
-    // MARK: - randomNonceString
-
     func test_randomNonceString_hasRequestedLength() {
         XCTAssertEqual(NonceGenerator.randomNonceString(length: 32).count, 32)
         XCTAssertEqual(NonceGenerator.randomNonceString(length: 10).count, 10)
@@ -28,8 +26,6 @@ final class NonceGeneratorTests: XCTestCase {
         let second = NonceGenerator.randomNonceString()
         XCTAssertNotEqual(first, second, "nonce musí být pokaždé jiný, jinak by šlo o replay útok")
     }
-
-    // MARK: - sha256
 
     func test_sha256_ofEmptyString_matchesKnownVector() {
         XCTAssertEqual(

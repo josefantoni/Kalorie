@@ -10,8 +10,6 @@ import XCTest
 
 final class ModerationCatalogueEditorViewModelTests: XCTestCase {
 
-    // MARK: - onSearchTapped
-
     @MainActor
     func test_onSearchTapped_whenFound_prefillsFormAndHidesPreviousCheckmark() async {
         let item = makeItem()
@@ -30,8 +28,6 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         await sut.onSearchTapped()
         XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorBarcodeNotFound)
     }
-
-    // MARK: - onSaveTapped
 
     @MainActor
     func test_onSaveTapped_preservesTheOriginalItemsDate() async {
@@ -69,8 +65,6 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         XCTAssertFalse(sut.showCheckmark)
     }
 
-    // MARK: - onNutritionLabelCaptured
-
     @MainActor
     func test_onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() async {
         let item = makeItem()
@@ -89,8 +83,6 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         XCTAssertEqual(sut.formInput.fat, originalFat, "a field already holding a loaded value must never be overwritten by the photo")
         XCTAssertEqual(sut.formInput.fiber, 1, "a field still at its default must be filled")
     }
-
-    // MARK: - onAppear (initialBarcode)
 
     @MainActor
     func test_onAppear_withInitialBarcode_prefillsFormFromIt() async {

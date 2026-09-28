@@ -10,8 +10,6 @@ import XCTest
 
 final class NutritionLabelParserTests: XCTestCase {
 
-    // MARK: - Fixture
-
     func test_parse_matchesSharedFixtureCases() throws {
         let fixture: ParsingFixture = try FixtureLoader.load("nutrition-label-parsing-cases")
         for parsingCase in fixture.cases {
@@ -35,8 +33,6 @@ final class NutritionLabelParserTests: XCTestCase {
             assertEqual(reading.salt, expected.salt, name)
         }
     }
-
-    // MARK: - Foundation Models merge
 
     func test_merging_fillsNameAndPortionsTheParserCouldNotFind() {
         let reading = NutritionLabelParser.parse(lines: czechLabelLines())
@@ -106,8 +102,6 @@ final class NutritionLabelParserTests: XCTestCase {
     private let saturatesValueBox = CGRect(x: 0.6, y: 0.65, width: 0.15, height: 0.05)
     private let carbohydrateValueBox = CGRect(x: 0.6, y: 0.55, width: 0.15, height: 0.05)
     private let energyValueBox = CGRect(x: 0.6, y: 0.8, width: 0.3, height: 0.05)
-
-    // MARK: - Fixture model
 
     private struct ParsingFixture: Decodable {
         let cases: [ParsingCase]

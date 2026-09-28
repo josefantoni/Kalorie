@@ -10,8 +10,6 @@ import XCTest
 
 final class FoodItemFormInputTests: XCTestCase {
 
-    // MARK: - init(item:)
-
     func test_initFromItem_preservesEnglishName() {
         let item = makeItem(engName: "Cottage cheese")
         let sut = FoodItemFormInput(item: item)
@@ -31,8 +29,6 @@ final class FoodItemFormInputTests: XCTestCase {
         XCTAssertEqual(sut.fatSaturated, 1.5)
         XCTAssertEqual(sut.fiber, 2.5)
     }
-
-    // MARK: - asFoodItemDomain
 
     func test_asFoodItemDomain_roundTripsEnglishName() {
         var sut = FoodItemFormInput(item: makeItem(engName: "Cottage cheese"))
@@ -54,8 +50,6 @@ final class FoodItemFormInputTests: XCTestCase {
         XCTAssertEqual(sut.asFoodItemDomain().fatSaturated, 3)
     }
 
-    // MARK: - Measure and package weight
-
     func test_asFoodItemDomain_forNewItem_writesHundredAsPackageWeightBecauseTheUserNoLongerEntersIt() {
         var sut = FoodItemFormInput()
         sut.measure = .millilitres
@@ -69,8 +63,6 @@ final class FoodItemFormInputTests: XCTestCase {
         XCTAssertEqual(sut.weightOfProduct, 1500)
         XCTAssertEqual(sut.asFoodItemDomain().weight, 1500)
     }
-
-    // MARK: - applying(_:)
 
     func test_applying_readingWithMillilitres_setsMeasureAndReportsItChanged() {
         var sut = FoodItemFormInput()
