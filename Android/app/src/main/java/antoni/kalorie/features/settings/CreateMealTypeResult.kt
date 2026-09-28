@@ -1,4 +1,4 @@
-package antoni.kalorie.features.mealtypesheet
+package antoni.kalorie.features.settings
 
 sealed class CreateMealTypeError : Exception() {
     data object EmptyName : CreateMealTypeError()

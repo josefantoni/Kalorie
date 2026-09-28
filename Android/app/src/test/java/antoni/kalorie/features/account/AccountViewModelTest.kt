@@ -9,8 +9,6 @@ import antoni.kalorie.core.auth.MergeStatusReportingFake
 import antoni.kalorie.core.usecases.DeleteAccountError
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseFake
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseProtocol
-import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseFake
-import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseProtocol
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialError
 import antoni.kalorie.core.usecases.ReauthenticateUseCaseFake
 import antoni.kalorie.core.usecases.ReauthenticateUseCaseProtocol
@@ -20,32 +18,11 @@ import antoni.kalorie.core.usecases.SignOutUseCaseFake
 import antoni.kalorie.core.usecases.SignOutUseCaseProtocol
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AccountViewModelTest {
-
-    // MARK: - onAppear
-
-    @Test
-    fun onAppear_whenMaintainerClaimIsTrue_setsIsMaintainer() = runTest {
-        val sut = makeSUT(fetchMaintainerClaim = FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer = true))
-
-        sut.onAppear()
-
-        assertTrue(sut.isMaintainer.value)
-    }
-
-    @Test
-    fun onAppear_whenMaintainerClaimIsFalse_leavesIsMaintainerFalse() = runTest {
-        val sut = makeSUT(fetchMaintainerClaim = FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer = false))
-
-        sut.onAppear()
-
-        assertFalse(sut.isMaintainer.value)
-    }
 
     // MARK: - Reading the auth provider
 
@@ -68,16 +45,6 @@ class AccountViewModelTest {
         sut.onSignOutTapped()
 
         assertNull(sut.alertItem.value)
-    }
-
-    @Test
-    fun onSignOutTapped_whenSucceeds_clearsTheMaintainerFlag() = runTest {
-        val sut = makeSUT(fetchMaintainerClaim = FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer = true))
-        sut.onAppear()
-
-        sut.onSignOutTapped()
-
-        assertFalse(sut.isMaintainer.value)
     }
 
     @Test
@@ -221,7 +188,6 @@ class AccountViewModelTest {
         signInWithGoogle: SignInWithGoogleUseCaseProtocol = SignInWithGoogleUseCaseFake(),
         deleteAccount: DeleteAccountUseCaseProtocol = DeleteAccountUseCaseFake(),
         reauthenticate: ReauthenticateUseCaseProtocol = ReauthenticateUseCaseFake(),
-        fetchMaintainerClaim: FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake(),
         mergeStatusReporting: MergeStatusReporting = MergeStatusReportingFake(),
     ): AccountViewModel = AccountViewModel(
         authProvider = authProvider,
@@ -229,7 +195,6 @@ class AccountViewModelTest {
         signInWithGoogle = signInWithGoogle,
         deleteAccount = deleteAccount,
         reauthenticate = reauthenticate,
-        fetchMaintainerClaim = fetchMaintainerClaim,
         mergeStatusReporting = mergeStatusReporting,
     )
 

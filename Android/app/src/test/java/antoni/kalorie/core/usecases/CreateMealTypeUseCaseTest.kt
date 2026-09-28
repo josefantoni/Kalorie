@@ -3,7 +3,7 @@ package antoni.kalorie.core.usecases
 import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
-import antoni.kalorie.features.mealtypesheet.CreateMealTypeError
+import antoni.kalorie.features.settings.CreateMealTypeError
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

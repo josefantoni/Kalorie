@@ -7,7 +7,6 @@ import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.usecases.DeleteAccountError
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseProtocol
-import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseProtocol
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialError
 import antoni.kalorie.core.usecases.ReauthenticateUseCaseProtocol
 import antoni.kalorie.core.usecases.SignInWithGoogleUseCaseProtocol
@@ -25,7 +24,6 @@ class AccountViewModel(
     private val signInWithGoogle: SignInWithGoogleUseCaseProtocol,
     private val deleteAccount: DeleteAccountUseCaseProtocol,
     private val reauthenticate: ReauthenticateUseCaseProtocol,
-    private val fetchMaintainerClaim: FetchMaintainerClaimUseCaseProtocol,
     private val mergeStatusReporting: MergeStatusReporting,
 ) : ViewModel() {
 
@@ -44,8 +42,6 @@ class AccountViewModel(
     val alertItem = MutableStateFlow<AlertItem?>(null)
     val showDeleteConfirmation = MutableStateFlow(false)
     val isReauthenticateAlertVisible = MutableStateFlow(false)
-    private val _isMaintainer = MutableStateFlow(false)
-    val isMaintainer: StateFlow<Boolean> = _isMaintainer
     private var isDataAlreadyWiped = false
 
     private val _isAnonymous = MutableStateFlow(authProvider.isAnonymous)
@@ -55,20 +51,9 @@ class AccountViewModel(
 
     // MARK: - Functions
 
-    suspend fun onAppear() {
-        try {
-            _isMaintainer.value = fetchMaintainerClaim()
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Log.warning(error, Constants.LogCategory.ACCOUNT)
-        }
-    }
-
     suspend fun onSignOutTapped() {
         try {
             signOut()
-            _isMaintainer.value = false
             refreshAuthState()
         } catch (error: CancellationException) {
             throw error

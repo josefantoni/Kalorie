@@ -1,10 +1,12 @@
-package antoni.kalorie.features.mealtypesheet
+package antoni.kalorie.features.settings
 
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.usecases.CreateMealTypeUseCaseFake
 import antoni.kalorie.core.usecases.CreateMealTypeUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteMealTypeUseCaseFake
 import antoni.kalorie.core.usecases.DeleteMealTypeUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseFake
+import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCaseProtocol
 import antoni.kalorie.core.utils.minutesSinceMidnight
@@ -16,7 +18,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class MealTypeSheetViewModelTest {
+class SettingsViewModelTest {
 
     // MARK: - onMove
 
@@ -184,6 +186,26 @@ class MealTypeSheetViewModelTest {
         assertTrue(sut.isAddFormVisible.value)
     }
 
+    // MARK: - onAppear
+
+    @Test
+    fun onAppear_whenMaintainerClaimIsTrue_setsIsMaintainer() = runTest {
+        val sut = makeSUT(fetchMaintainerClaim = FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer = true))
+
+        sut.onAppear()
+
+        assertTrue(sut.isMaintainer.value)
+    }
+
+    @Test
+    fun onAppear_whenMaintainerClaimIsFalse_leavesIsMaintainerFalse() = runTest {
+        val sut = makeSUT(fetchMaintainerClaim = FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer = false))
+
+        sut.onAppear()
+
+        assertFalse(sut.isMaintainer.value)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
@@ -191,11 +213,13 @@ class MealTypeSheetViewModelTest {
         createMealType: CreateMealTypeUseCaseProtocol = CreateMealTypeUseCaseFake(),
         deleteMealType: DeleteMealTypeUseCaseProtocol = DeleteMealTypeUseCaseFake(),
         updateMealTypeTimes: UpdateMealTypeTimesUseCaseProtocol = UpdateMealTypeTimesUseCaseFake(),
-    ): MealTypeSheetViewModel = MealTypeSheetViewModel(
+        fetchMaintainerClaim: FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake(),
+    ): SettingsViewModel = SettingsViewModel(
         mealTypes = mealTypes,
         createMealType = createMealType,
         deleteMealType = deleteMealType,
         updateMealTypeTimes = updateMealTypeTimes,
+        fetchMaintainerClaim = fetchMaintainerClaim,
     )
 
     private fun makeMealType(id: Int, name: String, hour: Int, endHour: Int): MealTypeDomain = MealTypeDomain(id = "$id", name = name, startMinutes = hour * 60, endMinutes = endHour * 60)

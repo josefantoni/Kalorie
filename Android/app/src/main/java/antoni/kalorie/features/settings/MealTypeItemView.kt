@@ -1,4 +1,4 @@
-package antoni.kalorie.features.mealtypesheet
+package antoni.kalorie.features.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
