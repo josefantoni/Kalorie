@@ -135,4 +135,43 @@ class MealWindowsTest {
         assertEquals("night", mealWindowAt(minutes = 60, windows = windows)?.id)
         assertNull(mealWindowAt(minutes = 200, windows = windows))
     }
+
+    @Test
+    fun copyTargetMinutes_todayInsideTargetWindow_usesNow() {
+        assertEquals(400, copyTargetMinutes(nowMinutes = 400, targetId = "breakfast", windows = listOf(breakfast, lunch)))
+    }
+
+    @Test
+    fun copyTargetMinutes_todayOutsideTargetWindow_usesWindowStart() {
+        assertEquals(660, copyTargetMinutes(nowMinutes = 400, targetId = "lunch", windows = listOf(breakfast, lunch)))
+    }
+
+    @Test
+    fun copyTargetMinutes_notToday_usesWindowStartEvenWhenNowWouldFit() {
+        assertEquals(360, copyTargetMinutes(nowMinutes = null, targetId = "breakfast", windows = listOf(breakfast, lunch)))
+    }
+
+    @Test
+    fun copyTargetMinutes_atWindowEnd_isOutsideAndUsesWindowStart() {
+        assertEquals(360, copyTargetMinutes(nowMinutes = 600, targetId = "breakfast", windows = listOf(breakfast, lunch)))
+    }
+
+    @Test
+    fun copyTargetMinutes_unknownTarget_isNull() {
+        assertNull(copyTargetMinutes(nowMinutes = 400, targetId = "deleted", windows = listOf(breakfast, lunch)))
+    }
+
+    @Test
+    fun copyTargetMinutes_targetWrappingMidnight_matchesBothSides() {
+        assertEquals(1400, copyTargetMinutes(nowMinutes = 1400, targetId = "night", windows = listOf(breakfast, night)))
+        assertEquals(60, copyTargetMinutes(nowMinutes = 60, targetId = "night", windows = listOf(breakfast, night)))
+        assertEquals(1320, copyTargetMinutes(nowMinutes = 200, targetId = "night", windows = listOf(breakfast, night)))
+    }
+
+    @Test
+    fun copyTargetMinutes_targetLosingTheOverlapTieBreak_stillUsesNow() {
+        val early = MealWindow(id = "early", startMinutes = 360, endMinutes = 700)
+        val late = MealWindow(id = "late", startMinutes = 480, endMinutes = 720)
+        assertEquals(500, copyTargetMinutes(nowMinutes = 500, targetId = "late", windows = listOf(early, late)))
+    }
 }
