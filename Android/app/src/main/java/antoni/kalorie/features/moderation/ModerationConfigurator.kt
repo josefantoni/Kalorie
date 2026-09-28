@@ -3,6 +3,7 @@ package antoni.kalorie.features.moderation
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProviderProtocol
+import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.nutritionlabelrecognition.MlKitTextRecognizer
@@ -57,8 +58,8 @@ class ModerationConfigurator(
         ModerationReportsView(
             viewModel = viewModel,
             onDismiss = onDismiss,
-            makeCatalogueEditorView = { barcode, onEditorDismiss ->
-                MakeCatalogueEditorView(initialBarcode = barcode, onDismiss = onEditorDismiss)
+            makeCatalogueEditorView = { barcode, reports, onEditorDismiss ->
+                MakeCatalogueEditorView(initialBarcode = barcode, onDismiss = onEditorDismiss, reports = reports)
             },
         )
     }
@@ -85,7 +86,11 @@ class ModerationConfigurator(
     }
 
     @Composable
-    private fun MakeCatalogueEditorView(initialBarcode: String?, onDismiss: () -> Unit) {
+    private fun MakeCatalogueEditorView(
+        initialBarcode: String?,
+        onDismiss: () -> Unit,
+        reports: List<FoodItemReportDomain> = emptyList(),
+    ) {
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
@@ -94,6 +99,6 @@ class ModerationConfigurator(
                 initialBarcode = initialBarcode,
             )
         }
-        ModerationCatalogueEditorView(viewModel = viewModel, onDismiss = onDismiss)
+        ModerationCatalogueEditorView(viewModel = viewModel, onDismiss = onDismiss, reports = reports)
     }
 }

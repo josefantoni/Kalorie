@@ -49,7 +49,7 @@
     <string name="addFood_field_fatSaturated">z toho nasycené</string>
     <string name="addFood_field_fatUnsaturated">z toho nenasycené</string>
     <string name="addFood_field_fiber">Vláknina</string>
-    <string name="addFood_field_measure">Měří se v</string>
+    <string name="addFood_field_measure">Nutriční hodnoty na</string>
     <string name="addFood_field_name_placeholder">Tvaroh nízkotučný</string>
     <string name="addFood_field_name_title">Název potraviny</string>
     <string name="addFood_field_protein">Bílkoviny</string>

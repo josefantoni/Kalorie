@@ -3,7 +3,6 @@ package antoni.kalorie.components
 enum class FoodItemFormField {
     NAME,
     MEASURE,
-    WEIGHT,
     ENERGY_KJ,
     CALORIES,
     PROTEIN,

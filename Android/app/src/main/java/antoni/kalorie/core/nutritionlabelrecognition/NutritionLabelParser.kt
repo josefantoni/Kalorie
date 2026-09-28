@@ -59,8 +59,8 @@ object NutritionLabelParser {
     // MARK: - Functions
 
     fun parse(lines: List<RecognizedTextLine>): NutritionLabelReading {
-        val weightResult = packageWeight(lines)
-        var reading = NutritionLabelReading(weightOfProduct = weightResult?.first)
+        val packageMeasure = packageWeight(lines)?.second
+        var reading = NutritionLabelReading()
 
         val header = perHundredHeader(lines)
         if (header != null) {
@@ -70,12 +70,12 @@ object NutritionLabelParser {
         }
 
         reading = if (hasNoMacros(reading) && hasNutritionContext(lines)) {
-            applyingConsistencyChecks(parseLinear(lines)).copy(weightOfProduct = reading.weightOfProduct)
+            applyingConsistencyChecks(parseLinear(lines))
         } else {
             applyingConsistencyChecks(reading)
         }
 
-        reading = reading.copy(measure = header?.second ?: linearMeasure(lines) ?: weightResult?.second)
+        reading = reading.copy(measure = header?.second ?: linearMeasure(lines) ?: packageMeasure)
 
         return derivingUnsaturated(reading)
     }

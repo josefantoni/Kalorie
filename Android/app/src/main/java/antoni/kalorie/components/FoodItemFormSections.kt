@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -141,7 +139,6 @@ fun FoodItemFormFields(
 ) {
     // MARK: - Properties
 
-    var isWeightUnitMenuVisible by remember { mutableStateOf(false) }
     val measures = FoodMeasure.entries
     fun edit(field: FoodItemFormField, transform: FoodItemFormInput.() -> FoodItemFormInput) {
         onFormInputChange(formInput.transform())
@@ -161,6 +158,7 @@ fun FoodItemFormFields(
                 fontWeight = highlightWeight(isHighlighted(FoodItemFormField.MEASURE)),
                 modifier = Modifier.weight(1f),
             )
+            Text(text = "100", modifier = Modifier.padding(end = 8.dp))
             SingleChoiceSegmentedButtonRow(modifier = Modifier.width(180.dp)) {
                 measures.forEachIndexed { index, measure ->
                     SegmentedButton(
@@ -171,42 +169,6 @@ fun FoodItemFormFields(
                         Text(stringResource(measure.unitSymbolRes))
                     }
                 }
-            }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.addFood_field_weight),
-                fontWeight = highlightWeight(isHighlighted(FoodItemFormField.WEIGHT)),
-                modifier = Modifier.weight(1f),
-            )
-            DecimalTextField(
-                value = formInput.weightOfProduct,
-                onValueChange = { edit(FoodItemFormField.WEIGHT) { copy(weightOfProduct = it) } },
-                isHighlighted = isHighlighted(FoodItemFormField.WEIGHT),
-                modifier = Modifier.width(100.dp),
-            )
-            TextButton(onClick = { isWeightUnitMenuVisible = true }) {
-                Text(stringResource(if (formInput.isWeightInThousands) formInput.measure.thousandUnitSymbolRes else formInput.measure.unitSymbolRes))
-            }
-            DropdownMenu(expanded = isWeightUnitMenuVisible, onDismissRequest = { isWeightUnitMenuVisible = false }) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(formInput.measure.unitSymbolRes)) },
-                    onClick = {
-                        isWeightUnitMenuVisible = false
-                        onFormInputChange(formInput.withWeightInThousands(false))
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(formInput.measure.thousandUnitSymbolRes)) },
-                    onClick = {
-                        isWeightUnitMenuVisible = false
-                        onFormInputChange(formInput.withWeightInThousands(true))
-                    },
-                )
             }
         }
         val grams = stringResource(R.string.common_unit_grams)
@@ -294,13 +256,5 @@ private fun DecimalTextField(value: Double, onValueChange: (Double) -> Unit, isH
 }
 
 private fun formattedDecimal(value: Double): String = if (value == 0.0) "" else BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
-
-private fun FoodItemFormInput.withWeightInThousands(newValue: Boolean): FoodItemFormInput {
-    if (newValue == isWeightInThousands) return this
-    return copy(
-        weightOfProduct = if (newValue) weightOfProduct / 1000 else weightOfProduct * 1000,
-        isWeightInThousands = newValue,
-    )
-}
 
 private fun highlightWeight(isHighlighted: Boolean): FontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Normal

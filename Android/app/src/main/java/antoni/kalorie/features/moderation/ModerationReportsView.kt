@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.utils.isLoading
 import kotlinx.coroutines.launch
 
@@ -46,14 +47,14 @@ import kotlinx.coroutines.launch
 fun ModerationReportsView(
     viewModel: ModerationReportsViewModel,
     onDismiss: () -> Unit,
-    makeCatalogueEditorView: @Composable (barcode: String?, onDismiss: () -> Unit) -> Unit,
+    makeCatalogueEditorView: @Composable (barcode: String, reports: List<FoodItemReportDomain>, onDismiss: () -> Unit) -> Unit,
 ) {
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()
     val groups by viewModel.groups.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
-    var editedBarcode by remember { mutableStateOf<String?>(null) }
+    var editedGroup by remember { mutableStateOf<ReportGroup?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
@@ -96,7 +97,7 @@ fun ModerationReportsView(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { editedBarcode = group.barcode }
+                                .clickable { editedGroup = group }
                                 .padding(start = 16.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -124,8 +125,8 @@ fun ModerationReportsView(
         }
     }
 
-    editedBarcode?.let { barcode ->
-        makeCatalogueEditorView(barcode) { editedBarcode = null }
+    editedGroup?.let { group ->
+        makeCatalogueEditorView(group.barcode, group.reports) { editedGroup = null }
     }
 
     alertItem?.let { item ->

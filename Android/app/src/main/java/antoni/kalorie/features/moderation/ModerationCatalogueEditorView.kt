@@ -15,8 +15,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,9 +38,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.BarcodeIcon
+import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.rememberScannerAccess
+import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.addfoodsheet.NutritionLabelCameraView
@@ -46,7 +50,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel, onDismiss: () -> Unit) {
+fun ModerationCatalogueEditorView(
+    viewModel: ModerationCatalogueEditorViewModel,
+    onDismiss: () -> Unit,
+    reports: List<FoodItemReportDomain> = emptyList(),
+) {
     // MARK: - Properties
 
     val barcodeQuery by viewModel.barcodeQuery.collectAsState()
@@ -96,20 +104,37 @@ fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel,
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
                 Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        TextField(
-                            value = barcodeQuery,
-                            onValueChange = { viewModel.barcodeQuery.value = it },
-                            placeholder = { Text(stringResource(R.string.moderation_editor_searchPlaceholder)) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            modifier = Modifier.weight(1f),
+                    if (reports.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.moderation_reports_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
                         )
-                        IconButton(onClick = { scope.launch { viewModel.onSearchTapped() } }) {
-                            Icon(BarcodeIcon, contentDescription = null)
+                        reports.forEach { report ->
+                            Text(
+                                text = report.reason,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            )
+                        }
+                        HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
+                    }
+                    if (!viewModel.isOpenedFromReport) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextField(
+                                value = barcodeQuery,
+                                onValueChange = { viewModel.barcodeQuery.value = it },
+                                placeholder = { Text(stringResource(R.string.moderation_editor_searchPlaceholder)) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                            )
+                            IconButton(onClick = { scope.launch { viewModel.onSearchTapped() } }) {
+                                Icon(BarcodeIcon, contentDescription = null)
+                            }
                         }
                     }
                     if (loadedItem != null) {
@@ -117,7 +142,8 @@ fun ModerationCatalogueEditorView(viewModel: ModerationCatalogueEditorViewModel,
                             formInput = formInput,
                             onFormInputChange = { viewModel.formInput.value = it },
                             highlightedFields = recognizedFields,
-                            onNutritionLabelScanTapped = scannerAccess.open,
+                            barcodeRow = if (viewModel.isOpenedFromReport) FoodItemFormBarcodeRow.Locked else FoodItemFormBarcodeRow.Hidden,
+                            onNutritionLabelScanTapped = if (viewModel.isOpenedFromReport) null else scannerAccess.open,
                             onFieldEdited = viewModel::onFormFieldEdited,
                         )
                     }

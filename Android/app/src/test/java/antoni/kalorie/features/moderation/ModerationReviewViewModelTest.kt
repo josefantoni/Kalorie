@@ -93,12 +93,12 @@ class ModerationReviewViewModelTest {
 
     @Test
     fun onApproveTapped_whenValidationFails_showsFieldSpecificMessageAndDoesNotDismiss() = runTest {
-        val approveSubmission = ApproveSubmissionUseCaseSpy(errorToThrow = CreateFoodItemError.InvalidWeight)
+        val approveSubmission = ApproveSubmissionUseCaseSpy(errorToThrow = CreateFoodItemError.InvalidCalories)
         val sut = makeSUT(approveSubmission = approveSubmission)
 
         sut.onApproveTapped()
 
-        assertEquals(R.string.addFood_error_invalidWeight, sut.alertItem.value?.titleRes)
+        assertEquals(R.string.addFood_error_invalidCalories, sut.alertItem.value?.titleRes)
         assertFalse(sut.shouldDismiss.value)
     }
 
