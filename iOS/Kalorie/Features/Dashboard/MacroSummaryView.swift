@@ -40,9 +40,9 @@ struct MacroSummaryView: View {
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 detailRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar, dotColor: .orange)
+                detailRow(label: L10n.AddFood.fieldSalt, value: macros.salt)
                 detailRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated, dotColor: .pink)
                 detailRow(label: L10n.AddFood.fieldFiber, value: macros.fiber)
-                detailRow(label: L10n.AddFood.fieldSalt, value: macros.salt)
             }
             .padding(.horizontal)
         }
@@ -70,15 +70,18 @@ struct MacroSummaryView: View {
 
     private func detailRow(label: String, value: Double, dotColor: Color? = nil) -> some View {
         HStack(spacing: 4) {
-            if let dotColor {
-                Circle()
-                    .fill(dotColor)
-                    .frame(width: 6, height: 6)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                if let dotColor {
+                    Circle()
+                        .fill(dotColor)
+                        .frame(width: 6, height: 6)
+                }
+                Text(label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
             Spacer()
             Text(value.formattedGrams())
                 .font(.caption.bold())

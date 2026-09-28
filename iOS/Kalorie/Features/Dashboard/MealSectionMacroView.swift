@@ -23,6 +23,7 @@ struct MealSectionMacroView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(name)
                 .font(.headline)
+                .foregroundStyle(Color(.label))
             Divider()
 
             MacroDonutView(protein: macros.protein, carbs: macros.carbs, fat: macros.fat, calories: macros.calories, size: 120)
@@ -30,12 +31,13 @@ struct MealSectionMacroView: View {
                 .padding(.vertical, 4)
 
             Divider()
-            macroRow(label: L10n.FoodQuantity.protein, value: macros.protein.formattedGrams())
-            macroRow(label: L10n.FoodQuantity.carbs, value: macros.carbs.formattedGrams())
-            macroRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar.formattedGrams(), indented: true)
-            macroRow(label: L10n.FoodQuantity.fat, value: macros.fat.formattedGrams())
-            macroRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated.formattedGrams(), indented: true)
+            macroRow(label: L10n.FoodQuantity.protein, value: macros.protein.formattedGrams(), dotColor: .blue)
+            macroRow(label: L10n.FoodQuantity.carbs, value: macros.carbs.formattedGrams(), dotColor: .orange)
+            macroRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar.formattedGrams(), dotColor: .orange, indented: true)
+            macroRow(label: L10n.FoodQuantity.fat, value: macros.fat.formattedGrams(), dotColor: .pink)
+            macroRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated.formattedGrams(), dotColor: .pink, indented: true)
             macroRow(label: L10n.AddFood.fieldFiber, value: macros.fiber.formattedGrams())
+            macroRow(label: L10n.AddFood.fieldSalt, value: macros.salt.formattedGrams())
         }
         .padding()
         .frame(minWidth: 200)
@@ -43,16 +45,18 @@ struct MealSectionMacroView: View {
 
     // MARK: - Functions
 
-    private func macroRow(label: String, value: String, indented: Bool = false) -> some View {
-        HStack {
+    private func macroRow(label: String, value: String, dotColor: Color? = nil, indented: Bool = false) -> some View {
+        HStack(spacing: 4) {
             if indented { Spacer().frame(width: 12) }
+            Circle()
+                .fill(dotColor ?? .clear)
+                .frame(width: indented ? 6 : 8, height: indented ? 6 : 8)
             Text(label)
-                .foregroundStyle(indented ? .tertiary : .secondary)
             Spacer()
             Text(value)
                 .bold()
-                .foregroundStyle(indented ? .secondary : .primary)
         }
+        .foregroundStyle(Color(.label))
         .font(indented ? .caption : .subheadline)
     }
 }

@@ -31,8 +31,8 @@ struct MacroDonutView: View {
                     .font(.title3.bold())
                 Text("kcal")
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
             }
+            .foregroundStyle(Color(.label))
         }
     }
 
