@@ -419,6 +419,10 @@
     "cs": "ml",
     "en": "ml"
   },
+  "dashboard_button_copy": {
+    "cs": "Kopírovat jídlo",
+    "en": "Copy meal"
+  },
   "dashboard_button_settings": {
     "cs": "nastavení",
     "en": "Settings"
@@ -426,6 +430,22 @@
   "dashboard_confirm_deleteFood": {
     "cs": "Smazat tento záznam jídla?",
     "en": "Delete this food entry?"
+  },
+  "dashboard_copy_button": {
+    "cs": "Kopírovat",
+    "en": "Copy"
+  },
+  "dashboard_copy_day": {
+    "cs": "Den",
+    "en": "Day"
+  },
+  "dashboard_copy_meal": {
+    "cs": "Jídlo",
+    "en": "Meal"
+  },
+  "dashboard_copy_message": {
+    "cs": "Jídlo ze sekce %@ se zkopíruje do",
+    "en": "Food from %@ will be copied to"
   },
   "dashboard_empty_addFood": {
     "cs": "Přidat jídlo",
@@ -454,6 +474,10 @@
   "dashboard_empty_title_past": {
     "cs": "Žádné snězené jídlo.",
     "en": "No food eaten."
+  },
+  "dashboard_error_copyFailed": {
+    "cs": "Jídlo se nepodařilo zkopírovat.",
+    "en": "Couldn't copy the food."
   },
   "dashboard_error_deleteFailed": {
     "cs": "Potravinu se nepodařilo smazat",

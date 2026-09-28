@@ -105,8 +105,13 @@
     <string name="common_unit_kilograms">kg</string>
     <string name="common_unit_litres">l</string>
     <string name="common_unit_millilitres">ml</string>
+    <string name="dashboard_button_copy">Kopírovat jídlo</string>
     <string name="dashboard_button_settings">nastavení</string>
     <string name="dashboard_confirm_deleteFood">Smazat tento záznam jídla?</string>
+    <string name="dashboard_copy_button">Kopírovat</string>
+    <string name="dashboard_copy_day">Den</string>
+    <string name="dashboard_copy_meal">Jídlo</string>
+    <string name="dashboard_copy_message">Jídlo ze sekce %1$s se zkopíruje do</string>
     <string name="dashboard_empty_addFood">Přidat jídlo</string>
     <string name="dashboard_empty_description">Ještě jste dnes nic nesnědli, přidejme nějaké jídlo</string>
     <string name="dashboard_empty_description_future">Záznamy teprve vzniknou — ale klidně jim dnes pomož.</string>
@@ -114,6 +119,7 @@
     <string name="dashboard_empty_title">Žádné záznamy jídel</string>
     <string name="dashboard_empty_title_future">Plánuješ jídlo na budoucnost?</string>
     <string name="dashboard_empty_title_past">Žádné snězené jídlo.</string>
+    <string name="dashboard_error_copyFailed">Jídlo se nepodařilo zkopírovat.</string>
     <string name="dashboard_error_deleteFailed">Potravinu se nepodařilo smazat</string>
     <string name="dashboard_navigation_title">Kalorie</string>
     <string name="dashboard_section_unassignedFoods">Ostatní nezařazená jídla</string>

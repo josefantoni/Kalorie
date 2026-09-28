@@ -105,8 +105,13 @@
     <string name="common_unit_kilograms">kg</string>
     <string name="common_unit_litres">l</string>
     <string name="common_unit_millilitres">ml</string>
+    <string name="dashboard_button_copy">Copy meal</string>
     <string name="dashboard_button_settings">Settings</string>
     <string name="dashboard_confirm_deleteFood">Delete this food entry?</string>
+    <string name="dashboard_copy_button">Copy</string>
+    <string name="dashboard_copy_day">Day</string>
+    <string name="dashboard_copy_meal">Meal</string>
+    <string name="dashboard_copy_message">Food from %1$s will be copied to</string>
     <string name="dashboard_empty_addFood">Add food</string>
     <string name="dashboard_empty_description">You haven\'t eaten anything today, let\'s add some food</string>
     <string name="dashboard_empty_description_future">Records don\'t exist yet — but feel free to help them along today.</string>
@@ -114,6 +119,7 @@
     <string name="dashboard_empty_title">No food records</string>
     <string name="dashboard_empty_title_future">Planning meals for the future?</string>
     <string name="dashboard_empty_title_past">No food eaten.</string>
+    <string name="dashboard_error_copyFailed">Couldn\'t copy the food.</string>
     <string name="dashboard_error_deleteFailed">Could not delete the food</string>
     <string name="dashboard_navigation_title">Calories</string>
     <string name="dashboard_section_unassignedFoods">Other unassigned foods</string>
