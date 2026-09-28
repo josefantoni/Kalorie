@@ -977,6 +977,26 @@ what matters at the call sites:
 The box's state (`copyPopoverIndex`, `copyTargetDay`, `copyTargetMealTypeId`, `isCopying`,
 `showCopyCheckmark`) lives in `DashboardViewModel` on both clients.
 
+### 3.9 The Settings sheet
+
+`SettingsView` is opened from the Dashboard toolbar and owns its own `NavigationStack`. It is one
+list whose parts are documented where their logic lives; this is the only place that shows the
+whole, top to bottom, and it is identical on both clients:
+
+1. **Meal layout** — create, reorder, delete and retime meal types (§ 3.4). The section header
+   carries the *Edit* / *Done* button. While the list is in edit mode everything below is hidden
+   and the sheet cannot be dismissed.
+2. **Other** — a row per action, all styled alike (title, trailing chevron):
+   - *Export* — pushes `ExportView` through `isExportPushed` (§ 8).
+   - *Feedback* — opens a `mailto:` to the support address with the subject *Zpětná vazba* /
+     *Feedback*, or an alert with a copyable address when no mail app handles it
+     ([design 0018](design/0018-feedback-by-mail.md)). It needs no account, so it is
+     available to anonymous users.
+3. **Moderation** — *Pending review* and *Reports*, rendered only for a maintainer (§ 7.3).
+
+The account screen is a separate sheet reached from the Dashboard's account icon (§ 6.3); it holds
+identity only, and new general-purpose rows belong here rather than there.
+
 ---
 
 ## 4. Food entry flow
