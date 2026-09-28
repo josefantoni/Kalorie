@@ -51,12 +51,13 @@ fun MacroDonutView(
             drawDonut(textMeasurer, protein, carbs, fat)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "$calories", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
-                text = "kcal",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = "$calories",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
             )
+            Text(text = "kcal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
