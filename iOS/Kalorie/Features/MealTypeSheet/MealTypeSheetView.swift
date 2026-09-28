@@ -77,6 +77,24 @@ struct MealTypeSheetView: View {
                             viewModel.onMove(from: from, to: to)
                         }
                     }
+
+                    if editMode == .inactive {
+                        Section(header: Text(L10n.MealTypeSheet.sectionOther)) {
+                            Button {
+                                viewModel.isExportPushed = true
+                            } label: {
+                                HStack {
+                                    Text(L10n.Export.navigationTitle)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.footnote.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
                 }
                 .environment(\.editMode, $editMode)
             }
@@ -85,13 +103,6 @@ struct MealTypeSheetView: View {
             .toolbar {
                 if editMode == .inactive {
                     DismissToolbarItem()
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            viewModel.isExportPushed = true
-                        } label: {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                    }
                 }
             }
             .navigationDestination(isPresented: $viewModel.isExportPushed) {
