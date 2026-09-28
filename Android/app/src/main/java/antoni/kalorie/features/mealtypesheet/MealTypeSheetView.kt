@@ -1,5 +1,6 @@
 package antoni.kalorie.features.mealtypesheet
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,10 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -87,13 +88,6 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
                             }
                         }
                     },
-                    actions = {
-                        if (!isEditing) {
-                            IconButton(onClick = { viewModel.isExportPushed.value = true }) {
-                                Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.export_navigationTitle))
-                            }
-                        }
-                    },
                 )
             },
         ) { innerPadding ->
@@ -154,6 +148,32 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
                                     focusManager = focusManager,
                                     onCreate = { scope.launch { viewModel.onCreateMealType() } },
                                 )
+                            }
+                        } else {
+                            item {
+                                Text(
+                                    text = stringResource(R.string.mealTypeSheet_section_other),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+                                )
+                            }
+                            item {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { viewModel.isExportPushed.value = true }
+                                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(text = stringResource(R.string.export_navigationTitle))
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
                         }
                     }
