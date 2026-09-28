@@ -78,6 +78,8 @@ final class DashboardViewModel: ObservableObject {
     @Published var alertItem: AlertItem?
     @Published var isDeleteConfirmationVisible = false
     @Published var copyPopoverIndex: Int?
+    @Published var macroPopoverIndex: Int?
+    @Published private(set) var isSignInSpotlightVisible = false
     @Published var copyTargetDay = Date.now
     @Published var copyTargetMealTypeId: String?
     @Published private(set) var isCopying = false
@@ -97,6 +99,9 @@ final class DashboardViewModel: ObservableObject {
     private let confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol
     private let deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
     private let copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol
+    private let authProvider: any AuthProviderProtocol
+    private let signInSpotlightStore: any SignInSpotlightStoreProtocol
+    private let now: () -> Date
 
     // MARK: - Init
 
@@ -106,8 +111,14 @@ final class DashboardViewModel: ObservableObject {
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol,
         confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol,
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol,
-        copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol
+        copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol,
+        authProvider: any AuthProviderProtocol,
+        signInSpotlightStore: any SignInSpotlightStoreProtocol,
+        now: @escaping () -> Date = { Date.now }
     ) {
+        self.authProvider = authProvider
+        self.signInSpotlightStore = signInSpotlightStore
+        self.now = now
         self.fetchMealTypes = fetchMealTypes
         self.fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth
         self.setupDefaultMeals = setupDefaultMeals
@@ -162,6 +173,7 @@ final class DashboardViewModel: ObservableObject {
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
             state = .loaded
+            showSignInSpotlightIfNeeded()
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = unknownErrorAlertItem(for: error)
@@ -179,11 +191,27 @@ final class DashboardViewModel: ObservableObject {
             invalidateCache(for: selectedDay)
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
+            showSignInSpotlightIfNeeded()
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = unknownErrorAlertItem(for: error)
         }
     }
+
+    func onSignInSpotlightSignInTapped() {
+        isSignInSpotlightVisible = false
+        showAccountSheet = true
+    }
+
+    func onSignInSpotlightDismissed() {
+        isSignInSpotlightVisible = false
+    }
+
+    #if DEBUG
+    func onSignInSpotlightDebugTriggered() {
+        isSignInSpotlightVisible = true
+    }
+    #endif
 
     @MainActor
     func onFoodConsumedUpdated() async {
@@ -300,6 +328,34 @@ final class DashboardViewModel: ObservableObject {
     }
 
     // MARK: - Private
+
+    private static let signInSpotlightInterval: TimeInterval = 7 * 24 * 60 * 60
+
+    private var isAnyPresentationActive: Bool {
+        showSettings
+            || showAddFoodSheet
+            || showCalendarSheet
+            || showAccountSheet
+            || alertItem != nil
+            || isDeleteConfirmationVisible
+            || copyPopoverIndex != nil
+            || macroPopoverIndex != nil
+    }
+
+    private func showSignInSpotlightIfNeeded() {
+        guard
+            authProvider.isAnonymous,
+            !monthCache.isEmpty,
+            !isSignInSpotlightVisible,
+            !isAnyPresentationActive
+        else { return }
+        let currentDate = now()
+        if let lastShownAt = signInSpotlightStore.lastShownAt {
+            guard currentDate.timeIntervalSince(lastShownAt) >= Self.signInSpotlightInterval else { return }
+        }
+        signInSpotlightStore.lastShownAt = currentDate
+        isSignInSpotlightVisible = true
+    }
 
     private func unknownErrorAlertItem(for error: Error) -> AlertItem {
         if error.isFirestoreUnreachable {

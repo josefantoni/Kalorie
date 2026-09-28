@@ -14,7 +14,7 @@ struct DashboardView: View {
 
     @StateObject var viewModel: DashboardViewModel
     @State private var pulseAnimation = false
-    @State private var macroPopoverIndex: Int?
+    @State private var accountButtonFrame: CGRect = .zero
     @Environment(\.scenePhase) private var scenePhase
     let router: DashboardRouter
 
@@ -77,7 +77,7 @@ struct DashboardView: View {
                                 .presentationCompactAdaptation(.popover)
                             }
                             Button {
-                                macroPopoverIndex = index
+                                viewModel.macroPopoverIndex = index
                             } label: {
                                 Image(systemName: "info.circle")
                                     .font(.title2)
@@ -85,8 +85,8 @@ struct DashboardView: View {
                             }
                             .buttonStyle(.plain)
                             .popover(isPresented: Binding(
-                                get: { macroPopoverIndex == index },
-                                set: { if !$0 { macroPopoverIndex = nil } }
+                                get: { viewModel.macroPopoverIndex == index },
+                                set: { if !$0 { viewModel.macroPopoverIndex = nil } }
                             )) {
                                 MealSectionMacroView(
                                     name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
@@ -133,6 +133,13 @@ struct DashboardView: View {
                             .padding(20)
                     }
                     .glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)
+                    #if DEBUG
+                    .highPriorityGesture(
+                        LongPressGesture(minimumDuration: 0.6).onEnded { _ in
+                            viewModel.onSignInSpotlightDebugTriggered()
+                        }
+                    )
+                    #endif
                     .padding(.bottom, 8)
                 }
             }
@@ -145,6 +152,7 @@ struct DashboardView: View {
                     } label: {
                         Image(systemName: "person.circle")
                     }
+                    .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { accountButtonFrame = $0 }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -198,6 +206,17 @@ struct DashboardView: View {
                 }
             }
         }
+        .overlay {
+            if viewModel.isSignInSpotlightVisible {
+                SignInSpotlightView(
+                    targetFrame: accountButtonFrame,
+                    onSignIn: viewModel.onSignInSpotlightSignInTapped,
+                    onDismiss: viewModel.onSignInSpotlightDismissed
+                )
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.isSignInSpotlightVisible)
     }
 
     // MARK: - Functions
@@ -335,7 +354,9 @@ struct DashboardView: View {
         setupDefaultMeals: SetupDefaultMealsUseCaseFake(),
         confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseFake(),
         deleteFoodConsumed: DeleteFoodConsumedUseCaseFake(),
-        copyFoodsConsumed: CopyFoodsConsumedUseCaseFake()
+        copyFoodsConsumed: CopyFoodsConsumedUseCaseFake(),
+        authProvider: AuthProviderFake(),
+        signInSpotlightStore: SignInSpotlightStoreFake()
     )
 
     let dataProvider = FirestoreDataProvider()
