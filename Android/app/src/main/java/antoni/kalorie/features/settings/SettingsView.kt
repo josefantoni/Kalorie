@@ -1,5 +1,8 @@
 package antoni.kalorie.features.settings
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
@@ -43,12 +47,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.minutesSinceMidnight
 import antoni.kalorie.core.utils.withAddedMinutes
@@ -70,9 +78,13 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
     val isMaintainer by viewModel.isMaintainer.collectAsState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val feedbackSubject = stringResource(R.string.settings_button_feedback)
     var isEditing by remember { mutableStateOf(false) }
     var isModerationQueuePushed by remember { mutableStateOf(false) }
     var isModerationReportsPushed by remember { mutableStateOf(false) }
+    var isFeedbackMailUnavailableAlertPresented by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
 
@@ -180,6 +192,22 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                                     )
                                 }
                             }
+                            item {
+                                NavigationRow(
+                                    title = feedbackSubject,
+                                    onClick = {
+                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+                                            putExtra(Intent.EXTRA_EMAIL, arrayOf(Constants.Support.EMAIL))
+                                            putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
+                                        }
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (_: ActivityNotFoundException) {
+                                            isFeedbackMailUnavailableAlertPresented = true
+                                        }
+                                    },
+                                )
+                            }
                             if (isMaintainer) {
                                 item {
                                     Text(
@@ -226,6 +254,33 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
 
     if (isModerationQueuePushed) router.makeModerationQueueView { isModerationQueuePushed = false }
     if (isModerationReportsPushed) router.makeModerationReportsView { isModerationReportsPushed = false }
+
+    if (isFeedbackMailUnavailableAlertPresented) {
+        AlertDialog(
+            onDismissRequest = { isFeedbackMailUnavailableAlertPresented = false },
+            title = { Text(stringResource(R.string.settings_feedback_noMail_title)) },
+            text = {
+                SelectionContainer {
+                    Text(stringResource(R.string.settings_feedback_noMail_message, Constants.Support.EMAIL))
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { isFeedbackMailUnavailableAlertPresented = false }) {
+                    Text(stringResource(R.string.common_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(Constants.Support.EMAIL))
+                        isFeedbackMailUnavailableAlertPresented = false
+                    },
+                ) {
+                    Text(stringResource(R.string.settings_feedback_noMail_copy))
+                }
+            },
+        )
+    }
 
     alertItem?.let { item ->
         AlertDialog(
