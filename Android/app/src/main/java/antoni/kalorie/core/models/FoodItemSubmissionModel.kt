@@ -27,7 +27,6 @@ sealed class FoodItemSubmissionError : Exception() {
     data object InvalidCode : FoodItemSubmissionError()
     data object InvalidName : FoodItemSubmissionError()
     data object InvalidCalories : FoodItemSubmissionError()
-    data object InvalidWeight : FoodItemSubmissionError()
     data class InvalidPortion(val error: FoodPortionError) : FoodItemSubmissionError()
     data object ItemAlreadyExists : FoodItemSubmissionError()
 
@@ -38,7 +37,6 @@ sealed class FoodItemSubmissionError : Exception() {
             invalidCode = InvalidCode,
             invalidName = InvalidName,
             invalidCalories = InvalidCalories,
-            invalidWeight = InvalidWeight,
         ) { InvalidPortion(it) }
     }
 }

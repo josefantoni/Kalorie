@@ -7,7 +7,6 @@ import antoni.kalorie.core.models.FoodPortionDomain
 data class NutritionLabelReading(
     val scannedCode: String? = null,
     val name: String? = null,
-    val weightOfProduct: Double? = null,
     val energyKJ: Double? = null,
     val caloriesPerHundredGrams: Double? = null,
     val fat: Double? = null,
@@ -27,7 +26,6 @@ data class NutritionLabelReading(
     val recognizedFields: Set<FoodItemFormField>
         get() = buildSet {
             if (name != null) add(FoodItemFormField.NAME)
-            if (weightOfProduct != null) add(FoodItemFormField.WEIGHT)
             if (energyKJ != null) add(FoodItemFormField.ENERGY_KJ)
             if (caloriesPerHundredGrams != null) add(FoodItemFormField.CALORIES)
             if (fat != null) add(FoodItemFormField.FAT)
