@@ -40,6 +40,15 @@ fun mealWindowAt(minutes: Int, windows: List<MealWindow>): MealWindow? =
         isMinuteWithinWindow(minutes, it.startMinutes, it.endMinutes)
     }
 
+fun copyTargetMinutes(nowMinutes: Int?, targetId: String, windows: List<MealWindow>): Int? {
+    val target = windows.firstOrNull { it.id == targetId } ?: return null
+    return if (nowMinutes != null && isMinuteWithinWindow(nowMinutes, target.startMinutes, target.endMinutes)) {
+        nowMinutes
+    } else {
+        target.startMinutes
+    }
+}
+
 fun resolvedMealWindowId(minutes: Int, pinnedId: String?, windows: List<MealWindow>): String? =
     if (pinnedId != null && windows.any { it.id == pinnedId }) {
         pinnedId
