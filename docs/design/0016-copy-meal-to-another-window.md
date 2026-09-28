@@ -1,6 +1,6 @@
 # Design: Copying a meal to another window and day
 
-- **Status:** Approved
+- **Status:** Implemented in `61d142c`, `2a70f12`, `9f3ff79` (iOS) and `9f405ef` (Android)
 - **Scope:** Cross-platform, iOS, Android
 - **Date:** 2026-09-28
 
@@ -227,4 +227,4 @@ Implemented on iOS and Android as designed, with these differences:
 - The Android use case has no counterpart to iOS's `invalidTargetDate` error: `java.time` builds
   a timestamp from a local date and time without a failure case.
 
-Implementing commits: _to be linked when committed._
+Shipped in `61d142c` (MealKit rule), `2a70f12` (strings), `9f3ff79` (iOS) and `9f405ef` (Android).
