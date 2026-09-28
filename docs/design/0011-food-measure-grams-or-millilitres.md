@@ -35,9 +35,10 @@ explicit and removes the error it causes (see *Why this does not contradict desi
   label, canonical and personal portions, the quantity picker, the logged entry on the Dashboard and
   its detail screen.
 - The nutrition-label parser sets the measure from the label it read.
-- The new-food form (all three `FoodItemFormFields` screens) lets the user pick the measure, and
-  enter the package size in g/kg or ml/l, converted to the base unit on save and shown back in kg/l
-  when ≥ 1000.
+- The new-food form (all three `FoodItemFormFields` screens) lets the user pick the measure,
+  worded as the label reads: *Nutrition per* `100` `g | ml`. It no longer asks for the package
+  size, so there is no kg/l input: a new item stores `weight = 100`, an edited one keeps its stored
+  value.
 - Every existing document keeps decoding and keeps meaning grams, with no backfill.
 
 ## Non-goals
@@ -161,23 +162,17 @@ copy paths to carry it, so those need explicit tests (below).
 `FoodItemFormInput` (`AddFoodSheetViewModel.swift:11-29`):
 
 - add `var measure: FoodMeasure = .grams`;
-- add `var isWeightInThousands = false` — client-only, never stored. When true, `weightOfProduct`
-  holds kg / l;
-- `init(item:)` (`:32`): `measure: item.measure`; if `item.weight >= 1000`, set
-  `isWeightInThousands = true` and `weightOfProduct = item.weight / 1000`;
-- `asFoodItemDomain` (`:55`): `weight: isWeightInThousands ? weightOfProduct * 1000 :
-  weightOfProduct`, `measure: measure`.
-
-Put the ≥ 1000 rule in one static helper on `FoodItemFormInput` and use it from both `init(item:)`
-and `applying(_:)` below, so a photo-filled 1500 ml and a reloaded 1500 ml display identically.
+- `weightOfProduct` defaults to `100` and is a pass-through: `init(item:)` copies `item.weight`,
+  `asFoodItemDomain` writes it back unchanged, and no field edits it. There is no
+  `isWeightInThousands` — the kg/l input was removed together with the package-weight row.
+- `init(item:)`: `measure: item.measure`; `asFoodItemDomain`: `measure: measure`.
 
 `FoodItemFormFields` (`Components/FoodItemFormFields.swift`):
 
-- a segmented `Picker` bound to `formInput.measure` (`g` | `ml`) **above** the weight field;
-- the weight field (`:26-31`) gets a trailing menu picker over `isWeightInThousands` showing
-  `g`/`kg` or `ml`/`l` per the measure, replacing the fixed `unit:` suffix; toggling it converts
-  `weightOfProduct` (×/÷ 1000) so the physical amount is preserved — same rule as
-  `FoodQuantityViewModel.onUnitChanged(from:to:)`;
+- one row reading *Nutrition per* · `100` · a segmented `Picker` bound to `formInput.measure`
+  (`g` | `ml`). The fixed 100 is the reference every per-100 value on the label declares itself
+  against (EU Regulation 1169/2011, art. 32), so only the unit is a choice;
+- there is no weight row: `foodItems.weight` is the package weight and feeds no calculation;
 - the calories title (`:39`) becomes `L10n.AddFood.fieldCaloriesPer100g` or the new
   `fieldCaloriesPer100ml`, per `formInput.measure`;
 - nutrient fields (`:44-91`) keep `L10n.Common.unitGrams`. Do not change them.
@@ -207,7 +202,7 @@ other pre-filled field. Nothing in the app target iterates `allCases` (checked);
   the form's measure is still `.grams` (its default) and the reading's is non-nil — the same
   "only into a field still at its default" rule design 0010 decided for every field. A user who
   explicitly picked grams and then photographs a `100 ml` label gets ml; accepted, the highlight
-  shows it. Apply the ≥ 1000 helper when filling `weightOfProduct`.
+  shows it.
 
 ### Logging and display
 
@@ -262,9 +257,8 @@ XCTest, fakes, `makeSUT()`, per `CLAUDE.md`. Each test states **why** it matters
 - `UpdateFoodConsumedUseCaseTests`: the written DTO carries the food's measure.
 - `SaveFoodConsumedUseCaseTests`: the written DTO carries the item's measure.
 - `AddFavouriteFoodUseCaseTests` / `FetchFavouriteFoodsUseCaseTests`: measure round-trips.
-- `FoodItemFormInputTests`: 1.5 l → domain `weight == 1500, measure == .millilitres`;
-  `init(item:)` with `weight 1500` → `1.5` with `isWeightInThousands`; `weight 999` → not in
-  thousands.
+- `FoodItemFormInputTests`: a new item writes `weight == 100` with the chosen measure;
+  `init(item:)` with `weight 1500` round-trips to `1500` untouched.
 - `NutritionLabelParserTests`: `100 ml` header → `.millilitres`; `100 g` → `.grams`; no header and
   package `1 l` → `.millilitres`; header `100 g` with package `500 ml` → `.grams`; nothing → `nil`.
   The existing oil-bottle fixture (`test_parse_realOilBottleLabel_neverReadsANumberOutOfAnUnrelatedLabel`)
