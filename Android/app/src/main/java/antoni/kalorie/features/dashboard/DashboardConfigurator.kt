@@ -23,7 +23,7 @@ import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCase
 import antoni.kalorie.features.account.AccountConfigurator
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
-import antoni.kalorie.features.mealtypesheet.MealTypeSheetConfigurator
+import antoni.kalorie.features.settings.SettingsConfigurator
 import kotlinx.coroutines.launch
 
 class DashboardConfigurator {
@@ -54,7 +54,7 @@ class DashboardConfigurator {
         val router = remember(dataProvider, authProvider, mergeStatusReporting) {
             DashboardRouter(
                 accountConfigurator = AccountConfigurator(dataProvider, authProvider, mergeStatusReporting),
-                mealTypeSheetConfigurator = MealTypeSheetConfigurator(),
+                settingsConfigurator = SettingsConfigurator(dataProvider, authProvider),
                 addFoodSheetConfigurator = AddFoodSheetConfigurator(dataProvider, authProvider),
                 foodConsumedDetailConfigurator = FoodConsumedDetailConfigurator(dataProvider, authProvider),
             )

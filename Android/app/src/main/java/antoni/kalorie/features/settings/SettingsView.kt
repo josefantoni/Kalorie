@@ -1,4 +1,4 @@
-package antoni.kalorie.features.mealtypesheet
+package antoni.kalorie.features.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,7 +59,7 @@ import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRouter, onDismiss: () -> Unit) {
+fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss: () -> Unit) {
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()
@@ -67,9 +67,14 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
     val isAddFormVisible by viewModel.isAddFormVisible.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val isExportPushed by viewModel.isExportPushed.collectAsState()
+    val isMaintainer by viewModel.isMaintainer.collectAsState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     var isEditing by remember { mutableStateOf(false) }
+    var isModerationQueuePushed by remember { mutableStateOf(false) }
+    var isModerationReportsPushed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) { viewModel.onAppear() }
 
     // MARK: - Body
 
@@ -80,7 +85,7 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = {},
+                    title = { Text(stringResource(R.string.settings_navigationTitle)) },
                     navigationIcon = {
                         if (!isEditing) {
                             IconButton(onClick = onDismiss) {
@@ -99,7 +104,7 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = stringResource(R.string.mealTypeSheet_section_mealLayout),
+                            text = stringResource(R.string.settings_section_mealLayout),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -115,7 +120,7 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
                         ) {
                             Text(
                                 text = stringResource(
-                                    if (isEditing) R.string.mealTypeSheet_button_editDone else R.string.mealTypeSheet_button_edit,
+                                    if (isEditing) R.string.settings_button_editDone else R.string.settings_button_edit,
                                 ),
                             )
                         }
@@ -152,7 +157,7 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
                         } else {
                             item {
                                 Text(
-                                    text = stringResource(R.string.mealTypeSheet_section_other),
+                                    text = stringResource(R.string.settings_section_other),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
@@ -172,6 +177,28 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
                                         Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                            if (isMaintainer) {
+                                item {
+                                    Text(
+                                        text = stringResource(R.string.moderation_section_title),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+                                    )
+                                }
+                                item {
+                                    NavigationRow(
+                                        title = stringResource(R.string.moderation_queue_title),
+                                        onClick = { isModerationQueuePushed = true },
+                                    )
+                                }
+                                item {
+                                    NavigationRow(
+                                        title = stringResource(R.string.moderation_reports_title),
+                                        onClick = { isModerationReportsPushed = true },
                                     )
                                 }
                             }
@@ -197,6 +224,9 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
         }
     }
 
+    if (isModerationQueuePushed) router.makeModerationQueueView { isModerationQueuePushed = false }
+    if (isModerationReportsPushed) router.makeModerationReportsView { isModerationReportsPushed = false }
+
     alertItem?.let { item ->
         AlertDialog(
             onDismissRequest = { viewModel.alertItem.value = null },
@@ -214,9 +244,28 @@ fun MealTypeSheetView(viewModel: MealTypeSheetViewModel, router: MealTypeSheetRo
 // MARK: - Functions
 
 @Composable
+private fun NavigationRow(title: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = title)
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
 private fun FooterView(
     isAddFormVisible: Boolean,
-    viewModel: MealTypeSheetViewModel,
+    viewModel: SettingsViewModel,
     focusManager: FocusManager,
     onCreate: () -> Unit,
 ) {
@@ -239,7 +288,7 @@ private fun FooterView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddMealForm(viewModel: MealTypeSheetViewModel, onCreate: () -> Unit) {
+private fun AddMealForm(viewModel: SettingsViewModel, onCreate: () -> Unit) {
     val name by viewModel.newMealName.collectAsState()
     val initialStart = remember { viewModel.newMealStart.value.zoned() }
     val initialEnd = remember { viewModel.newMealEnd.value.zoned() }
@@ -263,22 +312,22 @@ private fun AddMealForm(viewModel: MealTypeSheetViewModel, onCreate: () -> Unit)
         OutlinedTextField(
             value = name,
             onValueChange = { viewModel.newMealName.value = it },
-            placeholder = { Text(stringResource(R.string.mealTypeSheet_field_newMeal_placeholder)) },
+            placeholder = { Text(stringResource(R.string.settings_field_newMeal_placeholder)) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.mealTypeSheet_datePicker_from), style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.settings_datePicker_from), style = MaterialTheme.typography.labelMedium)
                 TimeInput(state = startState)
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.mealTypeSheet_datePicker_to), style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.settings_datePicker_to), style = MaterialTheme.typography.labelMedium)
                 TimeInput(state = endState)
             }
         }
         Button(onClick = onCreate, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.mealTypeSheet_button_create))
+            Text(stringResource(R.string.settings_button_create))
         }
     }
 }

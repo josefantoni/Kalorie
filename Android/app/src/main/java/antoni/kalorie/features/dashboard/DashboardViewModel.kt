@@ -84,7 +84,7 @@ class DashboardViewModel(
     val mealTypes = MutableStateFlow<List<MealTypeDomain>>(emptyList())
     val foodsConsumed = MutableStateFlow<List<FoodConsumedDomain>>(emptyList())
     val selectedDay = MutableStateFlow(Instant.now())
-    val showMealTypeSheet = MutableStateFlow(false)
+    val showSettings = MutableStateFlow(false)
     val showAddFoodSheet = MutableStateFlow(false)
     val showCalendarSheet = MutableStateFlow(false)
     val showAccountSheet = MutableStateFlow(false)

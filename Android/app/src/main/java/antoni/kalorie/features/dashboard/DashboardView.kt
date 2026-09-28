@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -91,7 +92,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val selectedDay by viewModel.selectedDay.collectAsState()
     val activeDays by viewModel.activeDaysInMonth.collectAsState()
     val showCalendarSheet by viewModel.showCalendarSheet.collectAsState()
-    val showMealTypeSheet by viewModel.showMealTypeSheet.collectAsState()
+    val showSettings by viewModel.showSettings.collectAsState()
     val showAccountSheet by viewModel.showAccountSheet.collectAsState()
     val showAddFoodSheet by viewModel.showAddFoodSheet.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
@@ -129,10 +130,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.showMealTypeSheet.value = !viewModel.showMealTypeSheet.value }) {
+                    IconButton(onClick = { viewModel.showSettings.value = !viewModel.showSettings.value }) {
                         Icon(
-                            Icons.AutoMirrored.Outlined.List,
-                            contentDescription = stringResource(R.string.dashboard_button_mealLayout),
+                            Icons.Outlined.Settings,
+                            contentDescription = stringResource(R.string.dashboard_button_settings),
                         )
                     }
                 },
@@ -236,10 +237,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
         router.makeAccountView(onDismiss = { viewModel.showAccountSheet.value = false })
     }
 
-    if (showMealTypeSheet) {
-        router.makeMealTypeSheetView(
+    if (showSettings) {
+        router.makeSettingsView(
             mealTypes = mealTypes,
-            onDismiss = { viewModel.showMealTypeSheet.value = false },
+            onDismiss = { viewModel.showSettings.value = false },
             onMealTypesChanged = { scope.launch { viewModel.onMealTypesChanged() } },
         )
     }

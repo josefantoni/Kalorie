@@ -5,12 +5,12 @@ import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.features.account.AccountConfigurator
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
-import antoni.kalorie.features.mealtypesheet.MealTypeSheetConfigurator
+import antoni.kalorie.features.settings.SettingsConfigurator
 import java.time.Instant
 
 class DashboardRouter(
     private val accountConfigurator: AccountConfigurator,
-    private val mealTypeSheetConfigurator: MealTypeSheetConfigurator,
+    private val settingsConfigurator: SettingsConfigurator,
     private val addFoodSheetConfigurator: AddFoodSheetConfigurator,
     private val foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator,
 ) {
@@ -23,8 +23,8 @@ class DashboardRouter(
     }
 
     @Composable
-    fun makeMealTypeSheetView(mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onMealTypesChanged: () -> Unit = {}) {
-        mealTypeSheetConfigurator.createView(mealTypes = mealTypes, onDismiss = onDismiss, onMealTypesChanged = onMealTypesChanged)
+    fun makeSettingsView(mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onMealTypesChanged: () -> Unit = {}) {
+        settingsConfigurator.createView(mealTypes = mealTypes, onDismiss = onDismiss, onMealTypesChanged = onMealTypesChanged)
     }
 
     @Composable
