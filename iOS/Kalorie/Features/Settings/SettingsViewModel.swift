@@ -19,8 +19,17 @@ final class SettingsViewModel: ObservableObject {
     @Published var newMealEnd = Date.now
     @Published var isAddFormVisible = false
     @Published var isExportPushed = false
+    @Published var isFeedbackMailUnavailableAlertPresented = false
     @Published private(set) var isMaintainer = false
     @Published var alertItem: AlertItem?
+
+    var feedbackURL: URL? {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = Constants.Support.email
+        components.queryItems = [URLQueryItem(name: "subject", value: L10n.Settings.buttonFeedback)]
+        return components.url
+    }
 
     private let onMealTypesChanged: () -> Void
     private let createMealType: any CreateMealTypeUseCaseProtocol

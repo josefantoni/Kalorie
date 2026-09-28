@@ -15,6 +15,7 @@ struct SettingsView: View {
     @StateObject var viewModel: SettingsViewModel
     private let router: SettingsRouter
     @FocusState private var focusedField: Field?
+    @Environment(\.openURL) private var openURL
     @State private var editMode: EditMode = .inactive
 
     private enum Field: Int, CaseIterable {
@@ -90,6 +91,26 @@ struct SettingsView: View {
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
+
+                            if let feedbackURL = viewModel.feedbackURL {
+                                Button {
+                                    openURL(feedbackURL) { isAccepted in
+                                        if !isAccepted {
+                                            viewModel.isFeedbackMailUnavailableAlertPresented = true
+                                        }
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(L10n.Settings.buttonFeedback)
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.footnote.weight(.semibold))
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
 
                         if viewModel.isMaintainer {
@@ -125,6 +146,17 @@ struct SettingsView: View {
             }
             .loader(viewModel.state.isLoading)
             .interactiveDismissDisabled(editMode == .active)
+            .alert(
+                L10n.Settings.feedbackNoMailTitle,
+                isPresented: $viewModel.isFeedbackMailUnavailableAlertPresented
+            ) {
+                Button(L10n.Settings.feedbackNoMailCopy) {
+                    UIPasteboard.general.string = Constants.Support.email
+                }
+                Button(L10n.Common.ok, role: .cancel) {}
+            } message: {
+                Text(L10n.Settings.feedbackNoMailMessage(Constants.Support.email))
+            }
             .alert(item: $viewModel.alertItem) { item in
                 Alert(
                     title: Text(item.title),

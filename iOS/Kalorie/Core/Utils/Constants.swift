@@ -30,6 +30,10 @@ enum Constants {
         }
     }
 
+    enum Support {
+        static let email = "kaloriepodpora@gmail.com"
+    }
+
     enum LogCategory {
         static let firestore = "firestore"
         static let auth = "auth"

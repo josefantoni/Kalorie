@@ -273,6 +273,12 @@ enum L10n {
         static var buttonCreate: String { String(localized: "settings_button_create") }
         static var buttonEdit: String { String(localized: "settings_button_edit") }
         static var buttonEditDone: String { String(localized: "settings_button_editDone") }
+        static var buttonFeedback: String { String(localized: "settings_button_feedback") }
+        static var feedbackNoMailTitle: String { String(localized: "settings_feedback_noMail_title") }
+        static var feedbackNoMailCopy: String { String(localized: "settings_feedback_noMail_copy") }
+        static func feedbackNoMailMessage(_ email: String) -> String {
+            String(format: String(localized: "settings_feedback_noMail_message"), email)
+        }
         static var errorEmptyName: String { String(localized: "settings_error_emptyName") }
         static var errorDuplicateName: String { String(localized: "settings_error_duplicateName") }
         static var errorTimeConflict: String { String(localized: "settings_error_timeConflict") }

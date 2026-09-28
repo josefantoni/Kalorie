@@ -165,6 +165,18 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isMaintainer)
     }
 
+    @MainActor
+    func test_feedbackURL_addressesSupportMailboxWithFeedbackSubject() throws {
+        let sut = makeSUT()
+
+        let url = try XCTUnwrap(sut.feedbackURL)
+        let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
+
+        XCTAssertEqual(components.scheme, "mailto")
+        XCTAssertEqual(components.path, Constants.Support.email)
+        XCTAssertEqual(components.queryItems?.first { $0.name == "subject" }?.value, L10n.Settings.buttonFeedback)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
