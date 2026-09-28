@@ -3355,6 +3355,23 @@
         }
       }
     },
+    "mealTypeSheet_section_other" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatní"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other"
+          }
+        }
+      }
+    },
     "moderation_button_approve" : {
       "extractionState" : "manual",
       "localizations" : {

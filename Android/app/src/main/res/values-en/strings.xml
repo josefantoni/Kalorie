@@ -196,6 +196,7 @@
     <string name="mealTypeSheet_error_unexpected">An unexpected error occurred</string>
     <string name="mealTypeSheet_field_newMeal_placeholder">What about second breakfast … 🧐?</string>
     <string name="mealTypeSheet_section_mealLayout">Meal layout</string>
+    <string name="mealTypeSheet_section_other">Other</string>
     <string name="moderation_button_approve">Approve</string>
     <string name="moderation_button_reject">Reject</string>
     <string name="moderation_button_resolve">Resolved</string>

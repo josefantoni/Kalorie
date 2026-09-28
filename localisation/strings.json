@@ -783,6 +783,10 @@
     "cs": "Rozvržení jídel",
     "en": "Meal layout"
   },
+  "mealTypeSheet_section_other": {
+    "cs": "Ostatní",
+    "en": "Other"
+  },
   "moderation_button_approve": {
     "cs": "Schválit",
     "en": "Approve"
