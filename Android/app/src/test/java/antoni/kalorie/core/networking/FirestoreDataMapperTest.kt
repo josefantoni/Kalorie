@@ -11,8 +11,6 @@ import org.junit.Test
 
 class FirestoreDataMapperTest {
 
-    // MARK: - decode
-
     @Test
     fun decode_whenNumbersArriveAsLong_readsThemIntoDoubleFields() {
         val dto = FirestoreDataMapper.decode(makeFoodConsumedData(weight = 100L, date = 1_800_000_000L), FoodConsumedDTO.serializer())
@@ -77,8 +75,6 @@ class FirestoreDataMapperTest {
 
         assertEquals("1", FirestoreDataMapper.decode(data, FoodConsumedDTO.serializer()).id)
     }
-
-    // MARK: - encode
 
     @Test
     fun encode_writesIntegersAsLongAndFractionsAsDouble() {

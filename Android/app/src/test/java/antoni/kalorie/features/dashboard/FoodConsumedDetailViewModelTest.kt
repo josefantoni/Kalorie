@@ -38,8 +38,6 @@ import java.time.ZonedDateTime
 
 class FoodConsumedDetailViewModelTest {
 
-    // MARK: - Reporting incorrect data
-
     @Test
     fun canReportIncorrectData_onlyTrueForCatalogueKind() {
         assertTrue(makeSUT(food = makeFood(kind = FoodItemKind.CATALOGUE)).canReportIncorrectData)
@@ -102,8 +100,6 @@ class FoodConsumedDetailViewModelTest {
         assertNull(sut.alertItem.value)
     }
 
-    // MARK: - onMealTypeSelected (staging only, no write)
-
     @Test
     fun onMealTypeSelected_stagesTheSelectionWithoutWritingOrEnablingSaveAlone() {
         val breakfast = MealTypeDomain(id = "breakfast", name = "Breakfast", startMinutes = 360, endMinutes = 600)
@@ -133,8 +129,6 @@ class FoodConsumedDetailViewModelTest {
 
         assertFalse("picking the value that is already pinned is not a pending change", sut.hasChanges)
     }
-
-    // MARK: - Favourites
 
     @Test
     fun onAppear_whenCatalogueItemNoLongerResolves_disablesAddingButKeepsButtonVisible() = runTest {
@@ -223,8 +217,6 @@ class FoodConsumedDetailViewModelTest {
         assertFalse("a created meal has no catalogue counterpart to favourite, so the Dashboard never offers it", sut.isFavourite.value)
         assertFalse(sut.canShowFavouriteButton)
     }
-
-    // MARK: - onSave — meal type pin
 
     @Test
     fun onSave_whenOnlyMealTypeWasSelected_writesThePinWithoutTouchingWeight() = runTest {

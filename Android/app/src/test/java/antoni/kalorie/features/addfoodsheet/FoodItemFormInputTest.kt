@@ -9,8 +9,6 @@ import java.time.Instant
 
 class FoodItemFormInputTest {
 
-    // MARK: - Measure and package weight
-
     @Test
     fun asFoodItemDomain_forNewItem_writesHundredAsPackageWeightBecauseTheUserNoLongerEntersIt() {
         val result = FoodItemFormInput(measure = FoodMeasure.MILLILITRES).asFoodItemDomain()

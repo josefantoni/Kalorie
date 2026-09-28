@@ -37,16 +37,12 @@ import java.time.temporal.ChronoUnit
 
 class DashboardViewModelTest {
 
-    // MARK: - DailyMacros
-
     @Test
     fun dailyMacros_whenAFoodsFiberIsUnknown_showsZeroInsteadOfExcludingIt() {
         val macros = DailyMacros(listOf(makeFood(id = "1", hour = 8, fiber = null), makeFood(id = "2", hour = 9, fiber = 3.0)))
 
         assertEquals(3.0, macros.fiber, 0.0)
     }
-
-    // MARK: - groupedFoods — no foods
 
     @Test
     fun groupedFoods_withNoFoodsConsumed_returnsEmpty() {
@@ -56,8 +52,6 @@ class DashboardViewModelTest {
 
         assertTrue(sut.groupedFoods.isEmpty())
     }
-
-    // MARK: - groupedFoods — assignment
 
     @Test
     fun groupedFoods_foodWithinRange_isAssignedToMealType() {
@@ -109,8 +103,6 @@ class DashboardViewModelTest {
         assertNull(groups[0].mealType)
     }
 
-    // MARK: - groupedFoods — ordering
-
     @Test
     fun groupedFoods_nilGroupAppearsLast() {
         val sut = makeSUT()
@@ -161,8 +153,6 @@ class DashboardViewModelTest {
         assertEquals(1, groups.size)
         assertEquals("0", groups[0].mealType?.id)
     }
-
-    // MARK: - groupedFoods — pinning (ADR 0022)
 
     @Test
     fun groupedFoods_pinnedFood_isAssignedToPinnedMealTypeRegardlessOfTime_andKeepsItsLoggedDate() {
@@ -235,8 +225,6 @@ class DashboardViewModelTest {
         assertEquals(1, groups.size)
         assertEquals("0", groups[0].mealType?.id)
     }
-
-    // MARK: - onAppear
 
     @Test
     fun onAppear_whenMealTypesEmpty_callsSetupDefaultMeals() = runTest {
@@ -322,8 +310,6 @@ class DashboardViewModelTest {
         assertNotNull(sut.alertItem.value)
     }
 
-    // MARK: - onRefresh
-
     @Test
     fun onRefresh_beforeInitialLoadCompletes_doesNothing() = runTest {
         val sut = makeSUT(fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(makeMealType(id = 0, hour = 8, endHour = 12))))
@@ -342,8 +328,6 @@ class DashboardViewModelTest {
 
         assertFalse(sut.mealTypes.value.isEmpty())
     }
-
-    // MARK: - delete
 
     @Test
     fun onDeleteRequested_showsConfirmation() {
@@ -392,8 +376,6 @@ class DashboardViewModelTest {
         assertEquals("a failed delete must not silently drop the entry from the list", listOf("f1"), sut.foodsConsumed.value.map { it.id })
         assertEquals(R.string.dashboard_error_deleteFailed, sut.alertItem.value?.titleRes)
     }
-
-    // MARK: - month cache
 
     @Test
     fun onDayChanged_toAnotherDayOfAnAlreadyLoadedMonth_doesNotFetchAgain() = runTest {
@@ -459,8 +441,6 @@ class DashboardViewModelTest {
         assertTrue(sut.selectedDay.value.isSameDay(day))
     }
 
-    // MARK: - Copy — defaults
-
     @Test
     fun onCopyRequested_opensTheBoxOnTodayAndTheWindowTheCurrentTimeFallsIn() {
         val sut = makeSUT()
@@ -495,8 +475,6 @@ class DashboardViewModelTest {
 
         assertEquals("0", sut.copyTargetMealTypeId.value)
     }
-
-    // MARK: - Copy — canCopy
 
     @Test
     fun canCopy_whenTargetIsTheSameDayAndSameMealType_isFalse() {
@@ -545,8 +523,6 @@ class DashboardViewModelTest {
 
         assertFalse(sut.canCopy(null))
     }
-
-    // MARK: - Copy — confirm
 
     @Test
     fun onCopyConfirmed_whenCopySucceeds_reloadsTheDayAndClosesTheBox() = runTest {
@@ -620,8 +596,6 @@ class DashboardViewModelTest {
         assertNull(sut.alertItem.value)
         assertEquals(0, sut.copyPopoverIndex.value)
     }
-
-    // MARK: - Sign-in spotlight
 
     @Test
     fun onAppear_whenAnonymousWithLoggedFoodAndNeverShown_showsSpotlightAndStoresNow() = runTest {

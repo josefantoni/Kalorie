@@ -31,8 +31,6 @@ import java.time.Instant
 
 class MyCreatedMealEditorViewModelTest {
 
-    // MARK: - canSave
-
     @Test
     fun canSave_withNoIngredients_isFalse() {
         val sut = makeSUT()
@@ -83,8 +81,6 @@ class MyCreatedMealEditorViewModelTest {
         assertTrue(sut.canSave)
     }
 
-    // MARK: - onSelectSearchResult / onDeleteIngredient
-
     @Test
     fun onSelectSearchResult_appendsIngredientWithoutNavigating() {
         val sut = makeSUT()
@@ -127,8 +123,6 @@ class MyCreatedMealEditorViewModelTest {
 
         assertEquals(listOf("2"), sut.ingredients.value.map { it.item.id })
     }
-
-    // MARK: - onScannerButtonTapped / onBarcodeScanned
 
     @Test
     fun onScannerButtonTapped_makesScannerVisible() {
@@ -226,8 +220,6 @@ class MyCreatedMealEditorViewModelTest {
         assertFalse("a scanner left open would rescan the same code in frame and repeat the failing lookup", sut.isScannerVisible.value)
     }
 
-    // MARK: - onSearchTextChanged (external fallback)
-
     @Test
     fun onSearchTextChanged_whenLocalEmptyAndQueryLongEnough_fallsBackToExternal() = runTest {
         val sut = makeSUT(
@@ -261,8 +253,6 @@ class MyCreatedMealEditorViewModelTest {
         )
     }
 
-    // MARK: - onGramsFieldDefocused
-
     @Test
     fun onGramsFieldDefocused_withEmptyGrams_fillsDefaultOfHundred() {
         val sut = makeSUT()
@@ -288,8 +278,6 @@ class MyCreatedMealEditorViewModelTest {
         assertEquals("50", sut.ingredients.value.first().gramsText)
     }
 
-    // MARK: - onSaveTapped
-
     @Test
     fun onSaveTapped_whenCannotSave_doesNotShowConfirmation() {
         val sut = makeSUT()
@@ -308,8 +296,6 @@ class MyCreatedMealEditorViewModelTest {
 
         assertTrue(sut.isSaveConfirmationVisible.value)
     }
-
-    // MARK: - onSaveConfirmed (create)
 
     @Test
     fun onSaveConfirmed_whenCreating_createsMealAndDismisses() = runTest {
@@ -347,8 +333,6 @@ class MyCreatedMealEditorViewModelTest {
         assertFalse(sut.shouldDismiss.value)
     }
 
-    // MARK: - onSaveConfirmed (edit)
-
     @Test
     fun onSaveConfirmed_whenEditing_preservesCreatedAt() = runTest {
         var updatedMeal: MyCreatedMealDomain? = null
@@ -381,8 +365,6 @@ class MyCreatedMealEditorViewModelTest {
         assertFalse(makeSUT().isEditing)
         assertTrue(makeSUT(existingMeal = makeExistingMeal()).isEditing)
     }
-
-    // MARK: - onAppear (catalogue refresh)
 
     @Test
     fun onAppear_whenCatalogueWasCorrected_updatesIngredientAndMarksMealAsChanged() = runTest {

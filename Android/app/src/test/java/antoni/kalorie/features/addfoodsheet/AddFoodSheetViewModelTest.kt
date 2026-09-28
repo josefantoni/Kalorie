@@ -53,8 +53,6 @@ import java.time.Instant
 
 class AddFoodSheetViewModelTest {
 
-    // MARK: - mode
-
     @Test
     fun mode_startsInSearch() {
         assertEquals(AddFoodSheetMode.SEARCH, makeSUT().mode.value)
@@ -69,8 +67,6 @@ class AddFoodSheetViewModelTest {
         assertEquals(AddFoodSheetMode.CREATE_MEAL, sut.mode.value)
         assertFalse(sut.isScannerVisible.value)
     }
-
-    // MARK: - displayedResults
 
     @Test
     fun displayedResults_hoistsMatchingFavouritesAboveCreatedMealsAndCatalog() = runTest {
@@ -94,8 +90,6 @@ class AddFoodSheetViewModelTest {
         assertEquals(FoodItemKind.CREATED_MEAL, sut.displayedResults.first { it.id == "meal" }.kind)
     }
 
-    // MARK: - own submissions in displayedResults
-
     @Test
     fun displayedResults_includesMatchingOwnSubmission() = runTest {
         val sut = makeSUT(
@@ -118,8 +112,6 @@ class AddFoodSheetViewModelTest {
         assertNull(sut.submissionStatus(makeFoodItem(id = "other-item")))
     }
 
-    // MARK: - onSelectRejectedSubmission
-
     @Test
     fun onSelectRejectedSubmission_prefillsFormAndShowsRejectionReason() = runTest {
         val submission = makeSubmission(id = "sub-1", barcode = "87654321", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
@@ -135,8 +127,6 @@ class AddFoodSheetViewModelTest {
         assertTrue("the barcode must be locked while resubmitting, or approving it can orphan entries logged under the old barcode", sut.isEditingSubmission)
         assertTrue("editing a rejected submission must push the review screen directly, skipping the prompt", sut.isReviewPushed.value)
     }
-
-    // MARK: - onModeSelected (new item)
 
     @Test
     fun onModeSelected_afterClosingRejectedSubmissionEdit_reopensAsFreshFormAndSubmitsNewItem() = runTest {
@@ -181,8 +171,6 @@ class AddFoodSheetViewModelTest {
         assertEquals("re-tapping the active segment must not wipe a half-typed form", "Ovar", sut.formInput.value.name)
     }
 
-    // MARK: - onSelectSubmission
-
     @Test
     fun onSelectSubmission_forRejectedSubmission_opensThatExactSubmissionDespiteDuplicateBarcode() = runTest {
         val rejected = makeSubmission(id = "sub-old", barcode = "shared-barcode", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories")
@@ -208,8 +196,6 @@ class AddFoodSheetViewModelTest {
         assertTrue(sut.isPushedToQuantityView.value)
         assertEquals(AddFoodSheetMode.SEARCH, sut.mode.value)
     }
-
-    // MARK: - onCreateFoodItem
 
     @Test
     fun onCreateFoodItem_withNoEditingSubmission_submitsNewFoodItem() = runTest {
@@ -281,8 +267,6 @@ class AddFoodSheetViewModelTest {
         assertTrue(sut.isSubmissionConfirmationVisible.value)
     }
 
-    // MARK: - onAddManuallyTapped
-
     @Test
     fun onAddManuallyTapped_resetsFormAndPushesReview() {
         val sut = makeSUT()
@@ -293,8 +277,6 @@ class AddFoodSheetViewModelTest {
         assertEquals("", sut.formInput.value.scannedCode)
         assertEquals("", sut.formInput.value.name)
     }
-
-    // MARK: - barcode rescan
 
     @Test
     fun onBarcodeRescanned_copiesTheCodeIntoTheFormAndClosesTheScanner() {
@@ -309,8 +291,6 @@ class AddFoodSheetViewModelTest {
         assertFalse(sut.isBarcodeRescanVisible.value)
     }
 
-    // MARK: - onSubmissionConfirmationDismissed
-
     @Test
     fun onSubmissionConfirmationDismissed_dismissesSheet() {
         val sut = makeSUT()
@@ -321,8 +301,6 @@ class AddFoodSheetViewModelTest {
         assertFalse(sut.isSubmissionConfirmationVisible.value)
         assertTrue(sut.shouldDismiss.value)
     }
-
-    // MARK: - onDeleteSubmissionRequested / onDeleteSubmissionConfirmed
 
     @Test
     fun onDeleteSubmissionRequested_withoutConfirming_deletesNothing() = runTest {
@@ -378,8 +356,6 @@ class AddFoodSheetViewModelTest {
         assertEquals(R.string.addFood_error_withdrawSubmissionFailed, sut.alertItem.value?.titleRes)
     }
 
-    // MARK: - isMyCreatedMeal
-
     @Test
     fun isMyCreatedMeal_returnsTrueOnlyForCreatedMealKind() {
         val sut = makeSUT()
@@ -388,8 +364,6 @@ class AddFoodSheetViewModelTest {
         assertFalse(sut.isMyCreatedMeal(makeFoodItem(kind = FoodItemKind.CATALOGUE)))
         assertFalse(sut.isMyCreatedMeal(makeFoodItem(kind = FoodItemKind.EXTERNAL)))
     }
-
-    // MARK: - onDeleteMealConfirmed
 
     @Test
     fun onDeleteMealConfirmed_removesRowOptimistically() = runTest {
@@ -429,8 +403,6 @@ class AddFoodSheetViewModelTest {
         assertEquals(listOf("1"), sut.myCreatedMeals.value.map { it.id })
     }
 
-    // MARK: - onMyCreatedMealSaved
-
     @Test
     fun onMyCreatedMealSaved_returnsToSearchWithTheNewMealImmediatelyLoggable() = runTest {
         val sut = makeSUT(
@@ -443,8 +415,6 @@ class AddFoodSheetViewModelTest {
         assertEquals(AddFoodSheetMode.SEARCH, sut.mode.value)
         assertEquals("a meal just composed must be loggable without reopening the sheet", listOf("new-meal"), sut.myCreatedMeals.value.map { it.id })
     }
-
-    // MARK: - onScannerButtonTapped
 
     @Test
     fun onScannerButtonTapped_makesScannerVisible() {
@@ -460,8 +430,6 @@ class AddFoodSheetViewModelTest {
         sut.onScannerButtonTapped()
         assertTrue(sut.isScannerVisible.value)
     }
-
-    // MARK: - onScenePhaseActive
 
     @Test
     fun onScenePhaseActive_whenScannerVisibleAndCameraStillAvailable_keepsScannerVisible() {
@@ -485,8 +453,6 @@ class AddFoodSheetViewModelTest {
         assertFalse(sut.isScannerVisible.value)
         assertNull(sut.alertItem.value)
     }
-
-    // MARK: - onNutritionLabelPromptTapped
 
     @Test
     fun onNutritionLabelPromptTapped_opensCamera() {
@@ -522,8 +488,6 @@ class AddFoodSheetViewModelTest {
         assertNull(sut.rejectionReasonBeingEdited.value)
         assertEquals("", sut.formInput.value.scannedCode)
     }
-
-    // MARK: - onNutritionLabelCaptured / onNutritionLabelCameraDismissed
 
     @Test
     fun onNutritionLabelCaptured_onSuccess_closesCameraAndPushesOnlyAfterDismissed() = runTest {
@@ -629,8 +593,6 @@ class AddFoodSheetViewModelTest {
         assertEquals(CameraAccess.DENIED, sut.cameraAccess.value)
     }
 
-    // MARK: - onBarcodeScanned
-
     @Test
     fun onBarcodeScanned_withEmptyBarcode_doesNothing() = runTest {
         val sut = makeSUT()
@@ -703,8 +665,6 @@ class AddFoodSheetViewModelTest {
         assertFalse("a scanner left open would rescan the same code in frame and repeat the failing lookup", sut.isScannerVisible.value)
     }
 
-    // MARK: - onSearchTextChanged
-
     @Test
     fun onSearchTextChanged_whenLocalSearchFails_localItemsAreEmptyAndNoErrorIsRaised() = runTest {
         val sut = makeSUT(searchFoodItems = SearchFoodItemsUseCaseFake(shouldThrow = true))
@@ -765,8 +725,6 @@ class AddFoodSheetViewModelTest {
 
         assertTrue(sut.localFoodItems.value.isEmpty())
     }
-
-    // MARK: - onSelectFoodItem
 
     @Test
     fun onSelectFoodItem_setsSelectedFoodItemAndNavigates() {
@@ -856,8 +814,6 @@ class AddFoodSheetViewModelTest {
         assertTrue(sut.externalFoodItems.value.isEmpty())
     }
 
-    // MARK: - onSelectFavouriteFood
-
     @Test
     fun onSelectFavouriteFood_whenCatalogueCorrectedItem_selectsAndReplacesWithFreshItem() = runTest {
         val stale = makeFoodItem(id = "fav", czName = "Ovar")
@@ -885,8 +841,6 @@ class AddFoodSheetViewModelTest {
         assertEquals(stale, sut.selectedFoodItem.value)
         assertTrue(sut.isPushedToQuantityView.value)
     }
-
-    // MARK: - displayedResults
 
     @Test
     fun displayedResults_hoistsMatchingFavouritesAboveCatalog() = runTest {
@@ -918,8 +872,6 @@ class AddFoodSheetViewModelTest {
         assertTrue("the local favourite match is a plain lowercased prefix, unlike the folded server search", sut.displayedResults.isEmpty())
     }
 
-    // MARK: - onFavouriteChanged
-
     @Test
     fun onFavouriteChanged_whenFavourited_putsTheItemFirstAndMarksItFavourite() = runTest {
         val existing = makeFoodItem(id = "old")
@@ -944,8 +896,6 @@ class AddFoodSheetViewModelTest {
         assertTrue(sut.favouriteFoods.value.isEmpty())
         assertFalse(sut.isFavourite(existing))
     }
-
-    // MARK: - onFoodConsumedSaved
 
     @Test
     fun onFoodConsumedSaved_notifiesTheDashboardAndRequestsDismissal() {

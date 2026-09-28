@@ -20,8 +20,6 @@ import org.junit.Test
 
 class SettingsViewModelTest {
 
-    // MARK: - onMove
-
     @Test
     fun onMove_movingFirstItemToLast_keepsTimeSlotsAtPositions() {
         val meal0 = makeMealType(id = 0, name = "A", hour = 8, endHour = 12)
@@ -72,8 +70,6 @@ class SettingsViewModelTest {
         assertTrue(sut.hasPendingReorder.value)
     }
 
-    // MARK: - onSaveReorder
-
     @Test
     fun onSaveReorder_afterMove_clearsHasPendingReorder() = runTest {
         val sut = makeSUT(
@@ -121,8 +117,6 @@ class SettingsViewModelTest {
         )
     }
 
-    // MARK: - onDelete
-
     @Test
     fun onDelete_withSingleMealType_showsAlertAndKeepsIt() = runTest {
         val sut = makeSUT(mealTypes = listOf(makeMealType(id = 0, name = "A", hour = 8, endHour = 12)))
@@ -164,8 +158,6 @@ class SettingsViewModelTest {
         assertEquals(2, sut.mealTypes.value.size)
     }
 
-    // MARK: - onShowAddForm
-
     @Test
     fun onShowAddForm_withExistingMealTypes_setsStartAfterLastEnd() {
         val meal = makeMealType(id = 0, name = "A", hour = 8, endHour = 12)
@@ -185,8 +177,6 @@ class SettingsViewModelTest {
 
         assertTrue(sut.isAddFormVisible.value)
     }
-
-    // MARK: - onAppear
 
     @Test
     fun onAppear_whenMaintainerClaimIsTrue_setsIsMaintainer() = runTest {

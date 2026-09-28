@@ -24,8 +24,6 @@ import org.junit.Test
 
 class AccountViewModelTest {
 
-    // MARK: - Reading the auth provider
-
     @Test
     fun isAnonymous_reflectsAuthProvider() {
         assertTrue(makeSUT(authProvider = AuthProviderFake(isAnonymous = true)).isAnonymous.value)
@@ -35,8 +33,6 @@ class AccountViewModelTest {
     fun displayName_reflectsAuthProvider() {
         assertEquals("Josef", makeSUT(authProvider = AuthProviderFake(isAnonymous = false, displayName = "Josef")).displayName.value)
     }
-
-    // MARK: - onSignOutTapped
 
     @Test
     fun onSignOutTapped_whenSucceeds_showsNoAlert() = runTest {
@@ -55,8 +51,6 @@ class AccountViewModelTest {
 
         assertEquals(R.string.account_error_signOutFailed, sut.alertItem.value?.titleRes)
     }
-
-    // MARK: - onDeleteAccountConfirmed
 
     @Test
     fun onDeleteAccountConfirmed_whenSucceeds_showsNoAlert() = runTest {
@@ -86,8 +80,6 @@ class AccountViewModelTest {
         assertEquals(R.string.account_error_deleteFailed, sut.alertItem.value?.titleRes)
         assertEquals(AccountViewModel.State.IDLE, sut.state.value)
     }
-
-    // MARK: - onSignInWithGoogleTapped
 
     @Test
     fun onSignInWithGoogleTapped_whenSucceeds_showsNoAlertAndReturnsToIdle() = runTest {
@@ -140,8 +132,6 @@ class AccountViewModelTest {
         assertEquals("beginMerge has already run by the time the cancellation is known", 1, mergeStatusReporting.beginMergeCallCount)
         assertEquals(1, mergeStatusReporting.endMergeCallCount)
     }
-
-    // MARK: - onReauthenticateConfirmed
 
     @Test
     fun onReauthenticateConfirmed_whenSucceeds_retriesDeleteAndClearsAlert() = runTest {
