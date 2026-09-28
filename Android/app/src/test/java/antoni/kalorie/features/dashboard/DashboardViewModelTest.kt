@@ -1,6 +1,8 @@
 package antoni.kalorie.features.dashboard
 
 import antoni.kalorie.R
+import antoni.kalorie.core.auth.AuthProviderFake
+import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.MealTypeDomain
@@ -17,6 +19,7 @@ import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseFake
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseProtocol
+import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
 import antoni.kalorie.core.utils.minutesSinceMidnight
@@ -618,6 +621,121 @@ class DashboardViewModelTest {
         assertEquals(0, sut.copyPopoverIndex.value)
     }
 
+    // MARK: - Sign-in spotlight
+
+    @Test
+    fun onAppear_whenAnonymousWithLoggedFoodAndNeverShown_showsSpotlightAndStoresNow() = runTest {
+        val store = SignInSpotlightStoreFake()
+        val now = Instant.now()
+        val sut = makeSpotlightSUT(store = store, now = now)
+
+        sut.onAppear()
+
+        assertTrue("an anonymous user's diary is lost with the device, so it must be warned", sut.isSignInSpotlightVisible.value)
+        assertEquals(now, store.lastShownAt)
+    }
+
+    @Test
+    fun onAppear_whenSignedIn_neverShowsSpotlight() = runTest {
+        val store = SignInSpotlightStoreFake()
+        val sut = makeSpotlightSUT(store = store, authProvider = AuthProviderFake(isAnonymous = false))
+
+        sut.onAppear()
+
+        assertFalse("a signed-in user's diary is already safe, so the prompt would be noise", sut.isSignInSpotlightVisible.value)
+        assertNull(store.lastShownAt)
+    }
+
+    @Test
+    fun onAppear_whenNoFoodLogged_doesNotShowSpotlight() = runTest {
+        val sut = makeSpotlightSUT(foods = emptyList())
+
+        sut.onAppear()
+
+        assertFalse("there is nothing to lose yet, and the spotlight on a first launch is noise", sut.isSignInSpotlightVisible.value)
+    }
+
+    @Test
+    fun onRefresh_whenShownSixDaysAgo_doesNotShowSpotlight() = runTest {
+        val now = Instant.now()
+        val sut = makeSpotlightSUT(store = SignInSpotlightStoreFake(now.minus(6, ChronoUnit.DAYS)), now = now)
+
+        sut.onAppear()
+        sut.onRefresh()
+
+        assertFalse("the spotlight repeats weekly, not more often", sut.isSignInSpotlightVisible.value)
+    }
+
+    @Test
+    fun onAppear_whenShownSevenDaysAgo_showsSpotlight() = runTest {
+        val now = Instant.now()
+        val store = SignInSpotlightStoreFake(now.minus(7, ChronoUnit.DAYS))
+        val sut = makeSpotlightSUT(store = store, now = now)
+
+        sut.onAppear()
+
+        assertTrue("a process that stays alive for days must still show it once the week has passed", sut.isSignInSpotlightVisible.value)
+        assertEquals(now, store.lastShownAt)
+    }
+
+    @Test
+    fun onAppear_whenAnyPresentationIsActive_doesNotShowSpotlightOrBurnTheWeek() = runTest {
+        val presentations: List<Pair<String, (DashboardViewModel) -> Unit>> = listOf(
+            "settings" to { it.showSettings.value = true },
+            "add food" to { it.showAddFoodSheet.value = true },
+            "calendar" to { it.showCalendarSheet.value = true },
+            "account" to { it.showAccountSheet.value = true },
+            "alert" to { it.alertItem.value = AlertItem(titleRes = R.string.common_error_unknown) },
+            "delete confirmation" to { it.isDeleteConfirmationVisible.value = true },
+            "copy popover" to { it.copyPopoverIndex.value = 0 },
+            "macro popover" to { it.macroPopoverIndex.value = 0 },
+        )
+        for ((name, present) in presentations) {
+            val store = SignInSpotlightStoreFake()
+            val sut = makeSpotlightSUT(store = store)
+            present(sut)
+
+            sut.onAppear()
+
+            assertFalse("$name is up, and a second presentation would be dropped", sut.isSignInSpotlightVisible.value)
+            assertNull("a dropped presentation must not burn the week ($name)", store.lastShownAt)
+        }
+    }
+
+    @Test
+    fun onSignInSpotlightSignInTapped_hidesSpotlightAndOpensAccountSheet() = runTest {
+        val sut = makeSpotlightSUT()
+        sut.onAppear()
+
+        sut.onSignInSpotlightSignInTapped()
+
+        assertFalse(sut.isSignInSpotlightVisible.value)
+        assertTrue("the bubble is a way into the existing sign-in flow, not a new one", sut.showAccountSheet.value)
+    }
+
+    @Test
+    fun onSignInSpotlightDismissed_hidesSpotlightWithoutOpeningAccountSheetOrChangingLastShown() = runTest {
+        val store = SignInSpotlightStoreFake()
+        val now = Instant.now()
+        val sut = makeSpotlightSUT(store = store, now = now)
+        sut.onAppear()
+
+        sut.onSignInSpotlightDismissed()
+
+        assertFalse(sut.isSignInSpotlightVisible.value)
+        assertFalse(sut.showAccountSheet.value)
+        assertEquals("a dismissed spotlight still counts as shown", now, store.lastShownAt)
+    }
+
+    @Test
+    fun onAppear_whenFetchFails_doesNotShowSpotlight() = runTest {
+        val sut = makeSpotlightSUT(fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(shouldThrow = true))
+
+        sut.onAppear()
+
+        assertFalse("the spotlight must not appear over an error alert", sut.isSignInSpotlightVisible.value)
+    }
+
     // MARK: - Helpers
 
     private fun firstOfCurrentMonth(): Instant = todayAt(12).atZone(ZoneId.systemDefault()).withDayOfMonth(1).toInstant()
@@ -641,6 +759,9 @@ class DashboardViewModelTest {
         confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult = true),
         deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
         copyFoodsConsumed: CopyFoodsConsumedUseCaseProtocol = CopyFoodsConsumedUseCaseFake(),
+        authProvider: AuthProviderProtocol = AuthProviderFake(),
+        signInSpotlightStore: SignInSpotlightStoreProtocol = SignInSpotlightStoreFake(),
+        now: Instant = Instant.now(),
     ): DashboardViewModel = DashboardViewModel(
         fetchMealTypes = fetchMealTypes,
         fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth,
@@ -648,6 +769,23 @@ class DashboardViewModelTest {
         confirmMealTypesEmpty = confirmMealTypesEmpty,
         deleteFoodConsumed = deleteFoodConsumed,
         copyFoodsConsumed = copyFoodsConsumed,
+        authProvider = authProvider,
+        signInSpotlightStore = signInSpotlightStore,
+        now = { now },
+    )
+
+    private fun makeSpotlightSUT(
+        store: SignInSpotlightStoreFake = SignInSpotlightStoreFake(),
+        authProvider: AuthProviderProtocol = AuthProviderFake(),
+        foods: List<FoodConsumedDomain> = listOf(makeFood(id = "f1", hour = 9)),
+        fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseProtocol = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = foods),
+        now: Instant = Instant.now(),
+    ): DashboardViewModel = makeSUT(
+        fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(makeMealType(id = 0, hour = 0, endHour = 23))),
+        fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth,
+        authProvider = authProvider,
+        signInSpotlightStore = store,
+        now = now,
     )
 
     private fun todayAt(hour: Int, minute: Int = 0): Instant {
