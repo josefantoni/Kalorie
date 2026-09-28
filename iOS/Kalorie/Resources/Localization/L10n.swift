@@ -56,7 +56,7 @@ enum L10n {
 
     enum Dashboard {
         static var navigationTitle: String { String(localized: "dashboard_navigation_title") }
-        static var buttonMealLayout: String { String(localized: "dashboard_button_mealLayout") }
+        static var buttonSettings: String { String(localized: "dashboard_button_settings") }
         static var sectionUnassignedFoods: String { String(localized: "dashboard_section_unassignedFoods") }
         static var emptyTitle: String { String(localized: "dashboard_empty_title") }
         static var emptyDescription: String { String(localized: "dashboard_empty_description") }
@@ -252,22 +252,23 @@ enum L10n {
         static var errorInvalidQuantity: String { String(localized: "foodQuantity_error_invalidQuantity") }
     }
 
-    enum MealTypeSheet {
-        static var sectionMealLayout: String { String(localized: "mealTypeSheet_section_mealLayout") }
-        static var sectionOther: String { String(localized: "mealTypeSheet_section_other") }
-        static var fieldNewMealPlaceholder: String { String(localized: "mealTypeSheet_field_newMeal_placeholder") }
-        static var datePickerFrom: String { String(localized: "mealTypeSheet_datePicker_from") }
-        static var datePickerTo: String { String(localized: "mealTypeSheet_datePicker_to") }
-        static var buttonCreate: String { String(localized: "mealTypeSheet_button_create") }
-        static var buttonEdit: String { String(localized: "mealTypeSheet_button_edit") }
-        static var buttonEditDone: String { String(localized: "mealTypeSheet_button_editDone") }
-        static var errorEmptyName: String { String(localized: "mealTypeSheet_error_emptyName") }
-        static var errorDuplicateName: String { String(localized: "mealTypeSheet_error_duplicateName") }
-        static var errorTimeConflict: String { String(localized: "mealTypeSheet_error_timeConflict") }
-        static var errorDurationTooShort: String { String(localized: "mealTypeSheet_error_durationTooShort") }
-        static var errorDeleteError: String { String(localized: "mealTypeSheet_error_deleteError") }
-        static var errorLastMealType: String { String(localized: "mealTypeSheet_error_lastMealType") }
-        static var errorUnexpected: String { String(localized: "mealTypeSheet_error_unexpected") }
+    enum Settings {
+        static var navigationTitle: String { String(localized: "settings_navigationTitle") }
+        static var sectionMealLayout: String { String(localized: "settings_section_mealLayout") }
+        static var sectionOther: String { String(localized: "settings_section_other") }
+        static var fieldNewMealPlaceholder: String { String(localized: "settings_field_newMeal_placeholder") }
+        static var datePickerFrom: String { String(localized: "settings_datePicker_from") }
+        static var datePickerTo: String { String(localized: "settings_datePicker_to") }
+        static var buttonCreate: String { String(localized: "settings_button_create") }
+        static var buttonEdit: String { String(localized: "settings_button_edit") }
+        static var buttonEditDone: String { String(localized: "settings_button_editDone") }
+        static var errorEmptyName: String { String(localized: "settings_error_emptyName") }
+        static var errorDuplicateName: String { String(localized: "settings_error_duplicateName") }
+        static var errorTimeConflict: String { String(localized: "settings_error_timeConflict") }
+        static var errorDurationTooShort: String { String(localized: "settings_error_durationTooShort") }
+        static var errorDeleteError: String { String(localized: "settings_error_deleteError") }
+        static var errorLastMealType: String { String(localized: "settings_error_lastMealType") }
+        static var errorUnexpected: String { String(localized: "settings_error_unexpected") }
     }
 
     enum Export {

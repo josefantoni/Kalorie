@@ -36,7 +36,7 @@ enum Constants {
         static let account = "account"
         static let favourites = "favourites"
         static let foodQuantity = "foodQuantity"
-        static let mealTypeSheet = "mealTypeSheet"
+        static let settings = "settings"
         static let addFoodSheet = "addFoodSheet"
         static let dashboard = "dashboard"
         static let myCreatedMeal = "myCreatedMeal"

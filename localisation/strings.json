@@ -419,9 +419,9 @@
     "cs": "ml",
     "en": "ml"
   },
-  "dashboard_button_mealLayout": {
-    "cs": "rozvržení jídel",
-    "en": "Meal layout"
+  "dashboard_button_settings": {
+    "cs": "nastavení",
+    "en": "Settings"
   },
   "dashboard_confirm_deleteFood": {
     "cs": "Smazat tento záznam jídla?",
@@ -727,66 +727,6 @@
     "cs": "1 ml",
     "en": "1 ml"
   },
-  "mealTypeSheet_button_create": {
-    "cs": "Vytvořit",
-    "en": "Create"
-  },
-  "mealTypeSheet_button_edit": {
-    "cs": "Upravit",
-    "en": "Edit"
-  },
-  "mealTypeSheet_button_editDone": {
-    "cs": "Hotovo",
-    "en": "Done"
-  },
-  "mealTypeSheet_datePicker_from": {
-    "cs": "Od",
-    "en": "From"
-  },
-  "mealTypeSheet_datePicker_to": {
-    "cs": "Do",
-    "en": "To"
-  },
-  "mealTypeSheet_error_deleteError": {
-    "cs": "Nastala chyba při mazání",
-    "en": "An error occurred while deleting"
-  },
-  "mealTypeSheet_error_duplicateName": {
-    "cs": "Jméno jídla musí být unikátní",
-    "en": "Meal name must be unique"
-  },
-  "mealTypeSheet_error_durationTooShort": {
-    "cs": "Minimální délka jídla je 30 minut",
-    "en": "Minimum meal duration is 30 minutes"
-  },
-  "mealTypeSheet_error_emptyName": {
-    "cs": "Zadej jméno jídla",
-    "en": "Enter a meal name"
-  },
-  "mealTypeSheet_error_lastMealType": {
-    "cs": "Alespoň jednou denně by se chtělo najíst 🍳😉",
-    "en": "You should eat at least once a day 🍳😉"
-  },
-  "mealTypeSheet_error_timeConflict": {
-    "cs": "Zadaný čas se překrývá s jinou kategorií jídla",
-    "en": "The entered time overlaps with another meal category"
-  },
-  "mealTypeSheet_error_unexpected": {
-    "cs": "Nastala nečekaná chyba",
-    "en": "An unexpected error occurred"
-  },
-  "mealTypeSheet_field_newMeal_placeholder": {
-    "cs": "Jedna snad, ale co druhá snídaně … 🧐?",
-    "en": "What about second breakfast … 🧐?"
-  },
-  "mealTypeSheet_section_mealLayout": {
-    "cs": "Rozvržení jídel",
-    "en": "Meal layout"
-  },
-  "mealTypeSheet_section_other": {
-    "cs": "Ostatní",
-    "en": "Other"
-  },
   "moderation_button_approve": {
     "cs": "Schválit",
     "en": "Approve"
@@ -958,5 +898,69 @@
   "myPortions_title": {
     "cs": "Moje porce",
     "en": "My portions"
+  },
+  "settings_button_create": {
+    "cs": "Vytvořit",
+    "en": "Create"
+  },
+  "settings_button_edit": {
+    "cs": "Upravit",
+    "en": "Edit"
+  },
+  "settings_button_editDone": {
+    "cs": "Hotovo",
+    "en": "Done"
+  },
+  "settings_datePicker_from": {
+    "cs": "Od",
+    "en": "From"
+  },
+  "settings_datePicker_to": {
+    "cs": "Do",
+    "en": "To"
+  },
+  "settings_error_deleteError": {
+    "cs": "Nastala chyba při mazání",
+    "en": "An error occurred while deleting"
+  },
+  "settings_error_duplicateName": {
+    "cs": "Jméno jídla musí být unikátní",
+    "en": "Meal name must be unique"
+  },
+  "settings_error_durationTooShort": {
+    "cs": "Minimální délka jídla je 30 minut",
+    "en": "Minimum meal duration is 30 minutes"
+  },
+  "settings_error_emptyName": {
+    "cs": "Zadej jméno jídla",
+    "en": "Enter a meal name"
+  },
+  "settings_error_lastMealType": {
+    "cs": "Alespoň jednou denně by se chtělo najíst 🍳😉",
+    "en": "You should eat at least once a day 🍳😉"
+  },
+  "settings_error_timeConflict": {
+    "cs": "Zadaný čas se překrývá s jinou kategorií jídla",
+    "en": "The entered time overlaps with another meal category"
+  },
+  "settings_error_unexpected": {
+    "cs": "Nastala nečekaná chyba",
+    "en": "An unexpected error occurred"
+  },
+  "settings_field_newMeal_placeholder": {
+    "cs": "Jedna snad, ale co druhá snídaně … 🧐?",
+    "en": "What about second breakfast … 🧐?"
+  },
+  "settings_navigationTitle": {
+    "cs": "Nastavení",
+    "en": "Settings"
+  },
+  "settings_section_mealLayout": {
+    "cs": "Rozvržení jídel",
+    "en": "Meal layout"
+  },
+  "settings_section_other": {
+    "cs": "Ostatní",
+    "en": "Other"
   }
 }

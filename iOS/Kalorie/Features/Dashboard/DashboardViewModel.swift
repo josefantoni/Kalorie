@@ -71,7 +71,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var mealTypes: [MealTypeDomain] = []
     @Published var foodsConsumed: [FoodConsumedDomain] = []
     @Published var selectedDay = Date.now
-    @Published var showMealTypeSheet = false
+    @Published var showSettings = false
     @Published var showAddFoodSheet = false
     @Published var showCalendarSheet = false
     @Published var showAccountSheet = false
