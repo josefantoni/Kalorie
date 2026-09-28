@@ -41,7 +41,11 @@ struct ExportView: View {
                     Text(L10n.Export.buttonExport)
                         .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.glassProminent)
+                .controlSize(.large)
                 .disabled(viewModel.isExportDisabled)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
             }
         }
         .navigationTitle(L10n.Export.navigationTitle)

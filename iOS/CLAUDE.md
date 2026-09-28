@@ -240,15 +240,19 @@ Deployment target je iOS 26 — používej Liquid Glass bez `@available` podmín
         Image(systemName: "plus")
             .font(.title2)
             .fontWeight(.semibold)
+            .foregroundStyle(.white)
             .padding(20)
     }
-    .glassEffect(.regular, in: .circle)
+    .glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)
     .padding(.bottom, 8)
 }
 ```
 
 - `.safeAreaInset` místo `ToolbarItem(.bottomBar)` — správně odsadí obsah pod tlačítkem
-- `.glassEffect(.regular, in: .circle)` — čirý glass efekt; `.tinted()` neexistuje, `.tint(.accentColor)` způsobuje neviditelnou ikonku (modrá na modrém)
+- `.glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)` — glass v primární barvě s explicitně bílou ikonkou; bez `.foregroundStyle(.white)` by ikonka byla modrá na modrém. Čirý `.glassEffect(.regular, in: .circle)` je jen pro sekundární akce
+- Bez `.buttonStyle(.glassProminent)` na FABu — přidává vlastní vnitřní okraj a kruh se zvětší
 - Pro centrování vynech `HStack { Spacer(); ... }` — `safeAreaInset` centruje obsah ve výchozím stavu
 - Pro zarovnání vpravo dole: `HStack { Spacer(); Button; ... }` s `.padding(.trailing, 20)`
 - Nikdy nepoužívej `BaseImage` s velkou velikostí (`.extraLarge` = 60 pt) v toolbaru
+
+**Textová tlačítka** — primární akce na celou šířku (Export, Vytvořit) je `.buttonStyle(.glassProminent)` + `.controlSize(.large)`, sekundární `.buttonStyle(.glass)`. Nestav je ručně z `.background(...)` a pevné barvy textu — systém řeší dark mode i disabled stav sám. `borderedProminent` se u nových tlačítek nepoužívá.

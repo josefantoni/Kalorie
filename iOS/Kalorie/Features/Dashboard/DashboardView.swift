@@ -132,8 +132,7 @@ struct DashboardView: View {
                             .foregroundStyle(.white)
                             .padding(20)
                     }
-                    .background(Color.accentColor)
-                    .clipShape(.circle)
+                    .glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)
                     .padding(.bottom, 8)
                 }
             }
