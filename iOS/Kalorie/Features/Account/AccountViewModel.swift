@@ -25,7 +25,6 @@ final class AccountViewModel: ObservableObject {
     @Published var alertItem: AlertItem?
     @Published var showDeleteConfirmation = false
     @Published var isReauthenticateAlertVisible = false
-    @Published private(set) var isMaintainer = false
 
     private let authProvider: any AuthProviderProtocol
     private let signOut: any SignOutUseCaseProtocol
@@ -33,7 +32,6 @@ final class AccountViewModel: ObservableObject {
     private let signInWithGoogle: any SignInWithGoogleUseCaseProtocol
     private let deleteAccount: any DeleteAccountUseCaseProtocol
     private let reauthenticate: any ReauthenticateUseCaseProtocol
-    private let fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol
     private let mergeStatusReporting: any MergeStatusReporting
     private var isDataAlreadyWiped = false
 
@@ -49,7 +47,6 @@ final class AccountViewModel: ObservableObject {
         signInWithGoogle: any SignInWithGoogleUseCaseProtocol,
         deleteAccount: any DeleteAccountUseCaseProtocol,
         reauthenticate: any ReauthenticateUseCaseProtocol,
-        fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol,
         mergeStatusReporting: any MergeStatusReporting
     ) {
         self.authProvider = authProvider
@@ -58,25 +55,14 @@ final class AccountViewModel: ObservableObject {
         self.signInWithGoogle = signInWithGoogle
         self.deleteAccount = deleteAccount
         self.reauthenticate = reauthenticate
-        self.fetchMaintainerClaim = fetchMaintainerClaim
         self.mergeStatusReporting = mergeStatusReporting
     }
 
     // MARK: - Functions
 
-    @MainActor
-    func onAppear() async {
-        do {
-            isMaintainer = try await fetchMaintainerClaim()
-        } catch {
-            Log.warning(error, category: Constants.LogCategory.account)
-        }
-    }
-
     func onSignOutTapped() {
         do {
             try signOut()
-            isMaintainer = false
         } catch {
             Log.error(error, category: Constants.LogCategory.account)
             alertItem = AlertItem(title: L10n.Account.errorSignOutFailed)

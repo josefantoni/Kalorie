@@ -12,19 +12,11 @@ struct AccountView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: AccountViewModel
-    private let makeModerationView: () -> ModerationQueueView
-    private let makeModerationReportsView: () -> ModerationReportsView
 
     // MARK: - Init
 
-    init(
-        viewModel: AccountViewModel,
-        makeModerationView: @escaping () -> ModerationQueueView,
-        makeModerationReportsView: @escaping () -> ModerationReportsView
-    ) {
+    init(viewModel: AccountViewModel) {
         self._viewModel = StateObject(wrappedValue: viewModel)
-        self.makeModerationView = makeModerationView
-        self.makeModerationReportsView = makeModerationReportsView
     }
 
     // MARK: - Body
@@ -97,22 +89,7 @@ struct AccountView: View {
                         }
                     }
                 }
-                if viewModel.isMaintainer {
-                    Section(header: Text(L10n.Moderation.sectionTitle)) {
-                        NavigationLink {
-                            makeModerationView()
-                        } label: {
-                            Text(L10n.Moderation.queueTitle)
-                        }
-                        NavigationLink {
-                            makeModerationReportsView()
-                        } label: {
-                            Text(L10n.Moderation.reportsTitle)
-                        }
-                    }
-                }
             }
-            .task { await viewModel.onAppear() }
             .safeAreaInset(edge: .bottom) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L10n.Account.dataAttribution)
@@ -181,15 +158,9 @@ extension AccountViewModel.State: Equatable {}
             signInWithGoogle: SignInWithGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
             reauthenticate: ReauthenticateUseCaseFake(),
-            fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
-        ),
-        makeModerationView: {
-            ModerationConfigurator(dataProvider: FirestoreDataProvider(), authProvider: AuthProviderFake()).createView()
-        }
-    ) {
-        ModerationConfigurator(dataProvider: FirestoreDataProvider(), authProvider: AuthProviderFake()).createReportsView()
-    }
+        )
+    )
 }
 
 #Preview {
@@ -201,13 +172,7 @@ extension AccountViewModel.State: Equatable {}
             signInWithGoogle: SignInWithGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
             reauthenticate: ReauthenticateUseCaseFake(),
-            fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
-        ),
-        makeModerationView: {
-            ModerationConfigurator(dataProvider: FirestoreDataProvider(), authProvider: AuthProviderFake()).createView()
-        }
-    ) {
-        ModerationConfigurator(dataProvider: FirestoreDataProvider(), authProvider: AuthProviderFake()).createReportsView()
-    }
+        )
+    )
 }

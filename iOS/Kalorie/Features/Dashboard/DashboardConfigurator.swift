@@ -23,7 +23,7 @@ struct DashboardConfigurator {
                 deleteFoodConsumed: DeleteFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider)
             ),
             router: DashboardRouter(
-                mealTypeSheetConfigurator: MealTypeSheetConfigurator(),
+                settingsConfigurator: SettingsConfigurator(),
                 addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
                 foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
                 accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: mergeStatusReporting)
