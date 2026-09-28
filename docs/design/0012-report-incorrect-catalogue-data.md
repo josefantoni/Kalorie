@@ -417,3 +417,8 @@ and *No status field* sections above rather than left as stale claims.
 
 The Rules Playground / emulator verification this document calls out for the new rule block
 (*Cross-cutting concerns*) is still owed and is not tracked by any automated check.
+
+**Update — 2026-09-28.** The maintainer section that holds the reports link moved from `AccountView` to
+`SettingsView`; see the matching update in [design 0009](0009-catalogue-moderation.md).
+
+**Rename — 2026-09-28.** The meal types sheet became the *Settings* sheet (title *Nastavení*): `MealTypeSheet*` is now `Settings*`, the `mealTypeSheet_*` string keys are `settings_*` and the Dashboard button is `dashboard_button_settings`. The text above uses the new names.
