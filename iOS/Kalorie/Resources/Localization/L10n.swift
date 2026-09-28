@@ -160,7 +160,6 @@ enum L10n {
         static var errorReasonRequired: String { String(localized: "moderation_error_reasonRequired") }
         static var editorTitle: String { String(localized: "moderation_editor_title") }
         static var editorSearchPlaceholder: String { String(localized: "moderation_editor_searchPlaceholder") }
-        static var editorSaved: String { String(localized: "moderation_editor_saved") }
         static var errorAlreadyExists: String { String(localized: "moderation_error_alreadyExists") }
         static var errorAlreadyResolved: String { String(localized: "moderation_error_alreadyResolved") }
         static var errorChangedSinceReview: String { String(localized: "moderation_error_changedSinceReview") }

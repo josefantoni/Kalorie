@@ -799,10 +799,6 @@
     "cs": "Uložit",
     "en": "Save"
   },
-  "moderation_editor_saved": {
-    "cs": "Uloženo",
-    "en": "Saved"
-  },
   "moderation_editor_searchPlaceholder": {
     "cs": "Čárový kód",
     "en": "Barcode"
