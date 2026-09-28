@@ -583,7 +583,16 @@ Everything else matches the design: the two identities, the write-once-to-write-
 change, the log-before-approval behaviour, the duplicate-handling guard in
 `ApproveSubmissionUseCase` (covered by its required collision test), and the panel as three pushed
 screens under `AccountView` rather than a separate sheet — pushed to match how
-`MyCreatedMealEditorView` is already reached from `MealTypeSheetView`, since `AccountView` already
+`MyCreatedMealEditorView` is already reached from `SettingsView`, since `AccountView` already
 owns a `NavigationStack`. See [ARCHITECTURE.md § 7](../ARCHITECTURE.md#7-catalogue-moderation) for
 the living description and [ADR 0027](../adr/0027-catalogue-writes-require-a-maintainer-claim.md)
 for the decision this took effect for.
+
+**Update — 2026-09-28 (panel moved out of Account).** The panel no longer lives in `AccountView`. The
+*Moderation* section (queue and reports rows) is the last section of the settings sheet, below
+*Other*, on both platforms, and is still shown only to a maintainer. `isMaintainer`, its
+`FetchMaintainerClaimUseCase` dependency and `onAppear()` moved from `AccountViewModel` to
+`SettingsViewModel`; `SettingsRouter` now builds the moderation screens through
+`ModerationConfigurator`. The screens, use cases and the rules-side gate are unchanged.
+
+**Rename — 2026-09-28.** The meal types sheet became the *Settings* sheet (title *Nastavení*): `MealTypeSheet*` is now `Settings*`, the `mealTypeSheet_*` string keys are `settings_*` and the Dashboard button is `dashboard_button_settings`. The text above uses the new names.

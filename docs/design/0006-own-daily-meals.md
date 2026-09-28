@@ -28,9 +28,9 @@ catalogue, its moderation path, or how search results are ranked.
 `…MyCreatedMeal…` use cases.
 
 The name carries a known and accepted cost: `Meal` already means the *time-window* concept —
-`MealTypeDomain`/`MealTypeDTO`, `MealTypeSheetView`, six `…MealType…` use cases,
+`MealTypeDomain`/`MealTypeDTO`, `SettingsView`, six `…MealType…` use cases,
 `SetupDefaultMealsUseCase`, `MealSectionMacroView`, the `MealKit` KMP module (`MealWindows.kt`),
-`L10n.DefaultMeals`, `L10n.Dashboard.buttonMealLayout`. A repo-wide `grep Meal` therefore returns
+`L10n.DefaultMeals`, `L10n.Dashboard.buttonSettings`. A repo-wide `grep Meal` therefore returns
 two unrelated concepts and a reader must parse the `MyCreated` prefix to tell them apart. The
 mitigation is that the prefix is unambiguous wherever it appears and never abbreviated: no
 `MealDTO`, no `CreatedMeal`, no `MCMeal`. The type is always written out in full.
@@ -613,7 +613,7 @@ the fix if it bites is to hoist the view model up to `AddFoodSheetView` alongsid
 the same closure-injection shape `makeFoodQuantityView` already uses (`:20-30`); the view passes
 `Task { await viewModel.onMyCreatedMealSaved() }` as `onSaved`. `AddFoodSheetConfigurator` builds it
 from a locally constructed `MyCreatedMealEditorConfigurator(dataProvider:authProvider:)` — it holds
-both dependencies already, and `MealTypeSheetConfigurator.swift:17,30-32` is the existing precedent
+both dependencies already, and `SettingsConfigurator.swift:17,30-32` is the existing precedent
 for a configurator assembling a peer configurator inline.
 
 Everything that existed to carry the meal editor up to `DashboardView` then goes:
@@ -631,7 +631,7 @@ Everything that existed to carry the meal editor up to `DashboardView` then goes
 That is the entire dismiss-then-present mechanism this section originally specified, including the
 pending flag it called *the single most likely place for this feature to ship broken*. The race it
 mitigated cannot occur once there is no second sheet, which retires the first row of *Risks*.
-`MealTypeSheetConfigurator` keeps building its own editor and is untouched.
+`SettingsConfigurator` keeps building its own editor and is untouched.
 
 #### Tests
 
@@ -840,7 +840,7 @@ The editor opens **preloaded** with an existing meal's ingredients. Where the us
 cannot be the created-meal row in the add-food sheet, because that row logs the meal — the primary
 purpose of the feature. Editing therefore needs its own entry point, and so does deleting.
 
-**Decided: an inline section inside `MealTypeSheetView`**, headed *Vlastní jídla* and placed above
+**Decided: an inline section inside `SettingsView`**, headed *Vlastní jídla* and placed above
 the sheet's existing *Rozvržení jídel* section, in the same `List`:
 
 - one row per meal, showing the name and the composed total weight,
@@ -850,9 +850,9 @@ the sheet's existing *Rozvržení jídel* section, in the same `List`:
 **Placement: inside the meal-layout sheet, not a separate screen.** Meal composition
 (`MyCreatedMeal`) and meal layout (`MealTypeDomain`, *Rozvržení jídel*) are the same mental model to
 the user — both describe how the day's food is organised — so they belong in the same sheet rather
-than a generic account screen. `MealTypeSheetView` already opens from the Dashboard's
+than a generic account screen. `SettingsView` already opens from the Dashboard's
 `.topBarTrailing` toolbar button; that button is icon-only (`list.bullet.circle`, with
-`.accessibilityLabel(L10n.Dashboard.buttonMealLayout)` carrying the existing string forward) so the
+`.accessibilityLabel(L10n.Dashboard.buttonSettings)` carrying the existing string forward) so the
 toolbar stays uncluttered. Adding the new section costs one `Section` in that sheet's `List` and no
 new navigation surface, unlike a dedicated pushed screen or a row in `AccountView`, either of which
 would give the same concern two separate places to be found.
@@ -921,8 +921,8 @@ confirmation in the app).
 | `myCreatedMeal_error_deleteFailed` | Jídlo se nepodařilo smazat | Could not delete the meal |
 | `myCreatedMeal_list_title` | Vlastní jídla | My meals |
 | `myCreatedMeal_list_empty` | Zatím nemáš žádné vlastní jídlo | You have no meals yet |
-| `mealTypeSheet_button_edit` | Upravit | Edit |
-| `mealTypeSheet_button_editDone` | Hotovo | Done |
+| `settings_button_edit` | Upravit | Edit |
+| `settings_button_editDone` | Hotovo | Done |
 | `common_button_yes` | Ano | Yes |
 | `common_button_no` | Ne | No |
 
@@ -973,7 +973,7 @@ Changed:
   see *The entry point* for that revision's own file-by-file list
 - `DashboardView.swift` / `DashboardViewModel.swift` / the Dashboard router — the fifth sheet, the
   `onDismiss` handoff, and the meal-layout toolbar button becoming icon-only
-- `MealTypeSheetView.swift` / `MealTypeSheetConfigurator.swift` — the inline *Vlastní jídla* section
+- `SettingsView.swift` / `SettingsConfigurator.swift` — the inline *Vlastní jídla* section
   and the *Upravit*/*Hotovo* capsule button replacing the pencil/checkmark toolbar pair
 - `FoodQuantityViewModel.swift` — default quantity and unit parameters
 - `PendingMergeSnapshotStore.swift`, `MigrateAnonymousDataUseCase.swift` (see *Cross-cutting*)
@@ -1152,7 +1152,7 @@ logged meal.
 
 Shipped as designed, in one commit: `weightedMeanPerHundredGrams`, the data layer, merge/deletion,
 the editor + entry point, search integration, and the *Vlastní jídla* management section inside
-`MealTypeSheetView`.
+`SettingsView`.
 
 - **`displayedResults` had a self-exclusion bug in this document's own snippet**, caught by a
   test rather than found on device. `matchingIds` was built from both `matchingMeals` and
@@ -1167,7 +1167,7 @@ the editor + entry point, search integration, and the *Vlastní jídla* manageme
   document did not anticipate. The screen is reached two ways — a `.sheet` from the add-food
   button (needs its own `NavigationStack` for the toolbar to render) and a `NavigationLink` push
   from the *Vlastní jídla* section (must **not** wrap a second `NavigationStack` inside
-  `MealTypeSheetView`'s own). `DashboardView` and `MealTypeSheetView` each wrap the editor content
+  `SettingsView`'s own). `DashboardView` and `SettingsView` each wrap the editor content
   in whichever stack they already own. `DismissToolbarItem` is shown only when `!isEditing` (the
   editor) or `editMode == .inactive` (the meal-layout sheet), matching the existing precedent
   (`FoodConsumedDetailView`) that a pushed screen relies on the native back button rather than a
@@ -1179,10 +1179,10 @@ the editor + entry point, search integration, and the *Vlastní jídla* manageme
   This document originally specified a dedicated `MyCreatedMealListView` reached from a row in
   `AccountView`. Before that reached the shared branch, feedback was that a generic "Účet" screen
   did not match the user's mental model for managing composed meals, so the section moved inline
-  into `MealTypeSheetView` instead — the version described above and the only one that shipped.
+  into `SettingsView` instead — the version described above and the only one that shipped.
   `MyCreatedMealListViewModel` is unchanged by the move; only its host view differs from the
   original draft.
-- **`MealTypeSheetView`'s pencil/checkmark toolbar pair became a section-header capsule button**
+- **`SettingsView`'s pencil/checkmark toolbar pair became a section-header capsule button**
   (*Upravit*/*Hotovo*) as part of the same placement change, to make room for the new section
   without a third toolbar affordance on that sheet. *Hotovo* is `.disabled()` until the order
   actually changes, since `onDelete` already persists immediately and a plain enter-then-exit has
@@ -1221,7 +1221,7 @@ the editor + entry point, search integration, and the *Vlastní jídla* manageme
   segmented-picker change: `onMyCreatedMealSaved()` is `@MainActor func … async`, not a synchronous
   method that spawns its own `Task` internally — chosen because it is directly awaitable from a test
   (`await sut.onMyCreatedMealSaved()`), matching how `DashboardView` already wraps
-  `onMealTypesChanged()` and `MealTypeSheetView` wraps `myCreatedMealListViewModel.onSaved()`.
+  `onMealTypesChanged()` and `SettingsView` wraps `myCreatedMealListViewModel.onSaved()`.
   Everything else matches the segmented-picker spec in *The mode control* as written: the `Menu`,
   the `flip(_:)` helper and `flipAngle` are gone; the picker is a full-width segmented row above the
   content `ZStack`; mode switches apply immediately with no animation; `carrotFill` is deleted from
@@ -1249,9 +1249,9 @@ the editor + entry point, search integration, and the *Vlastní jídla* manageme
   no changes — the tests already assert on `canSave`, not on the toolbar — and all 27 pass
   unmodified; full suite and `xcodebuild build` still green.
 
-## Update — 2026-09-19: management moved from `MealTypeSheetView` to the add-food sheet
+## Update — 2026-09-19: management moved from `SettingsView` to the add-food sheet
 
-The *Vlastní jídla* section in `MealTypeSheetView` (edit, swipe-to-delete) is gone. Editing and
+The *Vlastní jídla* section in `SettingsView` (edit, swipe-to-delete) is gone. Editing and
 deleting a created meal now happen where the meal is actually picked. On its row in
 `AddFoodSheetView`'s *Vlastní jídla* section, a trailing chevron signals that a tap pushes to the
 quantity screen, and a trailing swipe deletes after a confirmation alert. On that quantity screen,
@@ -1266,7 +1266,9 @@ screen, and a destructive button at the end of the list follows the HIG's placem
   `DeleteMyCreatedMealUseCaseProtocol`.
 - A dedicated list screen was tried first and dropped: it only repeated the rows already visible
   in the search list.
-- The design decision *An inline section inside `MealTypeSheetView`* above no longer holds. The
+- The design decision *An inline section inside `SettingsView`* above no longer holds. The
   *Rozvržení jídel* section and its *Upravit*/*Hotovo* button are unchanged.
 - Not verified on a device or in the simulator; compilation and `AddFoodSheetViewModelTests`
   only.
+
+**Rename — 2026-09-28.** The meal types sheet became the *Settings* sheet (title *Nastavení*): `MealTypeSheet*` is now `Settings*`, the `mealTypeSheet_*` string keys are `settings_*` and the Dashboard button is `dashboard_button_settings`. The text above uses the new names.

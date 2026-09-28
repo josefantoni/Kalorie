@@ -866,7 +866,7 @@ return empty for a user who has meal types. `ConfirmMealTypesEmptyUseCase` re-as
 `source: .server` before the defaults get written over them. Both calls are needed; dropping
 either reintroduces the bug.
 
-Editing happens in `MealTypeSheetViewModel`, and the set of possible edits is deliberately
+Editing happens in `SettingsViewModel`, and the set of possible edits is deliberately
 narrow:
 
 - **Create** — validated in `CreateMealTypeUseCase` per
@@ -921,7 +921,7 @@ changing the day carry over a sensible time of day:
 | `scenePhase` → `.active` | `onRefresh` | meal types + invalidate and reload the month |
 | Pull to refresh | `onRefresh` | same |
 | Returning from food detail | `onFoodConsumedUpdated` | invalidate and reload the month |
-| Meal type sheet changed | `onMealTypesChanged` | meal types only |
+| Settings sheet changed the meal types | `onMealTypesChanged` | meal types only |
 | Day changed / picked | `onDayChanged` / `onDaySelected` | cache hit, or load that month |
 | Calendar month paged | `onCalendarMonthChanged` | cache hit, or load that month |
 
@@ -1552,17 +1552,18 @@ already carries denormalised nutrition (§ 1.3) and never reads `foodItems` at w
 `food_item_id` = the barcode resolves once — or if rejected, never — without the entry itself ever
 being wrong.
 
-### 7.3 The panel (Account)
+### 7.3 The panel (Settings)
 
-A `Section` in `AccountView`, rendered only when `AccountViewModel.isMaintainer` is true —
+A `Section` in `SettingsView`, below the *Other* section and hidden while the meal layout is being
+edited, rendered only when `SettingsViewModel.isMaintainer` is true —
 populated in `onAppear()` from `FetchMaintainerClaimUseCase`, a plain `Bool` with no retry. This is
 a **UI gate, not a defence**: the rules in § 1.6 are what actually restrict a write, exactly as
 design 0009 requires.
 
 `ModerationConfigurator` assembles four pushed (not sheeted) views, all reached through
-`NavigationLink`s inside `AccountView`'s existing `NavigationStack`, matching how
+`NavigationLink`s inside `SettingsView`'s existing `NavigationStack`, matching how
 `MyCreatedMealEditorView` is pushed from a created meal's quantity screen (its pencil button) rather than sheeted. The queue and the
-reports screen (§ 7.6) are two separate, sibling `NavigationLink`s in `AccountView`'s maintainer
+reports screen (§ 7.6) are two separate, sibling `NavigationLink`s in `SettingsView`'s maintainer
 section — not one nested inside the other — since a report row means something different from a
 submission row and goes somewhere else:
 
@@ -1719,7 +1720,7 @@ unknown value, zero in a sum), [ADR 0034](adr/0034-kotlin-toolchain-pinned-at-2.
 
 ### 8.1 What it does
 
-The user opens the meal types sheet from the Dashboard, taps the *Export* row under its *Other*
+The user opens the Settings sheet from the Dashboard, taps the *Export* row under its *Other*
 section (below the meal layout), picks a from/to date and PDF or Excel, and gets a file in the system
 share sheet. Both formats show the
 same hierarchy: day → meal (with its window) → foods, a subtotal after each meal and a total after
@@ -1727,7 +1728,7 @@ each day. Every day of the interval appears; a day without entries shows a "no e
 interval without any entries still yields a file.
 
 ```
-MealTypeSheetView ─▶ ExportView ─▶ ExportViewModel ─▶ GenerateFoodExportUseCase
+SettingsView ─▶ ExportView ─▶ ExportViewModel ─▶ GenerateFoodExportUseCase
                                                         │  FetchFoodsConsumedInRangeUseCase
                                                         │  FoodExportReportFactory (Swift)
                                                         │  ExportKit: buildReport → renderXlsx / renderPdf
@@ -1735,7 +1736,7 @@ MealTypeSheetView ─▶ ExportView ─▶ ExportViewModel ─▶ GenerateFoodEx
                                                    temp file URL ─▶ UIActivityViewController
 ```
 
-The screen is pushed inside the sheet's `NavigationStack` (`isExportPushed`, `MealTypeSheetRouter`),
+The screen is pushed inside the sheet's `NavigationStack` (`isExportPushed`, `SettingsRouter`),
 not presented separately. The file is written to the temporary directory as
 `Kalorie_<from>_<to>.<ext>` and removed when the share sheet finishes (`ExportViewModel.onShareFinished`).
 `ShareLink` is not used: it needs its item before the tap, and the file exists only after an async

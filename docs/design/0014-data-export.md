@@ -107,7 +107,7 @@ Rules:
 ### Division of work between Swift and Kotlin
 
 ```
-MealTypeSheetView ─▶ ExportView ─▶ ExportViewModel ─▶ GenerateFoodExportUseCase
+SettingsView ─▶ ExportView ─▶ ExportViewModel ─▶ GenerateFoodExportUseCase
                                                         │  1. FetchFoodsConsumedInRangeUseCase
                                                         │  2. day bucketing + meal resolution (Swift)
                                                         │  3. ExportKit: build report → render xlsx / pdf
@@ -202,9 +202,9 @@ are passed into the export feature's configurator.
 
 ### iOS feature
 
-- **Entry point:** a toolbar button in `MealTypeSheetView`, the sheet opened from the
+- **Entry point:** a toolbar button in `SettingsView`, the sheet opened from the
   Dashboard's trailing toolbar icon. It pushes `ExportView` inside the sheet's existing
-  `NavigationStack` (`isExportPushed` on `MealTypeSheetViewModel`, the Router pattern).
+  `NavigationStack` (`isExportPushed` on `SettingsViewModel`, the Router pattern).
 - **`ExportView`:** two `DatePicker`s (`from`, `to`), a segmented format picker (PDF / Excel)
   and an *Export* button.
   - Defaults: `from` = first day of the current month, `to` = today.
@@ -245,7 +245,7 @@ are passed into the export feature's configurator.
 | `Core/UseCases/FetchFoodsConsumedInRangeUseCase.swift` (new) | Range read over the existing provider query |
 | `Core/UseCases/GenerateFoodExportUseCase.swift` (new) | Fetch, day bucketing, meal resolution, ExportKit call, temp file |
 | `Features/Export/` (new) | Configurator, View, ViewModel, share-sheet wrapper |
-| `Features/MealTypeSheet/MealTypeSheetView.swift`, `…ViewModel.swift`, `…Configurator.swift` | Toolbar button, `isExportPushed`, destination |
+| `Features/Settings/SettingsView.swift`, `…ViewModel.swift`, `…Configurator.swift` | Toolbar button, `isExportPushed`, destination |
 | `Localizable.xcstrings`, `L10n` | Screen strings, column headers, report labels |
 | `TODO.md` | Remove *Data export* once shipped |
 | `docs/ARCHITECTURE.md` | New subsection once shipped |
@@ -334,10 +334,12 @@ alert and the *Offline* concern were dropped; `FetchFoodsConsumedInRangeUseCase`
 range read like every other feature.
 
 **Update — 2026-09-28 (entry point moved out of the top bar).** The *Entry point* bullet above no
-longer holds. The export is not a top-bar button of the meal types sheet any more; it is a row
-labelled *Export* under a second section, *Other* (`mealTypeSheet_section_other`), placed below the
+longer holds. The export is not a top-bar button of the settings sheet any more; it is a row
+labelled *Export* under a second section, *Other* (`settings_section_other`), placed below the
 *Meal layout* section on both platforms. The row shows a trailing chevron and is hidden while the
 meal layout is being edited, as the button was. Navigation is unchanged: it still sets
-`isExportPushed` on `MealTypeSheetViewModel` and pushes `ExportView` (Android: the same flag opens
+`isExportPushed` on `SettingsViewModel` and pushes `ExportView` (Android: the same flag opens
 the export dialog). Only the trigger moved, so `ExportView`, its view model and the use cases are
 untouched.
+
+**Rename — 2026-09-28.** The meal types sheet became the *Settings* sheet (title *Nastavení*): `MealTypeSheet*` is now `Settings*`, the `mealTypeSheet_*` string keys are `settings_*` and the Dashboard button is `dashboard_button_settings`. The text above uses the new names.
