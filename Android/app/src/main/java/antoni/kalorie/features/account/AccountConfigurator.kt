@@ -12,26 +12,18 @@ import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.auth.PendingMergeSnapshotStore
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.usecases.DeleteAccountUseCase
-import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCase
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialUseCase
-import antoni.kalorie.core.usecases.MaintainerClaimCache
 import antoni.kalorie.core.usecases.MigrateAnonymousDataUseCase
 import antoni.kalorie.core.usecases.ReauthenticateUseCase
 import antoni.kalorie.core.usecases.SignInWithGoogleUseCase
 import antoni.kalorie.core.usecases.SignOutUseCase
 import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
-import antoni.kalorie.features.moderation.ModerationConfigurator
 
 class AccountConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,
     private val authProvider: AuthProviderProtocol,
     private val mergeStatusReporting: MergeStatusReporting,
 ) {
-
-    // MARK: - Properties
-
-    private val maintainerClaimCache = MaintainerClaimCache()
-    private val moderationConfigurator = ModerationConfigurator(dataProvider, authProvider)
 
     // MARK: - Functions
 
@@ -78,15 +70,9 @@ class AccountConfigurator(
                     authCommandProvider = authCommandProvider,
                     authProvider = authProvider,
                 ),
-                fetchMaintainerClaim = FetchMaintainerClaimUseCase(maintainerClaimCache),
                 mergeStatusReporting = mergeStatusReporting,
             )
         }
-        AccountView(
-            viewModel = viewModel,
-            onDismiss = onDismiss,
-            makeModerationView = { onModerationDismiss -> moderationConfigurator.createView(onDismiss = onModerationDismiss) },
-            makeModerationReportsView = { onReportsDismiss -> moderationConfigurator.createReportsView(onDismiss = onReportsDismiss) },
-        )
+        AccountView(viewModel = viewModel, onDismiss = onDismiss)
     }
 }

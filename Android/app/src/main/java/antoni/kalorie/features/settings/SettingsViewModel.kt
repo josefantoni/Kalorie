@@ -1,10 +1,11 @@
-package antoni.kalorie.features.mealtypesheet
+package antoni.kalorie.features.settings
 
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.usecases.CreateMealTypeUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteMealTypeUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
@@ -18,12 +19,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Instant
 
-class MealTypeSheetViewModel(
+class SettingsViewModel(
     mealTypes: List<MealTypeDomain>,
     private val onMealTypesChanged: () -> Unit = {},
     private val createMealType: CreateMealTypeUseCaseProtocol,
     private val deleteMealType: DeleteMealTypeUseCaseProtocol,
     private val updateMealTypeTimes: UpdateMealTypeTimesUseCaseProtocol,
+    private val fetchMaintainerClaim: FetchMaintainerClaimUseCaseProtocol,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -38,9 +40,21 @@ class MealTypeSheetViewModel(
     val newMealEnd = MutableStateFlow(Instant.now())
     val isAddFormVisible = MutableStateFlow(false)
     val isExportPushed = MutableStateFlow(false)
+    private val _isMaintainer = MutableStateFlow(false)
+    val isMaintainer: StateFlow<Boolean> = _isMaintainer
     val alertItem = MutableStateFlow<AlertItem?>(null)
 
     // MARK: - Functions
+
+    suspend fun onAppear() {
+        try {
+            _isMaintainer.value = fetchMaintainerClaim()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.SETTINGS)
+        }
+    }
 
     suspend fun onCreateMealType() {
         _state.value = LoadingState.Loading
@@ -59,13 +73,13 @@ class MealTypeSheetViewModel(
             throw error
         } catch (error: Exception) {
             alertItem.value = when (error) {
-                is CreateMealTypeError.EmptyName -> AlertItem(titleRes = R.string.mealTypeSheet_error_emptyName)
-                is CreateMealTypeError.DuplicateName -> AlertItem(titleRes = R.string.mealTypeSheet_error_duplicateName)
-                is CreateMealTypeError.TimeConflict -> AlertItem(titleRes = R.string.mealTypeSheet_error_timeConflict)
-                is CreateMealTypeError.DurationTooShort -> AlertItem(titleRes = R.string.mealTypeSheet_error_durationTooShort)
+                is CreateMealTypeError.EmptyName -> AlertItem(titleRes = R.string.settings_error_emptyName)
+                is CreateMealTypeError.DuplicateName -> AlertItem(titleRes = R.string.settings_error_duplicateName)
+                is CreateMealTypeError.TimeConflict -> AlertItem(titleRes = R.string.settings_error_timeConflict)
+                is CreateMealTypeError.DurationTooShort -> AlertItem(titleRes = R.string.settings_error_durationTooShort)
                 else -> {
-                    Log.error(error, Constants.LogCategory.MEAL_TYPE_SHEET)
-                    AlertItem(titleRes = R.string.mealTypeSheet_error_unexpected)
+                    Log.error(error, Constants.LogCategory.SETTINGS)
+                    AlertItem(titleRes = R.string.settings_error_unexpected)
                 }
             }
         } finally {
@@ -75,7 +89,7 @@ class MealTypeSheetViewModel(
 
     suspend fun onDelete(index: Int) {
         if (mealTypes.value.size <= 1) {
-            alertItem.value = AlertItem(titleRes = R.string.mealTypeSheet_error_lastMealType)
+            alertItem.value = AlertItem(titleRes = R.string.settings_error_lastMealType)
             return
         }
         _state.value = LoadingState.Loading
@@ -87,8 +101,8 @@ class MealTypeSheetViewModel(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Log.error(error, Constants.LogCategory.MEAL_TYPE_SHEET)
-            alertItem.value = AlertItem(titleRes = R.string.mealTypeSheet_error_deleteError)
+            Log.error(error, Constants.LogCategory.SETTINGS)
+            alertItem.value = AlertItem(titleRes = R.string.settings_error_deleteError)
         } finally {
             _state.value = LoadingState.loaded
         }
@@ -116,8 +130,8 @@ class MealTypeSheetViewModel(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Log.error(error, Constants.LogCategory.MEAL_TYPE_SHEET)
-            alertItem.value = AlertItem(titleRes = R.string.mealTypeSheet_error_unexpected)
+            Log.error(error, Constants.LogCategory.SETTINGS)
+            alertItem.value = AlertItem(titleRes = R.string.settings_error_unexpected)
         } finally {
             _state.value = LoadingState.loaded
         }

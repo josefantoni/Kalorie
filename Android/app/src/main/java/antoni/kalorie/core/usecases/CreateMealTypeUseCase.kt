@@ -7,7 +7,7 @@ import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.MealTypeDTO
 import antoni.kalorie.core.networking.setAsync
 import antoni.kalorie.core.utils.Constants
-import antoni.kalorie.features.mealtypesheet.CreateMealTypeError
+import antoni.kalorie.features.settings.CreateMealTypeError
 import antoni.kalorie.mealkit.MIN_MEAL_WINDOW_MINUTES
 import antoni.kalorie.mealkit.isMealWindowLongEnough
 import antoni.kalorie.mealkit.mealWindowsOverlap

@@ -9,7 +9,7 @@ object Constants {
         const val FIRESTORE = "firestore"
         const val AUTH = "auth"
         const val DASHBOARD = "dashboard"
-        const val MEAL_TYPE_SHEET = "mealTypeSheet"
+        const val SETTINGS = "settings"
         const val FOOD_QUANTITY = "foodQuantity"
         const val ADD_FOOD_SHEET = "addFoodSheet"
         const val FAVOURITES = "favourites"
