@@ -4052,6 +4052,23 @@
         }
       }
     },
+    "settings_button_feedback" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zpětná vazba"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedback"
+          }
+        }
+      }
+    },
     "settings_datePicker_from" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4201,6 +4218,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "An unexpected error occurred"
+          }
+        }
+      }
+    },
+    "settings_feedback_noMail_copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopírovat adresu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy address"
+          }
+        }
+      }
+    },
+    "settings_feedback_noMail_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V zařízení není nastavená žádná poštovní aplikace. Napište nám prosím na adresu %@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No mail app is set up on this device. Please write to us at %@."
+          }
+        }
+      }
+    },
+    "settings_feedback_noMail_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poštu se nepodařilo otevřít"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't open Mail"
           }
         }
       }

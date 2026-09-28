@@ -237,6 +237,7 @@
     <string name="settings_button_create">Vytvořit</string>
     <string name="settings_button_edit">Upravit</string>
     <string name="settings_button_editDone">Hotovo</string>
+    <string name="settings_button_feedback">Zpětná vazba</string>
     <string name="settings_datePicker_from">Od</string>
     <string name="settings_datePicker_to">Do</string>
     <string name="settings_error_deleteError">Nastala chyba při mazání</string>
@@ -246,6 +247,9 @@
     <string name="settings_error_lastMealType">Alespoň jednou denně by se chtělo najíst 🍳😉</string>
     <string name="settings_error_timeConflict">Zadaný čas se překrývá s jinou kategorií jídla</string>
     <string name="settings_error_unexpected">Nastala nečekaná chyba</string>
+    <string name="settings_feedback_noMail_copy">Kopírovat adresu</string>
+    <string name="settings_feedback_noMail_message">V zařízení není nastavená žádná poštovní aplikace. Napište nám prosím na adresu %1$s.</string>
+    <string name="settings_feedback_noMail_title">Poštu se nepodařilo otevřít</string>
     <string name="settings_field_newMeal_placeholder">Jedna snad, ale co druhá snídaně … 🧐?</string>
     <string name="settings_navigationTitle">Nastavení</string>
     <string name="settings_section_mealLayout">Rozvržení jídel</string>

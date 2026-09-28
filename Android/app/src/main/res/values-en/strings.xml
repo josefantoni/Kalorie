@@ -237,6 +237,7 @@
     <string name="settings_button_create">Create</string>
     <string name="settings_button_edit">Edit</string>
     <string name="settings_button_editDone">Done</string>
+    <string name="settings_button_feedback">Feedback</string>
     <string name="settings_datePicker_from">From</string>
     <string name="settings_datePicker_to">To</string>
     <string name="settings_error_deleteError">An error occurred while deleting</string>
@@ -246,6 +247,9 @@
     <string name="settings_error_lastMealType">You should eat at least once a day 🍳😉</string>
     <string name="settings_error_timeConflict">The entered time overlaps with another meal category</string>
     <string name="settings_error_unexpected">An unexpected error occurred</string>
+    <string name="settings_feedback_noMail_copy">Copy address</string>
+    <string name="settings_feedback_noMail_message">No mail app is set up on this device. Please write to us at %1$s.</string>
+    <string name="settings_feedback_noMail_title">Couldn\'t open Mail</string>
     <string name="settings_field_newMeal_placeholder">What about second breakfast … 🧐?</string>
     <string name="settings_navigationTitle">Settings</string>
     <string name="settings_section_mealLayout">Meal layout</string>

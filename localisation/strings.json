@@ -947,6 +947,10 @@
     "cs": "Hotovo",
     "en": "Done"
   },
+  "settings_button_feedback": {
+    "cs": "Zpětná vazba",
+    "en": "Feedback"
+  },
   "settings_datePicker_from": {
     "cs": "Od",
     "en": "From"
@@ -982,6 +986,18 @@
   "settings_error_unexpected": {
     "cs": "Nastala nečekaná chyba",
     "en": "An unexpected error occurred"
+  },
+  "settings_feedback_noMail_copy": {
+    "cs": "Kopírovat adresu",
+    "en": "Copy address"
+  },
+  "settings_feedback_noMail_message": {
+    "cs": "V zařízení není nastavená žádná poštovní aplikace. Napište nám prosím na adresu %@.",
+    "en": "No mail app is set up on this device. Please write to us at %@."
+  },
+  "settings_feedback_noMail_title": {
+    "cs": "Poštu se nepodařilo otevřít",
+    "en": "Couldn't open Mail"
   },
   "settings_field_newMeal_placeholder": {
     "cs": "Jedna snad, ale co druhá snídaně … 🧐?",
