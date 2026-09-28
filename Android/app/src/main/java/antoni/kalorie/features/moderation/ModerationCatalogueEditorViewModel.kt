@@ -16,6 +16,7 @@ import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.NutritionLabelPrefilling
 import antoni.kalorie.features.addfoodsheet.FoodItemFormInput
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -40,8 +41,8 @@ class ModerationCatalogueEditorViewModel(
     private val _state = MutableStateFlow<LoadingState<Unit>>(LoadingState.Idle)
     val state: StateFlow<LoadingState<Unit>> = _state
     val alertItem = MutableStateFlow<AlertItem?>(null)
-    private val _didSave = MutableStateFlow(false)
-    val didSave: StateFlow<Boolean> = _didSave
+    private val _showCheckmark = MutableStateFlow(false)
+    val showCheckmark: StateFlow<Boolean> = _showCheckmark
 
     // MARK: - Functions
 
@@ -74,7 +75,7 @@ class ModerationCatalogueEditorViewModel(
             _loadedItem.value = item
             formInput.value = FoodItemFormInput.from(item)
             recognizedFields.value = emptySet()
-            _didSave.value = false
+            _showCheckmark.value = false
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
@@ -92,7 +93,13 @@ class ModerationCatalogueEditorViewModel(
         try {
             updateFoodItem(item, loadedItem)
             _loadedItem.value = item
-            _didSave.value = true
+            _state.value = LoadingState.loaded
+            _showCheckmark.value = true
+            try {
+                delay(CHECKMARK_DURATION_MILLIS)
+            } finally {
+                _showCheckmark.value = false
+            }
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
@@ -111,5 +118,9 @@ class ModerationCatalogueEditorViewModel(
         } finally {
             _state.value = LoadingState.loaded
         }
+    }
+
+    private companion object {
+        const val CHECKMARK_DURATION_MILLIS = 2_000L
     }
 }
