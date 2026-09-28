@@ -5,6 +5,10 @@ import kotlin.time.Duration.Companion.milliseconds
 
 object Constants {
 
+    object Support {
+        const val EMAIL = "kaloriepodpora@gmail.com"
+    }
+
     object LogCategory {
         const val FIRESTORE = "firestore"
         const val AUTH = "auth"
