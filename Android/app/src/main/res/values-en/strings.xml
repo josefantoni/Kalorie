@@ -123,6 +123,9 @@
     <string name="dashboard_error_deleteFailed">Could not delete the food</string>
     <string name="dashboard_navigation_title">Calories</string>
     <string name="dashboard_section_unassignedFoods">Other unassigned foods</string>
+    <string name="dashboard_signInSpotlight_actionSignIn">Sign in</string>
+    <string name="dashboard_signInSpotlight_message">Once you sign in, your diary survives losing or replacing your phone, and you can open it on another device.</string>
+    <string name="dashboard_signInSpotlight_title">Keep your diary safe</string>
     <string name="defaultMeals_breakfast">Breakfast</string>
     <string name="defaultMeals_dinner">Dinner</string>
     <string name="defaultMeals_lunch">Lunch</string>

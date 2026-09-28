@@ -2108,6 +2108,57 @@
         }
       }
     },
+    "dashboard_signInSpotlight_actionSignIn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlásit se"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in"
+          }
+        }
+      }
+    },
+    "dashboard_signInSpotlight_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po přihlášení zůstane tvůj deník zachovaný, i když telefon ztratíš nebo vyměníš, a najdeš ho i na jiném zařízení."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Once you sign in, your diary survives losing or replacing your phone, and you can open it on another device."
+          }
+        }
+      }
+    },
+    "dashboard_signInSpotlight_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ochraň svůj deník"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep your diary safe"
+          }
+        }
+      }
+    },
     "defaultMeals_breakfast" : {
       "extractionState" : "manual",
       "localizations" : {
