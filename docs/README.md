@@ -205,7 +205,7 @@ understanding why.
 | [0012](design/0012-report-incorrect-catalogue-data.md) | Reporting incorrect data on a catalogue item | Implemented | Backend, Cross-platform, iOS |
 | [0013](design/0013-catalogue-item-without-barcode.md) | Manual entry of a catalogue item without a barcode | Implemented | Backend, Cross-platform, iOS |
 | [0014](design/0014-data-export.md) | Exporting consumed food to PDF or Excel | Implemented | Cross-platform, iOS |
-| [0016](design/0016-copy-meal-to-another-window.md) | Copying a meal to another window and day | Approved | Cross-platform, iOS, Android |
+| [0016](design/0016-copy-meal-to-another-window.md) | Copying a meal to another window and day | Implemented | Cross-platform, iOS, Android |
 
 ### Decision records
 
