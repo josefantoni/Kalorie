@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
 import antoni.kalorie.components.CarbsColor
@@ -58,13 +57,13 @@ fun MacroSummaryView(macros: DailyMacros, modifier: Modifier = Modifier) {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 DetailRow(stringResource(R.string.addFood_field_carbsSugar), macros.carbohydrateSugar, CarbsColor, Modifier.weight(1f))
-                DetailRow(stringResource(R.string.addFood_field_fatUnsaturated), macros.fatUnsaturated, FatColor, Modifier.weight(1f))
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                DetailRow(stringResource(R.string.addFood_field_fiber), macros.fiber, null, Modifier.weight(1f))
                 DetailRow(stringResource(R.string.addFood_field_salt), macros.salt, null, Modifier.weight(1f))
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                DetailRow(stringResource(R.string.addFood_field_fatUnsaturated), macros.fatUnsaturated, FatColor, Modifier.weight(1f))
+                DetailRow(stringResource(R.string.addFood_field_fiber), macros.fiber, null, Modifier.weight(1f))
             }
         }
     }
@@ -86,20 +85,20 @@ private fun MacroLabel(color: Color, name: String, value: Double) {
 @Composable
 private fun DetailRow(label: String, value: Double, dotColor: Color?, modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (dotColor != null) Dot(color = dotColor, size = 6)
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
+        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (dotColor != null) Dot(color = dotColor, size = 6, modifier = Modifier.padding(top = 5.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+            )
+        }
         Text(text = value.formattedGrams(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable
-private fun Dot(color: Color, size: Int) {
-    Box(modifier = Modifier.size(size.dp).background(color, CircleShape))
+internal fun Dot(color: Color, size: Int, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.size(size.dp).background(color, CircleShape))
 }
