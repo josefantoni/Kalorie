@@ -13,7 +13,10 @@ import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodItemError
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseFake
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseProtocol
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -26,14 +29,14 @@ class ModerationCatalogueEditorViewModelTest {
     // MARK: - onSearchTapped
 
     @Test
-    fun onSearchTapped_whenFound_prefillsFormAndClearsPreviousSavedFlag() = runTest {
+    fun onSearchTapped_whenFound_prefillsFormAndHidesPreviousCheckmark() = runTest {
         val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()))
         sut.barcodeQuery.value = "12345678"
 
         sut.onSearchTapped()
 
         assertEquals("12345678", sut.formInput.value.scannedCode)
-        assertFalse(sut.didSave.value)
+        assertFalse(sut.showCheckmark.value)
         assertNull(sut.alertItem.value)
     }
 
@@ -64,11 +67,24 @@ class ModerationCatalogueEditorViewModelTest {
         sut.onSaveTapped()
 
         assertEquals(originalDate, updateFoodItem.receivedItem?.date)
-        assertTrue(sut.didSave.value)
     }
 
     @Test
-    fun onSaveTapped_whenItemChangedSinceLoad_showsAlertAndDoesNotMarkSaved() = runTest {
+    fun onSaveTapped_whenCancelledWhileTheCheckmarkShows_hidesTheCheckmark() = runTest {
+        val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()))
+        sut.barcodeQuery.value = "12345678"
+        sut.onSearchTapped()
+
+        val save = launch { sut.onSaveTapped() }
+        yield()
+        assertTrue(sut.showCheckmark.value)
+        save.cancelAndJoin()
+
+        assertFalse(sut.showCheckmark.value)
+    }
+
+    @Test
+    fun onSaveTapped_whenItemChangedSinceLoad_showsAlertAndDoesNotShowCheckmark() = runTest {
         val sut = makeSUT(
             fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
             updateFoodItem = UpdateFoodItemUseCaseFake(errorToThrow = UpdateFoodItemError.ChangedSinceLoad),
@@ -80,7 +96,7 @@ class ModerationCatalogueEditorViewModelTest {
         sut.onSaveTapped()
 
         assertEquals(R.string.moderation_error_itemChangedSinceLoad, sut.alertItem.value?.titleRes)
-        assertFalse(sut.didSave.value)
+        assertFalse(sut.showCheckmark.value)
     }
 
     // MARK: - onNutritionLabelCaptured
