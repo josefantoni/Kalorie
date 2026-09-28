@@ -46,8 +46,6 @@ import java.time.ZonedDateTime
 
 class FoodQuantityViewModelTest {
 
-    // MARK: - grams
-
     @Test
     fun grams_withOneHundredGramUnit_is100() {
         val sut = makeSUT()
@@ -74,8 +72,6 @@ class FoodQuantityViewModelTest {
 
         assertEquals(150.0, sut.grams, 0.0)
     }
-
-    // MARK: - scaledCalories
 
     @Test
     fun scaledCalories_calculatesFromGrams() {
@@ -113,16 +109,12 @@ class FoodQuantityViewModelTest {
         assertEquals(200, sut.scaledCalories)
     }
 
-    // MARK: - scaledFiber
-
     @Test
     fun scaledFiber_whenItemsFiberIsUnknown_staysNil() {
         val sut = makeSUT(item = makeFoodItem(fiber = null))
 
         assertNull(sut.scaledFiber)
     }
-
-    // MARK: - init defaults
 
     @Test
     fun init_withoutQuantityOrUnit_defaultsToOneHundredGram() {
@@ -139,8 +131,6 @@ class FoodQuantityViewModelTest {
         assertEquals(100.0, sut.quantity.value, 0.0)
         assertEquals(FoodQuantityUnit.Grams, sut.unit.value)
     }
-
-    // MARK: - onUnitSelected
 
     @Test
     fun onUnitSelected_toGrams_convertsQuantity() {
@@ -207,8 +197,6 @@ class FoodQuantityViewModelTest {
 
         assertEquals(FoodQuantityUnit.Portion(portion), sut.unit.value)
     }
-
-    // MARK: - onConfirm
 
     @Test
     fun onConfirm_withZeroQuantity_showsInvalidQuantityAlert() = runTest {
@@ -341,8 +329,6 @@ class FoodQuantityViewModelTest {
         assertEquals(R.string.common_error_unknown, sut.alertItem.value?.titleRes)
     }
 
-    // MARK: - selectedMealTypeId (init)
-
     @Test
     fun init_preselectsTheMealTypeResolvedFromTimeOfDay() {
         val sut = makeSUT(selectedDate = makeDate(hour = 12), mealTypes = listOf(makeMealType(id = "lunch", hour = 11, endHour = 14)))
@@ -356,8 +342,6 @@ class FoodQuantityViewModelTest {
 
         assertNull(sut.selectedMealTypeId.value)
     }
-
-    // MARK: - onAppear — refreshing a stale today
 
     @Test
     fun onAppear_whenSelectedDateIsEarlierToday_refreshesItToNowAndUpdatesTheMealTypeDefault() = runTest {
@@ -386,8 +370,6 @@ class FoodQuantityViewModelTest {
         assertEquals("refreshing the stale date on appear must not clobber an explicit user pick", "dinner", sut.selectedMealTypeId.value)
     }
 
-    // MARK: - unitOptions
-
     @Test
     fun unitOptions_ordersCataloguePortionBeforeGramsBeforeHundredGrams() {
         val slice = FoodPortionDomain(name = "1 plátek", grams = 30.0)
@@ -398,8 +380,6 @@ class FoodQuantityViewModelTest {
             sut.unitOptions,
         )
     }
-
-    // MARK: - defaultUnit(for:)
 
     @Test
     fun defaultUnit_withCataloguePortions_returnsFirstPortion() {
@@ -420,8 +400,6 @@ class FoodQuantityViewModelTest {
 
         assertEquals(FoodQuantityUnit.Grams, FoodQuantityViewModel.defaultUnit(item))
     }
-
-    // MARK: - onAppear (personal portions)
 
     @Test
     fun onAppear_withCatalogueItem_fetchesPersonalPortions() = runTest {
@@ -533,8 +511,6 @@ class FoodQuantityViewModelTest {
         )
     }
 
-    // MARK: - onPortionsManagerOpened
-
     @Test
     fun onPortionsManagerOpened_seedsOneBlankDraftRegardlessOfCurrentGrams() {
         val sut = makeSUT(quantity = 1000.0, unit = FoodQuantityUnit.Grams)
@@ -548,8 +524,6 @@ class FoodQuantityViewModelTest {
             sut.portionDrafts.value.map { it.gramsText },
         )
     }
-
-    // MARK: - portion drafts
 
     @Test
     fun arePortionDraftsComplete_isFalseUntilEveryDraftHasNameAndGrams() {
@@ -598,8 +572,6 @@ class FoodQuantityViewModelTest {
 
         assertEquals("the screen must always show at least one row", listOf(""), sut.portionDrafts.value.map { it.name })
     }
-
-    // MARK: - onSavePersonalPortions
 
     @Test
     fun onSavePersonalPortions_whenSaveSucceeds_appendsAllDraftsAndResetsToOneEmptyDraft() = runTest {
@@ -673,8 +645,6 @@ class FoodQuantityViewModelTest {
 
         assertEquals(listOf(FoodPortionDomain(name = "1 lžíce", grams = 7.5)), sut.personalPortions.value)
     }
-
-    // MARK: - onDeletePersonalPortion
 
     @Test
     fun onDeletePersonalPortion_whenSaveSucceeds_removesPortion() = runTest {
@@ -753,8 +723,6 @@ class FoodQuantityViewModelTest {
         )
     }
 
-    // MARK: - onFavouriteToggled
-
     @Test
     fun onFavouriteToggled_whenNotFavourite_marksItAndReportsTheNewValueToTheSheet() = runTest {
         var reported: Pair<String, Boolean>? = null
@@ -789,8 +757,6 @@ class FoodQuantityViewModelTest {
         assertFalse(wasReported)
         assertFalse(sut.isTogglingFavourite.value)
     }
-
-    // MARK: - Reporting incorrect data
 
     @Test
     fun canReportIncorrectData_onlyTrueForCatalogueKind() {
@@ -849,8 +815,6 @@ class FoodQuantityViewModelTest {
 
         assertFalse("an already-reported item must not offer a second report", sut.isReportReasonAlertVisible.value)
     }
-
-    // MARK: - My created meal portions
 
     @Test
     fun unitOptions_forMeal_listsEachPortionOnce() {

@@ -26,8 +26,6 @@ import java.time.Instant
 
 class ModerationCatalogueEditorViewModelTest {
 
-    // MARK: - onSearchTapped
-
     @Test
     fun onSearchTapped_whenFound_prefillsFormAndHidesPreviousCheckmark() = runTest {
         val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()))
@@ -49,8 +47,6 @@ class ModerationCatalogueEditorViewModelTest {
 
         assertEquals(R.string.addFood_error_barcodeNotFound, sut.alertItem.value?.titleRes)
     }
-
-    // MARK: - onSaveTapped
 
     @Test
     fun onSaveTapped_preservesTheOriginalItemsDate() = runTest {
@@ -99,8 +95,6 @@ class ModerationCatalogueEditorViewModelTest {
         assertFalse(sut.showCheckmark.value)
     }
 
-    // MARK: - onNutritionLabelCaptured
-
     @Test
     fun onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() = runTest {
         val sut = makeSUT(
@@ -130,8 +124,6 @@ class ModerationCatalogueEditorViewModelTest {
 
         assertTrue(sut.recognizedFields.value.isEmpty())
     }
-
-    // MARK: - onAppear (initialBarcode)
 
     @Test
     fun onAppear_withInitialBarcode_prefillsFormFromIt() = runTest {

@@ -12,8 +12,6 @@ import java.time.Instant
 
 class DTOWireShapeTest {
 
-    // MARK: - FavouriteFoodDTO
-
     @Test
     fun favouriteFood_encodesEveryFieldUnderItsSnakeCaseWireName() {
         val encoded = FirestoreDataMapper.encode(FavouriteFoodDTO(makeItem(), favouritedAt = fixedDate), FavouriteFoodDTO.serializer())
@@ -40,8 +38,6 @@ class DTOWireShapeTest {
         } catch (_: SerializationException) {
         }
     }
-
-    // MARK: - FoodItemSubmissionDTO
 
     @Test
     fun submission_encodesEveryFieldUnderItsWireNameWithTheItemNested() {
@@ -78,8 +74,6 @@ class DTOWireShapeTest {
 
         assertNull(FirestoreDataMapper.decode(encoded, FoodItemSubmissionDTO.serializer()).barcode)
     }
-
-    // MARK: - FoodItemReportDTO
 
     @Test
     fun report_encodesFourFieldsAndStoresTheDateAsEpochSeconds() {

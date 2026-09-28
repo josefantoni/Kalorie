@@ -17,8 +17,6 @@ import java.time.Instant
 
 class ModerationQueueViewModelTest {
 
-    // MARK: - onAppear
-
     @Test
     fun onAppear_marksSubmissionsWithCollidingBarcodesAsColliding() = runTest {
         val submissionA = makeSubmission(id = "a", barcode = "111")
@@ -33,8 +31,6 @@ class ModerationQueueViewModelTest {
         assertTrue(sut.isColliding(submissionA))
         assertFalse(sut.isColliding(submissionB))
     }
-
-    // MARK: - onSubmissionResolved
 
     @Test
     fun onSubmissionResolved_removesOnlyThatSubmissionWithoutRefetchingTheQueue() = runTest {

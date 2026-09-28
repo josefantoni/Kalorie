@@ -6,8 +6,6 @@ import org.junit.Test
 
 class NutritionLabelReadingTest {
 
-    // MARK: - isCompleteForAutoCapture
-
     @Test
     fun isCompleteForAutoCapture_withKcalFatCarbsProtein_isTrue() {
         val reading = NutritionLabelReading(caloriesPerHundredGrams = 370.0, fat = 12.0, carbohydrate = 55.0, protein = 10.0)

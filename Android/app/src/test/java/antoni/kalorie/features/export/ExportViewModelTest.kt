@@ -16,8 +16,6 @@ import java.time.ZonedDateTime
 
 class ExportViewModelTest {
 
-    // MARK: - init
-
     @Test
     fun init_defaultsToTheCurrentMonthUpToNow() {
         val now = ZonedDateTime.of(2026, 9, 25, 14, 30, 0, 0, ZONE).toInstant()
@@ -28,8 +26,6 @@ class ExportViewModelTest {
         assertEquals(now, sut.toDate.value)
         assertEquals(FoodExportFormat.PDF, sut.format.value)
     }
-
-    // MARK: - isExportDisabled
 
     @Test
     fun isExportDisabled_whenFromIsAfterTo_isTrue() {
@@ -48,8 +44,6 @@ class ExportViewModelTest {
 
         assertFalse(sut.isExportDisabled)
     }
-
-    // MARK: - onExportTapped
 
     @Test
     fun onExportTapped_whenSucceeds_publishesTheFileWithItsFormat() = runTest {

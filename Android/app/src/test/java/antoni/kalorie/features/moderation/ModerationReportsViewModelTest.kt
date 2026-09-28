@@ -20,8 +20,6 @@ import java.time.Instant
 
 class ModerationReportsViewModelTest {
 
-    // MARK: - onAppear
-
     @Test
     fun onAppear_groupsReportsByBarcode() = runTest {
         val reports = listOf(
@@ -94,8 +92,6 @@ class ModerationReportsViewModelTest {
 
         assertEquals(2, sut.groups.value.size)
     }
-
-    // MARK: - onResolveTapped
 
     @Test
     fun onResolveTapped_deletesEveryReportInTheGroupAndRemovesIt() = runTest {

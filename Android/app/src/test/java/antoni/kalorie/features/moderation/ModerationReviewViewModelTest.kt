@@ -32,8 +32,6 @@ import java.time.Instant
 
 class ModerationReviewViewModelTest {
 
-    // MARK: - onApproveTapped
-
     @Test
     fun onApproveTapped_preservesTheOriginalSubmissionsDate() = runTest {
         val originalDate = Instant.ofEpochSecond(1_700_000_000)
@@ -89,8 +87,6 @@ class ModerationReviewViewModelTest {
         assertEquals(1, rejectSubmission.callCount)
     }
 
-    // MARK: - onApproveTapped error handling
-
     @Test
     fun onApproveTapped_whenValidationFails_showsFieldSpecificMessageAndDoesNotDismiss() = runTest {
         val approveSubmission = ApproveSubmissionUseCaseSpy(errorToThrow = CreateFoodItemError.InvalidCalories)
@@ -135,8 +131,6 @@ class ModerationReviewViewModelTest {
         assertTrue(sut.shouldDismiss.value)
     }
 
-    // MARK: - onRejectConfirmed error handling
-
     @Test
     fun onRejectConfirmed_whenSubmissionChangedSinceReview_showsMessageAndDismisses() = runTest {
         val rejectSubmission = RejectSubmissionUseCaseFake(errorToThrow = RejectSubmissionError.ChangedSinceReview)
@@ -148,8 +142,6 @@ class ModerationReviewViewModelTest {
         assertEquals(R.string.moderation_error_changedSinceReview, sut.alertItem.value?.titleRes)
         assertTrue(sut.shouldDismiss.value)
     }
-
-    // MARK: - onNutritionLabelCaptured
 
     @Test
     fun onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() = runTest {
@@ -174,8 +166,6 @@ class ModerationReviewViewModelTest {
 
         assertTrue(sut.isNutritionLabelCameraVisible.value)
     }
-
-    // MARK: - onAppear / similar catalogue items
 
     @Test
     fun onAppear_withBarcode_doesNotSearchForSimilarItems() = runTest {

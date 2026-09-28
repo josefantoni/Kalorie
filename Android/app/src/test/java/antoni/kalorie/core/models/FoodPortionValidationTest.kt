@@ -6,8 +6,6 @@ import org.junit.Test
 
 class FoodPortionValidationTest {
 
-    // MARK: - validate(name:grams:)
-
     @Test
     fun validate_withEmptyName_returnsInvalidName() {
         assertEquals(FoodPortionError.InvalidName, FoodPortionValidation.validate(name = "", grams = 33.0))
@@ -32,8 +30,6 @@ class FoodPortionValidationTest {
     fun validate_withValidNameAndGrams_returnsNil() {
         assertNull(FoodPortionValidation.validate(name = "1 balení", grams = 33.0))
     }
-
-    // MARK: - validate(portions:)
 
     @Test
     fun validate_withPortionsAtLimit_returnsNil() {

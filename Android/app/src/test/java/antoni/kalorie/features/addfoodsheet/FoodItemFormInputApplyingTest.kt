@@ -12,8 +12,6 @@ import org.junit.Test
 
 class FoodItemFormInputApplyingTest {
 
-    // MARK: - applying
-
     @Test
     fun applying_readingWithMillilitres_setsMeasureAndReportsItChanged() {
         val (result, applied) = FoodItemFormInput().applying(NutritionLabelReading(measure = FoodMeasure.MILLILITRES))
