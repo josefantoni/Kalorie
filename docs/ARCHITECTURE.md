@@ -765,7 +765,9 @@ enabled),
 [ADR 0035](adr/0035-meal-type-creation-rules-are-a-cross-platform-contract.md) (the name and
 minimum-length rules a second client must match when creating a meal type),
 [ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) (meal resolution
-lives in `MealKit`, over minutes).
+lives in `MealKit`, over minutes),
+[design 0016](design/0016-copy-meal-to-another-window.md) (copying a section into another window and
+day — § 3.8).
 
 ### 3.1 What the Dashboard is
 
@@ -947,6 +949,33 @@ This path did not exist when [design 0006](design/0006-own-daily-meals.md) was w
 fourth argument for Variant A — *"Variant B would therefore let one tap deposit eight permanently
 unremovable rows"* — is no longer true. The design doc is frozen and stays as written; the
 decision it reached still stands, since its other three arguments are untouched.
+
+### 3.8 Copying a section into another window and day
+
+**Cross-platform.** Every section header, *Unassigned* included, has a copy icon before the
+`info.circle`. It opens an anchored box (a popover on iOS, a `DropdownMenu` on Android) with a day
+(today or earlier) and a meal type; *Copy* writes one new `foodConsumed` per entry of the section
+through `CopyFoodsConsumedUseCase`. The rules are in [design 0016](design/0016-copy-meal-to-another-window.md);
+what matters at the call sites:
+
+- A copy is the source snapshot verbatim — `measure_unit` and `food_item_kind` included — except
+  `id` (a new UUID), `date` and `meal_type_id`. The pin is always the target meal type, so the
+  entry lands in the chosen section whatever its timestamp says.
+- The timestamp comes from `MealKit.copyTargetMinutes`: *now* when the target day is today and the
+  time falls inside the target window, the window's start otherwise. It is built from calendar
+  components, and entry *i* of the section gets *i* extra seconds, which keeps the source order.
+  Swift reaches the function as `doCopyTargetMinutes` (Kotlin/Native renames `copy…`).
+- The write is one `batchSetAsync`, so it is atomic: a section never approaches the 500-item
+  chunk (§ 1.5).
+- Copy is disabled while a copy runs, during the success checkmark, and when the target is the
+  source: the same calendar day as `selectedDay` and the same meal type id. An *Unassigned* source
+  has no id, so every target differs from it.
+- On success the target day's month is invalidated, and reloaded if it is the month on display.
+  `selectedDay` never moves. On failure the box stays open and `alertItem` reports it.
+- There is no undo. A mistaken copy is removed one swipe at a time (§ 3.7).
+
+The box's state (`copyPopoverIndex`, `copyTargetDay`, `copyTargetMealTypeId`, `isCopying`,
+`showCopyCheckmark`) lives in `DashboardViewModel` on both clients.
 
 ---
 
