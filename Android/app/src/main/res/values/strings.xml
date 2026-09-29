@@ -102,8 +102,6 @@
     <string name="common_error_unknown_message">Zkus to prosím za chvíli znovu.</string>
     <string name="common_ok">Dobrá</string>
     <string name="common_unit_grams">g</string>
-    <string name="common_unit_kilograms">kg</string>
-    <string name="common_unit_litres">l</string>
     <string name="common_unit_millilitres">ml</string>
     <string name="dashboard_button_copy">Kopírovat jídlo</string>
     <string name="dashboard_button_settings">nastavení</string>
@@ -178,7 +176,6 @@
     <string name="foodQuantity_button_myPortions">Moje porce</string>
     <string name="foodQuantity_error_invalidQuantity">Množství musí být větší než nula</string>
     <string name="foodQuantity_input_grams">Množství</string>
-    <string name="foodQuantity_input_portions">Počet porcí</string>
     <string name="foodQuantity_label_mealType">Zařazení</string>
     <string name="foodQuantity_macro_calories">Kalorie</string>
     <string name="foodQuantity_macro_carbs">Sacharidy</string>
@@ -221,9 +218,6 @@
     <string name="myCreatedMeal_error_deleteFailed">Jídlo se nepodařilo smazat</string>
     <string name="myCreatedMeal_error_saveFailed">Jídlo se nepodařilo uložit</string>
     <string name="myCreatedMeal_field_namePlaceholder">Název vlastního jídla … Guláš</string>
-    <string name="myCreatedMeal_ingredients_empty">Vyhledej a přidej alespoň jednu potravinu</string>
-    <string name="myCreatedMeal_list_empty">Zatím nemáš žádné vlastní jídlo</string>
-    <string name="myCreatedMeal_list_title">Vlastní jídla</string>
     <string name="myCreatedMeal_search_placeholder">Přidej potravinu … třeba %1$s</string>
     <string name="myCreatedMeal_section_catalogue">Katalog potravin</string>
     <string name="myCreatedMeal_section_ingredients">Potraviny</string>

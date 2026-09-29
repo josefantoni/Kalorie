@@ -102,8 +102,6 @@
     <string name="common_error_unknown_message">Please try again in a moment.</string>
     <string name="common_ok">OK</string>
     <string name="common_unit_grams">g</string>
-    <string name="common_unit_kilograms">kg</string>
-    <string name="common_unit_litres">l</string>
     <string name="common_unit_millilitres">ml</string>
     <string name="dashboard_button_copy">Copy meal</string>
     <string name="dashboard_button_settings">Settings</string>
@@ -178,7 +176,6 @@
     <string name="foodQuantity_button_myPortions">My portions</string>
     <string name="foodQuantity_error_invalidQuantity">Amount must be greater than zero</string>
     <string name="foodQuantity_input_grams">Amount</string>
-    <string name="foodQuantity_input_portions">Servings</string>
     <string name="foodQuantity_label_mealType">Meal</string>
     <string name="foodQuantity_macro_calories">Calories</string>
     <string name="foodQuantity_macro_carbs">Carbohydrates</string>
@@ -221,9 +218,6 @@
     <string name="myCreatedMeal_error_deleteFailed">Could not delete the meal</string>
     <string name="myCreatedMeal_error_saveFailed">Could not save the meal</string>
     <string name="myCreatedMeal_field_namePlaceholder">Custom meal name … Goulash</string>
-    <string name="myCreatedMeal_ingredients_empty">Search and add at least one ingredient</string>
-    <string name="myCreatedMeal_list_empty">You have no meals yet</string>
-    <string name="myCreatedMeal_list_title">My meals</string>
     <string name="myCreatedMeal_search_placeholder">Add food … try %1$s</string>
     <string name="myCreatedMeal_section_catalogue">Food catalogue</string>
     <string name="myCreatedMeal_section_ingredients">Ingredients</string>

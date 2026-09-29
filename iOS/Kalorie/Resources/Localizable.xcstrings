@@ -1751,40 +1751,6 @@
         }
       }
     },
-    "common_unit_kilograms" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kg"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "kg"
-          }
-        }
-      }
-    },
-    "common_unit_litres" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "l"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "l"
-          }
-        }
-      }
-    },
     "common_unit_millilitres" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3043,23 +3009,6 @@
         }
       }
     },
-    "foodQuantity_input_portions" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Počet porcí"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Servings"
-          }
-        }
-      }
-    },
     "foodQuantity_label_mealType" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3776,57 +3725,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Custom meal name … Goulash"
-          }
-        }
-      }
-    },
-    "myCreatedMeal_ingredients_empty" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vyhledej a přidej alespoň jednu potravinu"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search and add at least one ingredient"
-          }
-        }
-      }
-    },
-    "myCreatedMeal_list_empty" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zatím nemáš žádné vlastní jídlo"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You have no meals yet"
-          }
-        }
-      }
-    },
-    "myCreatedMeal_list_title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vlastní jídla"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "My meals"
           }
         }
       }
