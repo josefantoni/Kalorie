@@ -196,7 +196,7 @@ enum L10n {
     enum FoodPortion {
         static var sectionTitle: String { String(localized: "foodPortion_section_title") }
         static var buttonAdd: String { String(localized: "foodPortion_button_add") }
-        static var fieldNamePlaceholder: String { String(localized: "foodPortion_field_namePlaceholder") }
+        static var fieldNameTitle: String { String(localized: "foodPortion_field_namePlaceholder") }
         static var errorInvalidName: String { String(localized: "foodPortion_error_invalidName") }
         static var errorInvalidGrams: String { String(localized: "foodPortion_error_invalidGrams") }
         static var errorTooMany: String { String(localized: "foodPortion_error_tooMany") }
@@ -216,7 +216,7 @@ enum L10n {
     enum MyCreatedMeal {
         static var titleNew: String { String(localized: "myCreatedMeal_title_new") }
         static var titleEdit: String { String(localized: "myCreatedMeal_title_edit") }
-        static var fieldNamePlaceholder: String { String(localized: "myCreatedMeal_field_namePlaceholder") }
+        static var fieldNameTitle: String { String(localized: "myCreatedMeal_field_namePlaceholder") }
         static var sectionIngredients: String { String(localized: "myCreatedMeal_section_ingredients") }
         static var confirmCreate: String { String(localized: "myCreatedMeal_confirm_create") }
         static var confirmUpdate: String { String(localized: "myCreatedMeal_confirm_update") }
@@ -262,7 +262,7 @@ enum L10n {
         static var navigationTitle: String { String(localized: "settings_navigationTitle") }
         static var sectionMealLayout: String { String(localized: "settings_section_mealLayout") }
         static var sectionOther: String { String(localized: "settings_section_other") }
-        static var fieldNewMealPlaceholder: String { String(localized: "settings_field_newMeal_placeholder") }
+        static var fieldNewMealTitle: String { String(localized: "settings_field_newMeal_placeholder") }
         static var datePickerFrom: String { String(localized: "settings_datePicker_from") }
         static var datePickerTo: String { String(localized: "settings_datePicker_to") }
         static var buttonCreate: String { String(localized: "settings_button_create") }

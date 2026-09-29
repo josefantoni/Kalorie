@@ -9,7 +9,6 @@ import Foundation
 
 extension CGFloat {
     
-    static let smallPlus: CGFloat = 15
     static let basic: CGFloat = 20
     static let basicPlus: CGFloat = 25
     static let medium: CGFloat = 30

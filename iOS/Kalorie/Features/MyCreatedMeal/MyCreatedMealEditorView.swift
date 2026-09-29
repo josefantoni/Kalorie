@@ -27,7 +27,8 @@ struct MyCreatedMealEditorView: View {
     var body: some View {
         List {
             Section {
-                TextField(L10n.MyCreatedMeal.fieldNamePlaceholder, text: $viewModel.name)
+                FloatingLabelTextField(title: L10n.MyCreatedMeal.fieldNameTitle, text: $viewModel.name)
+                    .listRowInsets(.vertical, 0)
             }
 
             if !viewModel.ingredients.isEmpty {
@@ -49,11 +50,11 @@ struct MyCreatedMealEditorView: View {
 
             Section(header: Text(L10n.MyCreatedMeal.sectionCatalogue)) {
                 HStack {
-                    TextField(viewModel.searchPlaceholder, text: $viewModel.searchText)
+                    FloatingLabelTextField(title: viewModel.searchPlaceholder, text: $viewModel.searchText)
                     BaseButton(
                         style: .plain,
                         imageName: .barCode,
-                        imageSize: .basic
+                        imageSize: .medium
                     ) {
                         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
                             viewModel.onScannerButtonTapped()
@@ -62,6 +63,7 @@ struct MyCreatedMealEditorView: View {
                         }
                     }
                 }
+                .listRowInsets(.vertical, 0)
             }
 
             if !viewModel.searchText.isEmpty {

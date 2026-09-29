@@ -32,9 +32,12 @@ struct PortionDraftListView: View {
 
     @Binding var drafts: [FoodPortionDraft]
     var measure: FoodMeasure = .grams
-    var firstRowTopInset: CGFloat = 18
+    var firstRowTopInset: CGFloat = 12
     var focusedField: FocusState<UUID?>.Binding
     var onDelete: (FoodPortionDraft) -> Void
+    
+    private static let rowSpacing: CGFloat = 10
+    private static let rowTopInset: CGFloat = 4
 
     // MARK: - Body
 
@@ -53,7 +56,7 @@ struct PortionDraftListView: View {
                         Rectangle()
                             .fill(Color(uiColor: .separator))
                             .frame(height: 1)
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, 12)
                     }
                 }
                 // .hidden alone doesn't reliably suppress this List's row separator; the clear tint forces it.
@@ -67,13 +70,35 @@ struct PortionDraftListView: View {
                     }
                 }
                 .listRowInsets(EdgeInsets(
-                    top: index == 0 ? firstRowTopInset : Self.rowSpacing,
+                    top: index == 0 ? firstRowTopInset : Self.rowTopInset,
                     leading: 0,
                     bottom: index == drafts.count - 1 ? 8 : 0,
                     trailing: 0
                 ))
         }
     }
+}
 
-    private static let rowSpacing: CGFloat = 12
+// MARK: - Preview
+
+private struct PortionDraftListPreview: View {
+
+    @State private var drafts = [
+        FoodPortionDraft(name: "1 balení", gramsText: "33"),
+        FoodPortionDraft(name: "1 lžíce", gramsText: "15"),
+        FoodPortionDraft.blank
+    ]
+    @FocusState private var focusedField: UUID?
+
+    var body: some View {
+        List {
+            PortionDraftListView(drafts: $drafts, focusedField: $focusedField) { draft in
+                drafts.removeAll { $0.id == draft.id }
+            }
+        }
+    }
+}
+
+#Preview {
+    PortionDraftListPreview()
 }

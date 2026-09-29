@@ -22,11 +22,6 @@ struct BaseDoubleTextField: View {
     var body: some View {
         HStack {
             Text(title)
-                .font(
-                    .system(
-                        size: .smallPlus
-                    )
-                )
                 .frame(
                     maxWidth: .infinity,
                     alignment: .leading

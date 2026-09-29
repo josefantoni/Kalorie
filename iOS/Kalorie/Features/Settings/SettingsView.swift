@@ -180,15 +180,19 @@ struct SettingsView: View {
             }
             .frame(maxWidth: .infinity)
         } else {
-            VStack(spacing: 12) {
+            VStack {
                 VStack {
-                    TextField(L10n.Settings.fieldNewMealPlaceholder, text: $viewModel.newMealName)
-                        .padding(.horizontal, 20)
-                        .font(.system(size: .smallPlus))
-                        .padding(.top, 20)
-                        .padding(.bottom, 10)
-                        .focused($focusedField, equals: .newMealName)
+                    FloatingLabelTextField(
+                        title: L10n.Settings.fieldNewMealTitle,
+                        text: $viewModel.newMealName,
+                        focus: $focusedField,
+                        equals: .newMealName
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 0)
                     Divider()
+                        .padding(.horizontal)
 
                     HStack {
                         DatePicker(L10n.Settings.datePickerFrom, selection: $viewModel.newMealStart, displayedComponents: .hourAndMinute)
@@ -207,17 +211,12 @@ struct SettingsView: View {
                                 }
                             }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
+                    .padding(.horizontal, 16)
                     .font(.system(size: .basic))
                 }
-                .padding(.bottom, 20)
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.accentColor, lineWidth: 1)
-                )
+                .padding(.bottom, 8)
+                .background(Color(.systemBackground))
+                .cornerRadius(25)
 
                 Button {
                     Task { await viewModel.onCreateMealType() }
@@ -225,9 +224,11 @@ struct SettingsView: View {
                 } label: {
                     Text(L10n.Settings.buttonCreate)
                         .frame(maxWidth: .infinity)
+                        .fontWeight(.bold)
                 }
                 .buttonStyle(.glassProminent)
                 .controlSize(.large)
+                .padding(.top, 20)
             }
         }
     }

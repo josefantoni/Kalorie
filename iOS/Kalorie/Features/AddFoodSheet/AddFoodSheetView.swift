@@ -53,8 +53,10 @@ struct AddFoodSheetView: View {
                 switch viewModel.mode {
                 case .search:
                     addFoodItem
+                        .keyboardDoneToolbar()
                 case .newItem:
                     newItemPrompt
+                        .keyboardDoneToolbar()
                 case .createMeal:
                     makeMealEditorView {
                         Task { await viewModel.onMyCreatedMealSaved() }
@@ -63,7 +65,6 @@ struct AddFoodSheetView: View {
             }
             .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
-            .keyboardDoneToolbar()
             .loader(viewModel.state.isLoading)
             .fullScreenCover(isPresented: $viewModel.isScannerVisible) {
                 BarcodeScannerOverlay(
@@ -192,11 +193,11 @@ struct AddFoodSheetView: View {
         List {
             Section {
                 HStack {
-                    TextField(viewModel.searchPlaceholder, text: $viewModel.searchText)
+                    FloatingLabelTextField(title: viewModel.searchPlaceholder, text: $viewModel.searchText)
                     BaseButton(
                         style: .plain,
                         imageName: .barCode,
-                        imageSize: .basic
+                        imageSize: .medium
                     ) {
                         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
                             viewModel.onScannerButtonTapped()
@@ -205,6 +206,7 @@ struct AddFoodSheetView: View {
                         }
                     }
                 }
+                .listRowInsets(.vertical, 0)
             }
             if viewModel.searchText.isEmpty && !viewModel.favouriteFoods.isEmpty {
                 Section(header: Text(L10n.AddFood.sectionFavourites)) {
@@ -394,7 +396,6 @@ struct AddFoodSheetView: View {
         }
         .navigationTitle(L10n.AddFood.navigationTitleNewItem)
         .navigationBarTitleDisplayMode(.inline)
-        .keyboardDoneToolbar()
         .alert(L10n.AddFood.submissionSubmitted, isPresented: $viewModel.isSubmissionConfirmationVisible) {
             Button(L10n.Common.ok) { viewModel.onSubmissionConfirmationDismissed() }
         } message: {

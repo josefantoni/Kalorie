@@ -29,13 +29,15 @@ struct FoodItemFormSections: View {
         Group {
             FoodPortionsSection(portions: $formInput.portions, measure: formInput.measure)
             Section {
-                BaseStringTextField(
-                    placeholder: L10n.AddFood.fieldNamePlaceholder,
+                FloatingLabelTextField(
                     title: L10n.AddFood.fieldNameTitle,
+                    placeholder: L10n.AddFood.fieldNamePlaceholder,
                     text: nameBinding,
                     isHighlighted: highlightedFields.contains(.name)
                 )
+                .listRowInsets(.vertical, 0)
                 barcodeRowView
+                    .listRowInsets(.vertical, 0)
                 nutritionLabelScanButton
                 FoodItemFormFields(formInput: $formInput, highlightedFields: highlightedFields, onFieldEdited: onFieldEdited)
             }
@@ -56,32 +58,26 @@ struct FoodItemFormSections: View {
         case .hidden:
             EmptyView()
         case .locked:
-            BaseStringTextField(
-                placeholder: formInput.scannedCode.isEmpty ? L10n.AddFood.fieldBarcodeMissingLabel : L10n.AddFood.fieldBarcodePlaceholder,
+            FloatingLabelTextField(
                 title: L10n.AddFood.fieldBarcodeTitle,
                 text: .constant(formInput.scannedCode),
+                message: formInput.scannedCode.isEmpty ? .hint(L10n.AddFood.fieldBarcodeMissingLabel) : nil,
                 keyboardType: .numberPad
             )
             .disabled(true)
         case .editable(let onScanTapped):
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    BaseStringTextField(
-                        placeholder: L10n.AddFood.fieldBarcodePlaceholder,
-                        title: L10n.AddFood.fieldBarcodeTitle,
-                        text: $formInput.scannedCode,
-                        keyboardType: .numberPad
-                    )
-                    BaseButton(style: .plain, imageName: .barCode, imageSize: .medium) {
-                        onScanTapped()
-                    }
-                    .accessibilityLabel(L10n.AddFood.nutritionLabelBarcodeScanAccessibility)
+            HStack {
+                FloatingLabelTextField(
+                    title: L10n.AddFood.fieldBarcodeTitle,
+                    placeholder: L10n.AddFood.fieldBarcodePlaceholder,
+                    text: $formInput.scannedCode,
+                    message: formInput.scannedCode.isEmpty ? .warning(L10n.AddFood.warningMissingBarcode) : nil,
+                    keyboardType: .numberPad
+                )
+                BaseButton(style: .plain, imageName: .barCode, imageSize: .medium) {
+                    onScanTapped()
                 }
-                if formInput.scannedCode.isEmpty {
-                    Text(L10n.AddFood.warningMissingBarcode)
-                        .font(.caption)
-                        .foregroundStyle(.yellow)
-                }
+                .accessibilityLabel(L10n.AddFood.nutritionLabelBarcodeScanAccessibility)
             }
         }
     }
