@@ -34,8 +34,6 @@ fun Instant.formatCacheKey(pattern: String): String = DateTimeFormatter.ofPatter
 
 fun Instant.withAddedMinutes(minutes: Double): Instant = plusMillis((minutes * 60_000).toLong())
 
-fun Instant.withAddedHours(hours: Double): Instant = withAddedMinutes(hours * 60)
-
 fun instantFromEpochSeconds(seconds: Double): Instant = Instant.ofEpochMilli(Math.round(seconds * 1000))
 
 fun Instant.epochSecondsAsDouble(): Double = toEpochMilli() / 1000.0
