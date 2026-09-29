@@ -32,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -113,7 +114,7 @@ fun ModerationCatalogueEditorView(
                         reports.forEach { report ->
                             Text(
                                 text = report.reason,
-                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             )
                         }
