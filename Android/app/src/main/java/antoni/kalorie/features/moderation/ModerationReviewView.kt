@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -89,30 +90,13 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                     },
                 )
             },
-            bottomBar = {
-                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
-                    Button(
-                        onClick = { scope.launch { viewModel.onApproveTapped() } },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.moderation_button_approve))
-                    }
-                    Button(
-                        onClick = { viewModel.isRejectSheetVisible.value = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                    ) {
-                        Text(stringResource(R.string.moderation_button_reject))
-                    }
-                }
-            },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
                 Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                     viewModel.rejectReasonIfAny?.let { reason ->
                         Text(
                             text = stringResource(R.string.addFood_submission_rejectedReason, reason),
-                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Medium,
                             modifier = Modifier.padding(16.dp),
                         )
                     }
@@ -147,6 +131,21 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                                     )
                                 }
                             }
+                        }
+                    }
+                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
+                        Button(
+                            onClick = { scope.launch { viewModel.onApproveTapped() } },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.moderation_button_approve), fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = { viewModel.isRejectSheetVisible.value = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        ) {
+                            Text(stringResource(R.string.moderation_button_reject), fontWeight = FontWeight.Bold)
                         }
                     }
                 }
