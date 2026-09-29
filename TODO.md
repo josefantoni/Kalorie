@@ -29,6 +29,18 @@ The app works with three kinds of data. The distinction matters for the items be
   a food carrying a named, user-chosen package/portion weight selectable as a unit — shipped as
   [design 0008](docs/design/0008-food-portions.md).
 
+## Floating-label text field — follow-ups
+
+The iOS `FloatingLabelTextField` shipped for the name fields, the barcode fields, the search fields
+and the portion / meal-name fields; the numeric fields (`BaseDoubleTextField` and the String-bound
+`quantityText` / `weightText` / `gramsText`) deliberately stay plain.
+
+- **Decide (iOS):** the three `TextField`s inside `.alert { }` (`FoodQuantityView`,
+  `FoodConsumedDetailView`, `ModerationReviewView`) cannot use the component — SwiftUI alerts accept
+  only the system `TextField`, and turning them into sheets was ruled out by
+  [design 0012](docs/design/0012-report-incorrect-catalogue-data.md). Confirm they stay as they are.
+- **Check (iOS):** `.warning` uses `Color.warning` (new asset); verify its contrast in light mode.
+
 ## Android readiness
 
 The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md)).
