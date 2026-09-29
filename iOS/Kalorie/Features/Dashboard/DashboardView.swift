@@ -255,7 +255,7 @@ struct DashboardView: View {
             Button(L10n.Dashboard.emptyAddFood) {
                 viewModel.showAddFoodSheet.toggle()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glassProminent)
             .scaleEffect(pulseAnimation ? 1.2 : 1.0)
             .animation(.easeInOut(duration: 0.7), value: pulseAnimation)
         }

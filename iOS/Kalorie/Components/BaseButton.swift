@@ -12,8 +12,6 @@ struct BaseButton: View {
     
     enum BaseButtonStyle {
         case plain
-        case capsuled
-        case capsuledLong
     }
     
     // MARK: - Properties
@@ -47,14 +45,6 @@ struct BaseButton: View {
         case .plain:
             Button { action() } label: { image }
                 .buttonStyle(.borderless)
-        case .capsuled:
-            Button { action() } label: { image }
-                .clipShape(Capsule())
-                .buttonStyle(.borderedProminent)
-        case .capsuledLong:
-            Button { action() } label: { image.frame(maxWidth: .infinity) }
-                .clipShape(Capsule())
-                .buttonStyle(.borderedProminent)
         }
     }
 
@@ -74,7 +64,5 @@ struct BaseButton: View {
 #Preview {
     VStack {
         BaseButton(style: .plain, imageName: .plusCircle) {}
-        BaseButton(style: .capsuled, imageName: .plusCircle) {}
-        BaseButton(style: .capsuledLong, imageName: .plusCircle) {}
     }
 }

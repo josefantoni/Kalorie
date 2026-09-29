@@ -298,8 +298,7 @@ struct AddFoodSheetView: View {
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.white)
                                 .padding(20)
-                                .background(Color.accentColor)
-                                .clipShape(.circle)
+                                .glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)
                             Text(L10n.AddFood.nutritionLabelPromptBody)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
@@ -322,7 +321,7 @@ struct AddFoodSheetView: View {
                     Button(L10n.AddFood.buttonOpenSettings) {
                         openSettings()
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
                     addManuallyButton(title: L10n.AddFood.buttonAddManually)
                 }
                 .padding(32)
