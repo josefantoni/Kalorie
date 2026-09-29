@@ -256,3 +256,5 @@ Deployment target je iOS 26 — používej Liquid Glass bez `@available` podmín
 - Nikdy nepoužívej `BaseImage` s velkou velikostí (`.extraLarge` = 60 pt) v toolbaru
 
 **Textová tlačítka** — primární akce na celou šířku (Export, Vytvořit) je `.buttonStyle(.glassProminent)` + `.controlSize(.large)`, sekundární `.buttonStyle(.glass)`. Nestav je ručně z `.background(...)` a pevné barvy textu — systém řeší dark mode i disabled stav sám. `borderedProminent` se u nových tlačítek nepoužívá.
+
+**Víc `.glassProminent` tlačítek pod sebou v `List`** — každé do vlastní `Section` s `.listRowInsets(EdgeInsets())` a `.listRowBackground(Color.clear)` (viz `ExportView.swift`), žádný extra `.padding` ani nenulové `.listRowInsets` kolem tlačítka. Jakákoli "prázdná" mezera uvnitř řádku odkryje stín/materiál Liquid Glass na barvě, která neodpovídá skutečnému pozadí Listu (i ruční `Color(uiColor: .systemGroupedBackground)` na `.listRowBackground` to nespolehlivě opraví) — vznikne viditelný barevný lem kolem tlačítka. Mezeru mezi tlačítky řeš přes `.listSectionSpacing(.custom(_:))` na následující `Section`, ne paddingem/insety uvnitř řádku.

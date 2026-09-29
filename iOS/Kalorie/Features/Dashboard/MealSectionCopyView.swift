@@ -74,7 +74,7 @@ struct MealSectionCopyView: View {
                             .transition(.opacity)
                     }
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .tint(viewModel.showCopyCheckmark ? .green : .accentColor)
                 .animation(.spring(duration: 0.4), value: viewModel.showCopyCheckmark)
                 .disabled(!viewModel.canCopy(from: mealType) && !viewModel.showCopyCheckmark)

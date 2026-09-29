@@ -27,7 +27,7 @@ struct ModerationReviewView: View {
             if let rejectReason = viewModel.rejectReasonIfAny {
                 Section {
                     Text(L10n.AddFood.submissionRejectedReason(reason: rejectReason))
-                        .foregroundStyle(.red)
+                        .fontWeight(.medium)
                 }
             }
             FoodItemFormSections(
@@ -43,32 +43,10 @@ struct ModerationReviewView: View {
             if viewModel.showsSimilarCatalogueItemsSection {
                 similarCatalogueItemsSection
             }
+            approveButtonSection
+            rejectButtonSection
         }
         .task { await viewModel.onAppear() }
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 12) {
-                Button {
-                    Task { await viewModel.onApproveTapped() }
-                } label: {
-                    Text(L10n.Moderation.buttonApprove)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-
-                Button(role: .destructive) {
-                    viewModel.isRejectSheetVisible = true
-                } label: {
-                    Text(L10n.Moderation.buttonReject)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .tint(.red)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-        }
         .navigationTitle(viewModel.formInput.name)
         .navigationBarTitleDisplayMode(.inline)
         .keyboardDoneToolbar()
@@ -103,6 +81,42 @@ struct ModerationReviewView: View {
 
     // MARK: - Functions
 
+    private var approveButtonSection: some View {
+        Section {
+            Button {
+                Task { await viewModel.onApproveTapped() }
+            } label: {
+                Text(L10n.Moderation.buttonApprove)
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .controlSize(.large)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        }
+    }
+
+    private var rejectButtonSection: some View {
+        Section {
+            Button(role: .destructive) {
+                viewModel.isRejectSheetVisible = true
+            } label: {
+                Text(L10n.Moderation.buttonReject)
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .controlSize(.large)
+            .tint(.red)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        }
+        .listSectionSpacing(.custom(8))
+    }
+
     @ViewBuilder private var similarCatalogueItemsSection: some View {
         if viewModel.isSimilarCatalogueItemsSectionAvailable {
             Section(header: Text(L10n.Moderation.similarItemsSectionTitle)) {
@@ -136,7 +150,7 @@ struct ModerationReviewView: View {
                     submittedBy: "user-1",
                     status: .pending,
                     submittedAt: .now,
-                    rejectReason: nil,
+                    rejectReason: "nějaký text",
                     item: FoodItemDomain(
                         id: "12345678",
                         kind: .catalogue,

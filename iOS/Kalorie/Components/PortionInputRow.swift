@@ -63,6 +63,7 @@ struct PortionInputRow<FocusValue: Hashable>: View {
                 } label: {
                     Text(option)
                         .font(.caption)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: Self.quickAddHeight)

@@ -29,7 +29,7 @@ struct ModerationCatalogueEditorView: View {
                 Section(L10n.Moderation.reportsTitle) {
                     ForEach(reports, id: \.reportedBy) { report in
                         Text(report.reason)
-                            .foregroundStyle(.red)
+                            .fontWeight(.medium)
                     }
                 }
             }
