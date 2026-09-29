@@ -92,11 +92,9 @@ struct FoodItemFormFields: View {
     private var measureRow: some View {
         HStack {
             Text(L10n.AddFood.fieldMeasure)
-                .font(.system(size: .smallPlus))
                 .fontWeight(highlightedFields.contains(.measure) ? .bold : .regular)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text(verbatim: "100")
-                .font(.system(size: .smallPlus))
             Picker("", selection: measureBinding) {
                 Text(L10n.Common.unitGrams).tag(FoodMeasure.grams)
                 Text(L10n.Common.unitMillilitres).tag(FoodMeasure.millilitres)

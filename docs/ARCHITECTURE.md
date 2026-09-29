@@ -1330,7 +1330,8 @@ follows the device locale, including the Czech comma.
 
 - **`Base*`** — generic primitives with no domain knowledge: `BaseButton`, `BaseImage`
   (+ `Helpers/BaseImageName`, an enum of the SF Symbol / asset names in use),
-  `BaseStringTextField`, `BaseDoubleTextField`.
+  `BaseDoubleTextField`, `FloatingLabelTextField` (outlined text input with a floating label and an
+  optional hint / warning / error message; takes an external `FocusState` binding or owns its own).
 - **Domain views** — `FoodItemRow` (a catalogue item plus its favourite heart), `FoodConsumedView`
   (a logged entry: weight, name, calories), `MacroDonutView`, `FavouriteButton`,
   `DismissToolbarItem`.
@@ -1700,7 +1701,7 @@ is still animating out is dropped by SwiftUI. The fields a photo actually change
 `Set<FoodItemFormField>` and passed to `FoodItemFormSections` (`Components/`, wrapping
 `FoodPortionsSection` then a name field, an optional barcode row, the scan button and
 `FoodItemFormFields` in that order), which bolds those fields' values
-(`BaseStringTextField` / `BaseDoubleTextField` both take an `isHighlighted` flag) until the user
+(`FloatingLabelTextField` / `BaseDoubleTextField` both take an `isHighlighted` flag) until the user
 edits them — detected by wrapping each field's `Binding` rather than `.onChange`, since `.onChange`
 would also fire for the merge's own programmatic write and immediately clear the mark it had just
 set.

@@ -142,7 +142,6 @@ struct FoodQuantityView: View {
     var quantityRow: some View {
         HStack {
             Text(L10n.FoodQuantity.inputGrams)
-                .font(.system(size: .smallPlus))
                 .frame(maxWidth: .infinity, alignment: .leading)
             TextField("1", text: $quantityText)
                 .keyboardType(.decimalPad)
@@ -228,7 +227,6 @@ struct FoodQuantityView: View {
     func macroRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: .smallPlus))
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text(verbatim: value)
                 .foregroundStyle(.secondary)

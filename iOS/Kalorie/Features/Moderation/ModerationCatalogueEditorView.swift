@@ -36,8 +36,11 @@ struct ModerationCatalogueEditorView: View {
             if !viewModel.isOpenedFromReport {
                 Section {
                     HStack {
-                        TextField(L10n.Moderation.editorSearchPlaceholder, text: $viewModel.barcodeQuery)
-                            .keyboardType(.numberPad)
+                        FloatingLabelTextField(
+                            title: L10n.Moderation.editorSearchPlaceholder,
+                            text: $viewModel.barcodeQuery,
+                            keyboardType: .numberPad
+                        )
                         BaseButton(
                             style: .plain,
                             imageName: .barCode,
@@ -46,6 +49,7 @@ struct ModerationCatalogueEditorView: View {
                             Task { await viewModel.onSearchTapped() }
                         }
                     }
+                    .listRowInsets(.vertical, 0)
                 }
             }
             if viewModel.loadedItem != nil {

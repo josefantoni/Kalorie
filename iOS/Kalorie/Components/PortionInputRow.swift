@@ -20,11 +20,15 @@ struct PortionInputRow<FocusValue: Hashable>: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
-                TextField(L10n.FoodPortion.fieldNamePlaceholder, text: $name)
-                    .focused(focusedField, equals: focusValue)
-                    .frame(maxWidth: .infinity)
+                FloatingLabelTextField(
+                    title: L10n.FoodPortion.fieldNameTitle,
+                    text: $name,
+                    focus: focusedField,
+                    equals: focusValue
+                )
+                .frame(maxWidth: .infinity)
                 TextField("0", text: $gramsText)
                     .keyboardType(.decimalPad)
                     .multilineTextAlignment(.trailing)
@@ -81,4 +85,30 @@ struct PortionInputRow<FocusValue: Hashable>: View {
     private static var quickAddOptions: [String] {
         [L10n.FoodPortion.quickAddPiece, L10n.FoodPortion.quickAddPackage, L10n.FoodPortion.quickAddSpoon]
     }
+}
+
+// MARK: - Preview
+
+private struct PortionInputRowPreview: View {
+
+    @State private var name = "1 balení"
+    @State private var gramsText = "33"
+    @FocusState private var focusedField: Bool?
+
+    var body: some View {
+        List {
+            PortionInputRow(
+                name: $name,
+                gramsText: $gramsText,
+                measure: .grams,
+                focusedField: $focusedField,
+                focusValue: true
+            )
+            .listRowInsets(EdgeInsets())
+        }
+    }
+}
+
+#Preview {
+    PortionInputRowPreview()
 }
