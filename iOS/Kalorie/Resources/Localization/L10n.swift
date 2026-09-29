@@ -21,8 +21,6 @@ enum L10n {
         static var buttonDone: String { String(localized: "common_button_done") }
         static var unitGrams: String { String(localized: "common_unit_grams") }
         static var unitMillilitres: String { String(localized: "common_unit_millilitres") }
-        static var unitKilograms: String { String(localized: "common_unit_kilograms") }
-        static var unitLitres: String { String(localized: "common_unit_litres") }
     }
 
     enum Auth {
@@ -225,8 +223,6 @@ enum L10n {
         static var confirmDelete: String { String(localized: "myCreatedMeal_confirm_delete") }
         static var errorSaveFailed: String { String(localized: "myCreatedMeal_error_saveFailed") }
         static var errorDeleteFailed: String { String(localized: "myCreatedMeal_error_deleteFailed") }
-        static var listTitle: String { String(localized: "myCreatedMeal_list_title") }
-        static var listEmpty: String { String(localized: "myCreatedMeal_list_empty") }
         static var buttonSave: String { String(localized: "myCreatedMeal_button_save") }
         static var buttonEdit: String { String(localized: "myCreatedMeal_button_edit") }
         static var buttonDelete: String { String(localized: "myCreatedMeal_button_delete") }
@@ -249,7 +245,6 @@ enum L10n {
         static var unitGrams: String { String(localized: "foodQuantity_unit_grams") }
         static var unitMillilitres: String { String(localized: "foodQuantity_unit_millilitres") }
         static var unitHundredMillilitres: String { String(localized: "foodQuantity_unit_hundredMillilitres") }
-        static var inputHundredGrams: String { String(localized: "foodQuantity_input_portions") }
         static var inputGrams: String { String(localized: "foodQuantity_input_grams") }
         static var buttonAdd: String { String(localized: "foodQuantity_button_add") }
         static var buttonMyPortions: String { String(localized: "foodQuantity_button_myPortions") }

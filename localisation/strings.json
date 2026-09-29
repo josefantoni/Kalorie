@@ -407,14 +407,6 @@
     "cs": "g",
     "en": "g"
   },
-  "common_unit_kilograms": {
-    "cs": "kg",
-    "en": "kg"
-  },
-  "common_unit_litres": {
-    "cs": "l",
-    "en": "l"
-  },
   "common_unit_millilitres": {
     "cs": "ml",
     "en": "ml"
@@ -711,10 +703,6 @@
     "cs": "Množství",
     "en": "Amount"
   },
-  "foodQuantity_input_portions": {
-    "cs": "Počet porcí",
-    "en": "Servings"
-  },
   "foodQuantity_label_mealType": {
     "cs": "Zařazení",
     "en": "Meal"
@@ -882,18 +870,6 @@
   "myCreatedMeal_field_namePlaceholder": {
     "cs": "Název vlastního jídla … Guláš",
     "en": "Custom meal name … Goulash"
-  },
-  "myCreatedMeal_ingredients_empty": {
-    "cs": "Vyhledej a přidej alespoň jednu potravinu",
-    "en": "Search and add at least one ingredient"
-  },
-  "myCreatedMeal_list_empty": {
-    "cs": "Zatím nemáš žádné vlastní jídlo",
-    "en": "You have no meals yet"
-  },
-  "myCreatedMeal_list_title": {
-    "cs": "Vlastní jídla",
-    "en": "My meals"
   },
   "myCreatedMeal_search_placeholder": {
     "cs": "Přidej potravinu … třeba %@",
