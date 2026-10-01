@@ -119,6 +119,10 @@
     "cs": "Oblíbené se nepodařilo uložit",
     "en": "Could not save favourite"
   },
+  "addFood_error_invalidAlcoholByVolume": {
+    "cs": "Neplatný obsah alkoholu",
+    "en": "Invalid alcohol by volume"
+  },
   "addFood_error_invalidCalories": {
     "cs": "Kalorie musí být větší než nula",
     "en": "Calories must be greater than zero"
@@ -146,6 +150,10 @@
   "addFood_error_withdrawSubmissionFailed": {
     "cs": "Položku se nepodařilo zrušit",
     "en": "Could not withdraw the submission"
+  },
+  "addFood_field_alcoholByVolume": {
+    "cs": "Alkohol",
+    "en": "Alcohol"
   },
   "addFood_field_barcode_missingLabel": {
     "cs": "bez čárového kódu",
@@ -358,6 +366,14 @@
   "auth_mergingMessage": {
     "cs": "Slučujeme data z tohoto zařízení s tvým účtem…",
     "en": "Merging this device's data into your account…"
+  },
+  "common_alcoholicDrink_explanation": {
+    "cs": "Alkoholické nápoje nemusí na etiketě uvádět nutriční hodnoty. Sacharidy a bílkoviny proto mohou pocházet z jiných zdrojů nebo chybět.",
+    "en": "Alcoholic drinks don't have to list nutrition values on the label. Carbohydrates and protein may therefore come from other sources or be missing."
+  },
+  "common_alcoholicDrink_label": {
+    "cs": "Alkoholický nápoj",
+    "en": "Alcoholic drink"
   },
   "common_button_cancel": {
     "cs": "Zrušit",

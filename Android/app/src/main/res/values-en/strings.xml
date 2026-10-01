@@ -30,6 +30,7 @@
     <string name="addFood_confirm_withdrawSubmission">Withdraw this submission? You will also lose the rejection reason.</string>
     <string name="addFood_error_barcodeNotFound">No food found for this barcode</string>
     <string name="addFood_error_favouriteFailed">Could not save favourite</string>
+    <string name="addFood_error_invalidAlcoholByVolume">Invalid alcohol by volume</string>
     <string name="addFood_error_invalidCalories">Calories must be greater than zero</string>
     <string name="addFood_error_invalidCode">Invalid barcode</string>
     <string name="addFood_error_invalidName">Please check the entered name</string>
@@ -37,6 +38,7 @@
     <string name="addFood_error_itemAlreadyExists">A food item with this barcode already exists in the database</string>
     <string name="addFood_error_loadFailed">Failed to load results. Please try again.</string>
     <string name="addFood_error_withdrawSubmissionFailed">Could not withdraw the submission</string>
+    <string name="addFood_field_alcoholByVolume">Alcohol</string>
     <string name="addFood_field_barcode_missingLabel">no barcode</string>
     <string name="addFood_field_barcode_title">Food barcode</string>
     <string name="addFood_field_caloriesPer100g">Calories per 100g</string>
@@ -90,6 +92,8 @@
     <string name="auth_button_retry">Try again</string>
     <string name="auth_error_signInFailed">Sign in failed</string>
     <string name="auth_mergingMessage">Merging this device\'s data into your account…</string>
+    <string name="common_alcoholicDrink_explanation">Alcoholic drinks don\'t have to list nutrition values on the label. Carbohydrates and protein may therefore come from other sources or be missing.</string>
+    <string name="common_alcoholicDrink_label">Alcoholic drink</string>
     <string name="common_button_cancel">Cancel</string>
     <string name="common_button_done">Done</string>
     <string name="common_button_favourite">Favourite</string>

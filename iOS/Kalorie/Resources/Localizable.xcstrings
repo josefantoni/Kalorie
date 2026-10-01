@@ -527,6 +527,23 @@
         }
       }
     },
+    "addFood_error_invalidAlcoholByVolume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neplatný obsah alkoholu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid alcohol by volume"
+          }
+        }
+      }
+    },
     "addFood_error_invalidCalories" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -642,6 +659,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not withdraw the submission"
+          }
+        }
+      }
+    },
+    "addFood_field_alcoholByVolume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alkohol"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alcohol"
           }
         }
       }
@@ -1543,6 +1577,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Merging this device's data into your account…"
+          }
+        }
+      }
+    },
+    "common_alcoholicDrink_explanation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alkoholické nápoje nemusí na etiketě uvádět nutriční hodnoty. Sacharidy a bílkoviny proto mohou pocházet z jiných zdrojů nebo chybět."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alcoholic drinks don't have to list nutrition values on the label. Carbohydrates and protein may therefore come from other sources or be missing."
+          }
+        }
+      }
+    },
+    "common_alcoholicDrink_label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alkoholický nápoj"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alcoholic drink"
           }
         }
       }

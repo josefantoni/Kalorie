@@ -30,6 +30,7 @@
     <string name="addFood_confirm_withdrawSubmission">Zrušit tuto položku ke schválení? Přijdeš tím i o důvod zamítnutí.</string>
     <string name="addFood_error_barcodeNotFound">Potravina s tímto čárovým kódem nebyla nalezena</string>
     <string name="addFood_error_favouriteFailed">Oblíbené se nepodařilo uložit</string>
+    <string name="addFood_error_invalidAlcoholByVolume">Neplatný obsah alkoholu</string>
     <string name="addFood_error_invalidCalories">Kalorie musí být větší než nula</string>
     <string name="addFood_error_invalidCode">Neplatný čárový kód</string>
     <string name="addFood_error_invalidName">Překontroluj zadaný název</string>
@@ -37,6 +38,7 @@
     <string name="addFood_error_itemAlreadyExists">Potravina s tímto čárovým kódem již v databázi existuje</string>
     <string name="addFood_error_loadFailed">Nepodařilo se načíst výsledky. Zkus to prosím znovu.</string>
     <string name="addFood_error_withdrawSubmissionFailed">Položku se nepodařilo zrušit</string>
+    <string name="addFood_field_alcoholByVolume">Alkohol</string>
     <string name="addFood_field_barcode_missingLabel">bez čárového kódu</string>
     <string name="addFood_field_barcode_title">Čárový kód potraviny</string>
     <string name="addFood_field_caloriesPer100g">Kalorie na 100 gramů</string>
@@ -90,6 +92,8 @@
     <string name="auth_button_retry">Zkusit znovu</string>
     <string name="auth_error_signInFailed">Nepodařilo se přihlásit</string>
     <string name="auth_mergingMessage">Slučujeme data z tohoto zařízení s tvým účtem…</string>
+    <string name="common_alcoholicDrink_explanation">Alkoholické nápoje nemusí na etiketě uvádět nutriční hodnoty. Sacharidy a bílkoviny proto mohou pocházet z jiných zdrojů nebo chybět.</string>
+    <string name="common_alcoholicDrink_label">Alkoholický nápoj</string>
     <string name="common_button_cancel">Zrušit</string>
     <string name="common_button_done">Hotovo</string>
     <string name="common_button_favourite">Oblíbené</string>
