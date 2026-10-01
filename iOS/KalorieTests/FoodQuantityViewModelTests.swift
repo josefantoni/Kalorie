@@ -276,7 +276,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertLessThan(
             abs((capturedDate ?? .distantPast).timeIntervalSinceNow),
             5,
-            "the quantity screen must stamp a same-day entry with the time it was actually opened, not a snapshot taken hours earlier by the Dashboard — otherwise it keeps landing in whatever meal window was current back then"
+            "the quantity screen must stamp a same-day entry with the time it was actually opened, not a snapshot taken "
+                + "hours earlier by the Dashboard — otherwise it keeps landing in whatever meal window was current back then"
         )
     }
 

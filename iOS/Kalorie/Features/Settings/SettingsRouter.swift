@@ -17,8 +17,8 @@ struct SettingsRouter {
     // MARK: - Init
 
     init(
-        exportConfigurator: ExportConfigurator = ExportConfigurator(),
-        moderationConfigurator: ModerationConfigurator
+        moderationConfigurator: ModerationConfigurator,
+        exportConfigurator: ExportConfigurator = ExportConfigurator()
     ) {
         self.exportConfigurator = exportConfigurator
         self.moderationConfigurator = moderationConfigurator

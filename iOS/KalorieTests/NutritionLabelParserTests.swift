@@ -14,7 +14,7 @@ final class NutritionLabelParserTests: XCTestCase {
         let fixture: ParsingFixture = try FixtureLoader.load("nutrition-label-parsing-cases")
         for parsingCase in fixture.cases {
             let lines = parsingCase.lines.map {
-                RecognizedTextLine(text: $0.text, boundingBox: CGRect(x: $0.x, y: $0.y, width: $0.width, height: $0.height))
+                RecognizedTextLine(text: $0.text, boundingBox: CGRect(x: $0.xPosition, y: $0.yPosition, width: $0.width, height: $0.height))
             }
             let reading = NutritionLabelParser.parse(lines: lines)
             let expected = parsingCase.expected
@@ -115,10 +115,16 @@ final class NutritionLabelParserTests: XCTestCase {
 
     private struct FixtureLine: Decodable {
         let text: String
-        let x: Double
-        let y: Double
+        let xPosition: Double
+        let yPosition: Double
         let width: Double
         let height: Double
+
+        enum CodingKeys: String, CodingKey {
+            case text, width, height
+            case xPosition = "x"
+            case yPosition = "y"
+        }
     }
 
     private struct ExpectedReading: Decodable {
