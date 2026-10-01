@@ -57,24 +57,24 @@ struct FloatingLabelTextField<Field: Hashable>: View {
 
     init(
         title: String,
-        placeholder: String? = nil,
         text: Binding<String>,
+        focus: FocusState<Field?>.Binding,
+        equals focusValue: Field,
+        placeholder: String? = nil,
         message: FloatingLabelTextFieldMessage? = nil,
         keyboardType: UIKeyboardType = .default,
         isHighlighted: Bool = false,
-        minHeight: CGFloat = 44,
-        focus: FocusState<Field?>.Binding,
-        equals focusValue: Field
+        minHeight: CGFloat = 44
     ) {
         self.title = title
-        self.placeholder = placeholder
         self._text = text
+        self.externalFocus = focus
+        self.focusValue = focusValue
+        self.placeholder = placeholder
         self.message = message
         self.keyboardType = keyboardType
         self.isHighlighted = isHighlighted
         self.minHeight = minHeight
-        self.externalFocus = focus
-        self.focusValue = focusValue
     }
 
     // MARK: - Body
@@ -225,16 +225,16 @@ struct FloatingLabelTextField<Field: Hashable>: View {
 extension FloatingLabelTextField where Field == Bool {
     init(
         title: String,
-        placeholder: String? = nil,
         text: Binding<String>,
+        placeholder: String? = nil,
         message: FloatingLabelTextFieldMessage? = nil,
         keyboardType: UIKeyboardType = .default,
         isHighlighted: Bool = false,
         minHeight: CGFloat = 44
     ) {
         self.title = title
-        self.placeholder = placeholder
         self._text = text
+        self.placeholder = placeholder
         self.message = message
         self.keyboardType = keyboardType
         self.isHighlighted = isHighlighted
@@ -263,12 +263,12 @@ private struct FloatingLabelTextFieldPreview: View {
     var body: some View {
         FloatingLabelTextField(
             title: title,
-            placeholder: placeholder,
             text: isReadOnly ? .constant(text) : $editableText,
-            message: message,
-            isHighlighted: isHighlighted,
             focus: $focusedField,
-            equals: true
+            equals: true,
+            placeholder: placeholder,
+            message: message,
+            isHighlighted: isHighlighted
         )
         .disabled(isDisabled)
         .onAppear {

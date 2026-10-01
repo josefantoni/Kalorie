@@ -31,8 +31,8 @@ struct FoodItemFormSections: View {
             Section {
                 FloatingLabelTextField(
                     title: L10n.AddFood.fieldNameTitle,
-                    placeholder: L10n.AddFood.fieldNamePlaceholder,
                     text: nameBinding,
+                    placeholder: L10n.AddFood.fieldNamePlaceholder,
                     isHighlighted: highlightedFields.contains(.name)
                 )
                 .listRowInsets(.vertical, 0)

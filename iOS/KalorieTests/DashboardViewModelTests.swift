@@ -556,9 +556,10 @@ final class DashboardViewModelTests: XCTestCase {
             fetchFoodsConsumedForMonth: fetchFoodsConsumedForMonth
                 ?? FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: foods ?? [makeFood(id: "f1", hour: 9)]),
             authProvider: authProvider,
-            signInSpotlightStore: store,
-            now: { now }
-        )
+            signInSpotlightStore: store
+        ) {
+            now
+        }
     }
 
     private func makeSUT(
