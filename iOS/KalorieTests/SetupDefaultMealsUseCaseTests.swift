@@ -32,6 +32,13 @@ final class SetupDefaultMealsUseCaseTests: XCTestCase {
         XCTAssertTrue(ids.allSatisfy { !$0.isEmpty })
     }
 
+    func test_setupDefaultMeals_secondBreakfastStartsWhereBreakfastEnds_at0830() async throws {
+        let (sut, _) = makeSUT()
+        let result = try await sut()
+        XCTAssertEqual(result[0].endMinutes, 8 * 60 + 30)
+        XCTAssertEqual(result[1].startMinutes, result[0].endMinutes, "windows must be contiguous, or foods logged between them match no meal")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: SetupDefaultMealsUseCase, dataProvider: SetupDefaultMealsDataProviderFake) {
