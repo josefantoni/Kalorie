@@ -16,9 +16,14 @@
     { "input": "١٢٣٤٥٦٧٨", "valid": false },
     { "input": "１２３４５６７８", "valid": false }
   ],
-  "foodItemBase": { "id": "12345678", "czName": "Tvaroh", "caloriesPerHundredGrams": 80, "weight": 200, "portions": [] },
+  "foodItemBase": { "id": "12345678", "czName": "Tvaroh", "caloriesPerHundredGrams": 80, "weight": 200, "portions": [], "alcoholByVolume": null },
   "foodItem": [
     { "name": "valid base item", "overrides": {}, "expected": null },
+    { "name": "valid alcohol by volume", "overrides": {"alcoholByVolume": 12}, "expected": null },
+    { "name": "alcohol by volume exactly 100 is valid", "overrides": {"alcoholByVolume": 100}, "expected": null },
+    { "name": "zero alcohol by volume", "overrides": {"alcoholByVolume": 0}, "expected": "invalidAlcoholByVolume" },
+    { "name": "negative alcohol by volume", "overrides": {"alcoholByVolume": -1}, "expected": "invalidAlcoholByVolume" },
+    { "name": "alcohol by volume over 100", "overrides": {"alcoholByVolume": 101}, "expected": "invalidAlcoholByVolume" },
     { "name": "invalid code", "overrides": {"id": "123456789"}, "expected": "invalidCode" },
     { "name": "uppercase UUID id", "overrides": {"id": "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D"}, "expected": null },
     { "name": "empty name", "overrides": {"czName": ""}, "expected": "invalidName" },

@@ -132,4 +132,26 @@ class MacrosTest {
         val result = weightedMeanPerHundredGrams(values = listOf(133.6), grams = listOf(42.0))
         assertEquals(133.6, result)
     }
+
+    @Test
+    fun isAlcoholicDrink_withNil_isFalse() {
+        assertEquals(false, isAlcoholicDrink(alcoholByVolume = null))
+    }
+
+    @Test
+    fun isAlcoholicDrink_withNonAlcoholicBeerAbv_isFalse() {
+        assertEquals(false, isAlcoholicDrink(alcoholByVolume = 0.5))
+    }
+
+    @Test
+    fun isAlcoholicDrink_atExemptionThreshold_isFalseBecauseExclusive() {
+        // EU Regulation 1169/2011, Art. 16(4): the mandatory nutrition declaration still applies
+        // at exactly the threshold, so the hint must not show for a drink at 1.2% ABV.
+        assertEquals(false, isAlcoholicDrink(alcoholByVolume = 1.2))
+    }
+
+    @Test
+    fun isAlcoholicDrink_justAboveThreshold_isTrue() {
+        assertEquals(true, isAlcoholicDrink(alcoholByVolume = 1.21))
+    }
 }

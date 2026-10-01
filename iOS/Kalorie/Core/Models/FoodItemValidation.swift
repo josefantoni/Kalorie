@@ -11,6 +11,7 @@ enum FoodItemValidationError: Error, Equatable {
     case invalidCode
     case invalidName
     case invalidCalories
+    case invalidAlcoholByVolume
     case invalidPortion(FoodPortionError)
 }
 
@@ -22,12 +23,14 @@ extension FoodItemValidationError {
         invalidCode: T,
         invalidName: T,
         invalidCalories: T,
+        invalidAlcoholByVolume: T,
         invalidPortion: (FoodPortionError) -> T
     ) -> T {
         switch self {
         case .invalidCode: return invalidCode
         case .invalidName: return invalidName
         case .invalidCalories: return invalidCalories
+        case .invalidAlcoholByVolume: return invalidAlcoholByVolume
         case .invalidPortion(let portionError): return invalidPortion(portionError)
         }
     }
@@ -49,6 +52,9 @@ enum FoodItemValidation {
         guard isValidBarcode(item.id) || isValidSubmissionUUID(item.id) else { return .invalidCode }
         guard !item.czName.isEmpty else { return .invalidName }
         guard item.caloriesPerHundredGrams > 0 else { return .invalidCalories }
+        if let alcoholByVolume = item.alcoholByVolume, !(alcoholByVolume > 0 && alcoholByVolume <= 100) {
+            return .invalidAlcoholByVolume
+        }
         for portion in item.portions {
             if let error = FoodPortionValidation.validate(name: portion.name, grams: portion.grams) {
                 return .invalidPortion(error)

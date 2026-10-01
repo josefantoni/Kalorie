@@ -4,6 +4,7 @@ sealed class FoodItemValidationError : Exception() {
     data object InvalidCode : FoodItemValidationError()
     data object InvalidName : FoodItemValidationError()
     data object InvalidCalories : FoodItemValidationError()
+    data object InvalidAlcoholByVolume : FoodItemValidationError()
     data class InvalidPortion(val error: FoodPortionError) : FoodItemValidationError()
 
     // MARK: - Functions
@@ -12,11 +13,13 @@ sealed class FoodItemValidationError : Exception() {
         invalidCode: T,
         invalidName: T,
         invalidCalories: T,
+        invalidAlcoholByVolume: T,
         invalidPortion: (FoodPortionError) -> T,
     ): T = when (this) {
         InvalidCode -> invalidCode
         InvalidName -> invalidName
         InvalidCalories -> invalidCalories
+        InvalidAlcoholByVolume -> invalidAlcoholByVolume
         is InvalidPortion -> invalidPortion(error)
     }
 }
@@ -38,6 +41,8 @@ object FoodItemValidation {
         if (!isValidBarcode(item.id) && !isValidSubmissionUUID(item.id)) return FoodItemValidationError.InvalidCode
         if (item.czName.isEmpty()) return FoodItemValidationError.InvalidName
         if (item.caloriesPerHundredGrams.isNaN() || item.caloriesPerHundredGrams <= 0) return FoodItemValidationError.InvalidCalories
+        val alcoholByVolume = item.alcoholByVolume
+        if (alcoholByVolume != null && !(alcoholByVolume > 0 && alcoholByVolume <= 100)) return FoodItemValidationError.InvalidAlcoholByVolume
         for (portion in item.portions) {
             FoodPortionValidation.validate(portion.name, portion.grams)?.let {
                 return FoodItemValidationError.InvalidPortion(it)
