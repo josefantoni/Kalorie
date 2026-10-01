@@ -2,6 +2,7 @@ package antoni.kalorie.features.dashboard
 
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
+import antoni.kalorie.core.extensions.formatted
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
@@ -26,6 +27,7 @@ import antoni.kalorie.core.utils.FoodItemReporting
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
+import antoni.kalorie.macrokit.isAlcoholicDrink
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -95,6 +97,9 @@ class FoodConsumedDetailViewModel(
 
     val canReportIncorrectData: Boolean
         get() = food.foodItemKind == FoodItemKind.CATALOGUE
+
+    val isAlcoholicDrink: Boolean get() = isAlcoholicDrink(food.alcoholByVolume)
+    val formattedAlcoholByVolume: String get() = (food.alcoholByVolume ?: 0.0).formatted(1, "%")
 
     val canToggleFavourite: Boolean
         get() = !isTogglingFavourite.value && canShowFavouriteButton

@@ -47,6 +47,7 @@ class SaveFoodConsumedUseCase(
             salt = scaled.salt,
             mealTypeId = mealTypeId,
             measureUnit = item.measure.rawValue,
+            alcoholByVolume = item.alcoholByVolume,
         )
         dataProvider.setAsync(dto, id = dto.id, inCollection = Constants.Firestore.foodConsumed(userId))
     }

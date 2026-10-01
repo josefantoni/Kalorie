@@ -33,6 +33,7 @@ data class FoodConsumedDTO(
     val salt: Double,
     @SerialName("meal_type_id") val mealTypeId: String? = null,
     @SerialName("measure_unit") val measureUnit: String? = null,
+    @SerialName("alcohol_by_volume") val alcoholByVolume: Double? = null,
 ) {
 
     // MARK: - Init
@@ -58,6 +59,7 @@ data class FoodConsumedDTO(
         salt = food.salt,
         mealTypeId = mealTypeId,
         measureUnit = food.measure.rawValue,
+        alcoholByVolume = food.alcoholByVolume,
     )
 
     // MARK: - Functions
@@ -83,5 +85,6 @@ data class FoodConsumedDTO(
         salt = salt,
         mealTypeId = mealTypeId,
         measure = measureUnit?.let(FoodMeasure::fromRawValue) ?: FoodMeasure.GRAMS,
+        alcoholByVolume = alcoholByVolume,
     )
 }

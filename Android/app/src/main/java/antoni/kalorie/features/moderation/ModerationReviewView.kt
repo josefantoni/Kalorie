@@ -105,6 +105,7 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                         onFormInputChange = { viewModel.formInput.value = it },
                         barcodeRow = FoodItemFormBarcodeRow.Locked,
                         highlightedFields = recognizedFields,
+                        showsAlcoholByVolumeField = true,
                         onNutritionLabelScanTapped = scannerAccess.open,
                         onFieldEdited = viewModel::onFormFieldEdited,
                     )

@@ -26,6 +26,7 @@ data class FoodItemFormInput(
     val salt: Double = 0.0,
     val portions: List<FoodPortionDraft> = listOf(FoodPortionDraft.blank),
     val measure: FoodMeasure = FoodMeasure.GRAMS,
+    val alcoholByVolume: Double? = null,
 ) {
 
     // MARK: - Functions
@@ -49,6 +50,7 @@ data class FoodItemFormInput(
         salt = salt,
         portions = parsedPortions(portions),
         measure = measure,
+        alcoholByVolume = alcoholByVolume?.takeIf { it > 0 },
     )
 
     // A field an earlier scan already filled is tracked in alreadyRecognizedFields, not by checking
@@ -123,6 +125,7 @@ data class FoodItemFormInput(
                 ?.map { FoodPortionDraft(name = it.name, gramsText = formattedGrams(it.grams)) }
                 ?: listOf(FoodPortionDraft.blank),
             measure = item.measure,
+            alcoholByVolume = item.alcoholByVolume,
         )
 
         fun parsedPortions(drafts: List<FoodPortionDraft>): List<FoodPortionDomain> = drafts.mapNotNull { draft ->

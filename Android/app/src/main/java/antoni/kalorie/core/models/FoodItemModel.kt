@@ -21,6 +21,7 @@ data class FoodItemDomain(
     val salt: Double,
     val portions: List<FoodPortionDomain> = emptyList(),
     val measure: FoodMeasure = FoodMeasure.GRAMS,
+    val alcoholByVolume: Double? = null,
 ) : BilingualNamed {
 
     // MARK: - Init

@@ -50,6 +50,7 @@ class UpdateFoodConsumedUseCase(
             salt = scaled.salt,
             mealTypeId = food.mealTypeId,
             measureUnit = food.measure.rawValue,
+            alcoholByVolume = food.alcoholByVolume,
         )
         dataProvider.setAsync(dto, id = food.id, inCollection = Constants.Firestore.foodConsumed(userId))
     }

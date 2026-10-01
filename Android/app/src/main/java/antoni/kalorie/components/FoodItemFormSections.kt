@@ -50,6 +50,7 @@ fun FoodItemFormSections(
     modifier: Modifier = Modifier,
     barcodeRow: FoodItemFormBarcodeRow = FoodItemFormBarcodeRow.Hidden,
     highlightedFields: Set<FoodItemFormField> = emptySet(),
+    showsAlcoholByVolumeField: Boolean = false,
     onNutritionLabelScanTapped: (() -> Unit)? = null,
     onFieldEdited: (FoodItemFormField) -> Unit = {},
 ) {
@@ -114,6 +115,7 @@ fun FoodItemFormSections(
             formInput = formInput,
             onFormInputChange = onFormInputChange,
             highlightedFields = highlightedFields,
+            showsAlcoholByVolumeField = showsAlcoholByVolumeField,
             onFieldEdited = onFieldEdited,
         )
     }
@@ -126,6 +128,7 @@ fun FoodItemFormFields(
     onFormInputChange: (FoodItemFormInput) -> Unit,
     modifier: Modifier = Modifier,
     highlightedFields: Set<FoodItemFormField> = emptySet(),
+    showsAlcoholByVolumeField: Boolean = false,
     onFieldEdited: (FoodItemFormField) -> Unit = {},
 ) {
     // MARK: - Properties
@@ -212,6 +215,14 @@ fun FoodItemFormFields(
         ) { edit(FoodItemFormField.FAT_UNSATURATED) { copy(fatUnsaturatedFattyAcids = it) } }
         FormDoubleRow(stringResource(R.string.addFood_field_salt), grams, formInput.salt, isHighlighted(FoodItemFormField.SALT)) {
             edit(FoodItemFormField.SALT) { copy(salt = it) }
+        }
+        if (showsAlcoholByVolumeField) {
+            FormDoubleRow(
+                stringResource(R.string.addFood_field_alcoholByVolume),
+                "%",
+                formInput.alcoholByVolume ?: 0.0,
+                isHighlighted(FoodItemFormField.ALCOHOL_BY_VOLUME),
+            ) { edit(FoodItemFormField.ALCOHOL_BY_VOLUME) { copy(alcoholByVolume = it) } }
         }
     }
 }

@@ -39,6 +39,21 @@ import java.time.ZonedDateTime
 class FoodConsumedDetailViewModelTest {
 
     @Test
+    fun isAlcoholicDrink_withAbvAboveExemptionThreshold_isTrue() {
+        assertTrue(makeSUT(food = makeFood(alcoholByVolume = 4.4)).isAlcoholicDrink)
+    }
+
+    @Test
+    fun isAlcoholicDrink_withNullAbv_isFalse() {
+        assertFalse(makeSUT(food = makeFood(alcoholByVolume = null)).isAlcoholicDrink)
+    }
+
+    @Test
+    fun isAlcoholicDrink_withNonAlcoholicBeerAbv_isFalse() {
+        assertFalse(makeSUT(food = makeFood(alcoholByVolume = 0.5)).isAlcoholicDrink)
+    }
+
+    @Test
     fun canReportIncorrectData_onlyTrueForCatalogueKind() {
         assertTrue(makeSUT(food = makeFood(kind = FoodItemKind.CATALOGUE)).canReportIncorrectData)
         assertFalse(
@@ -390,6 +405,7 @@ class FoodConsumedDetailViewModelTest {
         kind: FoodItemKind = FoodItemKind.CATALOGUE,
         mealTypeId: String? = null,
         date: Instant = Instant.now(),
+        alcoholByVolume: Double? = null,
     ): FoodConsumedDomain = FoodConsumedDomain(
         id = "1",
         foodItemId = foodItemId,
@@ -410,5 +426,6 @@ class FoodConsumedDetailViewModelTest {
         fiber = 6.0,
         salt = 0.1,
         mealTypeId = mealTypeId,
+        alcoholByVolume = alcoholByVolume,
     )
 }

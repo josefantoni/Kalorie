@@ -16,6 +16,7 @@ sealed class UpdateFoodItemError : Exception() {
     data object InvalidCode : UpdateFoodItemError()
     data object InvalidName : UpdateFoodItemError()
     data object InvalidCalories : UpdateFoodItemError()
+    data object InvalidAlcoholByVolume : UpdateFoodItemError()
     data class InvalidPortion(val error: FoodPortionError) : UpdateFoodItemError()
     data object ChangedSinceLoad : UpdateFoodItemError()
 
@@ -26,6 +27,7 @@ sealed class UpdateFoodItemError : Exception() {
             invalidCode = InvalidCode,
             invalidName = InvalidName,
             invalidCalories = InvalidCalories,
+            invalidAlcoholByVolume = InvalidAlcoholByVolume,
         ) { InvalidPortion(it) }
     }
 }

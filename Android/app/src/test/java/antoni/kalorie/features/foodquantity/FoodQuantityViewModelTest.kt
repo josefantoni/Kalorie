@@ -47,6 +47,27 @@ import java.time.ZonedDateTime
 class FoodQuantityViewModelTest {
 
     @Test
+    fun isAlcoholicDrink_withAbvAboveExemptionThreshold_isTrue() {
+        val sut = makeSUT(item = makeFoodItem(alcoholByVolume = 4.4))
+
+        assertTrue(sut.isAlcoholicDrink)
+    }
+
+    @Test
+    fun isAlcoholicDrink_withNullAbv_isFalse() {
+        val sut = makeSUT(item = makeFoodItem(alcoholByVolume = null))
+
+        assertFalse(sut.isAlcoholicDrink)
+    }
+
+    @Test
+    fun isAlcoholicDrink_withNonAlcoholicBeerAbv_isFalse() {
+        val sut = makeSUT(item = makeFoodItem(alcoholByVolume = 0.5))
+
+        assertFalse(sut.isAlcoholicDrink)
+    }
+
+    @Test
     fun grams_withOneHundredGramUnit_is100() {
         val sut = makeSUT()
         sut.unit.value = FoodQuantityUnit.HundredGrams
@@ -958,6 +979,7 @@ class FoodQuantityViewModelTest {
         caloriesPerHundredGrams: Double = 100.0,
         fiber: Double? = 0.0,
         portions: List<FoodPortionDomain> = emptyList(),
+        alcoholByVolume: Double? = null,
     ): FoodItemDomain = FoodItemDomain(
         id = "test",
         kind = kind,
@@ -976,6 +998,7 @@ class FoodQuantityViewModelTest {
         protein = 13.0,
         salt = 0.1,
         portions = portions,
+        alcoholByVolume = alcoholByVolume,
     )
 }
 
