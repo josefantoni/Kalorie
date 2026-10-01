@@ -95,7 +95,7 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
         guard let loadedItem else { return }
         state = .loading
         defer { state = .loaded }
-        let item = formInput.asFoodItemDomain(date: loadedItem.date)
+        let item = formInput.asFoodItemDomain(id: loadedItem.id, date: loadedItem.date)
         do {
             try await updateFoodItem(item, previouslyLoaded: loadedItem)
             self.loadedItem = item

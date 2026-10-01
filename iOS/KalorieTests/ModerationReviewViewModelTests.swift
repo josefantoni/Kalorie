@@ -37,6 +37,17 @@ final class ModerationReviewViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onApproveTapped_withoutBarcode_keepsTheSubmissionsUUIDAsTheItemId() async {
+        let submission = makeSubmission(barcode: nil)
+        let approveSubmission = ApproveSubmissionUseCaseSpy()
+        let sut = makeSUT(submission: submission, approveSubmission: approveSubmission)
+
+        await sut.onApproveTapped()
+
+        XCTAssertEqual(approveSubmission.receivedItem?.id, submission.item.id, "a barcode-less item's identity is its UUID; approval must not replace it with an empty id")
+    }
+
+    @MainActor
     func test_onApproveTapped_whenValidationFails_showsFieldSpecificMessageAndDoesNotDismiss() async {
         let approveSubmission = ApproveSubmissionUseCaseSpy()
         approveSubmission.errorToThrow = CreateFoodItemError.invalidCalories

@@ -90,7 +90,7 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
     func onApproveTapped() async {
         state = .loading
         defer { state = .loaded }
-        let editedItem = formInput.asFoodItemDomain(date: submission.item.date)
+        let editedItem = formInput.asFoodItemDomain(id: submission.item.id, date: submission.item.date)
         do {
             try await approveSubmission(submission: submission, item: editedItem)
             onResolved()

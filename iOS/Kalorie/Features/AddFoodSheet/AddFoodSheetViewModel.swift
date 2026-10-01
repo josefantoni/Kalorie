@@ -54,9 +54,9 @@ extension FoodItemFormInput {
         )
     }
 
-    func asFoodItemDomain(kind: FoodItemKind = .catalogue, date: Date = .now) -> FoodItemDomain {
+    func asFoodItemDomain(id: String? = nil, kind: FoodItemKind = .catalogue, date: Date = .now) -> FoodItemDomain {
         FoodItemDomain(
-            id: scannedCode,
+            id: id ?? scannedCode,
             kind: kind,
             czName: name,
             engName: engName,
