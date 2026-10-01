@@ -39,6 +39,7 @@
     { "collectionGroup": "foodItems", "fieldPath": "fiber", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "protein", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "salt", "indexes": [] },
-    { "collectionGroup": "foodItems", "fieldPath": "measure_unit", "indexes": [] }
+    { "collectionGroup": "foodItems", "fieldPath": "measure_unit", "indexes": [] },
+    { "collectionGroup": "foodItems", "fieldPath": "alcohol_by_volume", "indexes": [] }
   ]
 }

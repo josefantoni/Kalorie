@@ -30,7 +30,9 @@ service cloud.firestore {
         (!('energy_kj' in data) || data.energy_kj is number) &&
         (!('fat_saturated' in data) || data.fat_saturated is number) &&
         (!('fiber' in data) || data.fiber is number) &&
-        (!('measure_unit' in data) || data.measure_unit in ['grams', 'millilitres']);
+        (!('measure_unit' in data) || data.measure_unit in ['grams', 'millilitres']) &&
+        (!('alcohol_by_volume' in data) ||
+          (data.alcohol_by_volume is number && data.alcohol_by_volume > 0 && data.alcohol_by_volume <= 100));
     }
 
     match /users/{userId} {
