@@ -29,8 +29,7 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
 
     func callAsFunction() async throws -> [MealTypeDomain] {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        var startMinutes = 5 * 60
-        var endMinutes = startMinutes + 3 * 60
+        let boundaries = [5 * 60, 8 * 60 + 30, 11 * 60, 14 * 60 + 30, 17 * 60, 20 * 60]
         let mealNames = [
             L10n.DefaultMeals.breakfast,
             L10n.DefaultMeals.secondBreakfast,
@@ -41,7 +40,9 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
         var dtos: [(item: MealTypeDTO, id: String)] = []
         var domains: [MealTypeDomain] = []
 
-        for mealName in mealNames {
+        for (index, mealName) in mealNames.enumerated() {
+            let startMinutes = boundaries[index]
+            let endMinutes = boundaries[index + 1]
             let id = UUID().uuidString
             dtos.append((
                 item: MealTypeDTO(
@@ -53,8 +54,6 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
                 id: id
             ))
             domains.append(MealTypeDomain(id: id, name: mealName, startMinutes: startMinutes, endMinutes: endMinutes))
-            startMinutes = endMinutes
-            endMinutes = startMinutes + 3 * 60
         }
 
         try await dataProvider.batchSetAsync(dtos, in: Constants.Firestore.mealTypes(userId: userId))
