@@ -44,7 +44,7 @@ class GoogleSignInProvider(
         return GoogleSignInResult(
             credential = GoogleAuthProvider.getCredential(googleCredential.idToken, null),
             displayName = googleCredential.displayName,
-            email = googleCredential.id,
+            email = googleCredential.email,
         )
     }
 }

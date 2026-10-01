@@ -28,6 +28,7 @@ data class FoodConsumedDomain(
     val measure: FoodMeasure = FoodMeasure.GRAMS,
 ) : BilingualNamed
 
+@ConsistentCopyVisibility
 data class ScaledMacros private constructor(
     val calories: Int,
     val energyKJ: Double,

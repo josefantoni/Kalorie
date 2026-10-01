@@ -1,6 +1,7 @@
 package antoni.kalorie.features.settings
 
 import android.content.ActivityNotFoundException
+import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
@@ -48,11 +49,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -81,7 +82,7 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
     val feedbackSubject = stringResource(R.string.settings_button_feedback)
     var isEditing by remember { mutableStateOf(false) }
     var isModerationQueuePushed by remember { mutableStateOf(false) }
@@ -274,7 +275,7 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
             dismissButton = {
                 TextButton(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(Constants.Support.EMAIL))
+                        scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("", Constants.Support.EMAIL))) }
                         isFeedbackMailUnavailableAlertPresented = false
                     },
                 ) {

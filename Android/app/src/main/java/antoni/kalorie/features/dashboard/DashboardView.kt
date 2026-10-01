@@ -386,12 +386,14 @@ private fun SectionHeader(
 @Composable
 fun SwipeToDeleteRow(onDeleteRequested: () -> Unit, content: @Composable () -> Unit) {
     val currentOnDeleteRequested by rememberUpdatedState(onDeleteRequested)
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) currentOnDeleteRequested()
-            false
-        },
-    )
+    val dismissState = rememberSwipeToDismissBoxState()
+
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+            currentOnDeleteRequested()
+            dismissState.reset()
+        }
+    }
 
     SwipeToDismissBox(
         state = dismissState,
