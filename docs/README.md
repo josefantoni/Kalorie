@@ -207,6 +207,7 @@ understanding why.
 | [0014](design/0014-data-export.md) | Exporting consumed food to PDF or Excel | Implemented | Cross-platform, iOS |
 | [0016](design/0016-copy-meal-to-another-window.md) | Copying a meal to another window and day | Implemented | Cross-platform, iOS, Android |
 | [0017](design/0017-sign-in-spotlight.md) | Sign-in spotlight | Implemented | Cross-platform, iOS, Android |
+| [0019](design/0019-alcoholic-drink-accuracy-hint.md) | Alcoholic-drink accuracy hint | Implemented | Backend, Cross-platform, iOS, Android |
 
 ### Decision records
 
