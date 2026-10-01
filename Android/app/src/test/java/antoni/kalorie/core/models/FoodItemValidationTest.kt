@@ -39,6 +39,23 @@ class FoodItemValidationTest {
     }
 
     @Test
+    fun validate_withAlcoholByVolumeOutOfRange_returnsInvalidAlcoholByVolume() {
+        assertEquals(FoodItemValidationError.InvalidAlcoholByVolume, FoodItemValidation.validate(makeItem(alcoholByVolume = 0.0)))
+        assertEquals(FoodItemValidationError.InvalidAlcoholByVolume, FoodItemValidation.validate(makeItem(alcoholByVolume = -1.0)))
+        assertEquals(FoodItemValidationError.InvalidAlcoholByVolume, FoodItemValidation.validate(makeItem(alcoholByVolume = 101.0)))
+    }
+
+    @Test
+    fun validate_withValidAlcoholByVolume_returnsNil() {
+        assertNull(FoodItemValidation.validate(makeItem(alcoholByVolume = 12.0)))
+    }
+
+    @Test
+    fun validate_withNoAlcoholByVolume_returnsNil() {
+        assertNull(FoodItemValidation.validate(makeItem(alcoholByVolume = null)))
+    }
+
+    @Test
     fun validate_withZeroWeight_isValidBecausePackageWeightFeedsNoCalculation() {
         assertNull(FoodItemValidation.validate(makeItem(weight = 0.0)))
     }
@@ -96,11 +113,13 @@ class FoodItemValidationTest {
         for (foodItemCase in fixture.getValue("foodItem").jsonArray.map { it.jsonObject }) {
             val overrides = foodItemCase.getValue("overrides").jsonObject
             fun field(key: String) = overrides[key] ?: base.getValue(key)
+            val alcoholByVolumeField = field("alcoholByVolume")
             val item = makeItem(
                 id = field("id").jsonPrimitive.content,
                 name = field("czName").jsonPrimitive.content,
                 weight = field("weight").jsonPrimitive.double,
                 caloriesPerHundredGrams = field("caloriesPerHundredGrams").jsonPrimitive.double,
+                alcoholByVolume = if (alcoholByVolumeField is JsonNull) null else alcoholByVolumeField.jsonPrimitive.double,
                 portions = field("portions").jsonArray.toPortions(),
             )
             val expected = foodItemCase.getValue("expected").let { if (it is JsonNull) null else it.jsonPrimitive.content }
@@ -126,6 +145,7 @@ class FoodItemValidationTest {
         FoodItemValidationError.InvalidCode -> "invalidCode"
         FoodItemValidationError.InvalidName -> "invalidName"
         FoodItemValidationError.InvalidCalories -> "invalidCalories"
+        FoodItemValidationError.InvalidAlcoholByVolume -> "invalidAlcoholByVolume"
         is FoodItemValidationError.InvalidPortion -> when (error.error) {
             FoodPortionError.InvalidName -> "invalidPortion.invalidName"
             FoodPortionError.InvalidGrams -> "invalidPortion.invalidGrams"
@@ -138,6 +158,7 @@ class FoodItemValidationTest {
         name: String = "Tvaroh",
         weight: Double = 200.0,
         caloriesPerHundredGrams: Double = 80.0,
+        alcoholByVolume: Double? = null,
         portions: List<FoodPortionDomain> = emptyList(),
     ): FoodItemDomain = FoodItemDomain(
         id = id,
@@ -157,5 +178,6 @@ class FoodItemValidationTest {
         protein = 13.0,
         salt = 0.1,
         portions = portions,
+        alcoholByVolume = alcoholByVolume,
     )
 }

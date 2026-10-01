@@ -41,6 +41,13 @@ private const val KILOJOULES_PER_GRAM_PROTEIN = 17.0
 fun energyKJFromMacros(fat: Double, carbohydrate: Double, protein: Double): Double =
     fat * KILOJOULES_PER_GRAM_FAT + carbohydrate * KILOJOULES_PER_GRAM_CARBOHYDRATE + protein * KILOJOULES_PER_GRAM_PROTEIN
 
+// EU Regulation 1169/2011, Art. 16(4) exempts drinks above this ABV from the mandatory nutrition
+// declaration, which is why their carbohydrate/protein values may be unreliable.
+const val ALCOHOL_NUTRITION_LABEL_EXEMPTION_ABV = 1.2
+
+fun isAlcoholicDrink(alcoholByVolume: Double?): Boolean =
+    alcoholByVolume != null && alcoholByVolume > ALCOHOL_NUTRITION_LABEL_EXEMPTION_ABV
+
 fun weightedMeanPerHundredGrams(values: List<Double>, grams: List<Double>): Double {
     val totalGrams = grams.sum()
     if (totalGrams == 0.0) return 0.0

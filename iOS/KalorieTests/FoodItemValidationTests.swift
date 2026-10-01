@@ -28,6 +28,20 @@ final class FoodItemValidationTests: XCTestCase {
         XCTAssertEqual(FoodItemValidation.validate(makeItem(caloriesPerHundredGrams: 0)), .invalidCalories)
     }
 
+    func test_validate_withAlcoholByVolumeOutOfRange_returnsInvalidAlcoholByVolume() {
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(alcoholByVolume: 0)), .invalidAlcoholByVolume)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(alcoholByVolume: -1)), .invalidAlcoholByVolume)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(alcoholByVolume: 101)), .invalidAlcoholByVolume)
+    }
+
+    func test_validate_withValidAlcoholByVolume_returnsNil() {
+        XCTAssertNil(FoodItemValidation.validate(makeItem(alcoholByVolume: 12)))
+    }
+
+    func test_validate_withNoAlcoholByVolume_returnsNil() {
+        XCTAssertNil(FoodItemValidation.validate(makeItem(alcoholByVolume: nil)))
+    }
+
     func test_validate_withZeroWeight_isValidBecausePackageWeightFeedsNoCalculation() {
         XCTAssertNil(FoodItemValidation.validate(makeItem(weight: 0)))
     }
@@ -73,6 +87,7 @@ final class FoodItemValidationTests: XCTestCase {
                 name: overrides.czName ?? base.czName,
                 weight: overrides.weight ?? base.weight,
                 caloriesPerHundredGrams: overrides.caloriesPerHundredGrams ?? base.caloriesPerHundredGrams,
+                alcoholByVolume: overrides.alcoholByVolume ?? base.alcoholByVolume,
                 portions: (overrides.portions ?? base.portions).map {
                     FoodPortionDomain(name: $0.name, grams: $0.grams)
                 }
@@ -92,6 +107,7 @@ final class FoodItemValidationTests: XCTestCase {
         case .invalidCode: return "invalidCode"
         case .invalidName: return "invalidName"
         case .invalidCalories: return "invalidCalories"
+        case .invalidAlcoholByVolume: return "invalidAlcoholByVolume"
         case .invalidPortion(.invalidName): return "invalidPortion.invalidName"
         case .invalidPortion(.invalidGrams): return "invalidPortion.invalidGrams"
         case .invalidPortion(.tooMany): return "invalidPortion.tooMany"
@@ -103,6 +119,7 @@ final class FoodItemValidationTests: XCTestCase {
         name: String = "Tvaroh",
         weight: Double = 200,
         caloriesPerHundredGrams: Double = 80,
+        alcoholByVolume: Double? = nil,
         portions: [FoodPortionDomain] = []
     ) -> FoodItemDomain {
         FoodItemDomain(
@@ -122,7 +139,8 @@ final class FoodItemValidationTests: XCTestCase {
             fiber: 0,
             protein: 13,
             salt: 0.1,
-            portions: portions
+            portions: portions,
+            alcoholByVolume: alcoholByVolume
         )
     }
 
@@ -148,6 +166,7 @@ final class FoodItemValidationTests: XCTestCase {
         let caloriesPerHundredGrams: Double
         let weight: Double
         let portions: [PortionFields]
+        let alcoholByVolume: Double?
     }
 
     private struct FoodItemOverrides: Decodable {
@@ -156,6 +175,7 @@ final class FoodItemValidationTests: XCTestCase {
         let caloriesPerHundredGrams: Double?
         let weight: Double?
         let portions: [PortionFields]?
+        let alcoholByVolume: Double?
     }
 
     private struct FoodItemCase: Decodable {
