@@ -48,6 +48,22 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onSaveTapped_forBarcodeLessItem_keepsItsUUIDAsTheItemId() async {
+        let uuid = "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D"
+        let updateFoodItem = UpdateFoodItemUseCaseSpy()
+        let sut = makeSUT(
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeItem(id: uuid)),
+            updateFoodItem: updateFoodItem
+        )
+        sut.barcodeQuery = uuid
+        await sut.onSearchTapped()
+
+        await sut.onSaveTapped()
+
+        XCTAssertEqual(updateFoodItem.receivedItem?.id, uuid, "a barcode-less item's identity is its UUID; saving a correction must not replace it with an empty id")
+    }
+
+    @MainActor
     func test_onSaveTapped_whenItemChangedSinceLoad_showsAlertAndDoesNotShowCheckmark() async {
         let item = makeItem()
         let updateFoodItem = UpdateFoodItemUseCaseFake(errorToThrow: UpdateFoodItemError.changedSinceLoad)
