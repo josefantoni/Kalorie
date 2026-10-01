@@ -23,12 +23,12 @@ class SetupDefaultMealsUseCase(
 
     override suspend fun invoke(): List<MealTypeDomain> {
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
-        var startMinutes = DEFAULT_START_HOUR * 60
-        var endMinutes = startMinutes + DEFAULT_WINDOW_HOURS * 60
         val dtos = mutableListOf<Pair<MealTypeDTO, String>>()
         val domains = mutableListOf<MealTypeDomain>()
 
-        for (mealName in mealNames) {
+        for ((index, mealName) in mealNames.withIndex()) {
+            val startMinutes = DEFAULT_BOUNDARIES[index]
+            val endMinutes = DEFAULT_BOUNDARIES[index + 1]
             val id = UUID.randomUUID().toString().uppercase()
             dtos += MealTypeDTO(
                 id = id,
@@ -37,8 +37,6 @@ class SetupDefaultMealsUseCase(
                 endMinutes = endMinutes,
             ) to id
             domains += MealTypeDomain(id = id, name = mealName, startMinutes = startMinutes, endMinutes = endMinutes)
-            startMinutes = endMinutes
-            endMinutes = startMinutes + DEFAULT_WINDOW_HOURS * 60
         }
 
         dataProvider.batchSetAsync(dtos, inCollection = Constants.Firestore.mealTypes(userId))
@@ -46,7 +44,6 @@ class SetupDefaultMealsUseCase(
     }
 
     private companion object {
-        const val DEFAULT_START_HOUR = 5
-        const val DEFAULT_WINDOW_HOURS = 3
+        val DEFAULT_BOUNDARIES = listOf(5 * 60, 8 * 60 + 30, 11 * 60, 14 * 60 + 30, 17 * 60, 20 * 60)
     }
 }

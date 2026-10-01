@@ -50,6 +50,16 @@ class SetupDefaultMealsUseCaseTest {
         assertTrue("the rules refuse a lowercase UUID without saying why", result.all { it.id == it.id.uppercase() })
     }
 
+    @Test
+    fun setupDefaultMeals_secondBreakfastStartsWhereBreakfastEnds_at0830() = runTest {
+        val (sut, _) = makeSUT()
+
+        val result = sut()
+
+        assertEquals(8 * 60 + 30, result[0].endMinutes)
+        assertEquals("windows must be contiguous, or foods logged between them match no meal", result[0].endMinutes, result[1].startMinutes)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(): Pair<SetupDefaultMealsUseCase, FirestoreDataProviderFake> {
