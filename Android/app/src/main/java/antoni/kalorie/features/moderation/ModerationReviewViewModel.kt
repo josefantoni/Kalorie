@@ -107,6 +107,7 @@ class ModerationReviewViewModel(
                     is CreateFoodItemError.InvalidCode -> R.string.addFood_error_invalidCode
                     is CreateFoodItemError.InvalidName -> R.string.addFood_error_invalidName
                     is CreateFoodItemError.InvalidCalories -> R.string.addFood_error_invalidCalories
+                    is CreateFoodItemError.InvalidAlcoholByVolume -> R.string.addFood_error_invalidAlcoholByVolume
                     is CreateFoodItemError.InvalidPortion -> error.error.alertTitleRes
                     is CreateFoodItemError.ItemAlreadyExists -> R.string.moderation_error_alreadyExists
                     else -> R.string.common_error_unknown

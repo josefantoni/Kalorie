@@ -26,6 +26,7 @@ data class FoodConsumedDomain(
     val salt: Double,
     val mealTypeId: String?,
     val measure: FoodMeasure = FoodMeasure.GRAMS,
+    val alcoholByVolume: Double? = null,
 ) : BilingualNamed
 
 @ConsistentCopyVisibility

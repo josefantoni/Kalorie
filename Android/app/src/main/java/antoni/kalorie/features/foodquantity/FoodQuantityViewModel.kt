@@ -3,6 +3,7 @@ package antoni.kalorie.features.foodquantity
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodPortionDraft
+import antoni.kalorie.core.extensions.formatted
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodPortionDomain
@@ -30,6 +31,7 @@ import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
+import antoni.kalorie.macrokit.isAlcoholicDrink
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -114,6 +116,9 @@ class FoodQuantityViewModel(
     val scaledFatSaturated: Double? get() = scaledMacros.fatSaturated
     val scaledFiber: Double? get() = scaledMacros.fiber
     val scaledSalt: Double get() = scaledMacros.salt
+
+    val isAlcoholicDrink: Boolean get() = isAlcoholicDrink(item.alcoholByVolume)
+    val formattedAlcoholByVolume: String get() = (item.alcoholByVolume ?: 0.0).formatted(1, "%")
 
     val arePortionDraftsComplete: Boolean
         get() = portionDrafts.value.all { it.isComplete }

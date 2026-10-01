@@ -267,6 +267,7 @@ class AddFoodSheetViewModel(
                 error is FoodItemSubmissionError.InvalidCode -> AlertItem(titleRes = R.string.addFood_error_invalidCode)
                 error is FoodItemSubmissionError.InvalidName -> AlertItem(titleRes = R.string.addFood_error_invalidName)
                 error is FoodItemSubmissionError.InvalidCalories -> AlertItem(titleRes = R.string.addFood_error_invalidCalories)
+                error is FoodItemSubmissionError.InvalidAlcoholByVolume -> AlertItem(titleRes = R.string.addFood_error_invalidAlcoholByVolume)
                 error is FoodItemSubmissionError.InvalidPortion -> AlertItem(titleRes = error.error.alertTitleRes)
                 error is FoodItemSubmissionError.ItemAlreadyExists -> AlertItem(titleRes = R.string.addFood_error_itemAlreadyExists)
                 else -> AlertItem(titleRes = R.string.common_error_unknown)

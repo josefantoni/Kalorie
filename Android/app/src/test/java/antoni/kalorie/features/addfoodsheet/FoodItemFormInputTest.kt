@@ -25,9 +25,37 @@ class FoodItemFormInputTest {
         assertEquals(1500.0, sut.asFoodItemDomain().weight, 0.0)
     }
 
+    @Test
+    fun initFromItem_preservesAlcoholByVolume() {
+        val sut = FoodItemFormInput.from(makeItem(weight = 100.0, alcoholByVolume = 4.4))
+
+        assertEquals(4.4, sut.alcoholByVolume)
+    }
+
+    @Test
+    fun asFoodItemDomain_withAlcoholByVolumeEntered_writesTheValue() {
+        val result = FoodItemFormInput(alcoholByVolume = 4.4).asFoodItemDomain()
+
+        assertEquals(4.4, result.alcoholByVolume)
+    }
+
+    @Test
+    fun asFoodItemDomain_withZeroAlcoholByVolume_writesNull() {
+        val result = FoodItemFormInput(alcoholByVolume = 0.0).asFoodItemDomain()
+
+        assertEquals(null, result.alcoholByVolume)
+    }
+
+    @Test
+    fun asFoodItemDomain_withNoAlcoholByVolume_writesNull() {
+        val result = FoodItemFormInput().asFoodItemDomain()
+
+        assertEquals(null, result.alcoholByVolume)
+    }
+
     // MARK: - Helpers
 
-    private fun makeItem(weight: Double): FoodItemDomain = FoodItemDomain(
+    private fun makeItem(weight: Double, alcoholByVolume: Double? = null): FoodItemDomain = FoodItemDomain(
         id = "12345678",
         kind = FoodItemKind.CATALOGUE,
         czName = "Tvaroh",
@@ -45,5 +73,6 @@ class FoodItemFormInputTest {
         protein = 13.0,
         salt = 0.1,
         portions = emptyList(),
+        alcoholByVolume = alcoholByVolume,
     )
 }

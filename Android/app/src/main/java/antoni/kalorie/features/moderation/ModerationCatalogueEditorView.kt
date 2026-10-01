@@ -142,6 +142,7 @@ fun ModerationCatalogueEditorView(
                             onFormInputChange = { viewModel.formInput.value = it },
                             highlightedFields = recognizedFields,
                             barcodeRow = if (viewModel.isOpenedFromReport) FoodItemFormBarcodeRow.Locked else FoodItemFormBarcodeRow.Hidden,
+                            showsAlcoholByVolumeField = true,
                             onNutritionLabelScanTapped = if (viewModel.isOpenedFromReport) null else scannerAccess.open,
                             onFieldEdited = viewModel::onFormFieldEdited,
                         )

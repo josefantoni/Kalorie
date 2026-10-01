@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.components.AlcoholicDrinkHintView
 import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.components.ReportIncorrectDataMenu
 import antoni.kalorie.components.ReportReasonDialog
@@ -214,12 +216,20 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                 }
 
                 HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-                Text(
-                    text = stringResource(R.string.foodQuantity_section_nutrition),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.foodQuantity_section_nutrition),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (viewModel.isAlcoholicDrink) {
+                        AlcoholicDrinkHintView(formattedAlcoholByVolume = viewModel.formattedAlcoholByVolume)
+                    }
+                }
                 LabeledRow(label = stringResource(R.string.foodQuantity_macro_calories)) { Text("${viewModel.scaledCalories} kcal") }
                 LabeledRow(label = stringResource(R.string.foodQuantity_macro_protein)) { Text(viewModel.scaledProtein.formattedGrams()) }
                 LabeledRow(label = stringResource(R.string.foodQuantity_macro_carbs)) { Text(viewModel.scaledCarbohydrate.formattedGrams()) }

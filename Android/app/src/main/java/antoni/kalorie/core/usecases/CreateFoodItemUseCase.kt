@@ -16,6 +16,7 @@ sealed class CreateFoodItemError : Exception() {
     data object InvalidCode : CreateFoodItemError()
     data object InvalidName : CreateFoodItemError()
     data object InvalidCalories : CreateFoodItemError()
+    data object InvalidAlcoholByVolume : CreateFoodItemError()
     data class InvalidPortion(val error: FoodPortionError) : CreateFoodItemError()
     data object ItemAlreadyExists : CreateFoodItemError()
 
@@ -26,6 +27,7 @@ sealed class CreateFoodItemError : Exception() {
             invalidCode = InvalidCode,
             invalidName = InvalidName,
             invalidCalories = InvalidCalories,
+            invalidAlcoholByVolume = InvalidAlcoholByVolume,
         ) { InvalidPortion(it) }
     }
 }
