@@ -57,6 +57,17 @@ class ModerationReviewViewModelTest {
     }
 
     @Test
+    fun onApproveTapped_withoutBarcode_keepsTheSubmissionsUUIDAsTheItemId() = runTest {
+        val submission = makeSubmission(barcode = null)
+        val approveSubmission = ApproveSubmissionUseCaseSpy()
+        val sut = makeSUT(submission = submission, approveSubmission = approveSubmission)
+
+        sut.onApproveTapped()
+
+        assertEquals(submission.item.id, approveSubmission.receivedItem?.id)
+    }
+
+    @Test
     fun onApproveTapped_whileAnApprovalIsInFlight_isIgnored() = runTest {
         val gate = CompletableDeferred<Unit>()
         val approveSubmission = ApproveSubmissionUseCaseSpy(gate = gate)

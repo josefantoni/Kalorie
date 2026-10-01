@@ -66,6 +66,22 @@ class ModerationCatalogueEditorViewModelTest {
     }
 
     @Test
+    fun onSaveTapped_forBarcodeLessItem_keepsItsUUIDAsTheItemId() = runTest {
+        val uuid = "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D"
+        val updateFoodItem = UpdateFoodItemUseCaseSpy()
+        val sut = makeSUT(
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem(id = uuid)),
+            updateFoodItem = updateFoodItem,
+        )
+        sut.barcodeQuery.value = uuid
+        sut.onSearchTapped()
+
+        sut.onSaveTapped()
+
+        assertEquals(uuid, updateFoodItem.receivedItem?.id)
+    }
+
+    @Test
     fun onSaveTapped_whenCancelledWhileTheCheckmarkShows_hidesTheCheckmark() = runTest {
         val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()))
         sut.barcodeQuery.value = "12345678"

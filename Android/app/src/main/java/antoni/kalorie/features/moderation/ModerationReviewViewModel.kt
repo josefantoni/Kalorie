@@ -85,7 +85,7 @@ class ModerationReviewViewModel(
     suspend fun onApproveTapped() {
         if (_state.value.isLoading) return
         _state.value = LoadingState.Loading
-        val editedItem = formInput.value.asFoodItemDomain(date = submission.item.date)
+        val editedItem = formInput.value.asFoodItemDomain(id = submission.item.id, date = submission.item.date)
         try {
             approveSubmission(submission, editedItem)
             onResolved()

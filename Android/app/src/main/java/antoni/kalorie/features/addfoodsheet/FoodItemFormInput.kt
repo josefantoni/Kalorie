@@ -30,8 +30,8 @@ data class FoodItemFormInput(
 
     // MARK: - Functions
 
-    fun asFoodItemDomain(kind: FoodItemKind = FoodItemKind.CATALOGUE, date: Instant = Instant.now()): FoodItemDomain = FoodItemDomain(
-        id = scannedCode,
+    fun asFoodItemDomain(id: String? = null, kind: FoodItemKind = FoodItemKind.CATALOGUE, date: Instant = Instant.now()): FoodItemDomain = FoodItemDomain(
+        id = id ?: scannedCode,
         kind = kind,
         czName = name,
         engName = engName,
