@@ -34,6 +34,7 @@ struct ModerationReviewView: View {
                 formInput: $viewModel.formInput,
                 highlightedFields: viewModel.recognizedFields,
                 barcodeRow: .locked,
+                showsAlcoholByVolumeField: true,
                 onNutritionLabelScanTapped: {
                     Task { await viewModel.onNutritionLabelCameraTapped() }
                 }

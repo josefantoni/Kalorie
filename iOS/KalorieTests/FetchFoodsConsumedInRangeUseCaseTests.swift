@@ -67,7 +67,8 @@ final class FetchFoodsConsumedInRangeUseCaseTests: XCTestCase {
             fiber: nil,
             salt: 0,
             mealTypeId: nil,
-            measureUnit: nil
+            measureUnit: nil,
+            alcoholByVolume: nil
         )
     }
 }

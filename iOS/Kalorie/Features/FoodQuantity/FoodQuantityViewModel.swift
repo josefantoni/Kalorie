@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 enum FoodQuantityUnit: Hashable {
     case hundredGrams
@@ -41,6 +42,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     @Published var isSubmittingReport = false
     @Published var isReportReasonAlertVisible = false
     @Published var reportReasonText = ""
+    @Published var isAlcoholHintPopoverVisible = false
 
     let item: FoodItemDomain
     private var meal: MyCreatedMealDomain?
@@ -83,6 +85,14 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
 
     var isPersonalPortionsAvailable: Bool { item.kind == .catalogue || meal != nil }
     var canReportIncorrectData: Bool { item.kind == .catalogue }
+
+    var isAlcoholicDrink: Bool {
+        MacrosKt.isAlcoholicDrink(alcoholByVolume: item.alcoholByVolume.map { KotlinDouble(value: $0) })
+    }
+
+    var formattedAlcoholByVolume: String {
+        (item.alcoholByVolume ?? 0).formattedPercentage()
+    }
 
     var unitOptions: [FoodQuantityUnit] {
         let ownPortions = meal == nil ? item.portions : []

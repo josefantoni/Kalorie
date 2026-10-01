@@ -12,6 +12,21 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
 
     // MARK: - Tests
 
+    func test_isAlcoholicDrink_withAbvAboveExemptionThreshold_isTrue() {
+        let sut = makeSUT(food: makeFood(alcoholByVolume: 4.4))
+        XCTAssertTrue(sut.isAlcoholicDrink)
+    }
+
+    func test_isAlcoholicDrink_withNilAbv_isFalse() {
+        let sut = makeSUT(food: makeFood(alcoholByVolume: nil))
+        XCTAssertFalse(sut.isAlcoholicDrink)
+    }
+
+    func test_isAlcoholicDrink_withNonAlcoholicBeerAbv_isFalse() {
+        let sut = makeSUT(food: makeFood(alcoholByVolume: 0.5))
+        XCTAssertFalse(sut.isAlcoholicDrink)
+    }
+
     @MainActor
     func test_onAppear_whenCatalogueItemNoLongerResolves_disablesAddingButKeepsButtonVisible() async {
         let sut = makeSUT(fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: nil))
@@ -333,7 +348,13 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date()) ?? Date()
     }
 
-    private func makeFood(foodItemId: String = "12345", kind: FoodItemKind = .catalogue, mealTypeId: String? = nil, date: Date = .now) -> FoodConsumedDomain {
+    private func makeFood(
+        foodItemId: String = "12345",
+        kind: FoodItemKind = .catalogue,
+        mealTypeId: String? = nil,
+        date: Date = .now,
+        alcoholByVolume: Double? = nil
+    ) -> FoodConsumedDomain {
         FoodConsumedDomain(
             id: "1",
             foodItemId: foodItemId,
@@ -353,7 +374,8 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
             fatUnsaturated: 2,
             fiber: 6,
             salt: 0.1,
-            mealTypeId: mealTypeId
+            mealTypeId: mealTypeId,
+            alcoholByVolume: alcoholByVolume
         )
     }
 }

@@ -16,6 +16,13 @@ struct FoodQuantityView: View {
     @State private var quantityText = "1"
     @State private var isDeleteConfirmationVisible = false
     @State private var isMealEditorPushed = false
+    @State private var nutritionHeaderMaxX: CGFloat = 0
+    @State private var nutritionValueMaxX: CGFloat = 0
+
+    private var nutritionHeaderTrailingInset: CGFloat {
+        guard nutritionHeaderMaxX > 0, nutritionValueMaxX > 0 else { return 0 }
+        return nutritionHeaderMaxX - nutritionValueMaxX
+    }
     private var makeMealEditorView: (() -> MyCreatedMealEditorView)?
     private var onDeleteMealConfirmed: (() -> Void)?
 
@@ -44,7 +51,7 @@ struct FoodQuantityView: View {
                 mealTypeRow
             }
 
-            Section(header: Text(L10n.FoodQuantity.sectionNutrition)) {
+            Section {
                 macroRow(label: L10n.FoodQuantity.calories, value: "\(viewModel.scaledCalories) kcal")
                 macroRow(label: L10n.FoodQuantity.protein, value: viewModel.scaledProtein.formattedGrams())
                 macroRow(label: L10n.FoodQuantity.carbs, value: viewModel.scaledCarbohydrate.formattedGrams())
@@ -53,6 +60,20 @@ struct FoodQuantityView: View {
                 macroRow(label: L10n.AddFood.fieldFatSaturated, value: viewModel.scaledFatSaturated.formattedGrams())
                 macroRow(label: L10n.FoodQuantity.fiber, value: viewModel.scaledFiber.formattedGrams())
                 macroRow(label: L10n.AddFood.fieldSalt, value: viewModel.scaledSalt.formattedGrams(fractionDigits: 2))
+            } header: {
+                HStack {
+                    Text(L10n.FoodQuantity.sectionNutrition)
+                    Spacer()
+                    if viewModel.isAlcoholicDrink {
+                        AlcoholicDrinkHintView(
+                            formattedAlcoholByVolume: viewModel.formattedAlcoholByVolume,
+                            isPopoverVisible: $viewModel.isAlcoholHintPopoverVisible
+                        )
+                        .textCase(nil)
+                    }
+                }
+                .padding(.trailing, nutritionHeaderTrailingInset)
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxX } action: { nutritionHeaderMaxX = $0 }
             }
 
             if onDeleteMealConfirmed != nil {
@@ -229,6 +250,7 @@ struct FoodQuantityView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             Text(verbatim: value)
                 .foregroundStyle(.secondary)
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxX } action: { nutritionValueMaxX = $0 }
         }
     }
 

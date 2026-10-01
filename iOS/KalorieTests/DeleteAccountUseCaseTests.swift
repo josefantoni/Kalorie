@@ -280,7 +280,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             fiber: 1,
             salt: 1,
             mealTypeId: nil,
-            measureUnit: nil
+            measureUnit: nil,
+            alcoholByVolume: nil
         )
     }
 

@@ -28,6 +28,7 @@ struct FoodItemFormInput {
     var salt: Double = 0
     var portions: [FoodPortionDraft] = [FoodPortionDraft.blank]
     var measure: FoodMeasure = .grams
+    var alcoholByVolume: Double?
 }
 
 extension FoodItemFormInput {
@@ -50,7 +51,8 @@ extension FoodItemFormInput {
             portions: item.portions.isEmpty
                 ? [FoodPortionDraft.blank]
                 : item.portions.map { FoodPortionDraft(name: $0.name, gramsText: String(format: "%g", $0.grams)) },
-            measure: item.measure
+            measure: item.measure,
+            alcoholByVolume: item.alcoholByVolume
         )
     }
 
@@ -73,7 +75,8 @@ extension FoodItemFormInput {
             protein: protein,
             salt: salt,
             portions: Self.parsedPortions(portions),
-            measure: measure
+            measure: measure,
+            alcoholByVolume: (alcoholByVolume ?? 0) > 0 ? alcoholByVolume : nil
         )
     }
 
@@ -643,6 +646,8 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidName)
             case .invalidCalories:
                 alertItem = AlertItem(title: L10n.AddFood.errorInvalidCalories)
+            case .invalidAlcoholByVolume:
+                alertItem = AlertItem(title: L10n.AddFood.errorInvalidAlcoholByVolume)
             case .invalidPortion(let portionError):
                 alertItem = AlertItem(title: portionError.alertTitle)
             case .itemAlreadyExists:

@@ -27,6 +27,15 @@ extension Double {
         return "\(number) \(measure.unitSymbol)"
     }
 
+    func formattedPercentage(fractionDigits: Int = 1) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = fractionDigits
+        formatter.maximumFractionDigits = fractionDigits
+        let number = formatter.string(from: NSNumber(value: self)) ?? String(self)
+        return "\(number) %"
+    }
+
     func formattedTrimmed() -> String {
         var text = String(format: "%.2f", self)
         while text.hasSuffix("0") {

@@ -11,6 +11,7 @@ enum UpdateFoodItemError: Error {
     case invalidCode
     case invalidName
     case invalidCalories
+    case invalidAlcoholByVolume
     case invalidPortion(FoodPortionError)
     case changedSinceLoad
 
@@ -18,7 +19,8 @@ enum UpdateFoodItemError: Error {
         self = validationError.mapped(
             invalidCode: .invalidCode,
             invalidName: .invalidName,
-            invalidCalories: .invalidCalories
+            invalidCalories: .invalidCalories,
+            invalidAlcoholByVolume: .invalidAlcoholByVolume
         ) { .invalidPortion($0) }
     }
 }
