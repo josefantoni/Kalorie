@@ -13,6 +13,13 @@ struct FoodConsumedDetailView: View {
 
     @StateObject var viewModel: FoodConsumedDetailViewModel
     @State private var weightText: String
+    @State private var nutritionHeaderMaxX: CGFloat = 0
+    @State private var nutritionValueMaxX: CGFloat = 0
+
+    private var nutritionHeaderTrailingInset: CGFloat {
+        guard nutritionHeaderMaxX > 0, nutritionValueMaxX > 0 else { return 0 }
+        return nutritionHeaderMaxX - nutritionValueMaxX
+    }
 
     // MARK: - Init
 
@@ -85,9 +92,10 @@ struct FoodConsumedDetailView: View {
                 }
             }
 
-            Section(L10n.FoodQuantity.sectionNutrition) {
+            Section {
                 LabeledContent(L10n.FoodQuantity.calories) {
                     Text("\(macros.calories) kcal")
+                        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxX } action: { nutritionValueMaxX = $0 }
                 }
                 LabeledContent(L10n.FoodQuantity.protein) {
                     Text(macros.protein.formattedGrams())
@@ -113,6 +121,20 @@ struct FoodConsumedDetailView: View {
                 LabeledContent(L10n.AddFood.fieldSalt) {
                     Text(macros.salt.formattedGrams(fractionDigits: 2))
                 }
+            } header: {
+                HStack {
+                    Text(L10n.FoodQuantity.sectionNutrition)
+                    Spacer()
+                    if viewModel.isAlcoholicDrink {
+                        AlcoholicDrinkHintView(
+                            formattedAlcoholByVolume: viewModel.formattedAlcoholByVolume,
+                            isPopoverVisible: $viewModel.isAlcoholHintPopoverVisible
+                        )
+                        .textCase(nil)
+                    }
+                }
+                .padding(.trailing, nutritionHeaderTrailingInset)
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxX } action: { nutritionHeaderMaxX = $0 }
             }
         }
         .loader(viewModel.state.isLoading)
@@ -185,7 +207,8 @@ struct FoodConsumedDetailView: View {
                     fatUnsaturated: 2,
                     fiber: 6,
                     salt: 0.1,
-                    mealTypeId: nil
+                    mealTypeId: nil,
+                    alcoholByVolume: 2
                 ),
                 mealTypes: [],
                 updateFoodConsumed: UpdateFoodConsumedUseCaseFake(),

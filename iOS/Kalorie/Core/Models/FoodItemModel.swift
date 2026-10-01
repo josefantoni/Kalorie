@@ -35,6 +35,7 @@ struct FoodItemDomain: BilingualNamed, Equatable {
     let salt: Double
     let portions: [FoodPortionDomain]
     let measure: FoodMeasure
+    let alcoholByVolume: Double?
 
     // MARK: - Init
 
@@ -56,7 +57,8 @@ struct FoodItemDomain: BilingualNamed, Equatable {
         protein: Double,
         salt: Double,
         portions: [FoodPortionDomain] = [],
-        measure: FoodMeasure = .grams
+        measure: FoodMeasure = .grams,
+        alcoholByVolume: Double? = nil
     ) {
         self.id = id
         self.kind = kind
@@ -76,6 +78,7 @@ struct FoodItemDomain: BilingualNamed, Equatable {
         self.salt = salt
         self.portions = portions
         self.measure = measure
+        self.alcoholByVolume = alcoholByVolume
     }
 }
 
@@ -154,7 +157,8 @@ extension FoodItemDomain {
             protein: protein,
             salt: salt,
             portions: portions,
-            measure: measure
+            measure: measure,
+            alcoholByVolume: alcoholByVolume
         )
     }
 }

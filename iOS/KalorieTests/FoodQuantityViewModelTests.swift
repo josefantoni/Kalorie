@@ -10,6 +10,21 @@ import XCTest
 
 final class FoodQuantityViewModelTests: XCTestCase {
 
+    func test_isAlcoholicDrink_withAbvAboveExemptionThreshold_isTrue() {
+        let sut = makeSUT(item: makeFoodItem(alcoholByVolume: 4.4))
+        XCTAssertTrue(sut.isAlcoholicDrink)
+    }
+
+    func test_isAlcoholicDrink_withNilAbv_isFalse() {
+        let sut = makeSUT(item: makeFoodItem(alcoholByVolume: nil))
+        XCTAssertFalse(sut.isAlcoholicDrink)
+    }
+
+    func test_isAlcoholicDrink_withNonAlcoholicBeerAbv_isFalse() {
+        let sut = makeSUT(item: makeFoodItem(alcoholByVolume: 0.5))
+        XCTAssertFalse(sut.isAlcoholicDrink)
+    }
+
     func test_grams_withOneHundredGramUnit_is100() {
         let sut = makeSUT()
         sut.unit = .hundredGrams
@@ -734,7 +749,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
         kind: FoodItemKind = .catalogue,
         caloriesPerHundredGrams: Double = 100,
         fiber: Double? = 0,
-        portions: [FoodPortionDomain] = []
+        portions: [FoodPortionDomain] = [],
+        alcoholByVolume: Double? = nil
     ) -> FoodItemDomain {
         FoodItemDomain(
             id: "test",
@@ -753,7 +769,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
             fiber: fiber,
             protein: 13,
             salt: 0.1,
-            portions: portions
+            portions: portions,
+            alcoholByVolume: alcoholByVolume
         )
     }
 }

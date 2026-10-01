@@ -20,6 +20,7 @@ struct FoodItemFormSections: View {
     @Binding var formInput: FoodItemFormInput
     var highlightedFields: Set<FoodItemFormField> = []
     var barcodeRow: FoodItemFormBarcodeRow = .hidden
+    var showsAlcoholByVolumeField = false
     var onNutritionLabelScanTapped: (() -> Void)?
     var onFieldEdited: (FoodItemFormField) -> Void = { _ in }
 
@@ -39,7 +40,12 @@ struct FoodItemFormSections: View {
                 barcodeRowView
                     .listRowInsets(.vertical, 0)
                 nutritionLabelScanButton
-                FoodItemFormFields(formInput: $formInput, highlightedFields: highlightedFields, onFieldEdited: onFieldEdited)
+                FoodItemFormFields(
+                    formInput: $formInput,
+                    highlightedFields: highlightedFields,
+                    showsAlcoholByVolumeField: showsAlcoholByVolumeField,
+                    onFieldEdited: onFieldEdited
+                )
             }
         }
     }

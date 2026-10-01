@@ -55,7 +55,8 @@ struct UpdateFoodConsumedUseCase: UpdateFoodConsumedUseCaseProtocol {
             fiber: scaled.fiber,
             salt: scaled.salt,
             mealTypeId: food.mealTypeId,
-            measureUnit: food.measure.rawValue
+            measureUnit: food.measure.rawValue,
+            alcoholByVolume: food.alcoholByVolume
         )
         try await dataProvider.setAsync(dto, id: food.id, in: Constants.Firestore.foodConsumed(userId: userId))
     }

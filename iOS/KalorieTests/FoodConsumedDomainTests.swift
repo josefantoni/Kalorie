@@ -20,6 +20,13 @@ final class FoodConsumedDomainTests: XCTestCase {
         XCTAssertEqual(copy.weight, 300)
     }
 
+    func test_copyWithWeight_preservesAlcoholByVolume() {
+        var food = makeFood()
+        food.alcoholByVolume = 4.4
+        let copy = food.copy(weight: 300)
+        XCTAssertEqual(copy.alcoholByVolume, 4.4, "the compiler does not catch a dropped copy of this field")
+    }
+
     // MARK: - Helpers
 
     private func makeFood() -> FoodConsumedDomain {

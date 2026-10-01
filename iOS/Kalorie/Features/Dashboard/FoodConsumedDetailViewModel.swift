@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MacroKit
 
 final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, FoodItemReporting {
 
@@ -23,6 +24,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
     @Published var isSubmittingReport = false
     @Published var isReportReasonAlertVisible = false
     @Published var reportReasonText = ""
+    @Published var isAlcoholHintPopoverVisible = false
 
     private(set) var food: FoodConsumedDomain
     @Published private(set) var mealTypes: [MealTypeDomain]
@@ -44,6 +46,14 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
     var canShowFavouriteButton: Bool { isFavourite || catalogueItem != nil }
     var canToggleFavourite: Bool { !isTogglingFavourite && canShowFavouriteButton }
     var canReportIncorrectData: Bool { food.foodItemKind == .catalogue }
+
+    var isAlcoholicDrink: Bool {
+        MacrosKt.isAlcoholicDrink(alcoholByVolume: food.alcoholByVolume.map { KotlinDouble(value: $0) })
+    }
+
+    var formattedAlcoholByVolume: String {
+        (food.alcoholByVolume ?? 0).formattedPercentage()
+    }
 
     // MARK: - Init
 

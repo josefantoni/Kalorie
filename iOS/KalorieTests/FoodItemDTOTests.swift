@@ -33,6 +33,20 @@ final class FoodItemDTOTests: XCTestCase {
         XCTAssertEqual(dto.asDomain().measure, .millilitres)
     }
 
+    func test_asDomain_whenAlcoholByVolumeIsAbsent_isNil() throws {
+        var json = try encodedJSON()
+        json.removeValue(forKey: "alcohol_by_volume")
+        let dto = try decode(json)
+        XCTAssertNil(dto.asDomain().alcoholByVolume, "a document without the key must decode, not throw")
+    }
+
+    func test_alcoholByVolume_survivesRoundTrip() throws {
+        let item = FoodItemDTO(item: makeItem(alcoholByVolume: 4.4))
+        let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(item)) as? [String: Any] ?? [:]
+        let dto = try decode(json)
+        XCTAssertEqual(dto.asDomain().alcoholByVolume, 4.4)
+    }
+
     // MARK: - Helpers
 
     private func encodedJSON() throws -> [String: Any] {
@@ -43,7 +57,7 @@ final class FoodItemDTOTests: XCTestCase {
         try JSONDecoder().decode(FoodItemDTO.self, from: JSONSerialization.data(withJSONObject: json))
     }
 
-    private func makeItem() -> FoodItemDomain {
+    private func makeItem(alcoholByVolume: Double? = nil) -> FoodItemDomain {
         FoodItemDomain(
             id: "12345678",
             kind: .catalogue,
@@ -60,7 +74,8 @@ final class FoodItemDTOTests: XCTestCase {
             carbohydratePureSugar: 4.8,
             fiber: 0,
             protein: 3.2,
-            salt: 0.1
+            salt: 0.1,
+            alcoholByVolume: alcoholByVolume
         )
     }
 }

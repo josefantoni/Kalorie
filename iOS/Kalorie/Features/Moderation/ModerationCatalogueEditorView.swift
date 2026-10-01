@@ -57,6 +57,7 @@ struct ModerationCatalogueEditorView: View {
                     formInput: $viewModel.formInput,
                     highlightedFields: viewModel.recognizedFields,
                     barcodeRow: viewModel.isOpenedFromReport ? .locked : .hidden,
+                    showsAlcoholByVolumeField: true,
                     onNutritionLabelScanTapped: viewModel.isOpenedFromReport ? nil : {
                         Task { await viewModel.onNutritionLabelCameraTapped() }
                     }

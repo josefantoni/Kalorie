@@ -8,7 +8,7 @@
 import SwiftUI
 
 enum FoodItemFormField: CaseIterable {
-    case name, measure, energyKJ, calories, protein, carbohydrate, carbohydrateSugar, fiber, fat, fatSaturated, fatUnsaturated, salt
+    case name, measure, energyKJ, calories, protein, carbohydrate, carbohydrateSugar, fiber, fat, fatSaturated, fatUnsaturated, salt, alcoholByVolume
 }
 
 struct FoodItemFormFields: View {
@@ -17,6 +17,7 @@ struct FoodItemFormFields: View {
 
     @Binding var formInput: FoodItemFormInput
     var highlightedFields: Set<FoodItemFormField> = []
+    var showsAlcoholByVolumeField = false
     var onFieldEdited: (FoodItemFormField) -> Void = { _ in }
 
     // MARK: - Body
@@ -84,6 +85,14 @@ struct FoodItemFormFields: View {
                 weight: doubleBinding(\.salt, field: .salt),
                 isHighlighted: highlightedFields.contains(.salt)
             )
+            if showsAlcoholByVolumeField {
+                BaseDoubleTextField(
+                    title: L10n.AddFood.fieldAlcoholByVolume,
+                    unit: "%",
+                    weight: optionalDoubleBinding(\.alcoholByVolume, field: .alcoholByVolume),
+                    isHighlighted: highlightedFields.contains(.alcoholByVolume)
+                )
+            }
         }
     }
 

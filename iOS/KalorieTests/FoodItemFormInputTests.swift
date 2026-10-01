@@ -78,13 +78,37 @@ final class FoodItemFormInputTests: XCTestCase {
         XCTAssertEqual(sut.measure, .millilitres, "an explicitly picked measure must not be overwritten by a later reading, same as every other field")
     }
 
+    func test_initFromItem_preservesAlcoholByVolume() {
+        let item = makeItem(alcoholByVolume: 4.4)
+        let sut = FoodItemFormInput(item: item)
+        XCTAssertEqual(sut.alcoholByVolume, 4.4)
+    }
+
+    func test_asFoodItemDomain_withAlcoholByVolumeEntered_writesTheValue() {
+        var sut = FoodItemFormInput()
+        sut.alcoholByVolume = 4.4
+        XCTAssertEqual(sut.asFoodItemDomain().alcoholByVolume, 4.4)
+    }
+
+    func test_asFoodItemDomain_withZeroAlcoholByVolume_writesNil() {
+        var sut = FoodItemFormInput()
+        sut.alcoholByVolume = 0
+        XCTAssertNil(sut.asFoodItemDomain().alcoholByVolume, "zero means the maintainer left the field untouched, same as an empty input")
+    }
+
+    func test_asFoodItemDomain_withNoAlcoholByVolume_writesNil() {
+        let sut = FoodItemFormInput()
+        XCTAssertNil(sut.asFoodItemDomain().alcoholByVolume)
+    }
+
     // MARK: - Helpers
 
     private func makeItem(
         engName: String = "Cottage cheese",
         fatSaturated: Double? = 0.3,
         fiber: Double? = 0,
-        weight: Double = 200
+        weight: Double = 200,
+        alcoholByVolume: Double? = nil
     ) -> FoodItemDomain {
         FoodItemDomain(
             id: "12345678",
@@ -102,7 +126,8 @@ final class FoodItemFormInputTests: XCTestCase {
             carbohydratePureSugar: 3,
             fiber: fiber,
             protein: 13,
-            salt: 0.1
+            salt: 0.1,
+            alcoholByVolume: alcoholByVolume
         )
     }
 }

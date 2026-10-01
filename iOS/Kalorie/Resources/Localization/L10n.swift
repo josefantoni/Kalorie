@@ -21,6 +21,8 @@ enum L10n {
         static var buttonDone: String { String(localized: "common_button_done") }
         static var unitGrams: String { String(localized: "common_unit_grams") }
         static var unitMillilitres: String { String(localized: "common_unit_millilitres") }
+        static var alcoholicDrinkLabel: String { String(localized: "common_alcoholicDrink_label") }
+        static var alcoholicDrinkExplanation: String { String(localized: "common_alcoholicDrink_explanation") }
     }
 
     enum Auth {
@@ -115,10 +117,12 @@ enum L10n {
         static var fieldFatSaturated: String { String(localized: "addFood_field_fatSaturated") }
         static var fieldFatUnsaturated: String { String(localized: "addFood_field_fatUnsaturated") }
         static var fieldSalt: String { String(localized: "addFood_field_salt") }
+        static var fieldAlcoholByVolume: String { String(localized: "addFood_field_alcoholByVolume") }
         static var buttonAdd: String { String(localized: "addFood_button_add") }
         static var errorInvalidCode: String { String(localized: "addFood_error_invalidCode") }
         static var errorInvalidName: String { String(localized: "addFood_error_invalidName") }
         static var errorInvalidCalories: String { String(localized: "addFood_error_invalidCalories") }
+        static var errorInvalidAlcoholByVolume: String { String(localized: "addFood_error_invalidAlcoholByVolume") }
         static var errorInvalidWeight: String { String(localized: "addFood_error_invalidWeight") }
         static var errorBarcodeNotFound: String { String(localized: "addFood_error_barcodeNotFound") }
         static var errorItemAlreadyExists: String { String(localized: "addFood_error_itemAlreadyExists") }

@@ -29,6 +29,7 @@ enum FoodItemSubmissionError: Error {
     case invalidCode
     case invalidName
     case invalidCalories
+    case invalidAlcoholByVolume
     case invalidPortion(FoodPortionError)
     case itemAlreadyExists
 
@@ -36,7 +37,8 @@ enum FoodItemSubmissionError: Error {
         self = validationError.mapped(
             invalidCode: .invalidCode,
             invalidName: .invalidName,
-            invalidCalories: .invalidCalories
+            invalidCalories: .invalidCalories,
+            invalidAlcoholByVolume: .invalidAlcoholByVolume
         ) { .invalidPortion($0) }
     }
 }
