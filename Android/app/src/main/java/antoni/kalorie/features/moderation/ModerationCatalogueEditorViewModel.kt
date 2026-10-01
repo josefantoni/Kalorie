@@ -90,7 +90,7 @@ class ModerationCatalogueEditorViewModel(
     suspend fun onSaveTapped() {
         val loadedItem = _loadedItem.value ?: return
         _state.value = LoadingState.Loading
-        val item = formInput.value.asFoodItemDomain(date = loadedItem.date)
+        val item = formInput.value.asFoodItemDomain(id = loadedItem.id, date = loadedItem.date)
         try {
             updateFoodItem(item, loadedItem)
             _loadedItem.value = item
