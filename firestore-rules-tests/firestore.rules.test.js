@@ -177,6 +177,20 @@ describe('foodItems', () => {
     await assertSucceeds(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { measure_unit: 'millilitres' })));
     await assertFails(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { measure_unit: 'litres' })));
   });
+
+  it('accepts a maintainer write with a valid alcohol_by_volume', async () => {
+    await assertSucceeds(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { alcohol_by_volume: 12 })));
+  });
+
+  it('accepts a write without alcohol_by_volume', async () => {
+    await assertSucceeds(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE)));
+  });
+
+  for (const invalid of [0, -1, 101, '12']) {
+    it(`rejects alcohol_by_volume ${JSON.stringify(invalid)}`, async () => {
+      await assertFails(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { alcohol_by_volume: invalid })));
+    });
+  }
 });
 
 describe('foodItemSubmissions', () => {
