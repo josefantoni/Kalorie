@@ -1213,6 +1213,11 @@ that is disabled until there is something to save and swaps to a green checkmark
 set. `FoodPortionsManagerView` uses the same component, driven by `showPortionCheckmark` on
 `FoodQuantityViewModel`. The flag stays in the view model, not in the component.
 
+The food's name heads both `FoodConsumedDetailView` and `FoodQuantityView`, and it is always
+shown in full: it wraps onto as many lines as it needs and is never truncated. Catalogue and
+OpenFoodFacts names often carry the brand, variant and pack size, and the cut-off tail is
+exactly what tells two similar products apart. The favourite button stays beside the name.
+
 ### 4.6 Favourite toggling
 
 Shared between `FoodQuantityViewModel` and `FoodConsumedDetailViewModel` through the
