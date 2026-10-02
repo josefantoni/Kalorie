@@ -663,23 +663,6 @@
         }
       }
     },
-    "addFood_field_barcode_placeholder" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "321321...12345"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "321321...12345"
-          }
-        }
-      }
-    },
     "addFood_field_barcode_title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3718,13 +3701,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Název vlastního jídla … Guláš"
+            "value" : "Název vlastního jídla … třeba domácí tortila"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Custom meal name … Goulash"
+            "value" : "Custom meal name … e.g. homemade tortilla"
           }
         }
       }

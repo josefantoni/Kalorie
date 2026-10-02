@@ -69,7 +69,6 @@ struct FoodItemFormSections: View {
             HStack {
                 FloatingLabelTextField(
                     title: L10n.AddFood.fieldBarcodeTitle,
-                    placeholder: L10n.AddFood.fieldBarcodePlaceholder,
                     text: $formInput.scannedCode,
                     message: formInput.scannedCode.isEmpty ? .warning(L10n.AddFood.warningMissingBarcode) : nil,
                     keyboardType: .numberPad
