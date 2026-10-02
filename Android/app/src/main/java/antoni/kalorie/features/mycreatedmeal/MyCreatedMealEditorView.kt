@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,8 +35,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -48,6 +44,7 @@ import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.components.FoodPortionsSection
+import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.components.sanitizedGramsText
 import antoni.kalorie.core.models.displayName
@@ -292,13 +289,10 @@ private fun IngredientRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = draft.item.displayName, modifier = Modifier.weight(1f))
-        TextField(
+        NumericRowTextField(
             value = draft.gramsText,
             onValueChange = { onGramsTextChange(sanitizedGramsText(it)) },
-            placeholder = { Text("100") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
-            singleLine = true,
+            placeholder = "100",
             modifier = Modifier
                 .width(88.dp)
                 .focusRequester(focusRequester)
