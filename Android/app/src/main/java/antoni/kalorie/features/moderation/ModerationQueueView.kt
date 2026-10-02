@@ -3,12 +3,14 @@ package antoni.kalorie.features.moderation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
@@ -103,20 +105,28 @@ fun ModerationQueueView(
                         }
                     }
                     items(submissions, key = { it.id }) { submission ->
-                        Column(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { reviewedSubmission = submission }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(text = submission.item.displayName, style = MaterialTheme.typography.bodyLarge)
-                            if (submission.barcode in collidingBarcodes) {
-                                Text(
-                                    text = stringResource(R.string.moderation_queue_collision),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.tertiary,
-                                )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = submission.item.displayName, style = MaterialTheme.typography.bodyLarge)
+                                if (submission.barcode in collidingBarcodes) {
+                                    Text(
+                                        text = stringResource(R.string.moderation_queue_collision),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                    )
+                                }
                             }
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                         HorizontalDivider()
                     }
