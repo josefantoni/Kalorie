@@ -8,6 +8,8 @@
 
     <application
         android:name="antoni.kalorie.KalorieApplication"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:label="Kalorie"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
