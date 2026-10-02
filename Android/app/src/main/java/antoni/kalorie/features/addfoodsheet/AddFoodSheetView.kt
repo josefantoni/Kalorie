@@ -53,6 +53,7 @@ import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
+import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
@@ -485,6 +486,7 @@ private fun ModePicker(viewModel: AddFoodSheetViewModel) {
                 selected = mode == entry,
                 onClick = { viewModel.onModeSelected(entry) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size),
+                colors = appSegmentedButtonColors(),
                 icon = {},
             ) {
                 Text(

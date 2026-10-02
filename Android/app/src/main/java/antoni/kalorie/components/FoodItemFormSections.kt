@@ -156,6 +156,7 @@ fun FoodItemFormFields(
                         selected = formInput.measure == measure,
                         onClick = { edit(FoodItemFormField.MEASURE) { copy(measure = measure) } },
                         shape = SegmentedButtonDefaults.itemShape(index = index, count = measures.size),
+                        colors = appSegmentedButtonColors(),
                         icon = {},
                     ) {
                         Text(

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Add
@@ -153,6 +154,9 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                             }
                         },
                         interactionSource = fabInteractionSource,
+                        shape = CircleShape,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                     ) {
                         Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.dashboard_empty_addFood))
                     }

@@ -1,10 +1,12 @@
 package antoni.kalorie.features.account
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
@@ -17,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -98,22 +101,36 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                             Text(stringResource(R.string.account_button_signInWithGoogle))
                         }
                     } else {
-                        Text(
-                            text = displayName ?: stringResource(R.string.account_signedIn_defaultName),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                        TextButton(
-                            onClick = { scope.launch { viewModel.onSignOutTapped() } },
-                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         ) {
-                            Text(stringResource(R.string.account_button_signOut))
-                        }
-                        TextButton(
-                            onClick = { viewModel.showDeleteConfirmation.value = true },
-                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                        ) {
-                            Text(stringResource(R.string.account_button_deleteAccount))
+                            Column {
+                                Text(
+                                    text = displayName ?: stringResource(R.string.account_signedIn_defaultName),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                )
+                                HorizontalDivider()
+                                Text(
+                                    text = stringResource(R.string.account_button_signOut),
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { scope.launch { viewModel.onSignOutTapped() } }
+                                        .padding(16.dp),
+                                )
+                                HorizontalDivider()
+                                Text(
+                                    text = stringResource(R.string.account_button_deleteAccount),
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { viewModel.showDeleteConfirmation.value = true }
+                                        .padding(16.dp),
+                                )
+                            }
                         }
                     }
                 }

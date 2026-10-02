@@ -1,15 +1,17 @@
 package antoni.kalorie.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodMeasure
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PortionInputRow(
     name: String,
@@ -68,12 +69,17 @@ fun PortionInputRow(
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for (option in quickAddOptions) {
-                AssistChip(
+                Surface(
                     onClick = {
                         onNameChange(option)
                         focusManager.clearFocus()
                     },
-                    label = {
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.weight(1f).height(20.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
                         Text(
                             text = option,
                             style = MaterialTheme.typography.labelSmall,
@@ -81,11 +87,10 @@ fun PortionInputRow(
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                             autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = MaterialTheme.typography.labelSmall.fontSize),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                         )
-                    },
-                    modifier = Modifier.weight(1f),
-                )
+                    }
+                }
             }
         }
     }
