@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodExportFormat
@@ -108,6 +110,7 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
                                 selected = format == entry,
                                 onClick = { viewModel.format.value = entry },
                                 shape = SegmentedButtonDefaults.itemShape(index = index, count = FoodExportFormat.entries.size),
+                                icon = {},
                             ) {
                                 Text(
                                     stringResource(
@@ -116,6 +119,9 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
                                             FoodExportFormat.XLSX -> R.string.export_format_excel
                                         },
                                     ),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    maxLines = 1,
+                                    autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = MaterialTheme.typography.labelMedium.fontSize),
                                 )
                             }
                         }

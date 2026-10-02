@@ -32,7 +32,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDialog
+import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -350,6 +352,8 @@ private fun AddMealForm(viewModel: SettingsViewModel, onCreate: () -> Unit) {
     val startState = rememberTimePickerState(initialHour = initialStart.hour, initialMinute = initialStart.minute, is24Hour = true)
     val endState = rememberTimePickerState(initialHour = initialEnd.hour, initialMinute = initialEnd.minute, is24Hour = true)
 
+    var editedState by remember { mutableStateOf<TimePickerState?>(null) }
+
     LaunchedEffect(startState.hour, startState.minute, endState.hour, endState.minute) {
         val start = viewModel.newMealStart.value.atMinutesOfDay(startState.hour * 60 + startState.minute)
         var end = viewModel.newMealEnd.value.atMinutesOfDay(endState.hour * 60 + endState.minute)
@@ -371,18 +375,38 @@ private fun AddMealForm(viewModel: SettingsViewModel, onCreate: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.settings_datePicker_from), style = MaterialTheme.typography.labelMedium)
-                TimeInput(state = startState)
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.settings_datePicker_to), style = MaterialTheme.typography.labelMedium)
-                TimeInput(state = endState)
-            }
+            TimeRow(stringResource(R.string.settings_datePicker_from), startState, Modifier.weight(1f)) { editedState = startState }
+            TimeRow(stringResource(R.string.settings_datePicker_to), endState, Modifier.weight(1f)) { editedState = endState }
         }
         Button(onClick = onCreate, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.settings_button_create))
         }
+    }
+
+    editedState?.let { state ->
+        TimePickerDialog(
+            onDismissRequest = { editedState = null },
+            confirmButton = {
+                TextButton(onClick = { editedState = null }) {
+                    Text(stringResource(R.string.common_ok))
+                }
+            },
+            title = {},
+        ) {
+            TimePicker(state = state)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TimeRow(label: String, state: TimePickerState, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Row(
+        modifier = modifier.clickable(onClick = onClick).padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = label, modifier = Modifier.weight(1f))
+        Text(text = "%d:%02d".format(state.hour, state.minute), color = MaterialTheme.colorScheme.primary)
     }
 }
 
