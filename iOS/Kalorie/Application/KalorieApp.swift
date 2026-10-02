@@ -19,6 +19,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         FirebaseApp.configure()
+        UISegmentedControl.appearance().selectedSegmentTintColor = UIColor(named: "AccentColor")
+        UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .selected)
         #if DEBUG
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(false)
         #else
