@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
@@ -483,8 +485,14 @@ private fun ModePicker(viewModel: AddFoodSheetViewModel) {
                 selected = mode == entry,
                 onClick = { viewModel.onModeSelected(entry) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size),
+                icon = {},
             ) {
-                Text(stringResource(entry.titleRes))
+                Text(
+                    stringResource(entry.titleRes),
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = MaterialTheme.typography.labelMedium.fontSize),
+                )
             }
         }
     }

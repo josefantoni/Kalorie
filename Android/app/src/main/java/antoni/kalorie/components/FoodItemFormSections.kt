@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodMeasure
 import antoni.kalorie.features.addfoodsheet.FoodItemFormInput
@@ -154,8 +156,14 @@ fun FoodItemFormFields(
                         selected = formInput.measure == measure,
                         onClick = { edit(FoodItemFormField.MEASURE) { copy(measure = measure) } },
                         shape = SegmentedButtonDefaults.itemShape(index = index, count = measures.size),
+                        icon = {},
                     ) {
-                        Text(stringResource(measure.unitSymbolRes))
+                        Text(
+                            stringResource(measure.unitSymbolRes),
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1,
+                            autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = MaterialTheme.typography.labelMedium.fontSize),
+                        )
                     }
                 }
             }
