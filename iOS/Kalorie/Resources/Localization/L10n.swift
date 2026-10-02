@@ -100,7 +100,6 @@ enum L10n {
         static var sectionFavourites: String { String(localized: "addFood_section_favourites") }
         static var sectionMyCreatedMeals: String { String(localized: "addFood_section_myCreatedMeals") }
         static var fieldBarcodeTitle: String { String(localized: "addFood_field_barcode_title") }
-        static var fieldBarcodePlaceholder: String { String(localized: "addFood_field_barcode_placeholder") }
         static var fieldNameTitle: String { String(localized: "addFood_field_name_title") }
         static var fieldNamePlaceholder: String { String(localized: "addFood_field_name_placeholder") }
         static var fieldWeight: String { String(localized: "addFood_field_weight") }

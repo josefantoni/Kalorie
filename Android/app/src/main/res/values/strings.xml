@@ -38,7 +38,6 @@
     <string name="addFood_error_loadFailed">Nepodařilo se načíst výsledky. Zkus to prosím znovu.</string>
     <string name="addFood_error_withdrawSubmissionFailed">Položku se nepodařilo zrušit</string>
     <string name="addFood_field_barcode_missingLabel">bez čárového kódu</string>
-    <string name="addFood_field_barcode_placeholder">321321...12345</string>
     <string name="addFood_field_barcode_title">Čárový kód potraviny</string>
     <string name="addFood_field_caloriesPer100g">Kalorie na 100 gramů</string>
     <string name="addFood_field_caloriesPer100ml">Kalorie na 100 mililitrů</string>
@@ -217,7 +216,7 @@
     <string name="myCreatedMeal_confirm_update">Uložit změny?</string>
     <string name="myCreatedMeal_error_deleteFailed">Jídlo se nepodařilo smazat</string>
     <string name="myCreatedMeal_error_saveFailed">Jídlo se nepodařilo uložit</string>
-    <string name="myCreatedMeal_field_namePlaceholder">Název vlastního jídla … Guláš</string>
+    <string name="myCreatedMeal_field_namePlaceholder">Název vlastního jídla … třeba domácí tortila</string>
     <string name="myCreatedMeal_search_placeholder">Přidej potravinu … třeba %1$s</string>
     <string name="myCreatedMeal_section_catalogue">Katalog potravin</string>
     <string name="myCreatedMeal_section_ingredients">Potraviny</string>

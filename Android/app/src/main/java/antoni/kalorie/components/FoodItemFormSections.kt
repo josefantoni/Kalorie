@@ -89,7 +89,6 @@ fun FoodItemFormSections(
                 title = stringResource(R.string.addFood_field_barcode_title),
                 text = formInput.scannedCode,
                 onTextChange = { onFormInputChange(formInput.copy(scannedCode = it.filter { char -> char in '0'..'9' })) },
-                placeholder = stringResource(R.string.addFood_field_barcode_placeholder),
                 message = if (formInput.scannedCode.isEmpty()) {
                     FloatingLabelTextFieldMessage.Warning(stringResource(R.string.addFood_warning_missingBarcode))
                 } else {

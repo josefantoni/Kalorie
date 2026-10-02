@@ -151,10 +151,6 @@
     "cs": "bez čárového kódu",
     "en": "no barcode"
   },
-  "addFood_field_barcode_placeholder": {
-    "cs": "321321...12345",
-    "en": "321321...12345"
-  },
   "addFood_field_barcode_title": {
     "cs": "Čárový kód potraviny",
     "en": "Food barcode"
@@ -868,8 +864,8 @@
     "en": "Could not save the meal"
   },
   "myCreatedMeal_field_namePlaceholder": {
-    "cs": "Název vlastního jídla … Guláš",
-    "en": "Custom meal name … Goulash"
+    "cs": "Název vlastního jídla … třeba domácí tortila",
+    "en": "Custom meal name … e.g. homemade tortilla"
   },
   "myCreatedMeal_search_placeholder": {
     "cs": "Přidej potravinu … třeba %@",
