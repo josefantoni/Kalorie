@@ -29,7 +29,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.minutesSinceMidnight
@@ -364,11 +364,10 @@ private fun AddMealForm(viewModel: SettingsViewModel, onCreate: () -> Unit) {
     }
 
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        OutlinedTextField(
-            value = name,
-            onValueChange = { viewModel.newMealName.value = it },
-            placeholder = { Text(stringResource(R.string.settings_field_newMeal_placeholder)) },
-            singleLine = true,
+        FloatingLabelTextField(
+            title = stringResource(R.string.settings_field_newMeal_placeholder),
+            text = name,
+            onTextChange = { viewModel.newMealName.value = it },
             modifier = Modifier.fillMaxWidth(),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {

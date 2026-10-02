@@ -25,7 +25,6 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -50,6 +49,7 @@ import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.BarcodeScannerOverlay
+import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.models.FoodItemDomain
@@ -277,23 +277,15 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
         LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
             item { ModePicker(viewModel) }
             item {
-                TextField(
-                    value = searchText,
-                    onValueChange = { viewModel.searchText.value = it },
-                    placeholder = {
-                        Text(
-                            stringResource(
-                                R.string.addFood_search_placeholder,
-                                stringResource(viewModel.searchExampleRes),
-                            ),
-                        )
-                    },
+                FloatingLabelTextField(
+                    title = stringResource(R.string.addFood_search_placeholder, stringResource(viewModel.searchExampleRes)),
+                    text = searchText,
+                    onTextChange = { viewModel.searchText.value = it },
                     trailingIcon = {
                         IconButton(onClick = scannerAccess.open) {
                             Icon(BarcodeIcon, contentDescription = null)
                         }
                     },
-                    singleLine = true,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
