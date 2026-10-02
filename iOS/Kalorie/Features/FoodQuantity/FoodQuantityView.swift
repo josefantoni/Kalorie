@@ -34,7 +34,6 @@ struct FoodQuantityView: View {
                 HStack {
                     Text(viewModel.item.displayName)
                         .font(.headline)
-                        .lineLimit(1)
                     Spacer()
                     FavouriteButton(isFavourite: viewModel.isFavourite) {
                         Task { await viewModel.onFavouriteToggled() }

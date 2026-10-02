@@ -32,7 +32,6 @@ struct FoodConsumedDetailView: View {
                 HStack {
                     Text(viewModel.food.displayName)
                         .font(.headline)
-                        .lineLimit(1)
                     Spacer()
                     if viewModel.canShowFavouriteButton {
                         FavouriteButton(isFavourite: viewModel.isFavourite) {
