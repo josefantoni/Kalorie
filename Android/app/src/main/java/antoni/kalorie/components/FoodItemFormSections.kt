@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -17,7 +16,6 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
@@ -248,17 +245,15 @@ private fun DecimalTextField(value: Double, onValueChange: (Double) -> Unit, isH
         if ((text.replace(',', '.').toDoubleOrNull() ?: 0.0) != value) text = formattedDecimal(value)
     }
 
-    TextField(
+    NumericRowTextField(
         value = text,
         onValueChange = { newText ->
             val sanitized = sanitizedGramsText(newText)
             text = sanitized
             onValueChange(sanitized.replace(',', '.').toDoubleOrNull() ?: 0.0)
         },
-        placeholder = { Text("0") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End, fontWeight = highlightWeight(isHighlighted)),
-        singleLine = true,
+        placeholder = "0",
+        fontWeight = highlightWeight(isHighlighted),
         modifier = modifier,
     )
 }
