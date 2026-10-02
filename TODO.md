@@ -41,6 +41,20 @@ and the portion / meal-name fields; the numeric fields (`BaseDoubleTextField` an
   [design 0012](docs/design/0012-report-incorrect-catalogue-data.md). Confirm they stay as they are.
 - **Check (iOS):** `.warning` uses `Color.warning` (new asset); verify its contrast in light mode.
 
+## Keyboard Done button (iOS)
+
+- **Fix:** the Done button above the keyboard (`keyboardDoneToolbar()` in
+  `View+KeyboardDone.swift`, a `ToolbarItemGroup(placement: .keyboard)`) sometimes does not
+  appear, on any screen and any field. Not reproduced yet; first find out when it happens (first
+  focus vs. after popping back from a pushed screen, sheet vs. pushed screen, does refocusing
+  another field bring it back). If it is the known SwiftUI keyboard-toolbar flakiness with no
+  targeted fix, replace the internals of `keyboardDoneToolbar()` with a Done bar in
+  `.safeAreaInset(edge: .bottom)` driven by `keyboardWillShow` / `keyboardWillHide` — the 8 call
+  sites stay unchanged, none of those screens has another bottom inset.
+- **Check:** whether pushed screens show the root screen's keyboard toolbar too — then
+  `FoodQuantityView` pushed from `AddFoodSheetView` (and the moderation screens pushed from
+  Settings) would show Done twice.
+
 ## Android readiness
 
 The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md)).
