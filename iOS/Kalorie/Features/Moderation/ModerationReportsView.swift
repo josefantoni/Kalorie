@@ -48,7 +48,7 @@ struct ModerationReportsView: View {
                     Button(L10n.Moderation.buttonResolve) {
                         Task { await viewModel.onResolveTapped(group) }
                     }
-                    .tint(.green)
+                    .tint(Color.success)
                 }
             }
         }

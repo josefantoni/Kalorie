@@ -365,7 +365,7 @@ struct AddFoodSheetView: View {
             if let rejectionReason = viewModel.rejectionReasonBeingEdited {
                 Section {
                     Text(L10n.AddFood.submissionRejectedReason(reason: rejectionReason))
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color.error)
                 }
             }
             FoodItemFormSections(

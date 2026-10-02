@@ -41,10 +41,10 @@ struct FavouriteButton: View {
             .padding(.vertical, 10)
         }
         .buttonStyle(.plain)
-        .foregroundStyle(showsLabel ? Color.white : .red)
+        .foregroundStyle(showsLabel ? Color.white : Color.favourite)
         .background {
             Capsule()
-                .fill(showsLabel ? Color.red : .clear)
+                .fill(showsLabel ? Color.favourite : .clear)
         }
         .contentShape(.capsule)
         .animation(.snappy, value: showsLabel)

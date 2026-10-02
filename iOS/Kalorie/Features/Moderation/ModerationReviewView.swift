@@ -110,7 +110,7 @@ struct ModerationReviewView: View {
             }
             .buttonStyle(.glassProminent)
             .controlSize(.large)
-            .tint(.red)
+            .tint(Color.error)
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)

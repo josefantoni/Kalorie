@@ -47,7 +47,7 @@ struct ModerationQueueView: View {
                         if viewModel.isColliding(submission) {
                             Text(L10n.Moderation.queueCollision)
                                 .font(.caption)
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(Color.collision)
                         }
                     }
                 }
