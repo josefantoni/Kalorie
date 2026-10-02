@@ -31,11 +31,11 @@ struct MealSectionMacroView: View {
                 .padding(.vertical, 4)
 
             Divider()
-            macroRow(label: L10n.FoodQuantity.protein, value: macros.protein.formattedGrams(), dotColor: .blue)
-            macroRow(label: L10n.FoodQuantity.carbs, value: macros.carbs.formattedGrams(), dotColor: .orange)
-            macroRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar.formattedGrams(), dotColor: .orange, indented: true)
-            macroRow(label: L10n.FoodQuantity.fat, value: macros.fat.formattedGrams(), dotColor: .pink)
-            macroRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated.formattedGrams(), dotColor: .pink, indented: true)
+            macroRow(label: L10n.FoodQuantity.protein, value: macros.protein.formattedGrams(), dotColor: Color.protein)
+            macroRow(label: L10n.FoodQuantity.carbs, value: macros.carbs.formattedGrams(), dotColor: Color.carbs)
+            macroRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar.formattedGrams(), dotColor: Color.carbs, indented: true)
+            macroRow(label: L10n.FoodQuantity.fat, value: macros.fat.formattedGrams(), dotColor: Color.fat)
+            macroRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated.formattedGrams(), dotColor: Color.fat, indented: true)
             macroRow(label: L10n.AddFood.fieldFiber, value: macros.fiber.formattedGrams())
             macroRow(label: L10n.AddFood.fieldSalt, value: macros.salt.formattedGrams())
         }

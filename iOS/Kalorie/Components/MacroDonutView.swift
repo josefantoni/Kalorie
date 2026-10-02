@@ -54,9 +54,9 @@ struct MacroDonutView: View {
         }
 
         let slices: [(Double, Color)] = [
-            (protein, .blue),
-            (carbs, .orange),
-            (fat, .pink)
+            (protein, Color.protein),
+            (carbs, Color.carbs),
+            (fat, Color.fat)
         ]
 
         let midRadius = (outerRadius + innerRadius) / 2

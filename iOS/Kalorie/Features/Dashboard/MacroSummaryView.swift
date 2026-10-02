@@ -27,11 +27,11 @@ struct MacroSummaryView: View {
 
             HStack {
                 Spacer()
-                macroLabel(color: .blue, name: L10n.FoodQuantity.protein, value: macros.protein)
+                macroLabel(color: Color.protein, name: L10n.FoodQuantity.protein, value: macros.protein)
                 Spacer()
-                macroLabel(color: .orange, name: L10n.FoodQuantity.carbs, value: macros.carbs)
+                macroLabel(color: Color.carbs, name: L10n.FoodQuantity.carbs, value: macros.carbs)
                 Spacer()
-                macroLabel(color: .pink, name: L10n.FoodQuantity.fat, value: macros.fat)
+                macroLabel(color: Color.fat, name: L10n.FoodQuantity.fat, value: macros.fat)
                 Spacer()
             }
 
@@ -39,9 +39,9 @@ struct MacroSummaryView: View {
                 .padding(.horizontal)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                detailRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar, dotColor: .orange)
+                detailRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar, dotColor: Color.carbs)
                 detailRow(label: L10n.AddFood.fieldSalt, value: macros.salt)
-                detailRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated, dotColor: .pink)
+                detailRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated, dotColor: Color.fat)
                 detailRow(label: L10n.AddFood.fieldFiber, value: macros.fiber)
             }
             .padding(.horizontal)

@@ -30,7 +30,7 @@ struct FoodItemRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             if isFavourite {
                 BaseImage(imageName: .heartFill)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color.favourite)
                     .accessibilityHidden(true)
                     .contentTransition(.symbolEffect(.replace))
             }
