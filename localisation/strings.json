@@ -440,8 +440,8 @@
     "en": "Add food"
   },
   "dashboard_empty_description": {
-    "cs": "Ještě jste dnes nic nesnědli, přidejme nějaké jídlo",
-    "en": "You haven't eaten anything today, let's add some food"
+    "cs": "Ještě jste dnes nic nesnědli, přidejme nějaké jídlo.",
+    "en": "You haven't eaten anything today, let's add some food."
   },
   "dashboard_empty_description_future": {
     "cs": "Záznamy teprve vzniknou — ale klidně jim dnes pomož.",
