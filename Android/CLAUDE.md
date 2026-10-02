@@ -12,6 +12,12 @@ find its Swift original in `iOS/Kalorie/` by name, read it, and port it with the
 the same dependencies, the same `State` cases and the same tests. When something has no iOS
 counterpart, say so and ask; do not invent a structure.
 
+**Exception: clickable rows.** iOS draws a disclosure chevron on a pushed row by itself, so no
+Swift code mentions it. On Android a ripple appears only while the row is pressed, so the user cannot
+tell at rest that the row is clickable. Every row that pushes a screen or opens a detail carries a
+trailing `Icons.AutoMirrored.Filled.KeyboardArrowRight` in `onSurfaceVariant`, even though the
+Swift code has no icon there. Check iOS for `NavigationLink`, not just for `chevron`.
+
 Before porting behaviour, read the `Cross-platform` and `Backend` records for that area. The
 *Read first:* line of each section in `docs/ARCHITECTURE.md` lists them. They are requirements
 here. `iOS`-scoped records are only precedent.

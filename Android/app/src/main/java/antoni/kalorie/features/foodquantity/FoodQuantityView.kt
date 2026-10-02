@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -162,6 +163,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                         Box {
                             TextButton(onClick = { isUnitMenuVisible = true }) {
                                 Text(unitLabel(unit, measure))
+                                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                             }
                             DropdownMenu(expanded = isUnitMenuVisible, onDismissRequest = { isUnitMenuVisible = false }) {
                                 for (option in viewModel.unitOptions) {
@@ -195,6 +197,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                                 mealTypes.firstOrNull { it.id == selectedMealTypeId }?.name
                                     ?: stringResource(R.string.foodQuantity_mealType_unassigned),
                             )
+                            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(expanded = isMealTypeMenuVisible, onDismissRequest = { isMealTypeMenuVisible = false }) {
                             for (mealType in mealTypes) {
