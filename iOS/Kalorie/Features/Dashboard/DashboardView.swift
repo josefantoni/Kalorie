@@ -245,6 +245,7 @@ struct DashboardView: View {
                 Image(systemName: "list.bullet.rectangle.portrait")
             }
             .font(.title2)
+            .multilineTextAlignment(.center)
 
             Text(kind == .today ? L10n.Dashboard.emptyDescription : kind == .past ? L10n.Dashboard.emptyDescriptionPast : L10n.Dashboard.emptyDescriptionFuture)
                 .font(.subheadline)
