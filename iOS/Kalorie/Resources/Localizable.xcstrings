@@ -1893,13 +1893,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ještě jste dnes nic nesnědli, přidejme nějaké jídlo"
+            "value" : "Ještě jste dnes nic nesnědli, přidejme nějaké jídlo."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You haven't eaten anything today, let's add some food"
+            "value" : "You haven't eaten anything today, let's add some food."
           }
         }
       }

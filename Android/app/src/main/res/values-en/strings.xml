@@ -110,7 +110,7 @@
     <string name="dashboard_copy_meal">Meal</string>
     <string name="dashboard_copy_message">Food from %1$s will be copied to</string>
     <string name="dashboard_empty_addFood">Add food</string>
-    <string name="dashboard_empty_description">You haven\'t eaten anything today, let\'s add some food</string>
+    <string name="dashboard_empty_description">You haven\'t eaten anything today, let\'s add some food.</string>
     <string name="dashboard_empty_description_future">Records don\'t exist yet — but feel free to help them along today.</string>
     <string name="dashboard_empty_description_past">Go back and add some food! 🚀</string>
     <string name="dashboard_empty_title">No food records</string>
