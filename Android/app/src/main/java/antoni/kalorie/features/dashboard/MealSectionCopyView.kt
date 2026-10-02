@@ -35,11 +35,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.utils.zoned
@@ -50,8 +50,6 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
-
-private val copySuccessColor = Color(0xFF34C759)
 
 @Composable
 fun MealSectionCopyView(
@@ -132,7 +130,7 @@ fun MealSectionCopyView(
                     onClick = { scope.launch { viewModel.onCopyConfirmed(foods, mealType) } },
                     enabled = isCopyEnabled || showCheckmark,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (showCheckmark) copySuccessColor else MaterialTheme.colorScheme.primary,
+                        containerColor = if (showCheckmark) AppColors.success else MaterialTheme.colorScheme.primary,
                     ),
                 ) {
                     Crossfade(targetState = showCheckmark, label = "copyCheckmark") { isCheckmarkVisible ->

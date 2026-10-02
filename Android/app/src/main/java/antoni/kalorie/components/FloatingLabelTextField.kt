@@ -13,24 +13,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.sp
 
-val HintColor = Color(0xFF6C6C89)
-val WarningColor = Color(0xFFFFB300)
-val ErrorColor = Color(0xFFF3164E)
-
 sealed interface FloatingLabelTextFieldMessage {
     val text: String
     val color: Color
+        @Composable get
 
     data class Hint(override val text: String) : FloatingLabelTextFieldMessage {
-        override val color: Color get() = HintColor
+        override val color: Color
+            @Composable get() = AppColors.hint
     }
 
     data class Warning(override val text: String) : FloatingLabelTextFieldMessage {
-        override val color: Color get() = WarningColor
+        override val color: Color
+            @Composable get() = AppColors.warning
     }
 
     data class Error(override val text: String) : FloatingLabelTextFieldMessage {
-        override val color: Color get() = ErrorColor
+        override val color: Color
+            @Composable get() = AppColors.error
     }
 }
 
@@ -48,6 +48,9 @@ fun FloatingLabelTextField(
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
     // MARK: - Body
+
+    val hintColor = AppColors.hint
+    val errorColor = AppColors.error
 
     TextField(
         value = text,
@@ -67,13 +70,13 @@ fun FloatingLabelTextField(
             unfocusedContainerColor = Color.Transparent,
             disabledContainerColor = Color.Transparent,
             errorContainerColor = Color.Transparent,
-            focusedLabelColor = HintColor,
-            unfocusedLabelColor = HintColor,
-            focusedPlaceholderColor = HintColor,
-            unfocusedPlaceholderColor = HintColor,
-            errorLabelColor = ErrorColor,
-            errorIndicatorColor = ErrorColor,
-            errorCursorColor = ErrorColor,
+            focusedLabelColor = hintColor,
+            unfocusedLabelColor = hintColor,
+            focusedPlaceholderColor = hintColor,
+            unfocusedPlaceholderColor = hintColor,
+            errorLabelColor = errorColor,
+            errorIndicatorColor = errorColor,
+            errorCursorColor = errorColor,
         ),
     )
 }

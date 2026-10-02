@@ -20,10 +20,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
-import antoni.kalorie.components.CarbsColor
-import antoni.kalorie.components.FatColor
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.MacroDonutView
-import antoni.kalorie.components.ProteinColor
 import antoni.kalorie.core.extensions.formattedGrams
 
 @Composable
@@ -44,9 +42,9 @@ fun MacroSummaryView(macros: DailyMacros, modifier: Modifier = Modifier) {
         )
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            MacroLabel(color = ProteinColor, name = stringResource(R.string.foodQuantity_macro_protein), value = macros.protein)
-            MacroLabel(color = CarbsColor, name = stringResource(R.string.foodQuantity_macro_carbs), value = macros.carbs)
-            MacroLabel(color = FatColor, name = stringResource(R.string.foodQuantity_macro_fat), value = macros.fat)
+            MacroLabel(color = AppColors.protein, name = stringResource(R.string.foodQuantity_macro_protein), value = macros.protein)
+            MacroLabel(color = AppColors.carbs, name = stringResource(R.string.foodQuantity_macro_carbs), value = macros.carbs)
+            MacroLabel(color = AppColors.fat, name = stringResource(R.string.foodQuantity_macro_fat), value = macros.fat)
         }
 
         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -58,11 +56,11 @@ fun MacroSummaryView(macros: DailyMacros, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                DetailRow(stringResource(R.string.addFood_field_carbsSugar), macros.carbohydrateSugar, CarbsColor, Modifier.weight(1f))
+                DetailRow(stringResource(R.string.addFood_field_carbsSugar), macros.carbohydrateSugar, AppColors.carbs, Modifier.weight(1f))
                 DetailRow(stringResource(R.string.addFood_field_salt), macros.salt, null, Modifier.weight(1f))
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                DetailRow(stringResource(R.string.addFood_field_fatUnsaturated), macros.fatUnsaturated, FatColor, Modifier.weight(1f))
+                DetailRow(stringResource(R.string.addFood_field_fatUnsaturated), macros.fatUnsaturated, AppColors.fat, Modifier.weight(1f))
                 DetailRow(stringResource(R.string.addFood_field_fiber), macros.fiber, null, Modifier.weight(1f))
             }
         }
