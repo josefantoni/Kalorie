@@ -18,9 +18,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -66,10 +68,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -84,6 +90,7 @@ import antoni.kalorie.core.utils.isSameDay
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
+import kotlin.math.ceil
 
 private enum class SelectedDayKind {
     PAST,
@@ -422,6 +429,22 @@ private const val PULSE_SCALE = 1.2f
 private const val SPOTLIGHT_FADE_MILLIS = 250
 private const val FAB_LONG_PRESS_MILLIS = 600L
 
+// A wrapped Text fills the whole available width, which pushes the icon beside it away from the
+// text; SwiftUI sizes it to its widest line instead.
+@Composable
+private fun Modifier.widthOfWidestLine(text: String, style: TextStyle): Modifier {
+    val textMeasurer = rememberTextMeasurer()
+    return layout { measurable, constraints ->
+        val result = textMeasurer.measure(text, style, constraints = Constraints(maxWidth = constraints.maxWidth))
+        val width = (0 until result.lineCount)
+            .maxOf { result.getLineRight(it) - result.getLineLeft(it) }
+            .let { ceil(it).toInt() }
+            .coerceAtMost(constraints.maxWidth)
+        val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
+        layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+    }
+}
+
 @Composable
 private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier: Modifier = Modifier) {
     val now = Instant.now()
@@ -458,7 +481,15 @@ private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Icon(Icons.AutoMirrored.Outlined.List, contentDescription = null)
-            Text(text = stringResource(titleRes), style = MaterialTheme.typography.titleLarge)
+            val title = stringResource(titleRes)
+            val titleStyle = MaterialTheme.typography.titleLarge
+            Text(
+                text = title,
+                style = titleStyle,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.widthOfWidestLine(title, titleStyle),
+            )
+            Spacer(Modifier.width(24.dp))
         }
         Text(
             text = stringResource(descriptionRes),
