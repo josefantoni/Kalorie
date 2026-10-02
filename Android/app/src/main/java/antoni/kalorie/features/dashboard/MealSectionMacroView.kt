@@ -19,10 +19,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
-import antoni.kalorie.components.CarbsColor
-import antoni.kalorie.components.FatColor
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.MacroDonutView
-import antoni.kalorie.components.ProteinColor
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.FoodConsumedDomain
 
@@ -47,11 +45,11 @@ fun MealSectionMacroView(name: String, foods: List<FoodConsumedDomain>, modifier
         )
 
         HorizontalDivider()
-        MacroRow(label = stringResource(R.string.foodQuantity_macro_protein), value = macros.protein.formattedGrams(), dotColor = ProteinColor)
-        MacroRow(label = stringResource(R.string.foodQuantity_macro_carbs), value = macros.carbs.formattedGrams(), dotColor = CarbsColor)
-        MacroRow(label = stringResource(R.string.addFood_field_carbsSugar), value = macros.carbohydrateSugar.formattedGrams(), dotColor = CarbsColor, isIndented = true)
-        MacroRow(label = stringResource(R.string.foodQuantity_macro_fat), value = macros.fat.formattedGrams(), dotColor = FatColor)
-        MacroRow(label = stringResource(R.string.addFood_field_fatUnsaturated), value = macros.fatUnsaturated.formattedGrams(), dotColor = FatColor, isIndented = true)
+        MacroRow(label = stringResource(R.string.foodQuantity_macro_protein), value = macros.protein.formattedGrams(), dotColor = AppColors.protein)
+        MacroRow(label = stringResource(R.string.foodQuantity_macro_carbs), value = macros.carbs.formattedGrams(), dotColor = AppColors.carbs)
+        MacroRow(label = stringResource(R.string.addFood_field_carbsSugar), value = macros.carbohydrateSugar.formattedGrams(), dotColor = AppColors.carbs, isIndented = true)
+        MacroRow(label = stringResource(R.string.foodQuantity_macro_fat), value = macros.fat.formattedGrams(), dotColor = AppColors.fat)
+        MacroRow(label = stringResource(R.string.addFood_field_fatUnsaturated), value = macros.fatUnsaturated.formattedGrams(), dotColor = AppColors.fat, isIndented = true)
         MacroRow(label = stringResource(R.string.addFood_field_fiber), value = macros.fiber.formattedGrams())
         MacroRow(label = stringResource(R.string.addFood_field_salt), value = macros.salt.formattedGrams())
     }

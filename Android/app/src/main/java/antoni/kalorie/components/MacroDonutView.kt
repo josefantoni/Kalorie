@@ -28,10 +28,6 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
-val ProteinColor = Color(0xFF007AFF)
-val CarbsColor = Color(0xFFFF9500)
-val FatColor = Color(0xFFFF2D55)
-
 private const val INNER_RADIUS_RATIO = 0.58f
 private const val MIN_LABELLED_PERCENT = 8
 
@@ -45,10 +41,13 @@ fun MacroDonutView(
     modifier: Modifier = Modifier,
 ) {
     val textMeasurer = rememberTextMeasurer()
+    val proteinColor = AppColors.protein
+    val carbsColor = AppColors.carbs
+    val fatColor = AppColors.fat
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(size)) {
-            drawDonut(textMeasurer, protein, carbs, fat)
+            drawDonut(textMeasurer, protein, carbs, fat, proteinColor, carbsColor, fatColor)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -62,7 +61,7 @@ fun MacroDonutView(
     }
 }
 
-private fun DrawScope.drawDonut(textMeasurer: TextMeasurer, protein: Double, carbs: Double, fat: Double) {
+private fun DrawScope.drawDonut(textMeasurer: TextMeasurer, protein: Double, carbs: Double, fat: Double, proteinColor: Color, carbsColor: Color, fatColor: Color) {
     val center = Offset(size.width / 2, size.height / 2)
     val outerRadius = min(size.width, size.height) / 2 - 2.dp.toPx()
     val innerRadius = outerRadius * INNER_RADIUS_RATIO
@@ -78,7 +77,7 @@ private fun DrawScope.drawDonut(textMeasurer: TextMeasurer, protein: Double, car
     }
 
     var startAngle = -90f
-    for ((value, color) in listOf(protein to ProteinColor, carbs to CarbsColor, fat to FatColor)) {
+    for ((value, color) in listOf(protein to proteinColor, carbs to carbsColor, fat to fatColor)) {
         if (value <= 0) continue
         val sweep = (360 * value / total).toFloat()
         drawArc(color, startAngle, sweep, false, arcTopLeft, arcSize, style = ringStyle)

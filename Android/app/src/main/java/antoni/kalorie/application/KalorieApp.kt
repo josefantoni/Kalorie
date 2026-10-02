@@ -3,6 +3,7 @@ package antoni.kalorie.application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.R
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.core.auth.AuthCommandProvider
 import antoni.kalorie.core.auth.AuthProvider
 import antoni.kalorie.core.auth.AuthStateObserver
@@ -58,7 +62,10 @@ fun KalorieApp() {
 
     // MARK: - Body
 
-    MaterialTheme {
+    val primary = AppColors.accent
+    val colorScheme = if (isSystemInDarkTheme()) darkColorScheme(primary = primary) else lightColorScheme(primary = primary)
+
+    MaterialTheme(colorScheme = colorScheme) {
         when (val current = state) {
             is LoadingState.Idle, is LoadingState.Loading -> Box(
                 modifier = Modifier.fillMaxSize(),

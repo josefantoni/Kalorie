@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="protein">#0A84FF</color>
+    <color name="carbs">#FF9F0A</color>
+    <color name="fat">#FF375F</color>
+    <color name="success">#30D158</color>
+    <color name="hint">#8A8AA3</color>
+</resources>
