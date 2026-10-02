@@ -45,6 +45,7 @@ import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.BarcodeScannerOverlay
+import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.components.FoodPortionsSection
 import antoni.kalorie.components.rememberScannerAccess
@@ -122,11 +123,10 @@ fun MyCreatedMealEditorView(
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { header() }
                 item {
-                    TextField(
-                        value = name,
-                        onValueChange = { viewModel.name.value = it },
-                        placeholder = { Text(stringResource(R.string.myCreatedMeal_field_namePlaceholder)) },
-                        singleLine = true,
+                    FloatingLabelTextField(
+                        title = stringResource(R.string.myCreatedMeal_field_namePlaceholder),
+                        text = name,
+                        onTextChange = { viewModel.name.value = it },
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
@@ -153,18 +153,15 @@ fun MyCreatedMealEditorView(
                 }
                 item { SectionHeader(stringResource(R.string.myCreatedMeal_section_catalogue)) }
                 item {
-                    TextField(
-                        value = searchText,
-                        onValueChange = { viewModel.searchText.value = it },
-                        placeholder = {
-                            Text(stringResource(R.string.myCreatedMeal_search_placeholder, stringResource(viewModel.searchExampleRes)))
-                        },
+                    FloatingLabelTextField(
+                        title = stringResource(R.string.myCreatedMeal_search_placeholder, stringResource(viewModel.searchExampleRes)),
+                        text = searchText,
+                        onTextChange = { viewModel.searchText.value = it },
                         trailingIcon = {
                             IconButton(onClick = scannerAccess.open) {
                                 Icon(BarcodeIcon, contentDescription = null)
                             }
                         },
-                        singleLine = true,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }

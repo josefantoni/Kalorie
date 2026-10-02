@@ -50,11 +50,10 @@ fun PortionInputRow(
 
     Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextField(
-                value = name,
-                onValueChange = onNameChange,
-                placeholder = { Text(stringResource(R.string.foodPortion_field_namePlaceholder)) },
-                singleLine = true,
+            FloatingLabelTextField(
+                title = stringResource(R.string.foodPortion_field_namePlaceholder),
+                text = name,
+                onTextChange = onNameChange,
                 modifier = Modifier.weight(1f).focusRequester(focusRequester),
             )
             TextField(

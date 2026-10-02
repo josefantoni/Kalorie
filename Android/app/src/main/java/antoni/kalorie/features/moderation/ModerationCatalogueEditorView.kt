@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -22,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +37,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.BarcodeIcon
+import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.SaveToolbarButton
@@ -125,12 +124,11 @@ fun ModerationCatalogueEditorView(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            TextField(
-                                value = barcodeQuery,
-                                onValueChange = { viewModel.barcodeQuery.value = it },
-                                placeholder = { Text(stringResource(R.string.moderation_editor_searchPlaceholder)) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                singleLine = true,
+                            FloatingLabelTextField(
+                                title = stringResource(R.string.moderation_editor_searchPlaceholder),
+                                text = barcodeQuery,
+                                onTextChange = { viewModel.barcodeQuery.value = it },
+                                keyboardType = KeyboardType.Number,
                                 modifier = Modifier.weight(1f),
                             )
                             IconButton(onClick = { scope.launch { viewModel.onSearchTapped() } }) {
