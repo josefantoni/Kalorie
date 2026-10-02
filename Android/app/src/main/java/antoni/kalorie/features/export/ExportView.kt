@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import antoni.kalorie.R
+import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.core.models.FoodExportFormat
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -110,6 +111,7 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
                                 selected = format == entry,
                                 onClick = { viewModel.format.value = entry },
                                 shape = SegmentedButtonDefaults.itemShape(index = index, count = FoodExportFormat.entries.size),
+                                colors = appSegmentedButtonColors(),
                                 icon = {},
                             ) {
                                 Text(

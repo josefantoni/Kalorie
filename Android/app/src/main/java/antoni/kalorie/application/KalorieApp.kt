@@ -63,7 +63,7 @@ fun KalorieApp() {
     // MARK: - Body
 
     val primary = AppColors.accent
-    val colorScheme = if (isSystemInDarkTheme()) darkColorScheme(primary = primary) else lightColorScheme(primary = primary)
+    val colorScheme = if (isSystemInDarkTheme()) darkColorScheme(primary = primary, onPrimary = Color.White) else lightColorScheme(primary = primary, onPrimary = Color.White)
 
     MaterialTheme(colorScheme = colorScheme) {
         when (val current = state) {
