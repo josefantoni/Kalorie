@@ -67,7 +67,7 @@ struct MealSectionCopyView: View {
                     Task { await viewModel.onCopyConfirmed(foods, from: mealType) }
                 } label: {
                     if viewModel.showCopyCheckmark {
-                        Image(systemName: "checkmark")
+                        Image(systemName: BaseImageName.checkmark.rawValue)
                             .transition(.scale.combined(with: .opacity))
                     } else {
                         Text(L10n.Dashboard.copyButton)

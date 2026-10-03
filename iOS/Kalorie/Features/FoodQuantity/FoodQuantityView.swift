@@ -106,7 +106,7 @@ struct FoodQuantityView: View {
                     Button {
                         isMealEditorPushed = true
                     } label: {
-                        Image(systemName: "pencil")
+                        Image(systemName: BaseImageName.pencil.rawValue)
                     }
                     .accessibilityLabel(L10n.MyCreatedMeal.buttonEdit)
                 }
@@ -121,7 +121,7 @@ struct FoodQuantityView: View {
                         }
                         .disabled(viewModel.hasReportedCurrentItem)
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Image(systemName: BaseImageName.ellipsisCircle.rawValue)
                     }
                 }
             }
@@ -202,7 +202,7 @@ struct FoodQuantityView: View {
             } label: {
                 HStack(spacing: 4) {
                     Text(Self.label(for: viewModel.unit, measure: viewModel.item.measure))
-                    Image(systemName: "chevron.up.chevron.down")
+                    Image(systemName: BaseImageName.chevronUpDown.rawValue)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

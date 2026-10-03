@@ -57,7 +57,7 @@ struct MonthCalendarView: View {
             Button {
                 changeMonth(by: -1)
             } label: {
-                Image(systemName: "chevron.left")
+                Image(systemName: BaseImageName.chevronLeft.rawValue)
                     .font(.body.weight(.semibold))
             }
             Spacer()
@@ -67,7 +67,7 @@ struct MonthCalendarView: View {
             Button {
                 changeMonth(by: 1)
             } label: {
-                Image(systemName: "chevron.right")
+                Image(systemName: BaseImageName.chevronRight.rawValue)
                     .font(.body.weight(.semibold))
             }
         }

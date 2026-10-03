@@ -23,7 +23,7 @@ struct SaveToolbarButton: View {
             action()
         } label: {
             if showCheckmark {
-                Image(systemName: "checkmark")
+                Image(systemName: BaseImageName.checkmark.rawValue)
                     .foregroundStyle(Color.success)
                     .transition(.scale.combined(with: .opacity))
             } else {

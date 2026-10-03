@@ -61,7 +61,7 @@ struct ModerationQueueView: View {
                 NavigationLink {
                     makeCatalogueEditorView(nil)
                 } label: {
-                    Image(systemName: "pencil")
+                    Image(systemName: BaseImageName.pencil.rawValue)
                 }
             }
         }

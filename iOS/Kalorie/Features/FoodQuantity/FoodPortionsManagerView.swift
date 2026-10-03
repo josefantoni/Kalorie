@@ -39,7 +39,7 @@ struct FoodPortionsManagerView: View {
                                 Button(role: .destructive) {
                                     Task { await viewModel.onDeletePersonalPortion(portion) }
                                 } label: {
-                                    Image(systemName: "trash")
+                                    Image(systemName: BaseImageName.trash.rawValue)
                                 }
                             }
                     }

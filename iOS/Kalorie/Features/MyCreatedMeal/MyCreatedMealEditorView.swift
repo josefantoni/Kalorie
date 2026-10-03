@@ -41,7 +41,7 @@ struct MyCreatedMealEditorView: View {
                                         viewModel.onDeleteIngredient(at: IndexSet(integer: index))
                                     }
                                 } label: {
-                                    Image(systemName: "trash")
+                                    Image(systemName: BaseImageName.trash.rawValue)
                                 }
                             }
                     }

@@ -67,7 +67,7 @@ struct SettingsView: View {
                                             Task { await viewModel.onDelete(at: index) }
                                         }
                                     } label: {
-                                        Image(systemName: "trash")
+                                        Image(systemName: BaseImageName.trash.rawValue)
                                     }
                                 }
                         }
@@ -84,7 +84,7 @@ struct SettingsView: View {
                                 HStack {
                                     Text(L10n.Export.navigationTitle)
                                     Spacer()
-                                    Image(systemName: "chevron.right")
+                                    Image(systemName: BaseImageName.chevronRight.rawValue)
                                         .font(.footnote.weight(.semibold))
                                         .foregroundStyle(.tertiary)
                                 }
@@ -103,7 +103,7 @@ struct SettingsView: View {
                                     HStack {
                                         Text(L10n.Settings.buttonFeedback)
                                         Spacer()
-                                        Image(systemName: "chevron.right")
+                                        Image(systemName: BaseImageName.chevronRight.rawValue)
                                             .font(.footnote.weight(.semibold))
                                             .foregroundStyle(.tertiary)
                                     }

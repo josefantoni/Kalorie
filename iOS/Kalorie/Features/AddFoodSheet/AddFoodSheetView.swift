@@ -223,7 +223,7 @@ struct AddFoodSheetView: View {
                     ForEach(viewModel.myCreatedMeals, id: \.id) { meal in
                         HStack {
                             FoodItemRow(item: meal.asFoodItem(), isFavourite: false)
-                            Image(systemName: "chevron.right")
+                            Image(systemName: BaseImageName.chevronRight.rawValue)
                                 .font(.footnote.weight(.semibold))
                                 .foregroundStyle(.tertiary)
                         }
@@ -235,7 +235,7 @@ struct AddFoodSheetView: View {
                             Button(role: .destructive) {
                                 viewModel.onDeleteMealRequested(meal)
                             } label: {
-                                Image(systemName: "trash")
+                                Image(systemName: BaseImageName.trash.rawValue)
                             }
                         }
                     }
@@ -252,7 +252,7 @@ struct AddFoodSheetView: View {
                                 Button(role: .destructive) {
                                     viewModel.onDeleteSubmissionRequested(submission)
                                 } label: {
-                                    Image(systemName: "trash")
+                                    Image(systemName: BaseImageName.trash.rawValue)
                                 }
                             }
                     }
