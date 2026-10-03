@@ -7,16 +7,16 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 
 <table>
   <tr>
-    <th align="center">iOS (SwiftUI)</th>
-    <th align="center">Android (Jetpack Compose)</th>
+    <th align="center">iOS (SwiftUI)<br>Darkmode: OFF</th>
+    <th align="center">Android (Jetpack Compose)<br>Darkmode: ON</th>
   </tr>
   <tr>
-    <td align="center"><img src="https://github.com/user-attachments/assets/49e684aa-b118-44a3-9e28-6459dd9ada66" width="250" alt="iOS dashboard"></td>
-    <td align="center"><img src="https://github.com/user-attachments/assets/575ebf63-06fc-4164-bad9-805e34c99130" width="250" alt="Android dashboard"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/ba008549-042e-4f36-ba50-5854e803d6bb" width="250" alt="iOS dashboard"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/8028a1ac-a974-4ce6-ac1c-276034d7a179" width="250" alt="Android dashboard"></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://github.com/user-attachments/assets/bffb44ff-ec34-425b-9403-bed6f4fb1b0e" width="250" alt="iOS add food"></td>
-    <td align="center"><img src="https://github.com/user-attachments/assets/9304411d-c505-436a-8f81-22a267291846" width="250" alt="Android add food"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/d703198a-2672-41a3-a967-5086c04d7d75" width="250" alt="iOS add food"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/adbab8db-ddd1-435a-bf98-54615ee4eeac" width="250" alt="Android add food"></td>
   </tr>
 </table>
 
