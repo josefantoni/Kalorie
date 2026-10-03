@@ -8,17 +8,19 @@
 import SwiftUI
 
 extension View {
-    func keyboardDoneToolbar() -> some View {
+    func keyboardDoneToolbar(isVisible: Bool = true) -> some View {
         toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button(L10n.Common.buttonDone) {
-                    UIApplication.shared.sendAction(
-                        #selector(UIResponder.resignFirstResponder),
-                        to: nil,
-                        from: nil,
-                        for: nil
-                    )
+            if isVisible {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button(L10n.Common.buttonDone) {
+                        UIApplication.shared.sendAction(
+                            #selector(UIResponder.resignFirstResponder),
+                            to: nil,
+                            from: nil,
+                            for: nil
+                        )
+                    }
                 }
             }
         }
