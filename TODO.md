@@ -29,17 +29,6 @@ The app works with three kinds of data. The distinction matters for the items be
   a food carrying a named, user-chosen package/portion weight selectable as a unit — shipped as
   [design 0008](docs/design/0008-food-portions.md).
 
-## Keyboard Done button (iOS)
-
-- **Fix:** the Done button above the keyboard (`keyboardDoneToolbar()` in
-  `View+KeyboardDone.swift`, a `ToolbarItemGroup(placement: .keyboard)`) does not appear on the
-  first focus of a field; it appears only after the field loses focus and is tapped again.
-  Reproduced on several screens, so it is the known SwiftUI keyboard-toolbar flakiness, not a
-  per-screen bug. Replace the internals of `keyboardDoneToolbar()` with a Done bar in
-  `.safeAreaInset(edge: .bottom)` driven by `keyboardWillShow` / `keyboardWillHide` — the call
-  sites stay unchanged (8 plain, plus `FoodConsumedDetailView` passing `isVisible:`), none of those
-  screens has another bottom inset. Pushed screens were not seen showing Done twice.
-
 ## Android readiness
 
 The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md)).
@@ -47,13 +36,12 @@ The Android client in `Android/` ([ADR 0038](docs/adr/0038-android-client-mirror
 has every screen of the iOS app ported; how each step deviated from iOS is recorded in the last version of
 this file that still has the steps (`git show 60dcabb:TODO.md`). What is still open:
 
-- **Verify the camera features on an emulator** — there is no physical Android device, so the barcode
-  scanner and the nutrition-label OCR have only been checked by unit tests.
-  Fake the camera in the Android Studio emulator (Extended controls → Camera → Virtual scene with a photo
-  of a barcode or a label, or the laptop webcam) and check: ML Kit reads cs/pl/de/en labels including
+- **Verify the nutrition-label OCR on a device with a good camera** — the barcode scanner reads codes
+  on a real Android device, but that device's camera is poor, so the OCR accuracy is untested; the
+  label OCR has only been checked by unit tests. Check: ML Kit reads cs/pl/de/en labels including
   diacritics, box coordinates hold under a rotated frame (rows and columns must not collapse), the
-  3-second scan window fills the form, and the permission prompt, denied state and revocation behave. Real-world
-  glare and curved packaging still need a real phone before release.
+  3-second scan window fills the form, and the permission prompt, denied state and revocation behave.
+  Real-world glare and curved packaging still need checking before release.
 - **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.
