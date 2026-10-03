@@ -81,7 +81,7 @@ struct ModerationReportsView: View {
                 viewModel: ModerationCatalogueEditorViewModel(
                     fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                     updateFoodItem: UpdateFoodItemUseCaseFake(),
-                    recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
+                    modelExtractor: NutritionLabelModelExtractorFake(),
                     cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
                     initialBarcode: barcode
                 ),

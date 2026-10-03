@@ -25,7 +25,7 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
 
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let updateFoodItem: any UpdateFoodItemUseCaseProtocol
-    private let recognizeNutritionLabelUseCase: any RecognizeNutritionLabelUseCaseProtocol
+    private let modelExtractor: any NutritionLabelModelExtractorProtocol
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
     private let initialBarcode: String?
 
@@ -36,13 +36,13 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
     init(
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         updateFoodItem: any UpdateFoodItemUseCaseProtocol,
-        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol,
+        modelExtractor: any NutritionLabelModelExtractorProtocol,
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
         initialBarcode: String? = nil
     ) {
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.updateFoodItem = updateFoodItem
-        self.recognizeNutritionLabelUseCase = recognizeNutritionLabel
+        self.modelExtractor = modelExtractor
         self.cameraAuthorizationProvider = cameraAuthorizationProvider
         self.initialBarcode = initialBarcode
         self.barcodeQuery = initialBarcode ?? ""
@@ -58,8 +58,8 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
     }
 
     @MainActor
-    func onNutritionLabelCaptured(_ image: UIImage, liveBarcode: String?) async {
-        await recognizeNutritionLabel(from: image, liveBarcode: liveBarcode, using: recognizeNutritionLabelUseCase)
+    func onNutritionLabelRecognized(_ reading: NutritionLabelReading, ocrText: String, liveBarcode: String?) async {
+        await applyRecognizedNutritionLabel(reading, ocrText: ocrText, liveBarcode: liveBarcode, using: modelExtractor)
     }
 
     @MainActor

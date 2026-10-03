@@ -85,8 +85,4 @@ extension NutritionLabelReading {
     var isEmpty: Bool {
         recognizedFields.isEmpty && scannedCode == nil && (portions?.isEmpty ?? true)
     }
-
-    var isCompleteForAutoCapture: Bool {
-        caloriesPerHundredGrams != nil && fat != nil && carbohydrate != nil && protein != nil
-    }
 }

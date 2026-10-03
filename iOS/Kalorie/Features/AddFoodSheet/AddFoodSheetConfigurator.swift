@@ -44,7 +44,7 @@ struct AddFoodSheetConfigurator {
                 refreshFavouriteFood: RefreshFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchMyCreatedMeals: FetchMyCreatedMealsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteMyCreatedMeal: DeleteMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                recognizeNutritionLabel: RecognizeNutritionLabelUseCase(),
+                modelExtractor: FoundationModelExtractor(),
                 cameraAuthorizationProvider: CameraAuthorizationProvider(),
                 onFoodSaved: onFoodSaved,
                 isScannerVisible: withBarcodeScan

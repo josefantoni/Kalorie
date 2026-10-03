@@ -108,16 +108,13 @@ final class ModerationReviewViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() async {
+    func test_onNutritionLabelRecognized_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() async {
         let submission = makeSubmission()
-        let sut = makeSUT(
-            submission: submission,
-            recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(stubbedReading: NutritionLabelReading(fat: 999, fiber: 1))
-        )
+        let sut = makeSUT(submission: submission)
         sut.isNutritionLabelCameraVisible = true
         let originalFat = sut.formInput.fat
 
-        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: nil)
+        await sut.onNutritionLabelRecognized(NutritionLabelReading(fat: 999, fiber: 1), ocrText: "", liveBarcode: nil)
 
         XCTAssertFalse(sut.isNutritionLabelCameraVisible, "a successful capture on an already-open form must close the camera without a push")
         XCTAssertEqual(sut.formInput.fat, originalFat, "a field already holding a submitted value must never be overwritten by the photo")
@@ -190,7 +187,7 @@ final class ModerationReviewViewModelTests: XCTestCase {
         approveSubmission: any ApproveSubmissionUseCaseProtocol = ApproveSubmissionUseCaseFake(),
         rejectSubmission: any RejectSubmissionUseCaseProtocol = RejectSubmissionUseCaseFake(),
         searchFoodItems: any SearchFoodItemsUseCaseProtocol = SearchFoodItemsUseCaseFake(),
-        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
+        modelExtractor: any NutritionLabelModelExtractorProtocol = NutritionLabelModelExtractorFake(),
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake()
     ) -> ModerationReviewViewModel {
         ModerationReviewViewModel(
@@ -198,7 +195,7 @@ final class ModerationReviewViewModelTests: XCTestCase {
             approveSubmission: approveSubmission,
             rejectSubmission: rejectSubmission,
             searchFoodItems: searchFoodItems,
-            recognizeNutritionLabel: recognizeNutritionLabel,
+            modelExtractor: modelExtractor,
             cameraAuthorizationProvider: cameraAuthorizationProvider
         ) {}
     }
