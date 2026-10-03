@@ -13,12 +13,19 @@ object NutritionLabelParser {
 
     private const val COLUMN_TOLERANCE = 0.15
     private const val ROW_OVERLAP_THRESHOLD = 0.4
+    private const val INFERRED_COLUMN_TOLERANCE = 0.08
+    private const val MIN_INFERRED_COLUMN_CELLS = 3
     private const val ENERGY_TOLERANCE_RATIO = 0.05
     private const val DERIVED_ENERGY_TOLERANCE_RATIO = 0.15
 
     // 100 g plus the "<0,5 g" bounds and rounding that a near-pure fat or carbohydrate product can add up.
     private const val MAX_SUMMED_MACROS = 103.0
+    private const val MAX_SINGLE_MACRO = 100.0
     private const val MAX_WORD_BOUNDARY_KEYWORD_LENGTH = 3
+    private const val MIN_FUZZY_KEYWORD_LENGTH = 7
+    private const val MAX_VALUE_CELL_HEIGHT_RATIO = 2.0
+    private const val MIN_ROW_SHIFT_IN_CELL_HEIGHTS = 0.75
+    private const val MAX_ROW_SHIFT_IN_CELL_HEIGHTS = 1.5
 
     private val weightKeywords = listOf("hmotnost", "netto", "obsah", "net weight", "hmotnosc")
 
@@ -27,7 +34,7 @@ object NutritionLabelParser {
         "nährwertangaben", "naehrwertangaben", "nutrition information", "nutritional information", "nutrition facts",
     )
 
-    private enum class LabelField { ENERGY, FAT, SATURATES, CARBOHYDRATE, SUGARS, FIBER, PROTEIN, SALT }
+    private enum class LabelField { ENERGY, FAT, SATURATES, CARBOHYDRATE, SUGARS, FIBER, PROTEIN, SALT, UNLISTED }
 
     private val keywords: Map<LabelField, List<String>> = mapOf(
         LabelField.ENERGY to listOf(
@@ -48,9 +55,12 @@ object NutritionLabelParser {
         LabelField.CARBOHYDRATE to listOf("sacharidy", "węglowodany", "weglowodany", "kohlenhydrate", "carbohydrate"),
         LabelField.SUGARS to listOf("z toho cukry", "cukry", "davon zucker", "of which sugars", "sugars"),
         LabelField.FIBER to listOf("vláknina", "vlaknina", "błonnik", "blonnik", "ballaststoffe", "fibre", "fiber"),
-        LabelField.PROTEIN to listOf("bílkoviny", "bilkoviny", "białko", "bialko", "eiweiß", "eiweiss", "protein"),
-        LabelField.SALT to listOf("sůl", "sul", "sól", "sól", "salz", "salt"),
+        LabelField.PROTEIN to listOf("bílkoviny", "bilkoviny", "bielkoviny", "białko", "bialko", "eiweiß", "eiweiss", "protein"),
+        LabelField.SALT to listOf("sůl", "sul", "sól", "sól", "soľ", "sol", "salz", "salt"),
+        LabelField.UNLISTED to listOf("polyoly", "polyol", "polyols", "škrob", "skrob", "starch", "stärke", "skrobia"),
     )
+
+    private val foldedKeywords: Map<LabelField, List<String>> = keywords.mapValues { (_, list) -> list.map { foldedLabelText(it) }.distinct() }
 
     private val weightRegex = Regex("([0-9]+[.,]?[0-9]*)\\s*(kg|g|ml|l)\\b")
     private val energyRegex = Regex("([0-9]+[.,]?[0-9]*)\\s*(kj|kcal)")
@@ -63,9 +73,14 @@ object NutritionLabelParser {
         var reading = NutritionLabelReading()
 
         val header = perHundredHeader(lines)
-        if (header != null) {
-            for (row in groupIntoRows(lines)) {
-                reading = apply(row, header.first, reading)
+        val columnX = header?.first ?: inferredValueColumnX(lines)
+        if (columnX != null) {
+            val cells = valueCellsBelowHeader(lines)
+            val labels = lines
+                .mapNotNull { line -> matchedField(line.text)?.let { line to it } }
+                .sortedByDescending { it.first.boundingBox.midY }
+            for ((field, valueLine) in assignments(labels, cells, columnX, rowShift(labels, cells, columnX))) {
+                reading = applying(field, valueLine.text, reading)
             }
         }
 
@@ -152,6 +167,7 @@ object NutritionLabelParser {
                 LabelField.FIBER -> reading.copy(fiber = numbers(window).firstOrNull())
                 LabelField.PROTEIN -> reading.copy(protein = numbers(window).firstOrNull())
                 LabelField.SALT -> reading.copy(salt = numbers(window).firstOrNull())
+                LabelField.UNLISTED -> reading
             }
         }
         return reading
@@ -172,74 +188,179 @@ object NutritionLabelParser {
 
     // MARK: - Row grouping and column detection
 
-    private fun groupIntoRows(lines: List<RecognizedTextLine>): List<List<RecognizedTextLine>> {
-        val sorted = lines.sortedByDescending { it.boundingBox.midY }
-        val rows = mutableListOf<MutableList<RecognizedTextLine>>()
-        for (line in sorted) {
-            val last = rows.lastOrNull()
-            if (last != null && verticallyOverlaps(line, last)) last.add(line) else rows.add(mutableListOf(line))
-        }
-        return rows.map { row -> row.sortedBy { it.boundingBox.minX } }
+    // OCR can split the header into "na" "100" "g"; the bare "100" is all digits and would pass for a value, but a
+    // genuine "100 g" (a pure fat, say) sits below the top value cell, a header above it.
+    private fun valueCellsBelowHeader(lines: List<RecognizedTextLine>): List<RecognizedTextLine> {
+        val cells = valueCells(lines)
+        val topmostValueMidY = cells.filterNot { isPerHundredHeader(it.text) }.maxOfOrNull { it.boundingBox.midY } ?: return cells
+        return cells.filter { !isPerHundredHeader(it.text) || it.boundingBox.midY <= topmostValueMidY }
     }
 
-    // Compared against the row's first (seed) line, not the union of every line already in it: a
-    // row's accumulated box would otherwise grow with each merge and absorb an unrelated neighbour.
-    private fun verticallyOverlaps(line: RecognizedTextLine, row: List<RecognizedTextLine>): Boolean {
-        val anchor = row.firstOrNull() ?: return false
-        val overlap = min(line.boundingBox.maxY, anchor.boundingBox.maxY) - max(line.boundingBox.minY, anchor.boundingBox.minY)
-        val minHeight = min(line.boundingBox.height, anchor.boundingBox.height)
+    // Text printed sideways along the table edge (a batch number, say) is a box several rows tall; it
+    // overlaps every row it crosses and would take a real value's place.
+    private fun valueCells(lines: List<RecognizedTextLine>): List<RecognizedTextLine> {
+        val cells = lines.filter { isValueCell(it) }
+        val medianHeight = medianHeight(cells) ?: return cells
+        return cells.filter { it.boundingBox.height <= medianHeight * MAX_VALUE_CELL_HEIGHT_RATIO }
+    }
+
+    private fun medianHeight(lines: List<RecognizedTextLine>): Double? = lines.map { it.boundingBox.height }.sorted().getOrNull(lines.size / 2)
+
+    private fun isValueCell(line: RecognizedTextLine): Boolean = line.text.any { it.isDigit() } && isPlausibleValueText(line.text)
+
+    private fun overlapsVertically(first: RecognizedTextLine, second: RecognizedTextLine): Boolean {
+        val overlap = min(first.boundingBox.maxY, second.boundingBox.maxY) - max(first.boundingBox.minY, second.boundingBox.minY)
+        val minHeight = min(first.boundingBox.height, second.boundingBox.height)
         if (minHeight <= 0) return false
         return overlap / minHeight > ROW_OVERLAP_THRESHOLD
     }
 
-    private fun perHundredHeader(lines: List<RecognizedTextLine>): Pair<Double, FoodMeasure>? {
-        val headers = lines.filter { isPerHundredHeader(it.text) }
+    // Without a usable "per 100 g" header, a single column of values still identifies the per-100 g
+    // column; two columns (per 100 g and per portion) are told apart by the header only.
+    private fun inferredValueColumnX(lines: List<RecognizedTextLine>): Double? {
+        val cells = valueCells(lines)
+        if (cells.size < MIN_INFERRED_COLUMN_CELLS) return null
+        val median = cells.map { it.boundingBox.midX }.sorted()[cells.size / 2]
+        val inColumn = cells.count { abs(it.boundingBox.midX - median) <= INFERRED_COLUMN_TOLERANCE }
+        return if (inColumn * 2 > cells.size) median else null
+    }
+
+    private fun perHundredHeader(lines: List<RecognizedTextLine>): Pair<Double, FoodMeasure?>? {
+        val valueCells = valueCells(lines)
+        val headers = lines.filter { header -> isPerHundredHeader(header.text) && hasValueCellBelow(header, valueCells) }
         val header = headers.singleOrNull() ?: return null
-        val folded = foldDiacritics(header.text.lowercase()).replace(" ", "")
-        val measure = if (folded.contains("100ml")) FoodMeasure.MILLILITRES else FoodMeasure.GRAMS
+        val folded = foldedHeaderText(header.text)
+        val measure = when {
+            folded.contains("100ml") -> FoodMeasure.MILLILITRES
+            folded.contains("100g") -> FoodMeasure.GRAMS
+            else -> null
+        }
         return header.boundingBox.midX to measure
     }
 
-    private fun isPerHundredHeader(text: String): Boolean {
-        val folded = foldDiacritics(text.lowercase()).replace(" ", "")
-        return folded.contains("100g") || folded.contains("100ml")
+    // A sentence from the ingredients ("…17 g na 100 g…") also contains "100 g", but no value cell sits
+    // under it, so only the genuine column header qualifies.
+    private fun hasValueCellBelow(header: RecognizedTextLine, valueCells: List<RecognizedTextLine>): Boolean = valueCells.any {
+        it.boundingBox.maxY <= header.boundingBox.minY && abs(it.boundingBox.midX - header.boundingBox.midX) <= COLUMN_TOLERANCE
     }
 
-    private fun apply(row: List<RecognizedTextLine>, columnX: Double, reading: NutritionLabelReading): NutritionLabelReading {
-        val label = row.firstOrNull() ?: return reading
-        val field = matchedField(label.text) ?: return reading
-        val valueLine = row.drop(1).minByOrNull { abs(it.boundingBox.midX - columnX) } ?: return reading
-        if (abs(valueLine.boundingBox.midX - columnX) > COLUMN_TOLERANCE || !isPlausibleValueText(valueLine.text)) return reading
+    private fun foldedHeaderText(text: String): String = foldDiacritics(text.lowercase()).replace(" ", "").replace('q', 'g')
 
-        return when (field) {
-            LabelField.ENERGY -> {
-                val (kJ, kcal) = energyValues(valueLine.text)
-                reading.copy(energyKJ = kJ, caloriesPerHundredGrams = kcal)
-            }
-            LabelField.FAT -> reading.copy(fat = numbers(valueLine.text).firstOrNull())
-            LabelField.SATURATES -> reading.copy(fatSaturated = numbers(valueLine.text).firstOrNull())
-            LabelField.CARBOHYDRATE -> reading.copy(carbohydrate = numbers(valueLine.text).firstOrNull())
-            LabelField.SUGARS -> reading.copy(carbohydratePureSugar = numbers(valueLine.text).firstOrNull())
-            LabelField.FIBER -> reading.copy(fiber = numbers(valueLine.text).firstOrNull())
-            LabelField.PROTEIN -> reading.copy(protein = numbers(valueLine.text).firstOrNull())
-            LabelField.SALT -> reading.copy(salt = numbers(valueLine.text).firstOrNull())
+    private fun isPerHundredHeader(text: String): Boolean {
+        val folded = foldedHeaderText(text)
+        return folded.contains("100g") || folded.contains("100ml") || folded.endsWith("100")
+    }
+
+    // Rows run top to bottom, so a label takes the highest value cell it overlaps that no label above has
+    // taken; a skewed photo makes the neighbouring row's value overlap just as much.
+    private fun assignments(
+        labels: List<Pair<RecognizedTextLine, LabelField>>,
+        cells: List<RecognizedTextLine>,
+        columnX: Double,
+        shift: Double,
+    ): List<Pair<LabelField, RecognizedTextLine>> {
+        val unusedCells = cells.toMutableList()
+        return labels.mapNotNull { (label, field) ->
+            val shifted = label.copy(boundingBox = label.boundingBox.copy(y = label.boundingBox.y + shift))
+            val valueLine = unusedCells
+                .filter { it.boundingBox.minX > label.boundingBox.minX && overlapsVertically(shifted, it) }
+                .maxByOrNull { it.boundingBox.midY }
+                ?: return@mapNotNull null
+            if (abs(valueLine.boundingBox.midX - columnX) > COLUMN_TOLERANCE) return@mapNotNull null
+            unusedCells.remove(valueLine)
+            field to valueLine
         }
+    }
+
+    // A tilted photo or a curved jar lifts the value column against the label column by up to a whole row, and each
+    // label then overlaps its neighbour's value. Energy is the one row recognisable from both sides, by its keyword
+    // and by the kJ or kcal in its value, so its offset is taken as the whole table's.
+    private fun rowShift(
+        labels: List<Pair<RecognizedTextLine, LabelField>>,
+        cells: List<RecognizedTextLine>,
+        columnX: Double,
+    ): Double {
+        val energyLabel = labels.firstOrNull { it.second == LabelField.ENERGY }?.first ?: return 0.0
+        val medianHeight = medianHeight(cells) ?: return 0.0
+        val shift = cells
+            .filter { abs(it.boundingBox.midX - columnX) <= COLUMN_TOLERANCE && energyRegex.containsMatchIn(it.text.lowercase()) }
+            .map { it.boundingBox.midY - energyLabel.boundingBox.midY }
+            .minByOrNull { abs(it) }
+            ?: return 0.0
+        return if (abs(shift) / medianHeight in MIN_ROW_SHIFT_IN_CELL_HEIGHTS..MAX_ROW_SHIFT_IN_CELL_HEIGHTS) shift else 0.0
+    }
+
+    private fun applying(field: LabelField, text: String, reading: NutritionLabelReading): NutritionLabelReading = when (field) {
+        LabelField.ENERGY -> {
+            val (kJ, kcal) = energyValues(text)
+            reading.copy(energyKJ = kJ, caloriesPerHundredGrams = kcal)
+        }
+        LabelField.FAT -> reading.copy(fat = numbers(text).firstOrNull())
+        LabelField.SATURATES -> reading.copy(fatSaturated = numbers(text).firstOrNull())
+        LabelField.CARBOHYDRATE -> reading.copy(carbohydrate = numbers(text).firstOrNull())
+        LabelField.SUGARS -> reading.copy(carbohydratePureSugar = numbers(text).firstOrNull())
+        LabelField.FIBER -> reading.copy(fiber = numbers(text).firstOrNull())
+        LabelField.PROTEIN -> reading.copy(protein = numbers(text).firstOrNull())
+        LabelField.SALT -> reading.copy(salt = numbers(text).firstOrNull())
+        LabelField.UNLISTED -> reading
     }
 
     // Unsaturated fat is derived from fat minus saturates, so its own rows carry no field; left
     // alone they match "saturates" (unsaturates, nenasycené mastné) or "fat" (ungesättigte Fettsäuren).
+    // Like polyols or starch, such a row still takes its own value, or every row below it reads its neighbour's.
     private val unsaturatedMarkers = listOf("unsaturate", "nenasycen", "nienasycon", "ungesättigt", "ungesattigt")
 
+    // OCR misreads one letter of a label as often as a digit of a value ("Vaknina", "Eneraie"), so a long
+    // keyword one edit away still matches, but only when no keyword matches exactly.
     private fun matchedField(label: String): LabelField? {
-        val lower = label.lowercase()
-        if (unsaturatedMarkers.any { lower.contains(it) }) return null
-        return LabelField.entries
-            .mapNotNull { field ->
-                val longest = keywords[field].orEmpty().filter { lower.contains(it) }.maxOfOrNull { it.length }
-                longest?.let { field to it }
+        val folded = foldedLabelText(label)
+        if (unsaturatedMarkers.any { folded.contains(foldedLabelText(it)) }) return LabelField.UNLISTED
+        return longestMatchingField(folded) { text, keyword -> indicesOfKeyword(text, keyword).isNotEmpty() }
+            ?: longestMatchingField(folded) { text, keyword -> keyword.length >= MIN_FUZZY_KEYWORD_LENGTH && containsWithinOneEdit(text, keyword) }
+    }
+
+    private fun longestMatchingField(text: String, matches: (String, String) -> Boolean): LabelField? = LabelField.entries
+        .mapNotNull { field ->
+            val longest = foldedKeywords[field].orEmpty().filter { matches(text, it) }.maxOfOrNull { it.length }
+            longest?.let { field to it }
+        }
+        .maxByOrNull { it.second }
+        ?.first
+
+    // "ü" and "ľ" are OCR's readings of "ů" and the Slovak "ľ" in "soľ"; "q" is a misread "g".
+    private fun foldedLabelText(text: String): String = foldDiacritics(text.lowercase()).replace('ü', 'u').replace('ľ', 'l').replace('q', 'g')
+
+    private fun containsWithinOneEdit(text: String, keyword: String): Boolean = text.indices
+        .filter { it == 0 || !text[it - 1].isLetter() }
+        .any { start ->
+            (keyword.length - 1..keyword.length + 1).any { length ->
+                start + length <= text.length && isWithinOneEdit(text.substring(start, start + length), keyword)
             }
-            .maxByOrNull { it.second }
-            ?.first
+        }
+
+    private fun isWithinOneEdit(first: String, second: String): Boolean {
+        if (abs(first.length - second.length) > 1) return false
+        var i = 0
+        var j = 0
+        var edits = 0
+        while (i < first.length && j < second.length) {
+            if (first[i] == second[j]) {
+                i++
+                j++
+                continue
+            }
+            edits++
+            if (edits > 1) return false
+            when {
+                first.length > second.length -> i++
+                first.length < second.length -> j++
+                else -> {
+                    i++
+                    j++
+                }
+            }
+        }
+        return edits + (first.length - i) + (second.length - j) <= 1
     }
 
     // A nearest-to-column candidate is picked by geometry alone, which cannot tell a value cell from
@@ -250,7 +371,7 @@ object NutritionLabelParser {
         for (unit in listOf("kcal", "kj", "ml", "g", "%")) {
             remainder = remainder.replace(unit, "")
         }
-        val allowed = "0123456789.,<≤/|() "
+        val allowed = "0123456789.,<≤/|() q_"
         return remainder.all { it in allowed }
     }
 
@@ -303,7 +424,12 @@ object NutritionLabelParser {
         val results = mutableListOf<Double>()
         var current = StringBuilder()
         fun flush() {
-            if (current.isNotEmpty()) current.toString().trimEnd(',', '.').replace(",", ".").toDoubleOrNull()?.let { results.add(it) }
+            if (current.isNotEmpty()) {
+                val token = current.toString().trimEnd(',', '.').replace(",", ".")
+                // "0,10" read as "010": a whole number never starts with a zero.
+                val restored = if (token.length > 1 && token.startsWith("0") && token.all { it.isDigit() }) "0.${token.drop(1)}" else token
+                restored.toDoubleOrNull()?.let { results.add(it) }
+            }
             current = StringBuilder()
         }
         for (char in joiningThousandsSeparators(text)) {
@@ -327,7 +453,17 @@ object NutritionLabelParser {
     // MARK: - Consistency checks
 
     private fun applyingConsistencyChecks(reading: NutritionLabelReading): NutritionLabelReading {
-        var result = reading
+        // A value that lost its decimal comma ("15 g" read as "150") is impossible per 100 g; dropping it first
+        // keeps it from breaking the cross-field checks below and wiping the correct values.
+        var result = reading.copy(
+            fat = reading.fat?.takeIf { it <= MAX_SINGLE_MACRO },
+            fatSaturated = reading.fatSaturated?.takeIf { it <= MAX_SINGLE_MACRO },
+            carbohydrate = reading.carbohydrate?.takeIf { it <= MAX_SINGLE_MACRO },
+            carbohydratePureSugar = reading.carbohydratePureSugar?.takeIf { it <= MAX_SINGLE_MACRO },
+            protein = reading.protein?.takeIf { it <= MAX_SINGLE_MACRO },
+            salt = reading.salt?.takeIf { it <= MAX_SINGLE_MACRO },
+            fiber = reading.fiber?.takeIf { it <= MAX_SINGLE_MACRO },
+        )
 
         val kJ = result.energyKJ
         val kcal = result.caloriesPerHundredGrams
@@ -346,11 +482,13 @@ object NutritionLabelParser {
         val carbsValue = result.carbohydrate
         if (sugars != null && carbsValue != null && sugars > carbsValue) result = result.copy(carbohydratePureSugar = null)
 
+        // kJ and kcal that agree are two independent reads already; the general factors would also reject a
+        // correct energy whenever polyols or fibre carry less energy than the carbohydrate they are counted in.
         val energy = result.energyKJ
         val fat = result.fat
         val carbs = result.carbohydrate
         val protein = result.protein
-        if (energy != null && fat != null && carbs != null && protein != null) {
+        if (energy != null && result.caloriesPerHundredGrams == null && fat != null && carbs != null && protein != null) {
             val derivedKJ = energyKJFromMacros(fat = fat, carbohydrate = carbs, protein = protein)
             if (derivedKJ <= 0 || abs(energy - derivedKJ) / derivedKJ > DERIVED_ENERGY_TOLERANCE_RATIO) {
                 result = result.copy(energyKJ = null, caloriesPerHundredGrams = null)
