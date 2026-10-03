@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Add
@@ -41,7 +40,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -89,6 +87,8 @@ import antoni.kalorie.BuildConfig
 import antoni.kalorie.R
 import antoni.kalorie.components.CopyIcon
 import antoni.kalorie.components.FoodConsumedView
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
@@ -239,29 +239,21 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                     )
                                 }
                                 item {
-                                    Surface(
-                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = MaterialTheme.colorScheme.surfaceContainer,
-                                    ) {
-                                        Column {
-                                            group.foods.forEachIndexed { foodIndex, food ->
-                                                key(food.id) {
-                                                    SwipeToDeleteRow(
-                                                        onDeleteRequested = { viewModel.onDeleteRequested(food) },
-                                                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                                    ) {
-                                                        FoodConsumedView(
-                                                            food,
-                                                            modifier = Modifier.clickable {
-                                                                viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
-                                                            },
-                                                        )
-                                                    }
-                                                    if (foodIndex < group.foods.lastIndex) {
-                                                        HorizontalDivider(modifier = Modifier.padding(start = 16.dp))
-                                                    }
+                                    SectionCard {
+                                        group.foods.forEachIndexed { foodIndex, food ->
+                                            key(food.id) {
+                                                SwipeToDeleteRow(
+                                                    onDeleteRequested = { viewModel.onDeleteRequested(food) },
+                                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                                ) {
+                                                    FoodConsumedView(
+                                                        food,
+                                                        modifier = Modifier.clickable {
+                                                            viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
+                                                        },
+                                                    )
                                                 }
+                                                if (foodIndex < group.foods.lastIndex) SectionCardDivider()
                                             }
                                         }
                                     }
