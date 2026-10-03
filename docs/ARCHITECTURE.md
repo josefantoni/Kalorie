@@ -1338,7 +1338,7 @@ follows the device locale, including the Czech comma.
   `BaseDoubleTextField`, `FloatingLabelTextField` (outlined text input with a floating label and an
   optional hint / warning / error message; takes an external `FocusState` binding or owns its own).
 - **Domain views** — `FoodItemRow` (a catalogue item plus its favourite heart), `FoodConsumedView`
-  (a logged entry: weight, name, calories), `MacroDonutView`, `FavouriteButton`,
+  (a logged entry: name over weight, calories on the trailing edge), `MacroDonutView`, `FavouriteButton`,
   `DismissToolbarItem`.
 
 Every one carries a `#Preview`, which is where most of the project's sample `FoodItemDomain`
