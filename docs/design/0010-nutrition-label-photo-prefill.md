@@ -1,10 +1,14 @@
 # Design: Pre-filling the food form from a photo of the packaging
 
 - **Status:** Implemented, including the *Revision — camera-first flow* (2026-09-14)
-- **Scope:** iOS
+- **Scope:** Cross-platform
 - **Date:** 2026-09-13
 
-> **Read the revision at the end of this document first.** It replaces *Capture* (the still-photo
+> **Read *Revision — live scan on both clients* at the end of this document first.** It replaces
+> the still capture of the camera-first revision (decisions 3 and 4, *Auto-capture predicate*): both
+> clients now fill the form from merged live frames, with no photo and no shutter.
+>
+> **Then read the camera-first revision.** It replaces *Capture* (the still-photo
 > `UIImagePickerController` and the `isAvailable`-only permission check) and *Surfacing to the user*
 > (a camera button inside the form). The pipeline, parser, consistency checks, Foundation Models
 > path and the fill-empty-only merge rule are unchanged by it.
@@ -1003,15 +1007,32 @@ remain exactly as described there. The Foundation Models bonus path (§ *Foundat
 unverified on a real device — everything confirmed in this thread was the deterministic parser and
 the surrounding camera/UI flow.
 
-## Android client (2026-10-03)
+## Revision — live scan on both clients (2026-10-03)
 
-The Android client shares the parser through the `fixtures/nutrition-label-parsing-cases.json`
-fixture, but its capture differs from the iOS camera-first flow:
+Both clients share the parser through the `fixtures/nutrition-label-parsing-cases.json` fixture,
+and now share the capture too. It replaces decisions 3 and 4 of the camera-first revision and its
+*Auto-capture predicate*. Decisions 1, 2 and 5–9 are unchanged.
 
-- **No shutter and no auto-capture predicate.** The scanner reads preview frames from ML Kit for
-  about 3 seconds instead of firing on a single still.
-- **Frames are merged.** Each frame is parsed on its own, and a field is filled only when at least
-  two frames read the same value (the most frequent such value wins), so a misread that appears in
-  one frame only never reaches the form.
-- **Unverified on a real package.** The only test device (Aligator S8000) has a camera too weak to
-  read a label, so the flow has been checked against recorded ML Kit frames only.
+- **No still photo, no shutter, no auto-capture predicate.** The live scanner (ML Kit preview
+  frames on Android, `DataScannerViewController` updates on iOS) is the source of the values.
+  Every frame (iOS: every update, throttled to one parse per 0.3 s) is parsed on its own.
+- **A 3-second window.** The window starts at the first frame whose parse holds a nutrition field
+  other than `measure`, and restarts whenever a frame holds none. A progress bar under the hint
+  shows how far it is. At the end of the window the readings are merged and handed to the form;
+  the camera keeps scanning if the merge fills nothing (decision 5).
+- **Frames are merged** (`NutritionLabelReadingMerger`). A field is filled only when at least two
+  frames read the same value, and the most frequent such value wins, so a misread that appears in
+  one frame only never reaches the form. *Capture*'s objection to multi-frame text — a table
+  assembled from several frames is unreliable — does not apply: no table is assembled across
+  frames, each frame is parsed whole and only the per-field results are voted on.
+- **Foundation Models (iOS only)** runs once at the end of the window, over the OCR text of the last
+  frame, and fills only what the merge left empty (`NutritionLabelParser.merging`, as before).
+  Android has no on-device model path.
+- **Barcode** is still the first payload the live scanner sees in the session (decision 7); with no
+  still there is no second source.
+- **iOS live text uses `qualityLevel: .accurate`**, since live text is now the value source and no
+  longer only a trigger.
+- **Unverified on a real package.** The only Android test device (Aligator S8000) has a camera too
+  weak to read a label, so Android has been checked against recorded ML Kit frames only; the iOS
+  port has been checked by unit tests only. Whether 3 s and two agreeing frames are the right
+  thresholds is a guess to tune on a device.
