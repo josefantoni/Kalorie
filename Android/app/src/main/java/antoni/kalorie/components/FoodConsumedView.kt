@@ -26,7 +26,7 @@ fun FoodConsumedView(foodConsumed: FoodConsumedDomain, modifier: Modifier = Modi
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 50.dp)
-            .padding(start = 16.dp, end = 4.dp),
+            .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {

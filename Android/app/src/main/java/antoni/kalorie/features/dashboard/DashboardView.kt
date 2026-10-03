@@ -17,6 +17,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,8 +25,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Add
@@ -40,6 +41,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +61,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -67,6 +70,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layout
@@ -209,7 +213,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = FAB_CLEARANCE)) {
                             if (foodsConsumed.isNotEmpty()) {
                                 item { MacroSummaryView(macros = dailyMacros) }
                             }
@@ -234,14 +238,32 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                         },
                                     )
                                 }
-                                items(group.foods, key = { it.id }) { food ->
-                                    SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteRequested(food) }) {
-                                        FoodConsumedView(
-                                            food,
-                                            modifier = Modifier.clickable {
-                                                viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
-                                            },
-                                        )
+                                item {
+                                    Surface(
+                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = MaterialTheme.colorScheme.surfaceContainer,
+                                    ) {
+                                        Column {
+                                            group.foods.forEachIndexed { foodIndex, food ->
+                                                key(food.id) {
+                                                    SwipeToDeleteRow(
+                                                        onDeleteRequested = { viewModel.onDeleteRequested(food) },
+                                                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                                    ) {
+                                                        FoodConsumedView(
+                                                            food,
+                                                            modifier = Modifier.clickable {
+                                                                viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
+                                                            },
+                                                        )
+                                                    }
+                                                    if (foodIndex < group.foods.lastIndex) {
+                                                        HorizontalDivider(modifier = Modifier.padding(start = 16.dp))
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -395,16 +417,20 @@ private fun SectionHeader(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SwipeToDeleteRow(onDeleteRequested: () -> Unit, content: @Composable () -> Unit) {
+fun SwipeToDeleteRow(
+    onDeleteRequested: () -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    content: @Composable () -> Unit,
+) {
     val currentOnDeleteRequested by rememberUpdatedState(onDeleteRequested)
-    val dismissState = rememberSwipeToDismissBoxState()
-
-    LaunchedEffect(dismissState.currentValue) {
-        if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-            currentOnDeleteRequested()
-            dismissState.reset()
-        }
-    }
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                currentOnDeleteRequested()
+            }
+            false
+        },
+    )
 
     SwipeToDismissBox(
         state = dismissState,
@@ -421,12 +447,13 @@ fun SwipeToDeleteRow(onDeleteRequested: () -> Unit, content: @Composable () -> U
             }
         },
     ) {
-        Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface) {
+        Surface(modifier = Modifier.fillMaxWidth(), color = containerColor) {
             content()
         }
     }
 }
 
+private val FAB_CLEARANCE = 88.dp
 private const val PULSE_INTERVAL_MILLIS = 3000L
 private const val PULSE_DURATION_MILLIS = 700
 private const val PULSE_SCALE = 1.2f
