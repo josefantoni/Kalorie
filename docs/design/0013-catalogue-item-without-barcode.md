@@ -25,7 +25,7 @@ and stays the prominent one; it is no longer the only one.
 
 - A user can reach the new-item form without the camera, from the capture prompt and from the
   camera-denied state alike.
-- The barcode field is optional. An empty barcode shows an inline warning under the field and,
+- The barcode field is optional. An empty barcode shows an inline hint under the field and,
   on submit, a confirmation alert; confirming submits the item without a barcode.
 - A barcode-less item gets a stable identity that works unchanged for favourites, portions,
   reports, logged entries (`food_item_id`) and the moderation flow.
@@ -56,10 +56,12 @@ currently offers no way to add an item at all.
 
 ### Barcode optional in the form
 
-- The barcode row in `FoodItemFormSections` stays editable. When it is empty, a warning line is
-  shown under it: *"Bez čárového kódu potravinu nenajdete při vyhledávání katalogu přes čárový kod"*.
-  Colour: yellow (was red until 2026-09-19, changed by decision) — a warning the user should notice
-  even though it does not block submission. It disappears as soon as the barcode field is non-empty.
+- The barcode row in `FoodItemFormSections` stays editable. When it is empty, a hint line is
+  shown under it: *"Čárový kód není povinný. S ním půjde potravinu příště najít skenerem."*.
+  Colour: the neutral hint colour (was red until 2026-09-19, then yellow until 2026-10-04, changed
+  by decision) — adding a food without a barcode is a normal case, so the line informs instead of
+  alarming; the confirmation alert on submit remains the real safeguard. It disappears as soon as
+  the barcode field is non-empty.
 - On submit with an empty barcode, a confirmation alert is shown before anything is written:
   *"K jídlu nemáte přiřazený čárový kód. Opravdu chcete pokračovat?"* with *Ne* (cancel, stay on
   the form) and *Ano* (submit). `AlertItem` supports a single button only, so this is a separate
@@ -143,7 +145,7 @@ the section is an aid to the maintainer, not a guarantee.
 |---|---|
 | `AddFoodSheetView` | *Add manually* button under the capture prompt and in the denied state; missing-barcode alert |
 | `AddFoodSheetViewModel` | `onAddManuallyTapped`, `isMissingBarcodeConfirmationVisible`, submit split into confirm + write; `item.barcode` in form input; submission matching by `item.id` |
-| `FoodItemFormSections` | warning line under an empty barcode row |
+| `FoodItemFormSections` | hint line under an empty barcode row |
 | `FoodItemDomain` | computed `barcode: String?` |
 | `FoodItemValidation` | barcode-or-UUID id check; shared barcode predicate |
 | `FoodItemSubmissionWriter` | empty `item.id` → submission id; `barcode: item.barcode` |
@@ -183,7 +185,7 @@ the section is an aid to the maintainer, not a guarantee.
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Duplicate barcode-less items approved | search shows several entries for one food | similar-name section in review; residual risk accepted |
-| Users skip the barcode even when the item has one | item cannot be found by scanning | inline warning plus confirmation alert |
+| Users skip the barcode even when the item has one | item cannot be found by scanning | inline hint plus confirmation alert |
 | Search misses a duplicate (A2-12 limits, different wording) | duplicate approved | accepted; the section is an aid, not a guarantee |
 | Barcode known only after approval | a second item with the barcode is created | accepted as a Non-goal |
 
