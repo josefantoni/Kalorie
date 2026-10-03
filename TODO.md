@@ -29,31 +29,16 @@ The app works with three kinds of data. The distinction matters for the items be
   a food carrying a named, user-chosen package/portion weight selectable as a unit — shipped as
   [design 0008](docs/design/0008-food-portions.md).
 
-## Floating-label text field — follow-ups
-
-The iOS `FloatingLabelTextField` shipped for the name fields, the barcode fields, the search fields
-and the portion / meal-name fields; the numeric fields (`BaseDoubleTextField` and the String-bound
-`quantityText` / `weightText` / `gramsText`) deliberately stay plain.
-
-- **Decide (iOS):** the three `TextField`s inside `.alert { }` (`FoodQuantityView`,
-  `FoodConsumedDetailView`, `ModerationReviewView`) cannot use the component — SwiftUI alerts accept
-  only the system `TextField`, and turning them into sheets was ruled out by
-  [design 0012](docs/design/0012-report-incorrect-catalogue-data.md). Confirm they stay as they are.
-- **Check (iOS):** `.warning` uses `Color.warning` (new asset); verify its contrast in light mode.
-
 ## Keyboard Done button (iOS)
 
 - **Fix:** the Done button above the keyboard (`keyboardDoneToolbar()` in
-  `View+KeyboardDone.swift`, a `ToolbarItemGroup(placement: .keyboard)`) sometimes does not
-  appear, on any screen and any field. Not reproduced yet; first find out when it happens (first
-  focus vs. after popping back from a pushed screen, sheet vs. pushed screen, does refocusing
-  another field bring it back). If it is the known SwiftUI keyboard-toolbar flakiness with no
-  targeted fix, replace the internals of `keyboardDoneToolbar()` with a Done bar in
-  `.safeAreaInset(edge: .bottom)` driven by `keyboardWillShow` / `keyboardWillHide` — the 8 call
-  sites stay unchanged, none of those screens has another bottom inset.
-- **Check:** whether pushed screens show the root screen's keyboard toolbar too — then
-  `FoodQuantityView` pushed from `AddFoodSheetView` (and the moderation screens pushed from
-  Settings) would show Done twice.
+  `View+KeyboardDone.swift`, a `ToolbarItemGroup(placement: .keyboard)`) does not appear on the
+  first focus of a field; it appears only after the field loses focus and is tapped again.
+  Reproduced on several screens, so it is the known SwiftUI keyboard-toolbar flakiness, not a
+  per-screen bug. Replace the internals of `keyboardDoneToolbar()` with a Done bar in
+  `.safeAreaInset(edge: .bottom)` driven by `keyboardWillShow` / `keyboardWillHide` — the call
+  sites stay unchanged (8 plain, plus `FoodConsumedDetailView` passing `isVisible:`), none of those
+  screens has another bottom inset. Pushed screens were not seen showing Done twice.
 
 ## Android readiness
 
