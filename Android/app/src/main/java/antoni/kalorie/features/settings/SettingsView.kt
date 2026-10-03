@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -42,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,6 +59,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.FloatingLabelTextField
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.minutesSinceMidnight
@@ -142,20 +144,30 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                     }
 
                     LazyColumn(modifier = Modifier.weight(1f)) {
-                        itemsIndexed(mealTypes, key = { _, mealType -> mealType.id }) { index, mealType ->
-                            SwipeToDeleteRow(onDeleteRequested = { scope.launch { viewModel.onDelete(index) } }) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    MealTypeItemView(mealType = mealType, modifier = Modifier.weight(1f))
-                                    if (isEditing) {
-                                        IconButton(onClick = { viewModel.onMove(from = index, to = index - 1) }, enabled = index > 0) {
-                                            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null)
-                                        }
-                                        IconButton(
-                                            onClick = { viewModel.onMove(from = index, to = index + 2) },
-                                            enabled = index < mealTypes.lastIndex,
+                        item {
+                            SectionCard {
+                                mealTypes.forEachIndexed { index, mealType ->
+                                    key(mealType.id) {
+                                        SwipeToDeleteRow(
+                                            onDeleteRequested = { scope.launch { viewModel.onDelete(index) } },
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
                                         ) {
-                                            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                MealTypeItemView(mealType = mealType, modifier = Modifier.weight(1f))
+                                                if (isEditing) {
+                                                    IconButton(onClick = { viewModel.onMove(from = index, to = index - 1) }, enabled = index > 0) {
+                                                        Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null)
+                                                    }
+                                                    IconButton(
+                                                        onClick = { viewModel.onMove(from = index, to = index + 2) },
+                                                        enabled = index < mealTypes.lastIndex,
+                                                    ) {
+                                                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                                                    }
+                                                }
+                                            }
                                         }
+                                        if (index < mealTypes.lastIndex) SectionCardDivider()
                                     }
                                 }
                             }
@@ -179,37 +191,27 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                                 )
                             }
                             item {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { viewModel.isExportPushed.value = true }
-                                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(text = stringResource(R.string.export_navigationTitle))
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                SectionCard {
+                                    NavigationRow(
+                                        title = stringResource(R.string.export_navigationTitle),
+                                        onClick = { viewModel.isExportPushed.value = true },
+                                    )
+                                    SectionCardDivider()
+                                    NavigationRow(
+                                        title = feedbackSubject,
+                                        onClick = {
+                                            val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+                                                putExtra(Intent.EXTRA_EMAIL, arrayOf(Constants.Support.EMAIL))
+                                                putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
+                                            }
+                                            try {
+                                                context.startActivity(intent)
+                                            } catch (_: ActivityNotFoundException) {
+                                                isFeedbackMailUnavailableAlertPresented = true
+                                            }
+                                        },
                                     )
                                 }
-                            }
-                            item {
-                                NavigationRow(
-                                    title = feedbackSubject,
-                                    onClick = {
-                                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
-                                            putExtra(Intent.EXTRA_EMAIL, arrayOf(Constants.Support.EMAIL))
-                                            putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
-                                        }
-                                        try {
-                                            context.startActivity(intent)
-                                        } catch (_: ActivityNotFoundException) {
-                                            isFeedbackMailUnavailableAlertPresented = true
-                                        }
-                                    },
-                                )
                             }
                             if (isMaintainer) {
                                 item {
@@ -221,16 +223,17 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                                     )
                                 }
                                 item {
-                                    NavigationRow(
-                                        title = stringResource(R.string.moderation_queue_title),
-                                        onClick = { isModerationQueuePushed = true },
-                                    )
-                                }
-                                item {
-                                    NavigationRow(
-                                        title = stringResource(R.string.moderation_reports_title),
-                                        onClick = { isModerationReportsPushed = true },
-                                    )
+                                    SectionCard {
+                                        NavigationRow(
+                                            title = stringResource(R.string.moderation_queue_title),
+                                            onClick = { isModerationQueuePushed = true },
+                                        )
+                                        SectionCardDivider()
+                                        NavigationRow(
+                                            title = stringResource(R.string.moderation_reports_title),
+                                            onClick = { isModerationReportsPushed = true },
+                                        )
+                                    }
                                 }
                             }
                         }
