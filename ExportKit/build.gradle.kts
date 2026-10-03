@@ -26,6 +26,7 @@ kotlin {
             version = release(37) { minorApiLevel = 0 }
         }
         minSdk = 26
+        withHostTest {}
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
