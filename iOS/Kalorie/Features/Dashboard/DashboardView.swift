@@ -47,7 +47,7 @@ struct DashboardView: View {
                                 Button(role: .destructive) {
                                     viewModel.onDeleteRequested(food)
                                 } label: {
-                                    Image(systemName: "trash")
+                                    Image(systemName: BaseImageName.trash.rawValue)
                                 }
                             }
                         }
@@ -58,7 +58,7 @@ struct DashboardView: View {
                             Button {
                                 viewModel.onCopyRequested(from: group.mealType, at: index)
                             } label: {
-                                Image(systemName: "doc.on.doc")
+                                Image(systemName: BaseImageName.docOnDoc.rawValue)
                                     .font(.title2)
                                     .foregroundStyle(.secondary)
                             }
@@ -79,7 +79,7 @@ struct DashboardView: View {
                             Button {
                                 viewModel.macroPopoverIndex = index
                             } label: {
-                                Image(systemName: "info.circle")
+                                Image(systemName: BaseImageName.infoCircle.rawValue)
                                     .font(.title2)
                                     .foregroundStyle(.secondary)
                             }
@@ -150,7 +150,7 @@ struct DashboardView: View {
                     Button {
                         viewModel.showAccountSheet.toggle()
                     } label: {
-                        Image(systemName: "person.circle")
+                        Image(systemName: BaseImageName.personCircle.rawValue)
                     }
                     .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { accountButtonFrame = $0 }
                 }
@@ -158,7 +158,7 @@ struct DashboardView: View {
                     Button {
                         viewModel.showSettings.toggle()
                     } label: {
-                        Image(systemName: "gearshape")
+                        Image(systemName: BaseImageName.gearshape.rawValue)
                     }
                     .accessibilityLabel(L10n.Dashboard.buttonSettings)
                 }
@@ -242,7 +242,7 @@ struct DashboardView: View {
             Label {
                 Text(kind == .today ? L10n.Dashboard.emptyTitle : kind == .past ? L10n.Dashboard.emptyTitlePast : L10n.Dashboard.emptyTitleFuture)
             } icon: {
-                Image(systemName: "list.bullet.rectangle.portrait")
+                Image(systemName: BaseImageName.listBulletRectanglePortrait.rawValue)
             }
             .font(.title2)
             .multilineTextAlignment(.center)

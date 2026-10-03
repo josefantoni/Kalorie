@@ -153,7 +153,7 @@ struct FoodConsumedDetailView: View {
                         }
                         .disabled(viewModel.hasReportedCurrentItem)
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Image(systemName: BaseImageName.ellipsisCircle.rawValue)
                     }
                 }
             }

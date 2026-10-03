@@ -66,7 +66,7 @@ struct PortionDraftListView: View {
                     Button(role: .destructive) {
                         onDelete(draft)
                     } label: {
-                        Image(systemName: "trash")
+                        Image(systemName: BaseImageName.trash.rawValue)
                     }
                 }
                 .listRowInsets(EdgeInsets(

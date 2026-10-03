@@ -21,10 +21,10 @@ struct AlcoholicDrinkHintView: View {
             isPopoverVisible = true
         } label: {
             HStack(spacing: 4) {
-                Image(systemName: "wineglass")
+                Image(systemName: BaseImageName.wineglass.rawValue)
                 Text(L10n.Common.alcoholicDrinkLabel)
                 Text(verbatim: "· \(formattedAlcoholByVolume)")
-                Image(systemName: "info.circle")
+                Image(systemName: BaseImageName.infoCircle.rawValue)
             }
             .font(.footnote)
             .foregroundStyle(.secondary)

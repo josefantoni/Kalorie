@@ -35,7 +35,7 @@ struct AccountView: View {
                                 Button {
                                     Task { await viewModel.onSignInWithAppleTapped() }
                                 } label: {
-                                    Image(systemName: "apple.logo")
+                                    Image(systemName: BaseImageName.appleLogo.rawValue)
                                         .font(.system(size: 22, weight: .medium))
                                         .foregroundStyle(Color(uiColor: .systemBackground))
                                         .frame(width: 56, height: 56)
