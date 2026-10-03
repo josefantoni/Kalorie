@@ -14,11 +14,18 @@ enum NutritionLabelParser {
 
     private static let columnTolerance: CGFloat = 0.15
     private static let rowOverlapThreshold: CGFloat = 0.4
+    private static let inferredColumnTolerance: CGFloat = 0.08
+    private static let minInferredColumnCells = 3
     private static let energyToleranceRatio = 0.05
     private static let derivedEnergyToleranceRatio = 0.15
     // 100 g plus the "<0,5 g" bounds and rounding that a near-pure fat or carbohydrate product can add up.
     private static let maxSummedMacros = 103.0
+    private static let maxSingleMacro = 100.0
     private static let maxWordBoundaryKeywordLength = 3
+    private static let minFuzzyKeywordLength = 7
+    private static let maxValueCellHeightRatio: CGFloat = 2.0
+    private static let minRowShiftInCellHeights: CGFloat = 0.75
+    private static let maxRowShiftInCellHeights: CGFloat = 1.5
 
     private static let weightKeywords = ["hmotnost", "netto", "obsah", "net weight", "hmotnosc"]
 
@@ -28,11 +35,12 @@ enum NutritionLabelParser {
     ]
 
     private enum LabelField: CaseIterable {
-        case energy, fat, saturates, carbohydrate, sugars, fiber, protein, salt
+        case energy, fat, saturates, carbohydrate, sugars, fiber, protein, salt, unlisted
     }
 
     // Unsaturated fat is derived from fat minus saturates, so its own rows carry no field; left
     // alone they match "saturates" (unsaturates, nenasycené mastné) or "fat" (ungesättigte Fettsäuren).
+    // Like polyols or starch, such a row still takes its own value, or every row below it reads its neighbour's.
     private static let unsaturatedMarkers = ["unsaturate", "nenasycen", "nienasycon", "ungesättigt", "ungesattigt"]
 
     private static let keywords: [LabelField: [String]] = [
@@ -45,9 +53,16 @@ enum NutritionLabelParser {
         .carbohydrate: ["sacharidy", "węglowodany", "weglowodany", "kohlenhydrate", "carbohydrate"],
         .sugars: ["z toho cukry", "cukry", "davon zucker", "of which sugars", "sugars"],
         .fiber: ["vláknina", "vlaknina", "błonnik", "blonnik", "ballaststoffe", "fibre", "fiber"],
-        .protein: ["bílkoviny", "bilkoviny", "białko", "bialko", "eiweiß", "eiweiss", "protein"],
-        .salt: ["sůl", "sul", "sól", "sól", "salz", "salt"]
+        .protein: ["bílkoviny", "bilkoviny", "bielkoviny", "białko", "bialko", "eiweiß", "eiweiss", "protein"],
+        .salt: ["sůl", "sul", "sól", "sól", "soľ", "sol", "salz", "salt"],
+        .unlisted: ["polyoly", "polyol", "polyols", "škrob", "skrob", "starch", "stärke", "skrobia"]
     ]
+
+    private static let foldedKeywords: [LabelField: [String]] = keywords.mapValues { list in
+        list.map(foldedLabelText).reduce(into: []) { result, keyword in
+            if !result.contains(keyword) { result.append(keyword) }
+        }
+    }
 
     // MARK: - Functions
 
@@ -56,9 +71,14 @@ enum NutritionLabelParser {
         var reading = NutritionLabelReading()
 
         let header = perHundredHeader(in: lines)
-        if let header {
-            for row in groupIntoRows(lines) {
-                apply(row: row, columnX: header.x, to: &reading)
+        if let columnX = header?.x ?? inferredValueColumnX(in: lines) {
+            let cells = valueCellsBelowHeader(in: lines)
+            let labels = lines
+                .compactMap { line in matchedField(for: line.text).map { (line: line, field: $0) } }
+                .sorted { $0.line.boundingBox.midY > $1.line.boundingBox.midY }
+            let shift = rowShift(labels: labels, cells: cells, columnX: columnX)
+            for assignment in assignments(labels: labels, cells: cells, columnX: columnX, shift: shift) {
+                apply(assignment.field, text: assignment.valueLine.text, to: &reading)
             }
         }
 
@@ -158,6 +178,8 @@ enum NutritionLabelParser {
                 reading.protein = numbers(in: window).first
             case .salt:
                 reading.salt = numbers(in: window).first
+            case .unlisted:
+                break
             }
         }
         return reading
@@ -226,89 +248,222 @@ enum NutritionLabelParser {
 
     // MARK: - Row grouping and column detection
 
-    private static func groupIntoRows(_ lines: [RecognizedTextLine]) -> [[RecognizedTextLine]] {
-        let sorted = lines.sorted { $0.boundingBox.midY > $1.boundingBox.midY }
-        var rows: [[RecognizedTextLine]] = []
-        for line in sorted {
-            if
-                let lastIndex = rows.indices.last,
-                verticallyOverlaps(line, rows[lastIndex])
-            {
-                rows[lastIndex].append(line)
-            } else {
-                rows.append([line])
-            }
-        }
-        return rows.map { $0.sorted { $0.boundingBox.minX < $1.boundingBox.minX } }
+    // Text printed sideways along the table edge (a batch number, say) is a box several rows tall; it
+    // overlaps every row it crosses and would take a real value's place.
+    private static func valueCells(in lines: [RecognizedTextLine]) -> [RecognizedTextLine] {
+        let cells = lines.filter { isValueCell($0) }
+        guard let medianHeight = medianHeight(of: cells) else { return cells }
+        return cells.filter { $0.boundingBox.height <= medianHeight * maxValueCellHeightRatio }
     }
 
-    // Compared against the row's first (seed) line, not the union of every line already in it: a
-    // row's accumulated bounding box would otherwise grow with each merge, letting it "reach" and
-    // absorb an unrelated neighbouring row's line that only overlaps the enlarged union — confirmed
-    // on-device (a real table's "92 g" got absorbed into the row above it once that row's union grew
-    // tall enough, leaving "Tuky" to instead pair with the row below's "7 g").
-    private static func verticallyOverlaps(_ line: RecognizedTextLine, _ row: [RecognizedTextLine]) -> Bool {
-        guard let anchor = row.first else { return false }
-        let overlap = min(line.boundingBox.maxY, anchor.boundingBox.maxY) - max(line.boundingBox.minY, anchor.boundingBox.minY)
-        let minHeight = min(line.boundingBox.height, anchor.boundingBox.height)
+    private static func medianHeight(of lines: [RecognizedTextLine]) -> CGFloat? {
+        let heights = lines.map(\.boundingBox.height).sorted()
+        return heights.isEmpty ? nil : heights[heights.count / 2]
+    }
+
+    private static func isValueCell(_ line: RecognizedTextLine) -> Bool {
+        line.text.contains(where: \.isNumber) && isPlausibleValueText(line.text)
+    }
+
+    // OCR can split the header into "na" "100" "g"; the bare "100" is all digits and would pass for a value, but a
+    // genuine "100 g" (a pure fat, say) sits below the top value cell, a header above it.
+    private static func valueCellsBelowHeader(in lines: [RecognizedTextLine]) -> [RecognizedTextLine] {
+        let cells = valueCells(in: lines)
+        guard let topmostValueMidY = cells.filter({ !isPerHundredHeader($0.text) }).map(\.boundingBox.midY).max() else { return cells }
+        return cells.filter { !isPerHundredHeader($0.text) || $0.boundingBox.midY <= topmostValueMidY }
+    }
+
+    private static func overlapsVertically(_ first: RecognizedTextLine, _ second: RecognizedTextLine) -> Bool {
+        let overlap = min(first.boundingBox.maxY, second.boundingBox.maxY) - max(first.boundingBox.minY, second.boundingBox.minY)
+        let minHeight = min(first.boundingBox.height, second.boundingBox.height)
         guard minHeight > 0 else { return false }
         return overlap / minHeight > rowOverlapThreshold
     }
 
-    private static func perHundredHeader(in lines: [RecognizedTextLine]) -> (x: CGFloat, measure: FoodMeasure)? {
-        let headers = lines.filter { isPerHundredHeader($0.text) }
+    // Without a usable "per 100 g" header, a single column of values still identifies the per-100 g
+    // column; two columns (per 100 g and per portion) are told apart by the header only.
+    private static func inferredValueColumnX(in lines: [RecognizedTextLine]) -> CGFloat? {
+        let cells = valueCells(in: lines)
+        guard cells.count >= minInferredColumnCells else { return nil }
+        let median = cells.map(\.boundingBox.midX).sorted()[cells.count / 2]
+        let inColumn = cells.filter { abs($0.boundingBox.midX - median) <= inferredColumnTolerance }.count
+        return inColumn * 2 > cells.count ? median : nil
+    }
+
+    private static func perHundredHeader(in lines: [RecognizedTextLine]) -> (x: CGFloat, measure: FoodMeasure?)? {
+        let valueCells = valueCells(in: lines)
+        let headers = lines.filter { header in
+            isPerHundredHeader(header.text) && hasValueCellBelow(header, in: valueCells)
+        }
         guard headers.count == 1, let header = headers.first else { return nil }
-        let folded = header.text.lowercased().foldingDiacritics().replacingOccurrences(of: " ", with: "")
-        let measure: FoodMeasure = folded.contains("100ml") ? .millilitres : .grams
+        let folded = foldedHeaderText(header.text)
+        let measure: FoodMeasure?
+        if folded.contains("100ml") {
+            measure = .millilitres
+        } else if folded.contains("100g") {
+            measure = .grams
+        } else {
+            measure = nil
+        }
         return (header.boundingBox.midX, measure)
     }
 
-    private static func isPerHundredHeader(_ text: String) -> Bool {
-        let folded = text.lowercased().foldingDiacritics().replacingOccurrences(of: " ", with: "")
-        return folded.contains("100g") || folded.contains("100ml")
-    }
-
-    private static func apply(row: [RecognizedTextLine], columnX: CGFloat, to reading: inout NutritionLabelReading) {
-        guard let label = row.first, let field = matchedField(for: label.text) else { return }
-        let valueCandidates = row.dropFirst()
-        guard
-            let valueLine = valueCandidates.min(by: { abs($0.boundingBox.midX - columnX) < abs($1.boundingBox.midX - columnX) }),
-            abs(valueLine.boundingBox.midX - columnX) <= columnTolerance,
-            isPlausibleValueText(valueLine.text)
-        else { return }
-
-        switch field {
-        case .energy:
-            let (kJ, kcal) = energyValues(in: valueLine.text)
-            reading.energyKJ = kJ
-            reading.caloriesPerHundredGrams = kcal
-        case .fat:
-            reading.fat = numbers(in: valueLine.text).first
-        case .saturates:
-            reading.fatSaturated = numbers(in: valueLine.text).first
-        case .carbohydrate:
-            reading.carbohydrate = numbers(in: valueLine.text).first
-        case .sugars:
-            reading.carbohydratePureSugar = numbers(in: valueLine.text).first
-        case .fiber:
-            reading.fiber = numbers(in: valueLine.text).first
-        case .protein:
-            reading.protein = numbers(in: valueLine.text).first
-        case .salt:
-            reading.salt = numbers(in: valueLine.text).first
+    // A sentence from the ingredients ("…17 g na 100 g…") also contains "100 g", but no value cell sits
+    // under it, so only the genuine column header qualifies.
+    private static func hasValueCellBelow(_ header: RecognizedTextLine, in valueCells: [RecognizedTextLine]) -> Bool {
+        valueCells.contains { cell in
+            cell.boundingBox.maxY <= header.boundingBox.minY
+                && abs(cell.boundingBox.midX - header.boundingBox.midX) <= columnTolerance
         }
     }
 
+    private static func foldedHeaderText(_ text: String) -> String {
+        text.lowercased().foldingDiacritics().replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "q", with: "g")
+    }
+
+    private static func isPerHundredHeader(_ text: String) -> Bool {
+        let folded = foldedHeaderText(text)
+        return folded.contains("100g") || folded.contains("100ml") || folded.hasSuffix("100")
+    }
+
+    // Rows run top to bottom, so a label takes the highest value cell it overlaps that no label above has
+    // taken; a skewed photo makes the neighbouring row's value overlap just as much.
+    private static func assignments(
+        labels: [(line: RecognizedTextLine, field: LabelField)],
+        cells: [RecognizedTextLine],
+        columnX: CGFloat,
+        shift: CGFloat
+    ) -> [(field: LabelField, valueLine: RecognizedTextLine)] {
+        var unusedCells = cells
+        return labels.compactMap { label in
+            let shifted = RecognizedTextLine(text: label.line.text, boundingBox: label.line.boundingBox.offsetBy(dx: 0, dy: shift))
+            guard
+                let valueIndex = unusedCells.indices
+                    .filter({ unusedCells[$0].boundingBox.minX > label.line.boundingBox.minX && overlapsVertically(shifted, unusedCells[$0]) })
+                    .max(by: { unusedCells[$0].boundingBox.midY < unusedCells[$1].boundingBox.midY })
+            else { return nil }
+            let valueLine = unusedCells[valueIndex]
+            guard abs(valueLine.boundingBox.midX - columnX) <= columnTolerance else { return nil }
+            unusedCells.remove(at: valueIndex)
+            return (label.field, valueLine)
+        }
+    }
+
+    // A tilted photo or a curved jar lifts the value column against the label column by up to a whole row, and each
+    // label then overlaps its neighbour's value. Energy is the one row recognisable from both sides, by its keyword
+    // and by the kJ or kcal in its value, so its offset is taken as the whole table's.
+    private static func rowShift(
+        labels: [(line: RecognizedTextLine, field: LabelField)],
+        cells: [RecognizedTextLine],
+        columnX: CGFloat
+    ) -> CGFloat {
+        guard
+            let energyLabel = labels.first(where: { $0.field == .energy })?.line,
+            let medianHeight = medianHeight(of: cells),
+            let shift = cells
+                .filter({ abs($0.boundingBox.midX - columnX) <= columnTolerance && hasEnergyUnit($0.text) })
+                .map({ $0.boundingBox.midY - energyLabel.boundingBox.midY })
+                .min(by: { abs($0) < abs($1) })
+        else { return 0 }
+        let shiftInCellHeights = abs(shift) / medianHeight
+        return shiftInCellHeights >= minRowShiftInCellHeights && shiftInCellHeights <= maxRowShiftInCellHeights ? shift : 0
+    }
+
+    private static func hasEnergyUnit(_ text: String) -> Bool {
+        text.lowercased().range(of: "[0-9]+[.,]?[0-9]*\\s*(kj|kcal)", options: .regularExpression) != nil
+    }
+
+    private static func apply(_ field: LabelField, text: String, to reading: inout NutritionLabelReading) {
+        switch field {
+        case .energy:
+            let (kJ, kcal) = energyValues(in: text)
+            reading.energyKJ = kJ
+            reading.caloriesPerHundredGrams = kcal
+        case .fat:
+            reading.fat = numbers(in: text).first
+        case .saturates:
+            reading.fatSaturated = numbers(in: text).first
+        case .carbohydrate:
+            reading.carbohydrate = numbers(in: text).first
+        case .sugars:
+            reading.carbohydratePureSugar = numbers(in: text).first
+        case .fiber:
+            reading.fiber = numbers(in: text).first
+        case .protein:
+            reading.protein = numbers(in: text).first
+        case .salt:
+            reading.salt = numbers(in: text).first
+        case .unlisted:
+            break
+        }
+    }
+
+    // OCR misreads one letter of a label as often as a digit of a value ("Vaknina", "Eneraie"), so a long
+    // keyword one edit away still matches, but only when no keyword matches exactly.
     private static func matchedField(for label: String) -> LabelField? {
-        let lower = label.lowercased()
-        guard !unsaturatedMarkers.contains(where: { lower.contains($0) }) else { return nil }
-        return LabelField.allCases
+        let folded = foldedLabelText(label)
+        guard !unsaturatedMarkers.contains(where: { folded.contains(foldedLabelText($0)) }) else { return .unlisted }
+        return longestMatchingField(in: folded) { text, keyword in !ranges(ofKeyword: keyword, in: text).isEmpty }
+            ?? longestMatchingField(in: folded) { text, keyword in
+                keyword.count >= minFuzzyKeywordLength && containsWithinOneEdit(text, keyword)
+            }
+    }
+
+    private static func longestMatchingField(in text: String, matches: (String, String) -> Bool) -> LabelField? {
+        LabelField.allCases
             .compactMap { field -> (field: LabelField, keywordLength: Int)? in
-                guard let longest = keywords[field]?.filter({ lower.contains($0) }).map(\.count).max() else { return nil }
+                guard let longest = foldedKeywords[field]?.filter({ matches(text, $0) }).map(\.count).max() else { return nil }
                 return (field, longest)
             }
             .max { $0.keywordLength < $1.keywordLength }?
             .field
+    }
+
+    // "ü" and "ľ" are OCR's readings of "ů" and the Slovak "ľ" in "soľ"; "q" is a misread "g".
+    private static func foldedLabelText(_ text: String) -> String {
+        text
+            .lowercased()
+            .foldingDiacritics()
+            .replacingOccurrences(of: "ü", with: "u")
+            .replacingOccurrences(of: "ľ", with: "l")
+            .replacingOccurrences(of: "q", with: "g")
+    }
+
+    private static func containsWithinOneEdit(_ text: String, _ keyword: String) -> Bool {
+        let characters = Array(text)
+        let keywordCharacters = Array(keyword)
+        return characters.indices
+            .filter { $0 == 0 || !characters[$0 - 1].isLetter }
+            .contains { start in
+                (keywordCharacters.count - 1...keywordCharacters.count + 1).contains { length in
+                    start + length <= characters.count && isWithinOneEdit(Array(characters[start..<start + length]), keywordCharacters)
+                }
+            }
+    }
+
+    private static func isWithinOneEdit(_ first: [Character], _ second: [Character]) -> Bool {
+        guard abs(first.count - second.count) <= 1 else { return false }
+        var firstIndex = 0
+        var secondIndex = 0
+        var edits = 0
+        while firstIndex < first.count, secondIndex < second.count {
+            if first[firstIndex] == second[secondIndex] {
+                firstIndex += 1
+                secondIndex += 1
+                continue
+            }
+            edits += 1
+            if edits > 1 { return false }
+            if first.count > second.count {
+                firstIndex += 1
+            } else if first.count < second.count {
+                secondIndex += 1
+            } else {
+                firstIndex += 1
+                secondIndex += 1
+            }
+        }
+        return edits + (first.count - firstIndex) + (second.count - secondIndex) <= 1
     }
 
     // A row's nearest-to-column candidate is picked by geometry alone, which cannot tell a genuine
@@ -322,7 +477,7 @@ enum NutritionLabelParser {
         for unit in ["kcal", "kj", "ml", "g", "%"] {
             remainder = remainder.replacingOccurrences(of: unit, with: "")
         }
-        let allowedCharacters = CharacterSet(charactersIn: "0123456789.,<≤/|() ")
+        let allowedCharacters = CharacterSet(charactersIn: "0123456789.,<≤/|() q_")
         return remainder.unicodeScalars.allSatisfy(allowedCharacters.contains)
     }
 
@@ -390,7 +545,9 @@ enum NutritionLabelParser {
         func flush() {
             defer { current = "" }
             while let last = current.last, last == "," || last == "." { current.removeLast() }
-            guard !current.isEmpty, let value = Double(current.replacingOccurrences(of: ",", with: ".")) else { return }
+            // "0,10" read as "010": a whole number never starts with a zero.
+            let restored = current.count > 1 && current.hasPrefix("0") && current.allSatisfy(\.isNumber) ? "0." + String(current.dropFirst()) : current
+            guard !current.isEmpty, let value = Double(restored.replacingOccurrences(of: ",", with: ".")) else { return }
             results.append(value)
         }
         for char in joiningThousandsSeparators(text) {
@@ -424,8 +581,29 @@ enum NutritionLabelParser {
 
     // MARK: - Consistency checks
 
-    private static func applyingConsistencyChecks(_ reading: NutritionLabelReading) -> NutritionLabelReading {
+    // A value that lost its decimal comma ("15 g" read as "150") is impossible per 100 g; dropping it first
+    // keeps it from breaking the cross-field checks and wiping the correct values.
+    private static func droppingValuesOverSingleLimit(_ reading: NutritionLabelReading) -> NutritionLabelReading {
         var result = reading
+        func withinSingleLimit(_ value: Double?) -> Double? {
+            guard
+                let value,
+                value <= maxSingleMacro
+            else { return nil }
+            return value
+        }
+        result.fat = withinSingleLimit(result.fat)
+        result.fatSaturated = withinSingleLimit(result.fatSaturated)
+        result.carbohydrate = withinSingleLimit(result.carbohydrate)
+        result.carbohydratePureSugar = withinSingleLimit(result.carbohydratePureSugar)
+        result.protein = withinSingleLimit(result.protein)
+        result.salt = withinSingleLimit(result.salt)
+        result.fiber = withinSingleLimit(result.fiber)
+        return result
+    }
+
+    private static func applyingConsistencyChecks(_ reading: NutritionLabelReading) -> NutritionLabelReading {
+        var result = droppingValuesOverSingleLimit(reading)
 
         if
             let kJ = result.energyKJ,
@@ -453,8 +631,11 @@ enum NutritionLabelParser {
             result.carbohydratePureSugar = nil
         }
 
+        // kJ and kcal that agree are two independent reads already; the general factors would also reject a
+        // correct energy whenever polyols or fibre carry less energy than the carbohydrate they are counted in.
         if
             let kJ = result.energyKJ,
+            result.caloriesPerHundredGrams == nil,
             let fat = result.fat,
             let carbs = result.carbohydrate,
             let protein = result.protein

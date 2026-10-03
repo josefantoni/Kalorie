@@ -201,7 +201,9 @@ than pre-filled with a likely-misread number.
   100 g fat oil with three `<0,5 g` rows sums to 101,5).
 - Declared kJ within a tolerance of `MacroKit.energyKJFromMacros(fat:carbohydrate:protein:)`, the
   same EU conversion factors ADR 0007 uses. This check catches a single misread digit, the most
-  likely OCR error.
+  likely OCR error. It runs only when kcal was not read: a kJ and kcal pair that passes the first
+  check is already two independent reads, and the general factors would reject a correct energy on
+  a product with polyols or much fibre, which carry less energy than the carbohydrate they sit in.
 
 **Unsaturates** are not on most labels. When absent, the form value is derived as
 `max(0, fat − saturates)`, the same derivation the OpenFoodFacts mapping already applies
@@ -1000,3 +1002,16 @@ the eleventh pass are about this specific label's own printing/OCR quirks, not a
 remain exactly as described there. The Foundation Models bonus path (§ *Foundation Models*) is still
 unverified on a real device — everything confirmed in this thread was the deterministic parser and
 the surrounding camera/UI flow.
+
+## Android client (2026-10-03)
+
+The Android client shares the parser through the `fixtures/nutrition-label-parsing-cases.json`
+fixture, but its capture differs from the iOS camera-first flow:
+
+- **No shutter and no auto-capture predicate.** The scanner reads preview frames from ML Kit for
+  about 3 seconds instead of firing on a single still.
+- **Frames are merged.** Each frame is parsed on its own, and a field is filled only when at least
+  two frames read the same value (the most frequent such value wins), so a misread that appears in
+  one frame only never reaches the form.
+- **Unverified on a real package.** The only test device (Aligator S8000) has a camera too weak to
+  read a label, so the flow has been checked against recorded ML Kit frames only.

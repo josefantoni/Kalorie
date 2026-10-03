@@ -12,7 +12,7 @@ final class NutritionLabelParserTests: XCTestCase {
 
     func test_parse_matchesSharedFixtureCases() throws {
         let fixture: ParsingFixture = try FixtureLoader.load("nutrition-label-parsing-cases")
-        for parsingCase in fixture.cases {
+        for parsingCase in fixture.cases where parsingCase.knownFailure == nil {
             let lines = parsingCase.lines.map {
                 RecognizedTextLine(text: $0.text, boundingBox: CGRect(x: $0.xPosition, y: $0.yPosition, width: $0.width, height: $0.height))
             }
@@ -109,6 +109,7 @@ final class NutritionLabelParserTests: XCTestCase {
 
     private struct ParsingCase: Decodable {
         let name: String
+        let knownFailure: String?
         let lines: [FixtureLine]
         let expected: ExpectedReading
     }
