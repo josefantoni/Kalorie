@@ -708,7 +708,7 @@ clearing on a successful scan.
 
 **This is a separate scanner from the nutrition-label camera** (§ 7.5): `DataScannerRepresentable`
 here is barcode-only, single item, and drives the search flow; `NutritionLabelScannerRepresentable`
-recognises text and barcodes together and drives `RecognizeNutritionLabelUseCase` instead. Neither
+recognises text and barcodes together and fills the form from merged live reads instead. Neither
 wraps or extends the other, on purpose — reusing this one would mean teaching it to assert on text
 items it isn't built to see (§ 7.5).
 
@@ -1651,10 +1651,9 @@ see § 7.6.
 ### 7.5 Pre-filling the form from a photo
 
 [Design 0010](design/0010-nutrition-label-photo-prefill.md), including its *camera-first flow*
-revision, drives the same recognition pipeline from a live camera on all three screens
-(`AddFoodSheetView`'s new-item tab, `ModerationReviewView`, `ModerationCatalogueEditorView`).
-`RecognizeNutritionLabelUseCase` (`Core/UseCases/`) runs a pure-Swift pipeline over
-`Core/NutritionLabelRecognition/`: Vision OCR (`VisionTextRecognizer`) and barcode detection produce
+and *live scan on both clients* revisions, drives the recognition pipeline from a live camera on all
+three screens (`AddFoodSheetView`'s new-item tab, `ModerationReviewView`, `ModerationCatalogueEditorView`).
+The pipeline lives in `Core/NutritionLabelRecognition/`: live text items become
 `[RecognizedTextLine]`, `NutritionLabelParser` turns the EU-regulation nutrition declaration into a
 `NutritionLabelReading` through a multilingual keyword dictionary, tried two ways: row/column
 geometry for the table format most labels use, and a keyword-position fallback (bounded to the text
@@ -1684,13 +1683,12 @@ same way § 2.5's barcode scanner already re-checks its own permission. Tapping 
 barcode-only `DataScannerRepresentable` — the two are never reused for each other's job). Its
 coordinator converts each live text item's quad to a `RecognizedTextLine` (`LiveTextItemConversion`,
 kept free of VisionKit so it is unit-testable against plain `CGPoint`s) and re-parses on every
-update; once a parse clears `NutritionLabelReading.isCompleteForAutoCapture` (kcal, fat, carbs and
-protein all present) it calls `capturePhoto()` once, the same still-image entry point
-`RecognizeNutritionLabelUseCase` already used. A manual shutter triggers the same capture for labels
-the auto-capture predicate never locks onto. Nothing is written to the form from a live-only read —
-only the captured still goes through the pipeline, which is what makes reusing a live scanner safe
-here despite § 2.5's `DataScannerRepresentable` being barcode-only for an unrelated reason (a
-multi-frame text read cannot be assembled reliably; see design 0010's *Capture*).
+update. A 3-second window starts at the first parse that holds a nutrition field and restarts
+whenever one holds none; at its end `NutritionLabelReadingMerger` keeps each field only when at
+least two parses agree on it, and the result goes through `NutritionLabelPrefilling`, which runs
+`FoundationModelExtractor` once over the last update's OCR text before applying it. There is no
+still photo and no shutter, the same as on Android (design 0010, *Revision — live scan on both
+clients*, which also says why voting per field avoids *Capture*'s objection to multi-frame reads).
 
 The merge rule is one rule for all three screens, decided in design 0010 rather than left as three
 different behaviours: a recognised value is written only into a field still at its default

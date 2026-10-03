@@ -66,8 +66,8 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   scanner and the nutrition-label OCR have only been checked by unit tests.
   Fake the camera in the Android Studio emulator (Extended controls → Camera → Virtual scene with a photo
   of a barcode or a label, or the laptop webcam) and check: ML Kit reads cs/pl/de/en labels including
-  diacritics, box coordinates hold under a rotated frame (rows and columns must not collapse), auto-capture
-  and the shutter both work, and the permission prompt, denied state and revocation behave. Real-world
+  diacritics, box coordinates hold under a rotated frame (rows and columns must not collapse), the
+  3-second scan window fills the form, and the permission prompt, denied state and revocation behave. Real-world
   glare and curved packaging still need a real phone before release.
 - **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
@@ -104,8 +104,7 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   account as the SHA-1 item above: paste the URL into Play Console → Data safety once the app
   exists there, then remove this item.
 - **Check the recent Android fixes by hand on an emulator or device** — they were only built and unit
-  tested; the camera and the touch handling cannot be covered that way. Auto-capture of a nutrition label
-  must take a photo (it called `takePicture` off the main thread before); the barcode scanner must release
+  tested; the camera and the touch handling cannot be covered that way. The barcode scanner must release
   the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
   submission that was written from the iOS app must work (it failed on `submitted_at` precision).
 
