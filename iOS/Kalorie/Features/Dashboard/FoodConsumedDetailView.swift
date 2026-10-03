@@ -13,6 +13,7 @@ struct FoodConsumedDetailView: View {
 
     @StateObject var viewModel: FoodConsumedDetailViewModel
     @State private var weightText: String
+    @FocusState private var isWeightFocused: Bool
     @State private var nutritionHeaderMaxX: CGFloat = 0
     @State private var nutritionValueMaxX: CGFloat = 0
 
@@ -53,6 +54,7 @@ struct FoodConsumedDetailView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 80)
+                            .focused($isWeightFocused)
                             .onChange(of: weightText) { _, text in
                                 var seenSeparator = false
                                 let sanitized = String(text.filter { char in
@@ -139,7 +141,7 @@ struct FoodConsumedDetailView: View {
         }
         .loader(viewModel.state.isLoading)
         .task { await viewModel.onAppear() }
-        .keyboardDoneToolbar()
+        .keyboardDoneToolbar(isVisible: isWeightFocused)
         .toolbar {
             if viewModel.canReportIncorrectData {
                 ToolbarItem(placement: .topBarLeading) {
