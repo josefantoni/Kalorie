@@ -23,16 +23,26 @@ struct FoodConsumedView: View {
     // MARK: - Body
 
     var body: some View {
-        HStack {
-            Text(foodConsumed.weight.formattedAmount(measure: foodConsumed.measure, fractionDigits: 0))
-            Text(foodConsumed.displayName)
-            Spacer()
-            VStack {
-                Text("\(foodConsumed.calories) kcal")
+        HStack(alignment: .center, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(foodConsumed.displayName)
+                    .font(.callout)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                    .truncationMode(.tail)
+                Text(foodConsumed.weight.formattedAmount(measure: foodConsumed.measure, fractionDigits: 0))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
+            Spacer(minLength: 0)
+            Text("\(foodConsumed.calories) kcal")
+                .font(.callout)
+                .monospacedDigit()
+                .fixedSize(horizontal: true, vertical: false)
         }
-        .padding(.all)
-        .frame(height: 80)
+        .padding(.leading)
+        .padding(.trailing, 4)
+        .frame(minHeight: 50)
     }
 }
 
