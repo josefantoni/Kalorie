@@ -41,7 +41,4 @@ data class NutritionLabelReading(
 
     val isEmpty: Boolean
         get() = recognizedFields.isEmpty() && scannedCode == null && (portions?.isEmpty() ?: true)
-
-    val isCompleteForAutoCapture: Boolean
-        get() = caloriesPerHundredGrams != null && fat != null && carbohydrate != null && protein != null
 }

@@ -4,8 +4,7 @@ import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.models.FoodItemDomain
-import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelImage
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodItemError
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseProtocol
@@ -23,7 +22,6 @@ import kotlinx.coroutines.flow.StateFlow
 class ModerationCatalogueEditorViewModel(
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
     private val updateFoodItem: UpdateFoodItemUseCaseProtocol,
-    private val recognizeNutritionLabelUseCase: RecognizeNutritionLabelUseCaseProtocol,
     private val initialBarcode: String? = null,
 ) : ViewModel(),
     NutritionLabelPrefilling {
@@ -36,7 +34,6 @@ class ModerationCatalogueEditorViewModel(
     val loadedItem: StateFlow<FoodItemDomain?> = _loadedItem
     override val formInput = MutableStateFlow(FoodItemFormInput())
     override val recognizedFields = MutableStateFlow<Set<FoodItemFormField>>(emptySet())
-    override val isRecognizingNutritionLabel = MutableStateFlow(false)
     override val isNutritionLabelCameraVisible = MutableStateFlow(false)
     override val nutritionLabelCameraHintRes = MutableStateFlow<Int?>(null)
     private val _state = MutableStateFlow<LoadingState<Unit>>(LoadingState.Idle)
@@ -54,8 +51,8 @@ class ModerationCatalogueEditorViewModel(
         onSearchTapped()
     }
 
-    suspend fun onNutritionLabelCaptured(image: NutritionLabelImage, liveBarcode: String?) {
-        recognizeNutritionLabel(image, liveBarcode, recognizeNutritionLabelUseCase)
+    fun onNutritionLabelRecognized(reading: NutritionLabelReading, liveBarcode: String?) {
+        applyRecognizedNutritionLabel(reading, liveBarcode)
     }
 
     fun onNutritionLabelCameraTapped() {

@@ -10,8 +10,7 @@ import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionError
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.MyCreatedMealDomain
-import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelImage
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteMySubmissionUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
@@ -57,7 +56,6 @@ class AddFoodSheetViewModel(
     private val refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol,
     private val fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol,
     private val deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol,
-    private val recognizeNutritionLabelUseCase: RecognizeNutritionLabelUseCaseProtocol,
     private val onFoodSaved: () -> Unit = {},
     isScannerVisible: Boolean = false,
 ) : ViewModel(),
@@ -81,7 +79,6 @@ class AddFoodSheetViewModel(
     val state: StateFlow<LoadingState<Unit>> = _state
     override val formInput = MutableStateFlow(FoodItemFormInput())
     override val recognizedFields = MutableStateFlow<Set<FoodItemFormField>>(emptySet())
-    override val isRecognizingNutritionLabel = MutableStateFlow(false)
     override val isNutritionLabelCameraVisible = MutableStateFlow(false)
     override val nutritionLabelCameraHintRes = MutableStateFlow<Int?>(null)
     val cameraAccess = MutableStateFlow(CameraAccess.NOT_DETERMINED)
@@ -166,9 +163,8 @@ class AddFoodSheetViewModel(
         isReviewPushed.value = true
     }
 
-    suspend fun onNutritionLabelCaptured(image: NutritionLabelImage, liveBarcode: String?) {
-        val succeeded = recognizeNutritionLabel(image, liveBarcode, recognizeNutritionLabelUseCase)
-        if (succeeded) isNutritionLabelCameraReviewPending = true
+    fun onNutritionLabelRecognized(reading: NutritionLabelReading, liveBarcode: String?) {
+        if (applyRecognizedNutritionLabel(reading, liveBarcode)) isNutritionLabelCameraReviewPending = true
     }
 
     fun onNutritionLabelCameraDismissed() {

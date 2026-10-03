@@ -104,7 +104,6 @@ fun AddFoodSheetView(
     val state by viewModel.state.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val isNutritionLabelCameraVisible by viewModel.isNutritionLabelCameraVisible.collectAsState()
-    val isRecognizingNutritionLabel by viewModel.isRecognizingNutritionLabel.collectAsState()
     val nutritionLabelCameraHintRes by viewModel.nutritionLabelCameraHintRes.collectAsState()
     val backStack = remember(isPushedToQuantityView, selectedFoodItem, isReviewPushed) {
         buildList<AddFoodSheetDestination> {
@@ -201,9 +200,8 @@ fun AddFoodSheetView(
             properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
         ) {
             NutritionLabelCameraView(
-                isRecognizing = isRecognizingNutritionLabel,
                 hint = nutritionLabelCameraHintRes?.let { stringResource(it) },
-                onCaptured = viewModel::onNutritionLabelCaptured,
+                onRecognized = viewModel::onNutritionLabelRecognized,
                 onClose = { viewModel.isNutritionLabelCameraVisible.value = false },
             )
         }

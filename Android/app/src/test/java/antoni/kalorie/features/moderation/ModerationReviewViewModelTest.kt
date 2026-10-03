@@ -6,9 +6,6 @@ import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseFake
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
-import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
 import antoni.kalorie.core.usecases.ApproveSubmissionError
 import antoni.kalorie.core.usecases.ApproveSubmissionUseCaseFake
 import antoni.kalorie.core.usecases.ApproveSubmissionUseCaseProtocol
@@ -155,14 +152,12 @@ class ModerationReviewViewModelTest {
     }
 
     @Test
-    fun onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() = runTest {
-        val sut = makeSUT(
-            recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(stubbedReading = NutritionLabelReading(fat = 999.0, fiber = 1.0)),
-        )
+    fun onNutritionLabelRecognized_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() = runTest {
+        val sut = makeSUT()
         sut.isNutritionLabelCameraVisible.value = true
         val originalFat = sut.formInput.value.fat
 
-        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = null)
+        sut.onNutritionLabelRecognized(NutritionLabelReading(fat = 999.0, fiber = 1.0), liveBarcode = null)
 
         assertFalse(sut.isNutritionLabelCameraVisible.value)
         assertEquals(originalFat, sut.formInput.value.fat, 0.0)
@@ -223,13 +218,11 @@ class ModerationReviewViewModelTest {
         approveSubmission: ApproveSubmissionUseCaseProtocol = ApproveSubmissionUseCaseFake(),
         rejectSubmission: RejectSubmissionUseCaseProtocol = RejectSubmissionUseCaseFake(),
         searchFoodItems: SearchFoodItemsUseCaseProtocol = SearchFoodItemsUseCaseFake(),
-        recognizeNutritionLabel: RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
     ): ModerationReviewViewModel = ModerationReviewViewModel(
         submission = submission,
         approveSubmission = approveSubmission,
         rejectSubmission = rejectSubmission,
         searchFoodItems = searchFoodItems,
-        recognizeNutritionLabelUseCase = recognizeNutritionLabel,
         onResolved = {},
     )
 
