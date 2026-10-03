@@ -82,18 +82,15 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() async {
+    func test_onNutritionLabelRecognized_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() async {
         let item = makeItem()
-        let sut = makeSUT(
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item),
-            recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(stubbedReading: NutritionLabelReading(fat: 999, fiber: 1))
-        )
+        let sut = makeSUT(fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item))
         sut.barcodeQuery = "12345678"
         await sut.onSearchTapped()
         sut.isNutritionLabelCameraVisible = true
         let originalFat = sut.formInput.fat
 
-        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: nil)
+        await sut.onNutritionLabelRecognized(NutritionLabelReading(fat: 999, fiber: 1), ocrText: "", liveBarcode: nil)
 
         XCTAssertFalse(sut.isNutritionLabelCameraVisible, "a successful capture on an already-open form must close the camera without a push")
         XCTAssertEqual(sut.formInput.fat, originalFat, "a field already holding a loaded value must never be overwritten by the photo")
@@ -127,14 +124,14 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
     private func makeSUT(
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         updateFoodItem: any UpdateFoodItemUseCaseProtocol = UpdateFoodItemUseCaseFake(),
-        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
+        modelExtractor: any NutritionLabelModelExtractorProtocol = NutritionLabelModelExtractorFake(),
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake(),
         initialBarcode: String? = nil
     ) -> ModerationCatalogueEditorViewModel {
         ModerationCatalogueEditorViewModel(
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             updateFoodItem: updateFoodItem,
-            recognizeNutritionLabel: recognizeNutritionLabel,
+            modelExtractor: modelExtractor,
             cameraAuthorizationProvider: cameraAuthorizationProvider,
             initialBarcode: initialBarcode
         )

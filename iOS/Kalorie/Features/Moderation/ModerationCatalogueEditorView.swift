@@ -86,8 +86,8 @@ struct ModerationCatalogueEditorView: View {
             NutritionLabelCameraView(
                 isRecognizing: viewModel.isRecognizingNutritionLabel,
                 hint: viewModel.nutritionLabelCameraHint,
-                onCaptured: { image, liveBarcode in
-                    await viewModel.onNutritionLabelCaptured(image, liveBarcode: liveBarcode)
+                onRecognized: { reading, ocrText, liveBarcode in
+                    await viewModel.onNutritionLabelRecognized(reading, ocrText: ocrText, liveBarcode: liveBarcode)
                 },
                 onClose: { viewModel.isNutritionLabelCameraVisible = false }
             )
@@ -109,7 +109,7 @@ struct ModerationCatalogueEditorView: View {
             viewModel: ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                 updateFoodItem: UpdateFoodItemUseCaseFake(),
-                recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
+                modelExtractor: NutritionLabelModelExtractorFake(),
                 cameraAuthorizationProvider: CameraAuthorizationProviderFake()
             )
         )

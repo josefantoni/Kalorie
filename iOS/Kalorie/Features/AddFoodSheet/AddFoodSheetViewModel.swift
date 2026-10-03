@@ -222,7 +222,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     private let refreshFavouriteFood: any RefreshFavouriteFoodUseCaseProtocol
     private let fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol
     private let deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol
-    private let recognizeNutritionLabelUseCase: any RecognizeNutritionLabelUseCaseProtocol
+    private let modelExtractor: any NutritionLabelModelExtractorProtocol
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
     private let onFoodSaved: () -> Void
     private var editingSubmissionId: String?
@@ -267,7 +267,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         refreshFavouriteFood: any RefreshFavouriteFoodUseCaseProtocol,
         fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol,
         deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol,
-        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol,
+        modelExtractor: any NutritionLabelModelExtractorProtocol,
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
         onFoodSaved: @escaping () -> Void = {},
         isScannerVisible: Bool = false
@@ -285,7 +285,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         self.refreshFavouriteFood = refreshFavouriteFood
         self.fetchMyCreatedMeals = fetchMyCreatedMeals
         self.deleteMyCreatedMeal = deleteMyCreatedMeal
-        self.recognizeNutritionLabelUseCase = recognizeNutritionLabel
+        self.modelExtractor = modelExtractor
         self.cameraAuthorizationProvider = cameraAuthorizationProvider
         self.cameraAccess = cameraAuthorizationProvider.status
         self.onFoodSaved = onFoodSaved
@@ -334,8 +334,8 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     }
 
     @MainActor
-    func onNutritionLabelCaptured(_ image: UIImage, liveBarcode: String?) async {
-        let succeeded = await recognizeNutritionLabel(from: image, liveBarcode: liveBarcode, using: recognizeNutritionLabelUseCase)
+    func onNutritionLabelRecognized(_ reading: NutritionLabelReading, ocrText: String, liveBarcode: String?) async {
+        let succeeded = await applyRecognizedNutritionLabel(reading, ocrText: ocrText, liveBarcode: liveBarcode, using: modelExtractor)
         if succeeded {
             isNutritionLabelCameraReviewPending = true
         }

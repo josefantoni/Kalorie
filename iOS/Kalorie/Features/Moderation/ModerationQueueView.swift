@@ -92,7 +92,7 @@ struct ModerationQueueView: View {
                         approveSubmission: ApproveSubmissionUseCaseFake(),
                         rejectSubmission: RejectSubmissionUseCaseFake(),
                         searchFoodItems: SearchFoodItemsUseCaseFake(),
-                        recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
+                        modelExtractor: NutritionLabelModelExtractorFake(),
                         cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
                         onResolved: onResolved
                     )
@@ -103,7 +103,7 @@ struct ModerationQueueView: View {
                     viewModel: ModerationCatalogueEditorViewModel(
                         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                         updateFoodItem: UpdateFoodItemUseCaseFake(),
-                        recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(),
+                        modelExtractor: NutritionLabelModelExtractorFake(),
                         cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
                         initialBarcode: barcode
                     )

@@ -34,7 +34,7 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
     private let approveSubmission: any ApproveSubmissionUseCaseProtocol
     private let rejectSubmission: any RejectSubmissionUseCaseProtocol
     private let searchFoodItems: any SearchFoodItemsUseCaseProtocol
-    private let recognizeNutritionLabelUseCase: any RecognizeNutritionLabelUseCaseProtocol
+    private let modelExtractor: any NutritionLabelModelExtractorProtocol
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
     private let onResolved: () -> Void
 
@@ -45,7 +45,7 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
         approveSubmission: any ApproveSubmissionUseCaseProtocol,
         rejectSubmission: any RejectSubmissionUseCaseProtocol,
         searchFoodItems: any SearchFoodItemsUseCaseProtocol,
-        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol,
+        modelExtractor: any NutritionLabelModelExtractorProtocol,
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
         onResolved: @escaping () -> Void
     ) {
@@ -56,7 +56,7 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
         self.approveSubmission = approveSubmission
         self.rejectSubmission = rejectSubmission
         self.searchFoodItems = searchFoodItems
-        self.recognizeNutritionLabelUseCase = recognizeNutritionLabel
+        self.modelExtractor = modelExtractor
         self.cameraAuthorizationProvider = cameraAuthorizationProvider
         self.onResolved = onResolved
     }
@@ -75,8 +75,8 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
     }
 
     @MainActor
-    func onNutritionLabelCaptured(_ image: UIImage, liveBarcode: String?) async {
-        await recognizeNutritionLabel(from: image, liveBarcode: liveBarcode, using: recognizeNutritionLabelUseCase)
+    func onNutritionLabelRecognized(_ reading: NutritionLabelReading, ocrText: String, liveBarcode: String?) async {
+        await applyRecognizedNutritionLabel(reading, ocrText: ocrText, liveBarcode: liveBarcode, using: modelExtractor)
     }
 
     @MainActor

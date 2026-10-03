@@ -40,7 +40,7 @@ struct ModerationConfigurator {
                         ),
                         rejectSubmission: RejectSubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
-                        recognizeNutritionLabel: RecognizeNutritionLabelUseCase(),
+                        modelExtractor: FoundationModelExtractor(),
                         cameraAuthorizationProvider: CameraAuthorizationProvider(),
                         onResolved: onResolved
                     )
@@ -72,7 +72,7 @@ struct ModerationConfigurator {
             viewModel: ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 updateFoodItem: UpdateFoodItemUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                recognizeNutritionLabel: RecognizeNutritionLabelUseCase(),
+                modelExtractor: FoundationModelExtractor(),
                 cameraAuthorizationProvider: CameraAuthorizationProvider(),
                 initialBarcode: initialBarcode
             ),

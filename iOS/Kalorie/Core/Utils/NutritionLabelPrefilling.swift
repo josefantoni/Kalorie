@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import UIKit
 
 protocol NutritionLabelPrefilling: AnyObject {
     var formInput: FoodItemFormInput { get set }
@@ -21,33 +20,28 @@ extension NutritionLabelPrefilling {
 
     @MainActor
     @discardableResult
-    func recognizeNutritionLabel(
-        from image: UIImage,
+    func applyRecognizedNutritionLabel(
+        _ recognized: NutritionLabelReading,
+        ocrText: String,
         liveBarcode: String?,
-        using recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol
+        using modelExtractor: any NutritionLabelModelExtractorProtocol
     ) async -> Bool {
         guard !isRecognizingNutritionLabel else { return false }
         isRecognizingNutritionLabel = true
         defer { isRecognizingNutritionLabel = false }
-        do {
-            var reading = try await recognizeNutritionLabel(image: image)
-            reading.scannedCode = reading.scannedCode ?? liveBarcode
-            guard !reading.recognizedFields.isEmpty else {
-                nutritionLabelCameraHint = L10n.AddFood.nutritionLabelNothingRecognized
-                return false
-            }
-            recognizedFields.formUnion(formInput.applying(reading, alreadyRecognizedFields: recognizedFields))
-            nutritionLabelCameraHint = nil
-            isNutritionLabelCameraVisible = false
-            return true
-        } catch NutritionLabelRecognitionError.nothingRecognized {
-            nutritionLabelCameraHint = L10n.AddFood.nutritionLabelNothingRecognized
-            return false
-        } catch {
-            Log.warning(error, category: Constants.LogCategory.nutritionLabelRecognition)
+        var reading = recognized
+        if let candidate = await modelExtractor(ocrText: ocrText) {
+            reading = NutritionLabelParser.merging(reading, with: candidate, ocrText: ocrText)
+        }
+        reading.scannedCode = reading.scannedCode ?? liveBarcode
+        guard !reading.recognizedFields.isEmpty else {
             nutritionLabelCameraHint = L10n.AddFood.nutritionLabelNothingRecognized
             return false
         }
+        recognizedFields.formUnion(formInput.applying(reading, alreadyRecognizedFields: recognizedFields))
+        nutritionLabelCameraHint = nil
+        isNutritionLabelCameraVisible = false
+        return true
     }
 
     @MainActor

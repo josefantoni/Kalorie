@@ -84,12 +84,12 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onNutritionLabelCaptured_onSuccess_closesCameraAndPushesOnlyAfterDismissed() async {
+    func test_onNutritionLabelRecognized_onSuccess_closesCameraAndPushesOnlyAfterDismissed() async {
         let reading = NutritionLabelReading(caloriesPerHundredGrams: 80, fat: 12, carbohydrate: 55, protein: 10)
-        let sut = makeSUT(recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(stubbedReading: reading))
+        let sut = makeSUT()
         sut.isNutritionLabelCameraVisible = true
 
-        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: nil)
+        await sut.onNutritionLabelRecognized(reading, ocrText: "", liveBarcode: nil)
 
         XCTAssertFalse(sut.isNutritionLabelCameraVisible)
         XCTAssertFalse(sut.isReviewPushed, "the push must wait for the cover's own onDismiss, or SwiftUI can drop it while the cover is still animating out")
@@ -100,22 +100,22 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onNutritionLabelCameraDismissed_afterAFailedCapture_doesNotPush() async {
-        let sut = makeSUT(recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(errorToThrow: NutritionLabelRecognitionError.nothingRecognized))
+    func test_onNutritionLabelCameraDismissed_afterAnEmptyReading_doesNotPush() async {
+        let sut = makeSUT()
         sut.isNutritionLabelCameraVisible = true
 
-        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: nil)
+        await sut.onNutritionLabelRecognized(NutritionLabelReading(), ocrText: "", liveBarcode: nil)
         sut.onNutritionLabelCameraDismissed()
 
         XCTAssertFalse(sut.isReviewPushed, "closing the camera manually after a failed read must not push an empty form")
     }
 
     @MainActor
-    func test_onNutritionLabelCaptured_nothingRecognized_keepsCameraOpenSetsHintAndLeavesFormUntouched() async {
-        let sut = makeSUT(recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(errorToThrow: NutritionLabelRecognitionError.nothingRecognized))
+    func test_onNutritionLabelRecognized_nothingRecognized_keepsCameraOpenSetsHintAndLeavesFormUntouched() async {
+        let sut = makeSUT()
         sut.isNutritionLabelCameraVisible = true
 
-        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: nil)
+        await sut.onNutritionLabelRecognized(NutritionLabelReading(), ocrText: "", liveBarcode: nil)
 
         XCTAssertTrue(sut.isNutritionLabelCameraVisible, "nothing recognised must not close the live camera")
         XCTAssertEqual(sut.nutritionLabelCameraHint, L10n.AddFood.nutritionLabelNothingRecognized)
@@ -124,40 +124,50 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onNutritionLabelCaptured_readingWithOnlyABarcode_isTreatedAsNothingRecognized() async {
-        let sut = makeSUT(recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(stubbedReading: NutritionLabelReading(scannedCode: "12345678")))
+    func test_onNutritionLabelRecognized_readingWithOnlyABarcode_isTreatedAsNothingRecognized() async {
+        let sut = makeSUT()
         sut.isNutritionLabelCameraVisible = true
 
-        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: nil)
+        await sut.onNutritionLabelRecognized(NutritionLabelReading(scannedCode: "12345678"), ocrText: "", liveBarcode: nil)
 
         XCTAssertTrue(sut.isNutritionLabelCameraVisible, "a barcode alone is not a nutrition table read and must not count as a successful capture")
         XCTAssertEqual(sut.nutritionLabelCameraHint, L10n.AddFood.nutritionLabelNothingRecognized)
     }
 
     @MainActor
-    func test_onNutritionLabelCaptured_liveBarcodeFillsScannedCodeWhenStillHadNone() async {
+    func test_onNutritionLabelRecognized_liveBarcodeFillsScannedCodeWhenReadingHadNone() async {
         let reading = NutritionLabelReading(caloriesPerHundredGrams: 80, fat: 12, carbohydrate: 55, protein: 10)
-        let sut = makeSUT(recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(stubbedReading: reading))
+        let sut = makeSUT()
 
-        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: "8594004428464")
+        await sut.onNutritionLabelRecognized(reading, ocrText: "", liveBarcode: "8594004428464")
 
         XCTAssertEqual(sut.formInput.scannedCode, "8594004428464")
     }
 
     @MainActor
-    func test_onNutritionLabelCaptured_liveBarcodeDoesNotOverwriteALockedBarcode() async {
+    func test_onNutritionLabelRecognized_liveBarcodeDoesNotOverwriteALockedBarcode() async {
         let submission = makeSubmission(id: "sub-1", barcode: "87654321", status: .rejected, rejectReason: "Wrong calories")
         let reading = NutritionLabelReading(caloriesPerHundredGrams: 80, fat: 12, carbohydrate: 55, protein: 10)
         let sut = makeSUT(
-            fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [submission]),
-            recognizeNutritionLabel: RecognizeNutritionLabelUseCaseFake(stubbedReading: reading)
+            fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [submission])
         )
         await sut.onAppear()
         sut.onSelectRejectedSubmission(makeFoodItem(id: "87654321", czName: "Ovar"))
 
-        await sut.onNutritionLabelCaptured(UIImage(), liveBarcode: "8594004428464")
+        await sut.onNutritionLabelRecognized(reading, ocrText: "", liveBarcode: "8594004428464")
 
         XCTAssertEqual(sut.formInput.scannedCode, "87654321", "the resubmission's barcode is locked; a live scan must never silently redirect it to a different item")
+    }
+
+    @MainActor
+    func test_onNutritionLabelRecognized_modelCandidateFillsWhatTheLiveReadLeftEmpty() async {
+        let reading = NutritionLabelReading(fat: 12)
+        let sut = makeSUT(modelExtractor: NutritionLabelModelExtractorFake(stubbedCandidate: NutritionLabelModelCandidate(name: "Tvaroh")))
+
+        await sut.onNutritionLabelRecognized(reading, ocrText: "Tvaroh\nTuky 12 g", liveBarcode: nil)
+
+        XCTAssertEqual(sut.formInput.name, "Tvaroh", "the on-device model is the only source of the name; dropping it with the still photo would lose it")
+        XCTAssertEqual(sut.formInput.fat, 12)
     }
 
     func test_onBarcodeScanned_withEmptyBarcode_doesNothing() async {
@@ -639,7 +649,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         refreshFavouriteFood: any RefreshFavouriteFoodUseCaseProtocol = RefreshFavouriteFoodUseCaseFake(),
         fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol = FetchMyCreatedMealsUseCaseFake(),
         deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol = DeleteMyCreatedMealUseCaseFake(),
-        recognizeNutritionLabel: any RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
+        modelExtractor: any NutritionLabelModelExtractorProtocol = NutritionLabelModelExtractorFake(),
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake(),
         isScannerVisible: Bool = false
     ) -> AddFoodSheetViewModel {
@@ -656,7 +666,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             refreshFavouriteFood: refreshFavouriteFood,
             fetchMyCreatedMeals: fetchMyCreatedMeals,
             deleteMyCreatedMeal: deleteMyCreatedMeal,
-            recognizeNutritionLabel: recognizeNutritionLabel,
+            modelExtractor: modelExtractor,
             cameraAuthorizationProvider: cameraAuthorizationProvider,
             isScannerVisible: isScannerVisible
         )
