@@ -1,31 +1,30 @@
 package antoni.kalorie.features.addfoodsheet
 
+import android.os.SystemClock
+import android.util.Size
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import antoni.kalorie.core.nutritionlabelrecognition.BitmapNutritionLabelImage
+import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.nutritionlabelrecognition.MlKitTextRecognizer
-import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelImage
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelParser
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
+import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReadingMerger
 import antoni.kalorie.core.nutritionlabelrecognition.uprightSize
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
@@ -38,106 +37,78 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicBoolean
 
-private const val PARSE_THROTTLE_MILLIS = 300L
+private const val ANALYSIS_WIDTH = 1920
+private const val ANALYSIS_HEIGHT = 1440
+private const val SCAN_WINDOW_MILLIS = 3000L
 
 private class LiveScanState {
     @Volatile var liveBarcode: String? = null
 
-    @Volatile var lastParseAtMillis: Long = 0L
+    @Volatile var windowStartedAtMillis: Long = 0L
+
+    val readings = mutableListOf<NutritionLabelReading>()
 }
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun NutritionLabelScannerView(
-    isProcessing: Boolean,
-    isAutoCaptureEnabled: Boolean,
-    manualCaptureRequest: Int,
-    onCaptured: suspend (NutritionLabelImage, String?) -> Unit,
-    onCaptureFailed: () -> Unit,
+    onProgress: (Float) -> Unit,
+    onRecognized: (NutritionLabelReading, String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // MARK: - Properties
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val scope = rememberCoroutineScope()
-    val currentIsProcessing by rememberUpdatedState(isProcessing)
-    val currentIsAutoCaptureEnabled by rememberUpdatedState(isAutoCaptureEnabled)
-    val currentOnCaptured by rememberUpdatedState(onCaptured)
-    val currentOnCaptureFailed by rememberUpdatedState(onCaptureFailed)
+    val currentOnProgress by rememberUpdatedState(onProgress)
+    val currentOnRecognized by rememberUpdatedState(onRecognized)
     val executor = remember { Executors.newSingleThreadExecutor() }
     val recognizer = remember { MlKitTextRecognizer() }
-    val isCapturing = remember { AtomicBoolean(false) }
     val controller = remember { LifecycleCameraController(context) }
     val liveState = remember { LiveScanState() }
-    var lastManualCaptureRequest by remember { mutableIntStateOf(manualCaptureRequest) }
 
-    // isCapturing stays held for the whole round trip (capture through recognition), not just the
-    // takePicture call, so a live frame landing in the gap cannot start a second overlapping capture.
-    fun capture() {
-        if (!isCapturing.compareAndSet(false, true)) return
-        val barcode = liveState.liveBarcode
-        try {
-            controller.takePicture(
-                executor,
-                object : ImageCapture.OnImageCapturedCallback() {
-                    override fun onCaptureSuccess(image: ImageProxy) {
-                        val bitmap = image.toBitmap()
-                        val rotationDegrees = image.imageInfo.rotationDegrees
-                        image.close()
-                        scope.launch {
-                            try {
-                                currentOnCaptured(BitmapNutritionLabelImage(bitmap, rotationDegrees), barcode)
-                            } finally {
-                                isCapturing.set(false)
-                            }
-                        }
-                    }
-
-                    override fun onError(exception: ImageCaptureException) {
-                        Log.warning(exception, Constants.LogCategory.NUTRITION_LABEL_RECOGNITION)
-                        isCapturing.set(false)
-                        scope.launch { currentOnCaptureFailed() }
-                    }
-                },
-            )
-        } catch (error: IllegalStateException) {
-            Log.warning(error, Constants.LogCategory.NUTRITION_LABEL_RECOGNITION)
-            isCapturing.set(false)
-            scope.launch { currentOnCaptureFailed() }
+    // The window starts at the first frame that shows part of a table and restarts whenever a frame shows none;
+    // the user holds the phone over the label for SCAN_WINDOW_MILLIS, every live frame is read and the readings
+    // are merged at the end, so a digit misread in one frame is outvoted by the others.
+    suspend fun processLiveFrame(input: InputImage, width: Int, height: Int, rotationDegrees: Int) {
+        if (liveState.liveBarcode == null) liveState.liveBarcode = recognizer.detectBarcode(input)
+        val (uprightWidth, uprightHeight) = uprightSize(width, height, rotationDegrees)
+        val reading = NutritionLabelParser.parse(recognizer.recognizeLines(input, uprightWidth, uprightHeight))
+        val now = SystemClock.elapsedRealtime()
+        if (reading.recognizedFields.none { it != FoodItemFormField.MEASURE }) {
+            liveState.readings.clear()
+            liveState.windowStartedAtMillis = 0L
+            withContext(Dispatchers.Main) { currentOnProgress(0f) }
+            return
+        }
+        if (liveState.windowStartedAtMillis == 0L) liveState.windowStartedAtMillis = now
+        liveState.readings.add(reading)
+        val elapsed = now - liveState.windowStartedAtMillis
+        if (elapsed < SCAN_WINDOW_MILLIS) {
+            withContext(Dispatchers.Main) { currentOnProgress(elapsed.toFloat() / SCAN_WINDOW_MILLIS) }
+            return
+        }
+        val merged = NutritionLabelReadingMerger.merge(liveState.readings.toList())
+        liveState.readings.clear()
+        liveState.windowStartedAtMillis = 0L
+        withContext(Dispatchers.Main) {
+            currentOnProgress(0f)
+            currentOnRecognized(merged, liveState.liveBarcode)
         }
     }
 
-    suspend fun processLiveFrame(input: InputImage, width: Int, height: Int, rotationDegrees: Int) {
-        if (liveState.liveBarcode == null) liveState.liveBarcode = recognizer.detectBarcode(input)
-        if (!currentIsAutoCaptureEnabled) return
-        // A genuine label completes over many frames, so re-running the multi-keyword parse on
-        // every frame only adds CPU load.
-        val now = System.currentTimeMillis()
-        if (now - liveState.lastParseAtMillis < PARSE_THROTTLE_MILLIS) return
-        liveState.lastParseAtMillis = now
-        val (uprightWidth, uprightHeight) = uprightSize(width, height, rotationDegrees)
-        val lines = recognizer.recognizeLines(input, uprightWidth, uprightHeight)
-        // CameraController.takePicture throws when called off the main thread, and frames arrive on the executor.
-        if (NutritionLabelParser.parse(lines).isCompleteForAutoCapture) withContext(Dispatchers.Main) { capture() }
-    }
-
-    LaunchedEffect(manualCaptureRequest) {
-        if (manualCaptureRequest == lastManualCaptureRequest) return@LaunchedEffect
-        lastManualCaptureRequest = manualCaptureRequest
-        capture()
-    }
-
     DisposableEffect(controller) {
-        controller.setEnabledUseCases(CameraController.IMAGE_ANALYSIS or CameraController.IMAGE_CAPTURE)
-        controller.imageCaptureMode = ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
+        controller.setEnabledUseCases(CameraController.IMAGE_ANALYSIS)
         controller.imageAnalysisBackpressureStrategy = ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
+        controller.imageAnalysisResolutionSelector = ResolutionSelector.Builder()
+            .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+            .setResolutionStrategy(ResolutionStrategy(Size(ANALYSIS_WIDTH, ANALYSIS_HEIGHT), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
+            .build()
         val analysisScope = CoroutineScope(executor.asCoroutineDispatcher())
         controller.setImageAnalysisAnalyzer(executor) { imageProxy ->
             val mediaImage = imageProxy.image
-            if (mediaImage == null || currentIsProcessing || isCapturing.get()) {
+            if (mediaImage == null) {
                 imageProxy.close()
                 return@setImageAnalysisAnalyzer
             }

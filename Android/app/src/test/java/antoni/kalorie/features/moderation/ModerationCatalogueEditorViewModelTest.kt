@@ -5,9 +5,6 @@ import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseFake
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCaseProtocol
-import antoni.kalorie.core.nutritionlabelrecognition.StubNutritionLabelImage
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodItemError
@@ -112,17 +109,14 @@ class ModerationCatalogueEditorViewModelTest {
     }
 
     @Test
-    fun onNutritionLabelCaptured_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() = runTest {
-        val sut = makeSUT(
-            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
-            recognizeNutritionLabel = RecognizeNutritionLabelUseCaseFake(stubbedReading = NutritionLabelReading(fat = 999.0, fiber = 1.0)),
-        )
+    fun onNutritionLabelRecognized_onSuccess_closesCameraAndMergesWithoutTouchingFilledFields() = runTest {
+        val sut = makeSUT(fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()))
         sut.barcodeQuery.value = "12345678"
         sut.onSearchTapped()
         sut.isNutritionLabelCameraVisible.value = true
         val originalFat = sut.formInput.value.fat
 
-        sut.onNutritionLabelCaptured(StubNutritionLabelImage, liveBarcode = null)
+        sut.onNutritionLabelRecognized(NutritionLabelReading(fat = 999.0, fiber = 1.0), liveBarcode = null)
 
         assertFalse(sut.isNutritionLabelCameraVisible.value)
         assertEquals(originalFat, sut.formInput.value.fat, 0.0)
@@ -168,12 +162,10 @@ class ModerationCatalogueEditorViewModelTest {
     private fun makeSUT(
         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         updateFoodItem: UpdateFoodItemUseCaseProtocol = UpdateFoodItemUseCaseFake(),
-        recognizeNutritionLabel: RecognizeNutritionLabelUseCaseProtocol = RecognizeNutritionLabelUseCaseFake(),
         initialBarcode: String? = null,
     ): ModerationCatalogueEditorViewModel = ModerationCatalogueEditorViewModel(
         fetchFoodItemByBarcode = fetchFoodItemByBarcode,
         updateFoodItem = updateFoodItem,
-        recognizeNutritionLabelUseCase = recognizeNutritionLabel,
         initialBarcode = initialBarcode,
     )
 

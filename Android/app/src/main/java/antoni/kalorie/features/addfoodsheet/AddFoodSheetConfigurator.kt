@@ -5,8 +5,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
-import antoni.kalorie.core.nutritionlabelrecognition.MlKitTextRecognizer
-import antoni.kalorie.core.nutritionlabelrecognition.RecognizeNutritionLabelUseCase
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.DeleteMySubmissionUseCase
@@ -60,7 +58,6 @@ class AddFoodSheetConfigurator(
                 refreshFavouriteFood = RefreshFavouriteFoodUseCase(dataProvider, authProvider),
                 fetchMyCreatedMeals = FetchMyCreatedMealsUseCase(dataProvider, authProvider),
                 deleteMyCreatedMeal = DeleteMyCreatedMealUseCase(dataProvider, authProvider),
-                recognizeNutritionLabelUseCase = MlKitTextRecognizer().let { RecognizeNutritionLabelUseCase(it, it) },
                 onFoodSaved = onFoodSaved,
             )
         }

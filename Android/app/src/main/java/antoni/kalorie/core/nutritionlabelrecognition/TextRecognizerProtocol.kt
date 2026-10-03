@@ -6,17 +6,7 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.tasks.await
 
-interface TextRecognizerProtocol {
-    suspend fun recognizeText(image: NutritionLabelImage): List<RecognizedTextLine>
-}
-
-interface BarcodeDetectorProtocol {
-    suspend fun detectBarcode(image: NutritionLabelImage): String?
-}
-
-class MlKitTextRecognizer :
-    TextRecognizerProtocol,
-    BarcodeDetectorProtocol {
+class MlKitTextRecognizer {
 
     // MARK: - Properties
 
@@ -24,14 +14,6 @@ class MlKitTextRecognizer :
     private val barcodeClient = BarcodeScanning.getClient()
 
     // MARK: - Functions
-
-    override suspend fun recognizeText(image: NutritionLabelImage): List<RecognizedTextLine> {
-        val bitmap = image.toBitmap()
-        val (uprightWidth, uprightHeight) = uprightSize(bitmap.width, bitmap.height, image.rotationDegrees)
-        return recognizeLines(InputImage.fromBitmap(bitmap, image.rotationDegrees), uprightWidth, uprightHeight)
-    }
-
-    override suspend fun detectBarcode(image: NutritionLabelImage): String? = detectBarcode(InputImage.fromBitmap(image.toBitmap(), image.rotationDegrees))
 
     suspend fun recognizeLines(input: InputImage, uprightWidth: Int, uprightHeight: Int): List<RecognizedTextLine> {
         val result = textClient.process(input).await()

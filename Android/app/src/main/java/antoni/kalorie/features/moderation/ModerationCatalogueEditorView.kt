@@ -65,7 +65,6 @@ fun ModerationCatalogueEditorView(
     val showCheckmark by viewModel.showCheckmark.collectAsState()
     val recognizedFields by viewModel.recognizedFields.collectAsState()
     val isNutritionLabelCameraVisible by viewModel.isNutritionLabelCameraVisible.collectAsState()
-    val isRecognizingNutritionLabel by viewModel.isRecognizingNutritionLabel.collectAsState()
     val nutritionLabelCameraHintRes by viewModel.nutritionLabelCameraHintRes.collectAsState()
     val scope = rememberCoroutineScope()
     val scannerAccess = rememberScannerAccess(
@@ -163,9 +162,8 @@ fun ModerationCatalogueEditorView(
             properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
         ) {
             NutritionLabelCameraView(
-                isRecognizing = isRecognizingNutritionLabel,
                 hint = nutritionLabelCameraHintRes?.let { stringResource(it) },
-                onCaptured = viewModel::onNutritionLabelCaptured,
+                onRecognized = viewModel::onNutritionLabelRecognized,
                 onClose = { viewModel.isNutritionLabelCameraVisible.value = false },
             )
         }
