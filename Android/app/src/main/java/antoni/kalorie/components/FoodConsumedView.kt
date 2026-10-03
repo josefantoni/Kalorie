@@ -1,9 +1,10 @@
 package antoni.kalorie.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -13,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.core.models.FoodConsumedDomain
@@ -23,14 +25,29 @@ fun FoodConsumedView(foodConsumed: FoodConsumedDomain, modifier: Modifier = Modi
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(80.dp)
-            .padding(16.dp),
+            .heightIn(min = 50.dp)
+            .padding(start = 16.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Text(foodConsumed.weight.formattedAmount(measure = foodConsumed.measure, fractionDigits = 0))
-        Text(foodConsumed.displayName, modifier = Modifier.weight(1f))
-        Text("${foodConsumed.calories} kcal")
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                foodConsumed.displayName,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                foodConsumed.weight.formattedAmount(measure = foodConsumed.measure, fractionDigits = 0),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(
+            "${foodConsumed.calories} kcal",
+            style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"),
+            softWrap = false,
+        )
         Icon(
             Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
