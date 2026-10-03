@@ -47,7 +47,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -415,18 +414,16 @@ fun SwipeToDeleteRow(
     content: @Composable () -> Unit,
 ) {
     val currentOnDeleteRequested by rememberUpdatedState(onDeleteRequested)
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
-                currentOnDeleteRequested()
-            }
-            false
-        },
-    )
+    val dismissState = rememberSwipeToDismissBoxState()
+    val scope = rememberCoroutineScope()
 
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
+        onDismiss = {
+            currentOnDeleteRequested()
+            scope.launch { dismissState.reset() }
+        },
         backgroundContent = {
             Box(
                 modifier = Modifier
