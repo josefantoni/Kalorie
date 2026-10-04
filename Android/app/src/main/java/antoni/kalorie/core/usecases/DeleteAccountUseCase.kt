@@ -46,15 +46,7 @@ class DeleteAccountUseCase(
         }
         // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
         // account that follows the deletion. Idempotent, so a retry with skipDataWipe is safe.
-        // A local I/O failure here is not worth blocking deletion over: a stray snapshot file is
-        // harmless, it is overwritten or ignored on the next merge.
-        try {
-            snapshotStore.delete()
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Log.error(error, Constants.LogCategory.ACCOUNT)
-        }
+        snapshotStore.delete()
         if (!skipDataWipe) wipeFirestoreData(userId)
         try {
             authCommandProvider.deleteCurrentUser()
