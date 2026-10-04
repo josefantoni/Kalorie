@@ -31,7 +31,15 @@ struct FetchMealTypesUseCase: FetchMealTypesUseCaseProtocol {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let dtos: [MealTypeDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.mealTypes(userId: userId))
         return dtos
-            .map { MealTypeDomain(id: $0.id, name: $0.name, startMinutes: $0.startMinutes, endMinutes: $0.endMinutes) }
+            .map { dto in
+                MealTypeDomain(
+                    id: dto.id,
+                    name: dto.defaultKey.flatMap { L10n.DefaultMeals.name(forKey: $0) } ?? dto.name,
+                    startMinutes: dto.startMinutes,
+                    endMinutes: dto.endMinutes,
+                    defaultKey: dto.defaultKey
+                )
+            }
             .sorted { $0.startMinutes < $1.startMinutes }
     }
 }

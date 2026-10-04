@@ -39,6 +39,22 @@ final class SetupDefaultMealsUseCaseTests: XCTestCase {
         XCTAssertEqual(result[1].startMinutes, result[0].endMinutes, "windows must be contiguous, or foods logged between them match no meal")
     }
 
+    func test_setupDefaultMeals_writesFiveDistinctDefaultKeysInBoundaryOrder() async throws {
+        let (sut, dataProvider) = makeSUT()
+        _ = try await sut()
+        XCTAssertEqual(
+            dataProvider.batchSavedItems.map { $0.defaultKey },
+            ["breakfast", "secondBreakfast", "lunch", "snack", "dinner"],
+            "the key is what lets another device show the meal in its own language"
+        )
+    }
+
+    func test_setupDefaultMeals_returnsDomainsCarryingTheSameKeysAsTheWrittenDocuments() async throws {
+        let (sut, dataProvider) = makeSUT()
+        let result = try await sut()
+        XCTAssertEqual(result.map { $0.defaultKey }, dataProvider.batchSavedItems.map { $0.defaultKey })
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> (sut: SetupDefaultMealsUseCase, dataProvider: SetupDefaultMealsDataProviderFake) {
@@ -53,6 +69,7 @@ private final class SetupDefaultMealsDataProviderFake: FirestoreDataProviderProt
     // MARK: - Properties
 
     var batchSavedCount = 0
+    var batchSavedItems: [MealTypeDTO] = []
 
     // MARK: - Functions
 
@@ -70,6 +87,7 @@ private final class SetupDefaultMealsDataProviderFake: FirestoreDataProviderProt
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {
         batchSavedCount = items.count
+        batchSavedItems = items.compactMap { $0.item as? MealTypeDTO }
     }
     func deleteAsync(id: String, from collection: String) async throws {}
 }

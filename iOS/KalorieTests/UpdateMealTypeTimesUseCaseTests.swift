@@ -49,6 +49,16 @@ final class UpdateMealTypeTimesUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.batchSetItems.first?.item.name, "Oběd")
     }
 
+    func test_updateMealTypeTimes_preservesDefaultKey() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut([
+            MealTypeDomain(id: "lunch", name: "Oběd", startMinutes: 0, endMinutes: 0, defaultKey: "lunch"),
+            makeMealType(id: "custom")
+        ])
+
+        XCTAssertEqual(dataProvider.batchSetItems.map { $0.item.defaultKey }, ["lunch", nil], "dropping the key on a reorder would turn a default meal into a user-named one")
+    }
+
     func test_updateMealTypeTimes_whenNotAuthenticated_throwsAuthErrorAndNeverWrites() async throws {
         let (sut, dataProvider) = makeSUT(userId: nil)
         do {

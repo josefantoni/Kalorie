@@ -44,6 +44,41 @@ final class FetchMealTypesUseCaseTests: XCTestCase {
         XCTAssertEqual(result[0].endMinutes, 1410)
     }
 
+    func test_fetchMealTypes_withKnownDefaultKey_resolvesCurrentLanguageNameIgnoringStoredName() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedMealTypes = [
+            MealTypeDTO(id: "0", name: "stored in another language", startMinutes: 300, endMinutes: 510, defaultKey: "breakfast")
+        ]
+
+        let result = try await sut()
+
+        XCTAssertEqual(result[0].name, L10n.DefaultMeals.breakfast, "a default meal must follow the language of the device showing it")
+        XCTAssertEqual(result[0].defaultKey, "breakfast")
+    }
+
+    func test_fetchMealTypes_withoutDefaultKey_keepsStoredName() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedMealTypes = [
+            MealTypeDTO(id: "0", name: "Brunch", startMinutes: 300, endMinutes: 510)
+        ]
+
+        let result = try await sut()
+
+        XCTAssertEqual(result[0].name, "Brunch", "a user-named meal must show exactly what the user typed")
+        XCTAssertNil(result[0].defaultKey)
+    }
+
+    func test_fetchMealTypes_withUnknownDefaultKey_keepsStoredName() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedMealTypes = [
+            MealTypeDTO(id: "0", name: "Brunch", startMinutes: 300, endMinutes: 510, defaultKey: "brunch")
+        ]
+
+        let result = try await sut()
+
+        XCTAssertEqual(result[0].name, "Brunch", "a key from a newer client must not blank out the name")
+    }
+
     func test_fetchMealTypes_whenProviderThrowsDecodingError_throwsError() async {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedError = DecodingError.dataCorrupted(

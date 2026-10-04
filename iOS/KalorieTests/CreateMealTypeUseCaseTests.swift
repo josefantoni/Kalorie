@@ -115,6 +115,12 @@ final class CreateMealTypeUseCaseTests: XCTestCase {
         XCTAssertNotEqual(result.id, existing.id, "a new meal type must never reuse an id already in use, since Firestore's setAsync would silently overwrite that document")
     }
 
+    func test_createMealType_returnsMealTypeWithoutDefaultKey() async throws {
+        let (sut, _) = makeSUT()
+        let result = try await sut(name: "Brunch", startMinutes: 660, endMinutes: 780, existingMealTypes: [])
+        XCTAssertNil(result.defaultKey, "only the default setup may write a key, or a user's meal would be renamed with the app language")
+    }
+
     func test_createMealType_calledTwiceFromSameExistingSnapshot_assignsDistinctIds() async throws {
         let (sut, _) = makeSUT()
         let first = try await sut(

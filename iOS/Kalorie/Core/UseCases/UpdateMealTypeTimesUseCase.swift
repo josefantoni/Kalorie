@@ -35,7 +35,8 @@ struct UpdateMealTypeTimesUseCase: UpdateMealTypeTimesUseCaseProtocol {
                     id: mealType.id,
                     name: mealType.name,
                     startMinutes: mealType.startMinutes,
-                    endMinutes: mealType.endMinutes
+                    endMinutes: mealType.endMinutes,
+                    defaultKey: mealType.defaultKey
                 ),
                 id: mealType.id
             )

@@ -45,6 +45,17 @@ final class SettingsViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onMove_keepsDefaultKeyWithTheMovedMealType() {
+        let keyed = MealTypeDomain(id: "0", name: "A", startMinutes: 8 * 60, endMinutes: 12 * 60, defaultKey: "breakfast")
+        let sut = makeSUT(mealTypes: [keyed, makeMealType(id: 1, name: "B", hour: 12, endHour: 16)])
+
+        sut.onMove(from: IndexSet(integer: 0), to: 2)
+
+        XCTAssertNil(sut.mealTypes[0].defaultKey)
+        XCTAssertEqual(sut.mealTypes[1].defaultKey, "breakfast", "a reorder must not turn a default meal into a user-named one")
+    }
+
+    @MainActor
     func test_onMove_setsHasPendingReorder() {
         let meal0 = makeMealType(id: 0, name: "A", hour: 8, endHour: 12)
         let meal1 = makeMealType(id: 1, name: "B", hour: 12, endHour: 16)
