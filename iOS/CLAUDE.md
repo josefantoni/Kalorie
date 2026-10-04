@@ -249,7 +249,8 @@ Deployment target je iOS 26 — používej Liquid Glass bez `@available` podmín
 ```
 
 - `.safeAreaInset` místo `ToolbarItem(.bottomBar)` — správně odsadí obsah pod tlačítkem
-- `.glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)` — glass v primární barvě s explicitně bílou ikonkou; bez `.foregroundStyle(.white)` by ikonka byla modrá na modrém. Čirý `.glassEffect(.regular, in: .circle)` je jen pro sekundární akce
+- `.glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)` — glass v akcentové barvě aplikace (zelená `AccentColor` z asset katalogu, ne systémová modrá) s explicitně bílou ikonkou; bez `.foregroundStyle(.white)` by ikonka převzala akcent a byla zelená na zeleném. Čirý `.glassEffect(.regular, in: .circle)` je jen pro sekundární akce
+- Barvy nikdy nepiš jako literál (`.red`, `.blue`, `Color(red:…)`) — vždy role z asset katalogu přes generované symboly (`Color.protein`, `Color.favourite`, …), viz `docs/ARCHITECTURE.md` § 5.6
 - Bez `.buttonStyle(.glassProminent)` na FABu — přidává vlastní vnitřní okraj a kruh se zvětší
 - Pro centrování vynech `HStack { Spacer(); ... }` — `safeAreaInset` centruje obsah ve výchozím stavu
 - Pro zarovnání vpravo dole: `HStack { Spacer(); Button; ... }` s `.padding(.trailing, 20)`
