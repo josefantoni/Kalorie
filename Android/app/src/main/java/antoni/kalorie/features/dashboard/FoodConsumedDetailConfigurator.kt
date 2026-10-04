@@ -34,7 +34,7 @@ class FoodConsumedDetailConfigurator(
         onBack: () -> Unit,
         onFoodUpdated: () -> Unit,
     ) {
-        val context = LocalContext.current
+        val context = LocalContext.current.applicationContext
         val stringProvider = remember { ContextStringProvider(context) }
         val viewModel = viewModel {
             FoodConsumedDetailViewModel(

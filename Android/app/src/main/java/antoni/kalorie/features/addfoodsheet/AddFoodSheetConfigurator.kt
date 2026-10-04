@@ -47,7 +47,7 @@ class AddFoodSheetConfigurator(
 
     @Composable
     fun createView(date: Instant, mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onFoodSaved: () -> Unit = {}) {
-        val context = LocalContext.current
+        val context = LocalContext.current.applicationContext
         val stringProvider = remember { ContextStringProvider(context) }
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             AddFoodSheetViewModel(

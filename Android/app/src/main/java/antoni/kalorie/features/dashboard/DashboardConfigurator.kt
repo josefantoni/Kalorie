@@ -36,9 +36,9 @@ class DashboardConfigurator {
         val languageTag = LocalConfiguration.current.locales[0].toLanguageTag()
         val dataProvider = remember { FirestoreDataProvider() }
         val authProvider = remember { AuthProvider() }
-        val context = LocalContext.current
+        val context = LocalContext.current.applicationContext
         val stringProvider = remember { ContextStringProvider(context) }
-        val signInSpotlightStore = remember { SignInSpotlightStore(context.applicationContext) }
+        val signInSpotlightStore = remember { SignInSpotlightStore(context) }
         val viewModel = viewModel(key = "$userId/$languageTag") {
             DashboardViewModel(
                 fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider, stringProvider),
