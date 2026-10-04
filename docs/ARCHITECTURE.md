@@ -205,7 +205,9 @@ from the catalogue (ADR 0009).
 (0–1439), stored **unrenamed in camelCase**, unlike every other DTO except `UserProfileDTO`
 (`displayName`, `email`), which also has no `CodingKeys` and so is camelCase on the wire. A window may wrap past
 midnight (`endMinutes <= startMinutes`; equal values mean a window covering the whole day);
-`MealKit` owns that arithmetic.
+`MealKit` owns that arithmetic. `defaultKey` is optional and written only by
+`SetupDefaultMealsUseCase`: one of `breakfast`, `secondBreakfast`, `lunch`, `snack`, `dinner`,
+the suffixes of the `defaultMeals_*` strings (§ 3.4).
 
 **`favouriteFoods`** (`FavouriteFoodDTO`) — a full copy of the `FoodItemDomain` plus
 `favourited_at`, `portions` included — leaving it out would silently drop a favourited item's
@@ -449,6 +451,7 @@ ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
 | | *nutrition field set* | | | |
 | **`mealTypes`** (`MealTypeDTO`) | `id`, `name` | string | yes | user-scoped only |
 | | `startMinutes`, `endMinutes` | **integer**, minutes since midnight, **camelCase** | yes | |
+| | `defaultKey` | string, one of the five default meal keys, **camelCase** | no | absent on user-created meal types |
 | **`foodItemPortions`** (`FoodItemPersonalPortionsDTO`) | `id` | string, the barcode | yes | user-scoped only |
 | | `portions` | array of `{name, grams}` | yes | |
 | **`users/{userId}`** (`UserProfileDTO`) | `displayName`, `email` | string, **camelCase** | no | user-scoped only |
@@ -889,13 +892,27 @@ return empty for a user who has meal types. `ConfirmMealTypesEmptyUseCase` re-as
 `source: .server` before the defaults get written over them. Both calls are needed; dropping
 either reintroduces the bug.
 
+The defaults are five contiguous windows covering 05:00–20:00: breakfast 05:00–08:30, second
+breakfast 08:30–11:00, lunch 11:00–14:30, snack 14:30–17:00, dinner 17:00–20:00. 20:00–05:00
+belongs to no meal, so a food logged then lands in the unassigned section (§ 3.2). Each default
+carries a `defaultKey`, and the name is resolved once where the DTO becomes a domain
+(`FetchMealTypesUseCase`, and the domains `SetupDefaultMealsUseCase` returns): a known key gives
+the current-language `defaultMeals_<key>` string, an absent or unknown key gives the stored `name`.
+`name` is still written (the creating device's string) so a document stays readable by anything
+that ignores the key. Every writer that copies a meal type (`UpdateMealTypeTimesUseCase`, the
+reorder in `SettingsViewModel`) carries `defaultKey` through; `CreateMealTypeUseCase` never writes
+one. There is no migration: meal types without a key keep their stored name. The boundary list is
+written twice, once in each platform's `SetupDefaultMealsUseCase`, and nothing checks that the two
+agree.
+
 Editing happens in `SettingsViewModel`, and the set of possible edits is deliberately
 narrow:
 
 - **Create** — validated in `CreateMealTypeUseCase` per
   [ADR 0035](adr/0035-meal-type-creation-rules-are-a-cross-platform-contract.md): the name is
   trimmed and must then be non-empty and unique among the existing names, compared trimmed and
-  case-insensitively; the window is at least `MealKit`'s `MIN_MEAL_WINDOW_MINUTES` (30) long and
+  case-insensitively (against the resolved names, so on an English device "Breakfast" is refused
+  while the default breakfast exists and "Snídaně" is accepted); the window is at least `MealKit`'s `MIN_MEAL_WINDOW_MINUTES` (30) long and
   overlaps no existing window. The validation runs against the
   `existingMealTypes` array the sheet passes in, i.e. against client state, never against the
   server.

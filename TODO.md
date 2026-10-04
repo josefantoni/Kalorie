@@ -83,8 +83,8 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   both sides. The input and output are primitives (minutes since midnight), so
   [ADR 0039](docs/adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) § 1 calls for a
   `MealKit` constant (next to `MIN_MEAL_WINDOW_MINUTES`) that both use cases read, with the contiguity
-  check (each window starts where the previous one ends) in `MealKit`'s `commonTest`. Then describe
-  the default layout in `docs/ARCHITECTURE.md` § 3, which does not mention it today.
+  check (each window starts where the previous one ends) in `MealKit`'s `commonTest`. ARCHITECTURE
+  § 3.4 lists the boundaries; point it at the `MealKit` constant once it exists.
 - **Check the recent Android fixes by hand on an emulator or device** — they were only built and unit
   tested; the camera and the touch handling cannot be covered that way. The barcode scanner must release
   the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
