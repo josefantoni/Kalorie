@@ -88,7 +88,7 @@
     <string name="addFood_submission_rejectedReason">Rejected: %1$s</string>
     <string name="addFood_submission_submitted">Submitted for approval</string>
     <string name="addFood_submission_submittedMessage">We\'ve sent what you entered to the maintainer for approval. Until then, the item won\'t be visible in the food catalogue. You\'ll find its status under \"My submissions\" the next time you open Add food.</string>
-    <string name="addFood_warning_missingBarcode">Without a barcode you won\'t be able to find this item by scanning.</string>
+    <string name="addFood_warning_missingBarcode">A barcode is optional. With one, you can find this item by scanning next time.</string>
     <string name="auth_button_retry">Try again</string>
     <string name="auth_error_signInFailed">Sign in failed</string>
     <string name="auth_mergingMessage">Merging this device\'s data into your account…</string>
