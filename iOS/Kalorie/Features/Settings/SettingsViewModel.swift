@@ -125,7 +125,8 @@ final class SettingsViewModel: ObservableObject {
                 id: mealTypes[index].id,
                 name: mealTypes[index].name,
                 startMinutes: startMinutes,
-                endMinutes: endMinutes
+                endMinutes: endMinutes,
+                defaultKey: mealTypes[index].defaultKey
             )
         }
         hasPendingReorder = true
