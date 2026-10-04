@@ -115,7 +115,7 @@ class SettingsViewModel(
         moved.add(if (to > from) to - 1 else to, movedMealType)
         mealTypes.value = moved.mapIndexed { index, mealType ->
             val (startMinutes, endMinutes) = originalTimes[index]
-            MealTypeDomain(id = mealType.id, name = mealType.name, startMinutes = startMinutes, endMinutes = endMinutes)
+            mealType.copy(startMinutes = startMinutes, endMinutes = endMinutes)
         }
         _hasPendingReorder.value = true
     }

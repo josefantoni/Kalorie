@@ -8,6 +8,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -107,6 +108,15 @@ class CreateMealTypeUseCaseTest {
         val result = sut(name = "Oběd", startMinutes = 660, endMinutes = 780, existingMealTypes = emptyList())
 
         assertEquals(result.id.uppercase(), result.id)
+    }
+
+    @Test
+    fun createMealType_returnsMealTypeWithoutDefaultKey() = runTest {
+        val (sut, _) = makeSUT()
+
+        val result = sut(name = "Brunch", startMinutes = 660, endMinutes = 780, existingMealTypes = emptyList())
+
+        assertNull("only the default setup may write a key, or a user's meal would be renamed with the app language", result.defaultKey)
     }
 
     @Test

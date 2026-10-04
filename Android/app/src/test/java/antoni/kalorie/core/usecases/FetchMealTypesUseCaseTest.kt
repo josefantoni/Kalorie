@@ -1,11 +1,14 @@
 package antoni.kalorie.core.usecases
 
+import antoni.kalorie.R
 import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.MealTypeDTO
+import antoni.kalorie.core.utils.StringProviderFake
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -63,11 +66,49 @@ class FetchMealTypesUseCaseTest {
         }
     }
 
+    @Test
+    fun fetchMealTypes_withKnownDefaultKey_resolvesCurrentLanguageNameIgnoringStoredName() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDocuments = listOf(
+            MealTypeDTO(id = "0", name = "stored in another language", startMinutes = 300, endMinutes = 510, defaultKey = "breakfast"),
+        )
+
+        val result = sut()
+
+        assertEquals("a default meal must follow the language of the device showing it", StringProviderFake().getString(R.string.defaultMeals_breakfast), result[0].name)
+        assertEquals("breakfast", result[0].defaultKey)
+    }
+
+    @Test
+    fun fetchMealTypes_withoutDefaultKey_keepsStoredName() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDocuments = listOf(
+            MealTypeDTO(id = "0", name = "Brunch", startMinutes = 300, endMinutes = 510),
+        )
+
+        val result = sut()
+
+        assertEquals("a user-named meal must show exactly what the user typed", "Brunch", result[0].name)
+        assertNull(result[0].defaultKey)
+    }
+
+    @Test
+    fun fetchMealTypes_withUnknownDefaultKey_keepsStoredName() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedDocuments = listOf(
+            MealTypeDTO(id = "0", name = "Brunch", startMinutes = 300, endMinutes = 510, defaultKey = "brunch"),
+        )
+
+        val result = sut()
+
+        assertEquals("a key from a newer client must not blank out the name", "Brunch", result[0].name)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(): Pair<FetchMealTypesUseCase, FirestoreDataProviderFake> {
         val dataProvider = FirestoreDataProviderFake()
-        val sut = FetchMealTypesUseCase(dataProvider = dataProvider, authProvider = AuthProviderFake())
+        val sut = FetchMealTypesUseCase(dataProvider = dataProvider, authProvider = AuthProviderFake(), stringProvider = StringProviderFake())
         return sut to dataProvider
     }
 }

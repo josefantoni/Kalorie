@@ -56,6 +56,19 @@ class UpdateMealTypeTimesUseCaseTest {
     }
 
     @Test
+    fun updateMealTypeTimes_preservesDefaultKey() = runTest {
+        val (sut, dataProvider) = makeSUT()
+
+        sut(listOf(MealTypeDomain(id = "lunch", name = "Oběd", startMinutes = 0, endMinutes = 0, defaultKey = "lunch"), makeMealType(id = "custom")))
+
+        assertEquals(
+            "dropping the key on a reorder would turn a default meal into a user-named one",
+            listOf("lunch", null),
+            dataProvider.batchSavedItems.map { (it.first as MealTypeDTO).defaultKey },
+        )
+    }
+
+    @Test
     fun updateMealTypeTimes_whenNotAuthenticated_throwsAuthErrorAndNeverWrites() = runTest {
         val (sut, dataProvider) = makeSUT(userId = null)
 

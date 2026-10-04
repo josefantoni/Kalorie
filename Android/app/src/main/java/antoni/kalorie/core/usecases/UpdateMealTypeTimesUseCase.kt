@@ -27,6 +27,7 @@ class UpdateMealTypeTimesUseCase(
                 name = mealType.name,
                 startMinutes = mealType.startMinutes,
                 endMinutes = mealType.endMinutes,
+                defaultKey = mealType.defaultKey,
             ) to mealType.id
         }
         dataProvider.batchSetAsync(dtos, inCollection = Constants.Firestore.mealTypes(userId))

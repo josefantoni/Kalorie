@@ -7,6 +7,8 @@ import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.MealTypeDTO
 import antoni.kalorie.core.networking.batchSetAsync
 import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.core.utils.DefaultMeals
+import antoni.kalorie.core.utils.StringProvider
 import java.util.UUID
 
 interface SetupDefaultMealsUseCaseProtocol {
@@ -16,7 +18,7 @@ interface SetupDefaultMealsUseCaseProtocol {
 class SetupDefaultMealsUseCase(
     private val dataProvider: FirestoreDataProviderProtocol,
     private val authProvider: AuthProviderProtocol,
-    private val mealNames: List<String>,
+    private val stringProvider: StringProvider,
 ) : SetupDefaultMealsUseCaseProtocol {
 
     // MARK: - Functions
@@ -26,7 +28,8 @@ class SetupDefaultMealsUseCase(
         val dtos = mutableListOf<Pair<MealTypeDTO, String>>()
         val domains = mutableListOf<MealTypeDomain>()
 
-        for ((index, mealName) in mealNames.withIndex()) {
+        for ((index, defaultKey) in DefaultMeals.keys.withIndex()) {
+            val mealName = DefaultMeals.name(defaultKey, stringProvider) ?: defaultKey
             val startMinutes = DEFAULT_BOUNDARIES[index]
             val endMinutes = DEFAULT_BOUNDARIES[index + 1]
             val id = UUID.randomUUID().toString().uppercase()
@@ -35,8 +38,15 @@ class SetupDefaultMealsUseCase(
                 name = mealName,
                 startMinutes = startMinutes,
                 endMinutes = endMinutes,
+                defaultKey = defaultKey,
             ) to id
-            domains += MealTypeDomain(id = id, name = mealName, startMinutes = startMinutes, endMinutes = endMinutes)
+            domains += MealTypeDomain(
+                id = id,
+                name = mealName,
+                startMinutes = startMinutes,
+                endMinutes = endMinutes,
+                defaultKey = defaultKey,
+            )
         }
 
         dataProvider.batchSetAsync(dtos, inCollection = Constants.Firestore.mealTypes(userId))

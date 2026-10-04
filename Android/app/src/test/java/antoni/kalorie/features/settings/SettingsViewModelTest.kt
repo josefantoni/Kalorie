@@ -57,6 +57,18 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun onMove_keepsDefaultKeyWithTheMovedMealType() {
+        val keyed = MealTypeDomain(id = "0", name = "A", startMinutes = 8 * 60, endMinutes = 12 * 60, defaultKey = "breakfast")
+        val sut = makeSUT(mealTypes = listOf(keyed, makeMealType(id = 1, name = "B", hour = 12, endHour = 16)))
+
+        sut.onMove(from = 0, to = 2)
+
+        val result = sut.mealTypes.value
+        assertNull(result[0].defaultKey)
+        assertEquals("a reorder must not turn a default meal into a user-named one", "breakfast", result[1].defaultKey)
+    }
+
+    @Test
     fun onMove_setsHasPendingReorder() {
         val sut = makeSUT(
             mealTypes = listOf(
