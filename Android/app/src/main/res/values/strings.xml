@@ -88,7 +88,7 @@
     <string name="addFood_submission_rejectedReason">Zamítnuto: %1$s</string>
     <string name="addFood_submission_submitted">Odesláno ke schválení</string>
     <string name="addFood_submission_submittedMessage">Zadané údaje jsme odeslali správci ke schválení. Do té doby položka nebude v katalogu potravin viditelná. Stav najdeš v sekci „Moje příspěvky“, až příště otevřeš přidání potraviny.</string>
-    <string name="addFood_warning_missingBarcode">Bez čárového kódu potravinu nenajdete při vyhledávání katalogu přes čárový kod</string>
+    <string name="addFood_warning_missingBarcode">Čárový kód není povinný. S ním půjde potravinu příště najít skenerem.</string>
     <string name="auth_button_retry">Zkusit znovu</string>
     <string name="auth_error_signInFailed">Nepodařilo se přihlásit</string>
     <string name="auth_mergingMessage">Slučujeme data z tohoto zařízení s tvým účtem…</string>
