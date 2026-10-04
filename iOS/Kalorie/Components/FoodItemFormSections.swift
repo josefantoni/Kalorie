@@ -76,7 +76,7 @@ struct FoodItemFormSections: View {
                 FloatingLabelTextField(
                     title: L10n.AddFood.fieldBarcodeTitle,
                     text: $formInput.scannedCode,
-                    message: formInput.scannedCode.isEmpty ? .warning(L10n.AddFood.warningMissingBarcode) : nil,
+                    message: formInput.scannedCode.isEmpty ? .hint(L10n.AddFood.warningMissingBarcode) : nil,
                     keyboardType: .numberPad
                 )
                 BaseButton(style: .plain, imageName: .barCode, imageSize: .medium) {

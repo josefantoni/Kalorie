@@ -352,8 +352,8 @@
     "en": "We've sent what you entered to the maintainer for approval. Until then, the item won't be visible in the food catalogue. You'll find its status under \"My submissions\" the next time you open Add food."
   },
   "addFood_warning_missingBarcode": {
-    "cs": "Bez čárového kódu potravinu nenajdete při vyhledávání katalogu přes čárový kod",
-    "en": "Without a barcode you won't be able to find this item by scanning."
+    "cs": "Čárový kód není povinný. S ním půjde potravinu příště najít skenerem.",
+    "en": "A barcode is optional. With one, you can find this item by scanning next time."
   },
   "auth_button_retry": {
     "cs": "Zkusit znovu",
