@@ -203,7 +203,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertNil(snapshotStore.stubbedSnapshot, "the first attempt may have failed before reaching the snapshot, so the retry must still clear it")
     }
 
-    func test_callAsFunction_whenSnapshotDeleteFails_stillDeletesTheAccount() async throws {
+    func test_callAsFunction_whenSnapshotDeleteFails_deletesNothingElse() async {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
         dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
@@ -211,12 +211,12 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         snapshotStore.deleteError = URLError(.unknown)
         let sut = makeSUT(dataProvider: dataProvider, log: log, snapshotStore: snapshotStore)
 
-        try await sut()
-
-        XCTAssertTrue(
-            log.entries.contains("deleteFood:f1") && log.entries.contains("deleteCurrentUser"),
-            "a stray snapshot file is harmless and gets overwritten or ignored on the next merge, so it must not block account deletion"
-        )
+        do {
+            try await sut()
+            XCTFail("Expected the snapshot error to be thrown")
+        } catch {
+            XCTAssertTrue(log.entries.isEmpty, "the account must survive intact when the snapshot cannot be cleared, so the user can retry")
+        }
     }
 
     func test_callAsFunction_whenDeleteFailsWithOtherError_propagatesError() async {
