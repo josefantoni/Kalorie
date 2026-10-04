@@ -42,7 +42,8 @@ barcode-keyed `foodItemPortions` collection), [design 0009](design/0009-catalogu
 `foodItemSubmissions` — see § 7),
 [design 0011](design/0011-food-measure-grams-or-millilitres.md) (`measure_unit` on `foodItems`,
 `favouriteFoods` and `foodConsumed`, and why the numbers are never converted between grams and
-millilitres).
+millilitres), [design 0019](design/0019-alcoholic-drink-accuracy-hint.md) (`alcohol_by_volume` on
+the same three collections).
 
 ### 1.1 Layering
 
@@ -143,6 +144,12 @@ These are the contract a second client has to match exactly.
   is ever applied. Only amounts of the food itself carry this label — nutrient amounts (fat,
   protein, sugar, salt, fibre) are always grams of nutrient. See
   [design 0011](design/0011-food-measure-grams-or-millilitres.md).
+- **A food may carry `alcohol_by_volume`**, a percentage in `(0, 100]`, optional on read and absent
+  meaning *not recorded*. Zero is never written — an empty or zero input is stored as absent — and a
+  reader treats zero as absent. An item is an alcoholic drink when the value is above 1.2
+  (`MacroKit.isAlcoholicDrink`), which shows the accuracy hint. Every path that copies
+  `measure_unit` copies this field too. See
+  [design 0019](design/0019-alcoholic-drink-accuracy-hint.md).
 
 ### 1.4 Per-collection shape
 
@@ -172,6 +179,8 @@ accepts that duplication and pins both sides to a shared fixture,
 `TextKit/fixtures/text-kit-cases.json`, which the Kotlin tests now read from `jvmTest`
 ([ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)). Also carries optional `measure_unit` (§ 1.3), absent
 meaning grams; there is no backfill script for it, since absent already means the correct value.
+Also carries optional `alcohol_by_volume` (§ 1.3), absent meaning not recorded, likewise never
+backfilled.
 
 **`foodConsumed`** (`FoodConsumedDTO`) — one logged entry. Values are **absolute for the logged
 weight**, already scaled, not per 100 g; `calories` is an `Int`. `food_item_id` points back at
@@ -188,7 +197,9 @@ logged before those fields were persisted still decode — they were never backf
 falls back to `MacroKit.energyKJFromMacros` when absent, `fat_saturated` and `fiber` stay `nil`.
 Also carries `measure_unit`, absent meaning grams — `FoodConsumedDomain.copy(...)` must pass it
 through explicitly (it is a `var` on a memberwise init, not caught by the compiler), since missing
-it would relabel an edited millilitre entry as grams.
+it would relabel an edited millilitre entry as grams. Also carries optional `alcohol_by_volume`
+(§ 1.3), because the consumed-entry detail shows the alcoholic-drink hint from this snapshot, not
+from the catalogue (ADR 0009).
 
 **`mealTypes`** (`MealTypeDTO`) — `startMinutes` / `endMinutes` are minutes since midnight
 (0–1439), stored **unrenamed in camelCase**, unlike every other DTO except `UserProfileDTO`
@@ -203,7 +214,8 @@ favourite is tapped (`RefreshFavouriteFoodUseCase`, `.catalogue` items only, rew
 differs, `favourited_at` kept, any failure falls back to the stored copy). The document id is the food's own id, and
 `food_item_kind` says which of the three things that id is, exactly as on `foodConsumed`
 (ADR 0025) — required here too. Also carries `measure_unit`, for the same reason `portions` is
-carried: leaving it out would silently relabel a favourited millilitre item as grams. Fetched
+carried: leaving it out would silently relabel a favourited millilitre item as grams. The same goes
+for optional `alcohol_by_volume` (§ 1.3), which would otherwise drop the hint. Fetched
 ordered by `favourited_at` descending, limit 50.
 
 **`myCreatedMeals`** (`MyCreatedMealDTO`) — `ingredients` is an **array of nested maps**
@@ -323,7 +335,10 @@ Consequences worth knowing before adding a method:
   (a `foodItemSubmissions` write), so `create` and `update` on both collections can't drift apart.
   Also checks that `measure_unit`, when present, is `'grams'` or `'millilitres'`
   ([design 0011](design/0011-food-measure-grams-or-millilitres.md)) — covering both collections
-  the same way, for the same reason.
+  the same way, for the same reason — and that `alcohol_by_volume`, when present, is a number in
+  `(0, 100]` ([design 0019](design/0019-alcoholic-drink-accuracy-hint.md)). `FoodItemValidation`
+  mirrors that range check on both clients through `fixtures/food-item-validation-cases.json`. The
+  `users/**` subtree has no field validation, so the snapshot copies are unchecked.
 - `foodItems`: read requires only `request.auth != null`. `create`/`update` require
   `isMaintainer()`, the document id to pass `validItemId`,
   `request.resource.data.id == itemId`, and `validFoodItem`. `delete` is not granted and falls
@@ -409,8 +424,9 @@ ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
 | | `date` | number, seconds | yes | number |
 | | `portions` | array of `{name: string, grams: number}` | no — absent means `[]` | none |
 | | `measure_unit` | `"grams"` or `"millilitres"` | no — absent means grams | that enum if present |
+| | `alcohol_by_volume` | number, % in `(0, 100]`; zero is never written | no — absent means not recorded | number in `(0, 100]` if present |
 | | *nutrition field set* | | | as above |
-| **`favouriteFoods`** (`FavouriteFoodDTO`) | `id`, `cz_name`, `eng_name`, `weight`, `date`, `portions`, `measure_unit`, *nutrition field set* | as `foodItems` | as `foodItems` | user-scoped only (§ 1.6) |
+| **`favouriteFoods`** (`FavouriteFoodDTO`) | `id`, `cz_name`, `eng_name`, `weight`, `date`, `portions`, `measure_unit`, `alcohol_by_volume`, *nutrition field set* | as `foodItems` | as `foodItems` | user-scoped only (§ 1.6) |
 | | `food_item_kind` | `catalogue` \| `external` \| `created_meal` | yes | none |
 | | `favourited_at` | number, seconds | yes | none |
 | **`foodConsumed`** (`FoodConsumedDTO`) | `id` | string, UUID | yes | user-scoped only |
@@ -423,6 +439,7 @@ ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
 | | `energy_kj`, `fat_saturated`, `fiber` | number | no | |
 | | `meal_type_id` | string | no — absent means "resolve by time of day" (ADR 0022) | |
 | | `measure_unit` | as above | no | |
+| | `alcohol_by_volume` | as above | no | |
 | **`myCreatedMeals`** (`MyCreatedMealDTO`) | `id`, `name` | string | yes | user-scoped only |
 | | `ingredients` | array of ingredient map | yes | |
 | | `created_at`, `updated_at` | number, seconds | yes | |
@@ -677,9 +694,10 @@ The delivery path is deliberately indirect: the coordinator writes into a `@Bind
 `viewModel.lastScannedBarcode`, and the view's `.onChange` on that property calls
 `onBarcodeScanned()`. The view model then clears the property, so the same code can be
 delivered again later. The coordinator keeps its own `lastDeliveredCode` to suppress the
-repeated callbacks VisionKit fires while a barcode stays in frame; it is never reset while the
-scanner is open, because the scanner is closed at the end of every lookup (below) and the next
-one starts with a fresh coordinator.
+repeated callbacks VisionKit fires while a barcode stays in frame. It is reset when a lookup ends
+(`isSearching` `true → false`, tracked by the coordinator's `wasSearching`; on Android a
+`LaunchedEffect(isSearching)` in `DataScannerView`). Most lookups close the scanner (below), so the
+next scan starts with a fresh coordinator anyway; the reset is for the one path that leaves it open.
 
 Scanning is stopped while a lookup is in flight (`isSearching` → `stopScanning()`), and a
 `ProgressView` over `.ultraThinMaterial` covers the camera preview.
@@ -693,9 +711,11 @@ when the lookup ended, so while the same barcode stayed in frame it was delivere
 Firestore and OpenFoodFacts lookups repeated (up to 3 OpenFoodFacts attempts each) and the alert
 returned after every dismissal — and on iOS the alert was raised under the `fullScreenCover` that
 hosts the scanner. One scan is now one lookup; scanning the same code again means reopening the
-scanner. A `lastDeliveredCode` reset on `isSearching` (`true → false`) that once let the user rescan
-the same code with the scanner still open (finding **A2-8**) was removed with this change, since no
-path keeps the scanner open after a lookup any more. The moderation
+scanner. A cancelled lookup is the exception: it returns without touching `isScannerVisible`, so the
+scanner stays open while `isSearching` drops back to `false`. Without the `lastDeliveredCode` reset
+above (finding **A2-8**) the coordinator would go on suppressing the cancelled code and the user could
+not scan it again until reopening the scanner. The reset was briefly removed on the assumption that
+no path keeps the scanner open after a lookup, and restored for this case. The moderation
 editor's barcode field (`ModerationCatalogueEditorViewModel`) is a single lookup with no scanner and
 was never affected.
 
@@ -1238,7 +1258,8 @@ incidental: `FavouriteButton` exists as a component precisely because the button
 
 ## 5. Cross-cutting concerns
 
-**Scope:** `iOS`, except the display-name rule in § 5.3, which is `Cross-platform`.
+**Scope:** `iOS`, except the display-name rule in § 5.3 and the palette in § 5.6, which are
+`Cross-platform`.
 
 **Read first:** [ADR 0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md)
 (which of a food's two names is shown). Otherwise nothing: no design doc covers error presentation, localization or `Components/` —
@@ -1355,7 +1376,7 @@ behaviour and are worth knowing about before adding a fifth:
 - `Date+Extension` — `minutesSinceMidnight` (the bridge into `MealKit`, see
   [ADR 0014](adr/0014-meal-assignment-by-time-of-day-only.md)), `formatCacheKey(with:)` (the
   Dashboard's cache-key builder — locale-independent via a cached `en_US_POSIX` formatter per
-  format string), and the `withAddedMinutes` / `withAddedHours` arithmetic the meal sheet uses.
+  format string), and the `withAddedMinutes` arithmetic the Settings sheet uses.
 - `String+Extension` — HTML entity decoding, delegating to `TextKit`.
 - `Double+Extension` — `formattedGrams`, the locale-aware gram formatter every screen goes
   through (see § 5.3).
@@ -1363,6 +1384,38 @@ behaviour and are worth knowing about before adding a fifth:
 
 The rest (`CGFloat`, `Int`, `TimeInterval`, `NumberFormatter`, `UIWindowScene`) are one or two
 members each.
+
+### 5.6 Colours
+
+**Scope:** `Cross-platform` for the palette and where it lives; `iOS` / `Android` for the mechanism.
+
+Every colour the app draws comes from one place per platform, under the same names. A view never
+writes a literal hue (`.red`, `.blue`, `Color(0xFF…)`) or a hex value; it asks for the role. White
+and `.clear` are the only literals, for content on the accent or on a filled colour.
+
+| Role | iOS (`Assets.xcassets` colour set) | Android (`AppColors`, backed by `res/values/colors.xml`) |
+|---|---|---|
+| Brand accent, `#1B7F6B` green | `AccentColor` — the app's tint | `accent` — `primary` of the Material colour scheme |
+| Macros | `Protein`, `Carbs`, `Fat` | `protein`, `carbs`, `fat` |
+| Status | `Success`, `Hint`, `Warning`, `Error` | `success`, `hint`, `warning`, `error` |
+| Favourite heart, barcode collision | `Favourite`, `Collision` | none — the Material scheme's `error` |
+
+- **The accent is green, not the system blue.** The app icon, the launcher icon, the FAB, the
+  selected segment and every prominent button follow it. It is one value for light and dark mode.
+- **iOS** reads the colour sets through Xcode's generated asset symbols
+  (`ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS`), so a call site writes
+  `Color.protein`, and a missing colour set is a compile error, not a runtime fallback. Dark
+  variants live in the colour set's *Dark* appearance.
+- **Android** reads them through `AppColors` (`components/AppColors.kt`), a `@Composable` getter
+  per role over `colorResource`. Dark variants live in `res/values-night/colors.xml`, and a role
+  missing there falls back to the light value, as on iOS. `KalorieApp` follows the system setting
+  (`isSystemInDarkTheme()` → `darkColorScheme` / `lightColorScheme`, both with
+  `primary = AppColors.accent` and `onPrimary = Color.White`),
+  and `MainActivity` calls `enableEdgeToEdge()`. Material's own roles (`surface`,
+  `onSurfaceVariant`, …) still come from `MaterialTheme.colorScheme`, not from `AppColors`.
+
+A new colour is a new role on both platforms at once, with the same name and a dark variant where
+the light one does not read on a dark background.
 
 ---
 
@@ -1473,7 +1526,11 @@ means the app crashed before `signIn` ever completed, so the snapshot is simply 
 mirror-image reason: both immediately leave the app on a fresh anonymous UID, and a snapshot
 destined for the *previous* account would otherwise be resumed against it on the next launch.
 `DeleteAccountUseCase` does it right after the recent-login guard and before any data is wiped,
-also on the `skipDataWipe` retry, so a rejected or failed attempt leaves the account intact.
+also on the `skipDataWipe` retry, so a rejected or failed attempt leaves the account intact. A
+failure to delete the snapshot itself is thrown, not logged and skipped: the account is gone right
+after, the next launch runs on a new anonymous UID, and `resumeIfNeeded` treats any UID other than
+`sourceAnonymousUserId` as a merge to finish, so it would write the deleted user's anonymous data
+into the fresh account.
 
 A snapshot that cannot be read — `PendingMergeSnapshotStore.load()` throws on both platforms — is
 deliberately left in place: `resumePendingMergeOnce` logs the error and launch continues, every
