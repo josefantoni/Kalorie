@@ -1,6 +1,8 @@
 package antoni.kalorie.features.addfoodsheet
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.MealTypeDomain
@@ -26,6 +28,7 @@ import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCase
 import antoni.kalorie.core.usecases.SubmitFoodItemUseCase
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.UpdateMySubmissionUseCase
+import antoni.kalorie.core.utils.ContextStringProvider
 import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.features.foodquantity.FoodQuantityUnit
 import antoni.kalorie.features.foodquantity.FoodQuantityView
@@ -44,6 +47,8 @@ class AddFoodSheetConfigurator(
 
     @Composable
     fun createView(date: Instant, mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onFoodSaved: () -> Unit = {}) {
+        val context = LocalContext.current
+        val stringProvider = remember { ContextStringProvider(context) }
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             AddFoodSheetViewModel(
                 searchFoodItems = SearchFoodItemsUseCase(dataProvider),
@@ -69,7 +74,7 @@ class AddFoodSheetConfigurator(
                     FoodQuantityViewModel(
                         item = item,
                         saveFoodConsumed = SaveFoodConsumedUseCase(dataProvider, authProvider),
-                        fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider),
+                        fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider, stringProvider),
                         selectedDate = date,
                         mealTypes = mealTypes,
                         isFavourite = isFavourite,

@@ -8,4 +8,5 @@ data class MealTypeDTO(
     val name: String,
     val startMinutes: Int,
     val endMinutes: Int,
+    val defaultKey: String? = null,
 )

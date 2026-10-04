@@ -2,6 +2,8 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
+import antoni.kalorie.core.networking.MealTypeDTO
+import antoni.kalorie.core.utils.StringProviderFake
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -60,6 +62,28 @@ class SetupDefaultMealsUseCaseTest {
         assertEquals("windows must be contiguous, or foods logged between them match no meal", result[0].endMinutes, result[1].startMinutes)
     }
 
+    @Test
+    fun setupDefaultMeals_writesFiveDistinctDefaultKeysInBoundaryOrder() = runTest {
+        val (sut, dataProvider) = makeSUT()
+
+        sut()
+
+        assertEquals(
+            "the key is what lets another device show the meal in its own language",
+            listOf("breakfast", "secondBreakfast", "lunch", "snack", "dinner"),
+            dataProvider.batchSavedItems.map { (it.first as MealTypeDTO).defaultKey },
+        )
+    }
+
+    @Test
+    fun setupDefaultMeals_returnsDomainsCarryingTheSameKeysAsTheWrittenDocuments() = runTest {
+        val (sut, dataProvider) = makeSUT()
+
+        val result = sut()
+
+        assertEquals(dataProvider.batchSavedItems.map { (it.first as MealTypeDTO).defaultKey }, result.map { it.defaultKey })
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(): Pair<SetupDefaultMealsUseCase, FirestoreDataProviderFake> {
@@ -67,7 +91,7 @@ class SetupDefaultMealsUseCaseTest {
         val sut = SetupDefaultMealsUseCase(
             dataProvider = dataProvider,
             authProvider = AuthProviderFake(),
-            mealNames = listOf("Snídaně", "Druhá snídaně", "Oběd", "Svačina", "Večeře"),
+            stringProvider = StringProviderFake(),
         )
         return sut to dataProvider
     }

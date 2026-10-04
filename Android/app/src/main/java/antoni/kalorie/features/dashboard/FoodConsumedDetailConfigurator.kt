@@ -1,6 +1,8 @@
 package antoni.kalorie.features.dashboard
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodConsumedDomain
@@ -16,6 +18,7 @@ import antoni.kalorie.core.usecases.IsFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCase
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCase
+import antoni.kalorie.core.utils.ContextStringProvider
 
 class FoodConsumedDetailConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,
@@ -31,13 +34,15 @@ class FoodConsumedDetailConfigurator(
         onBack: () -> Unit,
         onFoodUpdated: () -> Unit,
     ) {
+        val context = LocalContext.current
+        val stringProvider = remember { ContextStringProvider(context) }
         val viewModel = viewModel {
             FoodConsumedDetailViewModel(
                 food = food,
                 mealTypes = mealTypes,
                 updateFoodConsumed = UpdateFoodConsumedUseCase(dataProvider, authProvider),
                 assignFoodMealType = AssignFoodMealTypeUseCase(dataProvider, authProvider),
-                fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider),
+                fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider, stringProvider),
                 isFavouriteFood = IsFavouriteFoodUseCase(dataProvider, authProvider),
                 addFavouriteFood = AddFavouriteFoodUseCase(dataProvider, authProvider),
                 removeFavouriteFood = RemoveFavouriteFoodUseCase(dataProvider, authProvider),
