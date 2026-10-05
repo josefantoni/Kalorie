@@ -70,6 +70,8 @@ fun FloatingLabelTextField(
             unfocusedContainerColor = Color.Transparent,
             disabledContainerColor = Color.Transparent,
             errorContainerColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
             focusedLabelColor = hintColor,
             unfocusedLabelColor = hintColor,
             focusedPlaceholderColor = hintColor,
