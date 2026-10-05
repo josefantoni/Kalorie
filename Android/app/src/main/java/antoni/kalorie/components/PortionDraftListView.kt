@@ -59,7 +59,7 @@ fun PortionDraftListView(
                 if (focusedDraftId == draft.id) focusRequester.requestFocus()
             }
             SwipeToDeleteRow(onDeleteRequested = { onDelete(draft) }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                Column(modifier = Modifier.padding(top = 12.dp, bottom = 12.dp)) {
+                Column(modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)) {
                     PortionInputRow(
                         name = draft.name,
                         gramsText = draft.gramsText,
