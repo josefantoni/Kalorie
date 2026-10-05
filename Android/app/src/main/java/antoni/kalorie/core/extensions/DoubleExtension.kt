@@ -7,9 +7,9 @@ import antoni.kalorie.core.models.FoodMeasure
 import java.text.NumberFormat
 import java.util.Locale
 
-fun Double.formatted(fractionDigits: Int, unitSymbol: String): String {
+fun Double.formatted(fractionDigits: Int, unitSymbol: String, minFractionDigits: Int = fractionDigits): String {
     val formatter = NumberFormat.getNumberInstance(Locale.getDefault()).apply {
-        minimumFractionDigits = fractionDigits
+        minimumFractionDigits = minFractionDigits
         maximumFractionDigits = fractionDigits
     }
     return "${formatter.format(this)} $unitSymbol"
@@ -21,7 +21,7 @@ fun Double.formattedTrimmed(): String = String.format(Locale.ROOT, "%.2f", this)
 fun Double.formattedGrams(fractionDigits: Int = 1): String = formatted(fractionDigits, stringResource(R.string.common_unit_grams))
 
 @Composable
-fun Double.formattedAmount(measure: FoodMeasure, fractionDigits: Int = 1): String = formatted(fractionDigits, stringResource(measure.unitSymbolRes))
+fun Double.formattedAmount(measure: FoodMeasure, fractionDigits: Int = 1, minFractionDigits: Int = fractionDigits): String = formatted(fractionDigits, stringResource(measure.unitSymbolRes), minFractionDigits)
 
 @Composable
 fun Double?.formattedGrams(fractionDigits: Int = 1): String = if (this == null) "–" else formattedGrams(fractionDigits)

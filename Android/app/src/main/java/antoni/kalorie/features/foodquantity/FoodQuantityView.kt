@@ -348,7 +348,7 @@ private fun unitLabel(unit: FoodQuantityUnit, measure: FoodMeasure): String = wh
     FoodQuantityUnit.HundredGrams -> stringResource(
         if (measure == FoodMeasure.GRAMS) R.string.foodQuantity_unit_hundredGrams else R.string.foodQuantity_unit_hundredMillilitres,
     )
-    is FoodQuantityUnit.Portion -> "${unit.portion.name} (${unit.portion.grams.formattedAmount(measure)})"
+    is FoodQuantityUnit.Portion -> "${unit.portion.name} (${unit.portion.grams.formattedAmount(measure, minFractionDigits = 0)})"
 }
 
 private fun sanitizedQuantityText(text: String): String {
