@@ -7,8 +7,8 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 
 <table>
   <tr>
-    <th align="center">iOS (SwiftUI)<br>Darkmode: OFF</th>
-    <th align="center">Android (Jetpack Compose)<br>Darkmode: ON</th>
+    <th align="center">iOS (SwiftUI)<br>Light mode</th>
+    <th align="center">Android (Jetpack Compose)<br>Dark mode</th>
   </tr>
   <tr>
     <td align="center"><img src="https://github.com/user-attachments/assets/ba008549-042e-4f36-ba50-5854e803d6bb" width="250" alt="iOS dashboard"></td>
@@ -54,7 +54,7 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 - **Android:** Kotlin, Jetpack Compose, Material 3, `ViewModel` + `StateFlow`
 - **Shared:** Kotlin Multiplatform modules consumed by both apps
 - **Backend:** Firebase — Firestore and Auth; no custom server
-- **CI:** GitHub Actions
+- **CI:** GitHub Actions on pull requests to `main`; path filters run only the jobs a change touches (rules, KMP, iOS, Android, localisation)
 
 ## Architecture
 
@@ -75,4 +75,8 @@ Data is private per user (`users/{userId}/…`) except the shared food catalogue
 
 ## Status
 
-Work in progress. Open items, mainly Android release readiness, are tracked in [TODO.md](TODO.md).
+Work in progress. Both apps are meant to ship on the App Store and Google Play; the Play release waits on a Play Console account. Open items, mainly Android release readiness, are tracked in [TODO.md](TODO.md).
+
+## License
+
+All rights reserved.
