@@ -97,7 +97,11 @@ fun FoodItemFormSections(
                 keyboardType = KeyboardType.Number,
                 trailingIcon = {
                     IconButton(onClick = barcodeRow.onScanTapped) {
-                        Icon(BarcodeIcon, contentDescription = stringResource(R.string.addFood_nutritionLabel_barcodeScanAccessibility))
+                        Icon(
+                            BarcodeIcon,
+                            contentDescription = stringResource(R.string.addFood_nutritionLabel_barcodeScanAccessibility),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
                     }
                 },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
