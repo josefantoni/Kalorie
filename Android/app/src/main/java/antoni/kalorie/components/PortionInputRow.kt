@@ -48,7 +48,7 @@ fun PortionInputRow(
 
     // MARK: - Body
 
-    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FloatingLabelTextField(
                 title = stringResource(R.string.foodPortion_field_namePlaceholder),
@@ -65,9 +65,10 @@ fun PortionInputRow(
             Text(
                 text = stringResource(measure.unitSymbolRes),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(end = 16.dp),
             )
         }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             for (option in quickAddOptions) {
                 Surface(
                     onClick = {
