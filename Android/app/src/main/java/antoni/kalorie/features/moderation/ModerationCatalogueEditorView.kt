@@ -3,6 +3,7 @@ package antoni.kalorie.features.moderation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -103,7 +104,7 @@ fun ModerationCatalogueEditorView(
                 )
             },
         ) { innerPadding ->
-            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
+            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
                 Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                     if (reports.isNotEmpty()) {
                         Text(
