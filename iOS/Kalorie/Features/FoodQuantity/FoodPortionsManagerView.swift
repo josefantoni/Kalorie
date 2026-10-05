@@ -87,7 +87,7 @@ struct FoodPortionsManagerView: View {
         HStack {
             Text(portion.name)
             Spacer()
-            Text(portion.grams.formattedAmount(measure: viewModel.item.measure))
+            Text(portion.grams.formattedAmount(measure: viewModel.item.measure, minFractionDigits: 0))
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal)

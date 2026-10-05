@@ -258,7 +258,7 @@ struct FoodQuantityView: View {
         switch unit {
         case .grams: return measure == .grams ? L10n.FoodQuantity.unitGrams : L10n.FoodQuantity.unitMillilitres
         case .hundredGrams: return measure == .grams ? L10n.FoodQuantity.unitHundredGrams : L10n.FoodQuantity.unitHundredMillilitres
-        case .portion(let portion): return "\(portion.name) (\(portion.grams.formattedAmount(measure: measure)))"
+        case .portion(let portion): return "\(portion.name) (\(portion.grams.formattedAmount(measure: measure, minFractionDigits: 0)))"
         }
     }
 }

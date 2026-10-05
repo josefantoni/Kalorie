@@ -18,10 +18,10 @@ extension Double {
         return "\(number) \(L10n.Common.unitGrams)"
     }
 
-    func formattedAmount(measure: FoodMeasure, fractionDigits: Int = 1) -> String {
+    func formattedAmount(measure: FoodMeasure, fractionDigits: Int = 1, minFractionDigits: Int? = nil) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = fractionDigits
+        formatter.minimumFractionDigits = minFractionDigits ?? fractionDigits
         formatter.maximumFractionDigits = fractionDigits
         let number = formatter.string(from: NSNumber(value: self)) ?? String(self)
         return "\(number) \(measure.unitSymbol)"
