@@ -6,41 +6,41 @@ documentation, code navigation, commits and the general working rules.
 The Android app mirrors this architecture natively ([ADR 0038](../docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md)),
 so the layering, the UseCase pattern and the naming below are the reference `Android/CLAUDE.md` ports from.
 
-## Styl kódu
+## Code style
 
-- **Formátování vícepodmínkových `if`**: každou podmínku piš na samostatný řádek, otevírací závorka `{` patří na vlastní řádek za poslední podmínku:
+- **Formatting multi-condition `if`**: write each condition on its own line; the opening brace `{` goes on its own line after the last condition:
   ```swift
   if
       let foo = foo,
       let bar = bar,
       !bar.isEmpty
   {
-      // tělo
+      // body
   }
   ```
-  Ne takto:
+  Not like this:
   ```swift
   if let foo = foo,
      let bar = bar,
      !bar.isEmpty {
-      // tělo
+      // body
   }
   ```
 
-- **Nikdy nepoužívej force unwrap (`!`)** — SwiftLint to odmítne. Místo toho:
-  - `guard let x = x else { throw ... }` pro věci, které by být `nil` neměly, ale mohou
-  - `?? fallback` pro skutečně nezávislé fallbacky
-  - Přepis kódu tak, aby optional nevznikl (např. jiná Calendar API)
+- **Never use force unwrap (`!`)** — SwiftLint rejects it. Instead:
+  - `guard let x = x else { throw ... }` for things that should not be `nil` but can be
+  - `?? fallback` for genuinely independent fallbacks
+  - Rewrite the code so the optional never appears (e.g. a different Calendar API)
 
-- **Trailing closure** — pokud je poslední parametr closure, vždy používej trailing syntax. Platí i v `#Preview` blocích a callback parametrech ViewModel initů (např. `onFoodUpdated:`, `onSaved:`):
+- **Trailing closure** — if the last parameter is a closure, always use trailing syntax. This also applies in `#Preview` blocks and to callback parameters of ViewModel inits (e.g. `onFoodUpdated:`, `onSaved:`):
   ```swift
-  // správně
+  // correct
   FoodConsumedDetailViewModel(food: food, updateFoodConsumed: useCase) {}
-  // špatně — SwiftLint trailing_closure violation
+  // wrong — SwiftLint trailing_closure violation
   FoodConsumedDetailViewModel(food: food, updateFoodConsumed: useCase, onFoodUpdated: {})
   ```
 
-Pravidlo o komentářích v kódu je v kořenovém `CLAUDE.md`.
+The rule about code comments is in the root `CLAUDE.md`.
 
 ---
 
@@ -208,10 +208,10 @@ final class LoadExchangeRatesUseCaseTests: XCTestCase {
 
 Test coverage targets the **UseCase** layer.
 
-**Nikdy nespouštěj a neklikej v iOS Simulátoru**, abys ověřil, že změna funguje — to si otestuje
-uživatel sám ručně, spouštění simulátoru zbytečně žere tokeny. `xcodebuild build` (ověření
-kompilace) a `xcodebuild test` (spuštění unit testů) jsou v pořádku a žádoucí; jen to nekonči
-spuštěním/klikáním v běžící appce.
+**Never launch or click through the iOS Simulator** to check that a change works — the user
+tests that by hand, and running the simulator needlessly burns tokens. `xcodebuild build` (verifying
+compilation) and `xcodebuild test` (running unit tests) are fine and welcome; just do not finish by
+launching or clicking through the running app.
 
 ---
 
@@ -230,9 +230,9 @@ spuštěním/klikáním v běžící appce.
 
 ## Liquid Glass (iOS 26+)
 
-Deployment target je iOS 26 — používej Liquid Glass bez `@available` podmínek.
+The deployment target is iOS 26 — use Liquid Glass without `@available` conditions.
 
-**Floating Action Button (FAB)** — standardní pattern pro primární akci na obrazovce:
+**Floating Action Button (FAB)** — the standard pattern for a screen's primary action:
 
 ```swift
 .safeAreaInset(edge: .bottom) {
@@ -248,14 +248,14 @@ Deployment target je iOS 26 — používej Liquid Glass bez `@available` podmín
 }
 ```
 
-- `.safeAreaInset` místo `ToolbarItem(.bottomBar)` — správně odsadí obsah pod tlačítkem
-- `.glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)` — glass v akcentové barvě aplikace (zelená `AccentColor` z asset katalogu, ne systémová modrá) s explicitně bílou ikonkou; bez `.foregroundStyle(.white)` by ikonka převzala akcent a byla zelená na zeleném. Čirý `.glassEffect(.regular, in: .circle)` je jen pro sekundární akce
-- Barvy nikdy nepiš jako literál (`.red`, `.blue`, `Color(red:…)`) — vždy role z asset katalogu přes generované symboly (`Color.protein`, `Color.favourite`, …), viz `docs/ARCHITECTURE.md` § 5.6
-- Bez `.buttonStyle(.glassProminent)` na FABu — přidává vlastní vnitřní okraj a kruh se zvětší
-- Pro centrování vynech `HStack { Spacer(); ... }` — `safeAreaInset` centruje obsah ve výchozím stavu
-- Pro zarovnání vpravo dole: `HStack { Spacer(); Button; ... }` s `.padding(.trailing, 20)`
-- Nikdy nepoužívej `BaseImage` s velkou velikostí (`.extraLarge` = 60 pt) v toolbaru
+- `.safeAreaInset` instead of `ToolbarItem(.bottomBar)` — it correctly insets the content beneath the button
+- `.glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)` — glass in the app's accent colour (the green `AccentColor` from the asset catalog, not the system blue) with an explicitly white icon; without `.foregroundStyle(.white)` the icon would take the accent and be green on green. Clear `.glassEffect(.regular, in: .circle)` is only for secondary actions
+- Never write colours as literals (`.red`, `.blue`, `Color(red:…)`) — always a role from the asset catalog via generated symbols (`Color.protein`, `Color.favourite`, …), see `docs/ARCHITECTURE.md` § 5.6
+- No `.buttonStyle(.glassProminent)` on the FAB — it adds its own inner padding and the circle grows
+- To centre, omit `HStack { Spacer(); ... }` — `safeAreaInset` centres content by default
+- To align bottom-right: `HStack { Spacer(); Button; ... }` with `.padding(.trailing, 20)`
+- Never use `BaseImage` at a large size (`.extraLarge` = 60 pt) in a toolbar
 
-**Textová tlačítka** — primární akce na celou šířku (Export, Vytvořit) je `.buttonStyle(.glassProminent)` + `.controlSize(.large)`, sekundární `.buttonStyle(.glass)`. Nestav je ručně z `.background(...)` a pevné barvy textu — systém řeší dark mode i disabled stav sám. `borderedProminent` se u nových tlačítek nepoužívá.
+**Text buttons** — a full-width primary action (Export, Create) is `.buttonStyle(.glassProminent)` + `.controlSize(.large)`, a secondary one `.buttonStyle(.glass)`. Do not build them by hand from `.background(...)` and a fixed text colour — the system handles dark mode and the disabled state itself. `borderedProminent` is not used for new buttons.
 
-**Víc `.glassProminent` tlačítek pod sebou v `List`** — každé do vlastní `Section` s `.listRowInsets(EdgeInsets())` a `.listRowBackground(Color.clear)` (viz `ExportView.swift`), žádný extra `.padding` ani nenulové `.listRowInsets` kolem tlačítka. Jakákoli "prázdná" mezera uvnitř řádku odkryje stín/materiál Liquid Glass na barvě, která neodpovídá skutečnému pozadí Listu (i ruční `Color(uiColor: .systemGroupedBackground)` na `.listRowBackground` to nespolehlivě opraví) — vznikne viditelný barevný lem kolem tlačítka. Mezeru mezi tlačítky řeš přes `.listSectionSpacing(.custom(_:))` na následující `Section`, ne paddingem/insety uvnitř řádku.
+**Several `.glassProminent` buttons stacked in a `List`** — each in its own `Section` with `.listRowInsets(EdgeInsets())` and `.listRowBackground(Color.clear)` (see `ExportView.swift`), no extra `.padding` and no non-zero `.listRowInsets` around the button. Any "empty" gap inside the row exposes the Liquid Glass shadow/material on a colour that does not match the List's real background (even a manual `Color(uiColor: .systemGroupedBackground)` on `.listRowBackground` fixes it unreliably) — a visible coloured fringe appears around the button. Handle the gap between buttons with `.listSectionSpacing(.custom(_:))` on the following `Section`, not with padding/insets inside the row.
