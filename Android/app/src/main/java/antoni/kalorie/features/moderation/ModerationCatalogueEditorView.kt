@@ -125,7 +125,7 @@ fun ModerationCatalogueEditorView(
                     if (!viewModel.isOpenedFromReport) {
                         SectionCard(modifier = Modifier.padding(top = 8.dp)) {
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 FloatingLabelTextField(
