@@ -15,7 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -49,10 +48,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.AlcoholicDrinkHintView
+import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.ReportIncorrectDataMenu
 import antoni.kalorie.components.ReportReasonDialog
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.extensions.formattedTrimmed
@@ -103,19 +105,26 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
             TopAppBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        }
+                        if (mealActions != null) {
+                            IconButton(onClick = { isMealEditorPushed = true }) {
+                                Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.myCreatedMeal_button_edit))
+                            }
+                        }
+                        if (viewModel.canReportIncorrectData) {
+                            Box {
+                                ReportIncorrectDataMenu(
+                                    hasReportedCurrentItem = hasReportedCurrentItem,
+                                    onReportTapped = viewModel::onReportIncorrectDataTapped,
+                                )
+                            }
+                        }
                     }
                 },
                 actions = {
-                    if (mealActions != null) {
-                        IconButton(onClick = { isMealEditorPushed = true }) {
-                            Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.myCreatedMeal_button_edit))
-                        }
-                    }
-                    if (viewModel.canReportIncorrectData) {
-                        ReportIncorrectDataMenu(hasReportedCurrentItem = hasReportedCurrentItem, onReportTapped = viewModel::onReportIncorrectDataTapped)
-                    }
                     TextButton(
                         enabled = !state.isLoading,
                         onClick = {
@@ -131,91 +140,89 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = item.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f),
-                    )
-                    FavouriteButton(isFavourite = isFavourite, isEnabled = !isTogglingFavourite) {
-                        scope.launch { viewModel.onFavouriteToggled() }
-                    }
-                }
-                LabeledRow(label = stringResource(R.string.foodQuantity_input_grams)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        NumericRowTextField(
-                            value = quantityText,
-                            onValueChange = { text ->
-                                val sanitized = sanitizedQuantityText(text)
-                                quantityText = sanitized
-                                viewModel.quantity.value = sanitized.replace(',', '.').toDoubleOrNull() ?: 0.0
-                            },
-                            modifier = Modifier.width(96.dp),
-                        )
+                SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
-                            text = "×",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 8.dp),
+                            text = item.displayName,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f),
                         )
-                        Box {
-                            TextButton(onClick = { isUnitMenuVisible = true }) {
-                                Text(unitLabel(unit, measure))
-                                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-                            }
-                            DropdownMenu(expanded = isUnitMenuVisible, onDismissRequest = { isUnitMenuVisible = false }) {
-                                for (option in viewModel.unitOptions) {
-                                    DropdownMenuItem(
-                                        text = { Text(unitLabel(option, measure)) },
-                                        onClick = {
-                                            isUnitMenuVisible = false
-                                            viewModel.onUnitSelected(option)
-                                        },
-                                    )
-                                }
-                                if (viewModel.isPersonalPortionsAvailable) {
-                                    HorizontalDivider()
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.foodQuantity_button_myPortions)) },
-                                        onClick = {
-                                            isUnitMenuVisible = false
-                                            viewModel.onPortionsManagerOpened()
-                                            viewModel.isPersonalPortionsManagerPushed.value = true
-                                        },
-                                    )
+                        FavouriteButton(isFavourite = isFavourite, isEnabled = !isTogglingFavourite) {
+                            scope.launch { viewModel.onFavouriteToggled() }
+                        }
+                    }
+                    SectionCardDivider()
+                    LabeledRow(label = stringResource(R.string.foodQuantity_input_grams)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            NumericRowTextField(
+                                value = quantityText,
+                                onValueChange = { text ->
+                                    val sanitized = sanitizedQuantityText(text)
+                                    quantityText = sanitized
+                                    viewModel.quantity.value = sanitized.replace(',', '.').toDoubleOrNull() ?: 0.0
+                                },
+                                modifier = Modifier.width(96.dp),
+                            )
+                            Text(
+                                text = "×",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                            )
+                            Box {
+                                DropdownRowButton(text = unitLabel(unit, measure), onClick = { isUnitMenuVisible = true })
+                                DropdownMenu(expanded = isUnitMenuVisible, onDismissRequest = { isUnitMenuVisible = false }) {
+                                    for (option in viewModel.unitOptions) {
+                                        DropdownMenuItem(
+                                            text = { Text(unitLabel(option, measure)) },
+                                            onClick = {
+                                                isUnitMenuVisible = false
+                                                viewModel.onUnitSelected(option)
+                                            },
+                                        )
+                                    }
+                                    if (viewModel.isPersonalPortionsAvailable) {
+                                        HorizontalDivider()
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.foodQuantity_button_myPortions)) },
+                                            onClick = {
+                                                isUnitMenuVisible = false
+                                                viewModel.onPortionsManagerOpened()
+                                                viewModel.isPersonalPortionsManagerPushed.value = true
+                                            },
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                LabeledRow(label = stringResource(R.string.foodQuantity_label_mealType)) {
-                    Box {
-                        TextButton(onClick = { isMealTypeMenuVisible = true }) {
-                            Text(
-                                mealTypes.firstOrNull { it.id == selectedMealTypeId }?.name
+                    SectionCardDivider()
+                    LabeledRow(label = stringResource(R.string.foodQuantity_label_mealType)) {
+                        Box {
+                            DropdownRowButton(
+                                text = mealTypes.firstOrNull { it.id == selectedMealTypeId }?.name
                                     ?: stringResource(R.string.foodQuantity_mealType_unassigned),
+                                onClick = { isMealTypeMenuVisible = true },
                             )
-                            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-                        }
-                        DropdownMenu(expanded = isMealTypeMenuVisible, onDismissRequest = { isMealTypeMenuVisible = false }) {
-                            for (mealType in mealTypes) {
-                                DropdownMenuItem(
-                                    text = { Text(mealType.name) },
-                                    onClick = {
-                                        isMealTypeMenuVisible = false
-                                        viewModel.onMealTypeSelected(mealType.id)
-                                    },
-                                )
+                            DropdownMenu(expanded = isMealTypeMenuVisible, onDismissRequest = { isMealTypeMenuVisible = false }) {
+                                for (mealType in mealTypes) {
+                                    DropdownMenuItem(
+                                        text = { Text(mealType.name) },
+                                        onClick = {
+                                            isMealTypeMenuVisible = false
+                                            viewModel.onMealTypeSelected(mealType.id)
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 32.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -228,16 +235,25 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                         AlcoholicDrinkHintView(formattedAlcoholByVolume = viewModel.formattedAlcoholByVolume)
                     }
                 }
-                LabeledRow(label = stringResource(R.string.foodQuantity_macro_calories)) { Text("${viewModel.scaledCalories} kcal") }
-                LabeledRow(label = stringResource(R.string.foodQuantity_macro_protein)) { Text(viewModel.scaledProtein.formattedGrams()) }
-                LabeledRow(label = stringResource(R.string.foodQuantity_macro_carbs)) { Text(viewModel.scaledCarbohydrate.formattedGrams()) }
-                LabeledRow(label = stringResource(R.string.addFood_field_carbsSugar)) {
-                    Text(viewModel.scaledCarbohydrateSugar.formattedGrams())
+                SectionCard {
+                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_calories)) { Text("${viewModel.scaledCalories} kcal") }
+                    SectionCardDivider()
+                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_protein)) { Text(viewModel.scaledProtein.formattedGrams()) }
+                    SectionCardDivider()
+                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_carbs)) { Text(viewModel.scaledCarbohydrate.formattedGrams()) }
+                    SectionCardDivider()
+                    LabeledRow(label = stringResource(R.string.addFood_field_carbsSugar)) {
+                        Text(viewModel.scaledCarbohydrateSugar.formattedGrams())
+                    }
+                    SectionCardDivider()
+                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_fat)) { Text(viewModel.scaledFat.formattedGrams()) }
+                    SectionCardDivider()
+                    LabeledRow(label = stringResource(R.string.addFood_field_fatSaturated)) { Text(viewModel.scaledFatSaturated.formattedGrams()) }
+                    SectionCardDivider()
+                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_fiber)) { Text(viewModel.scaledFiber.formattedGrams()) }
+                    SectionCardDivider()
+                    LabeledRow(label = stringResource(R.string.addFood_field_salt)) { Text(viewModel.scaledSalt.formattedGrams(fractionDigits = 2)) }
                 }
-                LabeledRow(label = stringResource(R.string.foodQuantity_macro_fat)) { Text(viewModel.scaledFat.formattedGrams()) }
-                LabeledRow(label = stringResource(R.string.addFood_field_fatSaturated)) { Text(viewModel.scaledFatSaturated.formattedGrams()) }
-                LabeledRow(label = stringResource(R.string.foodQuantity_macro_fiber)) { Text(viewModel.scaledFiber.formattedGrams()) }
-                LabeledRow(label = stringResource(R.string.addFood_field_salt)) { Text(viewModel.scaledSalt.formattedGrams(fractionDigits = 2)) }
 
                 if (mealActions != null) {
                     FilledTonalButton(
@@ -331,7 +347,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
 @Composable
 private fun LabeledRow(label: String, content: @Composable () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

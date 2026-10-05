@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,6 +44,8 @@ import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.components.FoodPortionsSection
 import antoni.kalorie.components.NumericRowTextField
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.components.sanitizedGramsText
 import antoni.kalorie.core.models.displayName
@@ -120,47 +121,58 @@ fun MyCreatedMealEditorView(
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { header() }
                 item {
-                    FloatingLabelTextField(
-                        title = stringResource(R.string.myCreatedMeal_field_namePlaceholder),
-                        text = name,
-                        onTextChange = { viewModel.name.value = it },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
+                    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                        FloatingLabelTextField(
+                            title = stringResource(R.string.myCreatedMeal_field_namePlaceholder),
+                            text = name,
+                            onTextChange = { viewModel.name.value = it },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
                 }
                 if (ingredients.isNotEmpty()) {
                     item { SectionHeader(stringResource(R.string.myCreatedMeal_section_ingredients)) }
-                    items(ingredients, key = { "ingredient-${it.id}" }) { draft ->
-                        SwipeToDeleteRow(
-                            onDeleteRequested = {
-                                val index = ingredients.indexOfFirst { it.id == draft.id }
-                                if (index >= 0) viewModel.onDeleteIngredient(setOf(index))
-                            },
-                        ) {
-                            IngredientRow(
-                                draft = draft,
-                                isFocusRequested = focusedIngredientId == draft.id,
-                                onGramsTextChange = { text ->
-                                    viewModel.ingredients.value = ingredients.map { if (it.id == draft.id) it.copy(gramsText = text) else it }
-                                },
-                                onGramsFieldDefocused = { viewModel.onGramsFieldDefocused(draft.id) },
-                            )
+                    item {
+                        SectionCard {
+                            ingredients.forEachIndexed { index, draft ->
+                                key("ingredient-${draft.id}") {
+                                    SwipeToDeleteRow(
+                                        onDeleteRequested = {
+                                            val deletedIndex = ingredients.indexOfFirst { it.id == draft.id }
+                                            if (deletedIndex >= 0) viewModel.onDeleteIngredient(setOf(deletedIndex))
+                                        },
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                    ) {
+                                        IngredientRow(
+                                            draft = draft,
+                                            isFocusRequested = focusedIngredientId == draft.id,
+                                            onGramsTextChange = { text ->
+                                                viewModel.ingredients.value = ingredients.map { if (it.id == draft.id) it.copy(gramsText = text) else it }
+                                            },
+                                            onGramsFieldDefocused = { viewModel.onGramsFieldDefocused(draft.id) },
+                                        )
+                                    }
+                                    if (index < ingredients.lastIndex) SectionCardDivider()
+                                }
+                            }
                         }
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     }
                 }
                 item { SectionHeader(stringResource(R.string.myCreatedMeal_section_catalogue)) }
                 item {
-                    FloatingLabelTextField(
-                        title = stringResource(R.string.myCreatedMeal_search_placeholder, stringResource(viewModel.searchExampleRes)),
-                        text = searchText,
-                        onTextChange = { viewModel.searchText.value = it },
-                        trailingIcon = {
-                            IconButton(onClick = scannerAccess.open) {
-                                Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
+                    SectionCard {
+                        FloatingLabelTextField(
+                            title = stringResource(R.string.myCreatedMeal_search_placeholder, stringResource(viewModel.searchExampleRes)),
+                            text = searchText,
+                            onTextChange = { viewModel.searchText.value = it },
+                            trailingIcon = {
+                                IconButton(onClick = scannerAccess.open) {
+                                    Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
                 }
                 if (searchText.isNotEmpty()) {
                     item {
@@ -170,29 +182,37 @@ fun MyCreatedMealEditorView(
                             ),
                         )
                     }
-                    if (searchResults.isNotEmpty()) {
-                        items(searchResults, key = { "result-${it.id}" }) { item ->
-                            FoodItemRow(
-                                item = item,
-                                isFavourite = false,
-                                modifier = Modifier.clickable { focusedIngredientId = viewModel.onSelectSearchResult(item) },
-                            )
-                        }
-                    } else if (isExternalSearchLoading) {
-                        item {
-                            Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
+                    item {
+                        SectionCard {
+                            if (searchResults.isNotEmpty()) {
+                                searchResults.forEachIndexed { index, item ->
+                                    key("result-${item.id}") {
+                                        FoodItemRow(
+                                            item = item,
+                                            isFavourite = false,
+                                            modifier = Modifier.clickable { focusedIngredientId = viewModel.onSelectSearchResult(item) },
+                                        )
+                                        if (index < searchResults.lastIndex) SectionCardDivider()
+                                    }
+                                }
+                            } else if (isExternalSearchLoading) {
+                                Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator()
+                                }
+                            } else {
+                                externalSearchResults.forEachIndexed { index, item ->
+                                    key("external-${item.id}") {
+                                        Text(
+                                            text = item.displayName,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable { focusedIngredientId = viewModel.onSelectSearchResult(item) }
+                                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                                        )
+                                        if (index < externalSearchResults.lastIndex) SectionCardDivider()
+                                    }
+                                }
                             }
-                        }
-                    } else {
-                        items(externalSearchResults, key = { "external-${it.id}" }) { item ->
-                            Text(
-                                text = item.displayName,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { focusedIngredientId = viewModel.onSelectSearchResult(item) }
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                            )
                         }
                     }
                 }

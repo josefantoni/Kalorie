@@ -59,66 +59,71 @@ fun FoodItemFormSections(
             onPortionsChange = { onFormInputChange(formInput.copy(portions = it)) },
             measure = formInput.measure,
         )
-        FloatingLabelTextField(
-            title = stringResource(R.string.addFood_field_name_title),
-            text = formInput.name,
-            onTextChange = {
-                onFormInputChange(formInput.copy(name = it))
-                onFieldEdited(FoodItemFormField.NAME)
-            },
-            placeholder = stringResource(R.string.addFood_field_name_placeholder),
-            isHighlighted = FoodItemFormField.NAME in highlightedFields,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        )
-        when (barcodeRow) {
-            FoodItemFormBarcodeRow.Hidden -> Unit
-            FoodItemFormBarcodeRow.Locked -> FloatingLabelTextField(
-                title = stringResource(R.string.addFood_field_barcode_title),
-                text = formInput.scannedCode,
-                onTextChange = {},
-                message = if (formInput.scannedCode.isEmpty()) {
-                    FloatingLabelTextFieldMessage.Hint(stringResource(R.string.addFood_field_barcode_missingLabel))
-                } else {
-                    null
+        SectionCard {
+            FloatingLabelTextField(
+                title = stringResource(R.string.addFood_field_name_title),
+                text = formInput.name,
+                onTextChange = {
+                    onFormInputChange(formInput.copy(name = it))
+                    onFieldEdited(FoodItemFormField.NAME)
                 },
-                keyboardType = KeyboardType.Number,
-                enabled = false,
+                placeholder = stringResource(R.string.addFood_field_name_placeholder),
+                isHighlighted = FoodItemFormField.NAME in highlightedFields,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
             )
-            is FoodItemFormBarcodeRow.Editable -> FloatingLabelTextField(
-                title = stringResource(R.string.addFood_field_barcode_title),
-                text = formInput.scannedCode,
-                onTextChange = { onFormInputChange(formInput.copy(scannedCode = it.filter { char -> char in '0'..'9' })) },
-                message = if (formInput.scannedCode.isEmpty()) {
-                    FloatingLabelTextFieldMessage.Hint(stringResource(R.string.addFood_warning_missingBarcode))
-                } else {
-                    null
-                },
-                keyboardType = KeyboardType.Number,
-                trailingIcon = {
-                    IconButton(onClick = barcodeRow.onScanTapped) {
-                        Icon(
-                            BarcodeIcon,
-                            contentDescription = stringResource(R.string.addFood_nutritionLabel_barcodeScanAccessibility),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-        }
-        onNutritionLabelScanTapped?.let { onScanTapped ->
-            TextButton(onClick = onScanTapped, modifier = Modifier.padding(horizontal = 8.dp)) {
-                Text(stringResource(R.string.addFood_button_scanNutritionLabel))
+            if (barcodeRow != FoodItemFormBarcodeRow.Hidden) SectionCardDivider()
+            when (barcodeRow) {
+                FoodItemFormBarcodeRow.Hidden -> Unit
+                FoodItemFormBarcodeRow.Locked -> FloatingLabelTextField(
+                    title = stringResource(R.string.addFood_field_barcode_title),
+                    text = formInput.scannedCode,
+                    onTextChange = {},
+                    message = if (formInput.scannedCode.isEmpty()) {
+                        FloatingLabelTextFieldMessage.Hint(stringResource(R.string.addFood_field_barcode_missingLabel))
+                    } else {
+                        null
+                    },
+                    keyboardType = KeyboardType.Number,
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+                is FoodItemFormBarcodeRow.Editable -> FloatingLabelTextField(
+                    title = stringResource(R.string.addFood_field_barcode_title),
+                    text = formInput.scannedCode,
+                    onTextChange = { onFormInputChange(formInput.copy(scannedCode = it.filter { char -> char in '0'..'9' })) },
+                    message = if (formInput.scannedCode.isEmpty()) {
+                        FloatingLabelTextFieldMessage.Hint(stringResource(R.string.addFood_warning_missingBarcode))
+                    } else {
+                        null
+                    },
+                    keyboardType = KeyboardType.Number,
+                    trailingIcon = {
+                        IconButton(onClick = barcodeRow.onScanTapped) {
+                            Icon(
+                                BarcodeIcon,
+                                contentDescription = stringResource(R.string.addFood_nutritionLabel_barcodeScanAccessibility),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                )
             }
+            onNutritionLabelScanTapped?.let { onScanTapped ->
+                SectionCardDivider()
+                TextButton(onClick = onScanTapped, modifier = Modifier.padding(horizontal = 8.dp)) {
+                    Text(stringResource(R.string.addFood_button_scanNutritionLabel))
+                }
+            }
+            SectionCardDivider()
+            FoodItemFormFields(
+                formInput = formInput,
+                onFormInputChange = onFormInputChange,
+                highlightedFields = highlightedFields,
+                showsAlcoholByVolumeField = showsAlcoholByVolumeField,
+                onFieldEdited = onFieldEdited,
+            )
         }
-        FoodItemFormFields(
-            formInput = formInput,
-            onFormInputChange = onFormInputChange,
-            highlightedFields = highlightedFields,
-            showsAlcoholByVolumeField = showsAlcoholByVolumeField,
-            onFieldEdited = onFieldEdited,
-        )
     }
 }
 
@@ -174,9 +179,11 @@ fun FoodItemFormFields(
             }
         }
         val grams = stringResource(R.string.common_unit_grams)
+        SectionCardDivider()
         FormDoubleRow(stringResource(R.string.addFood_field_energyKJ), "kJ", formInput.energyKJ, isHighlighted(FoodItemFormField.ENERGY_KJ)) {
             edit(FoodItemFormField.ENERGY_KJ) { copy(energyKJ = it) }
         }
+        SectionCardDivider()
         FormDoubleRow(
             title = stringResource(
                 if (formInput.measure == FoodMeasure.GRAMS) R.string.addFood_field_caloriesPer100g else R.string.addFood_field_caloriesPer100ml,
@@ -185,40 +192,49 @@ fun FoodItemFormFields(
             value = formInput.caloriesPerHundredGrams,
             isHighlighted = isHighlighted(FoodItemFormField.CALORIES),
         ) { edit(FoodItemFormField.CALORIES) { copy(caloriesPerHundredGrams = it) } }
+        SectionCardDivider()
         FormDoubleRow(stringResource(R.string.addFood_field_protein), grams, formInput.protein, isHighlighted(FoodItemFormField.PROTEIN)) {
             edit(FoodItemFormField.PROTEIN) { copy(protein = it) }
         }
+        SectionCardDivider()
         FormDoubleRow(stringResource(R.string.addFood_field_carbs), grams, formInput.carbohydrate, isHighlighted(FoodItemFormField.CARBOHYDRATE)) {
             edit(FoodItemFormField.CARBOHYDRATE) { copy(carbohydrate = it) }
         }
+        SectionCardDivider()
         FormDoubleRow(
             stringResource(R.string.addFood_field_carbsSugar),
             grams,
             formInput.carbohydratePureSugar,
             isHighlighted(FoodItemFormField.CARBOHYDRATE_SUGAR),
         ) { edit(FoodItemFormField.CARBOHYDRATE_SUGAR) { copy(carbohydratePureSugar = it) } }
+        SectionCardDivider()
         FormDoubleRow(stringResource(R.string.addFood_field_fiber), grams, formInput.fiber ?: 0.0, isHighlighted(FoodItemFormField.FIBER)) {
             edit(FoodItemFormField.FIBER) { copy(fiber = it) }
         }
+        SectionCardDivider()
         FormDoubleRow(stringResource(R.string.addFood_field_fat), grams, formInput.fat, isHighlighted(FoodItemFormField.FAT)) {
             edit(FoodItemFormField.FAT) { copy(fat = it) }
         }
+        SectionCardDivider()
         FormDoubleRow(
             stringResource(R.string.addFood_field_fatSaturated),
             grams,
             formInput.fatSaturated ?: 0.0,
             isHighlighted(FoodItemFormField.FAT_SATURATED),
         ) { edit(FoodItemFormField.FAT_SATURATED) { copy(fatSaturated = it) } }
+        SectionCardDivider()
         FormDoubleRow(
             stringResource(R.string.addFood_field_fatUnsaturated),
             grams,
             formInput.fatUnsaturatedFattyAcids,
             isHighlighted(FoodItemFormField.FAT_UNSATURATED),
         ) { edit(FoodItemFormField.FAT_UNSATURATED) { copy(fatUnsaturatedFattyAcids = it) } }
+        SectionCardDivider()
         FormDoubleRow(stringResource(R.string.addFood_field_salt), grams, formInput.salt, isHighlighted(FoodItemFormField.SALT)) {
             edit(FoodItemFormField.SALT) { copy(salt = it) }
         }
         if (showsAlcoholByVolumeField) {
+            SectionCardDivider()
             FormDoubleRow(
                 stringResource(R.string.addFood_field_alcoholByVolume),
                 "%",

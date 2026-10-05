@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
@@ -44,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import antoni.kalorie.R
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.core.models.FoodExportFormat
 import kotlinx.coroutines.launch
@@ -97,34 +100,39 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
         },
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                DateRow(label = stringResource(R.string.export_datePicker_from), date = fromDate) { editedDate = EditedDate.FROM }
-                DateRow(label = stringResource(R.string.export_datePicker_to), date = toDate) { editedDate = EditedDate.TO }
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(text = stringResource(R.string.export_picker_format), modifier = Modifier.weight(1f))
-                    SingleChoiceSegmentedButtonRow {
-                        FoodExportFormat.entries.forEachIndexed { index, entry ->
-                            SegmentedButton(
-                                selected = format == entry,
-                                onClick = { viewModel.format.value = entry },
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = FoodExportFormat.entries.size),
-                                colors = appSegmentedButtonColors(),
-                                icon = {},
-                            ) {
-                                Text(
-                                    stringResource(
-                                        when (entry) {
-                                            FoodExportFormat.PDF -> R.string.export_format_pdf
-                                            FoodExportFormat.XLSX -> R.string.export_format_excel
-                                        },
-                                    ),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    maxLines = 1,
-                                    autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = MaterialTheme.typography.labelMedium.fontSize),
-                                )
+            Column(modifier = Modifier.fillMaxSize().padding(vertical = 16.dp)) {
+                SectionCard {
+                    DateRow(label = stringResource(R.string.export_datePicker_from), date = fromDate) { editedDate = EditedDate.FROM }
+                    SectionCardDivider()
+                    DateRow(label = stringResource(R.string.export_datePicker_to), date = toDate) { editedDate = EditedDate.TO }
+                }
+                SectionCard(modifier = Modifier.padding(top = 12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(text = stringResource(R.string.export_picker_format), modifier = Modifier.weight(1f))
+                        SingleChoiceSegmentedButtonRow {
+                            FoodExportFormat.entries.forEachIndexed { index, entry ->
+                                SegmentedButton(
+                                    selected = format == entry,
+                                    onClick = { viewModel.format.value = entry },
+                                    shape = SegmentedButtonDefaults.itemShape(index = index, count = FoodExportFormat.entries.size),
+                                    colors = appSegmentedButtonColors(),
+                                    icon = {},
+                                ) {
+                                    Text(
+                                        stringResource(
+                                            when (entry) {
+                                                FoodExportFormat.PDF -> R.string.export_format_pdf
+                                                FoodExportFormat.XLSX -> R.string.export_format_excel
+                                            },
+                                        ),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        maxLines = 1,
+                                        autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = MaterialTheme.typography.labelMedium.fontSize),
+                                    )
+                                }
                             }
                         }
                     }
@@ -132,7 +140,7 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
                 Button(
                     onClick = { scope.launch { viewModel.onExportTapped() } },
                     enabled = !isExportDisabled,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp),
                 ) {
                     Text(stringResource(R.string.export_button_export))
                 }
@@ -194,7 +202,7 @@ private enum class EditedDate { FROM, TO }
 @Composable
 private fun DateRow(label: String, date: Instant, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 56.dp).padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = label, modifier = Modifier.weight(1f))

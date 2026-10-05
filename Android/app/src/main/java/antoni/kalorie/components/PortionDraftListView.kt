@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -58,7 +58,7 @@ fun PortionDraftListView(
             LaunchedEffect(focusedDraftId) {
                 if (focusedDraftId == draft.id) focusRequester.requestFocus()
             }
-            SwipeToDeleteRow(onDeleteRequested = { onDelete(draft) }) {
+            SwipeToDeleteRow(onDeleteRequested = { onDelete(draft) }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                 Column(modifier = Modifier.padding(top = 12.dp, bottom = 12.dp)) {
                     PortionInputRow(
                         name = draft.name,
@@ -70,7 +70,7 @@ fun PortionDraftListView(
                     )
                 }
             }
-            if (index < drafts.size - 1) HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            if (index < drafts.size - 1) SectionCardDivider()
         }
     }
 }

@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +35,8 @@ import antoni.kalorie.R
 import antoni.kalorie.components.PortionDraftAddSection
 import antoni.kalorie.components.PortionDraftListView
 import antoni.kalorie.components.SaveToolbarButton
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.features.dashboard.SwipeToDeleteRow
 import kotlinx.coroutines.launch
@@ -89,9 +90,13 @@ fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(16.dp),
                     )
-                } else {
-                    for (portion in personalPortions) {
-                        SwipeToDeleteRow(onDeleteRequested = { scope.launch { viewModel.onDeletePersonalPortion(portion) } }) {
+                }
+                SectionCard {
+                    personalPortions.forEachIndexed { index, portion ->
+                        SwipeToDeleteRow(
+                            onDeleteRequested = { scope.launch { viewModel.onDeletePersonalPortion(portion) } },
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -104,16 +109,16 @@ fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit
                                 )
                             }
                         }
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        if (index < personalPortions.lastIndex || portionDrafts.isNotEmpty()) SectionCardDivider()
                     }
+                    PortionDraftListView(
+                        drafts = portionDrafts,
+                        onDraftsChange = { viewModel.portionDrafts.value = it },
+                        focusedDraftId = focusedDraftId,
+                        onDelete = viewModel::onDeletePortionDraft,
+                        measure = measure,
+                    )
                 }
-                PortionDraftListView(
-                    drafts = portionDrafts,
-                    onDraftsChange = { viewModel.portionDrafts.value = it },
-                    focusedDraftId = focusedDraftId,
-                    onDelete = viewModel::onDeletePortionDraft,
-                    measure = measure,
-                )
                 PortionDraftAddSection(
                     drafts = portionDrafts,
                     onAdd = { draft ->
