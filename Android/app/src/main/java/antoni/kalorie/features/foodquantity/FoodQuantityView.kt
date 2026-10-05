@@ -55,6 +55,7 @@ import antoni.kalorie.components.ReportIncorrectDataMenu
 import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.extensions.formattedTrimmed
@@ -138,7 +139,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
             )
         },
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 SectionCard(modifier = Modifier.padding(top = 8.dp)) {
                     Row(

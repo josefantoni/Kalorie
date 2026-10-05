@@ -48,6 +48,7 @@ import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.components.sanitizedGramsText
+import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
@@ -117,7 +118,7 @@ fun MyCreatedMealEditorView(
             )
         },
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { header() }
                 item {

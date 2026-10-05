@@ -61,6 +61,7 @@ import antoni.kalorie.R
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.minutesSinceMidnight
@@ -114,109 +115,78 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
             },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                Column(modifier = Modifier.fillMaxSize().imePadding()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_section_mealLayout),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        FilledTonalButton(
-                            onClick = {
-                                if (isEditing) {
-                                    isEditing = false
-                                    scope.launch { viewModel.onSaveReorder() }
-                                } else {
-                                    isEditing = true
-                                }
-                            },
+                KeyboardDoneContainer(modifier = Modifier.fillMaxSize().imePadding()) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = stringResource(
-                                    if (isEditing) R.string.settings_button_editDone else R.string.settings_button_edit,
-                                ),
+                                text = stringResource(R.string.settings_section_mealLayout),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            FilledTonalButton(
+                                onClick = {
+                                    if (isEditing) {
+                                        isEditing = false
+                                        scope.launch { viewModel.onSaveReorder() }
+                                    } else {
+                                        isEditing = true
+                                    }
+                                },
+                            ) {
+                                Text(
+                                    text = stringResource(
+                                        if (isEditing) R.string.settings_button_editDone else R.string.settings_button_edit,
+                                    ),
+                                )
+                            }
                         }
-                    }
 
-                    LazyColumn(modifier = Modifier.weight(1f)) {
-                        item {
-                            SectionCard {
-                                mealTypes.forEachIndexed { index, mealType ->
-                                    key(mealType.id) {
-                                        SwipeToDeleteRow(
-                                            onDeleteRequested = { scope.launch { viewModel.onDelete(index) } },
-                                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                        ) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                MealTypeItemView(mealType = mealType, modifier = Modifier.weight(1f))
-                                                if (isEditing) {
-                                                    IconButton(onClick = { viewModel.onMove(from = index, to = index - 1) }, enabled = index > 0) {
-                                                        Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null)
-                                                    }
-                                                    IconButton(
-                                                        onClick = { viewModel.onMove(from = index, to = index + 2) },
-                                                        enabled = index < mealTypes.lastIndex,
-                                                    ) {
-                                                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                        LazyColumn(modifier = Modifier.weight(1f)) {
+                            item {
+                                SectionCard {
+                                    mealTypes.forEachIndexed { index, mealType ->
+                                        key(mealType.id) {
+                                            SwipeToDeleteRow(
+                                                onDeleteRequested = { scope.launch { viewModel.onDelete(index) } },
+                                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                            ) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    MealTypeItemView(mealType = mealType, modifier = Modifier.weight(1f))
+                                                    if (isEditing) {
+                                                        IconButton(onClick = { viewModel.onMove(from = index, to = index - 1) }, enabled = index > 0) {
+                                                            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null)
+                                                        }
+                                                        IconButton(
+                                                            onClick = { viewModel.onMove(from = index, to = index + 2) },
+                                                            enabled = index < mealTypes.lastIndex,
+                                                        ) {
+                                                            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                                                        }
                                                     }
                                                 }
                                             }
+                                            if (index < mealTypes.lastIndex) SectionCardDivider()
                                         }
-                                        if (index < mealTypes.lastIndex) SectionCardDivider()
                                     }
                                 }
                             }
-                        }
-                        if (isEditing) {
-                            item {
-                                FooterView(
-                                    isAddFormVisible = isAddFormVisible,
-                                    viewModel = viewModel,
-                                    focusManager = focusManager,
-                                    onCreate = { scope.launch { viewModel.onCreateMealType() } },
-                                )
-                            }
-                        } else {
-                            item {
-                                Text(
-                                    text = stringResource(R.string.settings_section_other),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
-                                )
-                            }
-                            item {
-                                SectionCard {
-                                    NavigationRow(
-                                        title = stringResource(R.string.export_navigationTitle),
-                                        onClick = { viewModel.isExportPushed.value = true },
-                                    )
-                                    SectionCardDivider()
-                                    NavigationRow(
-                                        title = feedbackSubject,
-                                        onClick = {
-                                            val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
-                                                putExtra(Intent.EXTRA_EMAIL, arrayOf(Constants.Support.EMAIL))
-                                                putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
-                                            }
-                                            try {
-                                                context.startActivity(intent)
-                                            } catch (_: ActivityNotFoundException) {
-                                                isFeedbackMailUnavailableAlertPresented = true
-                                            }
-                                        },
+                            if (isEditing) {
+                                item {
+                                    FooterView(
+                                        isAddFormVisible = isAddFormVisible,
+                                        viewModel = viewModel,
+                                        focusManager = focusManager,
+                                        onCreate = { scope.launch { viewModel.onCreateMealType() } },
                                     )
                                 }
-                            }
-                            if (isMaintainer) {
+                            } else {
                                 item {
                                     Text(
-                                        text = stringResource(R.string.moderation_section_title),
+                                        text = stringResource(R.string.settings_section_other),
                                         style = MaterialTheme.typography.titleSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
@@ -225,14 +195,47 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                                 item {
                                     SectionCard {
                                         NavigationRow(
-                                            title = stringResource(R.string.moderation_queue_title),
-                                            onClick = { isModerationQueuePushed = true },
+                                            title = stringResource(R.string.export_navigationTitle),
+                                            onClick = { viewModel.isExportPushed.value = true },
                                         )
                                         SectionCardDivider()
                                         NavigationRow(
-                                            title = stringResource(R.string.moderation_reports_title),
-                                            onClick = { isModerationReportsPushed = true },
+                                            title = feedbackSubject,
+                                            onClick = {
+                                                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+                                                    putExtra(Intent.EXTRA_EMAIL, arrayOf(Constants.Support.EMAIL))
+                                                    putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
+                                                }
+                                                try {
+                                                    context.startActivity(intent)
+                                                } catch (_: ActivityNotFoundException) {
+                                                    isFeedbackMailUnavailableAlertPresented = true
+                                                }
+                                            },
                                         )
+                                    }
+                                }
+                                if (isMaintainer) {
+                                    item {
+                                        Text(
+                                            text = stringResource(R.string.moderation_section_title),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+                                        )
+                                    }
+                                    item {
+                                        SectionCard {
+                                            NavigationRow(
+                                                title = stringResource(R.string.moderation_queue_title),
+                                                onClick = { isModerationQueuePushed = true },
+                                            )
+                                            SectionCardDivider()
+                                            NavigationRow(
+                                                title = stringResource(R.string.moderation_reports_title),
+                                                onClick = { isModerationReportsPushed = true },
+                                            )
+                                        }
                                     }
                                 }
                             }
