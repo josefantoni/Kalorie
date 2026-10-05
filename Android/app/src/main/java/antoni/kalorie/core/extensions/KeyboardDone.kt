@@ -1,5 +1,6 @@
 package antoni.kalorie.core.extensions
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -34,7 +36,7 @@ fun KeyboardDoneContainer(modifier: Modifier = Modifier, content: @Composable Bo
         Box(modifier = Modifier.weight(1f).fillMaxWidth(), content = content)
         if (WindowInsets.isImeVisible) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(horizontal = 16.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
                 FilledTonalButton(
