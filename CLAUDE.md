@@ -1,71 +1,71 @@
-# Kalorie — pokyny pro Claude
+# Kalorie — instructions for Claude
 
-## Jazyk
+## Language
 
-- Odpovídej česky. Čeština je jazyk konverzace, ne projektu.
-- **Všechno, co jde do repozitáře, piš anglicky** — názvy typů, metod a proměnných, komentáře v kódu, commit messages, dokumentaci v `docs/`, `TODO.md` i `README.md`.
+- Reply in Czech. Czech is the language of the conversation, not of the project.
+- **Everything that goes into the repository is written in English** — type, method and variable names, code comments, commit messages, documentation in `docs/`, `TODO.md` and `README.md`.
 
-## Dokumentace
+## Documentation
 
-Dokumenty se dělí podle životního cyklu, ne podle tématu — pravidla a šablony jsou v `docs/README.md`. Ve zkratce:
+Documents are split by lifecycle, not by topic — the rules and templates are in `docs/README.md`. In short:
 
-- **Znalost o konkrétním kusu kódu** → komentář u kódu (v mezích pravidla „nepiš komentáře" níže).
-- **Rozhodnutí, které tvaruje víc míst** → ADR v `docs/adr/`. Immutable — needituje se, jen se nahradí novým.
-- **Návrh před implementací** → design doc v `docs/design/`. Po shipnutí se zmrazí, neaktualizuje se.
-- **Stav, výsledky review, počty testů** → commit message nebo PR. Do `docs/` nepatří.
-- Každý design doc a ADR má **Scope** (`Backend` / `Cross-platform` / `iOS` / `Android`) kvůli druhému klientovi.
+- **Knowledge about a specific piece of code** → a comment next to the code (within the "no comments" rule below).
+- **A decision that shapes several places** → an ADR in `docs/adr/`. Immutable — it is not edited, only replaced by a new one.
+- **A proposal before implementation** → a design doc in `docs/design/`. Frozen once shipped, not updated afterwards.
+- **Status, review results, test counts** → commit message or PR. It does not belong in `docs/`.
+- Every design doc and ADR has a **Scope** (`Backend` / `Cross-platform` / `iOS` / `Android`) because of the second client.
 
-## Platformy
+## Platforms
 
-Pravidla specifická pro platformu jsou ve vlastním souboru — iOS v `iOS/CLAUDE.md`, Android v `Android/CLAUDE.md` ([ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md)). Tento soubor drží jen to, co platí pro obě.
+Platform-specific rules live in their own file — iOS in `iOS/CLAUDE.md`, Android in `Android/CLAUDE.md` ([ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md)). This file holds only what applies to both.
 
-**Povinné čtení:** dřív než poprvé čteš, měníš nebo buildíš cokoli v `iOS/` nebo `Android/`, přečti `CLAUDE.md` té platformy, pokud ho ještě nemáš v kontextu. Claude Code ho sice načte sám při prvním přístupu k souboru v dané složce, ale ne při samotném `xcodebuild` / `gradlew` nebo `grep`. Nikdy neimportuj platformní soubory přes `@` do tohoto souboru — načítaly by se pokaždé obě.
+**Mandatory reading:** before you first read, change or build anything in `iOS/` or `Android/`, read that platform's `CLAUDE.md` if you do not have it in context yet. Claude Code loads it on its own the first time it touches a file in that folder, but not on a bare `xcodebuild` / `gradlew` or `grep`. Never import platform files into this file via `@` — both would be loaded every time.
 
 ## Monorepo
 
-iOS, Android, backend a sdílené KMP moduly žijí v jednom gitu. Pravidla, aby se to nerozpadlo:
+iOS, Android, the backend and the shared KMP modules live in one git repository. Rules so it does not fall apart:
 
-- **Commit se týká jedné platformy** (`iOS/`, `Android/`, `backend/`, KMP moduly, `docs/`). Míchej je jen tehdy, když jedna změna sdíleného kontraktu (pravidla, tvar dokumentu, KMP API) musí dopadnout na všechny naráz.
-- **Změna KMP modulu nebo Firestore kontraktu** = zkontroluj oba klienty (iOS build, Android build), ne jen ten, na kterém právě pracuješ.
-- **Nikdy nevytvářej tag ani release bez prefixu platformy** (`ios-1.2`, `android-1.0`).
-- **CI**: jakmile měníš `.github/workflows/`, hlídej, aby změna v jedné platformě zbytečně nespouštěla build druhé. Stav a plán jsou v `TODO.md` (Android readiness).
-- Přibude-li do CI další krok nebo secret, řekni to uživateli — nedomýšlej si ho potichu.
+- **A commit concerns one platform** (`iOS/`, `Android/`, `backend/`, KMP modules, `docs/`). Mix them only when a single change to a shared contract (rules, document shape, KMP API) has to land on all of them at once.
+- **A change to a KMP module or the Firestore contract** = check both clients (iOS build, Android build), not just the one you are working on.
+- **Never create a tag or release without a platform prefix** (`ios-1.2`, `android-1.0`).
+- **CI**: whenever you change `.github/workflows/`, make sure a change in one platform does not needlessly trigger the other's build. Status and plan are in `TODO.md` (Android readiness).
+- If a new CI step or secret is needed, tell the user — do not quietly work it out yourself.
 
-## Komentáře v kódu
+## Code comments
 
-- **Nepiš komentáře v kódu**, pokud o ně explicitně nepožádám. To zahrnuje:
-  - Doc comments (`///`, KDoc) nad typy, protokoly, funkcemi
-  - Inline vysvětlivky (`// ...`) popisující, co kód dělá
-- Výjimka: pokud je v kódu něco skutečně neintuitivního (workaround pro bug v SDK, netriviální invariant), krátký komentář přidej — ale jen v takových případech.
+- **Do not write code comments** unless I explicitly ask for them. That covers:
+  - Doc comments (`///`, KDoc) above types, protocols, functions
+  - Inline explanations (`// ...`) describing what the code does
+- Exception: if something in the code is genuinely non-obvious (a workaround for an SDK bug, a non-trivial invariant), add a short comment — but only in such cases.
 
-## Navigace v kódu
+## Code navigation
 
-Pořadí nástrojů — vždy takto, nikdy nepřeskakuj:
-1. **LSP** (`definition`, `references`, `hover`) — pro symboly, typy, volající
-2. **`grep` / `find`** — pro pattern, který LSP neobsáhne
-3. **`Read`** — až když víš přesně který soubor a přibližně kde
+Order of tools — always like this, never skip a step:
+1. **LSP** (`definition`, `references`, `hover`) — for symbols, types, callers
+2. **`grep` / `find`** — for a pattern LSP does not cover
+3. **`Read`** — only once you know exactly which file and roughly where
 
-Nikdy nečti soubor "aby ses podíval" — search first, Read až jako poslední krok.
+Never read a file "to have a look" — search first, Read only as the last step.
 
-## Navigace v dokumentaci
+## Documentation navigation
 
-**Stejné pravidlo platí pro `docs/`.** Než napíšeš ADR, audit finding, nebo tvrzení o tom, jak
-něco funguje a proč, grepni `docs/` na identifikátory, o kterých píšeš — název pole, typu, use
-casu, kolekce:
+**The same rule applies to `docs/`.** Before you write an ADR, an audit finding, or a claim about how
+something works and why, grep `docs/` for the identifiers you are writing about — a field, type,
+use case or collection name:
 
 ```
 grep -rl "food_item_id" docs/
 ```
 
-Důvod: design docy jsou **zmrazené, ne nedůležité**. Zmrazené znamená needitovat je, ne nečíst.
-Rozhodnutí, které v nich stojí, je pořád v platnosti, a tvrdit o něm "tohle nikoho nenapadlo"
-nebo "tady je potřeba se rozhodnout" je chyba — i když je ten kód opravdu rozbitý.
+Reason: design docs are **frozen, not unimportant**. Frozen means do not edit them, not do not read them.
+The decision recorded in them is still in force, and claiming "nobody thought of this"
+or "a decision needs to be made here" about it is a mistake — even if the code really is broken.
 
-- **Vstupní bod je `docs/ARCHITECTURE.md`.** Každá sekce si nahoře odkazuje ADRy i design docy
-  své oblasti. Přečti tu jednu sekci, ne celé `docs/`.
-- Když najdeš rozpor mezi kódem a design docem, je to **nález** — design doc se neopravuje.
-- Když je rozhodnutí v design docu už přijaté včetně mitigace, nález se tím nemaže, ale musí to
-  přiznat a zúžit se na to, co skutečně zbývá.
+- **The entry point is `docs/ARCHITECTURE.md`.** Every section links the ADRs and design docs
+  of its area at the top. Read that one section, not all of `docs/`.
+- When you find a contradiction between the code and a design doc, that is a **finding** — the design doc is not corrected.
+- When a decision in a design doc was already accepted together with a mitigation, the finding is not erased by that,
+  but it must acknowledge the mitigation and narrow itself to what actually remains.
 
 ---
 
@@ -87,10 +87,10 @@ instruction elsewhere says.
 
 ---
 
-# Obecná pracovní pravidla
+# General working rules
 
-Tato pravidla platí pro každý úkol, pokud není explicitně přepsáno.
-Bias: opatrnost před rychlostí u netriviální práce. U triviálních úkolů použij zdravý úsudek.
+These rules apply to every task unless explicitly overridden.
+Bias: caution over speed on non-trivial work. For trivial tasks, use sound judgment.
 
 ## Rule 1 — Think Before Coding
 State assumptions explicitly. If uncertain, ask rather than guess.
