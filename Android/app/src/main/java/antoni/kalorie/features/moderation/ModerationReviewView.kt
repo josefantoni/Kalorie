@@ -41,6 +41,7 @@ import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.rememberScannerAccess
+import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
@@ -92,7 +93,7 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                 )
             },
         ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
+            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
                 Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                     viewModel.rejectReasonIfAny?.let { reason ->
                         SectionCard(modifier = Modifier.padding(top = 8.dp)) {
