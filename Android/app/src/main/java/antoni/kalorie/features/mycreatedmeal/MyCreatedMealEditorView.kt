@@ -156,7 +156,7 @@ fun MyCreatedMealEditorView(
                         onTextChange = { viewModel.searchText.value = it },
                         trailingIcon = {
                             IconButton(onClick = scannerAccess.open) {
-                                Icon(BarcodeIcon, contentDescription = null)
+                                Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             }
                         },
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
