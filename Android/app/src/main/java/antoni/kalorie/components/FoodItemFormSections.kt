@@ -69,7 +69,7 @@ fun FoodItemFormSections(
                 },
                 placeholder = stringResource(R.string.addFood_field_name_placeholder),
                 isHighlighted = FoodItemFormField.NAME in highlightedFields,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth(),
             )
             if (barcodeRow != FoodItemFormBarcodeRow.Hidden) SectionCardDivider()
             when (barcodeRow) {
@@ -85,7 +85,7 @@ fun FoodItemFormSections(
                     },
                     keyboardType = KeyboardType.Number,
                     enabled = false,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 is FoodItemFormBarcodeRow.Editable -> FloatingLabelTextField(
                     title = stringResource(R.string.addFood_field_barcode_title),
@@ -106,7 +106,7 @@ fun FoodItemFormSections(
                             )
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             onNutritionLabelScanTapped?.let { onScanTapped ->

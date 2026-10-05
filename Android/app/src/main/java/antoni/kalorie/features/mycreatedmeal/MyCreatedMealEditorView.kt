@@ -126,7 +126,7 @@ fun MyCreatedMealEditorView(
                             title = stringResource(R.string.myCreatedMeal_field_namePlaceholder),
                             text = name,
                             onTextChange = { viewModel.name.value = it },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -170,7 +170,7 @@ fun MyCreatedMealEditorView(
                                     Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }

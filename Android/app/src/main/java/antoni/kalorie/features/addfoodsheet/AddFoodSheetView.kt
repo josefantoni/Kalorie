@@ -280,17 +280,19 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
         LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
             item { ModePicker(viewModel) }
             item {
-                FloatingLabelTextField(
-                    title = stringResource(R.string.addFood_search_placeholder, stringResource(viewModel.searchExampleRes)),
-                    text = searchText,
-                    onTextChange = { viewModel.searchText.value = it },
-                    trailingIcon = {
-                        IconButton(onClick = scannerAccess.open) {
-                            Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                )
+                SectionCard {
+                    FloatingLabelTextField(
+                        title = stringResource(R.string.addFood_search_placeholder, stringResource(viewModel.searchExampleRes)),
+                        text = searchText,
+                        onTextChange = { viewModel.searchText.value = it },
+                        trailingIcon = {
+                            IconButton(onClick = scannerAccess.open) {
+                                Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
             if (searchText.isEmpty() && favouriteFoods.isNotEmpty()) {
                 item {
