@@ -131,7 +131,7 @@ fun ModerationCatalogueEditorView(
                                 modifier = Modifier.weight(1f),
                             )
                             IconButton(onClick = { scope.launch { viewModel.onSearchTapped() } }) {
-                                Icon(BarcodeIcon, contentDescription = null)
+                                Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
