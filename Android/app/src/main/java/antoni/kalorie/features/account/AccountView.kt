@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
@@ -14,12 +13,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -36,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.utils.Constants
 import kotlinx.coroutines.launch
 
@@ -87,50 +86,45 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
             },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                Column(modifier = Modifier.fillMaxSize().padding(vertical = 16.dp)) {
                     if (isAnonymous) {
                         Text(
                             text = stringResource(R.string.account_anonymous_description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp),
                         )
                         Button(
                             onClick = { scope.launch { viewModel.onSignInWithGoogleTapped() } },
-                            modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp),
                         ) {
                             Text(stringResource(R.string.account_button_signInWithGoogle))
                         }
                     } else {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        ) {
-                            Column {
-                                Text(
-                                    text = displayName ?: stringResource(R.string.account_signedIn_defaultName),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                )
-                                HorizontalDivider()
-                                Text(
-                                    text = stringResource(R.string.account_button_signOut),
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { scope.launch { viewModel.onSignOutTapped() } }
-                                        .padding(16.dp),
-                                )
-                                HorizontalDivider()
-                                Text(
-                                    text = stringResource(R.string.account_button_deleteAccount),
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { viewModel.showDeleteConfirmation.value = true }
-                                        .padding(16.dp),
-                                )
-                            }
+                        SectionCard {
+                            Text(
+                                text = displayName ?: stringResource(R.string.account_signedIn_defaultName),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            )
+                            SectionCardDivider()
+                            Text(
+                                text = stringResource(R.string.account_button_signOut),
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { scope.launch { viewModel.onSignOutTapped() } }
+                                    .padding(16.dp),
+                            )
+                            SectionCardDivider()
+                            Text(
+                                text = stringResource(R.string.account_button_deleteAccount),
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { viewModel.showDeleteConfirmation.value = true }
+                                    .padding(16.dp),
+                            )
                         }
                     }
                 }

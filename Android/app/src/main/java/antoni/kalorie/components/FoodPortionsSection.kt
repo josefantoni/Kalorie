@@ -37,13 +37,15 @@ fun FoodPortionsSection(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
-        PortionDraftListView(
-            drafts = portions,
-            onDraftsChange = onPortionsChange,
-            focusedDraftId = focusedPortionId,
-            onDelete = { draft -> onPortionsChange(portions.filter { it.id != draft.id }) },
-            measure = measure,
-        )
+        SectionCard {
+            PortionDraftListView(
+                drafts = portions,
+                onDraftsChange = onPortionsChange,
+                focusedDraftId = focusedPortionId,
+                onDelete = { draft -> onPortionsChange(portions.filter { it.id != draft.id }) },
+                measure = measure,
+            )
+        }
         PortionDraftAddSection(
             drafts = portions,
             onAdd = { draft ->

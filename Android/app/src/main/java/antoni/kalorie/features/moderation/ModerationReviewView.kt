@@ -38,6 +38,8 @@ import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.AlertItem
@@ -93,11 +95,13 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
                 Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                     viewModel.rejectReasonIfAny?.let { reason ->
-                        Text(
-                            text = stringResource(R.string.addFood_submission_rejectedReason, reason),
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(16.dp),
-                        )
+                        SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                            Text(
+                                text = stringResource(R.string.addFood_submission_rejectedReason, reason),
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            )
+                        }
                     }
                     FoodItemFormSections(
                         formInput = formInput,
@@ -112,28 +116,32 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                         Text(
                             text = stringResource(R.string.moderation_similarItems_title),
                             style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp, bottom = 8.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
                         )
-                        if (similarCatalogueItems.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.moderation_similarItems_empty),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                            )
-                        } else {
-                            similarCatalogueItems.forEach { item ->
-                                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
-                                    Text(item.displayName)
-                                    Text(
-                                        text = "${item.caloriesPerHundredGrams.roundToInt()} kcal / 100 ${stringResource(item.measure.unitSymbolRes)}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                        SectionCard {
+                            if (similarCatalogueItems.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.moderation_similarItems_empty),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                )
+                            } else {
+                                similarCatalogueItems.forEachIndexed { index, item ->
+                                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                                        Text(item.displayName)
+                                        Text(
+                                            text = "${item.caloriesPerHundredGrams.roundToInt()} kcal / 100 ${stringResource(item.measure.unitSymbolRes)}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    if (index < similarCatalogueItems.lastIndex) SectionCardDivider()
                                 }
                             }
                         }
                     }
-                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                         Button(
                             onClick = { scope.launch { viewModel.onApproveTapped() } },
                             modifier = Modifier.fillMaxWidth(),

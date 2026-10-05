@@ -14,7 +14,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +40,8 @@ import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.SaveToolbarButton
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.utils.AlertItem
@@ -107,31 +108,36 @@ fun ModerationCatalogueEditorView(
                         Text(
                             text = stringResource(R.string.moderation_reports_title),
                             style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
                         )
-                        reports.forEach { report ->
-                            Text(
-                                text = report.reason,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            )
+                        SectionCard {
+                            reports.forEachIndexed { index, report ->
+                                Text(
+                                    text = report.reason,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                                )
+                                if (index < reports.lastIndex) SectionCardDivider()
+                            }
                         }
-                        HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
                     }
                     if (!viewModel.isOpenedFromReport) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            FloatingLabelTextField(
-                                title = stringResource(R.string.moderation_editor_searchPlaceholder),
-                                text = barcodeQuery,
-                                onTextChange = { viewModel.barcodeQuery.value = it },
-                                keyboardType = KeyboardType.Number,
-                                modifier = Modifier.weight(1f),
-                            )
-                            IconButton(onClick = { scope.launch { viewModel.onSearchTapped() } }) {
-                                Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                FloatingLabelTextField(
+                                    title = stringResource(R.string.moderation_editor_searchPlaceholder),
+                                    text = barcodeQuery,
+                                    onTextChange = { viewModel.barcodeQuery.value = it },
+                                    keyboardType = KeyboardType.Number,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                IconButton(onClick = { scope.launch { viewModel.onSearchTapped() } }) {
+                                    Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                }
                             }
                         }
                     }
