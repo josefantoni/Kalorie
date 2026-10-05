@@ -16,7 +16,7 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
   </tr>
   <tr>
     <td align="center"><img src="https://github.com/user-attachments/assets/d703198a-2672-41a3-a967-5086c04d7d75" width="250" alt="iOS add food"></td>
-    <td align="center"><img src="https://github.com/user-attachments/assets/adbab8db-ddd1-435a-bf98-54615ee4eeac" width="250" alt="Android add food"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/a872a09f-1579-49aa-acec-e01c1d1fbaf9" width="250" alt="Android add food"></td>
   </tr>
 </table>
 
