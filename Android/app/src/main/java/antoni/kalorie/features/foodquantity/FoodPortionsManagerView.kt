@@ -99,7 +99,7 @@ fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit
                             ) {
                                 Text(portion.name)
                                 Text(
-                                    text = portion.grams.formattedAmount(measure),
+                                    text = portion.grams.formattedAmount(measure, minFractionDigits = 0),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
