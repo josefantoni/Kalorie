@@ -20,6 +20,10 @@ function foodItem(id, overrides = {}) {
     eng_name: 'Roll',
     cz_name_lowercase: 'rohlik',
     eng_name_lowercase: 'roll',
+    cz_name_folded: 'rohlik',
+    eng_name_folded: 'roll',
+    cz_name_search_terms: ['r', 'ro', 'roh', 'rohl', 'rohli', 'rohlik'],
+    eng_name_search_terms: ['r', 'ro', 'rol', 'roll'],
     weight: 100,
     date: 1_700_000_000,
     calories_per_hundred_grams: 250,
@@ -144,7 +148,8 @@ describe('foodItems', () => {
   });
 
   for (const field of [
-    'cz_name', 'eng_name', 'cz_name_lowercase', 'eng_name_lowercase', 'weight', 'date',
+    'cz_name', 'eng_name', 'cz_name_lowercase', 'eng_name_lowercase', 'cz_name_folded',
+    'eng_name_folded', 'cz_name_search_terms', 'eng_name_search_terms', 'weight', 'date',
     'calories_per_hundred_grams', 'fat', 'fat_unsaturated_fatty_acids', 'carbohydrate',
     'carbohydrate_pure_sugar', 'protein', 'salt',
   ]) {
@@ -157,6 +162,10 @@ describe('foodItems', () => {
 
   it('rejects a numeric field written as a string', async () => {
     await assertFails(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { fat: '1' })));
+  });
+
+  it('rejects search terms written as a string instead of a list', async () => {
+    await assertFails(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { cz_name_search_terms: 'rohlik' })));
   });
 
   it('rejects a name field written as a number', async () => {
