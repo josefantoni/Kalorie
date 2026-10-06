@@ -9,6 +9,7 @@ import antoni.kalorie.core.networking.batchSetAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.DefaultMeals
 import antoni.kalorie.core.utils.StringProvider
+import antoni.kalorie.mealkit.DEFAULT_MEAL_WINDOWS
 import java.util.UUID
 
 interface SetupDefaultMealsUseCaseProtocol {
@@ -28,10 +29,11 @@ class SetupDefaultMealsUseCase(
         val dtos = mutableListOf<Pair<MealTypeDTO, String>>()
         val domains = mutableListOf<MealTypeDomain>()
 
-        for ((index, defaultKey) in DefaultMeals.keys.withIndex()) {
+        for (window in DEFAULT_MEAL_WINDOWS) {
+            val defaultKey = window.key
             val mealName = DefaultMeals.name(defaultKey, stringProvider) ?: defaultKey
-            val startMinutes = DEFAULT_BOUNDARIES[index]
-            val endMinutes = DEFAULT_BOUNDARIES[index + 1]
+            val startMinutes = window.startMinutes
+            val endMinutes = window.endMinutes
             val id = UUID.randomUUID().toString().uppercase()
             dtos += MealTypeDTO(
                 id = id,
@@ -51,9 +53,5 @@ class SetupDefaultMealsUseCase(
 
         dataProvider.batchSetAsync(dtos, inCollection = Constants.Firestore.mealTypes(userId))
         return domains
-    }
-
-    private companion object {
-        val DEFAULT_BOUNDARIES = listOf(5 * 60, 8 * 60 + 30, 11 * 60, 14 * 60 + 30, 17 * 60, 20 * 60)
     }
 }
