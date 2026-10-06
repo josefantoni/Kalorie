@@ -7,6 +7,7 @@ object Constants {
 
     object Support {
         const val EMAIL = "kaloriepodpora@gmail.com"
+        const val PRIVACY_POLICY_URL = "https://kalorie-bf11c.web.app/privacy"
     }
 
     object LogCategory {
