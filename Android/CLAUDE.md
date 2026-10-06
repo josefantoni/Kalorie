@@ -80,6 +80,13 @@ A full-width primary action (Export, Create, Approve, Delete) is `PrimaryButton`
 call `Button` directly for these, and never use `colorScheme.error` for the fill — in dark mode its
 text is not white.
 
+## Add button
+
+The "add a row" `+` (new portion, new meal in the settings layout) is `AddButton`
+(`components/AddButton.kt`): a 36 dp `FilledIconButton` with `Icons.Filled.Add`, with `enabled` and
+`contentDescription` parameters. It mirrors the iOS component of the same name. Never call
+`FilledIconButton` or `Icons.Outlined.AddCircle` directly for this.
+
 ## Wire contract gotchas
 
 - **Missing required field = failed decode**, as on iOS. A DTO property with no default value is

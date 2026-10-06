@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -22,7 +23,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +37,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDialog
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.components.AddButton
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
@@ -339,9 +341,7 @@ private fun FooterView(
 ) {
     if (!isAddFormVisible) {
         Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), contentAlignment = Alignment.Center) {
-            IconButton(onClick = viewModel::onShowAddForm) {
-                Icon(Icons.Outlined.AddCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            }
+            AddButton(onClick = viewModel::onShowAddForm, contentDescription = null)
         }
     } else {
         AddMealForm(
@@ -378,18 +378,28 @@ private fun AddMealForm(viewModel: SettingsViewModel, onCreate: () -> Unit) {
         viewModel.newMealEnd.value = end
     }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        FloatingLabelTextField(
-            title = stringResource(R.string.settings_field_newMeal_placeholder),
-            text = name,
-            onTextChange = { viewModel.newMealName.value = it },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            TimeRow(stringResource(R.string.settings_datePicker_from), startState, Modifier.weight(1f)) { editedState = startState }
-            TimeRow(stringResource(R.string.settings_datePicker_to), endState, Modifier.weight(1f)) { editedState = endState }
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        SectionCard {
+            FloatingLabelTextField(
+                title = stringResource(R.string.settings_field_newMeal_placeholder),
+                text = name,
+                onTextChange = { viewModel.newMealName.value = it },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TimeRow(stringResource(R.string.settings_datePicker_from), startState, Modifier.weight(1f)) { editedState = startState }
+                VerticalDivider(modifier = Modifier.height(SectionRowMinHeight / 2).padding(horizontal = 16.dp))
+                TimeRow(stringResource(R.string.settings_datePicker_to), endState, Modifier.weight(1f)) { editedState = endState }
+            }
         }
-        PrimaryButton(text = stringResource(R.string.settings_button_create), onClick = onCreate, modifier = Modifier.fillMaxWidth())
+        PrimaryButton(
+            text = stringResource(R.string.settings_button_create),
+            onClick = onCreate,
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 20.dp),
+        )
     }
 
     editedState?.let { state ->
