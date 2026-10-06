@@ -137,7 +137,7 @@ names an address.
 1. Firebase Console → Authentication → Users → search the sender's email → copy the **User UID**.
    If there is no match, reply that no account exists for that address, and stop.
 2. Delete the user subtree (covers `mealTypes`, `foodConsumed`, `favouriteFoods`, `myCreatedMeals`,
-   `foodItemPortions` and the `users/{uid}` document):
+   `foodItemPortions`, `stats` and the `users/{uid}` document):
    `firebase firestore:delete users/<UID> --recursive --project kalorie-bf11c`
 3. Firestore console → `foodItemSubmissions` → filter `submitted_by == <UID>` → delete each document.
 4. Firestore console → `foodItemReports` → filter `reported_by == <UID>` → delete each document

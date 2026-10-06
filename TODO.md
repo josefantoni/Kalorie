@@ -19,9 +19,6 @@ The app works with three kinds of data. The distinction matters for the items be
   Storage quota is unverified. Needs a `storage` block in `firebase.json`, `storage.rules`, and a
   Blaze-plan check before starting. Additive once it lands — `FoodItemSubmissionDTO` gains an
   optional `photo_path`, no other schema change.
-- **Rank search results by frequency** — order manual search results by how often the user has
-  logged each food, so the most used ones come first. Distinct from favourites above: this one is
-  derived, not chosen, and the user cannot remove an entry from it.
 - **Frequency-derived quick-add gram amounts** — per-user "frequently added weights", gram
   amounts the user logs often for a given food (e.g. 50g oats almost daily, one slice of bread),
   surfaced as quick-add options, likely derived from `foodConsumed` history rather than manually
@@ -76,15 +73,13 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   (readable, `mailto:` opens with the subject filled). Left, blocked on the same Play Console
   account as the SHA-1 item above: paste the URL into Play Console → Data safety once the app
   exists there, then remove this item.
-- **Move the default meal windows into MealKit** — `SetupDefaultMealsUseCase` writes the five
-  default meals with the window boundaries 05:00, 08:30, 11:00, 14:30, 17:00, 20:00, and the list is
-  written twice: inline in the Swift use case and as `DEFAULT_BOUNDARIES` in the Kotlin one. Nothing
-  checks that the two agree, so the 8:30 / 14:30 shift (`b21cd1d`, `e7e2ff5`) had to be made by hand on
-  both sides. The input and output are primitives (minutes since midnight), so
-  [ADR 0039](docs/adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) § 1 calls for a
-  `MealKit` constant (next to `MIN_MEAL_WINDOW_MINUTES`) that both use cases read, with the contiguity
-  check (each window starts where the previous one ends) in `MealKit`'s `commonTest`. ARCHITECTURE
-  § 3.4 lists the boundaries; point it at the `MealKit` constant once it exists.
+- **Privacy policy** — Google Play (App content → Privacy policy) and App Store Connect both
+  require a public privacy policy URL and an in-app link; Play's Data safety answers must match it.
+  Designed in [design 0021](docs/design/0021-privacy-policy.md): the data inventory, the page
+  `backend/hosting/privacy.html` (`https://kalorie-bf11c.web.app/privacy`), the Settings and
+  account-screen links on both clients, and the Data safety mapping. Owner decisions are recorded,
+  ready to implement; pasting the URL into Play Console waits on the Play Console account.
+  Pre-release gate next to *Play Store account deletion*.
 - **Check the recent Android fixes by hand on an emulator or device** — they were only built and unit
   tested; the camera and the touch handling cannot be covered that way. The barcode scanner must release
   the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
@@ -95,13 +90,3 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes what exists; `docs/adr/` records the
 decisions still in effect. Findings are grouped by area and numbered `A<area>-<n>` — only open
 ones are listed below; closed findings live in git history, not here.
-
-## Audit findings — 2. Food search and catalogue
-
-- **A2-12 — Ranking cannot be added on top of the current search.** Results are capped at
-  `limit(10)` per field — six fields as of [ADR 0024](docs/adr/0024-token-array-field-for-whole-word-search.md)
-  — and Firestore returns them in index order, i.e. alphabetically by the matched name. Anything
-  cut by that limit is invisible to a re-sort, so *Rank search results by frequency* cannot be
-  implemented as a client-side reordering of `SearchFoodItemsUseCase`'s output — it needs either a
-  much larger limit (and the read cost that implies) or the frequency data denormalised into the
-  query. Constraint, not a bug; recorded so the feature is not designed around a false assumption.

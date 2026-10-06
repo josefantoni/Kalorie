@@ -1,6 +1,6 @@
 # 0013. Catalogue search is a Firestore prefix range over pre-lowercased name fields
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0040](0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md) (the query over `*_lowercase` only — the fields are still written and required)
 - **Scope:** Backend, Cross-platform
 - **Date:** 2026-08-27
 

@@ -43,7 +43,8 @@ barcode-keyed `foodItemPortions` collection), [design 0009](design/0009-catalogu
 [design 0011](design/0011-food-measure-grams-or-millilitres.md) (`measure_unit` on `foodItems`,
 `favouriteFoods` and `foodConsumed`, and why the numbers are never converted between grams and
 millilitres), [design 0019](design/0019-alcoholic-drink-accuracy-hint.md) (`alcohol_by_volume` on
-the same three collections).
+the same three collections), [design 0020](design/0020-search-ranked-by-log-frequency.md)
+(`users/{userId}/stats/foodFrequency`, one document of per-food log counts).
 
 ### 1.1 Layering
 
@@ -84,6 +85,7 @@ users/{userId}/foodConsumed/{uuid}         logged entries
 users/{userId}/favouriteFoods/{barcode}    explicitly favourited catalogue items
 users/{userId}/myCreatedMeals/{uuid}       user-composed meals
 users/{userId}/foodItemPortions/{barcode}  personal gram-shortcut portions
+users/{userId}/stats/foodFrequency         one document, per-food log counts (design 0020)
 foodItemSubmissions/{uuid}                 shared, a user's pending/rejected catalogue submission
 foodItemReports/{barcode}_{userId}         shared, a report that a catalogue entry looks wrong
 ```
@@ -169,7 +171,9 @@ written both fields onto every pre-existing catalogue document). The `_folded` p
 on read, since nothing guarantees a document created outside `CreateFoodItemUseCase` carries them.
 `cz_name`, `eng_name`, `cz_name_lowercase` and `eng_name_lowercase` are **not** optional: iOS
 fails to decode a `FoodItemDTO` missing any of them, so `validFoodItem()` requires all four as
-strings (§ 1.6). Every field's optionality is tabulated in § 1.7.
+strings (§ 1.6). The folded and search-term fields are optional on read but required on write
+(`validFoodItem()`, [ADR 0040](adr/0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md)),
+so every document written from now on is findable by the four remaining queries. Every field's optionality is tabulated in § 1.7.
 Alongside them, `cz_name_search_terms` / `eng_name_search_terms` hold every prefix of every word
 in the name, folded the same way — see [ADR 0024](adr/0024-token-array-field-for-whole-word-search.md)
 and its own backfill script, `scripts/backfill-search-terms.js`. Also optional on read, for the
@@ -219,6 +223,18 @@ differs, `favourited_at` kept, any failure falls back to the stored copy). The d
 carried: leaving it out would silently relabel a favourited millilitre item as grams. The same goes
 for optional `alcohol_by_volume` (§ 1.3), which would otherwise drop the hint. Fetched
 ordered by `favourited_at` descending, limit 50.
+
+**`stats/foodFrequency`** (`FoodFrequencyDocumentDTO`) — a single document, not a collection, so
+one read returns every count. `entries` is a map keyed by the food's id (the same value as
+`food_item_id` on `foodConsumed`), each entry holding `count`, `last_logged_at` and an `item`
+snapshot (`FoodFrequencyItemDTO`, the `favouriteFoods` field set without `favourited_at`).
+`RecordFoodFrequencyUseCase` writes it after a successful log with `updateData` on `FieldPath`
+keys (`FieldValue.increment(1)` for `count`, `item` replaced wholesale) and falls back to
+`setData(merge:)` when the document does not exist yet. It never uses `setAsync`, which would
+erase every other entry. `FetchFoodFrequencyUseCase` keeps the 300 most recently logged entries and deletes the
+rest, because the document limit is 1 MiB. An entry without a decodable `item` is dropped instead
+of failing the read. Failures of either use case are logged and never block logging or search.
+Not migrated on the anonymous → signed-in merge (`increment` is not idempotent on a resume).
 
 **`myCreatedMeals`** (`MyCreatedMealDTO`) — `ingredients` is an **array of nested maps**
 (`MyCreatedMealIngredientDTO`), each a nutrition snapshot plus `grams`. Also carries an optional
@@ -330,7 +346,8 @@ Consequences worth knowing before adding a method:
   (§ 1.2). Applied to `foodItems` document ids, to `data.id` inside `validFoodItem`, and to
   `foodItemReports`' `barcode`.
 - `validFoodItem(data)` — the shared per-field validation: `id` through `validItemId`, the four
-  name fields (`cz_name`, `eng_name`, `cz_name_lowercase`, `eng_name_lowercase`) as strings, the
+  name fields (`cz_name`, `eng_name`, `cz_name_lowercase`, `eng_name_lowercase`,
+  `cz_name_folded`, `eng_name_folded`) as strings, the two `*_search_terms` fields as lists, the
   numeric fields as numbers, and the optional ones only when present
   ([ADR 0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md)) —
   called with either `request.resource.data` (a `foodItems` write) or `request.resource.data.item`
@@ -420,8 +437,8 @@ ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
 | **`foodItems`** (`FoodItemDTO`) — also the nested `item` of a submission | `id` | string | yes | `validItemId`, and equal to the document id on `foodItems` |
 | | `cz_name`, `eng_name` | string | yes | string |
 | | `cz_name_lowercase`, `eng_name_lowercase` | string, `lowercased()` of the name; `""` when the name is empty | yes | string |
-| | `cz_name_folded`, `eng_name_folded` | string, lowercased then diacritics-folded | no | none |
-| | `cz_name_search_terms`, `eng_name_search_terms` | array of string | no | none |
+| | `cz_name_folded`, `eng_name_folded` | string, lowercased then diacritics-folded | no | string |
+| | `cz_name_search_terms`, `eng_name_search_terms` | array of string | no | list |
 | | `weight` | number, package weight | yes | number |
 | | `date` | number, seconds | yes | number |
 | | `portions` | array of `{name: string, grams: number}` | no — absent means `[]` | none |
@@ -489,7 +506,8 @@ gap the four name fields in `validFoodItem` used to leave open on `foodItems` an
 **Scope:** `Backend` for the two lowercase index fields; `Cross-platform` for the search and
 fallback behaviour; `iOS` for the scanner.
 
-**Read first:** [design 0003](design/0003-favourite-foods.md) (favourites hoisted into the result
+**Read first:** [design 0020](design/0020-search-ranked-by-log-frequency.md) (ranking by how often
+the user logs each food), [design 0003](design/0003-favourite-foods.md) (favourites hoisted into the result
 list, and why an OpenFoodFacts item outside the catalogue is accepted),
 [design 0006](design/0006-own-daily-meals.md) (a created meal appearing in the same search),
 [design 0009](design/0009-catalogue-moderation.md) (the author's own pending/rejected submissions
@@ -521,17 +539,16 @@ populate it.
 
 ### 2.2 Local search
 
-`SearchFoodItemsUseCase` is a case-folded prefix range over `cz_name_lowercase` and
-`eng_name_lowercase`, plus a diacritics-and-case-folded prefix range over `cz_name_folded` and
-`eng_name_folded` for the same query also stripped of diacritics — four concurrent `async let`
+`SearchFoodItemsUseCase` is a diacritics-and-case-folded prefix range over `cz_name_folded` and
+`eng_name_folded`, plus two `array-contains` queries described below — four concurrent `async let`
 queries, ten results each, de-duplicated by id **first occurrence wins**, in this fixed order:
-`cz_name_lowercase` → `eng_name_lowercase` → `cz_name_folded` → `eng_name_folded` →
-`cz_name_search_terms` → `eng_name_search_terms` (the last two are described below). The
+`cz_name_folded` → `eng_name_folded` → `cz_name_search_terms` → `eng_name_search_terms`. The
 concatenation *is* the user-visible order — each query's ten results arrive in Firestore index
 order, i.e. alphabetically by the matched field, and nothing re-sorts them — so a client that
 merges in another order, or sorts the union, shows a different list. The folded pair is what lets "rohlik" find
-"Rohlík"; the plain lowercase pair stays alongside it so a catalogue document written before the
-fix, and therefore missing the folded fields, is still found. The diacritic fold itself
+"Rohlík". The `*_lowercase` fields are still written and required, but no query reads them any
+more ([ADR 0040](adr/0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md)).
+The diacritic fold itself
 (`foldDiacritics`, a Czech accent-to-base character map) lives in KMP `TextKit`, bridged into
 Swift as `String.foldingDiacritics()`, so a second client shares the exact folding rather than
 re-deriving it. The mechanics and the limits are recorded in
@@ -541,10 +558,10 @@ unfolded. This is by design, not a gap: `foodItems` is a Czech-first catalogue a
 has `BilingualNamed.displayName` show a Slovak user the Czech name — a Slovak diacritic in a
 catalogue name is not an expected case to search around.
 
-Two further concurrent queries match by **any word**, not only the first: `array-contains` over
+Two of the four concurrent queries match by **any word**, not only the first: `array-contains` over
 `cz_name_search_terms` / `eng_name_search_terms`, each holding every prefix of every word in the
 name (folded the same way). Only the **last space-separated word** of the folded query is sent to
-these two (`"polotučné ml"` queries `ml`), while the four prefix queries get the whole query.
+these two (`"polotučné ml"` queries `ml`), while the two prefix queries get the whole query.
 That derivation — lowercased query, folded query, last non-empty word (the whole folded query when
 there is none) — is `TextKit.searchQuery`, shared with a second client
 ([ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)). This
@@ -552,27 +569,40 @@ is what lets "mlék" find "Polotučné mléko" — finding **A2-4**, fixed. The 
 same cross-client reason. See
 [ADR 0024](adr/0024-token-array-field-for-whole-word-search.md) for the field shape, the backfill
 script, and what this still doesn't do — it is a prefix match per word, not a substring match, and
-it does not change the per-query `limit(10)` or add any ranking (**A2-12** is untouched).
+it does not change the per-query `limit(10)` or add any ranking. Ranking by log frequency is layered on top of it
+([design 0020](design/0020-search-ranked-by-log-frequency.md), below), which closed finding **A2-12**.
 
 Ranking happens **above** the use case, in `AddFoodSheetViewModel.displayedResults`, which is a
-pure computed property over four already-loaded lists:
+pure computed property over already-loaded lists:
 
 1. matching **favourites** (`favouriteFoods`, prefix on either name),
 2. matching **my created meals** (`asFoodItem()`, prefix on the meal name) not already listed as a
    favourite,
 3. matching **own catalogue submissions** ([design 0009](design/0009-catalogue-moderation.md)) not
    already listed as a favourite or meal,
-4. the local search results, minus anything already listed.
+4. the local search results, minus anything already listed,
+5. **frequency candidates** — entries of `foodFrequency` whose snapshot matches the query, which
+   stand in for catalogue results the per-query `limit(10)` cut off. Created-meal snapshots are
+   excluded, because the live meal already comes from `myCreatedMeals`.
+
+Favourites stay first and are sorted by log count. Lists 2–5 are merged, deduplicated by id and
+stably sorted by `count` descending, then by the more recent `last_logged_at`; foods never logged
+keep the order above beneath every counted food ([design 0020](design/0020-search-ranked-by-log-frequency.md)).
+The counts are read once in `onAppear` (`FetchFoodFrequencyUseCase`), so ranking costs one read per
+sheet opening. Tapping a catalogue candidate goes through `onSelectResult`, which refreshes the
+stored snapshot with `RefreshFavouriteFoodUseCase` before the quantity screen opens.
 
 A created-meal row carries a trailing chevron and a swipe-to-delete with confirmation. Editing happens on the meal's quantity screen instead (§ 4.2): a pencil in the leading toolbar pushes `MyCreatedMealEditorView`, and a *Delete meal* button closes the list. Those two places are the only ones where created meals are edited or deleted ([design 0006](design/0006-own-daily-meals.md), *Update — 2026-09-19*).
 
-The query used for that matching is `searchText.lowercased()` alone — not trimmed, and **not
-diacritics-folded**, unlike the server-side queries above. Favourites and submissions match a
-prefix of either name; created meals match a prefix of the meal name only. So "rohlik" finds a
-catalogue *Rohlík* through `cz_name_folded` but not a favourited *Rohlík*, whose plain
-`hasPrefix` sees the accent. The two paths deliberately differ today, and it matters beyond the list: § 2.3's external-fallback gate is keyed off
-`displayedResults`, so a client that folds consistently gets a different list *and* triggers the
-OpenFoodFacts search in different cases.
+That matching uses the catalogue's own rule, `TextKit.matchesSearchQuery`: the folded name starts
+with the folded query, or the name's search terms contain the query's last word. So "rohlik" finds
+a favourited *Rohlík* and "mlék" finds a favourited *Polotučné mléko*, exactly as the server
+queries do. Favourites and submissions match either name; created meals match the meal name only.
+The local matching is not gated by query length, so a single letter still lists matching
+favourites, meals and submissions
+([ADR 0040](adr/0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md)).
+`displayedResults` feeds § 2.3's external-fallback gate, so both clients fold consistently and
+trigger the OpenFoodFacts search in the same cases.
 
 Favourites, meals and submissions are loaded once in `onAppear`, not per keystroke, so this
 re-ranking costs nothing. With an empty query, `displayedResults` returns `localFoodItems`, which
@@ -586,6 +616,11 @@ it instead of pushing to the quantity screen (§ 7).
 `onSearchTextChanged` is driven by `.task(id: viewModel.searchText)`, so SwiftUI cancels and
 restarts it on every keystroke. Debouncing is a `Task.sleep(for: .milliseconds(300))` at the
 top: a cancelled sleep throws, and the `catch` returns, which is what makes the debounce work.
+
+`SearchFoodItemsUseCase` itself returns `[]` without querying Firestore when the trimmed query is
+shorter than 2 characters (`Constants.Search.minimumQueryLength`), so the most expensive search of a
+typing session, the one-letter prefix, is never sent
+([ADR 0040](adr/0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md)).
 
 The external fallback is then gated twice:
 
@@ -901,9 +936,10 @@ the current-language `defaultMeals_<key>` string, an absent or unknown key gives
 `name` is still written (the creating device's string) so a document stays readable by anything
 that ignores the key. Every writer that copies a meal type (`UpdateMealTypeTimesUseCase`, the
 reorder in `SettingsViewModel`) carries `defaultKey` through; `CreateMealTypeUseCase` never writes
-one. There is no migration: meal types without a key keep their stored name. The boundary list is
-written twice, once in each platform's `SetupDefaultMealsUseCase`, and nothing checks that the two
-agree.
+one. There is no migration: meal types without a key keep their stored name. The windows and their
+keys are `MealKit`'s `DEFAULT_MEAL_WINDOWS`, which both platforms' `SetupDefaultMealsUseCase` read;
+`MealWindowsTest` checks that they are contiguous, each at least `MIN_MEAL_WINDOW_MINUTES` long,
+and that the keys are unique.
 
 Editing happens in `SettingsViewModel`, and the set of possible edits is deliberately
 narrow:
@@ -958,16 +994,22 @@ changing the day carry over a sensible time of day:
 | Trigger | Method | Effect |
 |---|---|---|
 | `.task` on the view | `onAppear` | resets `selectedDay` to now, loads meal types and the month |
-| `scenePhase` → `.active` | `onRefresh` | meal types + invalidate and reload the month |
-| Pull to refresh | `onRefresh` | same |
-| Returning from food detail | `onFoodConsumedUpdated` | invalidate and reload the month |
+| `scenePhase` → `.active` (Android `ON_RESUME`) | `onForeground` | meal types + reload `selectedDay` only |
+| Calendar-day rollover | `onForeground` | same, after `advanceSelectedDayIfNeeded` |
+| Pull to refresh | `onRefresh` | meal types + invalidate and reload the whole month |
+| Saved from the add-food sheet, returning from food detail | `onFoodConsumedUpdated` | reload `selectedDay` only |
+| Entry deleted | `onDeleteConfirmed` | reload `selectedDay` only |
+| Meal copied | `onCopyConfirmed` | reload `copyTargetDay` only, if its month is cached |
 | Settings sheet changed the meal types | `onMealTypesChanged` | meal types only |
 | Day changed / picked | `onDayChanged` / `onDaySelected` | cache hit, or load that month |
 | Calendar month paged | `onCalendarMonthChanged` | cache hit, or load that month |
 
-`onRefresh` guards against a cold-launch race with `hasCompletedInitialLoad`: the `scenePhase`
-handler and pull-to-refresh both call it, but it is a no-op until `onAppear`'s initial load has
-completed, so the month is never fetched twice on launch.
+`onRefresh` and `onForeground` guard against a cold-launch race with `hasCompletedInitialLoad`:
+both are no-ops until `onAppear`'s initial load has completed, so the month is never fetched twice
+on launch. A single-day reload (`reloadDay`) replaces that day's key in `monthCache` and falls back
+to loading the whole month when the day's month is not cached. Why only one day is reloaded, and
+what that leaves stale, is in
+[ADR 0041](adr/0041-dashboard-reloads-only-the-affected-day-after-a-write-or-foreground.md).
 
 ### 3.7 Deleting a logged entry
 
@@ -1587,7 +1629,7 @@ itself throwing `requiresRecentLogin`. That second path still exists as a fallba
 where the session goes stale between the check and the call, and is distinguished by
 `dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
 Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods`,
-`myCreatedMeals`, `foodItemPortions` and the user's own `foodItemSubmissions` document by document,
+`myCreatedMeals`, `foodItemPortions`, the `stats/foodFrequency` document and the user's own `foodItemSubmissions` document by document,
 then the `users` profile document last — the profile delete
 alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
 not the kind of correctness problem an orphaned collection would be.

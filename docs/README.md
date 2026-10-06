@@ -208,6 +208,8 @@ understanding why.
 | [0016](design/0016-copy-meal-to-another-window.md) | Copying a meal to another window and day | Implemented | Cross-platform, iOS, Android |
 | [0017](design/0017-sign-in-spotlight.md) | Sign-in spotlight | Implemented | Cross-platform, iOS, Android |
 | [0019](design/0019-alcoholic-drink-accuracy-hint.md) | Alcoholic-drink accuracy hint | Implemented | Backend, Cross-platform, iOS, Android |
+| [0020](design/0020-search-ranked-by-log-frequency.md) | Search results ranked by log frequency | Implemented | Backend, Cross-platform, iOS, Android |
+| [0021](design/0021-privacy-policy.md) | Privacy policy | Proposed | Cross-platform, Backend, iOS, Android |
 
 ### Decision records
 
@@ -225,9 +227,9 @@ understanding why.
 | [0010](adr/0010-client-assigned-integer-meal-type-ids.md) | Meal type IDs are integers assigned by the client | Superseded | Backend, Cross-platform |
 | [0011](adr/0011-foodItems-writable-by-any-authenticated-client.md) | `foodItems` is writable by any authenticated client, pending the moderation flow | Superseded in part | Backend |
 | [0012](adr/0012-external-food-is-surfaced-never-imported.md) | OpenFoodFacts results are surfaced to the user, never imported into the catalogue | Accepted | Cross-platform |
-| [0013](adr/0013-prefix-search-over-lowercased-name-fields.md) | Catalogue search is a Firestore prefix range over pre-lowercased name fields | Accepted | Backend, Cross-platform |
+| [0013](adr/0013-prefix-search-over-lowercased-name-fields.md) | Catalogue search is a Firestore prefix range over pre-lowercased name fields | Superseded in part | Backend, Cross-platform |
 | [0014](adr/0014-meal-assignment-by-time-of-day-only.md) | A food is assigned to a meal by time of day alone, never by calendar date | Superseded in part | Cross-platform |
-| [0015](adr/0015-dashboard-caches-a-month-and-derives-the-day.md) | The Dashboard fetches a whole month and derives every day view from it | Accepted | iOS |
+| [0015](adr/0015-dashboard-caches-a-month-and-derives-the-day.md) | The Dashboard fetches a whole month and derives every day view from it | Superseded by 0041 (invalidation only) | iOS |
 | [0016](adr/0016-logged-entries-rescale-from-their-own-stored-values.md) | A logged entry is rescaled from its own stored values, never from the catalogue | Accepted | Cross-platform |
 | [0017](adr/0017-optimistic-favourite-toggle-shared-by-protocol-extension.md) | Favourite toggling is an optimistic protocol extension, not a use case | Accepted | iOS |
 | [0018](adr/0018-per-feature-error-alerts-with-no-global-handler.md) | Errors are presented per feature as a dismissible alert, with no global handler | Accepted | iOS |
@@ -252,3 +254,5 @@ understanding why.
 | [0037](adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md) | Shared KMP modules target iOS and JVM and are consumed by composite build | Accepted | Cross-platform |
 | [0038](adr/0038-android-client-mirrors-the-ios-architecture-natively.md) | The Android client is native Kotlin mirroring the iOS architecture, sharing only pure logic | Accepted | Android |
 | [0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) | Swift-only rules either move into KMP or are pinned by shared golden-vector fixtures | Accepted | Cross-platform, Backend |
+| [0040](adr/0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md) | Search is diacritic-insensitive everywhere, no longer queries the lowercase fields, and needs two characters | Accepted | Backend, Cross-platform, iOS, Android |
+| [0041](adr/0041-dashboard-reloads-only-the-affected-day-after-a-write-or-foreground.md) | The Dashboard reloads only the affected day after a write or on returning to the foreground | Accepted | iOS, Android |
