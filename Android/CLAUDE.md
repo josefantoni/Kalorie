@@ -72,6 +72,14 @@ same as `SectionCardDivider`, so do not add padding around the field to move it.
 name) passes `isUnderlineFullWidth = true` and draws the line edge to edge. The underline doubles as a separator: do not put a `SectionCardDivider`
 directly after a field.
 
+## Primary buttons
+
+A full-width primary action (Export, Create, Approve, Delete) is `PrimaryButton`
+(`components/PrimaryButton.kt`) with `PrimaryButtonStyle.PRIMARY` (accent) or `DESTRUCTIVE`
+(`AppColors.error`): 56 dp, bold white text. It mirrors the iOS component of the same name. Never
+call `Button` directly for these, and never use `colorScheme.error` for the fill — in dark mode its
+text is not white.
+
 ## Wire contract gotchas
 
 - **Missing required field = failed decode**, as on iOS. A DTO property with no default value is
