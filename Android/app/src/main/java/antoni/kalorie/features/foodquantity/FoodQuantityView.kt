@@ -23,7 +23,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +51,8 @@ import antoni.kalorie.components.AlcoholicDrinkHintView
 import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.components.NumericRowTextField
+import antoni.kalorie.components.PrimaryButton
+import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.ReportIncorrectDataMenu
 import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SectionCard
@@ -259,16 +260,12 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                 }
 
                 if (mealActions != null) {
-                    FilledTonalButton(
+                    PrimaryButton(
+                        text = stringResource(R.string.myCreatedMeal_button_delete),
                         onClick = { isDeleteConfirmationVisible = true },
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            contentColor = MaterialTheme.colorScheme.error,
-                        ),
+                        style = PrimaryButtonStyle.DESTRUCTIVE,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    ) {
-                        Text(stringResource(R.string.myCreatedMeal_button_delete))
-                    }
+                    )
                 }
             }
 
