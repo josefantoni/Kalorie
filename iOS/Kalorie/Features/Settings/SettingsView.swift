@@ -55,7 +55,7 @@ struct SettingsView: View {
                             if editMode == .active {
                                 footerView
                                     .padding(.horizontal, -14)
-                                    .padding(.top, 20)
+                                    .padding(.top, 12)
                             }
                         }
                     ) {
@@ -171,11 +171,7 @@ struct SettingsView: View {
 
     @ViewBuilder var footerView: some View {
         if !viewModel.isAddFormVisible {
-            BaseButton(
-                style: .plain,
-                imageName: .plusCircle,
-                imageSize: .extraLarge
-            ) {
+            AddButton {
                 viewModel.onShowAddForm()
             }
             .frame(maxWidth: .infinity)
