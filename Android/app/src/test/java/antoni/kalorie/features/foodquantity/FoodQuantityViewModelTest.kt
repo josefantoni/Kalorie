@@ -43,6 +43,7 @@ import org.junit.Test
 import java.time.Duration
 import java.time.Instant
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 class FoodQuantityViewModelTest {
 
@@ -366,7 +367,7 @@ class FoodQuantityViewModelTest {
 
     @Test
     fun onAppear_whenSelectedDateIsEarlierToday_refreshesItToNowAndUpdatesTheMealTypeDefault() = runTest {
-        val staleTime = Instant.now().minusSeconds(6 * 3600)
+        val staleTime = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).toInstant()
         val spy = SaveFoodConsumedUseCaseSpy()
         val sut = makeSUT(saveFoodConsumed = spy, selectedDate = staleTime)
 
@@ -382,7 +383,7 @@ class FoodQuantityViewModelTest {
 
     @Test
     fun onAppear_whenUserAlreadyPickedAMealType_doesNotOverrideItWhileRefreshingTheDate() = runTest {
-        val staleTime = Instant.now().minusSeconds(6 * 3600)
+        val staleTime = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).toInstant()
         val sut = makeSUT(selectedDate = staleTime, mealTypes = listOf(makeMealType(id = "dinner", hour = 18, endHour = 21)))
         sut.onMealTypeSelected("dinner")
 
