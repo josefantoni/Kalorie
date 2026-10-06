@@ -132,6 +132,7 @@ fun ModerationCatalogueEditorView(
                             ) {
                                 FloatingLabelTextField(
                                     title = stringResource(R.string.moderation_editor_searchPlaceholder),
+                                    isUnderlineFullWidth = true,
                                     text = barcodeQuery,
                                     onTextChange = { viewModel.barcodeQuery.value = it },
                                     keyboardType = KeyboardType.Number,

@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+val SectionRowMinHeight = 56.dp
+
 // MARK: - Body
 
 @Composable

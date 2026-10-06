@@ -47,6 +47,7 @@ import androidx.core.content.FileProvider
 import antoni.kalorie.R
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.core.models.FoodExportFormat
 import kotlinx.coroutines.launch
@@ -108,7 +109,7 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
                 }
                 SectionCard(modifier = Modifier.padding(top = 12.dp)) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(text = stringResource(R.string.export_picker_format), modifier = Modifier.weight(1f))
@@ -202,7 +203,7 @@ private enum class EditedDate { FROM, TO }
 @Composable
 private fun DateRow(label: String, date: Instant, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 56.dp).padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = SectionRowMinHeight).padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = label, modifier = Modifier.weight(1f))

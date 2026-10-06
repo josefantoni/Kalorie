@@ -62,6 +62,16 @@ failing case means the port is wrong — iOS is the reference
 Packages mirror the iOS folders under `antoni.kalorie`: `core.usecases`, `core.models`,
 `core.networking`, `features.dashboard`, and so on.
 
+## Editable fields
+
+Every editable text or number has an underline: `outlineVariant` at rest, `primary` and thicker while
+focused. iOS draws no line, so this is a deliberate Android deviation — without it a value in a row
+does not read as editable. `FloatingLabelTextField` and `NumericRowTextField` both draw it, so never
+hide it per call site. `FloatingLabelTextField` draws its own line inset 16 dp from the left, the
+same as `SectionCardDivider`, so do not add padding around the field to move it. A standalone field (food search, food and meal
+name) passes `isUnderlineFullWidth = true` and draws the line edge to edge. The underline doubles as a separator: do not put a `SectionCardDivider`
+directly after a field.
+
 ## Wire contract gotchas
 
 - **Missing required field = failed decode**, as on iOS. A DTO property with no default value is

@@ -62,6 +62,7 @@ fun FoodItemFormSections(
         SectionCard {
             FloatingLabelTextField(
                 title = stringResource(R.string.addFood_field_name_title),
+                isUnderlineFullWidth = true,
                 text = formInput.name,
                 onTextChange = {
                     onFormInputChange(formInput.copy(name = it))
@@ -71,7 +72,6 @@ fun FoodItemFormSections(
                 isHighlighted = FoodItemFormField.NAME in highlightedFields,
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (barcodeRow != FoodItemFormBarcodeRow.Hidden) SectionCardDivider()
             when (barcodeRow) {
                 FoodItemFormBarcodeRow.Hidden -> Unit
                 FoodItemFormBarcodeRow.Locked -> FloatingLabelTextField(
@@ -110,12 +110,11 @@ fun FoodItemFormSections(
                 )
             }
             onNutritionLabelScanTapped?.let { onScanTapped ->
-                SectionCardDivider()
                 TextButton(onClick = onScanTapped, modifier = Modifier.padding(horizontal = 8.dp)) {
                     Text(stringResource(R.string.addFood_button_scanNutritionLabel))
                 }
+                SectionCardDivider()
             }
-            SectionCardDivider()
             FoodItemFormFields(
                 formInput = formInput,
                 onFormInputChange = onFormInputChange,

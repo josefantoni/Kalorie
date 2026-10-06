@@ -49,7 +49,7 @@ fun PortionInputRow(
     // MARK: - Body
 
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FloatingLabelTextField(
                 title = stringResource(R.string.foodPortion_field_namePlaceholder),
                 text = name,
@@ -60,12 +60,13 @@ fun PortionInputRow(
                 value = gramsText,
                 onValueChange = { onGramsTextChange(sanitizedGramsText(it)) },
                 placeholder = "0",
-                modifier = Modifier.width(88.dp),
+                modifier = Modifier.width(88.dp).height(56.dp),
+                fieldAlignment = Alignment.BottomCenter,
             )
             Text(
                 text = stringResource(measure.unitSymbolRes),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(end = 16.dp),
+                modifier = Modifier.padding(end = 16.dp, bottom = 6.dp),
             )
         }
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
