@@ -104,6 +104,7 @@
     <string name="common_error_unknown">Nastala neznámá chyba</string>
     <string name="common_error_unknown_message">Zkus to prosím za chvíli znovu.</string>
     <string name="common_ok">Dobrá</string>
+    <string name="common_privacyPolicy">Zásady ochrany osobních údajů</string>
     <string name="common_unit_grams">g</string>
     <string name="common_unit_millilitres">ml</string>
     <string name="dashboard_button_copy">Kopírovat jídlo</string>

@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -81,6 +82,13 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                     ) {
                         Text(stringResource(R.string.account_dataAttribution_linkTitle))
+                    }
+                    HorizontalDivider()
+                    TextButton(
+                        onClick = { uriHandler.openUri(Constants.Support.PRIVACY_POLICY_URL) },
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                    ) {
+                        Text(stringResource(R.string.common_privacyPolicy))
                     }
                 }
             },

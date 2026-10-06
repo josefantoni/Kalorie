@@ -104,6 +104,7 @@
     <string name="common_error_unknown">An unknown error occurred</string>
     <string name="common_error_unknown_message">Please try again in a moment.</string>
     <string name="common_ok">OK</string>
+    <string name="common_privacyPolicy">Privacy policy</string>
     <string name="common_unit_grams">g</string>
     <string name="common_unit_millilitres">ml</string>
     <string name="dashboard_button_copy">Copy meal</string>
