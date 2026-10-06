@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MealKit
 
 protocol SetupDefaultMealsUseCaseProtocol {
     func callAsFunction() async throws -> [MealTypeDomain]
@@ -29,14 +30,14 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
 
     func callAsFunction() async throws -> [MealTypeDomain] {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let boundaries = [5 * 60, 8 * 60 + 30, 11 * 60, 14 * 60 + 30, 17 * 60, 20 * 60]
         var dtos: [(item: MealTypeDTO, id: String)] = []
         var domains: [MealTypeDomain] = []
 
-        for (index, defaultKey) in L10n.DefaultMeals.keys.enumerated() {
+        for window in MealWindowsKt.DEFAULT_MEAL_WINDOWS {
+            let defaultKey = window.key
             let mealName = L10n.DefaultMeals.name(forKey: defaultKey) ?? defaultKey
-            let startMinutes = boundaries[index]
-            let endMinutes = boundaries[index + 1]
+            let startMinutes = Int(window.startMinutes)
+            let endMinutes = Int(window.endMinutes)
             let id = UUID().uuidString
             dtos.append((
                 item: MealTypeDTO(
