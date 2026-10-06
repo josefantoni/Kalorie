@@ -52,6 +52,7 @@ enum Constants {
 
     enum Search {
         static let minimumQueryLength = 2
+        static let frequencyEntryLimit = 300
     }
 
     enum Firestore {
@@ -63,10 +64,12 @@ enum Constants {
         static let inQueryLimit = 30
         static let reportsPageLimit = 50
         static let reportReasonMaxLength = 500
+        static let foodFrequencyDocumentId = "foodFrequency"
         static func mealTypes(userId: String) -> String { "users/\(userId)/mealTypes" }
         static func foodConsumed(userId: String) -> String { "users/\(userId)/foodConsumed" }
         static func favouriteFoods(userId: String) -> String { "users/\(userId)/favouriteFoods" }
         static func myCreatedMeals(userId: String) -> String { "users/\(userId)/myCreatedMeals" }
         static func foodItemPortions(userId: String) -> String { "users/\(userId)/foodItemPortions" }
+        static func stats(userId: String) -> String { "users/\(userId)/stats" }
     }
 }

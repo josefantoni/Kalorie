@@ -86,6 +86,7 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var showCopyCheckmark = false
     @Published private(set) var activeDaysInMonth: Set<Int> = []
 
+    private var activeDaysMonth = Date.now
     private var isViewingToday = true
     private var hasCompletedInitialLoad = false
     private var monthCache: [String: [FoodConsumedDomain]] = [:]
@@ -175,6 +176,7 @@ final class DashboardViewModel: ObservableObject {
             try await refreshMealTypes()
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
+            showActiveDays(for: selectedDay)
             state = .loaded
             showSignInSpotlightIfNeeded()
         } catch {
@@ -194,6 +196,7 @@ final class DashboardViewModel: ObservableObject {
             invalidateCache(for: selectedDay)
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
+            showActiveDays(for: selectedDay)
             showSignInSpotlightIfNeeded()
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
@@ -337,15 +340,21 @@ final class DashboardViewModel: ObservableObject {
     func onCalendarMonthChanged(to month: Date) async {
         let key = monthCacheKey(for: month)
         if cachedMonthKeys.contains(key) {
-            activeDaysInMonth = computeActiveDays(for: month)
+            showActiveDays(for: month)
         } else {
             do {
                 try await loadMonth(for: month)
+                showActiveDays(for: month)
             } catch {
                 Log.error(error, category: Constants.LogCategory.dashboard)
                 alertItem = unknownErrorAlertItem(for: error)
             }
         }
+    }
+
+    @MainActor
+    func onCalendarDismissed() {
+        showActiveDays(for: selectedDay)
     }
 
     // MARK: - Private
@@ -433,11 +442,12 @@ final class DashboardViewModel: ObservableObject {
         let key = monthCacheKey(for: date)
         if cachedMonthKeys.contains(key) {
             foodsConsumed = foodsFromCache(for: date)
-            activeDaysInMonth = computeActiveDays(for: date)
+            showActiveDays(for: date)
         } else {
             do {
                 try await loadMonth(for: date)
                 foodsConsumed = foodsFromCache(for: date)
+                showActiveDays(for: date)
             } catch {
                 Log.error(error, category: Constants.LogCategory.dashboard)
                 alertItem = unknownErrorAlertItem(for: error)
@@ -449,19 +459,24 @@ final class DashboardViewModel: ObservableObject {
     private func loadMonth(for date: Date) async throws {
         let foods = try await fetchFoodsConsumedForMonth(for: date)
         populateCache(with: foods, for: date)
-        activeDaysInMonth = computeActiveDays(for: date)
     }
 
     @MainActor
     private func reloadDay(_ date: Date) async throws {
-        guard cachedMonthKeys.contains(monthCacheKey(for: date)) else {
+        if cachedMonthKeys.contains(monthCacheKey(for: date)) {
+            let day = Calendar.current.startOfDay(for: date)
+            monthCache[dayCacheKey(for: day)] = try await fetchFoodsConsumedInRange(from: day, to: day)
+            activeDaysInMonth = computeActiveDays(for: activeDaysMonth)
+        } else {
             try await loadMonth(for: date)
-            return
+            showActiveDays(for: date)
         }
-        let day = Calendar.current.startOfDay(for: date)
-        let foods = try await fetchFoodsConsumedInRange(from: day, to: day)
-        monthCache[dayCacheKey(for: day)] = foods
-        activeDaysInMonth = computeActiveDays(for: selectedDay)
+    }
+
+    @MainActor
+    private func showActiveDays(for month: Date) {
+        activeDaysMonth = month
+        activeDaysInMonth = computeActiveDays(for: month)
     }
 
     @MainActor

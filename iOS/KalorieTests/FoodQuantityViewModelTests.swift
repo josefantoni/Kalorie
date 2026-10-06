@@ -198,6 +198,49 @@ final class FoodQuantityViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onConfirm_afterSaving_recordsTheLoggedFoodInTheFrequencyCounts() async {
+        let recorded = expectation(description: "frequency recorded")
+        let spy = RecordFoodFrequencyUseCaseSpy { recorded.fulfill() }
+        let item = makeFoodItem()
+        let sut = makeSUT(item: item, recordFoodFrequency: spy)
+        await sut.onConfirm()
+        await fulfillment(of: [recorded], timeout: 1)
+        XCTAssertEqual(spy.recordedItems, [item])
+    }
+
+    @MainActor
+    func test_onConfirm_whenSavingFails_doesNotRecordFrequency() async {
+        let recorded = expectation(description: "frequency recorded")
+        recorded.isInverted = true
+        let spy = RecordFoodFrequencyUseCaseSpy { recorded.fulfill() }
+        let sut = makeSUT(saveFoodConsumed: SaveFoodConsumedUseCaseFake(shouldThrow: true), recordFoodFrequency: spy)
+        await sut.onConfirm()
+        await fulfillment(of: [recorded], timeout: 0.1)
+        XCTAssertTrue(spy.recordedItems.isEmpty)
+    }
+
+    @MainActor
+    func test_onConfirm_doesNotWaitForTheFrequencyWriteBeforeClosing() async {
+        var onSavedCalled = false
+        let sut = makeSUT(recordFoodFrequency: RecordFoodFrequencyUseCaseNeverFinishing()) {
+            onSavedCalled = true
+        }
+        await sut.onConfirm()
+        XCTAssertTrue(onSavedCalled, "the log is already saved, a slow statistics write must not keep the screen open")
+    }
+
+    @MainActor
+    func test_onConfirm_whenRecordingFrequencyFails_stillCompletesWithoutAlert() async {
+        var onSavedCalled = false
+        let sut = makeSUT(recordFoodFrequency: RecordFoodFrequencyUseCaseFake(shouldThrow: true)) {
+            onSavedCalled = true
+        }
+        await sut.onConfirm()
+        XCTAssertTrue(onSavedCalled, "a failed frequency write must never block a successfully saved log")
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
     func test_onConfirm_usesFreshlyFetchedMealTypesInsteadOfStaleSnapshot() async {
         let cal = Calendar.current
         let loggedAt = cal.date(bySettingHour: 12, minute: 0, second: 0, of: .now) ?? .now
@@ -696,6 +739,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
     private func makeSUT(
         item: FoodItemDomain? = nil,
         saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol = SaveFoodConsumedUseCaseFake(),
+        recordFoodFrequency: any RecordFoodFrequencyUseCaseProtocol = RecordFoodFrequencyUseCaseFake(),
         fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
         selectedDate: Date = .now,
         mealTypes: [MealTypeDomain] = [],
@@ -717,6 +761,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
         let sut = FoodQuantityViewModel(
             item: item ?? makeFoodItem(),
             saveFoodConsumed: saveFoodConsumed,
+            recordFoodFrequency: recordFoodFrequency,
             fetchMealTypes: fetchMealTypes,
             selectedDate: selectedDate,
             mealTypes: mealTypes,
@@ -789,5 +834,35 @@ private final class SaveFoodConsumedUseCaseSpy: SaveFoodConsumedUseCaseProtocol 
         wasCalled = true
         capturedMealTypeId = mealTypeId
         capturedDate = date
+    }
+}
+
+private final class RecordFoodFrequencyUseCaseSpy: RecordFoodFrequencyUseCaseProtocol {
+
+    // MARK: - Properties
+
+    private(set) var recordedItems: [FoodItemDomain] = []
+    private let onRecord: () -> Void
+
+    // MARK: - Init
+
+    init(onRecord: @escaping () -> Void = {}) {
+        self.onRecord = onRecord
+    }
+
+    // MARK: - Functions
+
+    func callAsFunction(_ item: FoodItemDomain, date: Date) async throws {
+        recordedItems.append(item)
+        onRecord()
+    }
+}
+
+private struct RecordFoodFrequencyUseCaseNeverFinishing: RecordFoodFrequencyUseCaseProtocol {
+
+    // MARK: - Functions
+
+    func callAsFunction(_ item: FoodItemDomain, date: Date) async throws {
+        try await Task.sleep(for: .seconds(60))
     }
 }

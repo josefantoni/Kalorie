@@ -134,6 +134,7 @@ struct FoodPortionsManagerView: View {
                     salt: 0.3
                 ),
                 saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
+                recordFoodFrequency: RecordFoodFrequencyUseCaseFake(),
                 fetchMealTypes: FetchMealTypesUseCaseFake(),
                 selectedDate: .now,
                 mealTypes: [],
