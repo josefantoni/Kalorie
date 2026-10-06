@@ -321,8 +321,6 @@ enum L10n {
         static var snack: String { String(localized: "defaultMeals_snack") }
         static var dinner: String { String(localized: "defaultMeals_dinner") }
 
-        static let keys = ["breakfast", "secondBreakfast", "lunch", "snack", "dinner"]
-
         static func name(forKey key: String) -> String? {
             switch key {
             case "breakfast": breakfast
