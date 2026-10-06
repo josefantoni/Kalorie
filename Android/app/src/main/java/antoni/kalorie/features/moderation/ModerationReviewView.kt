@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +38,8 @@ import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
+import antoni.kalorie.components.PrimaryButton
+import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.rememberScannerAccess
@@ -144,19 +145,17 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                         }
                     }
                     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        Button(
+                        PrimaryButton(
+                            text = stringResource(R.string.moderation_button_approve),
                             onClick = { scope.launch { viewModel.onApproveTapped() } },
                             modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(stringResource(R.string.moderation_button_approve), fontWeight = FontWeight.Bold)
-                        }
-                        Button(
+                        )
+                        PrimaryButton(
+                            text = stringResource(R.string.moderation_button_reject),
                             onClick = { viewModel.isRejectSheetVisible.value = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                            style = PrimaryButtonStyle.DESTRUCTIVE,
                             modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                        ) {
-                            Text(stringResource(R.string.moderation_button_reject), fontWeight = FontWeight.Bold)
-                        }
+                        )
                     }
                 }
                 if (state.isLoading) {

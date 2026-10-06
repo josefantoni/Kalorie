@@ -13,7 +13,6 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -45,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import antoni.kalorie.R
+import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
@@ -138,13 +138,12 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
                         }
                     }
                 }
-                Button(
+                PrimaryButton(
+                    text = stringResource(R.string.export_button_export),
                     onClick = { scope.launch { viewModel.onExportTapped() } },
                     enabled = !isExportDisabled,
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp),
-                ) {
-                    Text(stringResource(R.string.export_button_export))
-                }
+                )
             }
             if (state == ExportViewModel.State.GENERATING) {
                 Box(modifier = Modifier.fillMaxSize().clickable(enabled = false) {}, contentAlignment = Alignment.Center) {
