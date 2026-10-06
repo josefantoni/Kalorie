@@ -253,6 +253,102 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onRefresh_afterInitialLoadCompletes_reloadsTheWholeMonth() async {
+        let month = FetchFoodsConsumedForMonthUseCaseFake()
+        let range = FetchFoodsConsumedInRangeUseCaseFake()
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
+
+        await sut.onRefresh()
+
+        XCTAssertEqual(month.calls.count, 2, "pull-to-refresh is the user's explicit reload-everything action")
+        XCTAssertTrue(range.calls.isEmpty)
+    }
+
+    @MainActor
+    func test_onForeground_beforeInitialLoadCompletes_doesNothing() async {
+        let month = FetchFoodsConsumedForMonthUseCaseFake()
+        let range = FetchFoodsConsumedInRangeUseCaseFake()
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+
+        await sut.onForeground()
+
+        XCTAssertTrue(sut.mealTypes.isEmpty, "a foreground event racing the cold-launch load must not run its own fetch on top of onAppear's")
+        XCTAssertTrue(month.calls.isEmpty)
+        XCTAssertTrue(range.calls.isEmpty)
+    }
+
+    @MainActor
+    func test_onForeground_afterInitialLoad_reloadsOnlyTheSelectedDay() async {
+        let fresh = makeFood(id: "f2", hour: 9)
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [makeFood(id: "f1", hour: 8)])
+        let range = FetchFoodsConsumedInRangeUseCaseFake(stubbedFoods: [fresh])
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
+
+        await sut.onForeground()
+
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f2"], "a change made on another device must show up when the app returns to the foreground")
+        assertSingleDayReload(range, month: month, of: sut.selectedDay)
+    }
+
+    @MainActor
+    func test_onFoodConsumedUpdated_reloadsOnlyTheSelectedDay() async {
+        let saved = makeFood(id: "f2", hour: 9)
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [makeFood(id: "f1", hour: 8)])
+        let range = FetchFoodsConsumedInRangeUseCaseFake(stubbedFoods: [saved])
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
+
+        await sut.onFoodConsumedUpdated()
+
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f2"])
+        assertSingleDayReload(range, month: month, of: sut.selectedDay)
+    }
+
+    @MainActor
+    func test_onFoodConsumedUpdated_replacesTheDayInsteadOfMergingIntoIt() async {
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [makeFood(id: "f1", hour: 8), makeFood(id: "f2", hour: 9)])
+        let range = FetchFoodsConsumedInRangeUseCaseFake(stubbedFoods: [makeFood(id: "f1", hour: 8)])
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
+        XCTAssertEqual(sut.foodsConsumed.count, 2)
+
+        await sut.onFoodConsumedUpdated()
+
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f1"], "an entry deleted on another device must disappear")
+    }
+
+    @MainActor
+    func test_onFoodConsumedUpdated_whenTheDayBecomesEmpty_removesItFromTheActiveDays() async {
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [makeFood(id: "f1", hour: 8)])
+        let range = FetchFoodsConsumedInRangeUseCaseFake(stubbedFoods: [])
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
+        let day = Calendar.current.component(.day, from: sut.selectedDay)
+        XCTAssertTrue(sut.activeDaysInMonth.contains(day))
+
+        await sut.onFoodConsumedUpdated()
+
+        XCTAssertFalse(sut.activeDaysInMonth.contains(day), "a calendar dot for an empty day would point at nothing")
+        XCTAssertTrue(sut.foodsConsumed.isEmpty)
+    }
+
+    @MainActor
+    func test_onFoodConsumedUpdated_whenTheMonthIsNotCached_loadsTheWholeMonth() async {
+        let month = FetchFoodsConsumedForMonthUseCaseFake()
+        let range = FetchFoodsConsumedInRangeUseCaseFake()
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
+        sut.selectedDay = Calendar.current.date(byAdding: .month, value: -1, to: Date.now) ?? Date.now
+
+        await sut.onFoodConsumedUpdated()
+
+        XCTAssertEqual(month.calls.count, 2, "there is no month cache to splice a single day into")
+        XCTAssertTrue(range.calls.isEmpty)
+    }
+
+    @MainActor
     func test_onDeleteRequested_showsConfirmation() {
         let sut = makeSUT()
         XCTAssertFalse(sut.isDeleteConfirmationVisible)
@@ -272,17 +368,20 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onDeleteConfirmed_whenDeleteSucceeds_reloadsFoodsFromServer() async {
+    func test_onDeleteConfirmed_whenDeleteSucceeds_reloadsOnlyTheSelectedDay() async {
         let remaining = makeFood(id: "f2", hour: 9)
         let toDelete = makeFood(id: "f1", hour: 8)
-        let sut = makeSUT(fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [remaining]))
-        sut.foodsConsumed = [toDelete, remaining]
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [toDelete, remaining])
+        let range = FetchFoodsConsumedInRangeUseCaseFake(stubbedFoods: [remaining])
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
 
         sut.onDeleteRequested(toDelete)
         await sut.onDeleteConfirmed()
 
         XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f2"], "a confirmed delete must refetch the day so the removed entry disappears")
         XCTAssertNil(sut.alertItem)
+        assertSingleDayReload(range, month: month, of: sut.selectedDay)
     }
 
     @MainActor
@@ -377,10 +476,12 @@ final class DashboardViewModelTests: XCTestCase {
     func test_onCopyConfirmed_whenCopySucceeds_reloadsTheDayAndClosesTheBox() async {
         let source = makeFood(id: "f1", hour: 8)
         let copied = makeFood(id: "f2", hour: 12)
-        let sut = makeSUT(fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [source, copied]))
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [source])
+        let range = FetchFoodsConsumedInRangeUseCaseFake(stubbedFoods: [source, copied])
+        let sut = makeSUT(fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
         let sourceType = makeMealType(id: 0, hour: 8, endHour: 10)
         sut.mealTypes = [sourceType, makeMealType(id: 1, hour: 11, endHour: 14)]
-        sut.foodsConsumed = [source]
         sut.copyTargetDay = sut.selectedDay
         sut.copyTargetMealTypeId = "1"
         sut.copyPopoverIndex = 0
@@ -392,6 +493,48 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertFalse(sut.showCopyCheckmark)
         XCTAssertFalse(sut.isCopying)
         XCTAssertNil(sut.alertItem)
+        assertSingleDayReload(range, month: month, of: sut.selectedDay)
+    }
+
+    @MainActor
+    func test_onCopyConfirmed_whenTargetIsAnotherDayOfTheCachedMonth_reloadsOnlyThatDay() async {
+        let source = makeFood(id: "f1", hour: 8)
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [source])
+        let range = FetchFoodsConsumedInRangeUseCaseFake(stubbedFoods: [makeFood(id: "f2", hour: 12)])
+        let sut = makeSUT(fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
+        let sourceType = makeMealType(id: 0, hour: 8, endHour: 10)
+        sut.mealTypes = [sourceType, makeMealType(id: 1, hour: 11, endHour: 14)]
+        let calendar = Calendar.current
+        let otherDayOfMonth = calendar.component(.day, from: sut.selectedDay) == 1 ? 2 : 1
+        var components = calendar.dateComponents([.year, .month], from: sut.selectedDay)
+        components.day = otherDayOfMonth
+        sut.copyTargetDay = calendar.date(from: components) ?? sut.selectedDay
+        sut.copyTargetMealTypeId = "1"
+
+        await sut.onCopyConfirmed([source], from: sourceType)
+
+        assertSingleDayReload(range, month: month, of: sut.copyTargetDay)
+        XCTAssertEqual(sut.foodsConsumed.map(\.id), ["f1"], "the displayed day is not the one the copy landed on")
+        XCTAssertTrue(sut.activeDaysInMonth.contains(otherDayOfMonth), "the copy's calendar dot must appear")
+    }
+
+    @MainActor
+    func test_onCopyConfirmed_whenTargetMonthIsNotCached_doesNotFetchAnything() async {
+        let source = makeFood(id: "f1", hour: 8)
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [source])
+        let range = FetchFoodsConsumedInRangeUseCaseFake()
+        let sut = makeSUT(fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
+        let sourceType = makeMealType(id: 0, hour: 8, endHour: 10)
+        sut.mealTypes = [sourceType, makeMealType(id: 1, hour: 11, endHour: 14)]
+        sut.copyTargetDay = Calendar.current.date(byAdding: .month, value: -3, to: Date.now) ?? Date.now
+        sut.copyTargetMealTypeId = "1"
+
+        await sut.onCopyConfirmed([source], from: sourceType)
+
+        XCTAssertEqual(month.calls.count, 1, "an uncached month is loaded whole when the user first navigates to it")
+        XCTAssertTrue(range.calls.isEmpty)
     }
 
     @MainActor
@@ -578,6 +721,7 @@ final class DashboardViewModelTests: XCTestCase {
     private func makeSUT(
         fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
         fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol = FetchFoodsConsumedForMonthUseCaseFake(),
+        fetchFoodsConsumedInRange: any FetchFoodsConsumedInRangeUseCaseProtocol = FetchFoodsConsumedInRangeUseCaseFake(),
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol = SetupDefaultMealsUseCaseFake(),
         confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult: true),
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
@@ -589,6 +733,7 @@ final class DashboardViewModelTests: XCTestCase {
         let sut = DashboardViewModel(
             fetchMealTypes: fetchMealTypes,
             fetchFoodsConsumedForMonth: fetchFoodsConsumedForMonth,
+            fetchFoodsConsumedInRange: fetchFoodsConsumedInRange,
             setupDefaultMeals: setupDefaultMeals,
             confirmMealTypesEmpty: confirmMealTypesEmpty,
             deleteFoodConsumed: deleteFoodConsumed,
@@ -601,6 +746,24 @@ final class DashboardViewModelTests: XCTestCase {
             XCTAssertNil(sut, "DashboardViewModel leaked — potential retain cycle")
         }
         return sut
+    }
+
+    private func makeMealTypesFake() -> FetchMealTypesUseCaseFake {
+        FetchMealTypesUseCaseFake(stubbedTypes: [makeMealType(id: 0, hour: 0, endHour: 23)])
+    }
+
+    private func assertSingleDayReload(
+        _ range: FetchFoodsConsumedInRangeUseCaseFake,
+        month: FetchFoodsConsumedForMonthUseCaseFake,
+        of day: Date,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let startOfDay = Calendar.current.startOfDay(for: day)
+        XCTAssertEqual(range.calls.count, 1, "exactly one day query", file: file, line: line)
+        XCTAssertEqual(range.calls.first?.from, startOfDay, file: file, line: line)
+        XCTAssertEqual(range.calls.first?.to, startOfDay, "the use case treats `to` as an inclusive day", file: file, line: line)
+        XCTAssertEqual(month.calls.count, 1, "only onAppear may load the month", file: file, line: line)
     }
 
     private func makeMealType(id: Int, hour: Int, endHour: Int, minute: Int = 0) -> MealTypeDomain {

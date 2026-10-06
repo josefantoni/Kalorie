@@ -44,16 +44,25 @@ struct FetchFoodsConsumedForMonthUseCase: FetchFoodsConsumedForMonthUseCaseProto
 }
 
 #if DEBUG
-struct FetchFoodsConsumedForMonthUseCaseFake: FetchFoodsConsumedForMonthUseCaseProtocol {
+final class FetchFoodsConsumedForMonthUseCaseFake: FetchFoodsConsumedForMonthUseCaseProtocol {
 
     // MARK: - Properties
 
-    var stubbedFoods: [FoodConsumedDomain] = []
-    var shouldThrow = false
+    var stubbedFoods: [FoodConsumedDomain]
+    var shouldThrow: Bool
+    private(set) var calls: [Date] = []
+
+    // MARK: - Init
+
+    init(stubbedFoods: [FoodConsumedDomain] = [], shouldThrow: Bool = false) {
+        self.stubbedFoods = stubbedFoods
+        self.shouldThrow = shouldThrow
+    }
 
     // MARK: - Functions
 
     func callAsFunction(for month: Date) async throws -> [FoodConsumedDomain] {
+        calls.append(month)
         if shouldThrow { throw URLError(.unknown) }
         return stubbedFoods
     }

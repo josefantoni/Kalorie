@@ -202,7 +202,7 @@ struct DashboardView: View {
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
-                    Task { await viewModel.onRefresh() }
+                    Task { await viewModel.onForeground() }
                 }
             }
         }
@@ -352,6 +352,7 @@ struct DashboardView: View {
                 mealTypeId: nil
             )
         ]),
+        fetchFoodsConsumedInRange: FetchFoodsConsumedInRangeUseCaseFake(),
         setupDefaultMeals: SetupDefaultMealsUseCaseFake(),
         confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseFake(),
         deleteFoodConsumed: DeleteFoodConsumedUseCaseFake(),
