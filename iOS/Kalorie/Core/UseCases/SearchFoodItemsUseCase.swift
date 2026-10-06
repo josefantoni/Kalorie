@@ -27,22 +27,10 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction(query: String) async throws -> [FoodItemDomain] {
+        guard query.trimmingCharacters(in: .whitespaces).count >= Constants.Search.minimumQueryLength else { return [] }
         let searchQuery = SearchTermsKt.searchQuery(query: query)
-        let lowercasedQuery = searchQuery.lowercased
         let foldedQuery = searchQuery.folded
         let foldedLastWord = searchQuery.lastWord
-        async let byName: [FoodItemDTO] = dataProvider.loadAsync(
-            from: Constants.Firestore.foodItems,
-            where: "cz_name_lowercase",
-            hasPrefix: lowercasedQuery,
-            limit: 10
-        )
-        async let byOriginalName: [FoodItemDTO] = dataProvider.loadAsync(
-            from: Constants.Firestore.foodItems,
-            where: "eng_name_lowercase",
-            hasPrefix: lowercasedQuery,
-            limit: 10
-        )
         async let byFoldedName: [FoodItemDTO] = dataProvider.loadAsync(
             from: Constants.Firestore.foodItems,
             where: "cz_name_folded",
@@ -67,15 +55,11 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
             arrayContains: foldedLastWord,
             limit: 10
         )
-        let (
-            nameResults, originalNameResults, foldedNameResults, foldedOriginalNameResults, czTokenResults, engTokenResults
-        ) = try await (
-            byName, byOriginalName, byFoldedName, byFoldedOriginalName, byCzNameToken, byEngNameToken
+        let (foldedNameResults, foldedOriginalNameResults, czTokenResults, engTokenResults) = try await (
+            byFoldedName, byFoldedOriginalName, byCzNameToken, byEngNameToken
         )
         var seen = Set<String>()
-        return (
-            nameResults + originalNameResults + foldedNameResults + foldedOriginalNameResults + czTokenResults + engTokenResults
-        )
+        return (foldedNameResults + foldedOriginalNameResults + czTokenResults + engTokenResults)
             .filter { seen.insert($0.id).inserted }
             .map { $0.asDomain() }
     }

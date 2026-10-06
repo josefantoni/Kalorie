@@ -50,6 +50,10 @@ enum Constants {
         static let export = "export"
     }
 
+    enum Search {
+        static let minimumQueryLength = 2
+    }
+
     enum Firestore {
         static let foodItems = "foodItems"
         static let foodItemSubmissions = "foodItemSubmissions"
