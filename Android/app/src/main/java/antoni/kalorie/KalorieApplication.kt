@@ -5,12 +5,14 @@ import antoni.kalorie.core.auth.CurrentActivityProvider
 import antoni.kalorie.core.utils.ErrorReporting
 import antoni.kalorie.core.utils.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import kotlinx.coroutines.MainScope
 
 class KalorieApplication : Application() {
 
     // MARK: - Properties
 
     val currentActivityProvider = CurrentActivityProvider()
+    val applicationScope = MainScope()
 
     // MARK: - Functions
 

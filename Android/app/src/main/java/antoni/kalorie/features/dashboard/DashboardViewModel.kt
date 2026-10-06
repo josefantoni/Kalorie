@@ -121,6 +121,7 @@ class DashboardViewModel(
     private val _activeDaysInMonth = MutableStateFlow<Set<Int>>(emptySet())
     val activeDaysInMonth: StateFlow<Set<Int>> = _activeDaysInMonth
 
+    private var activeDaysMonth = Instant.now()
     private var isViewingToday = true
     private var hasCompletedInitialLoad = false
     private var monthCache = mutableMapOf<String, List<FoodConsumedDomain>>()
@@ -165,6 +166,7 @@ class DashboardViewModel(
             refreshMealTypes()
             loadMonth(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
+            showActiveDays(selectedDay.value)
             showSignInSpotlightIfNeeded()
         }
         _state.value = LoadingState.loaded
@@ -179,6 +181,7 @@ class DashboardViewModel(
             invalidateCache(selectedDay.value)
             loadMonth(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
+            showActiveDays(selectedDay.value)
             showSignInSpotlightIfNeeded()
         }
     }
@@ -289,10 +292,18 @@ class DashboardViewModel(
 
     suspend fun onCalendarMonthChanged(month: Instant) {
         if (monthCacheKey(month) in cachedMonthKeys) {
-            _activeDaysInMonth.value = computeActiveDays(month)
+            showActiveDays(month)
         } else {
-            perform { loadMonth(month) }
+            perform {
+                loadMonth(month)
+                showActiveDays(month)
+            }
         }
+    }
+
+    fun onCalendarDismissed() {
+        showCalendarSheet.value = false
+        showActiveDays(selectedDay.value)
     }
 
     // MARK: - Private
@@ -363,11 +374,12 @@ class DashboardViewModel(
     private suspend fun loadFoods(date: Instant) {
         if (monthCacheKey(date) in cachedMonthKeys) {
             foodsConsumed.value = foodsFromCache(date)
-            _activeDaysInMonth.value = computeActiveDays(date)
+            showActiveDays(date)
         } else {
             perform {
                 loadMonth(date)
                 foodsConsumed.value = foodsFromCache(date)
+                showActiveDays(date)
             }
         }
     }
@@ -375,17 +387,23 @@ class DashboardViewModel(
     private suspend fun loadMonth(date: Instant) {
         val foods = fetchFoodsConsumedForMonth(date)
         populateCache(foods, date)
-        _activeDaysInMonth.value = computeActiveDays(date)
     }
 
     private suspend fun reloadDay(date: Instant) {
-        if (monthCacheKey(date) !in cachedMonthKeys) {
+        if (monthCacheKey(date) in cachedMonthKeys) {
+            val day = date.zoned().toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant()
+            val foods = fetchFoodsConsumedInRange(day, day)
+            monthCache[dayCacheKey(day)] = foods
+            _activeDaysInMonth.value = computeActiveDays(activeDaysMonth)
+        } else {
             loadMonth(date)
-            return
+            showActiveDays(date)
         }
-        val day = date.zoned().toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant()
-        monthCache[dayCacheKey(day)] = fetchFoodsConsumedInRange(day, day)
-        _activeDaysInMonth.value = computeActiveDays(selectedDay.value)
+    }
+
+    private fun showActiveDays(month: Instant) {
+        activeDaysMonth = month
+        _activeDaysInMonth.value = computeActiveDays(month)
     }
 
     private fun monthCacheKey(date: Instant): String = date.formatCacheKey("yyyy-MM")

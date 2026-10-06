@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormField
+import antoni.kalorie.core.models.FoodFrequencyEntry
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
@@ -15,6 +16,7 @@ import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteMySubmissionUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodFrequencyUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMySubmissionsUseCaseProtocol
@@ -56,6 +58,7 @@ class AddFoodSheetViewModel(
     private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
     private val fetchFavouriteFoods: FetchFavouriteFoodsUseCaseProtocol,
     private val refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol,
+    private val fetchFoodFrequency: FetchFoodFrequencyUseCaseProtocol,
     private val fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol,
     private val deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol,
     private val onFoodSaved: () -> Unit = {},
@@ -72,6 +75,7 @@ class AddFoodSheetViewModel(
     val favouriteFoods = MutableStateFlow<List<FoodItemDomain>>(emptyList())
     private val _favouriteIds = MutableStateFlow<Set<String>>(emptySet())
     val favouriteIds: StateFlow<Set<String>> = _favouriteIds
+    val foodFrequency = MutableStateFlow<Map<String, FoodFrequencyEntry>>(emptyMap())
     val searchText = MutableStateFlow("")
     private val _mode = MutableStateFlow(AddFoodSheetMode.SEARCH)
     val mode: StateFlow<AddFoodSheetMode> = _mode
@@ -120,17 +124,22 @@ class AddFoodSheetViewModel(
             val matchingFavourites = favouriteFoods.value.filter {
                 matchesSearchQuery(it.czName, query) || matchesSearchQuery(it.engName, query)
             }
-            val favouriteIds = matchingFavourites.map { it.id }.toSet()
             val matchingMeals = myCreatedMeals.value
                 .map { it.asFoodItem() }
-                .filter { matchesSearchQuery(it.czName, query) && it.id !in favouriteIds }
-            val seenSubmissionIds = (favouriteIds + matchingMeals.map { it.id }).toMutableSet()
+                .filter { matchesSearchQuery(it.czName, query) }
             val matchingSubmissions = mySubmissions.value
                 .map { it.item }
                 .filter { matchesSearchQuery(it.czName, query) || matchesSearchQuery(it.engName, query) }
-                .filter { seenSubmissionIds.add(it.id) }
-            val matchingIds = favouriteIds + matchingMeals.map { it.id } + matchingSubmissions.map { it.id }
-            return matchingFavourites + matchingMeals + matchingSubmissions + localFoodItems.value.filter { it.id !in matchingIds }
+            val candidates = foodFrequency.value.entries
+                .sortedBy { it.key }
+                .map { it.value.item }
+                .filter {
+                    it.kind != FoodItemKind.CREATED_MEAL &&
+                        (matchesSearchQuery(it.czName, query) || matchesSearchQuery(it.engName, query))
+                }
+            val seenIds = matchingFavourites.map { it.id }.toMutableSet()
+            val rest = (matchingMeals + matchingSubmissions + localFoodItems.value + candidates).filter { seenIds.add(it.id) }
+            return rankedByFrequency(matchingFavourites, usesRecency = false) + rankedByFrequency(rest, usesRecency = true)
         }
 
     // MARK: - Functions
@@ -435,21 +444,37 @@ class AddFoodSheetViewModel(
         isPushedToQuantityView.value = true
     }
 
+    suspend fun onSelectResult(item: FoodItemDomain) {
+        val isFrequencyCandidate = item.kind == FoodItemKind.CATALOGUE &&
+            foodFrequency.value.containsKey(item.id) &&
+            item.id !in _favouriteIds.value &&
+            localFoodItems.value.none { it.id == item.id } &&
+            mySubmissions.value.none { it.item.id == item.id }
+        if (!isFrequencyCandidate) {
+            onSelectFoodItem(item)
+            return
+        }
+        if (isPushedToQuantityView.value) return
+        onSelectFoodItem(refreshed(item))
+    }
+
     suspend fun onSelectFavouriteFood(item: FoodItemDomain) {
         if (isPushedToQuantityView.value) return
-        var resolved = item
-        try {
-            resolved = refreshFavouriteFood(item)
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
-        }
+        val resolved = refreshed(item)
         val index = favouriteFoods.value.indexOfFirst { it.id == item.id }
         if (resolved != item && index >= 0) {
             favouriteFoods.value = favouriteFoods.value.toMutableList().also { it[index] = resolved }
         }
         onSelectFoodItem(resolved)
+    }
+
+    private suspend fun refreshed(item: FoodItemDomain): FoodItemDomain = try {
+        refreshFavouriteFood(item)
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+        item
     }
 
     suspend fun onAppear() {
@@ -484,12 +509,34 @@ class AddFoodSheetViewModel(
                     null
                 }
             }
+            val frequency = async {
+                try {
+                    fetchFoodFrequency()
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.warning(error, Constants.LogCategory.ADD_FOOD_SHEET)
+                    null
+                }
+            }
             favourites.await()?.let { items ->
                 favouriteFoods.value = items
                 _favouriteIds.value = items.map { it.id }.toSet()
             }
             meals.await()?.let { myCreatedMeals.value = it }
             submissions.await()?.let { mySubmissions.value = it }
+            frequency.await()?.let { foodFrequency.value = it }
+        }
+    }
+
+    private fun rankedByFrequency(items: List<FoodItemDomain>, usesRecency: Boolean): List<FoodItemDomain> = items.sortedWith { lhs, rhs ->
+        val lhsEntry = foodFrequency.value[lhs.id]
+        val rhsEntry = foodFrequency.value[rhs.id]
+        val byCount = (rhsEntry?.count ?: 0).compareTo(lhsEntry?.count ?: 0)
+        when {
+            byCount != 0 -> byCount
+            usesRecency && lhsEntry != null && rhsEntry != null -> rhsEntry.lastLoggedAt.compareTo(lhsEntry.lastLoggedAt)
+            else -> 0
         }
     }
 

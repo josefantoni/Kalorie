@@ -19,6 +19,8 @@ import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseFake
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.RecordFoodFrequencyUseCaseFake
+import antoni.kalorie.core.usecases.RecordFoodFrequencyUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseFake
@@ -30,6 +32,9 @@ import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -257,6 +262,52 @@ class FoodQuantityViewModelTest {
         sut.onConfirm()
 
         assertNotNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onConfirm_afterSaving_recordsTheLoggedFoodInTheFrequencyCounts() = runTest {
+        val spy = RecordFoodFrequencyUseCaseSpy()
+        val item = makeFoodItem()
+        val sut = makeSUT(item = item, recordFoodFrequency = spy)
+
+        sut.onConfirm()
+
+        assertEquals(listOf(item), spy.recordedItems)
+    }
+
+    @Test
+    fun onConfirm_whenSavingFails_doesNotRecordFrequency() = runTest {
+        val spy = RecordFoodFrequencyUseCaseSpy()
+        val sut = makeSUT(saveFoodConsumed = SaveFoodConsumedUseCaseFake(shouldThrow = true), recordFoodFrequency = spy)
+
+        sut.onConfirm()
+
+        assertTrue(spy.recordedItems.isEmpty())
+    }
+
+    @Test
+    fun onConfirm_doesNotWaitForTheFrequencyWriteBeforeClosing() = runTest {
+        var onSavedCalled = false
+        val sut = makeSUT(
+            recordFoodFrequency = RecordFoodFrequencyUseCaseNeverFinishing(),
+            applicationScope = backgroundScope,
+            onSaved = { onSavedCalled = true },
+        )
+
+        sut.onConfirm()
+
+        assertTrue("the log is already saved, a slow statistics write must not keep the screen open", onSavedCalled)
+    }
+
+    @Test
+    fun onConfirm_whenRecordingFrequencyFails_stillCompletesWithoutAlert() = runTest {
+        var onSavedCalled = false
+        val sut = makeSUT(recordFoodFrequency = RecordFoodFrequencyUseCaseFake(shouldThrow = true), onSaved = { onSavedCalled = true })
+
+        sut.onConfirm()
+
+        assertTrue("a failed frequency write must never block a successfully saved log", onSavedCalled)
+        assertNull(sut.alertItem.value)
     }
 
     @Test
@@ -932,6 +983,8 @@ class FoodQuantityViewModelTest {
     private fun makeSUT(
         item: FoodItemDomain = makeFoodItem(),
         saveFoodConsumed: SaveFoodConsumedUseCaseProtocol = SaveFoodConsumedUseCaseFake(),
+        recordFoodFrequency: RecordFoodFrequencyUseCaseProtocol = RecordFoodFrequencyUseCaseFake(),
+        applicationScope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
         fetchMealTypes: FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
         selectedDate: Instant = Instant.now(),
         mealTypes: List<MealTypeDomain> = emptyList(),
@@ -952,6 +1005,8 @@ class FoodQuantityViewModelTest {
     ): FoodQuantityViewModel = FoodQuantityViewModel(
         item = item,
         saveFoodConsumed = saveFoodConsumed,
+        recordFoodFrequency = recordFoodFrequency,
+        applicationScope = applicationScope,
         fetchMealTypes = fetchMealTypes,
         selectedDate = selectedDate,
         mealTypes = mealTypes,
@@ -1020,5 +1075,28 @@ private class SaveFoodConsumedUseCaseSpy : SaveFoodConsumedUseCaseProtocol {
         wasCalled = true
         capturedMealTypeId = mealTypeId
         capturedDate = date
+    }
+}
+
+private class RecordFoodFrequencyUseCaseSpy : RecordFoodFrequencyUseCaseProtocol {
+
+    // MARK: - Properties
+
+    var recordedItems: List<FoodItemDomain> = emptyList()
+        private set
+
+    // MARK: - Functions
+
+    override suspend fun invoke(item: FoodItemDomain, date: Instant) {
+        recordedItems = recordedItems + item
+    }
+}
+
+private class RecordFoodFrequencyUseCaseNeverFinishing : RecordFoodFrequencyUseCaseProtocol {
+
+    // MARK: - Functions
+
+    override suspend fun invoke(item: FoodItemDomain, date: Instant) {
+        awaitCancellation()
     }
 }

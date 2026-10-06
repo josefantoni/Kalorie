@@ -2,6 +2,7 @@ package antoni.kalorie.features.addfoodsheet
 
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormField
+import antoni.kalorie.core.models.FoodFrequencyEntry
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
@@ -19,6 +20,8 @@ import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodFrequencyUseCaseFake
+import antoni.kalorie.core.usecases.FetchFoodFrequencyUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCaseFake
@@ -75,6 +78,147 @@ class AddFoodSheetViewModelTest {
         sut.searchText.value = "ov"
 
         assertEquals(listOf("fav", "meal", "cat"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_ranksMoreOftenLoggedFoodsFirstAndKeepsUncountedInTheirOrder() = runTest {
+        val sut = makeSUT(
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(
+                stubbedEntries = mapOf("b" to makeFrequencyEntry(id = "b", count = 2), "c" to makeFrequencyEntry(id = "c", count = 5)),
+            ),
+        )
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(
+            makeFoodItem(id = "a", czName = "Ovoce A"),
+            makeFoodItem(id = "b", czName = "Ovoce B"),
+            makeFoodItem(id = "c", czName = "Ovoce C"),
+            makeFoodItem(id = "d", czName = "Ovoce D"),
+        )
+        sut.searchText.value = "ovoce"
+
+        assertEquals(listOf("c", "b", "a", "d"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_withEqualCounts_listsMoreRecentlyLoggedFirst() = runTest {
+        val sut = makeSUT(
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(
+                stubbedEntries = mapOf(
+                    "a" to makeFrequencyEntry(id = "a", count = 3, lastLoggedAt = Instant.ofEpochSecond(100)),
+                    "b" to makeFrequencyEntry(id = "b", count = 3, lastLoggedAt = Instant.ofEpochSecond(200)),
+                ),
+            ),
+        )
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(makeFoodItem(id = "a", czName = "Ovoce A"), makeFoodItem(id = "b", czName = "Ovoce B"))
+        sut.searchText.value = "ovoce"
+
+        assertEquals(listOf("b", "a"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_addsFrequentFoodTheCatalogueQueryCutOff() = runTest {
+        val sut = makeSUT(
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(
+                stubbedEntries = mapOf("cut" to makeFrequencyEntry(id = "cut", czName = "Polotučné mléko", count = 9)),
+            ),
+        )
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(makeFoodItem(id = "other", czName = "Mléčný nápoj"))
+        sut.searchText.value = "mlék"
+
+        assertEquals(listOf("cut", "other"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_doesNotAddFrequentFoodThatDoesNotMatchTheQuery() = runTest {
+        val sut = makeSUT(
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(
+                stubbedEntries = mapOf("x" to makeFrequencyEntry(id = "x", czName = "Chléb", count = 9)),
+            ),
+        )
+        sut.onAppear()
+        sut.searchText.value = "mlék"
+
+        assertTrue(sut.displayedResults.isEmpty())
+    }
+
+    @Test
+    fun displayedResults_doesNotAddCreatedMealSnapshotButRanksTheLiveMealByItsCount() = runTest {
+        val sut = makeSUT(
+            fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(stubbedMeals = listOf(makeMeal(id = "meal", name = "Ovesná kaše"))),
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(
+                stubbedEntries = mapOf(
+                    "meal" to makeFrequencyEntry(id = "meal", czName = "Stará kaše", kind = FoodItemKind.CREATED_MEAL, count = 4),
+                    "deleted" to makeFrequencyEntry(id = "deleted", czName = "Smazaná kaše", kind = FoodItemKind.CREATED_MEAL, count = 8),
+                ),
+            ),
+        )
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(makeFoodItem(id = "cat", czName = "Kaše"))
+        sut.searchText.value = "kaše"
+
+        assertEquals(listOf("meal", "cat"), sut.displayedResults.map { it.id })
+        assertEquals("Ovesná kaše", sut.displayedResults.first().czName)
+    }
+
+    @Test
+    fun displayedResults_keepsFavouritesAboveMoreOftenLoggedFoodsAndSortsThemByCount() = runTest {
+        val sut = makeSUT(
+            fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(
+                stubbedItems = listOf(makeFoodItem(id = "fav1", czName = "Ovar 1"), makeFoodItem(id = "fav2", czName = "Ovar 2")),
+            ),
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(
+                stubbedEntries = mapOf("fav2" to makeFrequencyEntry(id = "fav2", count = 1), "cat" to makeFrequencyEntry(id = "cat", count = 50)),
+            ),
+        )
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(makeFoodItem(id = "cat", czName = "Ovar 3"))
+        sut.searchText.value = "ovar"
+
+        assertEquals(listOf("fav2", "fav1", "cat"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_whenFrequencyFetchFails_keepsTodaysOrder() = runTest {
+        val sut = makeSUT(fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(shouldThrow = true))
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(makeFoodItem(id = "a", czName = "Ovoce A"), makeFoodItem(id = "b", czName = "Ovoce B"))
+        sut.searchText.value = "ovoce"
+
+        assertEquals(listOf("a", "b"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun onSelectResult_whenFrequencyCandidate_refreshesStaleSnapshotBeforeSelecting() = runTest {
+        val stale = makeFoodItem(id = "cut", czName = "Mléko")
+        val fresh = makeFoodItem(id = "cut", czName = "Mléko opravené")
+        val sut = makeSUT(
+            refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(stubbedItem = fresh),
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(
+                stubbedEntries = mapOf("cut" to FoodFrequencyEntry(count = 1, lastLoggedAt = Instant.now(), item = stale)),
+            ),
+        )
+        sut.onAppear()
+
+        sut.onSelectResult(stale)
+
+        assertEquals(fresh, sut.selectedFoodItem.value)
+    }
+
+    @Test
+    fun onSelectResult_whenFoodCameFromTheCatalogueQuery_selectsItAsIs() = runTest {
+        val item = makeFoodItem(id = "cat", czName = "Mléko")
+        val sut = makeSUT(
+            refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(stubbedItem = makeFoodItem(id = "cat", czName = "Jiné")),
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(stubbedEntries = mapOf("cat" to makeFrequencyEntry(id = "cat", count = 1))),
+        )
+        sut.onAppear()
+        sut.localFoodItems.value = listOf(item)
+
+        sut.onSelectResult(item)
+
+        assertEquals(item, sut.selectedFoodItem.value)
     }
 
     @Test
@@ -933,6 +1077,7 @@ class AddFoodSheetViewModelTest {
             fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(),
             fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(),
             refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(),
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(),
             fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(),
             deleteMyCreatedMeal = DeleteMyCreatedMealUseCaseFake(),
             onFoodSaved = { onFoodSavedCalled = true },
@@ -959,6 +1104,7 @@ class AddFoodSheetViewModelTest {
         refreshFavouriteFood: RefreshFavouriteFoodUseCaseProtocol = RefreshFavouriteFoodUseCaseFake(),
         fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol = FetchMyCreatedMealsUseCaseFake(),
         deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol = DeleteMyCreatedMealUseCaseFake(),
+        fetchFoodFrequency: FetchFoodFrequencyUseCaseProtocol = FetchFoodFrequencyUseCaseFake(),
         isScannerVisible: Boolean = false,
     ): AddFoodSheetViewModel = AddFoodSheetViewModel(
         searchFoodItems = searchFoodItems,
@@ -971,6 +1117,7 @@ class AddFoodSheetViewModelTest {
         fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
         fetchFavouriteFoods = fetchFavouriteFoods,
         refreshFavouriteFood = refreshFavouriteFood,
+        fetchFoodFrequency = fetchFoodFrequency,
         fetchMyCreatedMeals = fetchMyCreatedMeals,
         deleteMyCreatedMeal = deleteMyCreatedMeal,
         isScannerVisible = isScannerVisible,
@@ -1078,6 +1225,14 @@ class AddFoodSheetViewModelTest {
         createdAt = Instant.now(),
         updatedAt = Instant.now(),
     )
+
+    private fun makeFrequencyEntry(
+        id: String,
+        czName: String = "Ovoce",
+        kind: FoodItemKind = FoodItemKind.CATALOGUE,
+        count: Int = 1,
+        lastLoggedAt: Instant = Instant.ofEpochSecond(0),
+    ): FoodFrequencyEntry = FoodFrequencyEntry(count = count, lastLoggedAt = lastLoggedAt, item = makeFoodItem(id = id, czName = czName, kind = kind))
 
     private fun makeFoodItem(
         id: String = "12345",

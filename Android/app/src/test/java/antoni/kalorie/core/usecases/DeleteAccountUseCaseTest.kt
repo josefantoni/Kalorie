@@ -108,6 +108,19 @@ class DeleteAccountUseCaseTest {
     }
 
     @Test
+    fun invoke_deletesFoodFrequencyDocument() = runTest {
+        val fixture = makeSUT()
+
+        fixture.sut()
+
+        assertEquals(
+            "the per-user frequency counts are private data and must not outlive the account",
+            listOf("foodFrequency"),
+            fixture.deleted(Constants.Firestore.stats(USER_ID)),
+        )
+    }
+
+    @Test
     fun invoke_deletesFirestoreDataBeforeDeletingAuthAccount() = runTest {
         val fixture = makeSUT()
         fixture.dataProvider.stubbedDocumentsByCollection = mapOf(
@@ -132,7 +145,7 @@ class DeleteAccountUseCaseTest {
         assertEquals(listOf(USER_ID), fixture.deleted(Constants.Firestore.USERS))
         assertEquals(
             "a failure part-way must leave the profile in place so the account is not half-erased",
-            listOf(Constants.Firestore.foodConsumed(USER_ID), Constants.Firestore.USERS),
+            listOf(Constants.Firestore.foodConsumed(USER_ID), Constants.Firestore.stats(USER_ID), Constants.Firestore.USERS),
             fixture.dataProvider.deletionCollectionOrder,
         )
     }
