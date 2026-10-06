@@ -10,6 +10,7 @@ import Foundation
 enum L10n {
     enum Common {
         static var ok: String { String(localized: "common_ok") }
+        static var privacyPolicy: String { String(localized: "common_privacyPolicy") }
         static var errorUnknown: String { String(localized: "common_error_unknown") }
         static var errorUnknownMessage: String { String(localized: "common_error_unknown_message") }
         static var errorOffline: String { String(localized: "common_error_offline") }

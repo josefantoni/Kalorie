@@ -32,6 +32,7 @@ enum Constants {
 
     enum Support {
         static let email = "kaloriepodpora@gmail.com"
+        static let privacyPolicyURL = URL(string: "https://kalorie-bf11c.web.app/privacy")
     }
 
     enum LogCategory {
