@@ -13,6 +13,7 @@ import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCaseProtocol
 import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
@@ -22,6 +23,7 @@ import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.formatCacheKey
 import antoni.kalorie.core.utils.isFirestoreUnreachable
 import antoni.kalorie.core.utils.isSameDay
+import antoni.kalorie.core.utils.zoned
 import antoni.kalorie.macrokit.Macros
 import antoni.kalorie.macrokit.total
 import kotlinx.coroutines.CancellationException
@@ -30,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
 
 data class DailyMacros(
     val calories: Int,
@@ -81,6 +84,7 @@ private val SIGN_IN_SPOTLIGHT_INTERVAL = Duration.ofDays(7)
 class DashboardViewModel(
     private val fetchMealTypes: FetchMealTypesUseCaseProtocol,
     private val fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseProtocol,
+    private val fetchFoodsConsumedInRange: FetchFoodsConsumedInRangeUseCaseProtocol,
     private val setupDefaultMeals: SetupDefaultMealsUseCaseProtocol,
     private val confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseProtocol,
     private val deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol,
@@ -179,6 +183,17 @@ class DashboardViewModel(
         }
     }
 
+    suspend fun onForeground() {
+        if (!hasCompletedInitialLoad) return
+        perform {
+            advanceSelectedDayIfNeeded()
+            refreshMealTypes()
+            reloadDay(selectedDay.value)
+            foodsConsumed.value = foodsFromCache(selectedDay.value)
+            showSignInSpotlightIfNeeded()
+        }
+    }
+
     fun onSignInSpotlightSignInTapped() {
         _isSignInSpotlightVisible.value = false
         showAccountSheet.value = true
@@ -194,8 +209,7 @@ class DashboardViewModel(
 
     suspend fun onFoodConsumedUpdated() {
         perform {
-            invalidateCache(selectedDay.value)
-            loadMonth(selectedDay.value)
+            reloadDay(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
             showSignInSpotlightIfNeeded()
         }
@@ -216,8 +230,7 @@ class DashboardViewModel(
         foodPendingDeletion = null
         perform(onFailure = { alertItem.value = AlertItem(titleRes = R.string.dashboard_error_deleteFailed) }) {
             deleteFoodConsumed(id = food.id)
-            invalidateCache(selectedDay.value)
-            loadMonth(selectedDay.value)
+            reloadDay(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
         }
     }
@@ -324,11 +337,12 @@ class DashboardViewModel(
     }
 
     private suspend fun reloadAfterCopy() {
-        invalidateCache(copyTargetDay.value)
-        if (monthCacheKey(copyTargetDay.value) != monthCacheKey(selectedDay.value)) return
+        if (monthCacheKey(copyTargetDay.value) !in cachedMonthKeys) return
         perform {
-            loadMonth(selectedDay.value)
-            foodsConsumed.value = foodsFromCache(selectedDay.value)
+            reloadDay(copyTargetDay.value)
+            if (copyTargetDay.value.isSameDay(selectedDay.value)) {
+                foodsConsumed.value = foodsFromCache(selectedDay.value)
+            }
         }
     }
 
@@ -362,6 +376,16 @@ class DashboardViewModel(
         val foods = fetchFoodsConsumedForMonth(date)
         populateCache(foods, date)
         _activeDaysInMonth.value = computeActiveDays(date)
+    }
+
+    private suspend fun reloadDay(date: Instant) {
+        if (monthCacheKey(date) !in cachedMonthKeys) {
+            loadMonth(date)
+            return
+        }
+        val day = date.zoned().toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant()
+        monthCache[dayCacheKey(day)] = fetchFoodsConsumedInRange(day, day)
+        _activeDaysInMonth.value = computeActiveDays(selectedDay.value)
     }
 
     private fun monthCacheKey(date: Instant): String = date.formatCacheKey("yyyy-MM")

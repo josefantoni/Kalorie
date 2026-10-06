@@ -138,8 +138,8 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
             viewModel.onSignInSpotlightDebugTriggered()
         }
     }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { scope.launch { viewModel.onRefresh() } }
-    DayChangeEffect { scope.launch { viewModel.onRefresh() } }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { scope.launch { viewModel.onForeground() } }
+    DayChangeEffect { scope.launch { viewModel.onForeground() } }
 
     // MARK: - Body
 

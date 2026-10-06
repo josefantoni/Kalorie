@@ -19,6 +19,7 @@ import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCase
 import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCase
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCase
+import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCase
 import antoni.kalorie.core.utils.ContextStringProvider
@@ -43,6 +44,7 @@ class DashboardConfigurator {
             DashboardViewModel(
                 fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider, stringProvider),
                 fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCase(dataProvider, authProvider),
+                fetchFoodsConsumedInRange = FetchFoodsConsumedInRangeUseCase(dataProvider, authProvider),
                 setupDefaultMeals = SetupDefaultMealsUseCase(dataProvider, authProvider, stringProvider),
                 confirmMealTypesEmpty = ConfirmMealTypesEmptyUseCase(dataProvider, authProvider),
                 deleteFoodConsumed = DeleteFoodConsumedUseCase(dataProvider, authProvider),
