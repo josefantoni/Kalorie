@@ -314,6 +314,42 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_displayedResults_withSingleLetter_stillListsMatchingFavourite() async {
+        let sut = makeSUT(fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(stubbedItems: [makeFoodItem(id: "fav", czName: "Ovar")]))
+        await sut.onAppear()
+        sut.searchText = "o"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["fav"])
+    }
+
+    @MainActor
+    func test_displayedResults_matchesFavouriteWithoutDiacritics() async {
+        let sut = makeSUT(fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(stubbedItems: [makeFoodItem(id: "fav", czName: "Rohlík")]))
+        await sut.onAppear()
+        sut.searchText = "rohlik"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["fav"])
+    }
+
+    @MainActor
+    func test_displayedResults_matchesFavouriteByNonFirstWord() async {
+        let sut = makeSUT(fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(stubbedItems: [makeFoodItem(id: "fav", czName: "Polotučné mléko")]))
+        await sut.onAppear()
+        sut.searchText = "mlék"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["fav"])
+    }
+
+    @MainActor
+    func test_displayedResults_createdMeal_isMatchedByCzNameOnly() async {
+        let sut = makeSUT(fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "meal", name: "Ovesná kaše")]))
+        await sut.onAppear()
+        sut.searchText = "ovesna"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["meal"])
+        sut.searchText = "kaše"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["meal"])
+        sut.searchText = "oats"
+        XCTAssertTrue(sut.displayedResults.isEmpty)
+    }
+
+    @MainActor
     func test_displayedResults_createdMeal_hasCreatedMealKind() async {
         let sut = makeSUT(fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "meal", name: "Ovesná kaše")]))
         await sut.onAppear()

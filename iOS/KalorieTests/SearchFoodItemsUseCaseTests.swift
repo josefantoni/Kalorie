@@ -12,29 +12,66 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_search_mergesResultsFromBothNameFields() async throws {
+    func test_search_mergesResultsFromBothFoldedNameFields() async throws {
         let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByCzName = [makeDTO(id: "1", czName: "Tvaroh")]
-        dataProvider.stubbedByEngName = [makeDTO(id: "2", czName: "Cottage cheese")]
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Tvaroh")]
+        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "2", czName: "Cottage cheese")]
 
         let result = try await sut(query: "tv")
 
         XCTAssertEqual(Set(result.map(\.id)), ["1", "2"])
     }
 
-    func test_search_withSameItemMatchingBothFields_deduplicatesById() async throws {
+    func test_search_withSameItemMatchingBothFoldedFields_deduplicatesById() async throws {
         let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByCzName = [makeDTO(id: "1", czName: "Tvaroh")]
-        dataProvider.stubbedByEngName = [makeDTO(id: "1", czName: "Tvaroh")]
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Tvaroh")]
+        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "1", czName: "Tvaroh")]
 
         let result = try await sut(query: "tv")
 
         XCTAssertEqual(result.count, 1)
     }
 
+    func test_search_mergesInFoldedCzFoldedEnTokenCzTokenEnOrder() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByEngNameToken = [makeDTO(id: "4")]
+        dataProvider.stubbedByCzNameToken = [makeDTO(id: "3")]
+        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "2")]
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1")]
+
+        let result = try await sut(query: "tv")
+
+        XCTAssertEqual(result.map(\.id), ["1", "2", "3", "4"])
+    }
+
+    func test_search_withSingleCharacter_doesNotQueryFirestore() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1")]
+
+        let single = try await sut(query: "m")
+        let padded = try await sut(query: " m ")
+
+        XCTAssertEqual(single, [])
+        XCTAssertEqual(padded, [])
+        XCTAssertEqual(dataProvider.queriedFields, [])
+    }
+
+    func test_search_withTwoCharacters_queriesFirestore() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1")]
+
+        let result = try await sut(query: "ml")
+
+        XCTAssertEqual(result.map(\.id), ["1"])
+        XCTAssertEqual(
+            Set(dataProvider.queriedFields),
+            ["cz_name_folded", "eng_name_folded", "cz_name_search_terms", "eng_name_search_terms"]
+        )
+    }
+
     func test_search_whenEnergyKJMissing_computesItFromMacrosInsteadOfZero() async throws {
         let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByCzName = [try makeDTOMissingEnergyKJ(fat: 10, carbohydrate: 20, protein: 5)]
+        dataProvider.stubbedByCzNameFolded = [try makeDTOMissingEnergyKJ(fat: 10, carbohydrate: 20, protein: 5)]
 
         let result = try await sut(query: "tv")
 
@@ -50,16 +87,6 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
         let result = try await sut(query: "rohlik")
 
         XCTAssertEqual(result.map(\.id), ["1"])
-    }
-
-    func test_search_withResultsFromBothLowercaseAndFoldedFields_deduplicatesById() async throws {
-        let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByCzName = [makeDTO(id: "1", czName: "Rohlík")]
-        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Rohlík")]
-
-        let result = try await sut(query: "rohlík")
-
-        XCTAssertEqual(result.count, 1)
     }
 
     func test_search_matchesASecondWordByItsToken() async throws {
@@ -83,7 +110,7 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
 
     func test_search_withResultFromBothPrefixAndTokenFields_deduplicatesById() async throws {
         let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByCzName = [makeDTO(id: "1", czName: "Mléko")]
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Mléko")]
         dataProvider.stubbedByCzNameToken = [makeDTO(id: "1", czName: "Mléko")]
 
         let result = try await sut(query: "mlék")
@@ -139,16 +166,18 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
 
     // MARK: - Properties
 
-    var stubbedByCzName: [FoodItemDTO] = []
-    var stubbedByEngName: [FoodItemDTO] = []
     var stubbedByCzNameFolded: [FoodItemDTO] = []
     var stubbedByEngNameFolded: [FoodItemDTO] = []
     var stubbedByCzNameToken: [FoodItemDTO] = []
     var stubbedByEngNameToken: [FoodItemDTO] = []
     private let arrayContainsValuesLock = NSLock()
     private var _arrayContainsValuesByField: [String: String] = [:]
+    private var _queriedFields: [String] = []
     var arrayContainsValuesByField: [String: String] {
         arrayContainsValuesLock.withLock { _arrayContainsValuesByField }
+    }
+    var queriedFields: [String] {
+        arrayContainsValuesLock.withLock { _queriedFields }
     }
 
     // MARK: - Functions
@@ -158,9 +187,11 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
 
     func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] {
+        arrayContainsValuesLock.withLock { _queriedFields.append(field) }
         switch field {
-        case "cz_name_lowercase": return stubbedByCzName as? [T] ?? []
-        case "eng_name_lowercase": return stubbedByEngName as? [T] ?? []
+        case "cz_name_lowercase", "eng_name_lowercase":
+            XCTFail("The search must not query \(field)")
+            return []
         case "cz_name_folded": return stubbedByCzNameFolded as? [T] ?? []
         case "eng_name_folded": return stubbedByEngNameFolded as? [T] ?? []
         default: return []
@@ -168,7 +199,10 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
     }
 
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] {
-        arrayContainsValuesLock.withLock { _arrayContainsValuesByField[field] = value }
+        arrayContainsValuesLock.withLock {
+            _arrayContainsValuesByField[field] = value
+            _queriedFields.append(field)
+        }
         switch field {
         case "cz_name_search_terms": return stubbedByCzNameToken as? [T] ?? []
         case "eng_name_search_terms": return stubbedByEngNameToken as? [T] ?? []

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TextKit
 import UIKit
 
 struct FoodItemFormInput {
@@ -231,21 +232,25 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     private var mealPendingDeletion: MyCreatedMealDomain?
 
     var displayedResults: [FoodItemDomain] {
-        let query = searchText.lowercased()
-        guard !query.isEmpty else { return localFoodItems }
+        guard !searchText.isEmpty else { return localFoodItems }
+        let query = SearchTermsKt.searchQuery(query: searchText)
         let matchingFavourites = favouriteFoods.filter {
-            $0.czName.lowercased().hasPrefix(query) || $0.engName.lowercased().hasPrefix(query)
+            SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query)
+                || SearchTermsKt.matchesSearchQuery(name: $0.engName, query: query)
         }
         let matchingMeals = myCreatedMeals
             .map { $0.asFoodItem() }
-            .filter { $0.czName.lowercased().hasPrefix(query) }
+            .filter { SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query) }
         let favouriteIds = Set(matchingFavourites.map(\.id))
         let matchingMealsFiltered = matchingMeals.filter { !favouriteIds.contains($0.id) }
         let matchingFavouriteAndMealIds = favouriteIds.union(matchingMealsFiltered.map(\.id))
         var seenSubmissionIds = matchingFavouriteAndMealIds
         let matchingSubmissions = mySubmissions
             .map(\.item)
-            .filter { $0.czName.lowercased().hasPrefix(query) || $0.engName.lowercased().hasPrefix(query) }
+            .filter {
+                SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query)
+                    || SearchTermsKt.matchesSearchQuery(name: $0.engName, query: query)
+            }
             .filter { seenSubmissionIds.insert($0.id).inserted }
         let matchingIds = matchingFavouriteAndMealIds.union(matchingSubmissions.map(\.id))
         return matchingFavourites + matchingMealsFiltered + matchingSubmissions
