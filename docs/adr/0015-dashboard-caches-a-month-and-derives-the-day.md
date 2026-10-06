@@ -1,6 +1,6 @@
 # 0015. The Dashboard fetches a whole month and derives every day view from it
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0041](0041-dashboard-reloads-only-the-affected-day-after-a-write-or-foreground.md) (the invalidation paragraph only — the month cache and month query are unchanged)
 - **Scope:** iOS
 - **Date:** 2026-08-27
 
