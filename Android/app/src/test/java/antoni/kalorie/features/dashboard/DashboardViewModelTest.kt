@@ -15,6 +15,8 @@ import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCaseFake
+import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseFake
@@ -330,6 +332,45 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun onRefresh_afterInitialLoadCompletes_reloadsTheWholeMonth() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy()
+        val range = FetchFoodsConsumedInRangeUseCaseSpy()
+        val sut = makeSUT(fetchMealTypes = makeSingleMealType(), fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
+
+        sut.onRefresh()
+
+        assertEquals("pull-to-refresh is the user's explicit reload-everything action", 2, month.months.size)
+        assertTrue(range.ranges.isEmpty())
+    }
+
+    @Test
+    fun onForeground_beforeInitialLoadCompletes_doesNothing() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy()
+        val range = FetchFoodsConsumedInRangeUseCaseSpy()
+        val sut = makeSUT(fetchMealTypes = makeSingleMealType(), fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+
+        sut.onForeground()
+
+        assertTrue("a resume racing the cold-launch load must not run its own fetch on top of onAppear's", sut.mealTypes.value.isEmpty())
+        assertTrue(month.months.isEmpty())
+        assertTrue(range.ranges.isEmpty())
+    }
+
+    @Test
+    fun onForeground_afterInitialLoad_reloadsOnlyTheSelectedDay() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(makeFood(id = "f1", hour = 8))))
+        val range = FetchFoodsConsumedInRangeUseCaseSpy(result = listOf(makeFood(id = "f2", hour = 9)))
+        val sut = makeSUT(fetchMealTypes = makeSingleMealType(), fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
+
+        sut.onForeground()
+
+        assertEquals("a change made on another device must show up on resume", listOf("f2"), sut.foodsConsumed.value.map { it.id })
+        assertSingleDayReload(range, month, sut.selectedDay.value)
+    }
+
+    @Test
     fun onDeleteRequested_showsConfirmation() {
         val sut = makeSUT()
         assertFalse(sut.isDeleteConfirmationVisible.value)
@@ -351,17 +392,20 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun onDeleteConfirmed_whenDeleteSucceeds_reloadsFoodsFromServer() = runTest {
+    fun onDeleteConfirmed_whenDeleteSucceeds_reloadsOnlyTheSelectedDay() = runTest {
         val remaining = makeFood(id = "f2", hour = 9)
         val toDelete = makeFood(id = "f1", hour = 8)
-        val sut = makeSUT(fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(remaining)))
-        sut.foodsConsumed.value = listOf(toDelete, remaining)
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(toDelete, remaining)))
+        val range = FetchFoodsConsumedInRangeUseCaseSpy(result = listOf(remaining))
+        val sut = makeSUT(fetchMealTypes = makeSingleMealType(), fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
 
         sut.onDeleteRequested(toDelete)
         sut.onDeleteConfirmed()
 
         assertEquals("a confirmed delete must refetch the day so the removed entry disappears", listOf("f2"), sut.foodsConsumed.value.map { it.id })
         assertNull(sut.alertItem.value)
+        assertSingleDayReload(range, month, sut.selectedDay.value)
     }
 
     @Test
@@ -402,17 +446,58 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun onFoodConsumedUpdated_dropsTheCachedMonthAndShowsTheRefetchedFoods() = runTest {
-        val monthFetches = FetchFoodsConsumedForMonthUseCaseSpy(
-            resultsPerCall = listOf(listOf(makeFood(id = "before", hour = 9)), listOf(makeFood(id = "after", hour = 9))),
-        )
-        val sut = makeSUT(fetchFoodsConsumedForMonth = monthFetches)
+    fun onFoodConsumedUpdated_reloadsOnlyTheSelectedDay() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(makeFood(id = "before", hour = 9))))
+        val range = FetchFoodsConsumedInRangeUseCaseSpy(result = listOf(makeFood(id = "after", hour = 9)))
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
         sut.onAppear()
 
         sut.onFoodConsumedUpdated()
 
-        assertEquals(2, monthFetches.months.size)
         assertEquals(listOf("after"), sut.foodsConsumed.value.map { it.id })
+        assertSingleDayReload(range, month, sut.selectedDay.value)
+    }
+
+    @Test
+    fun onFoodConsumedUpdated_replacesTheDayInsteadOfMergingIntoIt() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(makeFood(id = "f1", hour = 8), makeFood(id = "f2", hour = 9))))
+        val range = FetchFoodsConsumedInRangeUseCaseSpy(result = listOf(makeFood(id = "f1", hour = 8)))
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
+        assertEquals(2, sut.foodsConsumed.value.size)
+
+        sut.onFoodConsumedUpdated()
+
+        assertEquals("an entry deleted on another device must disappear", listOf("f1"), sut.foodsConsumed.value.map { it.id })
+    }
+
+    @Test
+    fun onFoodConsumedUpdated_whenTheDayBecomesEmpty_removesItFromTheActiveDays() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(makeFood(id = "f1", hour = 8))))
+        val range = FetchFoodsConsumedInRangeUseCaseSpy(result = emptyList())
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
+        val day = sut.selectedDay.value.atZone(ZoneId.systemDefault()).dayOfMonth
+        assertTrue(day in sut.activeDaysInMonth.value)
+
+        sut.onFoodConsumedUpdated()
+
+        assertFalse("a calendar dot for an empty day would point at nothing", day in sut.activeDaysInMonth.value)
+        assertTrue(sut.foodsConsumed.value.isEmpty())
+    }
+
+    @Test
+    fun onFoodConsumedUpdated_whenTheMonthIsNotCached_loadsTheWholeMonth() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy()
+        val range = FetchFoodsConsumedInRangeUseCaseSpy()
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
+        sut.selectedDay.value = ZonedDateTime.now().minusMonths(1).toInstant()
+
+        sut.onFoodConsumedUpdated()
+
+        assertEquals("there is no month cache to splice a single day into", 2, month.months.size)
+        assertTrue(range.ranges.isEmpty())
     }
 
     @Test
@@ -528,10 +613,12 @@ class DashboardViewModelTest {
     fun onCopyConfirmed_whenCopySucceeds_reloadsTheDayAndClosesTheBox() = runTest {
         val source = makeFood(id = "f1", hour = 8)
         val copied = makeFood(id = "f2", hour = 12)
-        val sut = makeSUT(fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(source, copied)))
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(source)))
+        val range = FetchFoodsConsumedInRangeUseCaseSpy(result = listOf(source, copied))
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
         val sourceType = makeMealType(id = 0, hour = 8, endHour = 10)
         sut.mealTypes.value = listOf(sourceType, makeMealType(id = 1, hour = 11, endHour = 14))
-        sut.foodsConsumed.value = listOf(source)
         sut.copyTargetDay.value = sut.selectedDay.value
         sut.copyTargetMealTypeId.value = "1"
         sut.copyPopoverIndex.value = 0
@@ -543,6 +630,46 @@ class DashboardViewModelTest {
         assertFalse(sut.showCopyCheckmark.value)
         assertFalse(sut.isCopying.value)
         assertNull(sut.alertItem.value)
+        assertSingleDayReload(range, month, sut.selectedDay.value)
+    }
+
+    @Test
+    fun onCopyConfirmed_whenTargetIsAnotherDayOfTheCachedMonth_reloadsOnlyThatDay() = runTest {
+        val source = makeFood(id = "f1", hour = 8)
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(source)))
+        val range = FetchFoodsConsumedInRangeUseCaseSpy(result = listOf(makeFood(id = "f2", hour = 12)))
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
+        val sourceType = makeMealType(id = 0, hour = 8, endHour = 10)
+        sut.mealTypes.value = listOf(sourceType, makeMealType(id = 1, hour = 11, endHour = 14))
+        val today = sut.selectedDay.value.atZone(ZoneId.systemDefault())
+        val otherDayOfMonth = if (today.dayOfMonth == 1) 2 else 1
+        sut.copyTargetDay.value = today.withDayOfMonth(otherDayOfMonth).toInstant()
+        sut.copyTargetMealTypeId.value = "1"
+
+        sut.onCopyConfirmed(listOf(source), sourceType)
+
+        assertSingleDayReload(range, month, sut.copyTargetDay.value)
+        assertEquals("the displayed day is not the one the copy landed on", listOf("f1"), sut.foodsConsumed.value.map { it.id })
+        assertTrue("the copy's calendar dot must appear", otherDayOfMonth in sut.activeDaysInMonth.value)
+    }
+
+    @Test
+    fun onCopyConfirmed_whenTargetMonthIsNotCached_doesNotFetchAnything() = runTest {
+        val source = makeFood(id = "f1", hour = 8)
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(source)))
+        val range = FetchFoodsConsumedInRangeUseCaseSpy()
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
+        val sourceType = makeMealType(id = 0, hour = 8, endHour = 10)
+        sut.mealTypes.value = listOf(sourceType, makeMealType(id = 1, hour = 11, endHour = 14))
+        sut.copyTargetDay.value = ZonedDateTime.now().minusMonths(3).toInstant()
+        sut.copyTargetMealTypeId.value = "1"
+
+        sut.onCopyConfirmed(listOf(source), sourceType)
+
+        assertEquals("an uncached month is loaded whole when the user first navigates to it", 1, month.months.size)
+        assertTrue(range.ranges.isEmpty())
     }
 
     @Test
@@ -744,9 +871,34 @@ class DashboardViewModelTest {
         }
     }
 
+    private class FetchFoodsConsumedInRangeUseCaseSpy(
+        private val result: List<FoodConsumedDomain> = emptyList(),
+    ) : FetchFoodsConsumedInRangeUseCaseProtocol {
+        val ranges = mutableListOf<Pair<Instant, Instant>>()
+
+        override suspend fun invoke(from: Instant, to: Instant): List<FoodConsumedDomain> {
+            ranges += from to to
+            return result
+        }
+    }
+
+    private fun startOfDay(day: Instant): Instant = day.atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant()
+
+    private fun makeSingleMealType() = FetchMealTypesUseCaseFake(stubbedTypes = listOf(makeMealType(id = 0, hour = 0, endHour = 23)))
+
+    private fun assertSingleDayReload(
+        range: FetchFoodsConsumedInRangeUseCaseSpy,
+        month: FetchFoodsConsumedForMonthUseCaseSpy,
+        day: Instant,
+    ) {
+        assertEquals("exactly one day query", listOf(startOfDay(day) to startOfDay(day)), range.ranges)
+        assertEquals("only onAppear may load the month", 1, month.months.size)
+    }
+
     private fun makeSUT(
         fetchMealTypes: FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
         fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseProtocol = FetchFoodsConsumedForMonthUseCaseFake(),
+        fetchFoodsConsumedInRange: FetchFoodsConsumedInRangeUseCaseProtocol = FetchFoodsConsumedInRangeUseCaseFake(),
         setupDefaultMeals: SetupDefaultMealsUseCaseProtocol = SetupDefaultMealsUseCaseFake(),
         confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult = true),
         deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
@@ -757,6 +909,7 @@ class DashboardViewModelTest {
     ): DashboardViewModel = DashboardViewModel(
         fetchMealTypes = fetchMealTypes,
         fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth,
+        fetchFoodsConsumedInRange = fetchFoodsConsumedInRange,
         setupDefaultMeals = setupDefaultMeals,
         confirmMealTypesEmpty = confirmMealTypesEmpty,
         deleteFoodConsumed = deleteFoodConsumed,
