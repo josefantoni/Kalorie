@@ -76,8 +76,8 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
 - **Privacy policy** — Google Play (App content → Privacy policy) and App Store Connect both
   require a public privacy policy URL and an in-app link; Play's Data safety answers must match it.
   Designed in [design 0021](docs/design/0021-privacy-policy.md): the data inventory, the page
-  `backend/hosting/privacy.html` (`https://kalorie-bf11c.web.app/privacy`), the Settings and
-  account-screen links on both clients, and the Data safety mapping. Owner decisions are recorded,
+  `backend/hosting/privacy.html` (`https://kalorie-bf11c.web.app/privacy`), the account-screen
+  link on both clients, and the Data safety mapping. Owner decisions are recorded,
   ready to implement; pasting the URL into Play Console waits on the Play Console account.
   Pre-release gate next to *Play Store account deletion*.
 - **Check the recent Android fixes by hand on an emulator or device** — they were only built and unit

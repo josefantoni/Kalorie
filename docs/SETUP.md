@@ -144,9 +144,16 @@ names an address.
    (ids have the form `<barcode>_<UID>`).
 5. Authentication → the user → *Delete account*.
 6. Reply to the requester that it is done.
+7. Move the e-mail thread to Gmail's Trash, which Gmail empties after 30 days. The privacy policy promises
+   deletion of e-mails no later than 30 days after handling; do the same for handled feedback mail.
 
 The collection list must match `wipeFirestoreData` in both `DeleteAccountUseCase` files (iOS and
 Android). Whoever adds a new per-user collection updates both places and this list.
+
+Keeping the privacy policy true ([design 0021](design/0021-privacy-policy.md)): the policy
+(`backend/hosting/privacy.html`), the deletion page, `wipeFirestoreData` and this list all describe the
+same per-user data. A new per-user collection, a new SDK, analytics, or a Crashlytics user id changes
+all of them and the Play Data safety / App Store App Privacy answers.
 
 Deploy the page from `backend/` with `firebase deploy --only hosting`. Never run a bare
 `firebase deploy`: it would redeploy the Firestore rules and indexes as well.
