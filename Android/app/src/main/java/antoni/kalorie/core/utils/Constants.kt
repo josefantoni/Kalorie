@@ -38,6 +38,10 @@ object Constants {
         val USER_AGENT: String = "Kalorie-Android/${BuildConfig.VERSION_NAME}"
     }
 
+    object Search {
+        const val MINIMUM_QUERY_LENGTH = 2
+    }
+
     object Firestore {
         const val BATCH_WRITE_LIMIT = 500
         const val IN_QUERY_LIMIT = 30

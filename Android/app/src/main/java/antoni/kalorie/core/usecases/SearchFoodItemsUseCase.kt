@@ -9,6 +9,7 @@ import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.textkit.searchQuery
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import java.text.BreakIterator
 
 interface SearchFoodItemsUseCaseProtocol {
     suspend operator fun invoke(query: String): List<FoodItemDomain>
@@ -21,18 +22,16 @@ class SearchFoodItemsUseCase(
     // MARK: - Functions
 
     override suspend fun invoke(query: String): List<FoodItemDomain> = coroutineScope {
+        if (graphemeCount(query.trim()) < Constants.Search.MINIMUM_QUERY_LENGTH) return@coroutineScope emptyList()
         val searchQuery = searchQuery(query)
-        val lowercasedQuery = searchQuery.lowercased
         val foldedQuery = searchQuery.folded
         val foldedLastWord = searchQuery.lastWord
-        val byName = async { loadByPrefix("cz_name_lowercase", lowercasedQuery) }
-        val byOriginalName = async { loadByPrefix("eng_name_lowercase", lowercasedQuery) }
         val byFoldedName = async { loadByPrefix("cz_name_folded", foldedQuery) }
         val byFoldedOriginalName = async { loadByPrefix("eng_name_folded", foldedQuery) }
         val byCzNameToken = async { loadByToken("cz_name_search_terms", foldedLastWord) }
         val byEngNameToken = async { loadByToken("eng_name_search_terms", foldedLastWord) }
         val seen = mutableSetOf<String>()
-        listOf(byName, byOriginalName, byFoldedName, byFoldedOriginalName, byCzNameToken, byEngNameToken)
+        listOf(byFoldedName, byFoldedOriginalName, byCzNameToken, byEngNameToken)
             .flatMap { it.await() }
             .filter { seen.add(it.id) }
             .map { it.asDomain() }
@@ -43,6 +42,14 @@ class SearchFoodItemsUseCase(
     private suspend fun loadByPrefix(field: String, prefix: String): List<FoodItemDTO> = dataProvider.loadHasPrefixAsync(from = Constants.Firestore.FOOD_ITEMS, field = field, hasPrefix = prefix, limit = RESULT_LIMIT)
 
     private suspend fun loadByToken(field: String, token: String): List<FoodItemDTO> = dataProvider.loadArrayContainsAsync(from = Constants.Firestore.FOOD_ITEMS, field = field, arrayContains = token, limit = RESULT_LIMIT)
+
+    private fun graphemeCount(text: String): Int {
+        val iterator = BreakIterator.getCharacterInstance()
+        iterator.setText(text)
+        var count = 0
+        while (iterator.next() != BreakIterator.DONE) count++
+        return count
+    }
 
     private companion object {
         const val RESULT_LIMIT = 10

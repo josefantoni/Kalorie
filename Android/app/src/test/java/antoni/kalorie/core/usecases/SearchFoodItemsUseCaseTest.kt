@@ -15,11 +15,11 @@ class SearchFoodItemsUseCaseTest {
     // MARK: - Tests
 
     @Test
-    fun search_mergesResultsFromBothNameFields() = runTest {
+    fun search_mergesResultsFromBothFoldedNameFields() = runTest {
         val (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByPrefixField = mapOf(
-            "cz_name_lowercase" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
-            "eng_name_lowercase" to listOf(makeDTO(id = "2", czName = "Cottage cheese")),
+            "cz_name_folded" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
+            "eng_name_folded" to listOf(makeDTO(id = "2", czName = "Cottage cheese")),
         )
 
         val result = sut(query = "tv")
@@ -28,11 +28,11 @@ class SearchFoodItemsUseCaseTest {
     }
 
     @Test
-    fun search_withSameItemMatchingBothFields_deduplicatesById() = runTest {
+    fun search_withSameItemMatchingBothFoldedFields_deduplicatesById() = runTest {
         val (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByPrefixField = mapOf(
-            "cz_name_lowercase" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
-            "eng_name_lowercase" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
+            "cz_name_folded" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
+            "eng_name_folded" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
         )
 
         val result = sut(query = "tv")
@@ -41,10 +41,50 @@ class SearchFoodItemsUseCaseTest {
     }
 
     @Test
+    fun search_withSingleCharacter_doesNotQueryFirestore() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(makeDTO(id = "1")))
+
+        val single = sut(query = "m")
+        val padded = sut(query = " m ")
+
+        assertEquals(emptyList<FoodItemDomain>(), single)
+        assertEquals(emptyList<FoodItemDomain>(), padded)
+        assertEquals(emptyList<String>(), dataProvider.queriedSearchFields.toList())
+    }
+
+    @Test
+    fun search_withSingleGraphemeCluster_doesNotQueryFirestore() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(makeDTO(id = "1")))
+
+        val emoji = sut(query = "\uD83D\uDE00")
+        val decomposed = sut(query = "e\u0301")
+
+        assertEquals(emptyList<FoodItemDomain>(), emoji)
+        assertEquals(emptyList<FoodItemDomain>(), decomposed)
+        assertEquals(emptyList<String>(), dataProvider.queriedSearchFields.toList())
+    }
+
+    @Test
+    fun search_withTwoCharacters_queriesFirestore() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(makeDTO(id = "1")))
+
+        val result = sut(query = "ml")
+
+        assertEquals(listOf("1"), result.map { it.id })
+        assertEquals(
+            setOf("cz_name_folded", "eng_name_folded", "cz_name_search_terms", "eng_name_search_terms"),
+            dataProvider.queriedSearchFields.toSet(),
+        )
+    }
+
+    @Test
     fun search_whenEnergyKJMissing_computesItFromMacrosInsteadOfZero() = runTest {
         val (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByPrefixField = mapOf(
-            "cz_name_lowercase" to listOf(makeDTOMissingEnergyKJ(fat = 10.0, carbohydrate = 20.0, protein = 5.0)),
+            "cz_name_folded" to listOf(makeDTOMissingEnergyKJ(fat = 10.0, carbohydrate = 20.0, protein = 5.0)),
         )
 
         val result = sut(query = "tv")
@@ -62,19 +102,6 @@ class SearchFoodItemsUseCaseTest {
         val result = sut(query = "rohlik")
 
         assertEquals(listOf("1"), result.map { it.id })
-    }
-
-    @Test
-    fun search_withResultsFromBothLowercaseAndFoldedFields_deduplicatesById() = runTest {
-        val (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByPrefixField = mapOf(
-            "cz_name_lowercase" to listOf(makeDTO(id = "1", czName = "Rohlík")),
-            "cz_name_folded" to listOf(makeDTO(id = "1", czName = "Rohlík")),
-        )
-
-        val result = sut(query = "rohlík")
-
-        assertEquals(1, result.size)
     }
 
     @Test
@@ -103,7 +130,7 @@ class SearchFoodItemsUseCaseTest {
     @Test
     fun search_withResultFromBothPrefixAndTokenFields_deduplicatesById() = runTest {
         val (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByPrefixField = mapOf("cz_name_lowercase" to listOf(makeDTO(id = "1", czName = "Mléko")))
+        dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(makeDTO(id = "1", czName = "Mléko")))
         dataProvider.stubbedByArrayContainsField = mapOf("cz_name_search_terms" to listOf(makeDTO(id = "1", czName = "Mléko")))
 
         val result = sut(query = "mlék")
@@ -115,8 +142,6 @@ class SearchFoodItemsUseCaseTest {
     fun search_mergesInTheFixedFieldOrderWithoutResorting() = runTest {
         val (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByPrefixField = mapOf(
-            "cz_name_lowercase" to listOf(makeDTO(id = "cz")),
-            "eng_name_lowercase" to listOf(makeDTO(id = "eng")),
             "cz_name_folded" to listOf(makeDTO(id = "czFolded")),
             "eng_name_folded" to listOf(makeDTO(id = "engFolded")),
         )
@@ -129,7 +154,7 @@ class SearchFoodItemsUseCaseTest {
 
         assertEquals(
             "the concatenation is the user-visible order — a client that merges in another order shows a different list",
-            listOf("cz", "eng", "czFolded", "engFolded", "czToken", "engToken"),
+            listOf("czFolded", "engFolded", "czToken", "engToken"),
             result.map { it.id },
         )
     }

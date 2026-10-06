@@ -18,6 +18,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var stubbedByPrefixField: Map<String, List<Any>> = emptyMap()
     var stubbedByArrayContainsField: Map<String, List<Any>> = emptyMap()
     val arrayContainsValuesByField = ConcurrentHashMap<String, String>()
+    val queriedSearchFields: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
     var stubbedByDocumentIds: List<Any> = emptyList()
     var queriedDocumentIds: List<String> = emptyList()
     var stubbedDocument: Any? = null
@@ -132,7 +133,10 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         hasPrefix: String,
         limit: Int,
         serializer: KSerializer<T>,
-    ): List<T> = stubbedByPrefixField[field].orEmpty() as List<T>
+    ): List<T> {
+        queriedSearchFields.add(field)
+        return stubbedByPrefixField[field].orEmpty() as List<T>
+    }
 
     override suspend fun <T> loadArrayContainsAsync(
         from: String,
@@ -142,6 +146,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         serializer: KSerializer<T>,
     ): List<T> {
         arrayContainsValuesByField[field] = arrayContains
+        queriedSearchFields.add(field)
         return stubbedByArrayContainsField[field].orEmpty() as List<T>
     }
 
