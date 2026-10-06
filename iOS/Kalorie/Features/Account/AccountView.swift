@@ -99,6 +99,13 @@ struct AccountView: View {
                         Link(L10n.Account.dataAttributionLinkTitle, destination: openFoodFactsURL)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
+
+                    Divider().padding(.vertical, 8)
+
+                    if let privacyPolicyURL = Constants.Support.privacyPolicyURL {
+                        Link(L10n.Common.privacyPolicy, destination: privacyPolicyURL)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
                 }
                 .font(.caption)
                 .frame(maxWidth: .infinity, alignment: .leading)

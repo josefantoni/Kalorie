@@ -1785,6 +1785,23 @@
         }
       }
     },
+    "common_privacyPolicy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zásady ochrany osobních údajů"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy policy"
+          }
+        }
+      }
+    },
     "common_unit_grams" : {
       "extractionState" : "manual",
       "localizations" : {

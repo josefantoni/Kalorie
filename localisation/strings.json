@@ -415,6 +415,10 @@
     "cs": "Dobrá",
     "en": "OK"
   },
+  "common_privacyPolicy": {
+    "cs": "Zásady ochrany osobních údajů",
+    "en": "Privacy policy"
+  },
   "common_unit_grams": {
     "cs": "g",
     "en": "g"
