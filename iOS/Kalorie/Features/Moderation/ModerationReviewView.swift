@@ -84,15 +84,9 @@ struct ModerationReviewView: View {
 
     private var approveButtonSection: some View {
         Section {
-            Button {
+            PrimaryButton(L10n.Moderation.buttonApprove) {
                 Task { await viewModel.onApproveTapped() }
-            } label: {
-                Text(L10n.Moderation.buttonApprove)
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .controlSize(.large)
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
@@ -101,16 +95,9 @@ struct ModerationReviewView: View {
 
     private var rejectButtonSection: some View {
         Section {
-            Button(role: .destructive) {
+            PrimaryButton(L10n.Moderation.buttonReject, style: .destructive) {
                 viewModel.isRejectSheetVisible = true
-            } label: {
-                Text(L10n.Moderation.buttonReject)
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
-            .controlSize(.large)
-            .tint(Color.error)
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)

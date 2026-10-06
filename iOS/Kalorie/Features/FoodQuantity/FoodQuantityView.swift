@@ -78,10 +78,11 @@ struct FoodQuantityView: View {
 
             if onDeleteMealConfirmed != nil {
                 Section {
-                    Button(L10n.MyCreatedMeal.buttonDelete, role: .destructive) {
+                    PrimaryButton(L10n.MyCreatedMeal.buttonDelete, style: .destructive) {
                         isDeleteConfirmationVisible = true
                     }
-                    .frame(maxWidth: .infinity)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
                 }
             }
         }

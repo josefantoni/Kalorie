@@ -218,16 +218,10 @@ struct SettingsView: View {
                 .background(Color(.systemBackground))
                 .cornerRadius(25)
 
-                Button {
+                PrimaryButton(L10n.Settings.buttonCreate) {
                     Task { await viewModel.onCreateMealType() }
                     focusedField = nil
-                } label: {
-                    Text(L10n.Settings.buttonCreate)
-                        .frame(maxWidth: .infinity)
-                        .fontWeight(.bold)
                 }
-                .buttonStyle(.glassProminent)
-                .controlSize(.large)
                 .padding(.top, 20)
             }
         }
