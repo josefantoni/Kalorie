@@ -47,6 +47,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     let item: FoodItemDomain
     private var meal: MyCreatedMealDomain?
     private let saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol
+    private let recordFoodFrequency: any RecordFoodFrequencyUseCaseProtocol
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let addFavouriteFood: any AddFavouriteFoodUseCaseProtocol
     private let removeFavouriteFood: any RemoveFavouriteFoodUseCaseProtocol
@@ -104,6 +105,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     init(
         item: FoodItemDomain,
         saveFoodConsumed: any SaveFoodConsumedUseCaseProtocol,
+        recordFoodFrequency: any RecordFoodFrequencyUseCaseProtocol,
         fetchMealTypes: any FetchMealTypesUseCaseProtocol,
         selectedDate: Date,
         mealTypes: [MealTypeDomain],
@@ -124,6 +126,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     ) {
         self.item = item
         self.saveFoodConsumed = saveFoodConsumed
+        self.recordFoodFrequency = recordFoodFrequency
         self.fetchMealTypes = fetchMealTypes
         self.selectedDate = selectedDate
         self.mealTypes = mealTypes
@@ -325,6 +328,13 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
                 mealTypeId = mealTypes.mealType(at: selectedDate)?.id
             }
             try await saveFoodConsumed(item, grams: grams, date: selectedDate, mealTypeId: mealTypeId)
+            Task { [recordFoodFrequency, item] in
+                do {
+                    try await recordFoodFrequency(item, date: .now)
+                } catch {
+                    Log.warning(error, category: Constants.LogCategory.foodQuantity)
+                }
+            }
             onSaved()
         } catch {
             Log.error(error, category: Constants.LogCategory.foodQuantity)

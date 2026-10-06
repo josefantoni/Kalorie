@@ -335,6 +335,25 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onForeground_whileTheCalendarShowsAnotherMonth_keepsThatMonthsActiveDays() async {
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [makeFood(id: "f1", hour: 8)])
+        let range = FetchFoodsConsumedInRangeUseCaseFake(stubbedFoods: [makeFood(id: "f1", hour: 8)])
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month, fetchFoodsConsumedInRange: range)
+        await sut.onAppear()
+        let today = Calendar.current.component(.day, from: sut.selectedDay)
+        let previousMonth = Calendar.current.date(byAdding: .month, value: -1, to: sut.selectedDay) ?? sut.selectedDay
+        await sut.onCalendarMonthChanged(to: previousMonth)
+
+        await sut.onForeground()
+
+        XCTAssertTrue(sut.activeDaysInMonth.isEmpty, "the open calendar must not show the selected month's dots on another month")
+
+        sut.onCalendarDismissed()
+
+        XCTAssertEqual(sut.activeDaysInMonth, [today], "the day picker shows the selected day's month once the calendar closes")
+    }
+
+    @MainActor
     func test_onFoodConsumedUpdated_whenTheMonthIsNotCached_loadsTheWholeMonth() async {
         let month = FetchFoodsConsumedForMonthUseCaseFake()
         let range = FetchFoodsConsumedInRangeUseCaseFake()
@@ -346,6 +365,19 @@ final class DashboardViewModelTests: XCTestCase {
 
         XCTAssertEqual(month.calls.count, 2, "there is no month cache to splice a single day into")
         XCTAssertTrue(range.calls.isEmpty)
+    }
+
+    @MainActor
+    func test_onFoodConsumedUpdated_whenTheMonthIsNotCached_showsTheActiveDaysOfThatMonth() async {
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [makeFood(id: "f1", hour: 8)])
+        let sut = makeSUT(fetchMealTypes: makeMealTypesFake(), fetchFoodsConsumedForMonth: month)
+        await sut.onAppear()
+        XCTAssertFalse(sut.activeDaysInMonth.isEmpty)
+        sut.selectedDay = Calendar.current.date(byAdding: .month, value: -1, to: Date.now) ?? Date.now
+
+        await sut.onFoodConsumedUpdated()
+
+        XCTAssertTrue(sut.activeDaysInMonth.isEmpty, "the day picker must not keep the previous month's dots under the new month's day numbers")
     }
 
     @MainActor

@@ -167,7 +167,7 @@ struct AddFoodSheetView: View {
         if viewModel.submissionStatus(for: item) == .rejected {
             viewModel.onSelectRejectedSubmission(item)
         } else {
-            viewModel.onSelectFoodItem(item)
+            Task { await viewModel.onSelectResult(item) }
         }
     }
 
@@ -190,7 +190,8 @@ struct AddFoodSheetView: View {
     }
 
     var addFoodItem: some View {
-        List {
+        let results = viewModel.displayedResults
+        return List {
             Section {
                 HStack {
                     FloatingLabelTextField(title: viewModel.searchPlaceholder, text: $viewModel.searchText)
@@ -258,10 +259,10 @@ struct AddFoodSheetView: View {
                     }
                 }
             }
-            if !viewModel.displayedResults.isEmpty || !viewModel.searchText.isEmpty {
-                Section(header: Text(viewModel.displayedResults.isEmpty ? L10n.AddFood.sectionExternalResults : L10n.AddFood.sectionSearchResults)) {
-                    if !viewModel.displayedResults.isEmpty {
-                        ForEach(viewModel.displayedResults, id: \.id) { item in
+            if !results.isEmpty || !viewModel.searchText.isEmpty {
+                Section(header: Text(results.isEmpty ? L10n.AddFood.sectionExternalResults : L10n.AddFood.sectionSearchResults)) {
+                    if !results.isEmpty {
+                        ForEach(results, id: \.id) { item in
                             FoodItemRow(item: item, isFavourite: viewModel.isFavourite(item), submissionStatus: viewModel.submissionStatus(for: item))
                                 .onTapGesture {
                                     onSelectResultRow(item)
@@ -425,6 +426,7 @@ struct AddFoodSheetView: View {
             fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
             fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(),
             refreshFavouriteFood: RefreshFavouriteFoodUseCaseFake(),
+            fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(),
             fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(),
             deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseFake(),
             modelExtractor: NutritionLabelModelExtractorFake(),
@@ -435,6 +437,7 @@ struct AddFoodSheetView: View {
                 viewModel: FoodQuantityViewModel(
                     item: item,
                     saveFoodConsumed: SaveFoodConsumedUseCaseFake(),
+                    recordFoodFrequency: RecordFoodFrequencyUseCaseFake(),
                     fetchMealTypes: FetchMealTypesUseCaseFake(),
                     selectedDate: .now,
                     mealTypes: [],

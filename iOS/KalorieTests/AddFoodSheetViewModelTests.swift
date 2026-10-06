@@ -314,6 +314,125 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_displayedResults_ranksMoreOftenLoggedFoodsFirstAndKeepsUncountedInTheirOrder() async {
+        let sut = makeSUT(fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(stubbedEntries: [
+            "b": makeFrequencyEntry(id: "b", count: 2),
+            "c": makeFrequencyEntry(id: "c", count: 5)
+        ]))
+        await sut.onAppear()
+        sut.localFoodItems = [
+            makeFoodItem(id: "a", czName: "Ovoce A"),
+            makeFoodItem(id: "b", czName: "Ovoce B"),
+            makeFoodItem(id: "c", czName: "Ovoce C"),
+            makeFoodItem(id: "d", czName: "Ovoce D")
+        ]
+        sut.searchText = "ovoce"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["c", "b", "a", "d"])
+    }
+
+    @MainActor
+    func test_displayedResults_withEqualCounts_listsMoreRecentlyLoggedFirst() async {
+        let sut = makeSUT(fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(stubbedEntries: [
+            "a": makeFrequencyEntry(id: "a", count: 3, lastLoggedAt: Date(timeIntervalSince1970: 100)),
+            "b": makeFrequencyEntry(id: "b", count: 3, lastLoggedAt: Date(timeIntervalSince1970: 200))
+        ]))
+        await sut.onAppear()
+        sut.localFoodItems = [makeFoodItem(id: "a", czName: "Ovoce A"), makeFoodItem(id: "b", czName: "Ovoce B")]
+        sut.searchText = "ovoce"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["b", "a"])
+    }
+
+    @MainActor
+    func test_displayedResults_addsFrequentFoodTheCatalogueQueryCutOff() async {
+        let sut = makeSUT(fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(stubbedEntries: [
+            "cut": makeFrequencyEntry(id: "cut", czName: "Polotučné mléko", count: 9)
+        ]))
+        await sut.onAppear()
+        sut.localFoodItems = [makeFoodItem(id: "other", czName: "Mléčný nápoj")]
+        sut.searchText = "mlék"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["cut", "other"])
+    }
+
+    @MainActor
+    func test_displayedResults_doesNotAddFrequentFoodThatDoesNotMatchTheQuery() async {
+        let sut = makeSUT(fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(stubbedEntries: [
+            "x": makeFrequencyEntry(id: "x", czName: "Chléb", count: 9)
+        ]))
+        await sut.onAppear()
+        sut.searchText = "mlék"
+        XCTAssertTrue(sut.displayedResults.isEmpty)
+    }
+
+    @MainActor
+    func test_displayedResults_doesNotAddCreatedMealSnapshotButRanksTheLiveMealByItsCount() async {
+        let sut = makeSUT(
+            fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(stubbedMeals: [makeMeal(id: "meal", name: "Ovesná kaše")]),
+            fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(stubbedEntries: [
+                "meal": makeFrequencyEntry(id: "meal", czName: "Stará kaše", kind: .createdMeal, count: 4),
+                "deleted": makeFrequencyEntry(id: "deleted", czName: "Smazaná kaše", kind: .createdMeal, count: 8)
+            ])
+        )
+        await sut.onAppear()
+        sut.localFoodItems = [makeFoodItem(id: "cat", czName: "Kaše")]
+        sut.searchText = "kaše"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["meal", "cat"])
+        XCTAssertEqual(sut.displayedResults.first?.czName, "Ovesná kaše")
+    }
+
+    @MainActor
+    func test_displayedResults_keepsFavouritesAboveMoreOftenLoggedFoodsAndSortsThemByCount() async {
+        let sut = makeSUT(
+            fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(stubbedItems: [
+                makeFoodItem(id: "fav1", czName: "Ovar 1"),
+                makeFoodItem(id: "fav2", czName: "Ovar 2")
+            ]),
+            fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(stubbedEntries: [
+                "fav2": makeFrequencyEntry(id: "fav2", count: 1),
+                "cat": makeFrequencyEntry(id: "cat", count: 50)
+            ])
+        )
+        await sut.onAppear()
+        sut.localFoodItems = [makeFoodItem(id: "cat", czName: "Ovar 3")]
+        sut.searchText = "ovar"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["fav2", "fav1", "cat"])
+    }
+
+    @MainActor
+    func test_displayedResults_whenFrequencyFetchFails_keepsTodaysOrder() async {
+        let sut = makeSUT(fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(shouldThrow: true))
+        await sut.onAppear()
+        sut.localFoodItems = [makeFoodItem(id: "a", czName: "Ovoce A"), makeFoodItem(id: "b", czName: "Ovoce B")]
+        sut.searchText = "ovoce"
+        XCTAssertEqual(sut.displayedResults.map(\.id), ["a", "b"])
+    }
+
+    @MainActor
+    func test_onSelectResult_whenFrequencyCandidate_refreshesStaleSnapshotBeforeSelecting() async {
+        let stale = makeFoodItem(id: "cut", czName: "Mléko")
+        let fresh = makeFoodItem(id: "cut", czName: "Mléko opravené")
+        let sut = makeSUT(
+            refreshFavouriteFood: RefreshFavouriteFoodUseCaseFake(stubbedItem: fresh),
+            fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(stubbedEntries: ["cut": FoodFrequencyEntry(count: 1, lastLoggedAt: .now, item: stale)])
+        )
+        await sut.onAppear()
+        await sut.onSelectResult(stale)
+        XCTAssertEqual(sut.selectedFoodItem, fresh)
+    }
+
+    @MainActor
+    func test_onSelectResult_whenFoodCameFromTheCatalogueQuery_selectsItAsIs() async {
+        let item = makeFoodItem(id: "cat", czName: "Mléko")
+        let sut = makeSUT(
+            refreshFavouriteFood: RefreshFavouriteFoodUseCaseFake(stubbedItem: makeFoodItem(id: "cat", czName: "Jiné")),
+            fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(stubbedEntries: ["cat": makeFrequencyEntry(id: "cat", count: 1)])
+        )
+        await sut.onAppear()
+        sut.localFoodItems = [item]
+        await sut.onSelectResult(item)
+        XCTAssertEqual(sut.selectedFoodItem, item)
+    }
+
+    @MainActor
     func test_displayedResults_withSingleLetter_stillListsMatchingFavourite() async {
         let sut = makeSUT(fetchFavouriteFoods: FetchFavouriteFoodsUseCaseFake(stubbedItems: [makeFoodItem(id: "fav", czName: "Ovar")]))
         await sut.onAppear()
@@ -685,6 +804,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         refreshFavouriteFood: any RefreshFavouriteFoodUseCaseProtocol = RefreshFavouriteFoodUseCaseFake(),
         fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol = FetchMyCreatedMealsUseCaseFake(),
         deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol = DeleteMyCreatedMealUseCaseFake(),
+        fetchFoodFrequency: any FetchFoodFrequencyUseCaseProtocol = FetchFoodFrequencyUseCaseFake(),
         modelExtractor: any NutritionLabelModelExtractorProtocol = NutritionLabelModelExtractorFake(),
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake(),
         isScannerVisible: Bool = false
@@ -700,6 +820,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             fetchFavouriteFoods: fetchFavouriteFoods,
             refreshFavouriteFood: refreshFavouriteFood,
+            fetchFoodFrequency: fetchFoodFrequency,
             fetchMyCreatedMeals: fetchMyCreatedMeals,
             deleteMyCreatedMeal: deleteMyCreatedMeal,
             modelExtractor: modelExtractor,
@@ -718,6 +839,16 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             rejectReason: rejectReason,
             item: makeFoodItem(id: barcode, czName: "Ovar")
         )
+    }
+
+    private func makeFrequencyEntry(
+        id: String,
+        czName: String = "Ovoce",
+        kind: FoodItemKind = .catalogue,
+        count: Int = 1,
+        lastLoggedAt: Date = Date(timeIntervalSince1970: 0)
+    ) -> FoodFrequencyEntry {
+        FoodFrequencyEntry(count: count, lastLoggedAt: lastLoggedAt, item: makeFoodItem(id: id, czName: czName, kind: kind))
     }
 
     private func makeFoodItem(id: String = "test-id", czName: String = "Tvaroh", kind: FoodItemKind = .catalogue) -> FoodItemDomain {

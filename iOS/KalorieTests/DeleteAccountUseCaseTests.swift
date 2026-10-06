@@ -103,6 +103,18 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertTrue(Set(["0", "1", "f1", "f2"]).isSubset(of: Set(dataProvider.deletedIds)))
     }
 
+    func test_callAsFunction_deletesFoodFrequencyDocument() async throws {
+        let log = OperationLog()
+        let sut = makeSUT(dataProvider: DeleteAccountDataProviderFake(log: log), log: log)
+
+        try await sut()
+
+        XCTAssertTrue(
+            log.entries.dropLast().contains("deleteStats:foodFrequency"),
+            "the per-user frequency counts are private data and must not outlive the account"
+        )
+    }
+
     func test_callAsFunction_whenNotAuthenticated_throwsAuthError() async {
         let log = OperationLog()
         let sut = DeleteAccountUseCase(
@@ -443,6 +455,8 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
             log.record("deletePortions:\(id)")
         } else if collection.hasSuffix("foodConsumed") {
             log.record("deleteFood:\(id)")
+        } else if collection.hasSuffix("stats") {
+            log.record("deleteStats:\(id)")
         } else if collection == Constants.Firestore.foodItemSubmissions {
             log.record("deleteSubmission:\(id)")
         } else if collection == Constants.Firestore.foodItemReports {

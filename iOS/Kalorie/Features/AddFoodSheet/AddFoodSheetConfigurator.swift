@@ -42,6 +42,7 @@ struct AddFoodSheetConfigurator {
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
                 fetchFavouriteFoods: FetchFavouriteFoodsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 refreshFavouriteFood: RefreshFavouriteFoodUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchFoodFrequency: FetchFoodFrequencyUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchMyCreatedMeals: FetchMyCreatedMealsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteMyCreatedMeal: DeleteMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 modelExtractor: FoundationModelExtractor(),
@@ -54,6 +55,7 @@ struct AddFoodSheetConfigurator {
                     viewModel: FoodQuantityViewModel(
                         item: item,
                         saveFoodConsumed: SaveFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                        recordFoodFrequency: RecordFoodFrequencyUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         fetchMealTypes: FetchMealTypesUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         selectedDate: date,
                         mealTypes: mealTypes,

@@ -11,6 +11,7 @@ import OSLog
 
 enum FirestoreDataProviderError: Error, Equatable {
     case unreachable
+    case unsupported
 }
 
 protocol FirestoreDataProviderProtocol {
@@ -29,6 +30,8 @@ protocol FirestoreDataProviderProtocol {
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws
     func deleteAsync(id: String, from collection: String) async throws
+    func incrementEntryAsync<T: Encodable>(_ item: T, entryId: String, lastLoggedAt: TimeInterval, documentId: String, in collection: String) async throws
+    func deleteEntriesAsync(ids: [String], documentId: String, in collection: String) async throws
 }
 
 // A naive per-id fallback, so every existing FirestoreDataProviderProtocol conformer (test fakes
@@ -46,6 +49,14 @@ extension FirestoreDataProviderProtocol {
             }
             return results
         }
+    }
+
+    func incrementEntryAsync<T: Encodable>(_ item: T, entryId: String, lastLoggedAt: TimeInterval, documentId: String, in collection: String) async throws {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func deleteEntriesAsync(ids: [String], documentId: String, in collection: String) async throws {
+        throw FirestoreDataProviderError.unsupported
     }
 }
 
@@ -297,6 +308,47 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ DELETE \(id) from \(collection)")
         } catch {
             logFailure("❌ DELETE \(id) from \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func incrementEntryAsync<T: Encodable>(_ item: T, entryId: String, lastLoggedAt: TimeInterval, documentId: String, in collection: String) async throws {
+        do {
+            let itemData = try Firestore.Encoder().encode(item)
+            log("🚀 INCREMENT entries.\(entryId) in \(collection)/\(documentId) item: \(itemData)")
+            let document = Firestore.firestore().collection(collection).document(documentId)
+            do {
+                try await document.updateData([
+                    FieldPath(["entries", entryId, "item"]): itemData,
+                    FieldPath(["entries", entryId, "last_logged_at"]): lastLoggedAt,
+                    FieldPath(["entries", entryId, "count"]): FieldValue.increment(Int64(1))
+                ])
+            } catch {
+                guard error.matches(domain: FirestoreErrorDomain, code: FirestoreErrorCode.notFound.rawValue) else { throw error }
+                try await document.setData(
+                    ["entries": [entryId: ["item": itemData, "last_logged_at": lastLoggedAt, "count": 1]]],
+                    merge: true
+                )
+            }
+            log("✅ INCREMENT entries.\(entryId) in \(collection)/\(documentId)")
+        } catch {
+            logFailure("❌ INCREMENT entries.\(entryId) in \(collection)/\(documentId)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func deleteEntriesAsync(ids: [String], documentId: String, in collection: String) async throws {
+        guard !ids.isEmpty else { return }
+        do {
+            log("🚀 DELETE \(ids.count) entries from \(collection)/\(documentId)")
+            var fields: [AnyHashable: Any] = [:]
+            for id in ids {
+                fields[FieldPath(["entries", id])] = FieldValue.delete()
+            }
+            try await Firestore.firestore().collection(collection).document(documentId).updateData(fields)
+            log("✅ DELETE \(ids.count) entries from \(collection)/\(documentId)")
+        } catch {
+            logFailure("❌ DELETE entries from \(collection)/\(documentId)", error: error)
             throw mapError(error)
         }
     }

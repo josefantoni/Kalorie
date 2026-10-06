@@ -176,7 +176,7 @@ struct DashboardView: View {
             .sheet(isPresented: $viewModel.showAccountSheet) {
                 router.makeAccountView()
             }
-            .sheet(isPresented: $viewModel.showCalendarSheet) {
+            .sheet(isPresented: $viewModel.showCalendarSheet, onDismiss: viewModel.onCalendarDismissed) {
                 MonthCalendarView(
                     selectedDay: viewModel.selectedDay,
                     activeDays: viewModel.activeDaysInMonth,

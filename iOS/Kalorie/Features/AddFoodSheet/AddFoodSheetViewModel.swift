@@ -201,6 +201,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     @Published private(set) var isBarcodeSearchLoading = false
     @Published private(set) var favouriteFoods: [FoodItemDomain] = []
     @Published private(set) var favouriteIds: Set<String> = []
+    @Published private(set) var foodFrequency: [String: FoodFrequencyEntry] = [:]
     @Published private(set) var myCreatedMeals: [MyCreatedMealDomain] = []
     @Published private(set) var mySubmissions: [FoodItemSubmissionDomain] = []
     @Published var isSubmissionConfirmationVisible = false
@@ -221,6 +222,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
     private let fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol
     private let refreshFavouriteFood: any RefreshFavouriteFoodUseCaseProtocol
+    private let fetchFoodFrequency: any FetchFoodFrequencyUseCaseProtocol
     private let fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol
     private let deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol
     private let modelExtractor: any NutritionLabelModelExtractorProtocol
@@ -241,20 +243,45 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         let matchingMeals = myCreatedMeals
             .map { $0.asFoodItem() }
             .filter { SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query) }
-        let favouriteIds = Set(matchingFavourites.map(\.id))
-        let matchingMealsFiltered = matchingMeals.filter { !favouriteIds.contains($0.id) }
-        let matchingFavouriteAndMealIds = favouriteIds.union(matchingMealsFiltered.map(\.id))
-        var seenSubmissionIds = matchingFavouriteAndMealIds
         let matchingSubmissions = mySubmissions
             .map(\.item)
             .filter {
                 SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query)
                     || SearchTermsKt.matchesSearchQuery(name: $0.engName, query: query)
             }
-            .filter { seenSubmissionIds.insert($0.id).inserted }
-        let matchingIds = matchingFavouriteAndMealIds.union(matchingSubmissions.map(\.id))
-        return matchingFavourites + matchingMealsFiltered + matchingSubmissions
-            + localFoodItems.filter { !matchingIds.contains($0.id) }
+        let candidates = foodFrequency
+            .sorted { $0.key < $1.key }
+            .map(\.value.item)
+            .filter {
+                $0.kind != .createdMeal
+                    && (SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query)
+                        || SearchTermsKt.matchesSearchQuery(name: $0.engName, query: query))
+            }
+        var seenIds = Set(matchingFavourites.map(\.id))
+        let rest = (matchingMeals + matchingSubmissions + localFoodItems + candidates)
+            .filter { seenIds.insert($0.id).inserted }
+        return rankedByFrequency(matchingFavourites, usesRecency: false) + rankedByFrequency(rest, usesRecency: true)
+    }
+
+    private func rankedByFrequency(_ items: [FoodItemDomain], usesRecency: Bool) -> [FoodItemDomain] {
+        items.enumerated()
+            .sorted { lhs, rhs in
+                let lhsEntry = foodFrequency[lhs.element.id]
+                let rhsEntry = foodFrequency[rhs.element.id]
+                let lhsCount = lhsEntry?.count ?? 0
+                let rhsCount = rhsEntry?.count ?? 0
+                if lhsCount != rhsCount { return lhsCount > rhsCount }
+                if
+                    usesRecency,
+                    let lhsLoggedAt = lhsEntry?.lastLoggedAt,
+                    let rhsLoggedAt = rhsEntry?.lastLoggedAt,
+                    lhsLoggedAt != rhsLoggedAt
+                {
+                    return lhsLoggedAt > rhsLoggedAt
+                }
+                return lhs.offset < rhs.offset
+            }
+            .map(\.element)
     }
 
     // MARK: - Init
@@ -270,6 +297,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
         fetchFavouriteFoods: any FetchFavouriteFoodsUseCaseProtocol,
         refreshFavouriteFood: any RefreshFavouriteFoodUseCaseProtocol,
+        fetchFoodFrequency: any FetchFoodFrequencyUseCaseProtocol,
         fetchMyCreatedMeals: any FetchMyCreatedMealsUseCaseProtocol,
         deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol,
         modelExtractor: any NutritionLabelModelExtractorProtocol,
@@ -288,6 +316,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
         self.fetchFavouriteFoods = fetchFavouriteFoods
         self.refreshFavouriteFood = refreshFavouriteFood
+        self.fetchFoodFrequency = fetchFoodFrequency
         self.fetchMyCreatedMeals = fetchMyCreatedMeals
         self.deleteMyCreatedMeal = deleteMyCreatedMeal
         self.modelExtractor = modelExtractor
@@ -481,18 +510,38 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     }
 
     @MainActor
+    func onSelectResult(_ item: FoodItemDomain) async {
+        guard
+            item.kind == .catalogue,
+            foodFrequency[item.id] != nil,
+            !favouriteIds.contains(item.id),
+            !localFoodItems.contains(where: { $0.id == item.id }),
+            !mySubmissions.contains(where: { $0.item.id == item.id })
+        else {
+            onSelectFoodItem(item)
+            return
+        }
+        guard !isPushedToQuantityView else { return }
+        onSelectFoodItem(await refreshed(item))
+    }
+
+    @MainActor
     func onSelectFavouriteFood(_ item: FoodItemDomain) async {
         guard !isPushedToQuantityView else { return }
-        var resolved = item
-        do {
-            resolved = try await refreshFavouriteFood(item)
-        } catch {
-            Log.warning(error, category: Constants.LogCategory.addFoodSheet)
-        }
+        let resolved = await refreshed(item)
         if resolved != item, let index = favouriteFoods.firstIndex(where: { $0.id == item.id }) {
             favouriteFoods[index] = resolved
         }
         onSelectFoodItem(resolved)
+    }
+
+    private func refreshed(_ item: FoodItemDomain) async -> FoodItemDomain {
+        do {
+            return try await refreshFavouriteFood(item)
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.addFoodSheet)
+            return item
+        }
     }
 
     func onFoodConsumedSaved() {
@@ -516,6 +565,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         async let favourites = fetchFavouriteFoods()
         async let meals = fetchMyCreatedMeals()
         async let submissions = fetchMySubmissions()
+        async let frequency = fetchFoodFrequency()
         do {
             let items = try await favourites
             favouriteFoods = items
@@ -530,6 +580,11 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         }
         do {
             mySubmissions = try await submissions
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.addFoodSheet)
+        }
+        do {
+            foodFrequency = try await frequency
         } catch {
             Log.warning(error, category: Constants.LogCategory.addFoodSheet)
         }
