@@ -15,3 +15,7 @@ fun searchQuery(query: String): SearchQuery {
     val lastWord = folded.split(" ").lastOrNull { it.isNotEmpty() } ?: folded
     return SearchQuery(lowercased = lowercased, folded = folded, lastWord = lastWord)
 }
+
+fun matchesSearchQuery(name: String, query: SearchQuery): Boolean =
+    foldDiacritics(name.lowercase()).startsWith(query.folded) ||
+        (query.lastWord.isNotEmpty() && foldDiacritics(name.lowercase()).split(" ").any { it.startsWith(query.lastWord) })
