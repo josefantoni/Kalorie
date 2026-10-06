@@ -18,6 +18,10 @@ service cloud.firestore {
         data.eng_name is string &&
         data.cz_name_lowercase is string &&
         data.eng_name_lowercase is string &&
+        data.cz_name_folded is string &&
+        data.eng_name_folded is string &&
+        data.cz_name_search_terms is list &&
+        data.eng_name_search_terms is list &&
         data.weight is number &&
         data.date is number &&
         data.calories_per_hundred_grams is number &&
