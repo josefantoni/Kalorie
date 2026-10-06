@@ -50,6 +50,7 @@ import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.displayName
@@ -122,7 +123,7 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 SectionCard(modifier = Modifier.padding(top = 8.dp)) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(start = 16.dp, end = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
@@ -252,7 +253,7 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
 @Composable
 private fun LabeledRow(label: String, content: @Composable () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

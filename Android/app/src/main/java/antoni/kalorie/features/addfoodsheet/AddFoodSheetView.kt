@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
@@ -56,6 +58,7 @@ import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
@@ -289,6 +292,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                     SectionCard {
                         FloatingLabelTextField(
                             title = stringResource(R.string.addFood_search_placeholder, stringResource(viewModel.searchExampleRes)),
+                            isUnderlineFullWidth = true,
                             text = searchText,
                             onTextChange = { viewModel.searchText.value = it },
                             trailingIcon = {
@@ -433,7 +437,9 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clickable { viewModel.onSelectFoodItem(item) }
-                                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                                                .heightIn(min = SectionRowMinHeight)
+                                                .wrapContentHeight(Alignment.CenterVertically)
+                                                .padding(horizontal = 16.dp),
                                         )
                                         if (index < externalFoodItems.lastIndex) SectionCardDivider()
                                     }

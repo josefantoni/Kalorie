@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +49,7 @@ import antoni.kalorie.components.FoodPortionsSection
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.components.sanitizedGramsText
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
@@ -126,6 +129,7 @@ fun MyCreatedMealEditorView(
                     SectionCard(modifier = Modifier.padding(top = 8.dp)) {
                         FloatingLabelTextField(
                             title = stringResource(R.string.myCreatedMeal_field_namePlaceholder),
+                            isUnderlineFullWidth = true,
                             text = name,
                             onTextChange = { viewModel.name.value = it },
                             modifier = Modifier.fillMaxWidth(),
@@ -165,6 +169,7 @@ fun MyCreatedMealEditorView(
                     SectionCard {
                         FloatingLabelTextField(
                             title = stringResource(R.string.myCreatedMeal_search_placeholder, stringResource(viewModel.searchExampleRes)),
+                            isUnderlineFullWidth = true,
                             text = searchText,
                             onTextChange = { viewModel.searchText.value = it },
                             trailingIcon = {
@@ -209,7 +214,9 @@ fun MyCreatedMealEditorView(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clickable { focusedIngredientId = viewModel.onSelectSearchResult(item) }
-                                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                                                .heightIn(min = SectionRowMinHeight)
+                                                .wrapContentHeight(Alignment.CenterVertically)
+                                                .padding(horizontal = 16.dp),
                                         )
                                         if (index < externalSearchResults.lastIndex) SectionCardDivider()
                                     }
@@ -307,7 +314,7 @@ private fun IngredientRow(
     }
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = draft.item.displayName, modifier = Modifier.weight(1f))

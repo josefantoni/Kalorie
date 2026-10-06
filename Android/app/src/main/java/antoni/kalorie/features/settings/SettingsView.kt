@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -62,6 +63,7 @@ import antoni.kalorie.R
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
@@ -314,7 +316,8 @@ private fun NavigationRow(title: String, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .heightIn(min = SectionRowMinHeight)
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -410,7 +413,7 @@ private fun AddMealForm(viewModel: SettingsViewModel, onCreate: () -> Unit) {
 @Composable
 private fun TimeRow(label: String, state: TimePickerState, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Row(
-        modifier = modifier.clickable(onClick = onClick).padding(vertical = 12.dp),
+        modifier = modifier.clickable(onClick = onClick).heightIn(min = SectionRowMinHeight),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text = label, modifier = Modifier.weight(1f))
