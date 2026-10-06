@@ -4,6 +4,16 @@ private const val MINUTES_PER_DAY = 1440
 
 const val MIN_MEAL_WINDOW_MINUTES = 30
 
+data class DefaultMealWindow(val key: String, val startMinutes: Int, val endMinutes: Int)
+
+val DEFAULT_MEAL_WINDOWS = listOf(
+    DefaultMealWindow(key = "breakfast", startMinutes = 5 * 60, endMinutes = 8 * 60 + 30),
+    DefaultMealWindow(key = "secondBreakfast", startMinutes = 8 * 60 + 30, endMinutes = 11 * 60),
+    DefaultMealWindow(key = "lunch", startMinutes = 11 * 60, endMinutes = 14 * 60 + 30),
+    DefaultMealWindow(key = "snack", startMinutes = 14 * 60 + 30, endMinutes = 17 * 60),
+    DefaultMealWindow(key = "dinner", startMinutes = 17 * 60, endMinutes = 20 * 60),
+)
+
 fun minutesSinceMidnight(hour: Int, minute: Int): Int = hour * 60 + minute
 
 /**

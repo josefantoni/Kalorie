@@ -174,4 +174,23 @@ class MealWindowsTest {
         val late = MealWindow(id = "late", startMinutes = 480, endMinutes = 720)
         assertEquals(500, copyTargetMinutes(nowMinutes = 500, targetId = "late", windows = listOf(early, late)))
     }
+
+    @Test
+    fun defaultMealWindows_areContiguous_soNoFoodFallsBetweenTwoDefaultMeals() {
+        DEFAULT_MEAL_WINDOWS.zipWithNext().forEach { (previous, next) ->
+            assertEquals(previous.endMinutes, next.startMinutes, "${next.key} must start where ${previous.key} ends")
+        }
+    }
+
+    @Test
+    fun defaultMealWindows_eachPassesTheMinimumLengthThatCreatingAMealEnforces() {
+        DEFAULT_MEAL_WINDOWS.forEach {
+            assertTrue(isMealWindowLongEnough(it.startMinutes, it.endMinutes), "${it.key} is shorter than the minimum")
+        }
+    }
+
+    @Test
+    fun defaultMealWindows_keysAreUnique_becauseTheyResolveTheLocalisedName() {
+        assertEquals(DEFAULT_MEAL_WINDOWS.size, DEFAULT_MEAL_WINDOWS.map { it.key }.toSet().size)
+    }
 }
