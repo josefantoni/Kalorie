@@ -18,6 +18,7 @@ struct DashboardConfigurator {
             viewModel: DashboardViewModel(
                 fetchMealTypes: FetchMealTypesUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchFoodsConsumedInRange: FetchFoodsConsumedInRangeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 setupDefaultMeals: SetupDefaultMealsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteFoodConsumed: DeleteFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),

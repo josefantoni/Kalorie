@@ -95,6 +95,7 @@ final class DashboardViewModel: ObservableObject {
 
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol
+    private let fetchFoodsConsumedInRange: any FetchFoodsConsumedInRangeUseCaseProtocol
     private let setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol
     private let confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol
     private let deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
@@ -108,6 +109,7 @@ final class DashboardViewModel: ObservableObject {
     init(
         fetchMealTypes: any FetchMealTypesUseCaseProtocol,
         fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol,
+        fetchFoodsConsumedInRange: any FetchFoodsConsumedInRangeUseCaseProtocol,
         setupDefaultMeals: any SetupDefaultMealsUseCaseProtocol,
         confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol,
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol,
@@ -121,6 +123,7 @@ final class DashboardViewModel: ObservableObject {
         self.now = now
         self.fetchMealTypes = fetchMealTypes
         self.fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth
+        self.fetchFoodsConsumedInRange = fetchFoodsConsumedInRange
         self.setupDefaultMeals = setupDefaultMeals
         self.confirmMealTypesEmpty = confirmMealTypesEmpty
         self.deleteFoodConsumed = deleteFoodConsumed
@@ -198,6 +201,21 @@ final class DashboardViewModel: ObservableObject {
         }
     }
 
+    @MainActor
+    func onForeground() async {
+        guard hasCompletedInitialLoad else { return }
+        do {
+            advanceSelectedDayIfNeeded()
+            try await refreshMealTypes()
+            try await reloadDay(selectedDay)
+            foodsConsumed = foodsFromCache(for: selectedDay)
+            showSignInSpotlightIfNeeded()
+        } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
+            alertItem = unknownErrorAlertItem(for: error)
+        }
+    }
+
     func onSignInSpotlightSignInTapped() {
         isSignInSpotlightVisible = false
         showAccountSheet = true
@@ -216,8 +234,7 @@ final class DashboardViewModel: ObservableObject {
     @MainActor
     func onFoodConsumedUpdated() async {
         do {
-            invalidateCache(for: selectedDay)
-            try await loadMonth(for: selectedDay)
+            try await reloadDay(selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
             showSignInSpotlightIfNeeded()
         } catch {
@@ -241,8 +258,7 @@ final class DashboardViewModel: ObservableObject {
         foodPendingDeletion = nil
         do {
             try await deleteFoodConsumed(id: food.id)
-            invalidateCache(for: selectedDay)
-            try await loadMonth(for: selectedDay)
+            try await reloadDay(selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
@@ -372,11 +388,12 @@ final class DashboardViewModel: ObservableObject {
 
     @MainActor
     private func reloadAfterCopy() async {
-        invalidateCache(for: copyTargetDay)
-        guard monthCacheKey(for: copyTargetDay) == monthCacheKey(for: selectedDay) else { return }
+        guard cachedMonthKeys.contains(monthCacheKey(for: copyTargetDay)) else { return }
         do {
-            try await loadMonth(for: selectedDay)
-            foodsConsumed = foodsFromCache(for: selectedDay)
+            try await reloadDay(copyTargetDay)
+            if Calendar.current.isDate(copyTargetDay, inSameDayAs: selectedDay) {
+                foodsConsumed = foodsFromCache(for: selectedDay)
+            }
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = unknownErrorAlertItem(for: error)
@@ -407,7 +424,7 @@ final class DashboardViewModel: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in await self?.onRefresh() }
+            Task { @MainActor in await self?.onForeground() }
         }
     }
 
@@ -433,6 +450,18 @@ final class DashboardViewModel: ObservableObject {
         let foods = try await fetchFoodsConsumedForMonth(for: date)
         populateCache(with: foods, for: date)
         activeDaysInMonth = computeActiveDays(for: date)
+    }
+
+    @MainActor
+    private func reloadDay(_ date: Date) async throws {
+        guard cachedMonthKeys.contains(monthCacheKey(for: date)) else {
+            try await loadMonth(for: date)
+            return
+        }
+        let day = Calendar.current.startOfDay(for: date)
+        let foods = try await fetchFoodsConsumedInRange(from: day, to: day)
+        monthCache[dayCacheKey(for: day)] = foods
+        activeDaysInMonth = computeActiveDays(for: selectedDay)
     }
 
     @MainActor

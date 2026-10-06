@@ -44,16 +44,25 @@ struct FetchFoodsConsumedInRangeUseCase: FetchFoodsConsumedInRangeUseCaseProtoco
 }
 
 #if DEBUG
-struct FetchFoodsConsumedInRangeUseCaseFake: FetchFoodsConsumedInRangeUseCaseProtocol {
+final class FetchFoodsConsumedInRangeUseCaseFake: FetchFoodsConsumedInRangeUseCaseProtocol {
 
     // MARK: - Properties
 
-    var stubbedFoods: [FoodConsumedDomain] = []
+    var stubbedFoods: [FoodConsumedDomain]
     var stubbedError: Error?
+    private(set) var calls: [(from: Date, to: Date)] = []
+
+    // MARK: - Init
+
+    init(stubbedFoods: [FoodConsumedDomain] = [], stubbedError: Error? = nil) {
+        self.stubbedFoods = stubbedFoods
+        self.stubbedError = stubbedError
+    }
 
     // MARK: - Functions
 
     func callAsFunction(from: Date, to: Date) async throws -> [FoodConsumedDomain] {
+        calls.append((from: from, to: to))
         if let stubbedError { throw stubbedError }
         return stubbedFoods
     }
