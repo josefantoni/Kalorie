@@ -3,9 +3,11 @@ package antoni.kalorie.core.networking
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
@@ -43,6 +45,15 @@ interface FirestoreDataProviderProtocol {
     suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>)
     suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>)
     suspend fun deleteAsync(id: String, from: String)
+    suspend fun <T> incrementEntryAsync(
+        item: T,
+        entryId: String,
+        lastLoggedAt: Double,
+        documentId: String,
+        inCollection: String,
+        serializer: KSerializer<T>,
+    )
+    suspend fun deleteEntriesAsync(ids: List<String>, documentId: String, inCollection: String)
 }
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(from: String): List<T> = loadAsync(from, serializer<T>())
@@ -104,6 +115,14 @@ suspend inline fun <reified T> FirestoreDataProviderProtocol.batchSetAsync(
     items: List<Pair<T, String>>,
     inCollection: String,
 ): Unit = batchSetAsync(items, inCollection, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.incrementEntryAsync(
+    item: T,
+    entryId: String,
+    lastLoggedAt: Double,
+    documentId: String,
+    inCollection: String,
+): Unit = incrementEntryAsync(item, entryId, lastLoggedAt, documentId, inCollection, serializer<T>())
 
 internal suspend fun <R> performFirestoreCall(block: suspend () -> R): R = try {
     block()
@@ -238,6 +257,46 @@ class FirestoreDataProvider(
     override suspend fun deleteAsync(id: String, from: String) {
         performFirestoreCall {
             firestore.collection(from).document(id).delete().await()
+        }
+    }
+
+    override suspend fun <T> incrementEntryAsync(
+        item: T,
+        entryId: String,
+        lastLoggedAt: Double,
+        documentId: String,
+        inCollection: String,
+        serializer: KSerializer<T>,
+    ) {
+        performFirestoreCall {
+            val itemData = FirestoreDataMapper.encode(item, serializer)
+            val document = firestore.collection(inCollection).document(documentId)
+            try {
+                document.update(
+                    FieldPath.of("entries", entryId, "item"),
+                    itemData,
+                    FieldPath.of("entries", entryId, "last_logged_at"),
+                    lastLoggedAt,
+                    FieldPath.of("entries", entryId, "count"),
+                    FieldValue.increment(1),
+                ).await()
+            } catch (error: FirebaseFirestoreException) {
+                if (error.code != FirebaseFirestoreException.Code.NOT_FOUND) throw error
+                document.set(
+                    mapOf("entries" to mapOf(entryId to mapOf("item" to itemData, "last_logged_at" to lastLoggedAt, "count" to 1L))),
+                    SetOptions.merge(),
+                ).await()
+            }
+        }
+    }
+
+    override suspend fun deleteEntriesAsync(ids: List<String>, documentId: String, inCollection: String) {
+        if (ids.isEmpty()) return
+        performFirestoreCall {
+            val rest = ids.drop(1).flatMap { listOf(FieldPath.of("entries", it), FieldValue.delete()) }.toTypedArray()
+            firestore.collection(inCollection).document(documentId)
+                .update(FieldPath.of("entries", ids.first()), FieldValue.delete(), *rest)
+                .await()
         }
     }
 

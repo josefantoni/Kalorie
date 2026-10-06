@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import antoni.kalorie.KalorieApplication
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
@@ -12,12 +13,14 @@ import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.DeleteMySubmissionUseCase
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCase
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCase
+import antoni.kalorie.core.usecases.FetchFoodFrequencyUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCase
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCase
 import antoni.kalorie.core.usecases.FetchMySubmissionsUseCase
+import antoni.kalorie.core.usecases.RecordFoodFrequencyUseCase
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCase
@@ -61,6 +64,7 @@ class AddFoodSheetConfigurator(
                 fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                 fetchFavouriteFoods = FetchFavouriteFoodsUseCase(dataProvider, authProvider),
                 refreshFavouriteFood = RefreshFavouriteFoodUseCase(dataProvider, authProvider),
+                fetchFoodFrequency = FetchFoodFrequencyUseCase(dataProvider, authProvider),
                 fetchMyCreatedMeals = FetchMyCreatedMealsUseCase(dataProvider, authProvider),
                 deleteMyCreatedMeal = DeleteMyCreatedMealUseCase(dataProvider, authProvider),
                 onFoodSaved = onFoodSaved,
@@ -74,6 +78,8 @@ class AddFoodSheetConfigurator(
                     FoodQuantityViewModel(
                         item = item,
                         saveFoodConsumed = SaveFoodConsumedUseCase(dataProvider, authProvider),
+                        recordFoodFrequency = RecordFoodFrequencyUseCase(dataProvider, authProvider),
+                        applicationScope = (context as KalorieApplication).applicationScope,
                         fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider, stringProvider),
                         selectedDate = date,
                         mealTypes = mealTypes,

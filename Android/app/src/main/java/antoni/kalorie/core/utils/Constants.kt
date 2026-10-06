@@ -40,6 +40,7 @@ object Constants {
 
     object Search {
         const val MINIMUM_QUERY_LENGTH = 2
+        const val FREQUENCY_ENTRY_LIMIT = 300
     }
 
     object Firestore {
@@ -51,11 +52,13 @@ object Constants {
         const val FOOD_ITEM_SUBMISSIONS = "foodItemSubmissions"
         const val REPORT_REASON_MAX_LENGTH = 500
         const val REPORTS_PAGE_LIMIT = 50
+        const val FOOD_FREQUENCY_DOCUMENT_ID = "foodFrequency"
 
         fun mealTypes(userId: String): String = "users/$userId/mealTypes"
         fun foodConsumed(userId: String): String = "users/$userId/foodConsumed"
         fun favouriteFoods(userId: String): String = "users/$userId/favouriteFoods"
         fun foodItemPortions(userId: String): String = "users/$userId/foodItemPortions"
         fun myCreatedMeals(userId: String): String = "users/$userId/myCreatedMeals"
+        fun stats(userId: String): String = "users/$userId/stats"
     }
 }

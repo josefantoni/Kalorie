@@ -54,6 +54,14 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var setSavedItem: Any? = null
     var deletedFromCollection: String? = null
     var deletedId: String? = null
+    var stubbedIncrementError: Exception? = null
+    var stubbedDeleteEntriesError: Exception? = null
+    var incrementedItem: Any? = null
+    var incrementedEntryId: String? = null
+    var incrementedLastLoggedAt: Double? = null
+    var incrementedDocumentId: String? = null
+    var incrementedCollection: String? = null
+    var deletedEntryIds: List<String> = emptyList()
 
     // MARK: - Functions
 
@@ -171,5 +179,26 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         deletedFromCollection = from
         deletedIdsByCollection = deletedIdsByCollection + (from to (deletedIdsByCollection[from].orEmpty() + id))
         deletionCollectionOrder = deletionCollectionOrder + from
+    }
+
+    override suspend fun <T> incrementEntryAsync(
+        item: T,
+        entryId: String,
+        lastLoggedAt: Double,
+        documentId: String,
+        inCollection: String,
+        serializer: KSerializer<T>,
+    ) {
+        stubbedIncrementError?.let { throw it }
+        incrementedItem = item
+        incrementedEntryId = entryId
+        incrementedLastLoggedAt = lastLoggedAt
+        incrementedDocumentId = documentId
+        incrementedCollection = inCollection
+    }
+
+    override suspend fun deleteEntriesAsync(ids: List<String>, documentId: String, inCollection: String) {
+        stubbedDeleteEntriesError?.let { throw it }
+        deletedEntryIds = ids
     }
 }

@@ -240,7 +240,10 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
     val isBarcodeSearchLoading by viewModel.isBarcodeSearchLoading.collectAsState()
     val myCreatedMeals by viewModel.myCreatedMeals.collectAsState()
     val mySubmissions by viewModel.mySubmissions.collectAsState()
-    val displayedResults = remember(localFoodItems, favouriteFoods, myCreatedMeals, mySubmissions, searchText) { viewModel.displayedResults }
+    val foodFrequency by viewModel.foodFrequency.collectAsState()
+    val displayedResults = remember(localFoodItems, favouriteFoods, myCreatedMeals, mySubmissions, foodFrequency, searchText) {
+        viewModel.displayedResults
+    }
     val isSubmissionDeleteConfirmationVisible by viewModel.isSubmissionDeleteConfirmationVisible.collectAsState()
     val isMealDeleteConfirmationVisible by viewModel.isMealDeleteConfirmationVisible.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -405,7 +408,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                                                 if (viewModel.submissionStatus(item) == FoodItemSubmissionStatus.REJECTED) {
                                                     viewModel.onSelectRejectedSubmission(item)
                                                 } else {
-                                                    viewModel.onSelectFoodItem(item)
+                                                    scope.launch { viewModel.onSelectResult(item) }
                                                 }
                                             },
                                         )

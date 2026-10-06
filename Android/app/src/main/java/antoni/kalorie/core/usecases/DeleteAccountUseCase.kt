@@ -70,6 +70,7 @@ class DeleteAccountUseCase(
         myCreatedMeals.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.myCreatedMeals(userId)) }
         val foodItemPortions: List<FoodItemPersonalPortionsDTO> = dataProvider.loadAsync(from = Constants.Firestore.foodItemPortions(userId))
         foodItemPortions.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.foodItemPortions(userId)) }
+        dataProvider.deleteAsync(id = Constants.Firestore.FOOD_FREQUENCY_DOCUMENT_ID, from = Constants.Firestore.stats(userId))
         val submissions: List<FoodItemSubmissionDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS,
             field = "submitted_by",

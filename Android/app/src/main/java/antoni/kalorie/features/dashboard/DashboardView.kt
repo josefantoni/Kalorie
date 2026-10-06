@@ -296,7 +296,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
 
     if (showCalendarSheet) {
         ModalBottomSheet(
-            onDismissRequest = { viewModel.showCalendarSheet.value = false },
+            onDismissRequest = viewModel::onCalendarDismissed,
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             MonthCalendarView(

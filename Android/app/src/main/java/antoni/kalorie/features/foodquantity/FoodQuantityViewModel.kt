@@ -18,6 +18,7 @@ import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.RecordFoodFrequencyUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
@@ -33,9 +34,11 @@ import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
 import antoni.kalorie.macrokit.isAlcoholicDrink
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.time.Instant
 
 sealed interface FoodQuantityUnit {
@@ -56,6 +59,8 @@ sealed interface FoodQuantityUnit {
 class FoodQuantityViewModel(
     val item: FoodItemDomain,
     private val saveFoodConsumed: SaveFoodConsumedUseCaseProtocol,
+    private val recordFoodFrequency: RecordFoodFrequencyUseCaseProtocol,
+    private val applicationScope: CoroutineScope,
     private val fetchMealTypes: FetchMealTypesUseCaseProtocol,
     private var selectedDate: Instant,
     mealTypes: List<MealTypeDomain>,
@@ -299,6 +304,15 @@ class FoodQuantityViewModel(
                 mealTypeId = _mealTypes.value.mealType(selectedDate)?.id
             }
             saveFoodConsumed(item, grams = grams, date = selectedDate, mealTypeId = mealTypeId)
+            applicationScope.launch {
+                try {
+                    recordFoodFrequency(item, date = Instant.now())
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.warning(error, Constants.LogCategory.FOOD_QUANTITY)
+                }
+            }
             onSaved()
         } catch (error: CancellationException) {
             throw error

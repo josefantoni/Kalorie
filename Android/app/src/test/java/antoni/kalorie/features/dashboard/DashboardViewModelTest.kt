@@ -25,6 +25,10 @@ import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
 import antoni.kalorie.core.utils.minutesSinceMidnight
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -459,6 +463,25 @@ class DashboardViewModelTest {
     }
 
     @Test
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun onFoodConsumedUpdated_whenAnotherMonthIsLoadedWhileTheDayFetchIsInFlight_keepsTheReloadedDayInTheCache() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(makeFood(id = "before", hour = 9)), emptyList()))
+        val range = FetchFoodsConsumedInRangeUseCaseSuspending()
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
+        val today = sut.selectedDay.value
+        val reload = launch { sut.onFoodConsumedUpdated() }
+        runCurrent()
+
+        sut.onDayChanged(firstOfCurrentMonth().atZone(ZoneId.systemDefault()).minusMonths(1).toInstant())
+        range.gate.complete(listOf(makeFood(id = "after", hour = 9)))
+        reload.join()
+        sut.onDayChanged(today)
+
+        assertEquals("a reload finishing after the cache was rebuilt must not be lost", listOf("after"), sut.foodsConsumed.value.map { it.id })
+    }
+
+    @Test
     fun onFoodConsumedUpdated_replacesTheDayInsteadOfMergingIntoIt() = runTest {
         val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(makeFood(id = "f1", hour = 8), makeFood(id = "f2", hour = 9))))
         val range = FetchFoodsConsumedInRangeUseCaseSpy(result = listOf(makeFood(id = "f1", hour = 8)))
@@ -487,6 +510,24 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun onForeground_whileTheCalendarShowsAnotherMonth_keepsThatMonthsActiveDays() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(makeFood(id = "f1", hour = 8)), emptyList()))
+        val range = FetchFoodsConsumedInRangeUseCaseSpy(result = listOf(makeFood(id = "f1", hour = 8)))
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month, fetchFoodsConsumedInRange = range)
+        sut.onAppear()
+        val today = sut.selectedDay.value.atZone(ZoneId.systemDefault()).dayOfMonth
+        sut.onCalendarMonthChanged(firstOfCurrentMonth().atZone(ZoneId.systemDefault()).minusMonths(1).toInstant())
+
+        sut.onForeground()
+
+        assertTrue("the open calendar must not show the selected month's dots on another month", sut.activeDaysInMonth.value.isEmpty())
+
+        sut.onCalendarDismissed()
+
+        assertEquals("the day picker shows the selected day's month once the calendar closes", setOf(today), sut.activeDaysInMonth.value)
+    }
+
+    @Test
     fun onFoodConsumedUpdated_whenTheMonthIsNotCached_loadsTheWholeMonth() = runTest {
         val month = FetchFoodsConsumedForMonthUseCaseSpy()
         val range = FetchFoodsConsumedInRangeUseCaseSpy()
@@ -498,6 +539,22 @@ class DashboardViewModelTest {
 
         assertEquals("there is no month cache to splice a single day into", 2, month.months.size)
         assertTrue(range.ranges.isEmpty())
+    }
+
+    @Test
+    fun onFoodConsumedUpdated_whenTheMonthIsNotCached_showsTheActiveDaysOfThatMonth() = runTest {
+        val month = FetchFoodsConsumedForMonthUseCaseSpy(resultsPerCall = listOf(listOf(makeFood(id = "f1", hour = 8)), emptyList()))
+        val sut = makeSUT(fetchFoodsConsumedForMonth = month)
+        sut.onAppear()
+        assertTrue(sut.activeDaysInMonth.value.isNotEmpty())
+        sut.selectedDay.value = ZonedDateTime.now().minusMonths(1).toInstant()
+
+        sut.onFoodConsumedUpdated()
+
+        assertTrue(
+            "the day picker must not keep the previous month's dots under the new month's day numbers",
+            sut.activeDaysInMonth.value.isEmpty(),
+        )
     }
 
     @Test
@@ -880,6 +937,12 @@ class DashboardViewModelTest {
             ranges += from to to
             return result
         }
+    }
+
+    private class FetchFoodsConsumedInRangeUseCaseSuspending : FetchFoodsConsumedInRangeUseCaseProtocol {
+        val gate = CompletableDeferred<List<FoodConsumedDomain>>()
+
+        override suspend fun invoke(from: Instant, to: Instant): List<FoodConsumedDomain> = gate.await()
     }
 
     private fun startOfDay(day: Instant): Instant = day.atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant()
