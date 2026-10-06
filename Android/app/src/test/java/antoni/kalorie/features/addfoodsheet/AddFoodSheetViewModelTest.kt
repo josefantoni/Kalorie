@@ -855,12 +855,43 @@ class AddFoodSheetViewModelTest {
     }
 
     @Test
-    fun displayedResults_matchesFavouritesByLowercasedPrefixWithoutFoldingDiacritics() = runTest {
+    fun displayedResults_matchesFavouriteWithoutDiacritics() = runTest {
         val sut = makeSUT(fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "fav", czName = "Řepa"))))
         sut.onAppear()
         sut.searchText.value = "repa"
 
-        assertTrue("the local favourite match is a plain lowercased prefix, unlike the folded server search", sut.displayedResults.isEmpty())
+        assertEquals(listOf("fav"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_withSingleLetter_stillListsMatchingFavourite() = runTest {
+        val sut = makeSUT(fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "fav", czName = "Ovar"))))
+        sut.onAppear()
+        sut.searchText.value = "o"
+
+        assertEquals(listOf("fav"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_matchesFavouriteByNonFirstWord() = runTest {
+        val sut = makeSUT(fetchFavouriteFoods = FetchFavouriteFoodsUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "fav", czName = "Polotučné mléko"))))
+        sut.onAppear()
+        sut.searchText.value = "mlék"
+
+        assertEquals(listOf("fav"), sut.displayedResults.map { it.id })
+    }
+
+    @Test
+    fun displayedResults_createdMeal_isMatchedByCzNameOnly() = runTest {
+        val sut = makeSUT(fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(stubbedMeals = listOf(makeMeal(id = "meal", name = "Ovesná kaše"))))
+        sut.onAppear()
+
+        sut.searchText.value = "ovesna"
+        assertEquals(listOf("meal"), sut.displayedResults.map { it.id })
+        sut.searchText.value = "kaše"
+        assertEquals(listOf("meal"), sut.displayedResults.map { it.id })
+        sut.searchText.value = "oats"
+        assertTrue(sut.displayedResults.isEmpty())
     }
 
     @Test

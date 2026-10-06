@@ -30,6 +30,8 @@ import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.NutritionLabelPrefilling
 import antoni.kalorie.core.utils.isFirestoreUnreachable
+import antoni.kalorie.textkit.matchesSearchQuery
+import antoni.kalorie.textkit.searchQuery
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -113,19 +115,19 @@ class AddFoodSheetViewModel(
 
     val displayedResults: List<FoodItemDomain>
         get() {
-            val query = searchText.value.lowercase()
-            if (query.isEmpty()) return localFoodItems.value
+            if (searchText.value.isEmpty()) return localFoodItems.value
+            val query = searchQuery(searchText.value)
             val matchingFavourites = favouriteFoods.value.filter {
-                it.czName.lowercase().startsWith(query) || it.engName.lowercase().startsWith(query)
+                matchesSearchQuery(it.czName, query) || matchesSearchQuery(it.engName, query)
             }
             val favouriteIds = matchingFavourites.map { it.id }.toSet()
             val matchingMeals = myCreatedMeals.value
                 .map { it.asFoodItem() }
-                .filter { it.czName.lowercase().startsWith(query) && it.id !in favouriteIds }
+                .filter { matchesSearchQuery(it.czName, query) && it.id !in favouriteIds }
             val seenSubmissionIds = (favouriteIds + matchingMeals.map { it.id }).toMutableSet()
             val matchingSubmissions = mySubmissions.value
                 .map { it.item }
-                .filter { it.czName.lowercase().startsWith(query) || it.engName.lowercase().startsWith(query) }
+                .filter { matchesSearchQuery(it.czName, query) || matchesSearchQuery(it.engName, query) }
                 .filter { seenSubmissionIds.add(it.id) }
             val matchingIds = favouriteIds + matchingMeals.map { it.id } + matchingSubmissions.map { it.id }
             return matchingFavourites + matchingMeals + matchingSubmissions + localFoodItems.value.filter { it.id !in matchingIds }
