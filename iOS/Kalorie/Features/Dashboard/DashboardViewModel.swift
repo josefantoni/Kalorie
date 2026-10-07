@@ -375,7 +375,7 @@ final class DashboardViewModel: ObservableObject {
     private func showSignInSpotlightIfNeeded() {
         guard
             authProvider.isAnonymous,
-            !monthCache.isEmpty,
+            monthCache.values.contains(where: { !$0.isEmpty }),
             !isSignInSpotlightVisible,
             !isAnyPresentationActive
         else { return }

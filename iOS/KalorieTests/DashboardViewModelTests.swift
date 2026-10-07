@@ -651,13 +651,28 @@ final class DashboardViewModelTests: XCTestCase {
     func test_onFoodConsumedUpdated_whenFirstFoodIsLogged_showsSpotlightRightAway() async {
         let store = SignInSpotlightStoreFake()
         let now = Date.now
-        let fetchForMonth = MutableFetchFoodsConsumedForMonthStub()
-        let sut = makeSpotlightSUT(store: store, fetchFoodsConsumedForMonth: fetchForMonth, now: now)
+        let fetchInRange = MutableFetchFoodsConsumedInRangeStub()
+        let sut = makeSpotlightSUT(
+            store: store,
+            fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: []),
+            fetchFoodsConsumedInRange: fetchInRange,
+            now: now
+        )
         await sut.onAppear()
-        fetchForMonth.stubbedFoods = [makeFood(id: "f1", hour: 9)]
+        fetchInRange.stubbedFoods = [makeFood(id: "f1", hour: 9)]
         await sut.onFoodConsumedUpdated()
         XCTAssertTrue(sut.isSignInSpotlightVisible, "the first logged food is the moment to warn, not the next time the app is opened")
         XCTAssertEqual(store.lastShownAt, now)
+    }
+
+    @MainActor
+    func test_onForeground_whenOnlyEmptyDaysAreCached_doesNotShowSpotlight() async {
+        let store = SignInSpotlightStoreFake()
+        let sut = makeSpotlightSUT(store: store, foods: [])
+        await sut.onAppear()
+        await sut.onForeground()
+        XCTAssertFalse(sut.isSignInSpotlightVisible, "an empty day cached as [] is not a logged food, and showing now would burn the week before the first food")
+        XCTAssertNil(store.lastShownAt)
     }
 
     @MainActor
@@ -737,12 +752,14 @@ final class DashboardViewModelTests: XCTestCase {
         authProvider: any AuthProviderProtocol = AuthProviderFake(),
         foods: [FoodConsumedDomain]? = nil,
         fetchFoodsConsumedForMonth: (any FetchFoodsConsumedForMonthUseCaseProtocol)? = nil,
+        fetchFoodsConsumedInRange: any FetchFoodsConsumedInRangeUseCaseProtocol = FetchFoodsConsumedInRangeUseCaseFake(),
         now: Date = .now
     ) -> DashboardViewModel {
         makeSUT(
             fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [makeMealType(id: 0, hour: 0, endHour: 23)]),
             fetchFoodsConsumedForMonth: fetchFoodsConsumedForMonth
                 ?? FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: foods ?? [makeFood(id: "f1", hour: 9)]),
+            fetchFoodsConsumedInRange: fetchFoodsConsumedInRange,
             authProvider: authProvider,
             signInSpotlightStore: store
         ) {
@@ -836,10 +853,10 @@ final class DashboardViewModelTests: XCTestCase {
     }
 }
 
-private final class MutableFetchFoodsConsumedForMonthStub: FetchFoodsConsumedForMonthUseCaseProtocol {
+private final class MutableFetchFoodsConsumedInRangeStub: FetchFoodsConsumedInRangeUseCaseProtocol {
     var stubbedFoods: [FoodConsumedDomain] = []
 
-    func callAsFunction(for month: Date) async throws -> [FoodConsumedDomain] {
+    func callAsFunction(from: Date, to: Date) async throws -> [FoodConsumedDomain] {
         stubbedFoods
     }
 }
