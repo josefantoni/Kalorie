@@ -219,10 +219,15 @@ final class DashboardViewModel: ObservableObject {
             invalidateCache(for: selectedDay)
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
+            showSignInSpotlightIfNeeded()
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = unknownErrorAlertItem(for: error)
         }
+    }
+
+    func onAddFoodSheetDismissed() {
+        showSignInSpotlightIfNeeded()
     }
 
     func onDeleteRequested(_ food: FoodConsumedDomain) {
