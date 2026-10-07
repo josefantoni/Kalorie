@@ -89,6 +89,9 @@ shouldShow = authProvider.isAnonymous
   (iOS `DashboardViewModel.swift:155` / `:174`, Android `DashboardViewModel.kt:145` / `:160`).
   `onAppear` runs once per process and the app can stay alive for days, which is why `onRefresh`
   (return to foreground) is also needed.
+- Also evaluate it after a food is saved (`onFoodConsumedUpdated()`) and when the add-food sheet is
+  dismissed, so the first logged food is warned about right away and not at the next app open.
+  Whichever of the two happens last wins, because the sheet is still up while the reload runs.
 - The "presented" check covers `showSettings`, `showAddFoodSheet`, `showCalendarSheet`,
   `showAccountSheet`, `alertItem`, the delete confirmation and the meal-section info/copy popovers.
   A presentation requested while another one is up is silently dropped by SwiftUI.
@@ -192,6 +195,8 @@ Each test names the reason it exists:
    *(A signed-in user's data is already safe; showing it would be noise.)*
 3. **Anonymous user with no entries → not shown.** *(Nothing to lose yet; an empty-app spotlight
    is noise on first launch.)*
+3a. **First food logged → shown right away** via `onFoodConsumedUpdated`. *(The first food is the
+   moment to warn; waiting for the next app open loses it.)*
 4. **Shown 6 days ago → not shown; shown 7 days ago → shown on `onRefresh`.** *(Weekly cadence,
    and a long-running process still gets it on foreground.)*
 5. **Any presentation flag true → not shown, and `lastShownAt` unchanged.** Parameterise over
