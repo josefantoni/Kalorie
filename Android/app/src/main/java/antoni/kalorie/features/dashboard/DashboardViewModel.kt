@@ -197,7 +197,13 @@ class DashboardViewModel(
             invalidateCache(selectedDay.value)
             loadMonth(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
+            showSignInSpotlightIfNeeded()
         }
+    }
+
+    fun onAddFoodSheetDismissed() {
+        showAddFoodSheet.value = false
+        showSignInSpotlightIfNeeded()
     }
 
     fun onDeleteRequested(food: FoodConsumedDomain) {

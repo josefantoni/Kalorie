@@ -312,7 +312,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
         router.makeAddFoodSheetView(
             date = selectedDay,
             mealTypes = mealTypes,
-            onDismiss = { viewModel.showAddFoodSheet.value = false },
+            onDismiss = viewModel::onAddFoodSheetDismissed,
             onFoodSaved = { scope.launch { viewModel.onFoodConsumedUpdated() } },
         )
     }
