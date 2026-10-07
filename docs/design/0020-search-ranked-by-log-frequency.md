@@ -1,6 +1,6 @@
 # Design: Search results ranked by how often the user logs each food
 
-- **Status:** Implemented in `05ca248` (iOS) and `ca47e72` (Android)
+- **Status:** Implemented in `c44ee51` (iOS) and `6cc77c0` (Android)
 - **Scope:** Backend, Cross-platform, iOS, Android
 - **Date:** 2026-10-06
 
