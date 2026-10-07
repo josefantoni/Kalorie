@@ -630,6 +630,24 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun onFoodConsumedUpdated_whenFirstFoodIsLogged_showsSpotlightRightAway() = runTest {
+        val store = SignInSpotlightStoreFake()
+        val now = Instant.now()
+        var loggedFoods = emptyList<FoodConsumedDomain>()
+        val fetchForMonth = object : FetchFoodsConsumedForMonthUseCaseProtocol {
+            override suspend fun invoke(month: Instant) = loggedFoods
+        }
+        val sut = makeSpotlightSUT(store = store, fetchFoodsConsumedForMonth = fetchForMonth, now = now)
+        sut.onAppear()
+        loggedFoods = listOf(makeFood(id = "f1", hour = 9))
+
+        sut.onFoodConsumedUpdated()
+
+        assertTrue("the first logged food is the moment to warn, not the next time the app is opened", sut.isSignInSpotlightVisible.value)
+        assertEquals(now, store.lastShownAt)
+    }
+
+    @Test
     fun onRefresh_whenShownSixDaysAgo_doesNotShowSpotlight() = runTest {
         val now = Instant.now()
         val sut = makeSpotlightSUT(store = SignInSpotlightStoreFake(now.minus(6, ChronoUnit.DAYS)), now = now)
