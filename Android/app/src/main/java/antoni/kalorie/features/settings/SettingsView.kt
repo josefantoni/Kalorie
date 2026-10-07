@@ -3,7 +3,6 @@ package antoni.kalorie.features.settings
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -59,6 +58,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import antoni.kalorie.R
 import antoni.kalorie.components.AddButton
 import antoni.kalorie.components.FloatingLabelTextField
@@ -207,7 +207,7 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                                         NavigationRow(
                                             title = feedbackSubject,
                                             onClick = {
-                                                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")).apply {
+                                                val intent = Intent(Intent.ACTION_SENDTO, "mailto:".toUri()).apply {
                                                     putExtra(Intent.EXTRA_EMAIL, arrayOf(Constants.Support.EMAIL))
                                                     putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
                                                 }

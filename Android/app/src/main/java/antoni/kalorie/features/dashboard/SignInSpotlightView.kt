@@ -36,9 +36,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.dismiss
 import androidx.compose.ui.semantics.heading
@@ -70,7 +70,7 @@ fun SignInSpotlightView(
 
     val context = LocalContext.current
     val density = LocalDensity.current
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val screenWidth = with(density) { LocalWindowInfo.current.containerSize.width.toDp() }
     var overlayOrigin by remember { mutableStateOf(Offset.Zero) }
     val titleFocusRequester = remember { FocusRequester() }
     val cutout = spotlightCutout(targetBounds.translate(-overlayOrigin.x, -overlayOrigin.y), with(density) { CutoutPadding.toPx() })
