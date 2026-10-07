@@ -92,6 +92,9 @@ shouldShow = authProvider.isAnonymous
 - Also evaluate it after a food is saved (`onFoodConsumedUpdated()`) and when the add-food sheet is
   dismissed, so the first logged food is warned about right away and not at the next app open.
   Whichever of the two happens last wins, because the sheet is still up while the reload runs.
+- "monthCache contains at least one entry" means at least one **food**, not at least one key:
+  `reloadDay` caches empty days as `[]`, and counting those would burn the first showing on a
+  first launch with nothing logged, the week before the first food.
 - The "presented" check covers `showSettings`, `showAddFoodSheet`, `showCalendarSheet`,
   `showAccountSheet`, `alertItem`, the delete confirmation and the meal-section info/copy popovers.
   A presentation requested while another one is up is silently dropped by SwiftUI.
@@ -193,8 +196,9 @@ Each test names the reason it exists:
    equals the injected now. *(The whole point: an unprotected diary gets a warning.)*
 2. **Signed-in user with logged food → never shown**, even when `lastShownAt` is nil.
    *(A signed-in user's data is already safe; showing it would be noise.)*
-3. **Anonymous user with no entries → not shown.** *(Nothing to lose yet; an empty-app spotlight
-   is noise on first launch.)*
+3. **Anonymous user with no entries → not shown**, also after `onForeground` has cached empty
+   days as `[]`. *(Nothing to lose yet; an empty-app spotlight is noise on first launch, and it
+   would burn the week before the first food.)*
 3a. **First food logged → shown right away** via `onFoodConsumedUpdated`. *(The first food is the
    moment to warn; waiting for the next app open loses it.)*
 4. **Shown 6 days ago → not shown; shown 7 days ago → shown on `onRefresh`.** *(Weekly cadence,
