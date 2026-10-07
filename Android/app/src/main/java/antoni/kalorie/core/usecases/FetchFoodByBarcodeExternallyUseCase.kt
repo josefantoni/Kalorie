@@ -29,7 +29,7 @@ class FetchFoodByBarcodeExternallyUseCase(
 
     override suspend fun invoke(barcode: String): FoodItemDomain? {
         if (barcode.isEmpty()) return null
-        val encodedBarcode = URLEncoder.encode(barcode, Charsets.UTF_8).replace("+", "%20")
+        val encodedBarcode = URLEncoder.encode(barcode, "UTF-8").replace("+", "%20")
         val request = HttpRequest(
             url = "https://${Constants.OpenFoodFacts.HOST}/api/v2/product/$encodedBarcode?fields=$FIELDS",
             userAgent = Constants.OpenFoodFacts.USER_AGENT,

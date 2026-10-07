@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.core.utils.formatDateStyle
@@ -38,7 +39,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.TextStyle
-import java.util.Locale
 
 private const val DAYS_IN_WEEK = 7
 
@@ -106,10 +106,11 @@ private fun MonthHeader(displayedMonth: Instant, onPrevious: () -> Unit, onNext:
 
 @Composable
 private fun WeekdayHeader() {
+    val locale = LocalConfiguration.current.locales[0]
     Row(modifier = Modifier.fillMaxWidth()) {
         for (weekday in DayOfWeek.entries) {
             Text(
-                text = weekday.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault()),
+                text = weekday.getDisplayName(TextStyle.SHORT_STANDALONE, locale),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

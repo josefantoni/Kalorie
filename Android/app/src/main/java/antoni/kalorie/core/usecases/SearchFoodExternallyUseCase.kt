@@ -29,7 +29,7 @@ class SearchFoodExternallyUseCase(
 
     override suspend fun invoke(query: String): List<FoodItemDomain> {
         val url = "https://${Constants.OpenFoodFacts.HOST}/cgi/search.pl" +
-            "?search_terms=${URLEncoder.encode(query, Charsets.UTF_8).replace("+", "%20")}" +
+            "?search_terms=${URLEncoder.encode(query, "UTF-8").replace("+", "%20")}" +
             "&json=1&page_size=20&fields=$FIELDS"
         val request = HttpRequest(
             url = url,
