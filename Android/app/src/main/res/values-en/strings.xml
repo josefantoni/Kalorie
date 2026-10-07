@@ -62,9 +62,7 @@
     <string name="addFood_navigationTitle_newItem">Add food to catalogue</string>
     <string name="addFood_navigationTitle_search">Search catalogue</string>
     <string name="addFood_nutritionLabel_barcodeScanAccessibility">Scan barcode</string>
-    <string name="addFood_nutritionLabel_cameraCaptureFailed">Couldn\'t take the photo, restarting the camera. Try again.</string>
     <string name="addFood_nutritionLabel_cameraIdleHint">Point the camera at the nutrition table</string>
-    <string name="addFood_nutritionLabel_cameraShutterAccessibility">Take photo</string>
     <string name="addFood_nutritionLabel_deniedMessage">Reading the nutrition table needs camera access enabled in Settings.</string>
     <string name="addFood_nutritionLabel_nothingRecognized">No nutrition table found in the photo. Photograph the table on the back of the packaging.</string>
     <string name="addFood_nutritionLabel_promptBody">Photograph the nutrition table on the packaging, then check the values.</string>
@@ -123,7 +121,6 @@
     <string name="dashboard_empty_title_past">No food eaten.</string>
     <string name="dashboard_error_copyFailed">Couldn\'t copy the food.</string>
     <string name="dashboard_error_deleteFailed">Could not delete the food</string>
-    <string name="dashboard_navigation_title">Calories</string>
     <string name="dashboard_section_unassignedFoods">Other unassigned foods</string>
     <string name="dashboard_signInSpotlight_actionSignIn">Sign in</string>
     <string name="dashboard_signInSpotlight_message">Once you sign in, your diary survives losing or replacing your phone, and you can open it on another device.</string>

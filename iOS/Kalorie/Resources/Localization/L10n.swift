@@ -56,7 +56,6 @@ enum L10n {
     }
 
     enum Dashboard {
-        static var navigationTitle: String { String(localized: "dashboard_navigation_title") }
         static var buttonSettings: String { String(localized: "dashboard_button_settings") }
         static var buttonCopy: String { String(localized: "dashboard_button_copy") }
         static var copyButton: String { String(localized: "dashboard_copy_button") }
@@ -150,8 +149,6 @@ enum L10n {
         static var nutritionLabelDeniedMessage: String { String(localized: "addFood_nutritionLabel_deniedMessage") }
         static var nutritionLabelUnsupportedMessage: String { String(localized: "addFood_nutritionLabel_unsupportedMessage") }
         static var nutritionLabelCameraIdleHint: String { String(localized: "addFood_nutritionLabel_cameraIdleHint") }
-        static var nutritionLabelCameraCaptureFailed: String { String(localized: "addFood_nutritionLabel_cameraCaptureFailed") }
-        static var nutritionLabelCameraShutterAccessibility: String { String(localized: "addFood_nutritionLabel_cameraShutterAccessibility") }
         static var nutritionLabelBarcodeScanAccessibility: String { String(localized: "addFood_nutritionLabel_barcodeScanAccessibility") }
         static var buttonOpenSettings: String { String(localized: "addFood_button_openSettings") }
         static var buttonAddManually: String { String(localized: "addFood_button_addManually") }
