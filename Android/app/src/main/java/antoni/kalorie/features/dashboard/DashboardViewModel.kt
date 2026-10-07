@@ -319,7 +319,7 @@ class DashboardViewModel(
             macroPopoverIndex.value != null
 
     private fun showSignInSpotlightIfNeeded() {
-        if (!authProvider.isAnonymous || monthCache.isEmpty() || _isSignInSpotlightVisible.value || isAnyPresentationActive) return
+        if (!authProvider.isAnonymous || monthCache.values.none { it.isNotEmpty() } || _isSignInSpotlightVisible.value || isAnyPresentationActive) return
         val currentInstant = now()
         val lastShownAt = signInSpotlightStore.lastShownAt
         if (lastShownAt != null && Duration.between(lastShownAt, currentInstant) < SIGN_IN_SPOTLIGHT_INTERVAL) return
