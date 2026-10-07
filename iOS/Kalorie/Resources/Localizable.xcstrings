@@ -1071,23 +1071,6 @@
         }
       }
     },
-    "addFood_nutritionLabel_cameraCaptureFailed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fotku se nepodařilo pořídit, kamera se restartuje. Zkuste to znovu."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn't take the photo, restarting the camera. Try again."
-          }
-        }
-      }
-    },
     "addFood_nutritionLabel_cameraIdleHint" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1101,23 +1084,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Point the camera at the nutrition table"
-          }
-        }
-      }
-    },
-    "addFood_nutritionLabel_cameraShutterAccessibility" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vyfotit"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Take photo"
           }
         }
       }
@@ -2104,23 +2070,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not delete the food"
-          }
-        }
-      }
-    },
-    "dashboard_navigation_title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kalorie"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calories"
           }
         }
       }

@@ -62,9 +62,7 @@
     <string name="addFood_navigationTitle_newItem">Přidat potravinu do katalogu</string>
     <string name="addFood_navigationTitle_search">Hledat v katalogu</string>
     <string name="addFood_nutritionLabel_barcodeScanAccessibility">Naskenovat čárový kód</string>
-    <string name="addFood_nutritionLabel_cameraCaptureFailed">Fotku se nepodařilo pořídit, kamera se restartuje. Zkuste to znovu.</string>
     <string name="addFood_nutritionLabel_cameraIdleHint">Namiřte kameru na nutriční tabulku</string>
-    <string name="addFood_nutritionLabel_cameraShutterAccessibility">Vyfotit</string>
     <string name="addFood_nutritionLabel_deniedMessage">Pro čtení nutriční tabulky je potřeba povolit přístup ke kameře v Nastavení.</string>
     <string name="addFood_nutritionLabel_nothingRecognized">Na fotce se nepodařilo najít nutriční tabulku. Vyfoť tabulku na zadní straně obalu.</string>
     <string name="addFood_nutritionLabel_promptBody">Vyfoťte nutriční tabulku na obalu, pak zkontrolujte hodnoty.</string>
@@ -123,7 +121,6 @@
     <string name="dashboard_empty_title_past">Žádné snězené jídlo.</string>
     <string name="dashboard_error_copyFailed">Jídlo se nepodařilo zkopírovat.</string>
     <string name="dashboard_error_deleteFailed">Potravinu se nepodařilo smazat</string>
-    <string name="dashboard_navigation_title">Kalorie</string>
     <string name="dashboard_section_unassignedFoods">Ostatní nezařazená jídla</string>
     <string name="dashboard_signInSpotlight_actionSignIn">Přihlásit se</string>
     <string name="dashboard_signInSpotlight_message">Po přihlášení zůstane tvůj deník zachovaný, i když telefon ztratíš nebo vyměníš, a najdeš ho i na jiném zařízení.</string>

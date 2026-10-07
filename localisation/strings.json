@@ -247,17 +247,9 @@
     "cs": "Naskenovat čárový kód",
     "en": "Scan barcode"
   },
-  "addFood_nutritionLabel_cameraCaptureFailed": {
-    "cs": "Fotku se nepodařilo pořídit, kamera se restartuje. Zkuste to znovu.",
-    "en": "Couldn't take the photo, restarting the camera. Try again."
-  },
   "addFood_nutritionLabel_cameraIdleHint": {
     "cs": "Namiřte kameru na nutriční tabulku",
     "en": "Point the camera at the nutrition table"
-  },
-  "addFood_nutritionLabel_cameraShutterAccessibility": {
-    "cs": "Vyfotit",
-    "en": "Take photo"
   },
   "addFood_nutritionLabel_deniedMessage": {
     "cs": "Pro čtení nutriční tabulky je potřeba povolit přístup ke kameře v Nastavení.",
@@ -490,10 +482,6 @@
   "dashboard_error_deleteFailed": {
     "cs": "Potravinu se nepodařilo smazat",
     "en": "Could not delete the food"
-  },
-  "dashboard_navigation_title": {
-    "cs": "Kalorie",
-    "en": "Calories"
   },
   "dashboard_section_unassignedFoods": {
     "cs": "Ostatní nezařazená jídla",
