@@ -473,6 +473,19 @@ final class DashboardViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onFoodConsumedUpdated_whenFirstFoodIsLogged_showsSpotlightRightAway() async {
+        let store = SignInSpotlightStoreFake()
+        let now = Date.now
+        let fetchForMonth = MutableFetchFoodsConsumedForMonthStub()
+        let sut = makeSpotlightSUT(store: store, fetchFoodsConsumedForMonth: fetchForMonth, now: now)
+        await sut.onAppear()
+        fetchForMonth.stubbedFoods = [makeFood(id: "f1", hour: 9)]
+        await sut.onFoodConsumedUpdated()
+        XCTAssertTrue(sut.isSignInSpotlightVisible, "the first logged food is the moment to warn, not the next time the app is opened")
+        XCTAssertEqual(store.lastShownAt, now)
+    }
+
+    @MainActor
     func test_onRefresh_whenShownSixDaysAgo_doesNotShowSpotlight() async {
         let now = Date.now
         let store = SignInSpotlightStoreFake(lastShownAt: now.addingTimeInterval(-6 * 24 * 60 * 60))
@@ -625,5 +638,13 @@ final class DashboardViewModelTests: XCTestCase {
             salt: 0.2,
             mealTypeId: mealTypeId
         )
+    }
+}
+
+private final class MutableFetchFoodsConsumedForMonthStub: FetchFoodsConsumedForMonthUseCaseProtocol {
+    var stubbedFoods: [FoodConsumedDomain] = []
+
+    func callAsFunction(for month: Date) async throws -> [FoodConsumedDomain] {
+        stubbedFoods
     }
 }

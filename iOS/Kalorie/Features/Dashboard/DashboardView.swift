@@ -168,7 +168,7 @@ struct DashboardView: View {
                     Task { await viewModel.onMealTypesChanged() }
                 }
             }
-            .sheet(isPresented: $viewModel.showAddFoodSheet) {
+            .sheet(isPresented: $viewModel.showAddFoodSheet, onDismiss: viewModel.onAddFoodSheetDismissed) {
                 router.makeAddFoodSheetView(for: viewModel.selectedDay, mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onFoodConsumedUpdated() }
                 }
