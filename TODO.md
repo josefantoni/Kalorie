@@ -84,6 +84,10 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   tested; the camera and the touch handling cannot be covered that way. The barcode scanner must release
   the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
   submission that was written from the iOS app must work (it failed on `submitted_at` precision).
+- **Handle `NoCredentialException` in Android Google sign-in** — `GoogleSignInProvider.signIn`
+  (`CredentialManager.getCredential`) throws it when the device has no Google account, and it now
+  surfaces as a generic failure. Decide what the user should see (for example a hint to add a Google
+  account), then catch it explicitly. Android lint reports it as `CredentialManagerMisuse`.
 
 ## Documentation baseline
 
