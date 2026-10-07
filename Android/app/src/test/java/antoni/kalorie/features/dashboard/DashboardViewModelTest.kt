@@ -819,9 +819,17 @@ class DashboardViewModelTest {
         val now = Instant.now()
         var loggedFoods = emptyList<FoodConsumedDomain>()
         val fetchForMonth = object : FetchFoodsConsumedForMonthUseCaseProtocol {
-            override suspend fun invoke(month: Instant) = loggedFoods
+            override suspend fun invoke(month: Instant) = emptyList<FoodConsumedDomain>()
         }
-        val sut = makeSpotlightSUT(store = store, fetchFoodsConsumedForMonth = fetchForMonth, now = now)
+        val fetchInRange = object : FetchFoodsConsumedInRangeUseCaseProtocol {
+            override suspend fun invoke(from: Instant, to: Instant) = loggedFoods
+        }
+        val sut = makeSpotlightSUT(
+            store = store,
+            fetchFoodsConsumedForMonth = fetchForMonth,
+            fetchFoodsConsumedInRange = fetchInRange,
+            now = now,
+        )
         sut.onAppear()
         loggedFoods = listOf(makeFood(id = "f1", hour = 9))
 
@@ -829,6 +837,18 @@ class DashboardViewModelTest {
 
         assertTrue("the first logged food is the moment to warn, not the next time the app is opened", sut.isSignInSpotlightVisible.value)
         assertEquals(now, store.lastShownAt)
+    }
+
+    @Test
+    fun onForeground_whenOnlyEmptyDaysAreCached_doesNotShowSpotlight() = runTest {
+        val store = SignInSpotlightStoreFake()
+        val sut = makeSpotlightSUT(store = store, foods = emptyList())
+        sut.onAppear()
+
+        sut.onForeground()
+
+        assertFalse("an empty day cached as [] is not a logged food, and showing now would burn the week before the first food", sut.isSignInSpotlightVisible.value)
+        assertNull(store.lastShownAt)
     }
 
     @Test
@@ -987,10 +1007,12 @@ class DashboardViewModelTest {
         authProvider: AuthProviderProtocol = AuthProviderFake(),
         foods: List<FoodConsumedDomain> = listOf(makeFood(id = "f1", hour = 9)),
         fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseProtocol = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = foods),
+        fetchFoodsConsumedInRange: FetchFoodsConsumedInRangeUseCaseProtocol = FetchFoodsConsumedInRangeUseCaseFake(),
         now: Instant = Instant.now(),
     ): DashboardViewModel = makeSUT(
         fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(makeMealType(id = 0, hour = 0, endHour = 23))),
         fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth,
+        fetchFoodsConsumedInRange = fetchFoodsConsumedInRange,
         authProvider = authProvider,
         signInSpotlightStore = store,
         now = now,
