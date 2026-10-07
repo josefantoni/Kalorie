@@ -1,6 +1,7 @@
 package antoni.kalorie.features.dashboard
 
 import android.content.Context
+import androidx.core.content.edit
 import java.time.Instant
 
 interface SignInSpotlightStoreProtocol {
@@ -16,9 +17,9 @@ class SignInSpotlightStore(context: Context) : SignInSpotlightStoreProtocol {
     override var lastShownAt: Instant?
         get() = if (preferences.contains(KEY)) Instant.ofEpochSecond(preferences.getLong(KEY, 0)) else null
         set(value) {
-            val editor = preferences.edit()
-            if (value == null) editor.remove(KEY) else editor.putLong(KEY, value.epochSecond)
-            editor.apply()
+            preferences.edit {
+                if (value == null) remove(KEY) else putLong(KEY, value.epochSecond)
+            }
         }
 
     private companion object {

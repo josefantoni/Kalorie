@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Configurators and Routers mirror the iOS names (createView, make…View); .editorconfig exempts @Composable from ktlint's function naming for the same reason -->
+    <issue id="ComposableNaming" severity="ignore" />
+    <!-- strings.xml is generated from localisation/strings.json, which is shared with iOS, so keys only iOS uses stay -->
+    <issue id="UnusedResources" severity="ignore" />
+</lint>
