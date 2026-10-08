@@ -19,12 +19,6 @@ The app works with three kinds of data. The distinction matters for the items be
   Storage quota is unverified. Needs a `storage` block in `firebase.json`, `storage.rules`, and a
   Blaze-plan check before starting. Additive once it lands — `FoodItemSubmissionDTO` gains an
   optional `photo_path`, no other schema change.
-- **Frequency-derived quick-add gram amounts** — per-user "frequently added weights", gram
-  amounts the user logs often for a given food (e.g. 50g oats almost daily, one slice of bread),
-  surfaced as quick-add options, likely derived from `foodConsumed` history rather than manually
-  maintained. This is the other half of what used to be one combined line here; the first half —
-  a food carrying a named, user-chosen package/portion weight selectable as a unit — shipped as
-  [design 0008](docs/design/0008-food-portions.md).
 
 ## Android readiness
 
@@ -42,44 +36,16 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
 - **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
   Apple Services ID this project does not have. The iOS app currently signs in with Google only,
   since there is no paid Apple Developer account, so this waits for both.
-- **Firebase setup for an Android app** — the Firebase console side is done (app
-  `antoni.kalorie`, debug SHA-1, `google-services.json`), and Google sign-in was verified by hand on a
-  debug build (`docs/SETUP.md` Android section). Still to add: the release and Play App Signing SHA-1s.
+- **Android release signing** — Google sign-in works for the debug keystore and the Play App
+  Signing key (both fingerprints are in Firebase and in the `GOOGLE_SERVICES_JSON` CI secret,
+  `docs/SETUP.md` Android section). The upload keystore exists and `signingConfigs.release` uses it
+  (`docs/SETUP.md` Android section). Still to do before the first Play release:
 
-  **Handoff (analysed 2026-09-24).** One part left, blocked on the user.
-
-  1. **Release and Play App Signing SHA-1s — blocked on the user, before the first Play release.**
-     No release keystore exists and `app/build.gradle.kts`'s `release` block has no `signingConfig`.
-     With Play App Signing (the default for new apps), users' installs are signed by **Google's**
-     app-signing key, so that key's SHA-1 (Play Console → App integrity) is the one Google sign-in
-     needs in production; the upload key's SHA-1 only matters for release builds signed and
-     installed locally. Neither fingerprint exists until a Play Console account exists and the app
-     is created in it. Decided 2026-09-24: the Android app will ship on Google Play alongside the
-     App Store, so this is a pre-release gate, not an open question — it waits only on the user
-     creating the Play Console developer account (one-time fee; Google Play's counterpart of App
-     Store Connect). Nothing earlier depends on it: development and testing use the already
-     registered debug keystore. When it happens: create the upload keystore with `keytool` outside the repo, wire
-     `signingConfigs.release` to read its path and passwords from `~/.gradle/gradle.properties` or
-     env vars (never committed), add both SHA-1 and SHA-256 fingerprints in Firebase → Project
-     settings → the Android app, re-download `google-services.json`, and **tell the user** to update
-     the `GOOGLE_SERVICES_JSON` CI secret (base64 of the file, `docs/SETUP.md` § CI) — nothing
-     updates it automatically. Belongs next to *Play Store account deletion*, the other
-     pre-release gate.
-- **Play Store account deletion** — Google Play requires a web link for requesting account
-  deletion in addition to in-app deletion (policy checked 2026-09-26; an email request pathway is
-  enough). Designed in [design 0015](docs/design/0015-account-deletion-web-page.md); the page
-  (`backend/hosting/`) and the runbook (`docs/SETUP.md`) are written, deployed to
-  `https://kalorie-bf11c.web.app/delete-account`, and checked by hand on an Android phone
-  (readable, `mailto:` opens with the subject filled). Left, blocked on the same Play Console
-  account as the SHA-1 item above: paste the URL into Play Console → Data safety once the app
-  exists there, then remove this item.
-- **Privacy policy** — Google Play (App content → Privacy policy) and App Store Connect both
-  require a public privacy policy URL and an in-app link; Play's Data safety answers must match it.
-  Designed in [design 0021](docs/design/0021-privacy-policy.md): the data inventory, the page
-  `backend/hosting/privacy.html` (`https://kalorie-bf11c.web.app/privacy`), the account-screen
-  link on both clients, and the Data safety mapping. Owner decisions are recorded,
-  ready to implement; pasting the URL into Play Console waits on the Play Console account.
-  Pre-release gate next to *Play Store account deletion*.
+  **Handoff (analysed 2026-10-08).** The upload key's fingerprints appear in Play Console
+  (Protected with Play → App signing) only after the first app bundle is uploaded; add them to
+  Firebase too (needed only for release builds signed and installed locally), then **tell the user**
+  to re-download `google-services.json` and update the `GOOGLE_SERVICES_JSON` CI secret (base64 of
+  the file, `docs/SETUP.md` § CI) — nothing updates it automatically. Pre-release gate.
 - **Check the recent Android fixes by hand on an emulator or device** — they were only built and unit
   tested; the camera and the touch handling cannot be covered that way. The barcode scanner must release
   the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
