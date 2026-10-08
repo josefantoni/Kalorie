@@ -722,6 +722,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
             case .itemAlreadyExists:
                 alertItem = AlertItem(title: L10n.AddFood.errorItemAlreadyExists)
             case .photoMissing:
+                recognizedFields.insert(.photo)
                 alertItem = AlertItem(title: L10n.FoodPhoto.errorRequired)
             case .photoUploadFailed:
                 alertItem = AlertItem(title: L10n.FoodPhoto.errorUploadFailed)

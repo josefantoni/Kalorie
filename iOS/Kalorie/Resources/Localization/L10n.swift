@@ -234,6 +234,11 @@ enum L10n {
     }
 
     enum FoodPhoto {
+        static var title: String { String(localized: "foodPhoto_title") }
+        static var actionTake: String { String(localized: "foodPhoto_action_take") }
+        static var actionChoose: String { String(localized: "foodPhoto_action_choose") }
+        static var actionShow: String { String(localized: "foodPhoto_action_show") }
+        static var accessibilityRetake: String { String(localized: "foodPhoto_accessibility_retake") }
         static var errorRequired: String { String(localized: "foodPhoto_error_required") }
         static var errorUploadFailed: String { String(localized: "foodPhoto_error_uploadFailed") }
     }

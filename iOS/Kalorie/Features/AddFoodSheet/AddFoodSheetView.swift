@@ -395,6 +395,7 @@ struct AddFoodSheetView: View {
                 .disabled(viewModel.state.isLoading)
             }
         }
+        .loader(viewModel.state.isLoading)
         .navigationTitle(L10n.AddFood.navigationTitleNewItem)
         .navigationBarTitleDisplayMode(.inline)
         .alert(L10n.AddFood.submissionSubmitted, isPresented: $viewModel.isSubmissionConfirmationVisible) {

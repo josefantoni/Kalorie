@@ -633,6 +633,36 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onCreateFoodItem_whenPhotoIsMissing_highlightsThePhotoSlotUntilThePhotoIsEdited() async {
+        let sut = makeSUT(submitFoodItem: SubmitFoodItemUseCaseFake(errorToThrow: FoodItemSubmissionError.photoMissing))
+        sut.formInput.scannedCode = "12345678"
+        sut.formInput.name = "Tvaroh"
+        sut.formInput.weightOfProduct = 200
+        sut.formInput.caloriesPerHundredGrams = 80
+        await sut.onCreateFoodItem()
+        XCTAssertEqual(sut.alertItem?.title, L10n.FoodPhoto.errorRequired)
+        XCTAssertTrue(sut.recognizedFields.contains(.photo))
+        XCTAssertFalse(sut.isSubmissionConfirmationVisible)
+
+        sut.onFormFieldEdited(.photo)
+
+        XCTAssertFalse(sut.recognizedFields.contains(.photo), "the red outline must go away as soon as a photo is chosen")
+    }
+
+    @MainActor
+    func test_onCreateFoodItem_passesTheFormsPhotoToTheUseCase() async {
+        let submitFoodItem = SubmitFoodItemUseCaseSpy()
+        let sut = makeSUT(submitFoodItem: submitFoodItem)
+        sut.formInput.scannedCode = "12345678"
+        sut.formInput.name = "Tvaroh"
+        sut.formInput.weightOfProduct = 200
+        sut.formInput.caloriesPerHundredGrams = 80
+        sut.formInput.photo = .local(Data([1, 2, 3]))
+        await sut.onCreateFoodItem()
+        XCTAssertEqual(submitFoodItem.receivedPhoto, .local(Data([1, 2, 3])))
+    }
+
+    @MainActor
     func test_onCreateFoodItem_withEmptyBarcode_showsConfirmationAndWritesNothingUntilConfirmed() async {
         let submitFoodItem = SubmitFoodItemUseCaseSpy()
         let sut = makeSUT(submitFoodItem: submitFoodItem)
@@ -907,11 +937,13 @@ private final class SubmitFoodItemUseCaseSpy: SubmitFoodItemUseCaseProtocol {
     // MARK: - Properties
 
     private(set) var receivedItem: FoodItemDomain?
+    private(set) var receivedPhoto: FoodItemFormPhoto?
 
     // MARK: - Functions
 
     func callAsFunction(_ item: FoodItemDomain, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
         receivedItem = item
+        receivedPhoto = photo
         return FoodItemSubmissionDomain(id: "new-id", barcode: item.id, submittedBy: "test-user", status: .pending, submittedAt: .now, rejectReason: nil, item: item)
     }
 }
