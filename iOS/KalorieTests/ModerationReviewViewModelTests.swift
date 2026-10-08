@@ -37,6 +37,29 @@ final class ModerationReviewViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onApproveTapped_passesTheFormsPhotoSoAMaintainerReplacementIsPublished() async {
+        let approveSubmission = ApproveSubmissionUseCaseSpy()
+        let sut = makeSUT(submission: makeSubmission(), approveSubmission: approveSubmission)
+
+        sut.formInput.photo = .local(Data([1, 2]))
+        await sut.onApproveTapped()
+
+        XCTAssertEqual(approveSubmission.receivedPhoto, .local(Data([1, 2])))
+    }
+
+    @MainActor
+    func test_onApproveTapped_whenThePhotoIsMissing_asksForOneAndStaysOpen() async {
+        let approveSubmission = ApproveSubmissionUseCaseSpy()
+        approveSubmission.errorToThrow = ApproveSubmissionError.photoMissing
+        let sut = makeSUT(submission: makeSubmission(), approveSubmission: approveSubmission)
+
+        await sut.onApproveTapped()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.FoodPhoto.errorRequired)
+        XCTAssertFalse(sut.shouldDismiss, "a missing photo is fixed on this screen, so it must not close")
+    }
+
+    @MainActor
     func test_onApproveTapped_withoutBarcode_keepsTheSubmissionsUUIDAsTheItemId() async {
         let submission = makeSubmission(barcode: nil)
         let approveSubmission = ApproveSubmissionUseCaseSpy()
@@ -240,12 +263,14 @@ private final class ApproveSubmissionUseCaseSpy: ApproveSubmissionUseCaseProtoco
     // MARK: - Properties
 
     private(set) var receivedItem: FoodItemDomain?
+    private(set) var receivedPhoto: FoodItemFormPhoto?
     var errorToThrow: Error?
 
     // MARK: - Functions
 
-    func callAsFunction(submission: FoodItemSubmissionDomain, item: FoodItemDomain) async throws {
+    func callAsFunction(submission: FoodItemSubmissionDomain, item: FoodItemDomain, photo: FoodItemFormPhoto) async throws {
         receivedItem = item
+        receivedPhoto = photo
         if let errorToThrow { throw errorToThrow }
     }
 }

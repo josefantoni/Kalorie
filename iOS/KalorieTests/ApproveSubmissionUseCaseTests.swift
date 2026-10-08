@@ -13,10 +13,10 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
     // MARK: - Tests
 
     func test_approve_whenNotAuthenticated_throwsAuthError() async throws {
-        let (sut, _, _) = makeSUT(userId: nil)
+        let (sut, _, _, _) = makeSUT(userId: nil)
         let submission = makeSubmission()
         do {
-            try await sut(submission: submission, item: submission.item)
+            try await sut(submission: submission, item: submission.item, photo: .local(Data([1])))
             XCTFail("Expected notAuthenticated error")
         } catch AuthError.notAuthenticated {
             // pass
@@ -24,22 +24,22 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
     }
 
     func test_approve_withValidSubmission_createsCatalogueItemThenDeletesSubmission() async throws {
-        let (sut, dataProvider, createFoodItem) = makeSUT()
+        let (sut, dataProvider, createFoodItem, _) = makeSUT()
         let submission = makeSubmission()
         dataProvider.stubbedReReadDTO = makeDTO(from: submission)
-        try await sut(submission: submission, item: submission.item)
+        try await sut(submission: submission, item: submission.item, photo: .local(Data([1])))
         XCTAssertEqual(createFoodItem.receivedItem?.id, submission.item.id)
         XCTAssertEqual(dataProvider.deletedId, submission.id)
         XCTAssertEqual(dataProvider.deletedCollection, Constants.Firestore.foodItemSubmissions)
     }
 
     func test_approve_whenBarcodeEnteredCatalogueAfterSubmissionWasFiled_refusesAndKeepsSubmission() async throws {
-        let (sut, dataProvider, createFoodItem) = makeSUT()
+        let (sut, dataProvider, createFoodItem, _) = makeSUT()
         let submission = makeSubmission()
         dataProvider.stubbedReReadDTO = makeDTO(from: submission)
         createFoodItem.errorToThrow = CreateFoodItemError.itemAlreadyExists
         do {
-            try await sut(submission: submission, item: submission.item)
+            try await sut(submission: submission, item: submission.item, photo: .local(Data([1])))
             XCTFail("Expected itemAlreadyExists error")
         } catch CreateFoodItemError.itemAlreadyExists {
             // pass
@@ -48,50 +48,117 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
     }
 
     func test_approve_whenSubmissionNoLongerExists_throwsAlreadyResolvedAndNeverCreates() async throws {
-        let (sut, dataProvider, createFoodItem) = makeSUT()
+        let (sut, dataProvider, createFoodItem, storage) = makeSUT()
         let submission = makeSubmission()
         dataProvider.stubbedReReadDTO = nil
         do {
-            try await sut(submission: submission, item: submission.item)
+            try await sut(submission: submission, item: submission.item, photo: .local(Data([1])))
             XCTFail("Expected alreadyResolved error")
         } catch ApproveSubmissionError.alreadyResolved {
             // pass
         }
         XCTAssertNil(createFoodItem.receivedItem, "Must not create a catalogue item for a submission that was already resolved")
+        XCTAssertTrue(storage.files.isEmpty, "The catalogue copy uploaded before the re-read must not be left orphaned")
     }
 
     func test_approve_whenSubmissionWasResubmittedSinceReview_throwsChangedSinceReviewAndNeverCreates() async throws {
-        let (sut, dataProvider, createFoodItem) = makeSUT()
+        let (sut, dataProvider, createFoodItem, storage) = makeSUT()
         let submission = makeSubmission()
         dataProvider.stubbedReReadDTO = makeDTO(from: submission, submittedAt: submission.submittedAt.addingTimeInterval(60))
         do {
-            try await sut(submission: submission, item: submission.item)
+            try await sut(submission: submission, item: submission.item, photo: .local(Data([1])))
             XCTFail("Expected changedSinceReview error")
         } catch ApproveSubmissionError.changedSinceReview {
             // pass
         }
         XCTAssertNil(createFoodItem.receivedItem, "Must not approve stale form values over an edit the author resubmitted after this screen loaded")
+        XCTAssertTrue(storage.files.isEmpty, "The catalogue copy uploaded before the re-read must not be left orphaned")
     }
 
     func test_approve_whenSubmissionDeleteFailsAfterCreate_swallowsTheErrorSinceTheCatalogueWriteAlreadySucceeded() async throws {
-        let (sut, dataProvider, _) = makeSUT()
+        let (sut, dataProvider, _, _) = makeSUT()
         let submission = makeSubmission()
         dataProvider.stubbedReReadDTO = makeDTO(from: submission)
         dataProvider.stubbedDeleteError = NSError(domain: "test", code: -1)
-        try await sut(submission: submission, item: submission.item)
+        try await sut(submission: submission, item: submission.item, photo: .local(Data([1])))
+    }
+
+    func test_approve_withoutPhoto_throwsPhotoMissingAndCreatesNothing() async throws {
+        let (sut, dataProvider, createFoodItem, storage) = makeSUT()
+        let submission = makeSubmission()
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        do {
+            try await sut(submission: submission, item: submission.item, photo: .none)
+            XCTFail("Expected photoMissing error")
+        } catch ApproveSubmissionError.photoMissing {
+            // pass
+        }
+        XCTAssertNil(createFoodItem.receivedItem)
+        XCTAssertTrue(storage.uploadedPaths.isEmpty)
+    }
+
+    func test_approve_copiesTheAuthorsPhotoIntoCatalogPhotosAndNeverPointsTheCatalogueAtTheSubmissionFile() async throws {
+        let (sut, dataProvider, createFoodItem, storage) = makeSUT()
+        let authorFile = try await storage.uploadAsync(data: Data([7, 7]), path: "submissionPhotos/some-user/a.jpg", contentType: "image/jpeg")
+        let submission = makeSubmission(photoURL: authorFile)
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        try await sut(submission: submission, item: submission.item, photo: .remote(authorFile))
+        let catalogueURL = try XCTUnwrap(createFoodItem.receivedItem?.photoURL)
+        XCTAssertTrue(catalogueURL.absoluteString.contains("catalogPhotos"), "the author can delete submissionPhotos files, so the catalogue must own its copy")
+        XCTAssertNotEqual(catalogueURL, authorFile)
+        XCTAssertEqual(storage.files[catalogueURL], Data([7, 7]))
+        XCTAssertNil(storage.files[authorFile], "the submission's own file goes away with the submission")
+    }
+
+    func test_approve_withMaintainersReplacementPhoto_publishesItAndStillRemovesTheAuthorsFile() async throws {
+        let (sut, dataProvider, createFoodItem, storage) = makeSUT()
+        let authorFile = try await storage.uploadAsync(data: Data([7]), path: "submissionPhotos/some-user/a.jpg", contentType: "image/jpeg")
+        let submission = makeSubmission(photoURL: authorFile)
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        try await sut(submission: submission, item: submission.item, photo: .local(Data([5])))
+        let catalogueURL = try XCTUnwrap(createFoodItem.receivedItem?.photoURL)
+        XCTAssertEqual(storage.files[catalogueURL], Data([5]))
+        XCTAssertNil(storage.files[authorFile])
+    }
+
+    func test_approve_whenTheCatalogueWriteFails_deletesTheCopiedFileAndKeepsTheAuthorsOne() async throws {
+        let (sut, dataProvider, createFoodItem, storage) = makeSUT()
+        let authorFile = try await storage.uploadAsync(data: Data([7]), path: "submissionPhotos/some-user/a.jpg", contentType: "image/jpeg")
+        let submission = makeSubmission(photoURL: authorFile)
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        createFoodItem.errorToThrow = CreateFoodItemError.itemAlreadyExists
+        _ = try? await sut(submission: submission, item: submission.item, photo: .remote(authorFile))
+        XCTAssertEqual(Array(storage.files.keys), [authorFile])
+    }
+
+    func test_approve_whenTheSubmissionDeleteFails_keepsTheAuthorsFileForTheSubmissionThatSurvives() async throws {
+        let (sut, dataProvider, _, storage) = makeSUT()
+        let authorFile = try await storage.uploadAsync(data: Data([7]), path: "submissionPhotos/some-user/a.jpg", contentType: "image/jpeg")
+        let submission = makeSubmission(photoURL: authorFile)
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        dataProvider.stubbedDeleteError = NSError(domain: "test", code: -1)
+        try await sut(submission: submission, item: submission.item, photo: .remote(authorFile))
+        XCTAssertNotNil(storage.files[authorFile])
     }
 
     // MARK: - Helpers
 
-    private func makeSUT(userId: String? = "maintainer-user") -> (sut: ApproveSubmissionUseCase, dataProvider: ApproveSubmissionDataProviderFake, createFoodItem: CreateFoodItemUseCaseFake) {
+    private func makeSUT(userId: String? = "maintainer-user") -> (sut: ApproveSubmissionUseCase, dataProvider: ApproveSubmissionDataProviderFake, createFoodItem: CreateFoodItemUseCaseFake, storage: StorageDataProviderFake) {
         let dataProvider = ApproveSubmissionDataProviderFake()
-        let authProvider = AuthProviderFake(userId: userId)
         let createFoodItem = CreateFoodItemUseCaseFake()
-        let sut = ApproveSubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider, createFoodItem: createFoodItem)
-        return (sut, dataProvider, createFoodItem)
+        let storage = StorageDataProviderFake()
+        let sut = ApproveSubmissionUseCase(
+            dataProvider: dataProvider,
+            authProvider: AuthProviderFake(userId: userId),
+            createFoodItem: createFoodItem,
+            downloadFoodPhoto: DownloadFoodPhotoUseCase(storageProvider: storage),
+            uploadFoodPhoto: UploadFoodPhotoUseCase(storageProvider: storage),
+            deleteFoodPhoto: DeleteFoodPhotoUseCase(storageProvider: storage)
+        )
+        return (sut, dataProvider, createFoodItem, storage)
     }
 
-    private func makeSubmission(id: String = "sub-1", barcode: String = "12345678") -> FoodItemSubmissionDomain {
+    private func makeSubmission(id: String = "sub-1", barcode: String = "12345678", photoURL: URL? = nil) -> FoodItemSubmissionDomain {
         FoodItemSubmissionDomain(
             id: id,
             barcode: barcode,
@@ -115,7 +182,8 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
                 carbohydratePureSugar: 3,
                 fiber: 0,
                 protein: 13,
-                salt: 0.1
+                salt: 0.1,
+                photoURL: photoURL
             )
         )
     }
