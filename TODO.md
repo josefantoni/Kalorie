@@ -88,11 +88,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   (`CredentialManager.getCredential`) throws it when the device has no Google account, and it now
   surfaces as a generic failure. Decide what the user should see (for example a hint to add a Google
   account), then catch it explicitly. Android lint reports it as `CredentialManagerMisuse`.
-- **Update the Android dependencies Android lint reports as outdated** — `navigation3-runtime` and
-  `navigation3-ui` 1.1.7 → 1.2.0, `kotlinx-serialization-json` 1.9.0 → 1.11.0,
-  `kotlinx-coroutines-play-services` and `kotlinx-coroutines-test` 1.10.1 → 1.11.0
-  (`Android/app/build.gradle.kts`), and the Gradle wrapper 9.7.1 → 9.8.0. Do it on its own branch with
-  the full unit test suite, since navigation and serialization can change behaviour.
 
 ## Documentation baseline
 
