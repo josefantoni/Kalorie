@@ -11,6 +11,19 @@ protocol DeleteFoodPhotoUseCaseProtocol {
     func callAsFunction(url: URL) async throws
 }
 
+extension DeleteFoodPhotoUseCaseProtocol {
+
+    // MARK: - Functions
+
+    func deleteQuietly(_ url: URL) async {
+        do {
+            try await self(url: url)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.storage)
+        }
+    }
+}
+
 struct DeleteFoodPhotoUseCase: DeleteFoodPhotoUseCaseProtocol {
 
     // MARK: - Properties

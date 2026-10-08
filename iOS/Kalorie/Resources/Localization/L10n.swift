@@ -233,6 +233,11 @@ enum L10n {
         }
     }
 
+    enum FoodPhoto {
+        static var errorRequired: String { String(localized: "foodPhoto_error_required") }
+        static var errorUploadFailed: String { String(localized: "foodPhoto_error_uploadFailed") }
+    }
+
     enum FoodConsumedDetail {
         static var labelTime: String { String(localized: "foodConsumedDetail_label_time") }
         static var labelMealType: String { String(localized: "foodConsumedDetail_label_mealType") }

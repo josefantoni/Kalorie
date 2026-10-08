@@ -30,6 +30,7 @@ struct FoodItemFormInput {
     var portions: [FoodPortionDraft] = [FoodPortionDraft.blank]
     var measure: FoodMeasure = .grams
     var alcoholByVolume: Double?
+    var photo: FoodItemFormPhoto = .none
 }
 
 extension FoodItemFormInput {
@@ -53,7 +54,8 @@ extension FoodItemFormInput {
                 ? [FoodPortionDraft.blank]
                 : item.portions.map { FoodPortionDraft(name: $0.name, gramsText: String(format: "%g", $0.grams)) },
             measure: item.measure,
-            alcoholByVolume: item.alcoholByVolume
+            alcoholByVolume: item.alcoholByVolume,
+            photo: item.kind == .catalogue ? item.photoURL.map(FoodItemFormPhoto.remote) ?? .none : .none
         )
     }
 
@@ -77,8 +79,14 @@ extension FoodItemFormInput {
             salt: salt,
             portions: Self.parsedPortions(portions),
             measure: measure,
-            alcoholByVolume: (alcoholByVolume ?? 0) > 0 ? alcoholByVolume : nil
+            alcoholByVolume: (alcoholByVolume ?? 0) > 0 ? alcoholByVolume : nil,
+            photoURL: remotePhotoURL
         )
+    }
+
+    private var remotePhotoURL: URL? {
+        guard case .remote(let url) = photo else { return nil }
+        return url
     }
 
     static func parsedPortions(_ drafts: [FoodPortionDraft]) -> [FoodPortionDomain] {
@@ -644,7 +652,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         let index = mySubmissions.firstIndex { $0.id == submission.id }
         mySubmissions.removeAll { $0.id == submission.id }
         do {
-            try await deleteMySubmission(id: submission.id)
+            try await deleteMySubmission(id: submission.id, photoURL: submission.item.photoURL)
         } catch {
             Log.error(error, category: Constants.LogCategory.addFoodSheet)
             if let index { mySubmissions.insert(submission, at: min(index, mySubmissions.count)) }
@@ -686,9 +694,10 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         let item = formInput.asFoodItemDomain()
         do {
             if let editingSubmissionId {
-                _ = try await updateMySubmission(id: editingSubmissionId, item: item)
+                let previousPhotoURL = mySubmissions.first { $0.id == editingSubmissionId }?.item.photoURL
+                _ = try await updateMySubmission(id: editingSubmissionId, item: item, photo: formInput.photo, previousPhotoURL: previousPhotoURL)
             } else {
-                _ = try await submitFoodItem(item)
+                _ = try await submitFoodItem(item, photo: formInput.photo)
             }
             editingSubmissionId = nil
             rejectionReasonBeingEdited = nil
@@ -712,6 +721,10 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
                 alertItem = AlertItem(title: portionError.alertTitle)
             case .itemAlreadyExists:
                 alertItem = AlertItem(title: L10n.AddFood.errorItemAlreadyExists)
+            case .photoMissing:
+                alertItem = AlertItem(title: L10n.FoodPhoto.errorRequired)
+            case .photoUploadFailed:
+                alertItem = AlertItem(title: L10n.FoodPhoto.errorUploadFailed)
             case nil:
                 alertItem = AlertItem(title: L10n.Common.errorUnknown)
             }

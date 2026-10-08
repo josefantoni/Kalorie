@@ -141,6 +141,31 @@ extension FoodItemDomain {
 
     // MARK: - Functions
 
+    func withPhotoURL(_ photoURL: URL?) -> FoodItemDomain {
+        FoodItemDomain(
+            id: id,
+            kind: kind,
+            czName: czName,
+            engName: engName,
+            weight: weight,
+            date: date,
+            energyKJ: energyKJ,
+            caloriesPerHundredGrams: caloriesPerHundredGrams,
+            fat: fat,
+            fatSaturated: fatSaturated,
+            fatUnsaturatedFattyAcids: fatUnsaturatedFattyAcids,
+            carbohydrate: carbohydrate,
+            carbohydratePureSugar: carbohydratePureSugar,
+            fiber: fiber,
+            protein: protein,
+            salt: salt,
+            portions: portions,
+            measure: measure,
+            alcoholByVolume: alcoholByVolume,
+            photoURL: photoURL
+        )
+    }
+
     func withId(_ id: String) -> FoodItemDomain {
         FoodItemDomain(
             id: id,
