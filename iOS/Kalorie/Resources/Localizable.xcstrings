@@ -2822,6 +2822,40 @@
         }
       }
     },
+    "foodPhoto_error_required" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přidejte fotku produktu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a product photo"
+          }
+        }
+      }
+    },
+    "foodPhoto_error_uploadFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotku se nepodařilo nahrát. Zkuste to znovu."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The photo could not be uploaded. Try again."
+          }
+        }
+      }
+    },
     "foodPortion_button_add" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -13,12 +13,18 @@ struct AddFoodSheetConfigurator {
 
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
+    private let storageProvider: any StorageDataProviderProtocol
 
     // MARK: - Init
 
-    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+    init(
+        dataProvider: any FirestoreDataProviderProtocol,
+        authProvider: any AuthProviderProtocol,
+        storageProvider: any StorageDataProviderProtocol = StorageDataProvider()
+    ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
+        self.storageProvider = storageProvider
     }
 
     // MARK: - Functions
@@ -29,14 +35,16 @@ struct AddFoodSheetConfigurator {
         onFoodSaved: @escaping () -> Void = {},
         withBarcodeScan: Bool = false
     ) -> AddFoodSheetView {
+        let uploadFoodPhoto = UploadFoodPhotoUseCase(storageProvider: storageProvider)
+        let deleteFoodPhoto = DeleteFoodPhotoUseCase(storageProvider: storageProvider)
         let mealEditorConfigurator = MyCreatedMealEditorConfigurator(dataProvider: dataProvider, authProvider: authProvider)
         return AddFoodSheetView(
             viewModel: AddFoodSheetViewModel(
                 searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
-                submitFoodItem: SubmitFoodItemUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                submitFoodItem: SubmitFoodItemUseCase(dataProvider: dataProvider, authProvider: authProvider, uploadFoodPhoto: uploadFoodPhoto, deleteFoodPhoto: deleteFoodPhoto),
                 fetchMySubmissions: FetchMySubmissionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                updateMySubmission: UpdateMySubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                deleteMySubmission: DeleteMySubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                updateMySubmission: UpdateMySubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider, uploadFoodPhoto: uploadFoodPhoto, deleteFoodPhoto: deleteFoodPhoto),
+                deleteMySubmission: DeleteMySubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider, deleteFoodPhoto: deleteFoodPhoto),
                 searchFoodExternally: SearchFoodExternallyUseCase(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),

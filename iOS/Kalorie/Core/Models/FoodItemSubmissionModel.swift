@@ -32,6 +32,8 @@ enum FoodItemSubmissionError: Error {
     case invalidAlcoholByVolume
     case invalidPortion(FoodPortionError)
     case itemAlreadyExists
+    case photoMissing
+    case photoUploadFailed
 
     init(_ validationError: FoodItemValidationError) {
         self = validationError.mapped(

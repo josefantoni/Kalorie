@@ -8,7 +8,7 @@
 import Foundation
 
 protocol UpdateMySubmissionUseCaseProtocol {
-    func callAsFunction(id: String, item: FoodItemDomain) async throws -> FoodItemSubmissionDomain
+    func callAsFunction(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain
 }
 
 struct UpdateMySubmissionUseCase: UpdateMySubmissionUseCaseProtocol {
@@ -17,22 +17,36 @@ struct UpdateMySubmissionUseCase: UpdateMySubmissionUseCaseProtocol {
 
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
+    private let uploadFoodPhoto: any UploadFoodPhotoUseCaseProtocol
+    private let deleteFoodPhoto: any DeleteFoodPhotoUseCaseProtocol
 
     // MARK: - Init
 
-    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+    init(
+        dataProvider: any FirestoreDataProviderProtocol,
+        authProvider: any AuthProviderProtocol,
+        uploadFoodPhoto: any UploadFoodPhotoUseCaseProtocol,
+        deleteFoodPhoto: any DeleteFoodPhotoUseCaseProtocol
+    ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
+        self.uploadFoodPhoto = uploadFoodPhoto
+        self.deleteFoodPhoto = deleteFoodPhoto
     }
 
     // MARK: - Functions
 
-    func callAsFunction(id: String, item: FoodItemDomain) async throws -> FoodItemSubmissionDomain {
-        try await FoodItemSubmissionWriter.write(
+    func callAsFunction(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain {
+        try await FoodItemSubmissionWriter(
+            dataProvider: dataProvider,
+            authProvider: authProvider,
+            uploadFoodPhoto: uploadFoodPhoto,
+            deleteFoodPhoto: deleteFoodPhoto
+        ).write(
             id: id,
             item: item,
-            dataProvider: dataProvider,
-            authProvider: authProvider
+            photo: photo,
+            previousPhotoURL: previousPhotoURL
         )
     }
 }
@@ -46,7 +60,7 @@ struct UpdateMySubmissionUseCaseFake: UpdateMySubmissionUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(id: String, item: FoodItemDomain) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain {
         if let errorToThrow { throw errorToThrow }
         return FoodItemSubmissionDomain(
             id: id,

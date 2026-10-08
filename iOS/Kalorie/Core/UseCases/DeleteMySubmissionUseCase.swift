@@ -8,7 +8,7 @@
 import Foundation
 
 protocol DeleteMySubmissionUseCaseProtocol {
-    func callAsFunction(id: String) async throws
+    func callAsFunction(id: String, photoURL: URL?) async throws
 }
 
 struct DeleteMySubmissionUseCase: DeleteMySubmissionUseCaseProtocol {
@@ -17,19 +17,26 @@ struct DeleteMySubmissionUseCase: DeleteMySubmissionUseCaseProtocol {
 
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
+    private let deleteFoodPhoto: any DeleteFoodPhotoUseCaseProtocol
 
     // MARK: - Init
 
-    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+    init(
+        dataProvider: any FirestoreDataProviderProtocol,
+        authProvider: any AuthProviderProtocol,
+        deleteFoodPhoto: any DeleteFoodPhotoUseCaseProtocol
+    ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
+        self.deleteFoodPhoto = deleteFoodPhoto
     }
 
     // MARK: - Functions
 
-    func callAsFunction(id: String) async throws {
+    func callAsFunction(id: String, photoURL: URL?) async throws {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
         try await dataProvider.deleteAsync(id: id, from: Constants.Firestore.foodItemSubmissions)
+        if let photoURL { await deleteFoodPhoto.deleteQuietly(photoURL) }
     }
 }
 
@@ -42,7 +49,7 @@ struct DeleteMySubmissionUseCaseFake: DeleteMySubmissionUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(id: String) async throws {
+    func callAsFunction(id: String, photoURL: URL?) async throws {
         if shouldThrow { throw URLError(.unknown) }
     }
 }

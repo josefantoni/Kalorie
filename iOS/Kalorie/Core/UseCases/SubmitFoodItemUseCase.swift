@@ -8,7 +8,7 @@
 import Foundation
 
 protocol SubmitFoodItemUseCaseProtocol {
-    func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemSubmissionDomain
+    func callAsFunction(_ item: FoodItemDomain, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain
 }
 
 struct SubmitFoodItemUseCase: SubmitFoodItemUseCaseProtocol {
@@ -17,22 +17,36 @@ struct SubmitFoodItemUseCase: SubmitFoodItemUseCaseProtocol {
 
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
+    private let uploadFoodPhoto: any UploadFoodPhotoUseCaseProtocol
+    private let deleteFoodPhoto: any DeleteFoodPhotoUseCaseProtocol
 
     // MARK: - Init
 
-    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+    init(
+        dataProvider: any FirestoreDataProviderProtocol,
+        authProvider: any AuthProviderProtocol,
+        uploadFoodPhoto: any UploadFoodPhotoUseCaseProtocol,
+        deleteFoodPhoto: any DeleteFoodPhotoUseCaseProtocol
+    ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
+        self.uploadFoodPhoto = uploadFoodPhoto
+        self.deleteFoodPhoto = deleteFoodPhoto
     }
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemSubmissionDomain {
-        try await FoodItemSubmissionWriter.write(
+    func callAsFunction(_ item: FoodItemDomain, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
+        try await FoodItemSubmissionWriter(
+            dataProvider: dataProvider,
+            authProvider: authProvider,
+            uploadFoodPhoto: uploadFoodPhoto,
+            deleteFoodPhoto: deleteFoodPhoto
+        ).write(
             id: UUID().uuidString,
             item: item,
-            dataProvider: dataProvider,
-            authProvider: authProvider
+            photo: photo,
+            previousPhotoURL: nil
         )
     }
 }
@@ -46,7 +60,7 @@ struct SubmitFoodItemUseCaseFake: SubmitFoodItemUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(_ item: FoodItemDomain, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
         if let errorToThrow { throw errorToThrow }
         return FoodItemSubmissionDomain(
             id: UUID().uuidString,

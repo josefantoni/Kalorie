@@ -910,7 +910,7 @@ private final class SubmitFoodItemUseCaseSpy: SubmitFoodItemUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(_ item: FoodItemDomain, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
         receivedItem = item
         return FoodItemSubmissionDomain(id: "new-id", barcode: item.id, submittedBy: "test-user", status: .pending, submittedAt: .now, rejectReason: nil, item: item)
     }
@@ -925,7 +925,7 @@ private final class UpdateMySubmissionUseCaseSpy: UpdateMySubmissionUseCaseProto
 
     // MARK: - Functions
 
-    func callAsFunction(id: String, item: FoodItemDomain) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain {
         receivedId = id
         receivedItem = item
         return FoodItemSubmissionDomain(id: id, barcode: item.id, submittedBy: "test-user", status: .pending, submittedAt: .now, rejectReason: nil, item: item)
@@ -947,7 +947,7 @@ private final class DeleteMySubmissionUseCaseSpy: DeleteMySubmissionUseCaseProto
 
     // MARK: - Functions
 
-    func callAsFunction(id: String) async throws {
+    func callAsFunction(id: String, photoURL: URL?) async throws {
         receivedId = id
         if let errorToThrow { throw errorToThrow }
     }
