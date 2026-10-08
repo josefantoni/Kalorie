@@ -43,6 +43,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
     private let submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol
     private let onFoodUpdated: () -> Void
 
+    var photoURL: URL? { catalogueItem?.photoURL }
     var canShowFavouriteButton: Bool { isFavourite || catalogueItem != nil }
     var canToggleFavourite: Bool { !isTogglingFavourite && canShowFavouriteButton }
     var canReportIncorrectData: Bool { food.foodItemKind == .catalogue }

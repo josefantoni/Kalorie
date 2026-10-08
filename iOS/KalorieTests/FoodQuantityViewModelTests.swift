@@ -321,6 +321,82 @@ final class FoodQuantityViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onAppear_whenTheItemAlreadyHasAPhoto_keepsItWithoutFetching() async throws {
+        let photo = try XCTUnwrap(URL(string: "https://example.com/own.jpg"))
+        let other = try XCTUnwrap(URL(string: "https://example.com/other.jpg"))
+        let sut = makeSUT(
+            item: makeFoodItem(photoURL: photo),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeFoodItem(photoURL: other))
+        )
+        XCTAssertEqual(sut.photoURL, photo, "a search result already carries its photo, so it must show before any request")
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoURL, photo)
+    }
+
+    @MainActor
+    func test_onAppear_whenACatalogueSnapshotHasNoPhoto_loadsItFromTheCatalogue() async throws {
+        let photo = try XCTUnwrap(URL(string: "https://example.com/catalogue.jpg"))
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .catalogue),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeFoodItem(photoURL: photo))
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoURL, photo, "favourites and frequent foods are snapshots that never stored a photo")
+    }
+
+    @MainActor
+    func test_onAppear_calledAgain_doesNotLookUpThePhotoTwice() async throws {
+        let photo = try XCTUnwrap(URL(string: "https://example.com/catalogue.jpg"))
+        let lookup = CountingFetchFoodItemByBarcodeFake(item: makeFoodItem(photoURL: photo))
+        let sut = makeSUT(item: makeFoodItem(kind: .catalogue), fetchFoodItemByBarcode: lookup)
+        await sut.onAppear()
+        await sut.onAppear()
+        XCTAssertEqual(lookup.callCount, 1, "the screen reappears after every pushed child, which must not cost a read each time")
+        XCTAssertEqual(sut.photoURL, photo)
+    }
+
+    @MainActor
+    func test_onAppear_afterAFailedLookup_triesAgain() async throws {
+        let lookup = CountingFetchFoodItemByBarcodeFake(item: nil, error: URLError(.timedOut))
+        let sut = makeSUT(item: makeFoodItem(kind: .catalogue), fetchFoodItemByBarcode: lookup)
+        await sut.onAppear()
+        await sut.onAppear()
+        XCTAssertEqual(lookup.callCount, 2)
+    }
+
+    @MainActor
+    func test_onAppear_whenAnExternalSnapshotHasNoPhoto_loadsItFromOpenFoodFacts() async throws {
+        let photo = try XCTUnwrap(URL(string: "https://images.openfoodfacts.org/front.jpg"))
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .external),
+            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(stubbedItem: makeFoodItem(kind: .external, photoURL: photo))
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoURL, photo)
+    }
+
+    @MainActor
+    func test_onAppear_whenTheLookupFails_showsNoPhotoInsteadOfAnError() async {
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .external),
+            fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(shouldThrow: true)
+        )
+        await sut.onAppear()
+        XCTAssertNil(sut.photoURL)
+        XCTAssertNil(sut.alertItem, "a missing photo must be invisible, never an alert")
+    }
+
+    @MainActor
+    func test_onAppear_forACreatedMeal_neverLooksUpAPhoto() async {
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .createdMeal),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeFoodItem(photoURL: URL(string: "https://example.com/x.jpg")))
+        )
+        await sut.onAppear()
+        XCTAssertNil(sut.photoURL)
+    }
+
+    @MainActor
     func test_onAppear_whenSelectedDateIsEarlierToday_refreshesItToNowAndUpdatesTheMealTypeDefault() async {
         let cal = Calendar.current
         let staleTime = cal.date(byAdding: .hour, value: -6, to: .now) ?? .now
@@ -752,6 +828,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
         meal: MyCreatedMealDomain? = nil,
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
+        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
+        fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         onSaved: @escaping () -> Void = {},
         onMealUpdated: @escaping (MyCreatedMealDomain) -> Void = { _ in },
         onFavouriteChanged: @escaping (String, Bool) -> Void = { _, _ in },
@@ -774,6 +852,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
             submitFoodItemReport: submitFoodItemReport,
             meal: meal,
             updateMyCreatedMeal: updateMyCreatedMeal,
+            fetchFoodItemByBarcode: fetchFoodItemByBarcode,
+            fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             onSaved: onSaved,
             onMealUpdated: onMealUpdated,
             onFavouriteChanged: onFavouriteChanged,
@@ -795,7 +875,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
         caloriesPerHundredGrams: Double = 100,
         fiber: Double? = 0,
         portions: [FoodPortionDomain] = [],
-        alcoholByVolume: Double? = nil
+        alcoholByVolume: Double? = nil,
+        photoURL: URL? = nil
     ) -> FoodItemDomain {
         FoodItemDomain(
             id: "test",
@@ -815,7 +896,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
             protein: 13,
             salt: 0.1,
             portions: portions,
-            alcoholByVolume: alcoholByVolume
+            alcoholByVolume: alcoholByVolume,
+            photoURL: photoURL
         )
     }
 }
@@ -864,5 +946,22 @@ private struct RecordFoodFrequencyUseCaseNeverFinishing: RecordFoodFrequencyUseC
 
     func callAsFunction(_ item: FoodItemDomain, date: Date) async throws {
         try await Task.sleep(for: .seconds(60))
+    }
+}
+
+private final class CountingFetchFoodItemByBarcodeFake: FetchFoodItemByBarcodeUseCaseProtocol {
+    private(set) var callCount = 0
+    private let item: FoodItemDomain?
+    private let error: Error?
+
+    init(item: FoodItemDomain?, error: Error? = nil) {
+        self.item = item
+        self.error = error
+    }
+
+    func callAsFunction(barcode: String) async throws -> FoodItemDomain? {
+        callCount += 1
+        if let error { throw error }
+        return item
     }
 }

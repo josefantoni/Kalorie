@@ -43,6 +43,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     @Published var isReportReasonAlertVisible = false
     @Published var reportReasonText = ""
     @Published var isAlcoholHintPopoverVisible = false
+    @Published private(set) var photoURL: URL?
 
     let item: FoodItemDomain
     private var meal: MyCreatedMealDomain?
@@ -56,7 +57,10 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     private let fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol
     private let submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol
     private let updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol
+    private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
+    private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
     private var selectedDate: Date
+    private var hasLookedUpPhoto = false
     private let onSaved: () -> Void
     private let onFavouriteChanged: (String, Bool) -> Void
     private let onMealUpdated: (MyCreatedMealDomain) -> Void
@@ -118,6 +122,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol,
         meal: MyCreatedMealDomain?,
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol,
+        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
+        fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
         onSaved: @escaping () -> Void,
         onMealUpdated: @escaping (MyCreatedMealDomain) -> Void,
         onFavouriteChanged: @escaping (String, Bool) -> Void,
@@ -140,6 +146,9 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         self.submitFoodItemReport = submitFoodItemReport
         self.meal = meal
         self.updateMyCreatedMeal = updateMyCreatedMeal
+        self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
+        self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
+        self.photoURL = item.photoURL
         self.personalPortions = meal?.portions ?? []
         self.onSaved = onSaved
         self.onFavouriteChanged = onFavouriteChanged
@@ -162,6 +171,13 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
                 selectedMealTypeId = mealTypes.mealType(at: selectedDate)?.id
             }
         }
+        async let photoLoad: Void = loadPhoto()
+        await loadReportStateAndPersonalPortions()
+        await photoLoad
+    }
+
+    @MainActor
+    private func loadReportStateAndPersonalPortions() async {
         if canReportIncorrectData {
             await loadReportState(barcode: item.id, fetchMyFoodItemReport: fetchMyFoodItemReport)
         }
@@ -175,6 +191,27 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
                 quantity = 1
                 unit = .portion(firstPersonalPortion)
             }
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.foodQuantity)
+        }
+    }
+
+    @MainActor
+    private func loadPhoto() async {
+        guard
+            item.photoURL == nil,
+            !hasLookedUpPhoto
+        else { return }
+        do {
+            switch item.kind {
+            case .catalogue:
+                photoURL = try await fetchFoodItemByBarcode(barcode: item.id)?.photoURL
+            case .external:
+                photoURL = try await fetchFoodByBarcodeExternally(barcode: item.id)?.photoURL
+            case .createdMeal:
+                break
+            }
+            hasLookedUpPhoto = true
         } catch {
             Log.warning(error, category: Constants.LogCategory.foodQuantity)
         }

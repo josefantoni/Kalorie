@@ -136,6 +136,7 @@ struct FoodConsumedDetailView: View {
                 .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxX } action: { nutritionHeaderMaxX = $0 }
             }
         }
+        .foodPhotoThumbnail(url: viewModel.photoURL, isHidden: isWeightFocused)
         .loader(viewModel.state.isLoading)
         .task { await viewModel.onAppear() }
         .keyboardDoneToolbar(isVisible: isWeightFocused)
