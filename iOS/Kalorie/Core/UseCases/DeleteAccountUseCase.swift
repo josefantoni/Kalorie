@@ -24,6 +24,7 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
     private let authProvider: any AuthProviderProtocol
     private let authCommandProvider: any AuthCommandProviderProtocol
     private let snapshotStore: any PendingMergeSnapshotStoreProtocol
+    private let storageProvider: any StorageDataProviderProtocol
 
     // MARK: - Init
 
@@ -31,12 +32,14 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         dataProvider: any FirestoreDataProviderProtocol,
         authProvider: any AuthProviderProtocol,
         authCommandProvider: any AuthCommandProviderProtocol,
-        snapshotStore: any PendingMergeSnapshotStoreProtocol
+        snapshotStore: any PendingMergeSnapshotStoreProtocol,
+        storageProvider: any StorageDataProviderProtocol
     ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
         self.authCommandProvider = authCommandProvider
         self.snapshotStore = snapshotStore
+        self.storageProvider = storageProvider
     }
 
     // MARK: - Functions
@@ -107,6 +110,13 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         )
         for dto in submissions {
             try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.foodItemSubmissions)
+        }
+
+        // Listing the folder, rather than following the deleted submissions' URLs, also removes
+        // orphans left by earlier failed writes. catalogPhotos is shared catalogue content and stays.
+        let photoURLs = try await storageProvider.listAsync(prefix: "\(Constants.Storage.submissionPhotosFolder)/\(userId)")
+        for url in photoURLs {
+            try await storageProvider.deleteAsync(url: url)
         }
 
         let reports: [FoodItemReportDTO] = try await dataProvider.loadAsync(

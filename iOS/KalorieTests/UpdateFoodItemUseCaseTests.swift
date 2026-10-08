@@ -13,10 +13,10 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
     // MARK: - Tests
 
     func test_update_whenNotAuthenticated_throwsAuthError() async throws {
-        let (sut, _) = makeSUT(userId: nil)
+        let (sut, _, _) = makeSUT(userId: nil)
         let item = makeItem()
         do {
-            try await sut(item, previouslyLoaded: item)
+            try await sut(item, previouslyLoaded: item, photo: .none)
             XCTFail("Expected notAuthenticated error")
         } catch AuthError.notAuthenticated {
             // pass
@@ -24,10 +24,10 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
     }
 
     func test_update_withInvalidItem_throwsValidationErrorAndDoesNotWrite() async throws {
-        let (sut, dataProvider) = makeSUT()
+        let (sut, dataProvider, _) = makeSUT()
         let invalidItem = makeItem(caloriesPerHundredGrams: 0)
         do {
-            try await sut(invalidItem, previouslyLoaded: invalidItem)
+            try await sut(invalidItem, previouslyLoaded: invalidItem, photo: .none)
             XCTFail("Expected invalidCalories error")
         } catch UpdateFoodItemError.invalidCalories {
             // pass
@@ -37,12 +37,12 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
 
     func test_update_withValidItem_overwritesTheCatalogueDocument() async throws {
         let item = makeItem()
-        let (sut, dataProvider) = makeSUT(currentDocument: item)
+        let (sut, dataProvider, _) = makeSUT(currentDocument: item)
         // previouslyLoaded round-trips through FoodItemDTO, same as it would coming from a real
         // Firestore read (e.g. FetchFoodItemByBarcodeUseCase) — comparing against the raw in-memory
         // `item` instead would spuriously fail on `date`'s TimeInterval round-trip precision.
         let previouslyLoaded = FoodItemDTO(item: item).asDomain()
-        try await sut(item, previouslyLoaded: previouslyLoaded)
+        try await sut(item, previouslyLoaded: previouslyLoaded, photo: .none)
         XCTAssertTrue(dataProvider.didWrite)
         XCTAssertEqual(dataProvider.writtenCollection, Constants.Firestore.foodItems)
         XCTAssertEqual(dataProvider.writtenId, item.id)
@@ -51,9 +51,9 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
     func test_update_whenDocumentChangedSinceLoad_throwsAndDoesNotWrite() async throws {
         let previouslyLoaded = makeItem(caloriesPerHundredGrams: 80)
         let changedOnServer = makeItem(caloriesPerHundredGrams: 90)
-        let (sut, dataProvider) = makeSUT(currentDocument: changedOnServer)
+        let (sut, dataProvider, _) = makeSUT(currentDocument: changedOnServer)
         do {
-            try await sut(makeItem(caloriesPerHundredGrams: 100), previouslyLoaded: previouslyLoaded)
+            try await sut(makeItem(caloriesPerHundredGrams: 100), previouslyLoaded: previouslyLoaded, photo: .none)
             XCTFail("Expected changedSinceLoad error")
         } catch UpdateFoodItemError.changedSinceLoad {
             // pass
@@ -61,17 +61,52 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
         XCTAssertFalse(dataProvider.didWrite)
     }
 
+    func test_update_withoutPhoto_stillSavesSoItemsThatPredateFoodPhotosKeepWorking() async throws {
+        let item = makeItem()
+        let (sut, dataProvider, storage) = makeSUT(currentDocument: item)
+        try await sut(item, previouslyLoaded: FoodItemDTO(item: item).asDomain(), photo: .none)
+        XCTAssertTrue(dataProvider.didWrite)
+        XCTAssertTrue(storage.uploadedPaths.isEmpty)
+    }
+
+    func test_update_withLocalPhoto_uploadsToCatalogPhotosAndDeletesThePreviousCatalogueFile() async throws {
+        let (sut, dataProvider, storage) = makeSUT()
+        let old = try await storage.uploadAsync(data: Data([9]), path: "catalogPhotos/12345678/old.jpg", contentType: "image/jpeg")
+        let item = makeItem().withPhotoURL(old)
+        let previouslyLoaded = FoodItemDTO(item: item).asDomain()
+        dataProvider.currentDocument = FoodItemDTO(item: item)
+        try await sut(item, previouslyLoaded: previouslyLoaded, photo: .local(Data([1, 2])))
+        XCTAssertTrue(try XCTUnwrap(storage.uploadedPaths.last).hasPrefix("catalogPhotos/12345678/"))
+        XCTAssertEqual(storage.deletedURLs, [old])
+        XCTAssertEqual(storage.files.count, 1)
+    }
+
+    func test_update_whenTheWriteFails_keepsThePreviousFileAndDropsTheNewOne() async throws {
+        let (sut, dataProvider, storage) = makeSUT()
+        let old = try await storage.uploadAsync(data: Data([9]), path: "catalogPhotos/12345678/old.jpg", contentType: "image/jpeg")
+        let item = makeItem().withPhotoURL(old)
+        dataProvider.currentDocument = FoodItemDTO(item: item)
+        dataProvider.writeError = URLError(.notConnectedToInternet)
+        _ = try? await sut(item, previouslyLoaded: FoodItemDTO(item: item).asDomain(), photo: .local(Data([1, 2])))
+        XCTAssertEqual(Array(storage.files.keys), [old])
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         userId: String? = "maintainer-user",
         currentDocument: FoodItemDomain? = nil
-    ) -> (sut: UpdateFoodItemUseCase, dataProvider: UpdateFoodItemDataProviderFake) {
+    ) -> (sut: UpdateFoodItemUseCase, dataProvider: UpdateFoodItemDataProviderFake, storage: StorageDataProviderFake) {
         let dataProvider = UpdateFoodItemDataProviderFake()
         dataProvider.currentDocument = currentDocument.map(FoodItemDTO.init(item:))
-        let authProvider = AuthProviderFake(userId: userId)
-        let sut = UpdateFoodItemUseCase(dataProvider: dataProvider, authProvider: authProvider)
-        return (sut, dataProvider)
+        let storage = StorageDataProviderFake()
+        let sut = UpdateFoodItemUseCase(
+            dataProvider: dataProvider,
+            authProvider: AuthProviderFake(userId: userId),
+            uploadFoodPhoto: UploadFoodPhotoUseCase(storageProvider: storage),
+            deleteFoodPhoto: DeleteFoodPhotoUseCase(storageProvider: storage)
+        )
+        return (sut, dataProvider, storage)
     }
 
     private func makeItem(id: String = "12345678", caloriesPerHundredGrams: Double = 80) -> FoodItemDomain {
@@ -104,6 +139,7 @@ private final class UpdateFoodItemDataProviderFake: FirestoreDataProviderProtoco
     var writtenCollection: String?
     var writtenId: String?
     var currentDocument: FoodItemDTO?
+    var writeError: Error?
 
     // MARK: - Functions
 
@@ -119,6 +155,7 @@ private final class UpdateFoodItemDataProviderFake: FirestoreDataProviderProtoco
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
+        if let writeError { throw writeError }
         didWrite = true
         writtenCollection = collection
         writtenId = id

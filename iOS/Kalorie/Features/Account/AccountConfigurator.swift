@@ -69,7 +69,8 @@ struct AccountConfigurator {
                     dataProvider: dataProvider,
                     authProvider: authProvider,
                     authCommandProvider: authCommandProvider,
-                    snapshotStore: snapshotStore
+                    snapshotStore: snapshotStore,
+                    storageProvider: StorageDataProvider()
                 ),
                 reauthenticate: ReauthenticateUseCase(
                     appleSignInProvider: AppleSignInProvider(),

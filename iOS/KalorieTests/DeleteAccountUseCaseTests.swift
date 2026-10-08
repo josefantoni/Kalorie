@@ -115,13 +115,42 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         )
     }
 
+    func test_callAsFunction_deletesTheUsersSubmissionPhotosButNotCatalogueOrOtherUsersPhotos() async throws {
+        let log = OperationLog()
+        let storage = StorageDataProviderFake()
+        let own = try await storage.uploadAsync(data: Data([1]), path: "submissionPhotos/test-user-id/a.jpg", contentType: "image/jpeg")
+        let orphan = try await storage.uploadAsync(data: Data([2]), path: "submissionPhotos/test-user-id/orphan.jpg", contentType: "image/jpeg")
+        let someoneElse = try await storage.uploadAsync(data: Data([3]), path: "submissionPhotos/other-user/b.jpg", contentType: "image/jpeg")
+        let catalogue = try await storage.uploadAsync(data: Data([4]), path: "catalogPhotos/12345678/c.jpg", contentType: "image/jpeg")
+        let sut = makeSUT(dataProvider: DeleteAccountDataProviderFake(log: log), log: log, storage: storage)
+
+        try await sut()
+
+        XCTAssertNil(storage.files[own])
+        XCTAssertNil(storage.files[orphan], "orphans from failed writes are not reachable through the deleted submissions, only through the folder")
+        XCTAssertNotNil(storage.files[someoneElse])
+        XCTAssertNotNil(storage.files[catalogue], "approved items are shared catalogue content and outlive the account")
+    }
+
+    func test_callAsFunction_whenListingPhotosFails_doesNotDeleteTheAuthUser() async throws {
+        let log = OperationLog()
+        let storage = StorageDataProviderFake()
+        storage.listError = URLError(.notConnectedToInternet)
+        let sut = makeSUT(dataProvider: DeleteAccountDataProviderFake(log: log), log: log, storage: storage)
+
+        _ = try? await sut()
+
+        XCTAssertFalse(log.entries.contains("deleteCurrentUser"), "the photos hold the user's content; the account must survive so the deletion can be retried")
+    }
+
     func test_callAsFunction_whenNotAuthenticated_throwsAuthError() async {
         let log = OperationLog()
         let sut = DeleteAccountUseCase(
             dataProvider: DeleteAccountDataProviderFake(log: log),
             authProvider: AuthProviderFake(userId: nil),
             authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
-            snapshotStore: PendingMergeSnapshotStoreFake()
+            snapshotStore: PendingMergeSnapshotStoreFake(),
+            storageProvider: StorageDataProviderFake()
         )
 
         do {
@@ -145,7 +174,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             dataProvider: dataProvider,
             authProvider: AuthProviderFake(lastSignInDate: Date().addingTimeInterval(-10 * 60)),
             authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
-            snapshotStore: snapshotStore
+            snapshotStore: snapshotStore,
+            storageProvider: StorageDataProviderFake()
         )
 
         do {
@@ -168,7 +198,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             dataProvider: DeleteAccountDataProviderFake(log: log),
             authProvider: AuthProviderFake(),
             authCommandProvider: authCommandProvider,
-            snapshotStore: PendingMergeSnapshotStoreFake()
+            snapshotStore: PendingMergeSnapshotStoreFake(),
+            storageProvider: StorageDataProviderFake()
         )
 
         do {
@@ -239,7 +270,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             dataProvider: DeleteAccountDataProviderFake(log: log),
             authProvider: AuthProviderFake(),
             authCommandProvider: authCommandProvider,
-            snapshotStore: PendingMergeSnapshotStoreFake()
+            snapshotStore: PendingMergeSnapshotStoreFake(),
+            storageProvider: StorageDataProviderFake()
         )
 
         do {
@@ -257,13 +289,15 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     private func makeSUT(
         dataProvider: DeleteAccountDataProviderFake,
         log: OperationLog,
-        snapshotStore: PendingMergeSnapshotStoreFake = PendingMergeSnapshotStoreFake()
+        snapshotStore: PendingMergeSnapshotStoreFake = PendingMergeSnapshotStoreFake(),
+        storage: StorageDataProviderFake = StorageDataProviderFake()
     ) -> DeleteAccountUseCase {
         DeleteAccountUseCase(
             dataProvider: dataProvider,
             authProvider: AuthProviderFake(),
             authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
-            snapshotStore: snapshotStore
+            snapshotStore: snapshotStore,
+            storageProvider: storage
         )
     }
 

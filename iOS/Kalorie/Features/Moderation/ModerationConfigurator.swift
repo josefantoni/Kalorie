@@ -13,12 +13,18 @@ struct ModerationConfigurator {
 
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
+    private let storageProvider: any StorageDataProviderProtocol
 
     // MARK: - Init
 
-    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+    init(
+        dataProvider: any FirestoreDataProviderProtocol,
+        authProvider: any AuthProviderProtocol,
+        storageProvider: any StorageDataProviderProtocol = StorageDataProvider()
+    ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
+        self.storageProvider = storageProvider
     }
 
     // MARK: - Functions
@@ -36,7 +42,10 @@ struct ModerationConfigurator {
                         approveSubmission: ApproveSubmissionUseCase(
                             dataProvider: dataProvider,
                             authProvider: authProvider,
-                            createFoodItem: CreateFoodItemUseCase(dataProvider: dataProvider)
+                            createFoodItem: CreateFoodItemUseCase(dataProvider: dataProvider),
+                            downloadFoodPhoto: DownloadFoodPhotoUseCase(storageProvider: storageProvider),
+                            uploadFoodPhoto: UploadFoodPhotoUseCase(storageProvider: storageProvider),
+                            deleteFoodPhoto: DeleteFoodPhotoUseCase(storageProvider: storageProvider)
                         ),
                         rejectSubmission: RejectSubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
@@ -71,7 +80,12 @@ struct ModerationConfigurator {
         ModerationCatalogueEditorView(
             viewModel: ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
-                updateFoodItem: UpdateFoodItemUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                updateFoodItem: UpdateFoodItemUseCase(
+                    dataProvider: dataProvider,
+                    authProvider: authProvider,
+                    uploadFoodPhoto: UploadFoodPhotoUseCase(storageProvider: storageProvider),
+                    deleteFoodPhoto: DeleteFoodPhotoUseCase(storageProvider: storageProvider)
+                ),
                 modelExtractor: FoundationModelExtractor(),
                 cameraAuthorizationProvider: CameraAuthorizationProvider(),
                 initialBarcode: initialBarcode

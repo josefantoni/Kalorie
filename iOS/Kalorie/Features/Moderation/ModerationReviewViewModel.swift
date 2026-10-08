@@ -92,13 +92,15 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
         defer { state = .loaded }
         let editedItem = formInput.asFoodItemDomain(id: submission.item.id, date: submission.item.date)
         do {
-            try await approveSubmission(submission: submission, item: editedItem)
+            try await approveSubmission(submission: submission, item: editedItem, photo: formInput.photo)
             onResolved()
             shouldDismiss = true
         } catch ApproveSubmissionError.alreadyResolved {
             onResolved()
             alertItem = AlertItem(title: L10n.Moderation.errorAlreadyResolved)
             shouldDismiss = true
+        } catch ApproveSubmissionError.photoMissing {
+            alertItem = AlertItem(title: L10n.FoodPhoto.errorRequired)
         } catch ApproveSubmissionError.changedSinceReview {
             onResolved()
             alertItem = AlertItem(title: L10n.Moderation.errorChangedSinceReview)

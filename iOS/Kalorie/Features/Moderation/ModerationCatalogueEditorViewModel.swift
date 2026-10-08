@@ -97,7 +97,7 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
         defer { state = .loaded }
         let item = formInput.asFoodItemDomain(id: loadedItem.id, date: loadedItem.date)
         do {
-            try await updateFoodItem(item, previouslyLoaded: loadedItem)
+            try await updateFoodItem(item, previouslyLoaded: loadedItem, photo: formInput.photo)
             self.loadedItem = item
             state = .loaded
             showCheckmark = true

@@ -26,7 +26,7 @@ enum UpdateFoodItemError: Error {
 }
 
 protocol UpdateFoodItemUseCaseProtocol {
-    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain) async throws
+    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) async throws
 }
 
 struct UpdateFoodItemUseCase: UpdateFoodItemUseCaseProtocol {
@@ -35,12 +35,21 @@ struct UpdateFoodItemUseCase: UpdateFoodItemUseCaseProtocol {
 
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
+    private let uploadFoodPhoto: any UploadFoodPhotoUseCaseProtocol
+    private let deleteFoodPhoto: any DeleteFoodPhotoUseCaseProtocol
 
     // MARK: - Init
 
-    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+    init(
+        dataProvider: any FirestoreDataProviderProtocol,
+        authProvider: any AuthProviderProtocol,
+        uploadFoodPhoto: any UploadFoodPhotoUseCaseProtocol,
+        deleteFoodPhoto: any DeleteFoodPhotoUseCaseProtocol
+    ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
+        self.uploadFoodPhoto = uploadFoodPhoto
+        self.deleteFoodPhoto = deleteFoodPhoto
     }
 
     // MARK: - Functions
@@ -51,7 +60,7 @@ struct UpdateFoodItemUseCase: UpdateFoodItemUseCaseProtocol {
     // foodItems has no submitted_at-like field to reuse as a token, so this re-reads and compares
     // the full document instead, client-side only (no firestore.rules enforcement, same trust
     // boundary ADR 0029 already accepted for ApproveSubmissionUseCase's own re-read).
-    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain) async throws {
+    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) async throws {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
         if let validationError = FoodItemValidation.validate(item) {
             throw UpdateFoodItemError(validationError)
@@ -60,8 +69,20 @@ struct UpdateFoodItemUseCase: UpdateFoodItemUseCaseProtocol {
         guard current?.asDomain() == previouslyLoaded else {
             throw UpdateFoodItemError.changedSinceLoad
         }
-        let dto = FoodItemDTO(item: item)
-        try await dataProvider.setAsync(dto, id: item.id, in: Constants.Firestore.foodItems)
+        var uploadedURL: URL?
+        if case .local(let data) = photo {
+            uploadedURL = try await uploadFoodPhoto(data: data, folder: "\(Constants.Storage.catalogPhotosFolder)/\(item.id)")
+        }
+        let dto = FoodItemDTO(item: item.withPhotoURL(uploadedURL ?? item.photoURL))
+        do {
+            try await dataProvider.setAsync(dto, id: item.id, in: Constants.Firestore.foodItems)
+        } catch {
+            if let uploadedURL { await deleteFoodPhoto.deleteQuietly(uploadedURL) }
+            throw error
+        }
+        if uploadedURL != nil, let previousPhotoURL = previouslyLoaded.photoURL {
+            await deleteFoodPhoto.deleteQuietly(previousPhotoURL)
+        }
     }
 }
 
@@ -74,7 +95,7 @@ struct UpdateFoodItemUseCaseFake: UpdateFoodItemUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain) async throws {
+    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) async throws {
         if let errorToThrow { throw errorToThrow }
     }
 }

@@ -164,10 +164,12 @@ private final class UpdateFoodItemUseCaseSpy: UpdateFoodItemUseCaseProtocol {
     // MARK: - Properties
 
     private(set) var receivedItem: FoodItemDomain?
+    private(set) var receivedPhoto: FoodItemFormPhoto?
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain) async throws {
+    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) async throws {
         receivedItem = item
+        receivedPhoto = photo
     }
 }
