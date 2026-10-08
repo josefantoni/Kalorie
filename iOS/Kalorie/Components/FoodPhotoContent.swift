@@ -34,6 +34,8 @@ struct FoodPhotoContent: View {
                     image
                         .resizable()
                         .aspectRatio(contentMode: contentMode)
+                } else if case .empty = phase {
+                    ProgressView()
                 } else {
                     Image(systemName: BaseImageName.foodPlaceholder.rawValue)
                         .font(.largeTitle)

@@ -451,6 +451,8 @@ struct AddFoodSheetView: View {
                     submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
                     meal: meal,
                     updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
+                    fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
+                    fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
                     onSaved: onSaved,
                     onMealUpdated: onMealUpdated,
                     onFavouriteChanged: onFavouriteChanged,

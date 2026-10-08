@@ -176,13 +176,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nutriční data pro některé potraviny pochází z Open Food Facts, dostupné pod licencí Open Database License."
+            "value" : "Nutriční data a fotky některých potravin pocházejí z Open Food Facts. Data jsou dostupná pod licencí Open Database License, fotky pod licencí CC BY-SA."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nutrition data for some foods comes from Open Food Facts, available under the Open Database License."
+            "value" : "Nutrition data and photos of some foods come from Open Food Facts. The data is available under the Open Database License, the photos under CC BY-SA."
           }
         }
       }
@@ -2818,6 +2818,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keep the description under 500 characters"
+          }
+        }
+      }
+    },
+    "foodPhoto_accessibility_enlarge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvětšit fotku"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enlarge photo"
           }
         }
       }

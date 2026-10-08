@@ -147,6 +147,8 @@ struct FoodPortionsManagerView: View {
                 submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
                 meal: nil,
                 updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
+                fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
                 onSaved: {},
                 onMealUpdated: { _ in }
             ) { _, _ in }

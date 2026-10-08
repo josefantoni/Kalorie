@@ -76,6 +76,8 @@ struct AddFoodSheetConfigurator {
                         submitFoodItemReport: SubmitFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         meal: meal,
                         updateMyCreatedMeal: UpdateMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                        fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
+                        fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
                         onSaved: onSaved,
                         onMealUpdated: onMealUpdated,
                         onFavouriteChanged: onFavouriteChanged,
