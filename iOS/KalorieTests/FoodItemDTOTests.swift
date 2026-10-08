@@ -47,6 +47,21 @@ final class FoodItemDTOTests: XCTestCase {
         XCTAssertEqual(dto.asDomain().alcoholByVolume, 4.4)
     }
 
+    func test_asDomain_whenPhotoUrlIsAbsent_isNil() throws {
+        var json = try encodedJSON()
+        json.removeValue(forKey: "photo_url")
+        let dto = try decode(json)
+        XCTAssertNil(dto.asDomain().photoURL, "items written before food photos must keep decoding")
+    }
+
+    func test_photoUrl_survivesRoundTrip() throws {
+        let url = try XCTUnwrap(URL(string: "https://firebasestorage.googleapis.com/v0/b/b/o/catalogPhotos%2F1%2Fa.jpg?alt=media&token=t"))
+        let item = FoodItemDTO(item: makeItem(photoURL: url))
+        let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(item)) as? [String: Any] ?? [:]
+        XCTAssertEqual(json["photo_url"] as? String, url.absoluteString)
+        XCTAssertEqual(try decode(json).asDomain().photoURL, url)
+    }
+
     // MARK: - Helpers
 
     private func encodedJSON() throws -> [String: Any] {
@@ -57,7 +72,7 @@ final class FoodItemDTOTests: XCTestCase {
         try JSONDecoder().decode(FoodItemDTO.self, from: JSONSerialization.data(withJSONObject: json))
     }
 
-    private func makeItem(alcoholByVolume: Double? = nil) -> FoodItemDomain {
+    private func makeItem(alcoholByVolume: Double? = nil, photoURL: URL? = nil) -> FoodItemDomain {
         FoodItemDomain(
             id: "12345678",
             kind: .catalogue,
@@ -75,7 +90,8 @@ final class FoodItemDTOTests: XCTestCase {
             fiber: 0,
             protein: 3.2,
             salt: 0.1,
-            alcoholByVolume: alcoholByVolume
+            alcoholByVolume: alcoholByVolume,
+            photoURL: photoURL
         )
     }
 }

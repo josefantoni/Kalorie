@@ -41,7 +41,7 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
         components.host = Constants.OpenFoodFacts.host
         components.percentEncodedPath = "/api/v2/product/\(encodedBarcode)"
         components.queryItems = [
-            URLQueryItem(name: "fields", value: "code,product_name,product_name_cs,product_name_en,nutriments")
+            URLQueryItem(name: "fields", value: "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url")
         ]
         guard let url = components.url else { throw FetchFoodByBarcodeExternallyError.invalidURL }
         // URLSession is used directly — OpenFoodFacts is plain HTTP, not Firestore, so FirestoreDataProviderProtocol doesn't apply.
