@@ -30,6 +30,14 @@ enum Constants {
         }
     }
 
+    enum Storage {
+        static let submissionPhotosFolder = "submissionPhotos"
+        static let catalogPhotosFolder = "catalogPhotos"
+        static let photoContentType = "image/jpeg"
+        static let maxDownloadBytes: Int64 = 5 * 1024 * 1024
+        static let photoCacheControl = "public, max-age=31536000, immutable"
+    }
+
     enum Support {
         static let email = "kaloriepodpora@gmail.com"
         static let privacyPolicyURL = URL(string: "https://kalorie-bf11c.web.app/privacy")
@@ -37,6 +45,7 @@ enum Constants {
 
     enum LogCategory {
         static let firestore = "firestore"
+        static let storage = "storage"
         static let auth = "auth"
         static let account = "account"
         static let favourites = "favourites"
