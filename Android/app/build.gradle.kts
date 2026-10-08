@@ -39,9 +39,23 @@ android {
         }
     }
 
+    val uploadStoreFile = providers.gradleProperty("kalorieUploadStoreFile").orNull
+
+    signingConfigs {
+        if (uploadStoreFile != null) {
+            create("release") {
+                storeFile = file(uploadStoreFile)
+                storePassword = providers.gradleProperty("kalorieUploadStorePassword").get()
+                keyAlias = providers.gradleProperty("kalorieUploadKeyAlias").get()
+                keyPassword = providers.gradleProperty("kalorieUploadKeyPassword").get()
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
 }
