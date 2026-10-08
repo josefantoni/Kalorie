@@ -13,12 +13,19 @@ The app works with three kinds of data. The distinction matters for the items be
 
 ## Planned features
 
-- **Packaging photo on a submission** — the other half of the user-submitted-food flow shipped
-  in [design 0009](docs/design/0009-catalogue-moderation.md), deferred by that design's Non-goals:
-  Firebase Storage is not configured in this project, and whether the project's plan includes free
-  Storage quota is unverified. Needs a `storage` block in `firebase.json`, `storage.rules`, and a
-  Blaze-plan check before starting. Additive once it lands — `FoodItemSubmissionDTO` gains an
-  optional `photo_path`, no other schema change.
+- **Food photos** — designed in [design 0022](docs/design/0022-food-photos.md). The Blaze plan
+  (budget alert 150 CZK/month) and the default Storage bucket (`us-central1`) are set up. Before
+  the release that ships it: update the privacy policy text, the App Store privacy label and the
+  Google Play Data safety form (*Photos*) — see the design's *Privacy* section. Do not change the
+  store declarations earlier, they must match the published build.
+- **Firebase App Check** — Storage and Firestore rules only check who writes, not what writes, so
+  anyone with an account can upload files (up to the rules' limits) from a script and the Blaze bill
+  is ours. App Check makes the backend accept requests only from genuine builds: App Attest on iOS,
+  Play Integrity on Android, a debug provider for simulators and development. Ship both clients in
+  monitoring mode first and switch on enforcement for Storage (then Firestore) once the console
+  metrics show legitimate traffic, otherwise the app locks itself out. Needs the App Attest
+  capability on iOS and the Play Console link on Android. Not blocking the food photos release, but
+  do it soon after it.
 
 ## Android readiness
 
