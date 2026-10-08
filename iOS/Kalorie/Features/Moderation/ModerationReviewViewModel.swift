@@ -100,6 +100,7 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
             alertItem = AlertItem(title: L10n.Moderation.errorAlreadyResolved)
             shouldDismiss = true
         } catch ApproveSubmissionError.photoMissing {
+            recognizedFields.insert(.photo)
             alertItem = AlertItem(title: L10n.FoodPhoto.errorRequired)
         } catch ApproveSubmissionError.changedSinceReview {
             onResolved()

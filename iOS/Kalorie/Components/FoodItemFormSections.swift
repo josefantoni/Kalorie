@@ -29,6 +29,7 @@ struct FoodItemFormSections: View {
     var body: some View {
         Group {
             FoodPortionsSection(portions: $formInput.portions, measure: formInput.measure)
+            
             Section {
                 FloatingLabelTextField(
                     title: L10n.AddFood.fieldNameTitle,
@@ -39,6 +40,17 @@ struct FoodItemFormSections: View {
                 .listRowInsets(.vertical, 0)
                 barcodeRowView
                     .listRowInsets(.vertical, 0)
+            }
+            .listSectionSpacing(.custom(20))
+            Section {
+                FoodPhotoPicker(photo: $formInput.photo, isMissing: highlightedFields.contains(.photo)) {
+                    onFieldEdited(.photo)
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+            }
+            .listSectionSpacing(.custom(20))
+            Section {
                 nutritionLabelScanButton
                 FoodItemFormFields(
                     formInput: $formInput,
@@ -47,6 +59,7 @@ struct FoodItemFormSections: View {
                     onFieldEdited: onFieldEdited
                 )
             }
+            .listSectionSpacing(.custom(20))
         }
     }
 

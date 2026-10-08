@@ -2822,6 +2822,74 @@
         }
       }
     },
+    "foodPhoto_accessibility_retake" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyfotit znovu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retake photo"
+          }
+        }
+      }
+    },
+    "foodPhoto_action_choose" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vybrat z galerie"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose from library"
+          }
+        }
+      }
+    },
+    "foodPhoto_action_show" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazit fotku"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show photo"
+          }
+        }
+      }
+    },
+    "foodPhoto_action_take" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyfotit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take photo"
+          }
+        }
+      }
+    },
     "foodPhoto_error_required" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2852,6 +2920,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The photo could not be uploaded. Try again."
+          }
+        }
+      }
+    },
+    "foodPhoto_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotka produktu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Product photo"
           }
         }
       }

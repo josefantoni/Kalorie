@@ -8,7 +8,7 @@
 import SwiftUI
 
 enum FoodItemFormField: CaseIterable {
-    case name, measure, energyKJ, calories, protein, carbohydrate, carbohydrateSugar, fiber, fat, fatSaturated, fatUnsaturated, salt, alcoholByVolume
+    case name, measure, energyKJ, calories, protein, carbohydrate, carbohydrateSugar, fiber, fat, fatSaturated, fatUnsaturated, salt, alcoholByVolume, photo
 }
 
 struct FoodItemFormFields: View {
