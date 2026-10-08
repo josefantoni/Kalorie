@@ -217,7 +217,7 @@ struct FloatingLabelTextField<Field: Hashable>: View {
     private static var animation: Animation { .easeInOut(duration: 0.2) }
     private static var verticalPadding: CGFloat { 4 }
     private static var messageSpacing: CGFloat { 0 }
-    private static var messageBottomPadding: CGFloat { 3 }
+    private static var messageBottomPadding: CGFloat { 8 }
     private static var disabledOpacity: Double { 0.5 }
     private static var minimumScaleFactor: CGFloat { 0.5 }
 }
