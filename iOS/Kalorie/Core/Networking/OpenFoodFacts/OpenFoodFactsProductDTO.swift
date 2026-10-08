@@ -32,11 +32,13 @@ struct OpenFoodFactsProductDTO: Decodable {
     let productNameEn: String?
     let productName: String?
     let nutriments: OpenFoodFactsNutrimentsDTO?
+    let imageFrontUrl: String?
 
     // MARK: - Coding keys
 
     enum CodingKeys: String, CodingKey {
         case code
+        case imageFrontUrl = "image_front_url"
         case productNameCs = "product_name_cs"
         case productNameEn = "product_name_en"
         case productName = "product_name"
@@ -76,7 +78,8 @@ struct OpenFoodFactsProductDTO: Decodable {
             carbohydratePureSugar: nutriments.sugars100g ?? 0,
             fiber: nutriments.fiber100g ?? 0,
             protein: protein,
-            salt: nutriments.salt100g ?? 0
+            salt: nutriments.salt100g ?? 0,
+            photoURL: imageFrontUrl.flatMap(URL.init(string:))
         )
     }
 

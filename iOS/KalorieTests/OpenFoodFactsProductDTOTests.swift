@@ -41,7 +41,26 @@ final class OpenFoodFactsProductDTOTests: XCTestCase {
         }
     }
 
+    func test_asDomain_mapsImageFrontUrlToPhotoURL() throws {
+        XCTAssertEqual(try decodeItem(imageFrontUrl: "https://images.openfoodfacts.org/front.jpg")?.photoURL, URL(string: "https://images.openfoodfacts.org/front.jpg"))
+    }
+
+    func test_asDomain_whenImageFrontUrlIsAbsent_photoURLIsNil() throws {
+        XCTAssertNil(try decodeItem(imageFrontUrl: nil)?.photoURL)
+    }
+
     // MARK: - Helpers
+
+    private func decodeItem(imageFrontUrl: String?) throws -> FoodItemDomain? {
+        var json: [String: Any] = [
+            "code": "8593807012345",
+            "product_name": "Milk",
+            "nutriments": ["energy-kcal_100g": 64.0]
+        ]
+        json["image_front_url"] = imageFrontUrl
+        let data = try JSONSerialization.data(withJSONObject: json)
+        return try JSONDecoder().decode(OpenFoodFactsProductDTO.self, from: data).asDomain()
+    }
 
     private struct MappingFixture: Decodable {
         let cases: [MappingCase]
