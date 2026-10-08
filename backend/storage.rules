@@ -1,0 +1,24 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isMaintainer() {
+      return request.auth != null && request.auth.token.maintainer == true;
+    }
+    function validJpeg() {
+      return request.resource.size < 1024 * 1024 &&
+        request.resource.contentType == 'image/jpeg';
+    }
+
+    match /submissionPhotos/{uid}/{fileName} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isMaintainer());
+      allow create: if request.auth != null && request.auth.uid == uid && validJpeg();
+      allow delete: if request.auth != null && (request.auth.uid == uid || isMaintainer());
+    }
+
+    match /catalogPhotos/{itemId}/{fileName} {
+      allow read: if request.auth != null;
+      allow create: if isMaintainer() && validJpeg();
+      allow delete: if isMaintainer();
+    }
+  }
+}
