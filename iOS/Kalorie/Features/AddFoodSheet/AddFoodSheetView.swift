@@ -387,6 +387,7 @@ struct AddFoodSheetView: View {
             )
         }
         .contentMargins(.top, 0, for: .scrollContent)
+        .keyboardDoneToolbar()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(L10n.AddFood.buttonAdd) {
