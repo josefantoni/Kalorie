@@ -210,6 +210,7 @@ understanding why.
 | [0019](design/0019-alcoholic-drink-accuracy-hint.md) | Alcoholic-drink accuracy hint | Implemented | Backend, Cross-platform, iOS, Android |
 | [0020](design/0020-search-ranked-by-log-frequency.md) | Search results ranked by log frequency | Implemented | Backend, Cross-platform, iOS, Android |
 | [0021](design/0021-privacy-policy.md) | Privacy policy | Proposed | Cross-platform, Backend, iOS, Android |
+| [0022](design/0022-food-photos.md) | Food photos | Approved | Backend, Cross-platform, iOS, Android |
 
 ### Decision records
 
