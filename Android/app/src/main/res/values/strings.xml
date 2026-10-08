@@ -14,6 +14,7 @@
     <string name="account_error_accountExistsWithApple">Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.</string>
     <string name="account_error_deleteFailed">Smazání účtu se nezdařilo</string>
     <string name="account_error_deleteRequiresRecentLogin">Pro smazání účtu se prosím znovu přihlas.</string>
+    <string name="account_error_noGoogleAccount">Na zařízení není žádný účet Google</string>
     <string name="account_error_signInFailed">Nepodařilo se přihlásit</string>
     <string name="account_error_signOutFailed">Odhlášení se nezdařilo</string>
     <string name="account_navigationTitle">Účet</string>

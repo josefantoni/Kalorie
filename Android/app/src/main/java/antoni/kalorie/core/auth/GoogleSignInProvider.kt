@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.NoCredentialException
 import antoni.kalorie.R
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -13,6 +14,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 sealed class GoogleSignInError : Exception() {
     data object NoPresentingActivity : GoogleSignInError()
     data object UnexpectedCredential : GoogleSignInError()
+    data object NoGoogleAccount : GoogleSignInError()
 }
 
 data class GoogleSignInResult(
@@ -36,7 +38,11 @@ class GoogleSignInProvider(
         val activity = currentActivityProvider.activity ?: throw GoogleSignInError.NoPresentingActivity
         val option = GetSignInWithGoogleOption.Builder(context.getString(R.string.default_web_client_id)).build()
         val request = GetCredentialRequest.Builder().addCredentialOption(option).build()
-        val credential = CredentialManager.create(context).getCredential(activity, request).credential
+        val credential = try {
+            CredentialManager.create(context).getCredential(activity, request).credential
+        } catch (_: NoCredentialException) {
+            throw GoogleSignInError.NoGoogleAccount
+        }
         if (credential !is CustomCredential || credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
             throw GoogleSignInError.UnexpectedCredential
         }

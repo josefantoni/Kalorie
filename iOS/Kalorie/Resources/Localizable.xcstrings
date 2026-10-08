@@ -255,6 +255,23 @@
         }
       }
     },
+    "account_error_noGoogleAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na zařízení není žádný účet Google"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Google account on this device"
+          }
+        }
+      }
+    },
     "account_error_signInFailed" : {
       "extractionState" : "manual",
       "localizations" : {

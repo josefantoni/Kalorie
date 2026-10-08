@@ -4,6 +4,7 @@ import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.auth.AuthProviderProtocol
+import antoni.kalorie.core.auth.GoogleSignInError
 import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.usecases.DeleteAccountError
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseProtocol
@@ -72,6 +73,8 @@ class AccountViewModel(
             throw error
         } catch (_: LinkOrMergeCredentialError.AccountExistsWithAnotherProvider) {
             alertItem.value = AlertItem(titleRes = R.string.account_error_accountExistsWithApple)
+        } catch (_: GoogleSignInError.NoGoogleAccount) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_noGoogleAccount)
         } catch (error: Exception) {
             if (!isUserCancellation(error)) {
                 Log.error(error, Constants.LogCategory.ACCOUNT)
@@ -101,6 +104,8 @@ class AccountViewModel(
             performDelete()
         } catch (error: CancellationException) {
             throw error
+        } catch (_: GoogleSignInError.NoGoogleAccount) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_noGoogleAccount)
         } catch (error: Exception) {
             if (!isUserCancellation(error)) {
                 Log.error(error, Constants.LogCategory.ACCOUNT)

@@ -4,6 +4,7 @@ import androidx.credentials.exceptions.GetCredentialCancellationException
 import antoni.kalorie.R
 import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.auth.AuthProviderProtocol
+import antoni.kalorie.core.auth.GoogleSignInError
 import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.auth.MergeStatusReportingFake
 import antoni.kalorie.core.usecases.DeleteAccountError
@@ -111,6 +112,16 @@ class AccountViewModelTest {
     }
 
     @Test
+    fun onSignInWithGoogleTapped_whenNoGoogleAccountOnDevice_showsSpecificAlert() = runTest {
+        val sut = makeSUT(signInWithGoogle = SignInWithGoogleUseCaseFake(errorToThrow = GoogleSignInError.NoGoogleAccount))
+
+        sut.onSignInWithGoogleTapped()
+
+        assertEquals("the user can fix a missing account by adding one, so the generic failure would hide the cure", R.string.account_error_noGoogleAccount, sut.alertItem.value?.titleRes)
+        assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
+    @Test
     fun onSignInWithGoogleTapped_whenFailsWithOtherError_showsAlert() = runTest {
         val sut = makeSUT(signInWithGoogle = SignInWithGoogleUseCaseFake(errorToThrow = RuntimeException("unknown")))
 
@@ -157,6 +168,16 @@ class AccountViewModelTest {
         sut.onReauthenticateConfirmed()
 
         assertEquals(R.string.account_error_signInFailed, sut.alertItem.value?.titleRes)
+        assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
+    @Test
+    fun onReauthenticateConfirmed_whenNoGoogleAccountOnDevice_showsSpecificAlert() = runTest {
+        val sut = makeSUT(reauthenticate = ReauthenticateUseCaseFake(errorToThrow = GoogleSignInError.NoGoogleAccount))
+
+        sut.onReauthenticateConfirmed()
+
+        assertEquals(R.string.account_error_noGoogleAccount, sut.alertItem.value?.titleRes)
         assertEquals(AccountViewModel.State.IDLE, sut.state.value)
     }
 

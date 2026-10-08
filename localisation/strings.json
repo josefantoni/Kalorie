@@ -55,6 +55,10 @@
     "cs": "Pro smazání účtu se prosím znovu přihlas.",
     "en": "Please sign in again to delete your account."
   },
+  "account_error_noGoogleAccount": {
+    "cs": "Na zařízení není žádný účet Google",
+    "en": "No Google account on this device"
+  },
   "account_error_signInFailed": {
     "cs": "Nepodařilo se přihlásit",
     "en": "Sign in failed"

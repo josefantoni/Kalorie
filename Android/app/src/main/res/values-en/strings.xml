@@ -14,6 +14,7 @@
     <string name="account_error_accountExistsWithApple">Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them.</string>
     <string name="account_error_deleteFailed">Failed to delete account</string>
     <string name="account_error_deleteRequiresRecentLogin">Please sign in again to delete your account.</string>
+    <string name="account_error_noGoogleAccount">No Google account on this device</string>
     <string name="account_error_signInFailed">Sign in failed</string>
     <string name="account_error_signOutFailed">Sign out failed</string>
     <string name="account_navigationTitle">Account</string>
