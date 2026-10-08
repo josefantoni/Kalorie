@@ -11,6 +11,12 @@ const { doc, getDoc, setDoc, deleteDoc } = require('firebase/firestore');
 const UUID = '3F2504E0-4F89-41D3-9A0C-0305E82C3301';
 const BARCODE = '8593807012345';
 
+const BUCKET_URL = 'https://firebasestorage.googleapis.com/v0/b/kalorie-bf11c.firebasestorage.app/o/';
+const photoUrl = (folder, owner, name = 'a.jpg') =>
+  `${BUCKET_URL}${folder}%2F${owner}%2F${name}?alt=media&token=t`;
+const submissionPhoto = (uid) => photoUrl('submissionPhotos', uid);
+const catalogPhoto = (itemId) => photoUrl('catalogPhotos', itemId);
+
 let env;
 
 function foodItem(id, overrides = {}) {
@@ -44,7 +50,7 @@ function submission(id, uid, overrides = {}) {
     submitted_by: uid,
     status: 'pending',
     submitted_at: 1_700_000_000,
-    item: foodItem(BARCODE),
+    item: foodItem(BARCODE, { photo_url: submissionPhoto(uid) }),
     ...overrides,
   };
 }
@@ -125,6 +131,33 @@ describe('foodItems', () => {
 
   it('is writable by a maintainer', async () => {
     await assertSucceeds(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE)));
+  });
+
+  describe('photo_url', () => {
+    const write = (photo_url) =>
+      setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { photo_url }));
+
+    it('is optional, so items without a photo keep saving', async () => {
+      await assertSucceeds(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE)));
+    });
+
+    it('accepts a catalogPhotos download URL', async () => {
+      await assertSucceeds(write(catalogPhoto(BARCODE)));
+    });
+
+    it('denies a submissionPhotos URL, which the author could delete', async () => {
+      await assertFails(write(submissionPhoto('alice')));
+    });
+
+    it('denies a URL that is not from the project bucket', async () => {
+      await assertFails(write(`https://example.com/o/catalogPhotos%2F${BARCODE}%2Fa.jpg`));
+      await assertFails(write(catalogPhoto(BARCODE).replace('kalorie-bf11c', 'other-project')));
+    });
+
+    it('denies a photo_url that is not a string or is too long', async () => {
+      await assertFails(write(42));
+      await assertFails(write(catalogPhoto(BARCODE) + 'x'.repeat(1024)));
+    });
   });
 
   it('cannot be deleted, even by a maintainer', async () => {
@@ -211,7 +244,7 @@ describe('foodItemSubmissions', () => {
   });
 
   it('accepts a submission without a barcode when the item id is a UUID', async () => {
-    const data = submission(sid, 'alice', { item: foodItem(UUID) });
+    const data = submission(sid, 'alice', { item: foodItem(UUID, { photo_url: submissionPhoto('alice') }) });
     delete data.barcode;
     await assertSucceeds(setDoc(doc(user('alice'), path), data));
   });
@@ -236,6 +269,40 @@ describe('foodItemSubmissions', () => {
     const item = foodItem(BARCODE);
     delete item.cz_name;
     await assertFails(setDoc(doc(user('alice'), path), submission(sid, 'alice', { item })));
+  });
+
+  describe('photo_url', () => {
+    const withPhoto = (uid, photo_url) =>
+      submission(sid, uid, { item: foodItem(BARCODE, { photo_url }) });
+
+    it('is required on creation', async () => {
+      await assertFails(setDoc(doc(user('alice'), path), submission(sid, 'alice', { item: foodItem(BARCODE) })));
+    });
+
+    it("denies a URL in another user's folder", async () => {
+      await assertFails(setDoc(doc(user('alice'), path), withPhoto('alice', submissionPhoto('bob'))));
+    });
+
+    it('denies a non-Storage URL', async () => {
+      await assertFails(setDoc(doc(user('alice'), path), withPhoto('alice', 'https://example.com/a.jpg')));
+    });
+
+    it('denies a catalogPhotos URL', async () => {
+      await assertFails(setDoc(doc(user('alice'), path), withPhoto('alice', catalogPhoto(BARCODE))));
+    });
+
+    it("denies a resubmit that points at another user's folder or drops the photo", async () => {
+      await seed((db) => setDoc(doc(db, path), submission(sid, 'alice')));
+      await assertFails(setDoc(doc(user('alice'), path), withPhoto('alice', submissionPhoto('bob'))));
+      await assertFails(setDoc(doc(user('alice'), path), submission(sid, 'alice', { item: foodItem(BARCODE) })));
+      await assertSucceeds(setDoc(doc(user('alice'), path), withPhoto('alice', photoUrl('submissionPhotos', 'alice', 'b.jpg'))));
+    });
+
+    it('lets a maintainer reject a pending submission that has no photo', async () => {
+      await seed((db) => setDoc(doc(db, path), submission(sid, 'alice', { item: foodItem(BARCODE) })));
+      const data = submission(sid, 'alice', { item: foodItem(BARCODE), status: 'rejected', reject_reason: 'No photo' });
+      await assertSucceeds(setDoc(doc(maintainer(), path), data));
+    });
   });
 
   describe('reading', () => {
@@ -283,7 +350,7 @@ describe('foodItemSubmissions', () => {
     });
 
     it('lets the author edit while the submission stays pending', async () => {
-      const item = foodItem(BARCODE, { cz_name: 'Housky' });
+      const item = foodItem(BARCODE, { cz_name: 'Housky', photo_url: submissionPhoto('alice') });
       await assertSucceeds(setDoc(doc(user('alice'), path), submission(sid, 'alice', { item })));
     });
 

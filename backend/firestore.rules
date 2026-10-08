@@ -11,6 +11,10 @@ service cloud.firestore {
         id.matches('[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}');
     }
 
+    function photoUrlPrefix() {
+      return 'https://firebasestorage\\.googleapis\\.com/v0/b/kalorie-bf11c\\.firebasestorage\\.app/o/';
+    }
+
     function validFoodItem(data) {
       return data.id is string &&
         validItemId(data.id) &&
@@ -36,7 +40,13 @@ service cloud.firestore {
         (!('fiber' in data) || data.fiber is number) &&
         (!('measure_unit' in data) || data.measure_unit in ['grams', 'millilitres']) &&
         (!('alcohol_by_volume' in data) ||
-          (data.alcohol_by_volume is number && data.alcohol_by_volume > 0 && data.alcohol_by_volume <= 100));
+          (data.alcohol_by_volume is number && data.alcohol_by_volume > 0 && data.alcohol_by_volume <= 100)) &&
+        (!('photo_url' in data) || (data.photo_url is string && data.photo_url.size() <= 1024));
+    }
+
+    function ownSubmissionPhoto(item) {
+      return 'photo_url' in item &&
+        item.photo_url.matches(photoUrlPrefix() + 'submissionPhotos%2F' + request.auth.uid + '%2F.*');
     }
 
     match /users/{userId} {
@@ -52,7 +62,9 @@ service cloud.firestore {
       allow create, update: if isMaintainer() &&
         validItemId(itemId) &&
         request.resource.data.id == itemId &&
-        validFoodItem(request.resource.data);
+        validFoodItem(request.resource.data) &&
+        (!('photo_url' in request.resource.data) ||
+          request.resource.data.photo_url.matches(photoUrlPrefix() + 'catalogPhotos%2F.*'));
     }
 
     match /foodItemSubmissions/{submissionId} {
@@ -62,7 +74,8 @@ service cloud.firestore {
         request.resource.data.id == submissionId &&
         request.resource.data.submitted_by == request.auth.uid &&
         request.resource.data.status == 'pending' &&
-        validFoodItem(request.resource.data.item);
+        validFoodItem(request.resource.data.item) &&
+        ownSubmissionPhoto(request.resource.data.item);
 
       allow update: if (isMaintainer() &&
           request.resource.data.submitted_by == resource.data.submitted_by &&
@@ -76,7 +89,8 @@ service cloud.firestore {
           request.resource.data.submitted_by == resource.data.submitted_by &&
           request.resource.data.get('barcode', null) == resource.data.get('barcode', null) &&
           request.resource.data.status == 'pending' &&
-          validFoodItem(request.resource.data.item));
+          validFoodItem(request.resource.data.item) &&
+          ownSubmissionPhoto(request.resource.data.item));
 
       allow delete: if isMaintainer() || resource.data.submitted_by == request.auth.uid;
     }
