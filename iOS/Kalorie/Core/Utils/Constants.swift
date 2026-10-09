@@ -36,6 +36,8 @@ enum Constants {
         static let photoContentType = "image/jpeg"
         static let maxDownloadBytes: Int64 = 5 * 1024 * 1024
         static let photoCacheControl = "public, max-age=31536000, immutable"
+        static let imageCacheMemoryBytes = 20 * 1024 * 1024
+        static let imageCacheDiskBytes = 100 * 1024 * 1024
     }
 
     enum Support {

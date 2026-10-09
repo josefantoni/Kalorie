@@ -19,6 +19,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         FirebaseApp.configure()
+        URLCache.shared = URLCache(
+            memoryCapacity: Constants.Storage.imageCacheMemoryBytes,
+            diskCapacity: Constants.Storage.imageCacheDiskBytes
+        )
         UISegmentedControl.appearance().selectedSegmentTintColor = UIColor(named: "AccentColor")
         UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .selected)
         #if DEBUG
