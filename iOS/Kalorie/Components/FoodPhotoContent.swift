@@ -29,14 +29,15 @@ struct FoodPhotoContent: View {
                 Color.clear
             }
         case .remote(let url):
-            AsyncImage(url: url) { phase in
-                if let image = phase.image {
+            RemoteFoodImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
                     image
                         .resizable()
                         .aspectRatio(contentMode: contentMode)
-                } else if case .empty = phase {
+                case .loading:
                     ProgressView()
-                } else {
+                case .failure:
                     Image(systemName: BaseImageName.foodPlaceholder.rawValue)
                         .font(.largeTitle)
                         .foregroundStyle(.secondary)

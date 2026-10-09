@@ -17,8 +17,9 @@ struct FoodPhotoThumbnail: View {
     // MARK: - Body
 
     var body: some View {
-        AsyncImage(url: url) { phase in
-            if let image = phase.image {
+        RemoteFoodImage(url: url) { phase in
+            switch phase {
+            case .success(let image):
                 Button(action: onTapped) {
                     ZStack(alignment: .bottomTrailing) {
                         image
@@ -39,14 +40,14 @@ struct FoodPhotoThumbnail: View {
                 .padding(.leading, 20)
                 .padding(.bottom, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            } else if case .empty = phase {
+            case .loading:
                 ProgressView()
                     .frame(width: Self.diameter, height: Self.diameter)
                     .background(Color.secondary.opacity(0.15), in: .circle)
                     .padding(.leading, 20)
                     .padding(.bottom, 8)
                     .frame(maxWidth: .infinity, alignment: .leading)
-            } else {
+            case .failure:
                 Color.clear.frame(height: 0)
             }
         }
