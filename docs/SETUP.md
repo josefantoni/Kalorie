@@ -84,6 +84,31 @@ Setting it:
    (`getIDTokenResult(forcingRefresh: true)`). Custom claims only propagate to a fresh ID token
    (roughly hourly otherwise), so without this step the panel stays invisible and looks broken.
 
+## Firebase Storage (food photos)
+
+Product photos ([design 0022](design/0022-food-photos.md)) need a Storage bucket, which none of the
+repository can create:
+
+1. Upgrade the Firebase project to the **Blaze** plan (a new default bucket cannot be created on
+   Spark) and set a budget alert in Google Cloud Billing.
+2. Create the default bucket in Firebase Console → Storage. The no-cost tier applies only to
+   `us-central1`, `us-east1` and `us-west1`; an EU bucket is billed from the first byte.
+3. The bucket name (`<project>.firebasestorage.app`) is written into the regexes in
+   `backend/firestore.rules` and into `GoogleService-Info.plist` / `google-services.json`. If the
+   bucket ever changes, change all of them together.
+
+Rules are versioned in `backend/storage.rules` and deployed together with the Firestore rules, before
+any client that writes `photo_url` ships:
+
+```sh
+cd backend
+firebase deploy --only firestore:rules,storage
+```
+
+The suite in `firestore-rules-tests/` covers both rule files (Firestore and Storage emulators).
+Deploying the rules makes submissions without a photo fail, so builds that predate photos can no
+longer submit.
+
 ## Android client
 
 This is what has to be configured outside the repository before the Android app in `Android/` can

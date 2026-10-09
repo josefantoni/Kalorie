@@ -93,6 +93,19 @@ foodItemReports/{barcode}_{userId}         shared, a report that a catalogue ent
 Everything under `users/{userId}` is private to that user. `foodItems` is shared by every user
 and every future client.
 
+Product photos ([design 0022](design/0022-food-photos.md)) live in Firebase Storage, not in
+Firestore; a document only carries the download URL in `photo_url`:
+
+```
+submissionPhotos/{uid}/{uuid}.jpg          a user's photo for a pending/rejected submission
+catalogPhotos/{itemId}/{uuid}.jpg          the approved photo of a catalogue item
+```
+
+Folder names are in `Constants.Storage`. Approving a submission copies the photo from
+`submissionPhotos` into `catalogPhotos` (a maintainer cannot be given write access to another
+user's folder, and the submitter must be free to delete theirs); replacing or deleting a photo
+deletes the old object afterwards, best effort.
+
 Document IDs are meaningful, not random:
 
 - `foodItems`, `favouriteFoods` and `foodItemPortions` are keyed by the item's **id**, which is
@@ -394,6 +407,19 @@ Consequences worth knowing before adding a method:
   no second report when one exists, rather than writing blind against a rule that would refuse it.
   `delete` is `isMaintainer() ||` the author, for account deletion, exactly as on
   `foodItemSubmissions`. See [design 0012](design/0012-report-incorrect-catalogue-data.md).
+- Photos ([design 0022](design/0022-food-photos.md)): `validFoodItem` accepts an optional
+  `photo_url` string of at most 1024 characters. A `foodItemSubmissions` `create` and the author's
+  `update` additionally require `ownSubmissionPhoto(item)` — `photo_url` must be present and match
+  `https://firebasestorage.googleapis.com/v0/b/<bucket>/o/submissionPhotos%2F<own uid>%2F…`, so a
+  submission cannot exist without a photo and cannot point at someone else's. A `foodItems` write
+  may only carry a `catalogPhotos%2F…` URL. **The regexes are anchored to the URL without an explicit
+  port**: the Firebase iOS SDK returns `…googleapis.com:443/…`, which the rule refuses with a bare
+  `permission-denied`, so `StorageDataProvider.uploadAsync` strips the port before the URL is stored.
+- `backend/storage.rules`, deployed via the same `firebase.json`: `submissionPhotos/{uid}/{file}` is
+  readable and deletable by its owner or a maintainer and creatable only by the owner;
+  `catalogPhotos/{itemId}/{file}` is readable by any signed-in user and writable/deletable only by a
+  maintainer. Every `create` requires `contentType == 'image/jpeg'` and a size under 1 MB. Covered
+  by `firestore-rules-tests` against the Storage emulator.
 - Everything else is denied by Firestore's default.
 
 `backend/firestore.indexes.json`, deployed via the same `firebase.json`, disables single-field
@@ -444,6 +470,7 @@ ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
 | | `portions` | array of `{name: string, grams: number}` | no — absent means `[]` | none |
 | | `measure_unit` | `"grams"` or `"millilitres"` | no — absent means grams | that enum if present |
 | | `alcohol_by_volume` | number, % in `(0, 100]`; zero is never written | no — absent means not recorded | number in `(0, 100]` if present |
+| | `photo_url` | string, Storage download URL without an explicit port (§ 1.6) | no — absent means no photo (`foodItems`, OFF-sourced items); required on a `foodItemSubmissions` item | string ≤ 1024 chars if present; prefix-checked per collection |
 | | *nutrition field set* | | | as above |
 | **`favouriteFoods`** (`FavouriteFoodDTO`) | `id`, `cz_name`, `eng_name`, `weight`, `date`, `portions`, `measure_unit`, `alcohol_by_volume`, *nutrition field set* | as `foodItems` | as `foodItems` | user-scoped only (§ 1.6) |
 | | `food_item_kind` | `catalogue` \| `external` \| `created_meal` | yes | none |
@@ -1711,6 +1738,16 @@ share `FoodItemFormInput.asFoodItemDomain()` and the same `FoodItemSubmissionErr
 alerts. On success the sheet shows a one-line confirmation
 (`isSubmissionConfirmationVisible`) before dismissing.
 
+A submission needs a product photo ([design 0022](design/0022-food-photos.md)). The form holds it as
+`FoodItemFormPhoto` (`none` / `local(Data)` / `remote(URL)`); a picked or captured image is first
+reduced by `FoodPhotoProcessing` (square crop, 1080 px, JPEG 0.7, EXIF dropped). Submit, resubmit,
+withdraw and approve all go through `FoodItemSubmissionWriter` and the Upload/DeleteFoodPhoto use
+cases, so the order is always: validate → upload → Firestore write → on failure delete the just
+uploaded object, on success delete the replaced one. A missing photo raises `photoMissing`, a Storage
+failure `photoUploadFailed`; both have their own alert instead of the generic one. Approve and the
+catalogue editor write `catalogPhotos`, and `DeleteAccountUseCase` lists and deletes the user's
+`submissionPhotos` first and aborts when that listing fails, so the deletion can be retried.
+
 The user's own submissions are the fourth list folded into `displayedResults` (§ 2.2) and — with an
 empty search — their own always-visible section, `mySubmissions`, fetched once in `onAppear`
 alongside favourites and created meals. `FoodItemRow.submissionStatus` renders the *pending* /
@@ -1757,8 +1794,9 @@ submission row and goes somewhere else:
 
 ### 7.4 What this does not do
 
-Per design 0009's Non-goals: no packaging photo (Storage isn't configured), no push notification of
-the outcome, and no `delete` on `foodItems` for anyone including the maintainer. All three are tracked
+Per design 0009's Non-goals: no push notification of the outcome and no `delete` on `foodItems` for
+anyone including the maintainer (the packaging photo that was a third non-goal shipped with
+[design 0022](design/0022-food-photos.md), § 7.2). Both are tracked
 in `TODO.md`, not here, per this document's own rule that open work lives in the backlog, not in the
 description of what exists. The fourth item design
 0009 listed here — a report-a-problem channel for an existing catalogue item — is no longer a gap;
