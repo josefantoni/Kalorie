@@ -13,6 +13,10 @@ import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseFake
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
@@ -414,6 +418,93 @@ class FoodQuantityViewModelTest {
         val sut = makeSUT(selectedDate = makeDate(hour = 3), mealTypes = listOf(makeMealType(id = "breakfast", hour = 6, endHour = 10)))
 
         assertNull(sut.selectedMealTypeId.value)
+    }
+
+    @Test
+    fun onAppear_whenTheItemAlreadyHasAPhoto_keepsItWithoutFetching() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(photoUrl = "https://example.com/own.jpg"),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeFoodItem(photoUrl = "https://example.com/other.jpg")),
+        )
+
+        assertEquals("a search result already carries its photo, so it must show before any request", "https://example.com/own.jpg", sut.photoUrl.value)
+        sut.onAppear()
+
+        assertEquals("https://example.com/own.jpg", sut.photoUrl.value)
+    }
+
+    @Test
+    fun onAppear_whenACatalogueSnapshotHasNoPhoto_loadsItFromTheCatalogue() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeFoodItem(photoUrl = "https://example.com/catalogue.jpg")),
+        )
+
+        sut.onAppear()
+
+        assertEquals("favourites and frequent foods are snapshots that never stored a photo", "https://example.com/catalogue.jpg", sut.photoUrl.value)
+    }
+
+    @Test
+    fun onAppear_calledAgain_doesNotLookUpThePhotoTwice() = runTest {
+        val lookup = CountingFetchFoodItemByBarcode(item = makeFoodItem(photoUrl = "https://example.com/catalogue.jpg"))
+        val sut = makeSUT(item = makeFoodItem(kind = FoodItemKind.CATALOGUE), fetchFoodItemByBarcode = lookup)
+
+        sut.onAppear()
+        sut.onAppear()
+
+        assertEquals("the screen reappears after every pushed child, which must not cost a read each time", 1, lookup.callCount)
+        assertEquals("https://example.com/catalogue.jpg", sut.photoUrl.value)
+    }
+
+    @Test
+    fun onAppear_afterAFailedLookup_triesAgain() = runTest {
+        val lookup = CountingFetchFoodItemByBarcode(item = null, error = RuntimeException("timed out"))
+        val sut = makeSUT(item = makeFoodItem(kind = FoodItemKind.CATALOGUE), fetchFoodItemByBarcode = lookup)
+
+        sut.onAppear()
+        sut.onAppear()
+
+        assertEquals(2, lookup.callCount)
+    }
+
+    @Test
+    fun onAppear_whenAnExternalSnapshotHasNoPhoto_loadsItFromOpenFoodFacts() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.EXTERNAL),
+            fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(
+                stubbedItem = makeFoodItem(kind = FoodItemKind.EXTERNAL, photoUrl = "https://images.openfoodfacts.org/front.jpg"),
+            ),
+        )
+
+        sut.onAppear()
+
+        assertEquals("https://images.openfoodfacts.org/front.jpg", sut.photoUrl.value)
+    }
+
+    @Test
+    fun onAppear_whenTheLookupFails_showsNoPhotoInsteadOfAnError() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.EXTERNAL),
+            fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCaseFake(shouldThrow = true),
+        )
+
+        sut.onAppear()
+
+        assertNull(sut.photoUrl.value)
+        assertNull("a missing photo must be invisible, never an alert", sut.alertItem.value)
+    }
+
+    @Test
+    fun onAppear_forACreatedMeal_neverLooksUpAPhoto() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CREATED_MEAL),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeFoodItem(photoUrl = "https://example.com/x.jpg")),
+        )
+
+        sut.onAppear()
+
+        assertNull(sut.photoUrl.value)
     }
 
     @Test
@@ -993,6 +1084,8 @@ class FoodQuantityViewModelTest {
         removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol = RemoveFavouriteFoodUseCaseFake(),
         fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseProtocol = FetchFoodItemPersonalPortionsUseCaseFake(),
         saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseProtocol = SaveFoodItemPersonalPortionsUseCaseFake(),
+        fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
+        fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
         submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
         meal: MyCreatedMealDomain? = null,
@@ -1015,6 +1108,8 @@ class FoodQuantityViewModelTest {
         removeFavouriteFood = removeFavouriteFood,
         fetchFoodItemPersonalPortions = fetchFoodItemPersonalPortions,
         saveFoodItemPersonalPortions = saveFoodItemPersonalPortions,
+        fetchFoodItemByBarcode = fetchFoodItemByBarcode,
+        fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
         fetchMyFoodItemReport = fetchMyFoodItemReport,
         submitFoodItemReport = submitFoodItemReport,
         meal = meal,
@@ -1036,6 +1131,7 @@ class FoodQuantityViewModelTest {
         fiber: Double? = 0.0,
         portions: List<FoodPortionDomain> = emptyList(),
         alcoholByVolume: Double? = null,
+        photoUrl: String? = null,
     ): FoodItemDomain = FoodItemDomain(
         id = "test",
         kind = kind,
@@ -1055,6 +1151,7 @@ class FoodQuantityViewModelTest {
         salt = 0.1,
         portions = portions,
         alcoholByVolume = alcoholByVolume,
+        photoUrl = photoUrl,
     )
 }
 
@@ -1098,5 +1195,18 @@ private class RecordFoodFrequencyUseCaseNeverFinishing : RecordFoodFrequencyUseC
 
     override suspend fun invoke(item: FoodItemDomain, date: Instant) {
         awaitCancellation()
+    }
+}
+
+private class CountingFetchFoodItemByBarcode(
+    private val item: FoodItemDomain?,
+    private val error: Exception? = null,
+) : FetchFoodItemByBarcodeUseCaseProtocol {
+    var callCount = 0
+
+    override suspend fun invoke(barcode: String): FoodItemDomain? {
+        callCount++
+        error?.let { throw it }
+        return item
     }
 }
