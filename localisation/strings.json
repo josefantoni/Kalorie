@@ -36,8 +36,8 @@
     "en": "Sign out"
   },
   "account_dataAttribution": {
-    "cs": "Nutriční data pro některé potraviny pochází z Open Food Facts, dostupné pod licencí Open Database License.",
-    "en": "Nutrition data for some foods comes from Open Food Facts, available under the Open Database License."
+    "cs": "Nutriční data a fotky některých potravin pocházejí z Open Food Facts. Data jsou dostupná pod licencí Open Database License, fotky pod licencí CC BY-SA.",
+    "en": "Nutrition data and photos of some foods come from Open Food Facts. The data is available under the Open Database License, the photos under CC BY-SA."
   },
   "account_dataAttribution_linkTitle": {
     "cs": "openfoodfacts.org",
@@ -658,6 +658,38 @@
   "foodItemReport_error_reasonTooLong": {
     "cs": "Zkraťte popis na 500 znaků",
     "en": "Keep the description under 500 characters"
+  },
+  "foodPhoto_accessibility_enlarge": {
+    "cs": "Zvětšit fotku",
+    "en": "Enlarge photo"
+  },
+  "foodPhoto_accessibility_retake": {
+    "cs": "Vyfotit znovu",
+    "en": "Retake photo"
+  },
+  "foodPhoto_action_choose": {
+    "cs": "Vybrat z galerie",
+    "en": "Choose from library"
+  },
+  "foodPhoto_action_show": {
+    "cs": "Zobrazit fotku",
+    "en": "Show photo"
+  },
+  "foodPhoto_action_take": {
+    "cs": "Vyfotit",
+    "en": "Take photo"
+  },
+  "foodPhoto_error_required": {
+    "cs": "Přidejte fotku produktu",
+    "en": "Add a product photo"
+  },
+  "foodPhoto_error_uploadFailed": {
+    "cs": "Fotku se nepodařilo nahrát. Zkuste to znovu.",
+    "en": "The photo could not be uploaded. Try again."
+  },
+  "foodPhoto_title": {
+    "cs": "Fotka produktu",
+    "en": "Product photo"
   },
   "foodPortion_button_add": {
     "cs": "Přidat porci",

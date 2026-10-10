@@ -9,7 +9,7 @@
     <string name="account_button_signInWithApple">Přihlásit se přes Apple</string>
     <string name="account_button_signInWithGoogle">Přihlásit se přes Google</string>
     <string name="account_button_signOut">Odhlásit se</string>
-    <string name="account_dataAttribution">Nutriční data pro některé potraviny pochází z Open Food Facts, dostupné pod licencí Open Database License.</string>
+    <string name="account_dataAttribution">Nutriční data a fotky některých potravin pocházejí z Open Food Facts. Data jsou dostupná pod licencí Open Database License, fotky pod licencí CC BY-SA.</string>
     <string name="account_dataAttribution_linkTitle">openfoodfacts.org</string>
     <string name="account_error_accountExistsWithApple">Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.</string>
     <string name="account_error_deleteFailed">Smazání účtu se nezdařilo</string>
@@ -165,6 +165,14 @@
     <string name="foodItemReport_button_send">Odeslat</string>
     <string name="foodItemReport_error_reasonRequired">Napište prosím, co je špatně</string>
     <string name="foodItemReport_error_reasonTooLong">Zkraťte popis na 500 znaků</string>
+    <string name="foodPhoto_accessibility_enlarge">Zvětšit fotku</string>
+    <string name="foodPhoto_accessibility_retake">Vyfotit znovu</string>
+    <string name="foodPhoto_action_choose">Vybrat z galerie</string>
+    <string name="foodPhoto_action_show">Zobrazit fotku</string>
+    <string name="foodPhoto_action_take">Vyfotit</string>
+    <string name="foodPhoto_error_required">Přidejte fotku produktu</string>
+    <string name="foodPhoto_error_uploadFailed">Fotku se nepodařilo nahrát. Zkuste to znovu.</string>
+    <string name="foodPhoto_title">Fotka produktu</string>
     <string name="foodPortion_button_add">Přidat porci</string>
     <string name="foodPortion_error_invalidGrams">Zadejte gramáž větší než 0</string>
     <string name="foodPortion_error_invalidName">Zadejte název porce</string>
