@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,7 +78,8 @@ fun PortionDraftAddSection(drafts: List<FoodPortionDraft>, onAdd: (FoodPortionDr
     // MARK: - Body
 
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        AddButton(
+        BadgeButton(
+            icon = Icons.Filled.Add,
             onClick = { onAdd(FoodPortionDraft.blank) },
             contentDescription = stringResource(R.string.foodPortion_button_add),
             enabled = drafts.all { it.isComplete },

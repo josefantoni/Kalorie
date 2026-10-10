@@ -15,8 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.components.BadgeButton
 import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FloatingLabelTextField
@@ -173,10 +172,8 @@ fun MyCreatedMealEditorView(
                             isUnderlineFullWidth = true,
                             text = searchText,
                             onTextChange = { viewModel.searchText.value = it },
-                            trailingIcon = {
-                                IconButton(onClick = scannerAccess.open) {
-                                    Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                }
+                            trailingButton = {
+                                BadgeButton(icon = BarcodeIcon, onClick = scannerAccess.open, contentDescription = null)
                             },
                             modifier = Modifier.fillMaxWidth(),
                         )
