@@ -13,6 +13,7 @@ import antoni.kalorie.core.networking.FoodItemReportDTO
 import antoni.kalorie.core.networking.FoodItemSubmissionDTO
 import antoni.kalorie.core.networking.MealTypeDTO
 import antoni.kalorie.core.networking.MyCreatedMealDTO
+import antoni.kalorie.core.networking.StorageDataProviderProtocol
 import antoni.kalorie.core.networking.loadAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
@@ -34,6 +35,7 @@ class DeleteAccountUseCase(
     private val authProvider: AuthProviderProtocol,
     private val authCommandProvider: AuthCommandProviderProtocol,
     private val snapshotStore: PendingMergeSnapshotStoreProtocol,
+    private val storageProvider: StorageDataProviderProtocol,
 ) : DeleteAccountUseCaseProtocol {
 
     // MARK: - Functions
@@ -79,6 +81,9 @@ class DeleteAccountUseCase(
             descending = false,
         )
         submissions.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS) }
+        // Listing the folder, rather than following the deleted submissions' URLs, also removes
+        // orphans left by earlier failed writes. catalogPhotos is shared catalogue content and stays.
+        storageProvider.listAsync("${Constants.Storage.SUBMISSION_PHOTOS_FOLDER}/$userId").forEach { storageProvider.deleteAsync(it) }
         val reports: List<FoodItemReportDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.FOOD_ITEM_REPORTS,
             field = "reported_by",

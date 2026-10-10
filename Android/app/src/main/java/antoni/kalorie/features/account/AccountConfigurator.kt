@@ -11,6 +11,7 @@ import antoni.kalorie.core.auth.GoogleSignInProvider
 import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.auth.PendingMergeSnapshotStore
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
+import antoni.kalorie.core.networking.StorageDataProvider
 import antoni.kalorie.core.usecases.DeleteAccountUseCase
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialUseCase
 import antoni.kalorie.core.usecases.MigrateAnonymousDataUseCase
@@ -64,6 +65,7 @@ class AccountConfigurator(
                     authProvider = authProvider,
                     authCommandProvider = authCommandProvider,
                     snapshotStore = snapshotStore,
+                    storageProvider = StorageDataProvider(),
                 ),
                 reauthenticate = ReauthenticateUseCase(
                     googleSignInProvider = googleSignInProvider,

@@ -1,6 +1,7 @@
 package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 
 data class UpdateFoodItemUseCaseFake(
     val errorToThrow: Exception? = null,
@@ -8,7 +9,7 @@ data class UpdateFoodItemUseCaseFake(
 
     // MARK: - Functions
 
-    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain) {
+    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) {
         errorToThrow?.let { throw it }
     }
 }
