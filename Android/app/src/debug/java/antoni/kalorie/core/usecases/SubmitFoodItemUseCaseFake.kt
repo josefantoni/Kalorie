@@ -1,6 +1,7 @@
 package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import java.time.Instant
@@ -12,7 +13,7 @@ data class SubmitFoodItemUseCaseFake(
 
     // MARK: - Functions
 
-    override suspend fun invoke(item: FoodItemDomain): FoodItemSubmissionDomain {
+    override suspend fun invoke(item: FoodItemDomain, photo: FoodItemFormPhoto): FoodItemSubmissionDomain {
         errorToThrow?.let { throw it }
         return FoodItemSubmissionDomain(
             id = UUID.randomUUID().toString().uppercase(),

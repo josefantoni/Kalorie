@@ -3,13 +3,16 @@ package antoni.kalorie.core.usecases
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodItemDTO
+import antoni.kalorie.core.networking.StorageDataProviderFake
 import antoni.kalorie.core.utils.Constants
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.time.Instant
@@ -20,11 +23,11 @@ class UpdateFoodItemUseCaseTest {
 
     @Test
     fun update_whenNotAuthenticated_throwsAuthError() = runTest {
-        val (sut, _) = makeSUT(userId = null)
+        val (sut, _, _) = makeSUT(userId = null)
         val item = makeItem()
 
         try {
-            sut(item, item)
+            sut(item, item, FoodItemFormPhoto.None)
             fail("Expected notAuthenticated error")
         } catch (_: AuthError.NotAuthenticated) {
         }
@@ -32,11 +35,11 @@ class UpdateFoodItemUseCaseTest {
 
     @Test
     fun update_withInvalidItem_throwsValidationErrorAndDoesNotWrite() = runTest {
-        val (sut, dataProvider) = makeSUT()
+        val (sut, dataProvider, _) = makeSUT()
         val invalidItem = makeItem(caloriesPerHundredGrams = 0.0)
 
         try {
-            sut(invalidItem, invalidItem)
+            sut(invalidItem, invalidItem, FoodItemFormPhoto.None)
             fail("Expected invalidCalories error")
         } catch (_: UpdateFoodItemError.InvalidCalories) {
         }
@@ -47,10 +50,10 @@ class UpdateFoodItemUseCaseTest {
     @Test
     fun update_withValidItem_overwritesTheCatalogueDocument() = runTest {
         val item = makeItem()
-        val (sut, dataProvider) = makeSUT(currentDocument = item)
+        val (sut, dataProvider, _) = makeSUT(currentDocument = item)
         val previouslyLoaded = FoodItemDTO(item).asDomain()
 
-        sut(item, previouslyLoaded)
+        sut(item, previouslyLoaded, FoodItemFormPhoto.None)
 
         assertEquals(Constants.Firestore.FOOD_ITEMS, dataProvider.setSavedCollection)
         assertEquals(item.id, dataProvider.setSavedId)
@@ -60,10 +63,10 @@ class UpdateFoodItemUseCaseTest {
     fun update_whenDocumentChangedSinceLoad_throwsAndDoesNotWrite() = runTest {
         val previouslyLoaded = makeItem(caloriesPerHundredGrams = 80.0)
         val changedOnServer = makeItem(caloriesPerHundredGrams = 90.0)
-        val (sut, dataProvider) = makeSUT(currentDocument = changedOnServer)
+        val (sut, dataProvider, _) = makeSUT(currentDocument = changedOnServer)
 
         try {
-            sut(makeItem(caloriesPerHundredGrams = 100.0), previouslyLoaded)
+            sut(makeItem(caloriesPerHundredGrams = 100.0), previouslyLoaded, FoodItemFormPhoto.None)
             fail("Expected changedSinceLoad error")
         } catch (_: UpdateFoodItemError.ChangedSinceLoad) {
         }
@@ -71,15 +74,58 @@ class UpdateFoodItemUseCaseTest {
         assertNull(dataProvider.setSavedId)
     }
 
+    @Test
+    fun update_withoutPhoto_stillSavesSoItemsThatPredateFoodPhotosKeepWorking() = runTest {
+        val item = makeItem()
+        val (sut, dataProvider, storage) = makeSUT(currentDocument = item)
+
+        sut(item, FoodItemDTO(item).asDomain(), FoodItemFormPhoto.None)
+
+        assertEquals(item.id, dataProvider.setSavedId)
+        assertTrue(storage.uploadedPaths.isEmpty())
+    }
+
+    @Test
+    fun update_withLocalPhoto_uploadsToCatalogPhotosAndDeletesThePreviousCatalogueFile() = runTest {
+        val (sut, dataProvider, storage) = makeSUT()
+        val old = storage.uploadAsync(byteArrayOf(9), "catalogPhotos/12345678/old.jpg", "image/jpeg")
+        val item = makeItem().withPhotoUrl(old)
+        dataProvider.stubbedDocument = FoodItemDTO(item)
+
+        sut(item, FoodItemDTO(item).asDomain(), FoodItemFormPhoto.Local(byteArrayOf(1, 2)))
+
+        assertTrue(storage.uploadedPaths.last().startsWith("catalogPhotos/12345678/"))
+        assertEquals(listOf(old), storage.deletedUrls)
+        assertEquals(1, storage.files.size)
+    }
+
+    @Test
+    fun update_whenTheWriteFails_keepsThePreviousFileAndDropsTheNewOne() = runTest {
+        val (sut, dataProvider, storage) = makeSUT()
+        val old = storage.uploadAsync(byteArrayOf(9), "catalogPhotos/12345678/old.jpg", "image/jpeg")
+        val item = makeItem().withPhotoUrl(old)
+        dataProvider.stubbedDocument = FoodItemDTO(item)
+        dataProvider.stubbedSetError = RuntimeException("offline")
+
+        try {
+            sut(item, FoodItemDTO(item).asDomain(), FoodItemFormPhoto.Local(byteArrayOf(1, 2)))
+        } catch (_: RuntimeException) {
+        }
+
+        assertEquals(listOf(old), storage.files.keys.toList())
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
         userId: String? = "maintainer-user",
         currentDocument: FoodItemDomain? = null,
-    ): Pair<UpdateFoodItemUseCase, FirestoreDataProviderFake> {
+    ): Triple<UpdateFoodItemUseCase, FirestoreDataProviderFake, StorageDataProviderFake> {
         val dataProvider = FirestoreDataProviderFake()
         dataProvider.stubbedDocument = currentDocument?.let { FoodItemDTO(it) }
-        return UpdateFoodItemUseCase(dataProvider, AuthProviderFake(userId = userId)) to dataProvider
+        val storage = StorageDataProviderFake()
+        val sut = UpdateFoodItemUseCase(dataProvider, AuthProviderFake(userId = userId), UploadFoodPhotoUseCase(storage), DeleteFoodPhotoUseCase(storage))
+        return Triple(sut, dataProvider, storage)
     }
 
     private fun makeItem(id: String = "12345678", name: String = "Tvaroh", caloriesPerHundredGrams: Double = 80.0): FoodItemDomain = FoodItemDomain(

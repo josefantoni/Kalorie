@@ -84,7 +84,7 @@ class ModerationReviewViewModel(
         _state.value = LoadingState.Loading
         val editedItem = formInput.value.asFoodItemDomain(id = submission.item.id, date = submission.item.date)
         try {
-            approveSubmission(submission, editedItem)
+            approveSubmission(submission, editedItem, formInput.value.photo)
             onResolved()
             _shouldDismiss.value = true
         } catch (error: CancellationException) {
@@ -93,6 +93,9 @@ class ModerationReviewViewModel(
             onResolved()
             alertItem.value = AlertItem(titleRes = R.string.moderation_error_alreadyResolved)
             _shouldDismiss.value = true
+        } catch (_: ApproveSubmissionError.PhotoMissing) {
+            recognizedFields.value = recognizedFields.value + FoodItemFormField.PHOTO
+            alertItem.value = AlertItem(titleRes = R.string.foodPhoto_error_required)
         } catch (_: ApproveSubmissionError.ChangedSinceReview) {
             onResolved()
             alertItem.value = AlertItem(titleRes = R.string.moderation_error_changedSinceReview)

@@ -8,7 +8,9 @@ import antoni.kalorie.KalorieApplication
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
+import antoni.kalorie.core.networking.StorageDataProvider
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
+import antoni.kalorie.core.usecases.DeleteFoodPhotoUseCase
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.DeleteMySubmissionUseCase
 import antoni.kalorie.core.usecases.FetchFavouriteFoodsUseCase
@@ -31,6 +33,7 @@ import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCase
 import antoni.kalorie.core.usecases.SubmitFoodItemUseCase
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.UpdateMySubmissionUseCase
+import antoni.kalorie.core.usecases.UploadFoodPhotoUseCase
 import antoni.kalorie.core.utils.ContextStringProvider
 import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.features.foodquantity.FoodQuantityUnit
@@ -53,12 +56,15 @@ class AddFoodSheetConfigurator(
         val context = LocalContext.current.applicationContext
         val stringProvider = remember { ContextStringProvider(context) }
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
+            val storageProvider = StorageDataProvider()
+            val uploadFoodPhoto = UploadFoodPhotoUseCase(storageProvider)
+            val deleteFoodPhoto = DeleteFoodPhotoUseCase(storageProvider)
             AddFoodSheetViewModel(
                 searchFoodItems = SearchFoodItemsUseCase(dataProvider),
-                submitFoodItem = SubmitFoodItemUseCase(dataProvider, authProvider),
+                submitFoodItem = SubmitFoodItemUseCase(dataProvider, authProvider, uploadFoodPhoto, deleteFoodPhoto),
                 fetchMySubmissions = FetchMySubmissionsUseCase(dataProvider, authProvider),
-                updateMySubmission = UpdateMySubmissionUseCase(dataProvider, authProvider),
-                deleteMySubmission = DeleteMySubmissionUseCase(dataProvider, authProvider),
+                updateMySubmission = UpdateMySubmissionUseCase(dataProvider, authProvider, uploadFoodPhoto, deleteFoodPhoto),
+                deleteMySubmission = DeleteMySubmissionUseCase(dataProvider, authProvider, deleteFoodPhoto),
                 searchFoodExternally = SearchFoodExternallyUseCase(),
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
                 fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
@@ -88,6 +94,8 @@ class AddFoodSheetConfigurator(
                         removeFavouriteFood = RemoveFavouriteFoodUseCase(dataProvider, authProvider),
                         fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
                         saveFoodItemPersonalPortions = SaveFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
+                        fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
+                        fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                         fetchMyFoodItemReport = FetchMyFoodItemReportUseCase(dataProvider, authProvider),
                         submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider),
                         meal = meal,

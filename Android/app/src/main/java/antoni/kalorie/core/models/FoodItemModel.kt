@@ -22,6 +22,7 @@ data class FoodItemDomain(
     val portions: List<FoodPortionDomain> = emptyList(),
     val measure: FoodMeasure = FoodMeasure.GRAMS,
     val alcoholByVolume: Double? = null,
+    val photoUrl: String? = null,
 ) : BilingualNamed {
 
     // MARK: - Init
@@ -73,6 +74,8 @@ data class FoodItemDomain(
         )
 
     // MARK: - Functions
+
+    fun withPhotoUrl(photoUrl: String?): FoodItemDomain = copy(photoUrl = photoUrl)
 
     fun withId(id: String): FoodItemDomain = copy(id = id)
 }

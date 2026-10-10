@@ -4,6 +4,7 @@ import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.models.FoodFrequencyEntry
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionError
@@ -43,6 +44,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -348,6 +350,63 @@ class AddFoodSheetViewModelTest {
         assertEquals("12345678", submitFoodItem.receivedItem?.id)
         assertTrue(sut.isSubmissionConfirmationVisible.value)
         assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onCreateFoodItem_whenPhotoIsMissing_highlightsThePhotoSlotAndStaysOpen() = runTest {
+        val sut = makeSUT(submitFoodItem = SubmitFoodItemUseCaseFake(errorToThrow = FoodItemSubmissionError.PhotoMissing))
+        fillValidForm(sut, scannedCode = "12345678")
+
+        sut.onCreateFoodItem()
+
+        assertEquals(R.string.foodPhoto_error_required, sut.alertItem.value?.titleRes)
+        assertTrue(sut.recognizedFields.value.contains(FoodItemFormField.PHOTO))
+        assertFalse(sut.isSubmissionConfirmationVisible.value)
+    }
+
+    @Test
+    fun onCreateFoodItem_whenPhotoUploadFails_showsAlertAndStaysOpen() = runTest {
+        val sut = makeSUT(submitFoodItem = SubmitFoodItemUseCaseFake(errorToThrow = FoodItemSubmissionError.PhotoUploadFailed))
+        fillValidForm(sut, scannedCode = "12345678")
+
+        sut.onCreateFoodItem()
+
+        assertEquals(R.string.foodPhoto_error_uploadFailed, sut.alertItem.value?.titleRes)
+        assertFalse(sut.isSubmissionConfirmationVisible.value)
+    }
+
+    @Test
+    fun onCreateFoodItem_passesTheFormsPhotoToTheUseCase() = runTest {
+        val submitFoodItem = SubmitFoodItemUseCaseSpy()
+        val sut = makeSUT(submitFoodItem = submitFoodItem)
+        fillValidForm(sut, scannedCode = "12345678")
+        sut.formInput.value = sut.formInput.value.copy(photo = FoodItemFormPhoto.Local(byteArrayOf(1, 2, 3)))
+
+        sut.onCreateFoodItem()
+
+        assertArrayEquals(byteArrayOf(1, 2, 3), (submitFoodItem.receivedPhoto as FoodItemFormPhoto.Local).data)
+    }
+
+    @Test
+    fun onCreateFoodItem_whenResubmitting_passesTheRejectedSubmissionsPhotoUrlSoItIsReplaced() = runTest {
+        val rejected = makeSubmission(id = "sub-1", barcode = "87654321", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong photo")
+        val withPhoto = rejected.copy(item = rejected.item.copy(photoUrl = "https://storage.fake/old.jpg"))
+        val updateMySubmission = UpdateMySubmissionUseCaseSpy()
+        val sut = makeSUT(
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(withPhoto)),
+            updateMySubmission = updateMySubmission,
+        )
+        sut.onAppear()
+        sut.onSelectRejectedSubmission(withPhoto.item)
+        sut.formInput.value = sut.formInput.value.copy(
+            weightOfProduct = 200.0,
+            caloriesPerHundredGrams = 80.0,
+            photo = FoodItemFormPhoto.Local(byteArrayOf(9)),
+        )
+
+        sut.onCreateFoodItem()
+
+        assertEquals("https://storage.fake/old.jpg", updateMySubmission.receivedPreviousPhotoUrl)
     }
 
     @Test
@@ -1158,9 +1217,11 @@ class AddFoodSheetViewModelTest {
 
     private class SubmitFoodItemUseCaseSpy : SubmitFoodItemUseCaseProtocol {
         var receivedItem: FoodItemDomain? = null
+        var receivedPhoto: FoodItemFormPhoto? = null
 
-        override suspend fun invoke(item: FoodItemDomain): FoodItemSubmissionDomain {
+        override suspend fun invoke(item: FoodItemDomain, photo: FoodItemFormPhoto): FoodItemSubmissionDomain {
             receivedItem = item
+            receivedPhoto = photo
             return FoodItemSubmissionDomain(
                 id = "new-id",
                 barcode = item.id,
@@ -1175,9 +1236,11 @@ class AddFoodSheetViewModelTest {
 
     private class UpdateMySubmissionUseCaseSpy : UpdateMySubmissionUseCaseProtocol {
         var receivedId: String? = null
+        var receivedPreviousPhotoUrl: String? = null
 
-        override suspend fun invoke(id: String, item: FoodItemDomain): FoodItemSubmissionDomain {
+        override suspend fun invoke(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoUrl: String?): FoodItemSubmissionDomain {
             receivedId = id
+            receivedPreviousPhotoUrl = previousPhotoUrl
             return FoodItemSubmissionDomain(
                 id = id,
                 barcode = item.id,
@@ -1193,7 +1256,7 @@ class AddFoodSheetViewModelTest {
     private class DeleteMySubmissionUseCaseSpy(private val errorToThrow: Exception? = null) : DeleteMySubmissionUseCaseProtocol {
         var receivedId: String? = null
 
-        override suspend fun invoke(id: String) {
+        override suspend fun invoke(id: String, photoUrl: String?) {
             receivedId = id
             errorToThrow?.let { throw it }
         }

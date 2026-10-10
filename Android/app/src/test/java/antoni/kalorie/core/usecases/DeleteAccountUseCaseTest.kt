@@ -21,6 +21,7 @@ import antoni.kalorie.core.networking.FoodItemSubmissionDTO
 import antoni.kalorie.core.networking.FoodPortionDTO
 import antoni.kalorie.core.networking.MealTypeDTO
 import antoni.kalorie.core.networking.MyCreatedMealDTO
+import antoni.kalorie.core.networking.StorageDataProviderFake
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import kotlinx.coroutines.test.runTest
@@ -87,6 +88,37 @@ class DeleteAccountUseCaseTest {
             listOf("sub1"),
             fixture.deleted(Constants.Firestore.FOOD_ITEM_SUBMISSIONS),
         )
+    }
+
+    @Test
+    fun invoke_deletesTheUsersSubmissionPhotosButNotCatalogueOrOtherUsersPhotos() = runTest {
+        val storage = StorageDataProviderFake()
+        val own = storage.uploadAsync(byteArrayOf(1), "submissionPhotos/$USER_ID/a.jpg", "image/jpeg")
+        val orphan = storage.uploadAsync(byteArrayOf(2), "submissionPhotos/$USER_ID/orphan.jpg", "image/jpeg")
+        val someoneElse = storage.uploadAsync(byteArrayOf(3), "submissionPhotos/other-user/b.jpg", "image/jpeg")
+        val catalogue = storage.uploadAsync(byteArrayOf(4), "catalogPhotos/12345678/c.jpg", "image/jpeg")
+        val fixture = makeSUT(storage = storage)
+
+        fixture.sut()
+
+        assertNull(storage.files[own])
+        assertNull("orphans from failed writes are not reachable through the deleted submissions, only through the folder", storage.files[orphan])
+        assertNotNull(storage.files[someoneElse])
+        assertNotNull("approved items are shared catalogue content and outlive the account", storage.files[catalogue])
+    }
+
+    @Test
+    fun invoke_whenListingPhotosFails_doesNotDeleteTheAuthUser() = runTest {
+        val storage = StorageDataProviderFake()
+        storage.listError = RuntimeException("offline")
+        val fixture = makeSUT(storage = storage)
+
+        try {
+            fixture.sut()
+        } catch (_: RuntimeException) {
+        }
+
+        assertTrue("the photos hold the user's content; the account must survive so the deletion can be retried", fixture.snapshots.isEmpty())
     }
 
     @Test
@@ -279,7 +311,10 @@ class DeleteAccountUseCaseTest {
         fun deleted(collection: String): List<String> = dataProvider.deletedIdsByCollection[collection].orEmpty()
     }
 
-    private fun makeSUT(authProvider: AuthProviderFake = AuthProviderFake(userId = USER_ID)): Fixture {
+    private fun makeSUT(
+        authProvider: AuthProviderFake = AuthProviderFake(userId = USER_ID),
+        storage: StorageDataProviderFake = StorageDataProviderFake(),
+    ): Fixture {
         val dataProvider = FirestoreDataProviderFake()
         val snapshots = mutableListOf<Map<String, List<String>>>()
         val authCommandProvider = AuthCommandProviderFake()
@@ -290,6 +325,7 @@ class DeleteAccountUseCaseTest {
             authProvider = authProvider,
             authCommandProvider = authCommandProvider,
             snapshotStore = snapshotStore,
+            storageProvider = storage,
         )
         return Fixture(dataProvider, authCommandProvider, snapshotStore, sut, snapshots)
     }

@@ -6,21 +6,29 @@ import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
+import antoni.kalorie.core.networking.StorageDataProvider
 import antoni.kalorie.core.usecases.ApproveSubmissionUseCase
 import antoni.kalorie.core.usecases.CreateFoodItemUseCase
 import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCase
+import antoni.kalorie.core.usecases.DeleteFoodPhotoUseCase
+import antoni.kalorie.core.usecases.DownloadFoodPhotoUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCase
 import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCase
 import antoni.kalorie.core.usecases.RejectSubmissionUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCase
+import antoni.kalorie.core.usecases.UploadFoodPhotoUseCase
 import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 
 class ModerationConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,
     private val authProvider: AuthProviderProtocol,
 ) {
+
+    // MARK: - Properties
+
+    private val storageProvider = StorageDataProvider()
 
     // MARK: - Functions
 
@@ -73,6 +81,9 @@ class ModerationConfigurator(
                     dataProvider = dataProvider,
                     authProvider = authProvider,
                     createFoodItem = CreateFoodItemUseCase(dataProvider),
+                    downloadFoodPhoto = DownloadFoodPhotoUseCase(storageProvider),
+                    uploadFoodPhoto = UploadFoodPhotoUseCase(storageProvider),
+                    deleteFoodPhoto = DeleteFoodPhotoUseCase(storageProvider),
                 ),
                 rejectSubmission = RejectSubmissionUseCase(dataProvider, authProvider),
                 searchFoodItems = SearchFoodItemsUseCase(dataProvider),
@@ -91,7 +102,7 @@ class ModerationConfigurator(
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
-                updateFoodItem = UpdateFoodItemUseCase(dataProvider, authProvider),
+                updateFoodItem = UpdateFoodItemUseCase(dataProvider, authProvider, UploadFoodPhotoUseCase(storageProvider), DeleteFoodPhotoUseCase(storageProvider)),
                 initialBarcode = initialBarcode,
             )
         }

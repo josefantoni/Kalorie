@@ -1,12 +1,12 @@
 package antoni.kalorie.core.usecases
 
-data class DeleteMySubmissionUseCaseFake(
+data class DeleteFoodPhotoUseCaseFake(
     val shouldThrow: Boolean = false,
-) : DeleteMySubmissionUseCaseProtocol {
+) : DeleteFoodPhotoUseCaseProtocol {
 
     // MARK: - Functions
 
-    override suspend fun invoke(id: String, photoUrl: String?) {
+    override suspend fun invoke(url: String) {
         if (shouldThrow) throw RuntimeException("unknown")
     }
 }

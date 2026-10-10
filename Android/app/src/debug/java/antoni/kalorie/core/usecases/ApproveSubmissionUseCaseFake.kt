@@ -1,6 +1,7 @@
 package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 
 data class ApproveSubmissionUseCaseFake(
@@ -9,7 +10,7 @@ data class ApproveSubmissionUseCaseFake(
 
     // MARK: - Functions
 
-    override suspend fun invoke(submission: FoodItemSubmissionDomain, item: FoodItemDomain) {
+    override suspend fun invoke(submission: FoodItemSubmissionDomain, item: FoodItemDomain, photo: FoodItemFormPhoto) {
         errorToThrow?.let { throw it }
     }
 }

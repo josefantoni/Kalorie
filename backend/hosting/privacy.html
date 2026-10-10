@@ -30,16 +30,17 @@
 <li><strong>Oblíbená jídla, vlastní jídla a osobní porce.</strong></li>
 <li><strong>Četnost zapisování jídel:</strong> počet zápisů každého jídla, aby se výsledky hledání řadily podle toho, co jíte nejčastěji.</li>
 <li><strong>Návrhy do sdíleného katalogu:</strong> jídla, která navrhnete, spolu s vaším ID, časem návrhu a případným důvodem zamítnutí.</li>
+<li><strong>Fotka produktu:</strong> k návrhu můžete připojit fotku produktu. Před odesláním se přepíše (metadata včetně polohy GPS se odstraní) a uloží se na našich serverech pod vaším ID. Vidí ji správce katalogu a po schválení návrhu všichni uživatelé aplikace.</li>
 <li><strong>Hlášení nesprávných údajů:</strong> čárový kód, vaše ID, čas a text důvodu (nejvýše 500 znaků).</li>
 </ul>
 <p>Do názvů jídel ani do textu hlášení nepište osobní údaje; může je číst správce katalogu.</p>
 
 <h2>4. Fotoaparát</h2>
-<p>Fotoaparát slouží ke čtení čárových kódů a nutričních tabulek. Obraz se zpracovává ve vašem zařízení a nikdy se neodesílá ani neukládá.</p>
+<p>Fotoaparát slouží ke čtení čárových kódů a nutričních tabulek. Obraz se zpracovává ve vašem zařízení a nikdy se neodesílá ani neukládá. Výjimkou je fotka produktu, kterou sami připojíte k návrhu do katalogu (viz bod 3); k jejímu pořízení nebo výběru z knihovny slouží fotoaparát, respektive knihovna fotografií.</p>
 
 <h2>5. Služby, které používáme</h2>
 <ul>
-<li><strong>Google Firebase</strong> (Authentication, Cloud Firestore, Crashlytics) jako náš zpracovatel – <a href="https://firebase.google.com/support/privacy">zásady Firebase</a>. Deník a vše ostatní v Cloud Firestore je uloženo v EU (lokalita <code>eur3</code>, Belgie a Nizozemsko). Firebase Authentication a Crashlytics mohou údaje zpracovávat i v USA, kde je Google LLC certifikován v rámci rámce EU–US Data Privacy Framework.</li>
+<li><strong>Google Firebase</strong> (Authentication, Cloud Firestore, Cloud Storage, Crashlytics) jako náš zpracovatel – <a href="https://firebase.google.com/support/privacy">zásady Firebase</a>. Deník a vše ostatní v Cloud Firestore je uloženo v EU (lokalita <code>eur3</code>, Belgie a Nizozemsko). Firebase Authentication a Crashlytics mohou údaje zpracovávat i v USA, kde je Google LLC certifikován v rámci rámce EU–US Data Privacy Framework.</li>
 <li><strong>Přihlášení přes Google</strong> – <a href="https://policies.google.com/privacy">zásady Google</a>.</li>
 <li><strong>Přihlášení přes Apple</strong> (iOS) – <a href="https://www.apple.com/legal/privacy/">zásady Apple</a>.</li>
 <li><strong>Google ML Kit</strong> (Android): rozpoznávání probíhá ve vašem zařízení; Googlu se odesílají pouze technické diagnostické údaje (informace o zařízení a aplikaci, ID instalace, latence, chybové kódy), nikoli obrázky ani rozpoznaný text – <a href="https://developers.google.com/ml-kit/android-data-disclosure">podrobnosti</a>.</li>
@@ -53,7 +54,7 @@
 <p>Nepoužíváme reklamu ani analytiku, nesledujeme vás napříč aplikacemi a údaje neprodáváme ani nesdílíme pro marketing.</p>
 
 <h2>8. Jak dlouho údaje uchováváme</h2>
-<p>Dokud je nesmažete nebo nesmažete účet. Schválená jídla v katalogu zůstávají, bez vazby na vás. Hlášení o pádech 90 dní. Po smazání Google odstraní data ze svých záloh do 180 dnů. E-maily, které nám pošlete, mažeme nejpozději 30 dní po vyřízení žádosti. Anonymní účty se samy neruší; smažete je v aplikaci. Odinstalace aplikace data na serveru nesmaže.</p>
+<p>Dokud je nesmažete nebo nesmažete účet. Schválená jídla v katalogu zůstávají, bez vazby na vás, včetně schválené fotky produktu; fotky neschválených návrhů se smažou spolu s účtem. Hlášení o pádech 90 dní. Po smazání Google odstraní data ze svých záloh do 180 dnů. E-maily, které nám pošlete, mažeme nejpozději 30 dní po vyřízení žádosti. Anonymní účty se samy neruší; smažete je v aplikaci. Odinstalace aplikace data na serveru nesmaže.</p>
 
 <h2>9. Smazání údajů</h2>
 <p>V aplikaci: Účet → <strong>Smazat účet</strong>. Bez aplikace: viz <a href="/delete-account">smazání účtu</a>.</p>
@@ -89,16 +90,17 @@
 <li><strong>Favourite foods, your own meals and personal portions.</strong></li>
 <li><strong>How often you log each food:</strong> a count per food, used to rank search results by what you eat most.</li>
 <li><strong>Submissions to the shared catalogue:</strong> the foods you submit, with your ID, the submission time and any rejection reason.</li>
+<li><strong>Product photo:</strong> you can attach a photo of a product to a submission. It is re-encoded before upload (metadata including GPS location is removed) and stored on our servers under your ID. The catalogue maintainer can see it, and after the submission is approved so can all users of the app.</li>
 <li><strong>Reports of incorrect data:</strong> the barcode, your ID, the time and the reason text (up to 500 characters).</li>
 </ul>
 <p>Do not write personal information into food names or report text; these may be read by the catalogue maintainer.</p>
 
 <h2>4. Camera</h2>
-<p>The camera is used to read barcodes and nutrition labels. Images are processed on your device and are never uploaded or stored.</p>
+<p>The camera is used to read barcodes and nutrition labels. Images are processed on your device and are never uploaded or stored. The exception is a product photo you attach to a catalogue submission yourself (see section 3); the camera or the photo library is used to take or pick it.</p>
 
 <h2>5. Services we use</h2>
 <ul>
-<li><strong>Google Firebase</strong> (Authentication, Cloud Firestore, Crashlytics) as our processor – <a href="https://firebase.google.com/support/privacy">Firebase privacy</a>. The diary and everything else in Cloud Firestore is stored in the EU (location <code>eur3</code>, Belgium and the Netherlands). Firebase Authentication and Crashlytics may process data in the USA, where Google LLC is certified under the EU–US Data Privacy Framework.</li>
+<li><strong>Google Firebase</strong> (Authentication, Cloud Firestore, Cloud Storage, Crashlytics) as our processor – <a href="https://firebase.google.com/support/privacy">Firebase privacy</a>. The diary and everything else in Cloud Firestore is stored in the EU (location <code>eur3</code>, Belgium and the Netherlands). Firebase Authentication and Crashlytics may process data in the USA, where Google LLC is certified under the EU–US Data Privacy Framework.</li>
 <li><strong>Google Sign-In</strong> – <a href="https://policies.google.com/privacy">Google privacy policy</a>.</li>
 <li><strong>Sign in with Apple</strong> (iOS) – <a href="https://www.apple.com/legal/privacy/">Apple privacy policy</a>.</li>
 <li><strong>Google ML Kit</strong> (Android): recognition runs on your device; Google receives only technical diagnostics (device and app info, an installation ID, latency, error codes), never images or recognised text – <a href="https://developers.google.com/ml-kit/android-data-disclosure">details</a>.</li>
@@ -112,7 +114,7 @@
 <p>No advertising, no analytics, no tracking across apps, and we do not sell or share data for marketing.</p>
 
 <h2>8. How long we keep data</h2>
-<p>Until you delete it or your account. Approved catalogue foods stay, with no link to you. Crash reports are kept 90 days. After deletion, Google removes the data from its backups within 180 days. E-mails you send us are deleted no later than 30 days after your request has been handled. Anonymous accounts do not expire on their own; you delete them in the app. Uninstalling the app does not delete data on the server.</p>
+<p>Until you delete it or your account. Approved catalogue foods stay, with no link to you, including an approved product photo; photos of unapproved submissions are deleted with the account. Crash reports are kept 90 days. After deletion, Google removes the data from its backups within 180 days. E-mails you send us are deleted no later than 30 days after your request has been handled. Anonymous accounts do not expire on their own; you delete them in the app. Uninstalling the app does not delete data on the server.</p>
 
 <h2>9. Deleting your data</h2>
 <p>In the app: Account → <strong>Delete account</strong>. Without the app: see <a href="/delete-account">delete your account</a>.</p>
