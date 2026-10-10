@@ -104,6 +104,14 @@ fun FoodItemFormSections(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
+        }
+        FoodPhotoPicker(
+            photo = formInput.photo,
+            onPhotoChange = { onFormInputChange(formInput.copy(photo = it)) },
+            isMissing = FoodItemFormField.PHOTO in highlightedFields,
+            onChanged = { onFieldEdited(FoodItemFormField.PHOTO) },
+        )
+        SectionCard {
             onNutritionLabelScanTapped?.let { onScanTapped ->
                 TextButton(onClick = onScanTapped, modifier = Modifier.padding(horizontal = 8.dp)) {
                     Text(stringResource(R.string.addFood_button_scanNutritionLabel))
