@@ -26,6 +26,7 @@ data class OpenFoodFactsProductDTO(
     @SerialName("product_name_en") val productNameEn: String? = null,
     @SerialName("product_name") val productName: String? = null,
     val nutriments: OpenFoodFactsNutrimentsDTO? = null,
+    @SerialName("image_front_url") val imageFrontUrl: String? = null,
 ) {
 
     // MARK: - Functions
@@ -58,6 +59,7 @@ data class OpenFoodFactsProductDTO(
             fiber = nutriments.fiber100g ?: 0.0,
             protein = protein,
             salt = nutriments.salt100g ?: 0.0,
+            photoUrl = imageFrontUrl,
         )
     }
 
