@@ -35,20 +35,14 @@ struct ModerationCatalogueEditorView: View {
             }
             if !viewModel.isOpenedFromReport {
                 Section {
-                    HStack {
-                        FloatingLabelTextField(
-                            title: L10n.Moderation.editorSearchPlaceholder,
-                            text: $viewModel.barcodeQuery,
-                            keyboardType: .numberPad
-                        )
-                        BaseButton(
-                            style: .plain,
-                            imageName: .barCode,
-                            imageSize: .medium
-                        ) {
+                    FloatingLabelTextField(
+                        title: L10n.Moderation.editorSearchPlaceholder,
+                        text: $viewModel.barcodeQuery,
+                        keyboardType: .numberPad,
+                        trailingButton: BadgeButton(imageName: .barCode) {
                             Task { await viewModel.onSearchTapped() }
                         }
-                    }
+                    )
                     .listRowInsets(.vertical, 0)
                 }
             }
