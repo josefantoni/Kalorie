@@ -2,7 +2,6 @@ package antoni.kalorie.features.moderation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.components.BadgeButton
 import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemFormBarcodeRow
@@ -126,22 +126,17 @@ fun ModerationCatalogueEditorView(
                     }
                     if (!viewModel.isOpenedFromReport) {
                         SectionCard(modifier = Modifier.padding(top = 8.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(end = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                FloatingLabelTextField(
-                                    title = stringResource(R.string.moderation_editor_searchPlaceholder),
-                                    isUnderlineFullWidth = true,
-                                    text = barcodeQuery,
-                                    onTextChange = { viewModel.barcodeQuery.value = it },
-                                    keyboardType = KeyboardType.Number,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                IconButton(onClick = { scope.launch { viewModel.onSearchTapped() } }) {
-                                    Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                }
-                            }
+                            FloatingLabelTextField(
+                                title = stringResource(R.string.moderation_editor_searchPlaceholder),
+                                isUnderlineFullWidth = true,
+                                text = barcodeQuery,
+                                onTextChange = { viewModel.barcodeQuery.value = it },
+                                keyboardType = KeyboardType.Number,
+                                trailingButton = {
+                                    BadgeButton(icon = BarcodeIcon, onClick = { scope.launch { viewModel.onSearchTapped() } }, contentDescription = null)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                     }
                     if (loadedItem != null) {

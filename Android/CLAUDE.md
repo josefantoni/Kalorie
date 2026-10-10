@@ -80,12 +80,17 @@ A full-width primary action (Export, Create, Approve, Delete) is `PrimaryButton`
 call `Button` directly for these, and never use `colorScheme.error` for the fill — in dark mode its
 text is not white.
 
-## Add button
+## Badge button
 
-The "add a row" `+` (new portion, new meal in the settings layout) is `AddButton`
-(`components/AddButton.kt`): a 36 dp `FilledIconButton` with `Icons.Filled.Add`, with `enabled` and
-`contentDescription` parameters. It mirrors the iOS component of the same name. Never call
-`FilledIconButton` or `Icons.Outlined.AddCircle` directly for this.
+A round accent button with a white icon is `BadgeButton` (`components/BadgeButton.kt`): a 36 dp
+`FilledIconButton` with a 20 dp icon, with `icon`, `enabled` and `contentDescription` parameters. It
+mirrors the iOS component of the same name. Never call `FilledIconButton` or
+`Icons.Outlined.AddCircle` directly for this.
+
+- **Add a row** (new portion, new meal in the settings layout) is `BadgeButton(icon = Icons.Filled.Add, …)`.
+- **A button inside a text field** is passed to `FloatingLabelTextField(trailingButton = { BadgeButton(...) })`.
+  The field passes it to the Material `trailingIcon` slot, centred on label + text, 12 dp from the edge,
+  without adding height. Never put the field and an `IconButton` side by side in a `Row`.
 
 ## Wire contract gotchas
 

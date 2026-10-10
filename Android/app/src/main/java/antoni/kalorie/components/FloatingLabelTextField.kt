@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.TextAutoSize
@@ -62,7 +63,7 @@ fun FloatingLabelTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     isHighlighted: Boolean = false,
     enabled: Boolean = true,
-    trailingIcon: (@Composable () -> Unit)? = null,
+    trailingButton: (@Composable () -> Unit)? = null,
     isUnderlineFullWidth: Boolean = false,
 ) {
     // MARK: - Properties
@@ -125,7 +126,7 @@ fun FloatingLabelTextField(
                     isError = isError,
                     label = { SingleLineText(title) },
                     placeholder = placeholder?.let { { SingleLineText(it) } },
-                    trailingIcon = trailingIcon,
+                    trailingIcon = trailingButton?.let { { Box(modifier = Modifier.padding(end = TRAILING_BUTTON_END_PADDING)) { it() } } },
                     supportingText = message?.let { { Text(it.text, color = it.color) } },
                     colors = colors,
                     container = {
@@ -146,6 +147,7 @@ fun FloatingLabelTextField(
 private val UNDERLINE_INSET = 16.dp
 private val FOCUSED_UNDERLINE = 2.dp
 private val UNFOCUSED_UNDERLINE = 1.dp
+private val TRAILING_BUTTON_END_PADDING = 12.dp
 
 // MARK: - Functions
 

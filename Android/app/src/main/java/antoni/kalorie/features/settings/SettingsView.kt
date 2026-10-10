@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -60,7 +61,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import antoni.kalorie.R
-import antoni.kalorie.components.AddButton
+import antoni.kalorie.components.BadgeButton
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
@@ -341,7 +342,7 @@ private fun FooterView(
 ) {
     if (!isAddFormVisible) {
         Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), contentAlignment = Alignment.Center) {
-            AddButton(onClick = viewModel::onShowAddForm, contentDescription = null)
+            BadgeButton(icon = Icons.Filled.Add, onClick = viewModel::onShowAddForm, contentDescription = null)
         }
     } else {
         AddMealForm(

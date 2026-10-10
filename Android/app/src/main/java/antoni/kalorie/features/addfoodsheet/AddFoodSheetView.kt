@@ -52,6 +52,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
+import antoni.kalorie.components.BadgeButton
 import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FloatingLabelTextField
@@ -295,10 +296,8 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                             isUnderlineFullWidth = true,
                             text = searchText,
                             onTextChange = { viewModel.searchText.value = it },
-                            trailingIcon = {
-                                IconButton(onClick = scannerAccess.open) {
-                                    Icon(BarcodeIcon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                }
+                            trailingButton = {
+                                BadgeButton(icon = BarcodeIcon, onClick = scannerAccess.open, contentDescription = null)
                             },
                             modifier = Modifier.fillMaxWidth(),
                         )
