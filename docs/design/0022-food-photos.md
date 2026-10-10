@@ -225,8 +225,9 @@ Section 3   nutrition-label scan button, FoodItemFormFields
 - 120 pt circle, centred, caption below: *Fotka produktu* / *Product photo*.
 - **Empty:** dashed `secondary` outline, `fork.knife` symbol (Android
   `Icons.Filled.Restaurant`) in `secondary` inside. Badge bottom-right: 36 pt accent circle with a
-  white `camera.fill` (Android `Icons.Filled.PhotoCamera`) — same size and colours as `AddButton`,
-  but not `AddButton` itself, since `+` means *add a row* in this app.
+  white `camera.fill` (Android `Icons.Filled.PhotoCamera`) — the same colours as `BadgeButton`,
+  but not `BadgeButton` itself, since the whole circle is the tap target and the badge is not a
+  button of its own.
 - **Filled:** the image fills the circle (`scaledToFill`, clipped). Badge icon becomes
   `arrow.triangle.2.circlepath.camera` (Android `Icons.Filled.Cameraswitch`), meaning *retake*.
 - The whole circle is the tap target and opens *Capture*.

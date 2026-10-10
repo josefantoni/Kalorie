@@ -174,8 +174,9 @@ NUTRITION        [🍺 Alcoholic drink · 4.4 %  ⓘ]
 Energy                                   215 kcal
 ```
 
-- The capsule matches the toolbar's confirm button ("Add" / "Save"): `.buttonStyle(.glass)` with
-  `.controlSize(.small)` on iOS, a `FilledTonalButton` with the default pill shape on Android.
+- The capsule is black text and icons on `Color.warning` yellow, so it reads as a caution rather
+  than an action: a `.plain` button with a `.capsule` background on iOS, a `FilledTonalButton`
+  with `AppColors.warning` as the container and black content on Android.
   On iOS the header measures the trailing edge of a nutrition value and pads itself to it, so the
   capsule lines up with the row content below it. A fixed inset does not work: the system margins
   of headers and rows differ by device settings, not only by screen width.
@@ -189,7 +190,8 @@ Energy                                   215 kcal
   block the screen for it.
   - **iOS:** `.popover` with `.presentationCompactAdaptation(.popover)`, so that it stays a bubble
     on iPhone instead of becoming a sheet. The text has a fixed width and its ideal height, because
-    the popover otherwise sizes to a single line and truncates it.
+    the popover otherwise sizes to a single line and truncates it. The text sets the label colour
+    explicitly, or it inherits the capsule's black and is unreadable in dark mode.
   - **Android:** Material 3 `TooltipBox` with a `RichTooltip`, shown on click.
 - The button is visible only when `isAlcoholicDrink(alcoholByVolume)` returns true. The view models
   expose one boolean plus the formatted ABV and do not compare numbers themselves.
