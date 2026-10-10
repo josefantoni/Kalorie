@@ -15,6 +15,8 @@ import antoni.kalorie.core.models.ScaledMacros
 import antoni.kalorie.core.models.mealType
 import antoni.kalorie.core.models.scaled
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
@@ -35,6 +37,7 @@ import antoni.kalorie.core.utils.isSameDay
 import antoni.kalorie.macrokit.isAlcoholicDrink
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -69,6 +72,8 @@ class FoodQuantityViewModel(
     private val removeFavouriteFood: RemoveFavouriteFoodUseCaseProtocol,
     private val fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCaseProtocol,
     private val saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseProtocol,
+    private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
+    private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
     private val fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol,
     private val submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol,
     private var meal: MyCreatedMealDomain?,
@@ -104,6 +109,9 @@ class FoodQuantityViewModel(
     val portionDrafts = MutableStateFlow(listOf(FoodPortionDraft.blank))
     private val _showPortionCheckmark = MutableStateFlow(false)
     val showPortionCheckmark: StateFlow<Boolean> = _showPortionCheckmark
+    private val _photoUrl = MutableStateFlow(item.photoUrl)
+    val photoUrl: StateFlow<String?> = _photoUrl
+    private var hasLookedUpPhoto = false
     private var hasUserSelectedUnit = false
     private var hasUserSelectedMealType = false
 
@@ -150,6 +158,14 @@ class FoodQuantityViewModel(
                 selectedMealTypeId.value = _mealTypes.value.mealType(selectedDate)?.id
             }
         }
+        coroutineScope {
+            val photoLoad = launch { loadPhoto() }
+            loadReportStateAndPersonalPortions()
+            photoLoad.join()
+        }
+    }
+
+    private suspend fun loadReportStateAndPersonalPortions() {
         if (canReportIncorrectData) {
             loadReportState(item.id, fetchMyFoodItemReport)
         }
@@ -161,6 +177,22 @@ class FoodQuantityViewModel(
                 quantity.value = 1.0
                 unit.value = FoodQuantityUnit.Portion(firstPersonalPortion)
             }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.warning(error, Constants.LogCategory.FOOD_QUANTITY)
+        }
+    }
+
+    private suspend fun loadPhoto() {
+        if (item.photoUrl != null || hasLookedUpPhoto) return
+        try {
+            _photoUrl.value = when (item.kind) {
+                FoodItemKind.CATALOGUE -> fetchFoodItemByBarcode(item.id)?.photoUrl
+                FoodItemKind.EXTERNAL -> fetchFoodByBarcodeExternally(item.id)?.photoUrl
+                FoodItemKind.CREATED_MEAL -> null
+            }
+            hasLookedUpPhoto = true
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {

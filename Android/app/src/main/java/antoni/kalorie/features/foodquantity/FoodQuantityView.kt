@@ -50,6 +50,8 @@ import antoni.kalorie.R
 import antoni.kalorie.components.AlcoholicDrinkHintView
 import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.components.FavouriteButton
+import antoni.kalorie.components.FoodPhotoThumbnailBottomSpace
+import antoni.kalorie.components.FoodPhotoThumbnailOverlay
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
@@ -58,6 +60,7 @@ import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.rememberFoodPhotoThumbnailState
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.core.extensions.formattedGrams
@@ -89,6 +92,8 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
     val isReportReasonAlertVisible by viewModel.isReportReasonAlertVisible.collectAsState()
     val reportReasonText by viewModel.reportReasonText.collectAsState()
     val isPersonalPortionsManagerPushed by viewModel.isPersonalPortionsManagerPushed.collectAsState()
+    val photoUrl by viewModel.photoUrl.collectAsState()
+    val photoState = rememberFoodPhotoThumbnailState(photoUrl)
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     var quantityText by remember { mutableStateOf(quantity.formattedTrimmed()) }
@@ -267,7 +272,9 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
+                FoodPhotoThumbnailBottomSpace(photoState)
             }
+            FoodPhotoThumbnailOverlay(photoState)
 
             if (state.isLoading) {
                 Box(
