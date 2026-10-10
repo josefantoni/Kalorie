@@ -59,10 +59,10 @@ struct DashboardView: View {
                                 viewModel.onCopyRequested(from: group.mealType, at: index)
                             } label: {
                                 Image(systemName: BaseImageName.docOnDoc.rawValue)
-                                    .font(.title2)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Color(.label))
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.glass)
+                            .buttonBorderShape(.circle)
                             .accessibilityLabel(L10n.Dashboard.buttonCopy)
                             .popover(isPresented: Binding(
                                 get: { viewModel.copyPopoverIndex == index },
@@ -76,14 +76,15 @@ struct DashboardView: View {
                                 )
                                 .presentationCompactAdaptation(.popover)
                             }
+                            .padding(.trailing, 8)
                             Button {
                                 viewModel.macroPopoverIndex = index
                             } label: {
                                 Image(systemName: BaseImageName.infoCircle.rawValue)
-                                    .font(.title2)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Color(.label))
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.glass)
+                            .buttonBorderShape(.circle)
                             .popover(isPresented: Binding(
                                 get: { viewModel.macroPopoverIndex == index },
                                 set: { if !$0 { viewModel.macroPopoverIndex = nil } }
@@ -96,7 +97,9 @@ struct DashboardView: View {
                             }
                         }
                         .font(.subheadline)
+                        .controlSize(.small)
                         .padding(.leading, -5)
+                        .padding(.trailing, -10)
                     }
                 }
             }
