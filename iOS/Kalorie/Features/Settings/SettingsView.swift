@@ -52,10 +52,12 @@ struct SettingsView: View {
                             .buttonStyle(.glass)
                         },
                         footer: Group {
-                            if editMode == .active {
-                                footerView
-                                    .padding(.horizontal, -14)
-                                    .padding(.top, 12)
+                            if editMode == .active && !viewModel.isAddFormVisible {
+                                AddButton {
+                                    viewModel.onShowAddForm()
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 12)
                             }
                         }
                     ) {
@@ -74,6 +76,11 @@ struct SettingsView: View {
                         .onMove { from, to in
                             viewModel.onMove(from: from, to: to)
                         }
+                    }
+
+                    if editMode == .active && viewModel.isAddFormVisible {
+                        newMealFormSection
+                        createButtonSection
                     }
 
                     if editMode == .inactive {
@@ -169,59 +176,54 @@ struct SettingsView: View {
 
     // MARK: - Functions
 
-    @ViewBuilder var footerView: some View {
-        if !viewModel.isAddFormVisible {
-            AddButton {
-                viewModel.onShowAddForm()
-            }
-            .frame(maxWidth: .infinity)
-        } else {
-            VStack {
-                VStack {
-                    FloatingLabelTextField(
-                        title: L10n.Settings.fieldNewMealTitle,
-                        text: $viewModel.newMealName,
-                        focus: $focusedField,
-                        equals: .newMealName
-                    )
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                    .padding(.bottom, 0)
-                    Divider()
-                        .padding(.horizontal)
+    private var newMealFormSection: some View {
+        Section {
+            FloatingLabelTextField(
+                title: L10n.Settings.fieldNewMealTitle,
+                text: $viewModel.newMealName,
+                focus: $focusedField,
+                equals: .newMealName
+            )
+            .frame(minHeight: Self.newMealRowHeight)
+            .listRowInsets(.vertical, 0)
 
-                    HStack {
-                        DatePicker(L10n.Settings.datePickerFrom, selection: $viewModel.newMealStart, displayedComponents: .hourAndMinute)
-                            .datePickerStyle(GraphicalDatePickerStyle())
-                            .onChange(of: viewModel.newMealStart) {
-                                if viewModel.newMealStart >= viewModel.newMealEnd {
-                                    viewModel.newMealEnd = viewModel.newMealStart.withAddedMinutes(minutes: 30)
-                                }
-                            }
-                        Divider()
-                        DatePicker(L10n.Settings.datePickerTo, selection: $viewModel.newMealEnd, displayedComponents: .hourAndMinute)
-                            .datePickerStyle(CompactDatePickerStyle())
-                            .onChange(of: viewModel.newMealEnd) {
-                                if viewModel.newMealStart >= viewModel.newMealEnd {
-                                    viewModel.newMealEnd = viewModel.newMealStart.withAddedMinutes(minutes: 30)
-                                }
-                            }
+            HStack {
+                DatePicker(L10n.Settings.datePickerFrom, selection: $viewModel.newMealStart, displayedComponents: .hourAndMinute)
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .onChange(of: viewModel.newMealStart) {
+                        if viewModel.newMealStart >= viewModel.newMealEnd {
+                            viewModel.newMealEnd = viewModel.newMealStart.withAddedMinutes(minutes: 30)
+                        }
                     }
-                    .padding(.horizontal, 16)
-                    .font(.system(size: .basic))
-                }
-                .padding(.bottom, 8)
-                .background(Color(.systemBackground))
-                .cornerRadius(25)
-
-                PrimaryButton(L10n.Settings.buttonCreate) {
-                    Task { await viewModel.onCreateMealType() }
-                    focusedField = nil
-                }
-                .padding(.top, 20)
+                Divider()
+                DatePicker(L10n.Settings.datePickerTo, selection: $viewModel.newMealEnd, displayedComponents: .hourAndMinute)
+                    .datePickerStyle(CompactDatePickerStyle())
+                    .onChange(of: viewModel.newMealEnd) {
+                        if viewModel.newMealStart >= viewModel.newMealEnd {
+                            viewModel.newMealEnd = viewModel.newMealStart.withAddedMinutes(minutes: 30)
+                        }
+                    }
             }
+            .frame(minHeight: Self.newMealRowHeight)
+            .listRowInsets(.vertical, 0)
         }
+        .listSectionSpacing(.custom(20))
     }
+
+    private var createButtonSection: some View {
+        Section {
+            PrimaryButton(L10n.Settings.buttonCreate) {
+                Task { await viewModel.onCreateMealType() }
+                focusedField = nil
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        }
+        .listSectionSpacing(.custom(24))
+    }
+
+    private static var newMealRowHeight: CGFloat { 56 }
 
 }
 
