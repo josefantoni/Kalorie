@@ -89,7 +89,7 @@ class ModerationCatalogueEditorViewModel(
         _state.value = LoadingState.Loading
         val item = formInput.value.asFoodItemDomain(id = loadedItem.id, date = loadedItem.date)
         try {
-            updateFoodItem(item, loadedItem)
+            updateFoodItem(item, loadedItem, formInput.value.photo)
             _loadedItem.value = item
             _state.value = LoadingState.loaded
             _showCheckmark.value = true

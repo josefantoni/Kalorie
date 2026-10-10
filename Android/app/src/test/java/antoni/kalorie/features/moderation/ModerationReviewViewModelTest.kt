@@ -2,6 +2,7 @@ package antoni.kalorie.features.moderation
 
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
@@ -19,6 +20,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -115,6 +117,28 @@ class ModerationReviewViewModelTest {
 
         assertEquals(R.string.moderation_error_alreadyExists, sut.alertItem.value?.titleRes)
         assertFalse(sut.shouldDismiss.value)
+    }
+
+    @Test
+    fun onApproveTapped_passesTheFormsPhotoSoAMaintainerReplacementIsPublished() = runTest {
+        val approveSubmission = ApproveSubmissionUseCaseSpy()
+        val sut = makeSUT(approveSubmission = approveSubmission)
+
+        sut.formInput.value = sut.formInput.value.copy(photo = FoodItemFormPhoto.Local(byteArrayOf(1, 2)))
+        sut.onApproveTapped()
+
+        assertArrayEquals(byteArrayOf(1, 2), (approveSubmission.receivedPhoto as FoodItemFormPhoto.Local).data)
+    }
+
+    @Test
+    fun onApproveTapped_whenThePhotoIsMissing_asksForOneAndStaysOpen() = runTest {
+        val approveSubmission = ApproveSubmissionUseCaseSpy(errorToThrow = ApproveSubmissionError.PhotoMissing)
+        val sut = makeSUT(approveSubmission = approveSubmission)
+
+        sut.onApproveTapped()
+
+        assertEquals(R.string.foodPhoto_error_required, sut.alertItem.value?.titleRes)
+        assertFalse("a missing photo is fixed on this screen, so it must not close", sut.shouldDismiss.value)
     }
 
     @Test
@@ -264,13 +288,15 @@ private class ApproveSubmissionUseCaseSpy(
     // MARK: - Properties
 
     var receivedItem: FoodItemDomain? = null
+    var receivedPhoto: FoodItemFormPhoto? = null
     var callCount = 0
 
     // MARK: - Functions
 
-    override suspend fun invoke(submission: FoodItemSubmissionDomain, item: FoodItemDomain) {
+    override suspend fun invoke(submission: FoodItemSubmissionDomain, item: FoodItemDomain, photo: FoodItemFormPhoto) {
         callCount++
         receivedItem = item
+        receivedPhoto = photo
         gate?.await()
         errorToThrow?.let { throw it }
     }

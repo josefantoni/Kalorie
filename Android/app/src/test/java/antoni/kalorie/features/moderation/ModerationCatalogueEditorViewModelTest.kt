@@ -3,6 +3,7 @@ package antoni.kalorie.features.moderation
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
@@ -197,7 +198,7 @@ private class UpdateFoodItemUseCaseSpy : UpdateFoodItemUseCaseProtocol {
 
     // MARK: - Functions
 
-    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain) {
+    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) {
         receivedItem = item
     }
 }
