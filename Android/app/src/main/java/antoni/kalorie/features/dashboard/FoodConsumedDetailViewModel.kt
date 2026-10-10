@@ -78,7 +78,8 @@ class FoodConsumedDetailViewModel(
         private set
 
     private var savedWeight = food.weight
-    private var didSelectMealType = false
+    private val _didSelectMealType = MutableStateFlow(false)
+    val didSelectMealType: StateFlow<Boolean> = _didSelectMealType
 
     val scaledMacros: ScaledMacros
         get() = ScaledMacros(food = food, newWeight = weight.value)
@@ -87,7 +88,7 @@ class FoodConsumedDetailViewModel(
         get() = weight.value != savedWeight
 
     val hasMealTypeChanged: Boolean
-        get() = didSelectMealType && _mealTypeId.value != food.mealTypeId
+        get() = _didSelectMealType.value && _mealTypeId.value != food.mealTypeId
 
     val hasChanges: Boolean
         get() = hasWeightChanged || hasMealTypeChanged
@@ -155,7 +156,7 @@ class FoodConsumedDetailViewModel(
     }
 
     fun onMealTypeSelected(mealTypeId: String) {
-        didSelectMealType = true
+        _didSelectMealType.value = true
         _mealTypeId.value = mealTypeId
     }
 
@@ -194,7 +195,7 @@ class FoodConsumedDetailViewModel(
             if (hasMealTypeChanged && selectedMealTypeId != null) {
                 assignFoodMealType(food, selectedMealTypeId)
                 food = food.withMealTypeId(selectedMealTypeId)
-                didSelectMealType = false
+                _didSelectMealType.value = false
             }
             onFoodUpdated()
             _state.value = LoadingState.loaded

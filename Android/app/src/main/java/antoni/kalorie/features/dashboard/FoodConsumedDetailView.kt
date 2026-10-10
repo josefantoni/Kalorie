@@ -71,6 +71,7 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
     val alertItem by viewModel.alertItem.collectAsState()
     val mealTypeId by viewModel.mealTypeId.collectAsState()
     val mealTypes by viewModel.mealTypes.collectAsState()
+    val didSelectMealType by viewModel.didSelectMealType.collectAsState()
     val hasReportedCurrentItem by viewModel.hasReportedCurrentItem.collectAsState()
     val isReportReasonAlertVisible by viewModel.isReportReasonAlertVisible.collectAsState()
     val reportReasonText by viewModel.reportReasonText.collectAsState()
@@ -82,7 +83,7 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
     var isMealTypeMenuVisible by remember { mutableStateOf(false) }
     val food = viewModel.food
     val macros = viewModel.scaledMacros
-    val hasChanges = viewModel.hasChanges
+    val hasChanges = remember(weight, mealTypeId, didSelectMealType, state) { viewModel.hasChanges }
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
 
