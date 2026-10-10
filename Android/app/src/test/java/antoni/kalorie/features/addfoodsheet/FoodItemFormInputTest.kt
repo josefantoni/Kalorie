@@ -1,6 +1,7 @@
 package antoni.kalorie.features.addfoodsheet
 
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodMeasure
 import org.junit.Assert.assertEquals
@@ -51,6 +52,34 @@ class FoodItemFormInputTest {
         val result = FoodItemFormInput().asFoodItemDomain()
 
         assertEquals(null, result.alcoholByVolume)
+    }
+
+    @Test
+    fun initFromItem_withACatalogueItemPhoto_showsItAsAlreadyStored() {
+        val sut = FoodItemFormInput.from(makeItem(weight = 100.0).copy(photoUrl = "https://storage.fake/a.jpg"))
+
+        assertEquals(FoodItemFormPhoto.Remote("https://storage.fake/a.jpg"), sut.photo)
+    }
+
+    @Test
+    fun initFromItem_withAnExternalItemPhoto_ignoresItSoAThirdPartyUrlIsNeverSubmitted() {
+        val sut = FoodItemFormInput.from(makeItem(weight = 100.0).copy(kind = FoodItemKind.EXTERNAL, photoUrl = "https://images.openfoodfacts.org/a.jpg"))
+
+        assertEquals(FoodItemFormPhoto.None, sut.photo)
+    }
+
+    @Test
+    fun asFoodItemDomain_withAStoredPhoto_keepsItsUrl() {
+        val result = FoodItemFormInput(photo = FoodItemFormPhoto.Remote("https://storage.fake/a.jpg")).asFoodItemDomain()
+
+        assertEquals("https://storage.fake/a.jpg", result.photoUrl)
+    }
+
+    @Test
+    fun asFoodItemDomain_withANewLocalPhoto_hasNoUrlUntilItIsUploaded() {
+        val result = FoodItemFormInput(photo = FoodItemFormPhoto.Local(byteArrayOf(1))).asFoodItemDomain()
+
+        assertEquals(null, result.photoUrl)
     }
 
     // MARK: - Helpers
