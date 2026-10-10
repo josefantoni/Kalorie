@@ -60,7 +60,6 @@ fun FoodItemFormSections(
         SectionCard {
             FloatingLabelTextField(
                 title = stringResource(R.string.addFood_field_name_title),
-                isUnderlineFullWidth = true,
                 text = formInput.name,
                 onTextChange = {
                     onFormInputChange(formInput.copy(name = it))
