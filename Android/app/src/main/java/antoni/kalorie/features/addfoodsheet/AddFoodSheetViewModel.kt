@@ -226,7 +226,7 @@ class AddFoodSheetViewModel(
         val index = mySubmissions.value.indexOfFirst { it.id == submission.id }
         mySubmissions.value = mySubmissions.value.filter { it.id != submission.id }
         try {
-            deleteMySubmission(submission.id)
+            deleteMySubmission(submission.id, submission.item.photoUrl)
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
@@ -257,9 +257,10 @@ class AddFoodSheetViewModel(
         try {
             val submissionId = editingSubmissionId
             if (submissionId != null) {
-                updateMySubmission(submissionId, item)
+                val previousPhotoUrl = mySubmissions.value.firstOrNull { it.id == submissionId }?.item?.photoUrl
+                updateMySubmission(submissionId, item, formInput.value.photo, previousPhotoUrl)
             } else {
-                submitFoodItem(item)
+                submitFoodItem(item, formInput.value.photo)
             }
             editingSubmissionId = null
             _rejectionReasonBeingEdited.value = null
@@ -277,6 +278,11 @@ class AddFoodSheetViewModel(
                 error is FoodItemSubmissionError.InvalidAlcoholByVolume -> AlertItem(titleRes = R.string.addFood_error_invalidAlcoholByVolume)
                 error is FoodItemSubmissionError.InvalidPortion -> AlertItem(titleRes = error.error.alertTitleRes)
                 error is FoodItemSubmissionError.ItemAlreadyExists -> AlertItem(titleRes = R.string.addFood_error_itemAlreadyExists)
+                error is FoodItemSubmissionError.PhotoMissing -> {
+                    recognizedFields.value = recognizedFields.value + FoodItemFormField.PHOTO
+                    AlertItem(titleRes = R.string.foodPhoto_error_required)
+                }
+                error is FoodItemSubmissionError.PhotoUploadFailed -> AlertItem(titleRes = R.string.foodPhoto_error_uploadFailed)
                 else -> AlertItem(titleRes = R.string.common_error_unknown)
             }
         } finally {

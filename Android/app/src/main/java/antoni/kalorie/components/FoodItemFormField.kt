@@ -14,4 +14,5 @@ enum class FoodItemFormField {
     FAT_UNSATURATED,
     SALT,
     ALCOHOL_BY_VOLUME,
+    PHOTO,
 }
