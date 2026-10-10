@@ -68,8 +68,7 @@ Every editable text or number has an underline: `outlineVariant` at rest, `prima
 focused. iOS draws no line, so this is a deliberate Android deviation — without it a value in a row
 does not read as editable. `FloatingLabelTextField` and `NumericRowTextField` both draw it, so never
 hide it per call site. `FloatingLabelTextField` draws its own line inset 16 dp from the left, the
-same as `SectionCardDivider`, so do not add padding around the field to move it. A standalone field (food search, food and meal
-name) passes `isUnderlineFullWidth = true` and draws the line edge to edge. The underline doubles as a separator: do not put a `SectionCardDivider`
+same as `SectionCardDivider`, so do not add padding around the field to move it. A field alone in its card (food search, meal name) passes `isUnderlineFullWidth = true` and draws the line edge to edge. The food name in the food form shares its card with other fields, so it keeps the inset line. The underline doubles as a separator: do not put a `SectionCardDivider`
 directly after a field.
 
 ## Primary buttons
