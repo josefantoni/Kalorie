@@ -15,9 +15,11 @@ The app works with three kinds of data. The distinction matters for the items be
 
 - **Food photos** — designed in [design 0022](docs/design/0022-food-photos.md). The Blaze plan
   (budget alert 150 CZK/month) and the default Storage bucket (`us-central1`) are set up. Before
-  the release that ships it: update the privacy policy text, the App Store privacy label and the
-  Google Play Data safety form (*Photos*) — see the design's *Privacy* section. Do not change the
-  store declarations earlier, they must match the published build.
+  the release that ships it: update the App Store privacy label and the Google Play Data safety form
+  (*Photos*) — see the design's *Privacy* section. Do not change the store declarations earlier, they
+  must match the published build. The privacy policy page (`backend/hosting/privacy.html`) already
+  describes the photos; before the apps are sent to the stores, change its effective date (both
+  language halves) to the deploy date, re-read it against the shipped behaviour, and deploy it.
 - **Firebase App Check** — Storage and Firestore rules only check who writes, not what writes, so
   anyone with an account can upload files (up to the rules' limits) from a script and the Blaze bill
   is ours. App Check makes the backend accept requests only from genuine builds: App Attest on iOS,
