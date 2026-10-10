@@ -227,7 +227,8 @@
     <string name="myCreatedMeal_confirm_update">Save changes?</string>
     <string name="myCreatedMeal_error_deleteFailed">Could not delete the meal</string>
     <string name="myCreatedMeal_error_saveFailed">Could not save the meal</string>
-    <string name="myCreatedMeal_field_namePlaceholder">Custom meal name … e.g. homemade tortilla</string>
+    <string name="myCreatedMeal_field_name_placeholder">Homemade tortilla</string>
+    <string name="myCreatedMeal_field_name_title">Meal name</string>
     <string name="myCreatedMeal_search_placeholder">Add food … try %1$s</string>
     <string name="myCreatedMeal_section_catalogue">Food catalogue</string>
     <string name="myCreatedMeal_section_ingredients">Ingredients</string>

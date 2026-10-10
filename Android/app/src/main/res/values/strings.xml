@@ -227,7 +227,8 @@
     <string name="myCreatedMeal_confirm_update">Uložit změny?</string>
     <string name="myCreatedMeal_error_deleteFailed">Jídlo se nepodařilo smazat</string>
     <string name="myCreatedMeal_error_saveFailed">Jídlo se nepodařilo uložit</string>
-    <string name="myCreatedMeal_field_namePlaceholder">Název vlastního jídla … třeba domácí tortila</string>
+    <string name="myCreatedMeal_field_name_placeholder">Domácí tortilla</string>
+    <string name="myCreatedMeal_field_name_title">Název jídla</string>
     <string name="myCreatedMeal_search_placeholder">Přidej potravinu … třeba %1$s</string>
     <string name="myCreatedMeal_section_catalogue">Katalog potravin</string>
     <string name="myCreatedMeal_section_ingredients">Potraviny</string>

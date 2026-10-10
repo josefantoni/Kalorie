@@ -27,8 +27,12 @@ struct MyCreatedMealEditorView: View {
     var body: some View {
         List {
             Section {
-                FloatingLabelTextField(title: L10n.MyCreatedMeal.fieldNameTitle, text: $viewModel.name)
-                    .listRowInsets(.vertical, 0)
+                FloatingLabelTextField(
+                    title: L10n.MyCreatedMeal.fieldNameTitle,
+                    text: $viewModel.name,
+                    placeholder: L10n.MyCreatedMeal.fieldNamePlaceholder
+                )
+                .listRowInsets(.vertical, 0)
             }
 
             if !viewModel.ingredients.isEmpty {

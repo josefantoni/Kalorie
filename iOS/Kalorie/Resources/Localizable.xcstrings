@@ -3882,19 +3882,36 @@
         }
       }
     },
-    "myCreatedMeal_field_namePlaceholder" : {
+    "myCreatedMeal_field_name_placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Název vlastního jídla … třeba domácí tortila"
+            "value" : "Domácí tortilla"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Custom meal name … e.g. homemade tortilla"
+            "value" : "Homemade tortilla"
+          }
+        }
+      }
+    },
+    "myCreatedMeal_field_name_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Název jídla"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meal name"
           }
         }
       }

@@ -907,9 +907,13 @@
     "cs": "Jídlo se nepodařilo uložit",
     "en": "Could not save the meal"
   },
-  "myCreatedMeal_field_namePlaceholder": {
-    "cs": "Název vlastního jídla … třeba domácí tortila",
-    "en": "Custom meal name … e.g. homemade tortilla"
+  "myCreatedMeal_field_name_placeholder": {
+    "cs": "Domácí tortilla",
+    "en": "Homemade tortilla"
+  },
+  "myCreatedMeal_field_name_title": {
+    "cs": "Název jídla",
+    "en": "Meal name"
   },
   "myCreatedMeal_search_placeholder": {
     "cs": "Přidej potravinu … třeba %@",
