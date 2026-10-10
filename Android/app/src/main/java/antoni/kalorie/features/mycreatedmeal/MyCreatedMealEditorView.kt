@@ -128,10 +128,11 @@ fun MyCreatedMealEditorView(
                 item {
                     SectionCard(modifier = Modifier.padding(top = 8.dp)) {
                         FloatingLabelTextField(
-                            title = stringResource(R.string.myCreatedMeal_field_namePlaceholder),
+                            title = stringResource(R.string.myCreatedMeal_field_name_title),
                             isUnderlineFullWidth = true,
                             text = name,
                             onTextChange = { viewModel.name.value = it },
+                            placeholder = stringResource(R.string.myCreatedMeal_field_name_placeholder),
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
