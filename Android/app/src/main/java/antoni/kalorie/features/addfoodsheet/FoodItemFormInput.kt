@@ -3,6 +3,7 @@ package antoni.kalorie.features.addfoodsheet
 import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodMeasure
 import antoni.kalorie.core.models.FoodPortionDomain
@@ -27,6 +28,7 @@ data class FoodItemFormInput(
     val portions: List<FoodPortionDraft> = listOf(FoodPortionDraft.blank),
     val measure: FoodMeasure = FoodMeasure.GRAMS,
     val alcoholByVolume: Double? = null,
+    val photo: FoodItemFormPhoto = FoodItemFormPhoto.None,
 ) {
 
     // MARK: - Functions
@@ -51,6 +53,7 @@ data class FoodItemFormInput(
         portions = parsedPortions(portions),
         measure = measure,
         alcoholByVolume = alcoholByVolume?.takeIf { it > 0 },
+        photoUrl = (photo as? FoodItemFormPhoto.Remote)?.url,
     )
 
     // A field an earlier scan already filled is tracked in alreadyRecognizedFields, not by checking
@@ -126,6 +129,7 @@ data class FoodItemFormInput(
                 ?: listOf(FoodPortionDraft.blank),
             measure = item.measure,
             alcoholByVolume = item.alcoholByVolume,
+            photo = item.photoUrl?.takeIf { item.kind == FoodItemKind.CATALOGUE }?.let { FoodItemFormPhoto.Remote(it) } ?: FoodItemFormPhoto.None,
         )
 
         fun parsedPortions(drafts: List<FoodPortionDraft>): List<FoodPortionDomain> = drafts.mapNotNull { draft ->

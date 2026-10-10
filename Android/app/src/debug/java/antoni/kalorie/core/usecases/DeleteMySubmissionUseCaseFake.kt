@@ -6,7 +6,7 @@ data class DeleteMySubmissionUseCaseFake(
 
     // MARK: - Functions
 
-    override suspend fun invoke(id: String) {
+    override suspend fun invoke(id: String, photoUrl: String?) {
         if (shouldThrow) throw RuntimeException("unknown")
     }
 }
