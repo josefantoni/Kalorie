@@ -42,6 +42,7 @@ struct FloatingLabelTextField<Field: Hashable>: View {
     var keyboardType: UIKeyboardType = .default
     var isHighlighted: Bool = false
     var minHeight: CGFloat = 44
+    var trailingButton: BadgeButton?
 
     private let externalFocus: FocusState<Field?>.Binding?
     private let focusValue: Field
@@ -64,7 +65,8 @@ struct FloatingLabelTextField<Field: Hashable>: View {
         message: FloatingLabelTextFieldMessage? = nil,
         keyboardType: UIKeyboardType = .default,
         isHighlighted: Bool = false,
-        minHeight: CGFloat = 44
+        minHeight: CGFloat = 44,
+        trailingButton: BadgeButton? = nil
     ) {
         self.title = title
         self._text = text
@@ -75,6 +77,7 @@ struct FloatingLabelTextField<Field: Hashable>: View {
         self.keyboardType = keyboardType
         self.isHighlighted = isHighlighted
         self.minHeight = minHeight
+        self.trailingButton = trailingButton
     }
 
     // MARK: - Body
@@ -131,6 +134,11 @@ struct FloatingLabelTextField<Field: Hashable>: View {
         return isTitleFloated ? floatedTop : centredTop
     }
 
+    private var trailingButtonInset: CGFloat {
+        guard let trailingButton else { return 0 }
+        return trailingButton.size + Self.trailingButtonSpacing - Self.trailingButtonRowInsetOverlap
+    }
+
     private var fieldView: some View {
         ZStack(alignment: .leading) {
             placeholderView
@@ -142,7 +150,13 @@ struct FloatingLabelTextField<Field: Hashable>: View {
                 .accessibilityLabel(title)
                 .accessibilityHint(message?.text ?? "")
         }
+        .padding(.trailing, trailingButtonInset)
         .padding(.top, floatedTitleHeight)
+        .overlay(alignment: .trailing) {
+            // Pulls the badge into the List row's 16 pt trailing inset so it sits 12 pt from the cell edge.
+            trailingButton
+                .padding(.trailing, -Self.trailingButtonRowInsetOverlap)
+        }
         .padding(.vertical, Self.verticalPadding)
         .frame(minHeight: minHeight, alignment: .bottom)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -178,6 +192,7 @@ struct FloatingLabelTextField<Field: Hashable>: View {
             .lineLimit(1)
             .minimumScaleFactor(Self.minimumScaleFactor)
             .foregroundStyle(titleColor)
+            .padding(.trailing, trailingButtonInset)
             .onGeometryChange(for: CGFloat.self) { proxy in
                 proxy.size.height
             } action: { height in
@@ -220,6 +235,8 @@ struct FloatingLabelTextField<Field: Hashable>: View {
     private static var messageBottomPadding: CGFloat { 8 }
     private static var disabledOpacity: Double { 0.5 }
     private static var minimumScaleFactor: CGFloat { 0.5 }
+    private static var trailingButtonSpacing: CGFloat { 4 }
+    private static var trailingButtonRowInsetOverlap: CGFloat { 4 }
 }
 
 extension FloatingLabelTextField where Field == Bool {
@@ -230,7 +247,8 @@ extension FloatingLabelTextField where Field == Bool {
         message: FloatingLabelTextFieldMessage? = nil,
         keyboardType: UIKeyboardType = .default,
         isHighlighted: Bool = false,
-        minHeight: CGFloat = 44
+        minHeight: CGFloat = 44,
+        trailingButton: BadgeButton? = nil
     ) {
         self.title = title
         self._text = text
@@ -239,6 +257,7 @@ extension FloatingLabelTextField where Field == Bool {
         self.keyboardType = keyboardType
         self.isHighlighted = isHighlighted
         self.minHeight = minHeight
+        self.trailingButton = trailingButton
         self.externalFocus = nil
         self.focusValue = true
     }
@@ -256,6 +275,7 @@ private struct FloatingLabelTextFieldPreview: View {
     var isDisabled: Bool = false
     var isFocusedOnAppear: Bool = false
     var isReadOnly: Bool = false
+    var hasTrailingButton: Bool = false
 
     @State private var editableText = ""
     @FocusState private var focusedField: Bool?
@@ -268,7 +288,8 @@ private struct FloatingLabelTextFieldPreview: View {
             equals: true,
             placeholder: placeholder,
             message: message,
-            isHighlighted: isHighlighted
+            isHighlighted: isHighlighted,
+            trailingButton: hasTrailingButton ? BadgeButton(imageName: .barCode) {} : nil
         )
         .disabled(isDisabled)
         .onAppear {
@@ -334,4 +355,16 @@ private struct FloatingLabelTextFieldPreviewPair: View {
 #Preview("Largest Dynamic Type") {
     FloatingLabelTextFieldPreviewPair(content: FloatingLabelTextFieldPreview(title: "Food name", text: "Cottage cheese", message: .hint("Hint text")))
         .dynamicTypeSize(.accessibility5)
+}
+
+#Preview("Trailing button") {
+    FloatingLabelTextFieldPreviewPair(content: FloatingLabelTextFieldPreview(title: "Search food", hasTrailingButton: true))
+}
+
+#Preview("Trailing button filled") {
+    FloatingLabelTextFieldPreviewPair(content: FloatingLabelTextFieldPreview(title: "Search food", text: "Cottage cheese", hasTrailingButton: true))
+}
+
+#Preview("Trailing button with hint") {
+    FloatingLabelTextFieldPreviewPair(content: FloatingLabelTextFieldPreview(title: "Food barcode", message: .hint("no barcode"), hasTrailingButton: true))
 }

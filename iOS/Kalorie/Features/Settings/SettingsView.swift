@@ -53,7 +53,7 @@ struct SettingsView: View {
                         },
                         footer: Group {
                             if editMode == .active && !viewModel.isAddFormVisible {
-                                AddButton {
+                                BadgeButton(imageName: .plus) {
                                     viewModel.onShowAddForm()
                                 }
                                 .frame(maxWidth: .infinity)

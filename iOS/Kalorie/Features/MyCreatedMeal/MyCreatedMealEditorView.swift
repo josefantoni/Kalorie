@@ -53,20 +53,17 @@ struct MyCreatedMealEditorView: View {
             }
 
             Section(header: Text(L10n.MyCreatedMeal.sectionCatalogue)) {
-                HStack {
-                    FloatingLabelTextField(title: viewModel.searchPlaceholder, text: $viewModel.searchText)
-                    BaseButton(
-                        style: .plain,
-                        imageName: .barCode,
-                        imageSize: .medium
-                    ) {
+                FloatingLabelTextField(
+                    title: viewModel.searchPlaceholder,
+                    text: $viewModel.searchText,
+                    trailingButton: BadgeButton(imageName: .barCode) {
                         if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
                             viewModel.onScannerButtonTapped()
                         } else {
                             viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
                         }
                     }
-                }
+                )
                 .listRowInsets(.vertical, 0)
             }
 

@@ -85,18 +85,18 @@ struct FoodItemFormSections: View {
             )
             .disabled(true)
         case .editable(let onScanTapped):
-            HStack {
-                FloatingLabelTextField(
-                    title: L10n.AddFood.fieldBarcodeTitle,
-                    text: $formInput.scannedCode,
-                    message: formInput.scannedCode.isEmpty ? .hint(L10n.AddFood.warningMissingBarcode) : nil,
-                    keyboardType: .numberPad
-                )
-                BaseButton(style: .plain, imageName: .barCode, imageSize: .medium) {
+            FloatingLabelTextField(
+                title: L10n.AddFood.fieldBarcodeTitle,
+                text: $formInput.scannedCode,
+                message: formInput.scannedCode.isEmpty ? .hint(L10n.AddFood.warningMissingBarcode) : nil,
+                keyboardType: .numberPad,
+                trailingButton: BadgeButton(
+                    imageName: .barCode,
+                    accessibilityLabel: L10n.AddFood.nutritionLabelBarcodeScanAccessibility
+                ) {
                     onScanTapped()
                 }
-                .accessibilityLabel(L10n.AddFood.nutritionLabelBarcodeScanAccessibility)
-            }
+            )
         }
     }
 

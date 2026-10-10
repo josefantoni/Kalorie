@@ -18,7 +18,7 @@ struct PortionDraftAddSection: View {
 
     var body: some View {
         Section {
-            AddButton {
+            BadgeButton(imageName: .plus) {
                 let draft = FoodPortionDraft.blank
                 drafts.append(draft)
                 focusedField.wrappedValue = draft.id
