@@ -46,13 +46,27 @@ class FoodItemDTOTest {
         assertEquals(4.4, dto.asDomain().alcoholByVolume)
     }
 
+    @Test
+    fun asDomain_whenPhotoUrlIsAbsent_isNull() {
+        val json = encodedJSON().apply { remove("photo_url") }
+        val dto = decode(json)
+        assertEquals("a document without the key must decode, not throw", null, dto.asDomain().photoUrl)
+    }
+
+    @Test
+    fun photoUrl_survivesRoundTrip() {
+        val json = FirestoreDataMapper.encode(FoodItemDTO(makeItem(photoUrl = "https://storage.fake/a.jpg")), FoodItemDTO.serializer())
+        val dto = decode(json)
+        assertEquals("https://storage.fake/a.jpg", dto.asDomain().photoUrl)
+    }
+
     // MARK: - Helpers
 
     private fun encodedJSON(): MutableMap<String, Any?> = FirestoreDataMapper.encode(FoodItemDTO(makeItem()), FoodItemDTO.serializer()).toMutableMap()
 
     private fun decode(json: Map<String, Any?>): FoodItemDTO = FirestoreDataMapper.decode(json, FoodItemDTO.serializer())
 
-    private fun makeItem(alcoholByVolume: Double? = null): FoodItemDomain = FoodItemDomain(
+    private fun makeItem(alcoholByVolume: Double? = null, photoUrl: String? = null): FoodItemDomain = FoodItemDomain(
         id = "12345678",
         kind = FoodItemKind.CATALOGUE,
         czName = "Mléko",
@@ -70,5 +84,6 @@ class FoodItemDTOTest {
         protein = 3.2,
         salt = 0.1,
         alcoholByVolume = alcoholByVolume,
+        photoUrl = photoUrl,
     )
 }

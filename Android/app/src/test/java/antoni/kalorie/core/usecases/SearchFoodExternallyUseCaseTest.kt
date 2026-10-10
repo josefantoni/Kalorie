@@ -49,7 +49,7 @@ class SearchFoodExternallyUseCaseTest {
 
         assertEquals(
             "https://world.openfoodfacts.org/cgi/search.pl?search_terms=b%C3%ADl%C3%BD%20jogurt&json=1&page_size=20" +
-                "&fields=code,product_name,product_name_cs,product_name_en,nutriments",
+                "&fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url",
             session.lastRequest?.url,
         )
         assertEquals(10_000, session.lastRequest?.timeoutMillis)
