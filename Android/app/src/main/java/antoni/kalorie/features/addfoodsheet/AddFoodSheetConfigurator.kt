@@ -94,6 +94,8 @@ class AddFoodSheetConfigurator(
                         removeFavouriteFood = RemoveFavouriteFoodUseCase(dataProvider, authProvider),
                         fetchFoodItemPersonalPortions = FetchFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
                         saveFoodItemPersonalPortions = SaveFoodItemPersonalPortionsUseCase(dataProvider, authProvider),
+                        fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
+                        fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                         fetchMyFoodItemReport = FetchMyFoodItemReportUseCase(dataProvider, authProvider),
                         submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider),
                         meal = meal,

@@ -44,6 +44,8 @@ import antoni.kalorie.R
 import antoni.kalorie.components.AlcoholicDrinkHintView
 import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.components.FavouriteButton
+import antoni.kalorie.components.FoodPhotoThumbnailBottomSpace
+import antoni.kalorie.components.FoodPhotoThumbnailOverlay
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.ReportIncorrectDataMenu
 import antoni.kalorie.components.ReportReasonDialog
@@ -51,6 +53,7 @@ import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.rememberFoodPhotoThumbnailState
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.displayName
@@ -77,6 +80,7 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
     val reportReasonText by viewModel.reportReasonText.collectAsState()
     val isFavourite by viewModel.isFavourite.collectAsState()
     val catalogueItem by viewModel.catalogueItem.collectAsState()
+    val photoState = rememberFoodPhotoThumbnailState(catalogueItem?.photoUrl)
     val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
     val scope = rememberCoroutineScope()
     var weightText by remember { mutableStateOf(initialWeightText(viewModel.weight.value)) }
@@ -210,7 +214,9 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                     SectionCardDivider()
                     LabeledRow(label = stringResource(R.string.addFood_field_salt)) { Text(macros.salt.formattedGrams(fractionDigits = 2)) }
                 }
+                FoodPhotoThumbnailBottomSpace(photoState)
             }
+            FoodPhotoThumbnailOverlay(photoState)
 
             if (state.isLoading) {
                 Box(
