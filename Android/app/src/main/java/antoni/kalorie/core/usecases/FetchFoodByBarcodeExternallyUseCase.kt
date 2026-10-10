@@ -44,7 +44,7 @@ class FetchFoodByBarcodeExternallyUseCase(
     }
 
     private companion object {
-        const val FIELDS = "code,product_name,product_name_cs,product_name_en,nutriments"
+        const val FIELDS = "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url"
         val json = Json { ignoreUnknownKeys = true }
     }
 }

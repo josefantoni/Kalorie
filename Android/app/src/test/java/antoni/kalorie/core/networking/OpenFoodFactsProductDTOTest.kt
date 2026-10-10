@@ -49,6 +49,15 @@ class OpenFoodFactsProductDTOTest {
         }
     }
 
+    @Test
+    fun asDomain_mapsImageFrontUrlIntoPhotoUrl() {
+        val dto = Json.decodeFromString(
+            OpenFoodFactsProductDTO.serializer(),
+            """{"code":"1","product_name":"Jogurt","image_front_url":"https://images.off/1.jpg","nutriments":{"energy-kcal_100g":60}}""",
+        )
+        assertEquals("https://images.off/1.jpg", dto.asDomain()?.photoUrl)
+    }
+
     // MARK: - Helpers
 
     private fun JsonObject.double(key: String): Double = getValue(key).jsonPrimitive.double
