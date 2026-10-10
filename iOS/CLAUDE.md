@@ -213,6 +213,11 @@ tests that by hand, and running the simulator needlessly burns tokens. `xcodebui
 compilation) and `xcodebuild test` (running unit tests) are fine and welcome; just do not finish by
 launching or clicking through the running app.
 
+Build against a named simulator, as CI does:
+`xcodebuild build -project iOS/Kalorie.xcodeproj -scheme Kalorie -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest'`.
+Never use `generic/platform=iOS Simulator` — it also builds x86_64, the KMP frameworks are
+arm64-only, and the link fails with `Undefined symbols for architecture x86_64`.
+
 ---
 
 ## Naming Conventions
