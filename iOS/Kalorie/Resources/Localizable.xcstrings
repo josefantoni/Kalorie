@@ -1485,7 +1485,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zadané údaje jsme odeslali správci ke schválení. Do té doby položka nebude v katalogu potravin viditelná. Stav najdeš v sekci „Moje příspěvky“, až příště otevřeš přidání potraviny."
+            "value" : "Zadané údaje jsme odeslali správci ke schválení. Do té doby položka nebude v katalogu potravin viditelná. Stav najdeš v sekci „Moje návrhy“, až příště otevřeš přidání potraviny."
           }
         },
         "en" : {
