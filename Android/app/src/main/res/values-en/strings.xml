@@ -9,7 +9,7 @@
     <string name="account_button_signInWithApple">Sign in with Apple</string>
     <string name="account_button_signInWithGoogle">Sign in with Google</string>
     <string name="account_button_signOut">Sign out</string>
-    <string name="account_dataAttribution">Nutrition data for some foods comes from Open Food Facts, available under the Open Database License.</string>
+    <string name="account_dataAttribution">Nutrition data and photos of some foods come from Open Food Facts. The data is available under the Open Database License, the photos under CC BY-SA.</string>
     <string name="account_dataAttribution_linkTitle">openfoodfacts.org</string>
     <string name="account_error_accountExistsWithApple">Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them.</string>
     <string name="account_error_deleteFailed">Failed to delete account</string>
@@ -165,6 +165,14 @@
     <string name="foodItemReport_button_send">Send</string>
     <string name="foodItemReport_error_reasonRequired">Please describe what\'s wrong</string>
     <string name="foodItemReport_error_reasonTooLong">Keep the description under 500 characters</string>
+    <string name="foodPhoto_accessibility_enlarge">Enlarge photo</string>
+    <string name="foodPhoto_accessibility_retake">Retake photo</string>
+    <string name="foodPhoto_action_choose">Choose from library</string>
+    <string name="foodPhoto_action_show">Show photo</string>
+    <string name="foodPhoto_action_take">Take photo</string>
+    <string name="foodPhoto_error_required">Add a product photo</string>
+    <string name="foodPhoto_error_uploadFailed">The photo could not be uploaded. Try again.</string>
+    <string name="foodPhoto_title">Product photo</string>
     <string name="foodPortion_button_add">Add portion</string>
     <string name="foodPortion_error_invalidGrams">Enter a weight greater than 0</string>
     <string name="foodPortion_error_invalidName">Enter a portion name</string>
