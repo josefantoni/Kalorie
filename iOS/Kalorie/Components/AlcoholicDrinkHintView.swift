@@ -27,12 +27,15 @@ struct AlcoholicDrinkHintView: View {
                 Image(systemName: BaseImageName.infoCircle.rawValue)
             }
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.black)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Color.warning, in: .capsule)
         }
-        .buttonStyle(.glass)
-        .controlSize(.small)
+        .buttonStyle(.plain)
         .popover(isPresented: $isPopoverVisible) {
             Text(L10n.Common.alcoholicDrinkExplanation)
+                .foregroundStyle(Color(.label))
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(width: 280)
                 .padding()
