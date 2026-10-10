@@ -134,7 +134,8 @@ fun FloatingLabelTextField(
                             modifier = Modifier.fillMaxSize().drawBehind {
                                 val stroke = (if (isFocused || isError) FOCUSED_UNDERLINE else UNFOCUSED_UNDERLINE).toPx()
                                 val y = size.height - stroke / 2
-                                drawLine(underlineColor, Offset(if (isUnderlineFullWidth) 0f else UNDERLINE_INSET.toPx(), y), Offset(size.width, y), stroke)
+                                val inset = if (isUnderlineFullWidth) 0f else UNDERLINE_INSET.toPx()
+                                drawLine(underlineColor, Offset(inset, y), Offset(size.width - inset, y), stroke)
                             },
                         )
                     },
