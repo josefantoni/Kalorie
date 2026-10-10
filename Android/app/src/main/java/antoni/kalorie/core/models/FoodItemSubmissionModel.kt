@@ -30,6 +30,8 @@ sealed class FoodItemSubmissionError : Exception() {
     data object InvalidAlcoholByVolume : FoodItemSubmissionError()
     data class InvalidPortion(val error: FoodPortionError) : FoodItemSubmissionError()
     data object ItemAlreadyExists : FoodItemSubmissionError()
+    data object PhotoMissing : FoodItemSubmissionError()
+    data object PhotoUploadFailed : FoodItemSubmissionError()
 
     // MARK: - Functions
 

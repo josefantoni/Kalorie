@@ -6,18 +6,20 @@ import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.utils.Constants
 
 interface DeleteMySubmissionUseCaseProtocol {
-    suspend operator fun invoke(id: String)
+    suspend operator fun invoke(id: String, photoUrl: String?)
 }
 
 class DeleteMySubmissionUseCase(
     private val dataProvider: FirestoreDataProviderProtocol,
     private val authProvider: AuthProviderProtocol,
+    private val deleteFoodPhoto: DeleteFoodPhotoUseCaseProtocol,
 ) : DeleteMySubmissionUseCaseProtocol {
 
     // MARK: - Functions
 
-    override suspend fun invoke(id: String) {
+    override suspend fun invoke(id: String, photoUrl: String?) {
         if (authProvider.userId == null) throw AuthError.NotAuthenticated
         dataProvider.deleteAsync(id = id, from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS)
+        if (photoUrl != null) deleteFoodPhoto.deleteQuietly(photoUrl)
     }
 }
