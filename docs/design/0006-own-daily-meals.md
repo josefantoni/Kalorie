@@ -723,9 +723,8 @@ following the project's Router + Configurator pattern.
 
 Layout, top to bottom, inside a `NavigationStack` + `List`:
 
-1. **Name** — a single `TextField`, no section header, placeholder *Název vlastního jídla … třeba
-   Můj domácí chleba* (see *Localization*'s copy-pass revision — the placeholder now carries the
-   label's job since the header above it was removed).
+1. **Name** — a `FloatingLabelTextField` with no section header, title *Název jídla* and
+   placeholder *Domácí tortilla*, like the food name field (see *Localization*'s revisions).
 2. **Selected ingredients** — a section of rows, each showing the food's `displayName` and a grams
    input. Swipe-to-delete removes a row.
 3. **Search field**, then **search results** — typing runs the same debounced
@@ -902,6 +901,11 @@ confirmation in the app).
 > `Dashboard` itself keeps one formal outlier (`dashboard_empty_description`, "…jste… nesnědli"), left
 > alone since it renders outside this sheet. Table below reflects the shipped values.
 
+> **Revised 2026-10-10.** The meal-name field became a `FloatingLabelTextField`, which shows its
+> title above the text, so the *label … example* placeholder is split like the food name field:
+> `myCreatedMeal_field_namePlaceholder` is replaced by `myCreatedMeal_field_name_title` (title)
+> and `myCreatedMeal_field_name_placeholder` (example). The table reflects this.
+
 | Key | cs | en |
 |---|---|---|
 | `addFood_section_myCreatedMeals` | Vlastní jídla | My meals |
@@ -911,7 +915,8 @@ confirmation in the app).
 | `addFood_mode_createMeal` | Vlastní jídlo | My meal |
 | `myCreatedMeal_title_new` | Sestav vlastní jídlo | New meal |
 | `myCreatedMeal_title_edit` | Upravit vlastní jídlo | Edit meal |
-| `myCreatedMeal_field_namePlaceholder` | Název vlastního jídla … třeba Můj domácí chleba | Custom meal name … try My homemade bread |
+| `myCreatedMeal_field_name_title` | Název jídla | Meal name |
+| `myCreatedMeal_field_name_placeholder` | Domácí tortilla | Homemade tortilla |
 | `myCreatedMeal_section_ingredients` | Suroviny | Ingredients |
 | `myCreatedMeal_ingredients_empty` | Vyhledejte a přidejte alespoň jednu surovinu | Search and add at least one ingredient |
 | `myCreatedMeal_confirm_create` | Vytvořit toto jídlo? | Create this meal? |
