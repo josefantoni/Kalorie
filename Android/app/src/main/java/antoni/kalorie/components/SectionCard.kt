@@ -29,5 +29,5 @@ fun SectionCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.
 
 @Composable
 fun SectionCardDivider() {
-    HorizontalDivider(modifier = Modifier.padding(start = 16.dp))
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }
