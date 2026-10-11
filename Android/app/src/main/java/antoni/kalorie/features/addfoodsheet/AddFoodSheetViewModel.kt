@@ -11,6 +11,7 @@ import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionError
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.MyCreatedMealDomain
+import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteMySubmissionUseCaseProtocol
@@ -89,6 +90,7 @@ class AddFoodSheetViewModel(
     override val nutritionLabelCameraHintRes = MutableStateFlow<Int?>(null)
     val cameraAccess = MutableStateFlow(CameraAccess.NOT_DETERMINED)
     private var isNutritionLabelCameraReviewPending = false
+    private var lastSearchedQuery: String? = null
     val isReviewPushed = MutableStateFlow(false)
     val mySubmissions = MutableStateFlow<List<FoodItemSubmissionDomain>>(emptyList())
     val isSubmissionConfirmationVisible = MutableStateFlow(false)
@@ -122,20 +124,19 @@ class AddFoodSheetViewModel(
             if (searchText.value.isEmpty()) return localFoodItems.value
             val query = searchQuery(searchText.value)
             val matchingFavourites = favouriteFoods.value.filter {
-                matchesSearchQuery(it.czName, query) || matchesSearchQuery(it.engName, query)
+                matchesSearchQuery(it.displayName, query)
             }
             val matchingMeals = myCreatedMeals.value
                 .map { it.asFoodItem() }
                 .filter { matchesSearchQuery(it.czName, query) }
             val matchingSubmissions = mySubmissions.value
                 .map { it.item }
-                .filter { matchesSearchQuery(it.czName, query) || matchesSearchQuery(it.engName, query) }
+                .filter { matchesSearchQuery(it.displayName, query) }
             val candidates = foodFrequency.value.entries
                 .sortedBy { it.key }
                 .map { it.value.item }
                 .filter {
-                    it.kind != FoodItemKind.CREATED_MEAL &&
-                        (matchesSearchQuery(it.czName, query) || matchesSearchQuery(it.engName, query))
+                    it.kind != FoodItemKind.CREATED_MEAL && matchesSearchQuery(it.displayName, query)
                 }
             val seenIds = matchingFavourites.map { it.id }.toMutableSet()
             val rest = (matchingMeals + matchingSubmissions + localFoodItems.value + candidates).filter { seenIds.add(it.id) }
@@ -412,13 +413,17 @@ class AddFoodSheetViewModel(
     suspend fun onSearchTextChanged() {
         if (isPushedToQuantityView.value) return
         if (searchText.value.isEmpty()) {
+            lastSearchedQuery = null
             localFoodItems.value = emptyList()
             externalFoodItems.value = emptyList()
             return
         }
+        if (searchText.value == lastSearchedQuery) return
         delay(SEARCH_DEBOUNCE_MILLIS)
+        val query = searchText.value
+        lastSearchedQuery = null
         try {
-            localFoodItems.value = searchFoodItems(searchText.value)
+            localFoodItems.value = searchFoodItems(query)
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
@@ -427,13 +432,15 @@ class AddFoodSheetViewModel(
             externalFoodItems.value = emptyList()
             return
         }
-        if (displayedResults.isNotEmpty() || searchText.value.length < EXTERNAL_SEARCH_MIN_LENGTH) {
+        if (displayedResults.isNotEmpty() || query.length < EXTERNAL_SEARCH_MIN_LENGTH) {
             externalFoodItems.value = emptyList()
+            lastSearchedQuery = query
             return
         }
         _isExternalSearchLoading.value = true
         try {
-            externalFoodItems.value = searchFoodExternally(searchText.value)
+            externalFoodItems.value = searchFoodExternally(query)
+            lastSearchedQuery = query
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {

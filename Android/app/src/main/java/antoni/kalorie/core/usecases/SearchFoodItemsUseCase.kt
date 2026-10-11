@@ -1,11 +1,13 @@
 package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.FoodItemDTO
 import antoni.kalorie.core.networking.loadArrayContainsAsync
 import antoni.kalorie.core.networking.loadHasPrefixAsync
 import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.textkit.matchesSearchQuery
 import antoni.kalorie.textkit.searchQuery
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -35,6 +37,7 @@ class SearchFoodItemsUseCase(
             .flatMap { it.await() }
             .filter { seen.add(it.id) }
             .map { it.asDomain() }
+            .filter { matchesSearchQuery(it.displayName, searchQuery) }
     }
 
     // MARK: - Private

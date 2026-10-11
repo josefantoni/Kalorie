@@ -886,6 +886,31 @@ class AddFoodSheetViewModelTest {
     }
 
     @Test
+    fun onSearchTextChanged_whenRunAgainForTheSameQuery_keepsExternalResults() = runTest {
+        val sut = makeSUT(searchFoodExternally = SearchFoodExternallyUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "beer"))))
+        sut.searchText.value = "Beer"
+        sut.onSearchTextChanged()
+        sut.externalFoodItems.value = listOf(makeFoodItem(id = "beer"), makeFoodItem(id = "marker"))
+
+        sut.onSearchTextChanged()
+
+        assertEquals("returning from the detail restarts the search, and a repeated lookup that fails would wipe results the user already has", listOf("beer", "marker"), sut.externalFoodItems.value.map { it.id })
+    }
+
+    @Test
+    fun onSearchTextChanged_whenQueryChanges_searchesAgain() = runTest {
+        val sut = makeSUT(searchFoodExternally = SearchFoodExternallyUseCaseFake(stubbedItems = listOf(makeFoodItem(id = "beer"))))
+        sut.searchText.value = "Beer"
+        sut.onSearchTextChanged()
+        sut.externalFoodItems.value = emptyList()
+        sut.searchText.value = "Beers"
+
+        sut.onSearchTextChanged()
+
+        assertEquals(listOf("beer"), sut.externalFoodItems.value.map { it.id })
+    }
+
+    @Test
     fun onSearchTextChanged_whenLocalSearchFails_dropsResultsOfThePreviousQuery() = runTest {
         val sut = makeSUT(searchFoodItems = SearchFoodItemsUseCaseFake(shouldThrow = true))
         sut.localFoodItems.value = listOf(makeFoodItem(id = "stale-local"))
