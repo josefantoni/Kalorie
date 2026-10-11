@@ -92,7 +92,7 @@ struct FoodQuantityView: View {
                 onDeleteMealConfirmed?()
             }
         }
-        .foodPhotoThumbnail(url: viewModel.photoURL, isHidden: isQuantityFocused)
+        .foodPhotoThumbnail(url: viewModel.photoURL)
         .loader(viewModel.state.isLoading)
         .alert(item: $viewModel.alertItem) { item in
             Alert(

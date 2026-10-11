@@ -23,11 +23,6 @@ struct FoodPhotoViewer: View {
         }
         .contentShape(.rect)
         .onTapGesture(perform: onClose)
-        .gesture(
-            DragGesture(minimumDistance: 30).onEnded { value in
-                if value.translation.height > 80 { onClose() }
-            }
-        )
         .accessibilityAddTraits(.isButton)
         .accessibilityLabel(L10n.FoodPhoto.title)
     }

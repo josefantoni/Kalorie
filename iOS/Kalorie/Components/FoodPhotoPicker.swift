@@ -25,6 +25,7 @@ struct FoodPhotoPicker: View {
     @State private var isCameraDeniedAlertVisible = false
     @State private var isProcessingFailedAlertVisible = false
     @State private var libraryItem: PhotosPickerItem?
+    @Namespace private var namespace
 
     // MARK: - Body
 
@@ -70,6 +71,7 @@ struct FoodPhotoPicker: View {
         }
         .fullScreenCover(isPresented: $isViewerVisible) {
             FoodPhotoViewer(photo: photo) { isViewerVisible = false }
+                .navigationTransition(.zoom(sourceID: FoodPhotoTransition.id, in: namespace))
         }
         .alert(L10n.AddFood.cameraPermissionAlert, isPresented: $isCameraDeniedAlertVisible) {
             Button(L10n.AddFood.buttonOpenSettings) { openSettings() }
@@ -98,6 +100,7 @@ struct FoodPhotoPicker: View {
             }
             .frame(width: Self.diameter, height: Self.diameter)
             .contentShape(.circle)
+            .matchedTransitionSource(id: FoodPhotoTransition.id, in: namespace)
             badge
         }
     }
