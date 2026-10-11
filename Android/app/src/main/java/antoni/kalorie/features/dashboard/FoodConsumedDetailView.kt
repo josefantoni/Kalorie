@@ -167,7 +167,6 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                                     text = mealTypes.firstOrNull { it.id == mealTypeId }?.name
                                         ?: stringResource(R.string.foodConsumedDetail_mealType_unassigned),
                                     onClick = { isMealTypeMenuVisible = true },
-                                    showsArrow = false,
                                 )
                                 DropdownMenu(expanded = isMealTypeMenuVisible, onDismissRequest = { isMealTypeMenuVisible = false }, shape = RoundedCornerShape(12.dp)) {
                                     for (mealType in mealTypes) {
