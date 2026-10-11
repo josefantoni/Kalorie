@@ -138,13 +138,6 @@ struct DashboardView: View {
                             .padding(20)
                     }
                     .glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)
-                    #if DEBUG
-                    .highPriorityGesture(
-                        LongPressGesture(minimumDuration: 0.6).onEnded { _ in
-                            viewModel.onSignInSpotlightDebugTriggered()
-                        }
-                    )
-                    #endif
                     .padding(.bottom, 8)
                 }
             }

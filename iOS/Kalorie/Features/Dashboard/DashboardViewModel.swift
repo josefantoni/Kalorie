@@ -228,12 +228,6 @@ final class DashboardViewModel: ObservableObject {
         isSignInSpotlightVisible = false
     }
 
-    #if DEBUG
-    func onSignInSpotlightDebugTriggered() {
-        isSignInSpotlightVisible = true
-    }
-    #endif
-
     @MainActor
     func onFoodConsumedUpdated() async {
         do {
