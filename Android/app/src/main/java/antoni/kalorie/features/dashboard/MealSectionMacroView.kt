@@ -49,7 +49,7 @@ fun MealSectionMacroView(name: String, foods: List<FoodConsumedDomain>, modifier
         MacroRow(label = stringResource(R.string.foodQuantity_macro_carbs), value = macros.carbs.formattedGrams(), dotColor = AppColors.carbs)
         MacroRow(label = stringResource(R.string.addFood_field_carbsSugar), value = macros.carbohydrateSugar.formattedGrams(), dotColor = AppColors.carbs, isIndented = true)
         MacroRow(label = stringResource(R.string.foodQuantity_macro_fat), value = macros.fat.formattedGrams(), dotColor = AppColors.fat)
-        MacroRow(label = stringResource(R.string.addFood_field_fatUnsaturated), value = macros.fatUnsaturated.formattedGrams(), dotColor = AppColors.fat, isIndented = true)
+        MacroRow(label = stringResource(R.string.addFood_field_fatSaturated), value = macros.fatSaturated.formattedGrams(), dotColor = AppColors.fat, isIndented = true)
         MacroRow(label = stringResource(R.string.addFood_field_fiber), value = macros.fiber.formattedGrams())
         MacroRow(label = stringResource(R.string.addFood_field_salt), value = macros.salt.formattedGrams())
     }

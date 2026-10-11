@@ -40,7 +40,7 @@ data class DailyMacros(
     val carbs: Double,
     val carbohydrateSugar: Double,
     val fat: Double,
-    val fatUnsaturated: Double,
+    val fatSaturated: Double,
     val fiber: Double,
     val salt: Double,
 ) {
@@ -53,6 +53,7 @@ data class DailyMacros(
                     carbohydrate = it.carbohydrate,
                     carbohydrateSugar = it.carbohydrateSugar,
                     fat = it.fat,
+                    fatSaturated = it.fatSaturated ?: 0.0,
                     fatUnsaturated = it.fatUnsaturated,
                     fiber = it.fiber ?: 0.0,
                     salt = it.salt,
@@ -67,7 +68,7 @@ data class DailyMacros(
         carbs = total.carbohydrate,
         carbohydrateSugar = total.carbohydrateSugar,
         fat = total.fat,
-        fatUnsaturated = total.fatUnsaturated,
+        fatSaturated = total.fatSaturated,
         fiber = total.fiber,
         salt = total.salt,
     )

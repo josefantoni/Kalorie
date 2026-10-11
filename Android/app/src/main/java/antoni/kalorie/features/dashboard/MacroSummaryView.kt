@@ -60,7 +60,7 @@ fun MacroSummaryView(macros: DailyMacros, modifier: Modifier = Modifier) {
                 DetailRow(stringResource(R.string.addFood_field_salt), macros.salt, null, Modifier.weight(1f))
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                DetailRow(stringResource(R.string.addFood_field_fatUnsaturated), macros.fatUnsaturated, AppColors.fat, Modifier.weight(1f))
+                DetailRow(stringResource(R.string.addFood_field_fatSaturated), macros.fatSaturated, AppColors.fat, Modifier.weight(1f))
                 DetailRow(stringResource(R.string.addFood_field_fiber), macros.fiber, null, Modifier.weight(1f))
             }
         }

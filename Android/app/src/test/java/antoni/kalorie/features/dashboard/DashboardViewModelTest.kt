@@ -51,6 +51,13 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun dailyMacros_whenAFoodsSaturatedFatIsUnknown_countsItAsZeroInTheSum() {
+        val macros = DailyMacros(listOf(makeFood(id = "1", hour = 8, fatSaturated = null), makeFood(id = "2", hour = 9, fatSaturated = 4.0)))
+
+        assertEquals(4.0, macros.fatSaturated, 0.0)
+    }
+
+    @Test
     fun groupedFoods_withNoFoodsConsumed_returnsEmpty() {
         val sut = makeSUT()
         sut.mealTypes.value = listOf(makeMealType(id = 0, hour = 8, endHour = 12))
@@ -1035,7 +1042,7 @@ class DashboardViewModelTest {
         return MealTypeDomain(id = "$id", name = "Meal $id", startMinutes = start, endMinutes = (start + 60) % 1440)
     }
 
-    private fun makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1.0, mealTypeId: String? = null) = FoodConsumedDomain(
+    private fun makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1.0, fatSaturated: Double? = 1.0, mealTypeId: String? = null) = FoodConsumedDomain(
         id = id,
         foodItemId = id,
         foodItemKind = FoodItemKind.CATALOGUE,
@@ -1050,7 +1057,7 @@ class DashboardViewModelTest {
         carbohydrate = 20.0,
         carbohydrateSugar = 5.0,
         fat = 5.0,
-        fatSaturated = 1.0,
+        fatSaturated = fatSaturated,
         fatUnsaturated = 2.0,
         fiber = fiber,
         salt = 0.2,
