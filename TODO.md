@@ -28,6 +28,15 @@ The app works with three kinds of data. The distinction matters for the items be
   metrics show legitimate traffic, otherwise the app locks itself out. Needs the App Attest
   capability on iOS and the Play Console link on Android. Not blocking the food photos release, but
   do it soon after it.
+- **Support development (tips)** — designed in [design 0023](docs/design/0023-support-development-tips.md):
+  three consumable products (`tip_small`, `tip_medium`, `tip_large`) through store billing, Android
+  first. The Settings row exists on both platforms only as a placeholder that shows a "Coming soon" alert;
+  replace the alert with the real flow. Before the code: set up the Play Console payments profile, decide
+  on the EU trader status (the stores publish the developer's address), and ask an accountant about the
+  trade licence and taxes.
+- **First Play release needs a closed test** — a personal developer account created after Nov 2023
+  gets production access only after a closed test with at least 12 testers opted in for 14 days in a
+  row. Start it as early as possible; it is also the cheapest way to find out whether anyone uses the app.
 
 ## Android readiness
 
