@@ -52,56 +52,56 @@ struct DashboardView: View {
                             }
                         }
                     } header: {
-                        HStack(spacing: 4) {
-                            Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
-                            Spacer()
-                            Button {
-                                viewModel.onCopyRequested(from: group.mealType, at: index)
-                            } label: {
-                                Image(systemName: BaseImageName.docOnDoc.rawValue)
-                                    .foregroundStyle(Color(.label))
+                        Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .overlay(alignment: .trailing) {
+                                HStack(spacing: 4) {
+                                    Button {
+                                        viewModel.onCopyRequested(from: group.mealType, at: index)
+                                    } label: {
+                                        Image(systemName: BaseImageName.docOnDoc.rawValue)
+                                            .foregroundStyle(Color(.label))
+                                    }
+                                    .buttonStyle(.glass)
+                                    .buttonBorderShape(.circle)
+                                    .accessibilityLabel(L10n.Dashboard.buttonCopy)
+                                    .popover(isPresented: Binding(
+                                        get: { viewModel.copyPopoverIndex == index },
+                                        set: { if !$0 { viewModel.copyPopoverIndex = nil } }
+                                    )) {
+                                        MealSectionCopyView(
+                                            viewModel: viewModel,
+                                            name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
+                                            mealType: group.mealType,
+                                            foods: group.foods
+                                        )
+                                        .dynamicTypeLimit()
+                                        .presentationCompactAdaptation(.popover)
+                                    }
+                                    .padding(.trailing, 8)
+                                    Button {
+                                        viewModel.macroPopoverIndex = index
+                                    } label: {
+                                        Image(systemName: BaseImageName.infoCircle.rawValue)
+                                            .foregroundStyle(Color(.label))
+                                    }
+                                    .buttonStyle(.glass)
+                                    .buttonBorderShape(.circle)
+                                    .popover(isPresented: Binding(
+                                        get: { viewModel.macroPopoverIndex == index },
+                                        set: { if !$0 { viewModel.macroPopoverIndex = nil } }
+                                    )) {
+                                        MealSectionMacroView(
+                                            name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
+                                            foods: group.foods
+                                        )
+                                        .dynamicTypeLimit()
+                                        .presentationCompactAdaptation(.popover)
+                                    }
+                                }
+                                .controlSize(.small)
+                                .offset(y: -7)
                             }
-                            .buttonStyle(.glass)
-                            .buttonBorderShape(.circle)
-                            .accessibilityLabel(L10n.Dashboard.buttonCopy)
-                            .popover(isPresented: Binding(
-                                get: { viewModel.copyPopoverIndex == index },
-                                set: { if !$0 { viewModel.copyPopoverIndex = nil } }
-                            )) {
-                                MealSectionCopyView(
-                                    viewModel: viewModel,
-                                    name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
-                                    mealType: group.mealType,
-                                    foods: group.foods
-                                )
-                                .dynamicTypeLimit()
-                                .presentationCompactAdaptation(.popover)
-                            }
-                            .padding(.trailing, 8)
-                            Button {
-                                viewModel.macroPopoverIndex = index
-                            } label: {
-                                Image(systemName: BaseImageName.infoCircle.rawValue)
-                                    .foregroundStyle(Color(.label))
-                            }
-                            .buttonStyle(.glass)
-                            .buttonBorderShape(.circle)
-                            .popover(isPresented: Binding(
-                                get: { viewModel.macroPopoverIndex == index },
-                                set: { if !$0 { viewModel.macroPopoverIndex = nil } }
-                            )) {
-                                MealSectionMacroView(
-                                    name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
-                                    foods: group.foods
-                                )
-                                .dynamicTypeLimit()
-                                .presentationCompactAdaptation(.popover)
-                            }
-                        }
-                        .font(.subheadline)
-                        .controlSize(.small)
-                        .padding(.leading, -5)
-                        .padding(.trailing, -10)
                     }
                 }
             }
