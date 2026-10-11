@@ -971,6 +971,18 @@
     "cs": "Zpětná vazba",
     "en": "Feedback"
   },
+  "settings_button_support": {
+    "cs": "Podpořit vývoj",
+    "en": "Support development"
+  },
+  "settings_support_subtitle": {
+    "cs": "Aplikace je zdarma a bez reklam",
+    "en": "The app is free and ad-free"
+  },
+  "settings_support_inProgress": {
+    "cs": "Připravujeme",
+    "en": "Coming soon"
+  },
   "settings_datePicker_from": {
     "cs": "Od",
     "en": "From"

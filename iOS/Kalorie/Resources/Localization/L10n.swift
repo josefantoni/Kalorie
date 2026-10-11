@@ -282,6 +282,9 @@ enum L10n {
         static var buttonEdit: String { String(localized: "settings_button_edit") }
         static var buttonEditDone: String { String(localized: "settings_button_editDone") }
         static var buttonFeedback: String { String(localized: "settings_button_feedback") }
+        static var buttonSupport: String { String(localized: "settings_button_support") }
+        static var supportSubtitle: String { String(localized: "settings_support_subtitle") }
+        static var supportInProgress: String { String(localized: "settings_support_inProgress") }
         static var feedbackNoMailTitle: String { String(localized: "settings_feedback_noMail_title") }
         static var feedbackNoMailCopy: String { String(localized: "settings_feedback_noMail_copy") }
         static func feedbackNoMailMessage(_ email: String) -> String {

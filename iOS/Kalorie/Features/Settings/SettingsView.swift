@@ -120,6 +120,34 @@ struct SettingsView: View {
                             }
                         }
 
+                        Section {
+                            Button {
+                                viewModel.onSupportTapped()
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: BaseImageName.heartFill.rawValue)
+                                        .font(.body.weight(.semibold))
+                                        .foregroundStyle(.white)
+                                        .frame(width: 36, height: 36)
+                                        .background(Circle().fill(Color.favourite))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(L10n.Settings.buttonSupport)
+                                            .fontWeight(.semibold)
+                                        Text(L10n.Settings.supportSubtitle)
+                                            .font(.footnote)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: BaseImageName.chevronRight.rawValue)
+                                        .font(.footnote.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .padding(.vertical, 6)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+
                         if viewModel.isMaintainer {
                             Section(header: Text(L10n.Moderation.sectionTitle)) {
                                 NavigationLink {
