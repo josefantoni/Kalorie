@@ -40,7 +40,6 @@ struct FoodConsumedView: View {
                 .monospacedDigit()
                 .fixedSize(horizontal: true, vertical: false)
         }
-        .padding(.leading)
         .padding(.trailing, 4)
         .frame(minHeight: 50)
     }
