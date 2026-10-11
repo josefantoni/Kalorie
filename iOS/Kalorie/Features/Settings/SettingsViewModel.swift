@@ -147,6 +147,10 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
+    func onSupportTapped() {
+        alertItem = AlertItem(title: L10n.Settings.supportInProgress)
+    }
+
     func onShowAddForm() {
         guard
             let latestEndMinutes = mealTypes.map({ $0.endMinutes }).max(),
