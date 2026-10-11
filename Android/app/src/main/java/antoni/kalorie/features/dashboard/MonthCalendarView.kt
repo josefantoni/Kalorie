@@ -30,7 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import antoni.kalorie.core.extensions.scaledWithText
 import antoni.kalorie.core.utils.formatDateStyle
 import antoni.kalorie.core.utils.isSameMonth
 import antoni.kalorie.core.utils.zoned
@@ -131,6 +133,7 @@ private fun DaysGrid(
     val leadingEmptyCells = firstOfMonth.dayOfWeek.value - 1
     val cells: List<Int?> = List(leadingEmptyCells) { null } + (1..firstOfMonth.lengthOfMonth()).toList()
     val today = Instant.now()
+    val dayCellHeight = 44.dp.scaledWithText()
 
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         for (week in cells.chunked(DAYS_IN_WEEK)) {
@@ -138,13 +141,14 @@ private fun DaysGrid(
                 for (index in 0 until DAYS_IN_WEEK) {
                     val day = week.getOrNull(index)
                     if (day == null) {
-                        Box(modifier = Modifier.weight(1f).height(44.dp))
+                        Box(modifier = Modifier.weight(1f).height(dayCellHeight))
                     } else {
                         CalendarDayCell(
                             day = day,
                             isSelected = selectedDay.zoned().dayOfMonth == day && selectedDay.isSameMonth(displayedMonth),
                             isToday = today.zoned().dayOfMonth == day && today.isSameMonth(displayedMonth),
                             hasActivity = day in activeDays,
+                            height = dayCellHeight,
                             onTap = { onDayTap(day) },
                             modifier = Modifier.weight(1f),
                         )
@@ -161,14 +165,15 @@ private fun CalendarDayCell(
     isSelected: Boolean,
     isToday: Boolean,
     hasActivity: Boolean,
+    height: Dp,
     onTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val accent = MaterialTheme.colorScheme.primary
-    val circleModifier = Modifier.size(32.dp)
+    val circleModifier = Modifier.size(32.dp.scaledWithText())
 
     Column(
-        modifier = modifier.height(44.dp).clickable(onClick = onTap),
+        modifier = modifier.height(height).clickable(onClick = onTap),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
