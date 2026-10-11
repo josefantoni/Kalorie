@@ -137,6 +137,10 @@ class SettingsViewModel(
         }
     }
 
+    fun onSupportTapped() {
+        alertItem.value = AlertItem(titleRes = R.string.settings_support_inProgress)
+    }
+
     fun onShowAddForm() {
         val latestEndMinutes = mealTypes.value.maxOfOrNull { it.endMinutes }
         if (latestEndMinutes == null) {
