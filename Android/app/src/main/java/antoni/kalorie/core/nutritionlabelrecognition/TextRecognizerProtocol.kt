@@ -5,6 +5,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.tasks.await
+import kotlin.math.atan2
 
 class MlKitTextRecognizer {
 
@@ -29,6 +30,7 @@ class MlKitTextRecognizer {
                     bottom = box.bottom,
                     imageWidth = uprightWidth,
                     imageHeight = uprightHeight,
+                    angleDegrees = line.cornerPoints?.let { angleDegrees(it[0].x, it[0].y, it[1].x, it[1].y) } ?: 0.0,
                 )
             }
     }
@@ -53,6 +55,7 @@ fun normalizedLine(
     bottom: Int,
     imageWidth: Int,
     imageHeight: Int,
+    angleDegrees: Double = 0.0,
 ): RecognizedTextLine = RecognizedTextLine(
     text = text,
     boundingBox = NormalizedRect(
@@ -61,4 +64,7 @@ fun normalizedLine(
         width = (right - left).toDouble() / imageWidth,
         height = (bottom - top).toDouble() / imageHeight,
     ),
+    angleDegrees = angleDegrees,
 )
+
+fun angleDegrees(topLeftX: Int, topLeftY: Int, topRightX: Int, topRightY: Int): Double = Math.toDegrees(atan2((topLeftY - topRightY).toDouble(), (topRightX - topLeftX).toDouble()))

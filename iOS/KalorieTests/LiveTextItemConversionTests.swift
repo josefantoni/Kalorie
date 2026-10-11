@@ -55,6 +55,58 @@ final class LiveTextItemConversionTests: XCTestCase {
         XCTAssertEqual(line.boundingBox.minY, 0.75, accuracy: 0.0001, "a line pinned to the top of the view (view-points y=0) must land at the top of normalized bottom-left-origin space (y=0.75...1)")
     }
 
+    func test_recognizedTextLine_cornersOfUpsideDownText_giveHalfTurnAngle() {
+        let viewSize = CGSize(width: 400, height: 800)
+
+        let upright = LiveTextItemConversion.recognizedTextLine(
+            transcript: "upright",
+            topLeft: CGPoint(x: 20, y: 100),
+            topRight: CGPoint(x: 200, y: 100),
+            bottomLeft: CGPoint(x: 20, y: 140),
+            bottomRight: CGPoint(x: 200, y: 140),
+            in: viewSize
+        )
+        let upsideDown = LiveTextItemConversion.recognizedTextLine(
+            transcript: "upside down",
+            topLeft: CGPoint(x: 200, y: 140),
+            topRight: CGPoint(x: 20, y: 140),
+            bottomLeft: CGPoint(x: 200, y: 100),
+            bottomRight: CGPoint(x: 20, y: 100),
+            in: viewSize
+        )
+
+        XCTAssertEqual(upright.angleDegrees, 0, accuracy: 0.0001)
+        XCTAssertEqual(abs(upsideDown.angleDegrees), 180, accuracy: 0.0001, "Vision reads upside-down text too; without its direction the parser would order rows bottom to top")
+    }
+
+    func test_recognizedTextLines_paragraphItem_isDividedEvenlyIntoItsPrintedLines() {
+        let lines = LiveTextItemConversion.recognizedTextLines(
+            transcript: "Tuky\n- z toho nasycené",
+            topLeft: CGPoint(x: 0, y: 0),
+            topRight: CGPoint(x: 100, y: 0),
+            bottomLeft: CGPoint(x: 0, y: 100),
+            bottomRight: CGPoint(x: 100, y: 100),
+            in: CGSize(width: 100, height: 200)
+        )
+
+        XCTAssertEqual(lines.map(\.text), ["Tuky", "- z toho nasycené"])
+        XCTAssertGreaterThan(lines[0].boundingBox.midY, lines[1].boundingBox.midY, "the first printed line must be the upper row, or labels and values pair with the wrong rows")
+        XCTAssertEqual(lines[0].boundingBox.height, 0.25, accuracy: 0.0001)
+    }
+
+    func test_recognizedTextLines_singleLineItem_isKeptWhole() {
+        let lines = LiveTextItemConversion.recognizedTextLines(
+            transcript: "1,6 g",
+            topLeft: CGPoint(x: 0, y: 0),
+            topRight: CGPoint(x: 100, y: 0),
+            bottomLeft: CGPoint(x: 0, y: 20),
+            bottomRight: CGPoint(x: 100, y: 20),
+            in: CGSize(width: 100, height: 200)
+        )
+
+        XCTAssertEqual(lines.count, 1)
+    }
+
     func test_recognizedTextLine_zeroSizedViewFallsBackToZeroRectRatherThanDividingByZero() {
         let line = LiveTextItemConversion.recognizedTextLine(
             transcript: "line",

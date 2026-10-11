@@ -26,6 +26,11 @@ enum NutritionLabelParser {
     private static let maxValueCellHeightRatio: CGFloat = 2.0
     private static let minRowShiftInCellHeights: CGFloat = 0.75
     private static let maxRowShiftInCellHeights: CGFloat = 1.5
+    private static let maxSparseHeaderColumnCells = 2
+    private static let minSequentialRows = 4
+    private static let continuationEdgeTolerance: CGFloat = 0.03
+    private static let continuationGapInLineHeights: CGFloat = 0.25
+    private static let maxEnergyCompanionDistanceInCellHeights: CGFloat = 1.5
 
     private static let weightKeywords = ["hmotnost", "netto", "obsah", "net weight", "hmotnosc"]
 
@@ -48,7 +53,7 @@ enum NutritionLabelParser {
         .fat: ["tuky", "tłuszcz", "tluszcz", "fett", "fat"],
         .saturates: [
             "z toho nasycene", "z toho nasycené", "nasycené mastné", "nasycene mastne",
-            "w tym kwasy nasycone", "davon gesättigte", "davon gesattigte", "of which saturates", "saturated fat", "saturates"
+            "w tym kwasy nasycone", "kwasy tłuszczowe nasycone", "davon gesättigte", "davon gesattigte", "of which saturates", "saturated fat", "saturates"
         ],
         .carbohydrate: ["sacharidy", "węglowodany", "weglowodany", "kohlenhydrate", "carbohydrate"],
         .sugars: ["z toho cukry", "cukry", "davon zucker", "of which sugars", "sugars"],
@@ -66,19 +71,25 @@ enum NutritionLabelParser {
 
     // MARK: - Functions
 
-    static func parse(lines: [RecognizedTextLine]) -> NutritionLabelReading {
+    static func parse(lines recognizedLines: [RecognizedTextLine]) -> NutritionLabelReading {
+        let lines = uprightLines(recognizedLines)
         let packageMeasure = packageWeight(in: lines)?.measure
         var reading = NutritionLabelReading()
 
         let header = perHundredHeader(in: lines)
-        if let columnX = header?.x ?? inferredValueColumnX(in: lines) {
+        if let columnX = valueColumnX(headerX: header?.x, in: lines) {
             let cells = valueCellsBelowHeader(in: lines)
-            let labels = lines
-                .compactMap { line in matchedField(for: line.text).map { (line: line, field: $0) } }
-                .sorted { $0.line.boundingBox.midY > $1.line.boundingBox.midY }
-            let shift = rowShift(labels: labels, cells: cells, columnX: columnX)
-            for assignment in assignments(labels: labels, cells: cells, columnX: columnX, shift: shift) {
-                apply(assignment.field, text: assignment.valueLine.text, to: &reading)
+            let labels = mergingWrappedLabels(
+                lines
+                    .compactMap { line in matchedField(for: line.text).map { (line: line, field: $0) } }
+                    .sorted { $0.line.boundingBox.midY > $1.line.boundingBox.midY }
+            )
+            let extendedLabels = extendingOverContinuationLines(labels, among: lines)
+            let shift = rowShift(labels: extendedLabels, cells: cells, columnX: columnX)
+            let assigned = assignments(labels: extendedLabels, cells: cells, columnX: columnX, shift: shift)
+            for assignment in assigned {
+                let companion = assignment.field == .energy ? energyCompanion(of: assignment.valueLine, in: cells, excluding: assigned.map(\.valueLine)) : nil
+                apply(assignment.field, text: [assignment.valueLine.text, companion?.text].compactMap { $0 }.joined(separator: " "), to: &reading)
             }
         }
 
@@ -87,7 +98,8 @@ enum NutritionLabelParser {
         // but only where there is an actual per-100g signal, so a label with no nutrition
         // declaration at all still fills nothing (design's own "no header, no data" guarantee).
         if hasNoMacros(reading), hasNutritionContext(lines: lines) {
-            reading = applyingConsistencyChecks(parseLinear(lines: lines))
+            let sequential = parseSequential(lines: lines)
+            reading = applyingConsistencyChecks(hasNoMacros(sequential) ? parseLinear(lines: lines) : sequential)
         } else {
             reading = applyingConsistencyChecks(reading)
         }
@@ -98,6 +110,37 @@ enum NutritionLabelParser {
 
         reading = derivingUnsaturated(reading)
         return reading
+    }
+
+    // Vision and ML Kit read sideways and upside-down text as well as upright, but the rows then run along another
+    // axis or bottom to top and every pairing below goes wrong. The quarter turn most text is printed at is undone
+    // for every box; normalised boxes simply swap and mirror their axes, so no image size is needed.
+    private static func uprightLines(_ lines: [RecognizedTextLine]) -> [RecognizedTextLine] {
+        var lengthByQuarterTurn = [0, 0, 0, 0]
+        for line in lines {
+            lengthByQuarterTurn[quarterTurns(of: line.angleDegrees)] += line.text.count
+        }
+        guard
+            let dominant = lengthByQuarterTurn.indices.max(by: { lengthByQuarterTurn[$0] < lengthByQuarterTurn[$1] }),
+            dominant != 0,
+            lengthByQuarterTurn[dominant] > lengthByQuarterTurn[0]
+        else { return lines }
+        return lines.map { line in
+            RecognizedTextLine(text: line.text, boundingBox: turnedUpright(line.boundingBox, quarterTurns: dominant), angleDegrees: 0)
+        }
+    }
+
+    private static func quarterTurns(of angleDegrees: Double) -> Int {
+        ((Int((angleDegrees / 90).rounded()) % 4) + 4) % 4
+    }
+
+    // The text reads counter-clockwise by the given quarter turns, so the page is turned clockwise by as many.
+    private static func turnedUpright(_ box: CGRect, quarterTurns: Int) -> CGRect {
+        switch quarterTurns {
+        case 1: CGRect(x: box.minY, y: 1 - box.maxX, width: box.height, height: box.width)
+        case 2: CGRect(x: 1 - box.maxX, y: 1 - box.maxY, width: box.width, height: box.height)
+        default: CGRect(x: 1 - box.maxY, y: box.minX, width: box.height, height: box.width)
+        }
     }
 
     private static func linearMeasure(lines: [RecognizedTextLine]) -> FoodMeasure? {
@@ -183,6 +226,56 @@ enum NutritionLabelParser {
             }
         }
         return reading
+    }
+
+    // A scanner that hands over a whole paragraph gives every line the same width, so no value lies "to the right of"
+    // its label, yet the rows still come in print order: labels and values each run top to bottom. From the first
+    // label down, the longest stretch that ends on a value and holds exactly as many labels as values is paired in
+    // that order; any other count would shift every pair after the odd one out, and a fragment without a keyword
+    // ("z toho / w tym") or a stray word between the rows must not end the table.
+    private static func parseSequential(lines: [RecognizedTextLine]) -> NutritionLabelReading {
+        let ordered = lines.sorted { $0.boundingBox.midY > $1.boundingBox.midY }
+        guard let start = ordered.firstIndex(where: { matchedField(for: $0.text) != nil }) else { return NutritionLabelReading() }
+        for end in ordered.indices.reversed() where end > start && isValueCell(ordered[end]) {
+            let stretch = ordered[start...end]
+            let fields = stretch
+                .filter { !isValueCell($0) && matchedField(for: $0.text) != nil }
+                .flatMap { fieldsInOrder(of: $0.text) }
+                .reduce(into: [LabelField]()) { result, field in
+                    if result.last != field { result.append(field) }
+                }
+            let values = stretch.filter { isValueCell($0) }
+            guard fields.count == values.count, fields.count >= minSequentialRows else { continue }
+            var reading = NutritionLabelReading()
+            for (field, value) in zip(fields, values) {
+                apply(field, text: value.text, to: &reading)
+            }
+            return reading
+        }
+        return NutritionLabelReading()
+    }
+
+    // Several labels can share one line ("Sacharidy / z toho cukry / Bílkoviny"); a keyword inside a longer label of
+    // another field ("fat" in "saturated fat") is that label's own tail.
+    private static func fieldsInOrder(of label: String) -> [LabelField] {
+        let folded = foldedLabelText(label)
+        guard !unsaturatedMarkers.contains(where: { folded.contains(foldedLabelText($0)) }) else { return [.unlisted] }
+        let matches = LabelField.allCases.flatMap { field in
+            (foldedKeywords[field] ?? []).flatMap { keyword in
+                ranges(ofKeyword: keyword, in: folded).map { (field: field, range: $0, length: keyword.count) }
+            }
+        }
+        return matches
+            .filter { match in
+                !matches.contains { other in
+                    other.field != match.field
+                        && other.length > match.length
+                        && other.range.lowerBound <= match.range.lowerBound
+                        && other.range.upperBound >= match.range.upperBound
+                }
+            }
+            .sorted { $0.range.lowerBound < $1.range.lowerBound }
+            .map(\.field)
     }
 
     // A keyword this short ("sul", "fat") also sits inside longer words such as "sulphites" or "fatty".
@@ -273,11 +366,12 @@ enum NutritionLabelParser {
         return cells.filter { !isPerHundredHeader($0.text) || $0.boundingBox.midY <= topmostValueMidY }
     }
 
-    private static func overlapsVertically(_ first: RecognizedTextLine, _ second: RecognizedTextLine) -> Bool {
-        let overlap = min(first.boundingBox.maxY, second.boundingBox.maxY) - max(first.boundingBox.minY, second.boundingBox.minY)
-        let minHeight = min(first.boundingBox.height, second.boundingBox.height)
-        guard minHeight > 0 else { return false }
-        return overlap / minHeight > rowOverlapThreshold
+    private static func verticalOverlapRatio(_ first: CGRect, _ second: CGRect) -> CGFloat? {
+        let overlap = min(first.maxY, second.maxY) - max(first.minY, second.minY)
+        let minHeight = min(first.height, second.height)
+        guard minHeight > 0 else { return nil }
+        let ratio = overlap / minHeight
+        return ratio > rowOverlapThreshold ? ratio : nil
     }
 
     // Without a usable "per 100 g" header, a single column of values still identifies the per-100 g
@@ -288,6 +382,16 @@ enum NutritionLabelParser {
         let median = cells.map(\.boundingBox.midX).sorted()[cells.count / 2]
         let inColumn = cells.filter { abs($0.boundingBox.midX - median) <= inferredColumnTolerance }.count
         return inColumn * 2 > cells.count ? median : nil
+    }
+
+    // A header printed over the label column rather than the values has next to nothing under it, while the values
+    // form a column of their own; two real columns (per 100 g, per portion) both stay well populated.
+    private static func valueColumnX(headerX: CGFloat?, in lines: [RecognizedTextLine]) -> CGFloat? {
+        guard let headerX else { return inferredValueColumnX(in: lines) }
+        guard let inferredX = inferredValueColumnX(in: lines) else { return headerX }
+        let cells = valueCells(in: lines)
+        func cellCount(at columnX: CGFloat) -> Int { cells.filter { abs($0.boundingBox.midX - columnX) <= columnTolerance }.count }
+        return cellCount(at: headerX) <= maxSparseHeaderColumnCells && cellCount(at: inferredX) >= minInferredColumnCells ? inferredX : headerX
     }
 
     private static func perHundredHeader(in lines: [RecognizedTextLine]) -> (x: CGFloat, measure: FoodMeasure?)? {
@@ -326,27 +430,120 @@ enum NutritionLabelParser {
         return folded.contains("100g") || folded.contains("100ml") || folded.hasSuffix("100")
     }
 
-    // Rows run top to bottom, so a label takes the highest value cell it overlaps that no label above has
-    // taken; a skewed photo makes the neighbouring row's value overlap just as much.
+    // Rows run top to bottom and each holds one value, so labels and cells are matched in order, skipping any that
+    // find no partner: as many pairs as possible, and among those the highest cells and the earliest labels, which is
+    // where a label whose box also overlaps the row below belongs. Picking the best cell for each label on its own lets a label take
+    // a value another label needs and shifts every row below it.
     private static func assignments(
         labels: [(line: RecognizedTextLine, field: LabelField)],
         cells: [RecognizedTextLine],
         columnX: CGFloat,
         shift: CGFloat
     ) -> [(field: LabelField, valueLine: RecognizedTextLine)] {
-        var unusedCells = cells
-        return labels.compactMap { label in
-            let shifted = RecognizedTextLine(text: label.line.text, boundingBox: label.line.boundingBox.offsetBy(dx: 0, dy: shift))
-            guard
-                let valueIndex = unusedCells.indices
-                    .filter({ unusedCells[$0].boundingBox.minX > label.line.boundingBox.minX && overlapsVertically(shifted, unusedCells[$0]) })
-                    .max(by: { unusedCells[$0].boundingBox.midY < unusedCells[$1].boundingBox.midY })
-            else { return nil }
-            let valueLine = unusedCells[valueIndex]
-            guard abs(valueLine.boundingBox.midX - columnX) <= columnTolerance else { return nil }
-            unusedCells.remove(at: valueIndex)
-            return (label.field, valueLine)
+        let columnCells = cells
+            .filter { abs($0.boundingBox.midX - columnX) <= columnTolerance }
+            .sorted { $0.boundingBox.midY > $1.boundingBox.midY }
+        guard !labels.isEmpty, !columnCells.isEmpty else { return [] }
+
+        let isPair: [[Bool]] = labels.map { label in
+            let box = label.line.boundingBox.offsetBy(dx: 0, dy: shift)
+            return columnCells.map { cell in
+                cell.boundingBox.minX > label.line.boundingBox.minX && verticalOverlapRatio(box, cell.boundingBox) != nil
+            }
         }
+        let pairWeight = (labels.count + 1) * (labels.count + 1) * (columnCells.count + 1)
+        var best = Array(repeating: Array(repeating: 0, count: columnCells.count + 1), count: labels.count + 1)
+        for labelIndex in 1...labels.count {
+            for cellIndex in 1...columnCells.count {
+                best[labelIndex][cellIndex] = max(best[labelIndex - 1][cellIndex], best[labelIndex][cellIndex - 1])
+                if isPair[labelIndex - 1][cellIndex - 1] {
+                    best[labelIndex][cellIndex] = max(best[labelIndex][cellIndex], best[labelIndex - 1][cellIndex - 1] + pairWeight - cellIndex * (labels.count + 1) - labelIndex)
+                }
+            }
+        }
+
+        var result: [(field: LabelField, valueLine: RecognizedTextLine)] = []
+        var labelIndex = labels.count
+        var cellIndex = columnCells.count
+        while labelIndex > 0, cellIndex > 0 {
+            if
+                isPair[labelIndex - 1][cellIndex - 1],
+                best[labelIndex][cellIndex] == best[labelIndex - 1][cellIndex - 1] + pairWeight - cellIndex * (labels.count + 1) - labelIndex
+            {
+                result.append((labels[labelIndex - 1].field, columnCells[cellIndex - 1]))
+                labelIndex -= 1
+                cellIndex -= 1
+            } else if best[labelIndex][cellIndex] == best[labelIndex - 1][cellIndex] {
+                labelIndex -= 1
+            } else {
+                cellIndex -= 1
+            }
+        }
+        return result.reversed()
+    }
+
+    // A multilingual label wraps onto two lines that both name the same field. They overlap vertically and read
+    // differently, unlike two rows of the table that repeat the same label, and would otherwise each take a value.
+    private static func mergingWrappedLabels(
+        _ labels: [(line: RecognizedTextLine, field: LabelField)]
+    ) -> [(line: RecognizedTextLine, field: LabelField)] {
+        labels.reduce(into: []) { merged, label in
+            guard
+                let previous = merged.last,
+                previous.field == label.field,
+                label.field != .unlisted,
+                previous.line.text != label.line.text,
+                previous.line.boundingBox.minY < label.line.boundingBox.maxY
+            else {
+                merged.append(label)
+                return
+            }
+            merged[merged.count - 1] = (
+                RecognizedTextLine(text: previous.line.text, boundingBox: previous.line.boundingBox.union(label.line.boundingBox)),
+                label.field
+            )
+        }
+    }
+
+    // A label that wraps ("z toho nasycené" / "mastné kyseliny") names its field on the first line only, and that line
+    // alone may barely touch the value printed between the two. Lines under it that name no field, start at the same
+    // edge and touch it belong to the label.
+    private static func extendingOverContinuationLines(
+        _ labels: [(line: RecognizedTextLine, field: LabelField)],
+        among lines: [RecognizedTextLine]
+    ) -> [(line: RecognizedTextLine, field: LabelField)] {
+        let candidates = lines.filter { matchedField(for: $0.text) == nil && !isValueCell($0) }
+        return labels.map { label in
+            let box = label.line.boundingBox
+            let continuation = candidates.filter { candidate in
+                let other = candidate.boundingBox
+                return abs(other.minX - box.minX) <= continuationEdgeTolerance
+                    && other.midY < box.midY
+                    && other.maxY >= box.minY - box.height * continuationGapInLineHeights
+            }
+            guard !continuation.isEmpty else { return label }
+            let union = continuation.reduce(box) { $0.union($1.boundingBox) }
+            return (RecognizedTextLine(text: label.line.text, boundingBox: union), label.field)
+        }
+    }
+
+    // The kJ and kcal of one energy row are sometimes printed as two cells, one under the other.
+    private static func energyCompanion(
+        of cell: RecognizedTextLine,
+        in cells: [RecognizedTextLine],
+        excluding used: [RecognizedTextLine]
+    ) -> RecognizedTextLine? {
+        let (kJ, kcal) = energyValues(in: cell.text)
+        guard (kJ == nil) != (kcal == nil) else { return nil }
+        return cells
+            .filter { candidate in
+                let (otherKJ, otherKcal) = energyValues(in: candidate.text)
+                return (kJ == nil ? otherKJ : otherKcal) != nil
+                    && !used.contains(candidate)
+                    && abs(candidate.boundingBox.midX - cell.boundingBox.midX) <= cell.boundingBox.width
+                    && abs(candidate.boundingBox.midY - cell.boundingBox.midY) <= cell.boundingBox.height * maxEnergyCompanionDistanceInCellHeights
+            }
+            .min { abs($0.boundingBox.midX - cell.boundingBox.midX) < abs($1.boundingBox.midX - cell.boundingBox.midX) }
     }
 
     // A tilted photo or a curved jar lifts the value column against the label column by up to a whole row, and each
@@ -419,13 +616,15 @@ enum NutritionLabelParser {
             .field
     }
 
-    // "ü" and "ľ" are OCR's readings of "ů" and the Slovak "ľ" in "soľ"; "q" is a misread "g".
+    // "ü" and "ľ" are OCR's readings of "ů" and the Slovak "ľ" in "soľ"; "q" is a misread "g"; "ł" is dropped by OCR
+    // as often as it is kept.
     private static func foldedLabelText(_ text: String) -> String {
         text
             .lowercased()
             .foldingDiacritics()
             .replacingOccurrences(of: "ü", with: "u")
             .replacingOccurrences(of: "ľ", with: "l")
+            .replacingOccurrences(of: "ł", with: "l")
             .replacingOccurrences(of: "q", with: "g")
     }
 
@@ -477,7 +676,7 @@ enum NutritionLabelParser {
         for unit in ["kcal", "kj", "ml", "g", "%"] {
             remainder = remainder.replacingOccurrences(of: unit, with: "")
         }
-        let allowedCharacters = CharacterSet(charactersIn: "0123456789.,<≤/|() q_")
+        let allowedCharacters = CharacterSet(charactersIn: "0123456789.,<≤/|() q_•·")
         return remainder.unicodeScalars.allSatisfy(allowedCharacters.contains)
     }
 
@@ -529,28 +728,32 @@ enum NutritionLabelParser {
     // MARK: - Number parsing
 
     // Czech (and Slovak/Polish) typography groups thousands with a space — "3 404 kJ" prints
-    // 3404 — which would otherwise read as two separate numbers ("3" and "404"). The pattern is
-    // safe to collapse unconditionally: a genuine word boundary never has a digit on both sides.
+    // 3404 — which would otherwise read as two separate numbers ("3" and "404"). Only a group of exactly
+    // three digits joins, so "9 0,90" (a misread "g" before 0,90) stays two numbers.
     private static func joiningThousandsSeparators(_ text: String) -> String {
         var result = text
-        while let range = result.range(of: "[0-9] [0-9]", options: .regularExpression) {
+        while let range = result.range(of: "[0-9] [0-9]{3}(?![0-9])", options: .regularExpression) {
             result.replaceSubrange(range, with: result[range].replacingOccurrences(of: " ", with: ""))
         }
         return result
     }
 
+    // A lone "9" before a value is the "g" printed in front of it ("g 0,90").
     private static func numbers(in text: String) -> [Double] {
         var results: [Double] = []
         var current = ""
         func flush() {
             defer { current = "" }
             while let last = current.last, last == "," || last == "." { current.removeLast() }
+            // A speck read as a leading dot (".3,7") is not a decimal separator when a real one follows.
+            if let first = current.first, first == "," || first == ".", current.dropFirst().contains(where: { $0 == "," || $0 == "." }) { current.removeFirst() }
             // "0,10" read as "010": a whole number never starts with a zero.
             let restored = current.count > 1 && current.hasPrefix("0") && current.allSatisfy(\.isNumber) ? "0." + String(current.dropFirst()) : current
             guard !current.isEmpty, let value = Double(restored.replacingOccurrences(of: ",", with: ".")) else { return }
             results.append(value)
         }
-        for char in joiningThousandsSeparators(text) {
+        let withoutMisreadUnit = text.replacingOccurrences(of: "(^|\\s)9\\s+(?=[0-9])", with: "$1g ", options: .regularExpression)
+        for char in joiningThousandsSeparators(withoutMisreadUnit) {
             if char.isNumber || char == "," || char == "." {
                 current.append(char)
             } else {

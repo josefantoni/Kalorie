@@ -20,4 +20,5 @@ data class NormalizedRect(
 data class RecognizedTextLine(
     val text: String,
     val boundingBox: NormalizedRect,
+    val angleDegrees: Double = 0.0,
 )
