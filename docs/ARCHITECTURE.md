@@ -573,7 +573,9 @@ queries, ten results each, de-duplicated by id **first occurrence wins**, in thi
 concatenation *is* the user-visible order — each query's ten results arrive in Firestore index
 order, i.e. alphabetically by the matched field, and nothing re-sorts them — so a client that
 merges in another order, or sorts the union, shows a different list. The folded pair is what lets "rohlik" find
-"Rohlík". The `*_lowercase` fields are still written and required, but no query reads them any
+"Rohlík". All four queries are still sent, but the merged result is then cut down to the items whose displayed name
+(`displayName`, § 5.3) matches the query, so the name in the other language never produces a hit
+([ADR 0042](adr/0042-search-matches-the-displayed-name-only.md)). The `*_lowercase` fields are still written and required, but no query reads them any
 more ([ADR 0040](adr/0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md)).
 The diacritic fold itself
 (`foldDiacritics`, a Czech accent-to-base character map) lives in KMP `TextKit`, bridged into
@@ -602,7 +604,7 @@ it does not change the per-query `limit(10)` or add any ranking. Ranking by log 
 Ranking happens **above** the use case, in `AddFoodSheetViewModel.displayedResults`, which is a
 pure computed property over already-loaded lists:
 
-1. matching **favourites** (`favouriteFoods`, prefix on either name),
+1. matching **favourites** (`favouriteFoods`, prefix on the displayed name),
 2. matching **my created meals** (`asFoodItem()`, prefix on the meal name) not already listed as a
    favourite,
 3. matching **own catalogue submissions** ([design 0009](design/0009-catalogue-moderation.md)) not
@@ -624,7 +626,7 @@ A created-meal row carries a trailing chevron and a swipe-to-delete with confirm
 That matching uses the catalogue's own rule, `TextKit.matchesSearchQuery`: the folded name starts
 with the folded query, or the name's search terms contain the query's last word. So "rohlik" finds
 a favourited *Rohlík* and "mlék" finds a favourited *Polotučné mléko*, exactly as the server
-queries do. Favourites and submissions match either name; created meals match the meal name only.
+queries do. Favourites, submissions and frequency candidates match the displayed name, and created meals the meal name; a food is not found by its name in the other language ([ADR 0042](adr/0042-search-matches-the-displayed-name-only.md)).
 The local matching is not gated by query length, so a single letter still lists matching
 favourites, meals and submissions
 ([ADR 0040](adr/0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md)).
@@ -641,7 +643,10 @@ it instead of pushing to the quantity screen (§ 7).
 ### 2.3 Search orchestration
 
 `onSearchTextChanged` is driven by `.task(id: viewModel.searchText)`, so SwiftUI cancels and
-restarts it on every keystroke. Debouncing is a `Task.sleep(for: .milliseconds(300))` at the
+restarts it on every keystroke, and again when the search screen reappears after a pushed detail.
+The view model remembers the last query that finished (`lastSearchedQuery`) and returns at once for the
+same text, so the results survive the push; a cancellation never clears them. The external lookup shows
+its loader as an overlay on the list, not as a row, and the results section appears only when it has rows. Debouncing is a `Task.sleep(for: .milliseconds(300))` at the
 top: a cancelled sleep throws, and the `catch` returns, which is what makes the debounce work.
 
 `SearchFoodItemsUseCase` itself returns `[]` without querying Firestore when the trimmed query is
@@ -1423,7 +1428,7 @@ runs the latter.
 
 One thing about the app is Czech-first in a way neither catalogue covers:
 
-- `BilingualNamed.displayName` picks `czName` when the device language is `cs` or `sk`, and
+- `BilingualNamed.displayName` picks `czName` when the device language is `cs` or `sk` (`engName` when `czName` is empty, [ADR 0042](adr/0042-search-matches-the-displayed-name-only.md)), and
   otherwise `engName` falling back to `czName` when `engName` is empty. This is data-level
   localisation — the food's own two names — and it is independent of both string catalogues.
   **Cross-platform**, unlike the rest of this section: the rule, its language-only (not region)
