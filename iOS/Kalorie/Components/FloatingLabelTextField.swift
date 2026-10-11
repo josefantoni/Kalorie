@@ -190,7 +190,6 @@ struct FloatingLabelTextField<Field: Hashable>: View {
         Text(title)
             .font(.body)
             .lineLimit(1)
-            .minimumScaleFactor(Self.minimumScaleFactor)
             .foregroundStyle(titleColor)
             .padding(.trailing, trailingButtonInset)
             .onGeometryChange(for: CGFloat.self) { proxy in
@@ -210,7 +209,6 @@ struct FloatingLabelTextField<Field: Hashable>: View {
             Text(placeholder)
                 .font(.body)
                 .lineLimit(1)
-                .minimumScaleFactor(Self.minimumScaleFactor)
                 .foregroundStyle(Color.hint)
                 .opacity(isFocused && text.isEmpty ? 1 : 0)
                 .animation(hasAppeared ? Self.animation : nil, value: isFocused)
@@ -234,7 +232,6 @@ struct FloatingLabelTextField<Field: Hashable>: View {
     private static var messageSpacing: CGFloat { 0 }
     private static var messageBottomPadding: CGFloat { 8 }
     private static var disabledOpacity: Double { 0.5 }
-    private static var minimumScaleFactor: CGFloat { 0.5 }
     private static var trailingButtonSpacing: CGFloat { 4 }
     private static var trailingButtonRowInsetOverlap: CGFloat { 4 }
 }
