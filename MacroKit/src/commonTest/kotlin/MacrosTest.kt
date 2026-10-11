@@ -11,6 +11,7 @@ class MacrosTest {
         carbohydrate: Double = 20.0,
         carbohydrateSugar: Double = 5.0,
         fat: Double = 2.0,
+        fatSaturated: Double = 1.0,
         fatUnsaturated: Double = 1.0,
         fiber: Double = 3.0,
         salt: Double = 0.5,
@@ -20,6 +21,7 @@ class MacrosTest {
         carbohydrate = carbohydrate,
         carbohydrateSugar = carbohydrateSugar,
         fat = fat,
+        fatSaturated = fatSaturated,
         fatUnsaturated = fatUnsaturated,
         fiber = fiber,
         salt = salt,
@@ -85,6 +87,15 @@ class MacrosTest {
         ).total()
         assertEquals(150, result.calories)
         assertEquals(15.0, result.protein)
+    }
+
+    @Test
+    fun total_sumsFatSaturated() {
+        val result = listOf(
+            macros(fatSaturated = 1.5),
+            macros(fatSaturated = 2.5),
+        ).total()
+        assertEquals(4.0, result.fatSaturated)
     }
 
     @Test
