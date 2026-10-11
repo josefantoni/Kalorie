@@ -4,9 +4,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButtonColors
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun appSegmentedButtonColors(): SegmentedButtonColors = SegmentedButtonDefaults.colors(
     activeContainerColor = MaterialTheme.colorScheme.primary,
     activeContentColor = MaterialTheme.colorScheme.onPrimary,
+    activeBorderColor = MaterialTheme.colorScheme.primary,
+    inactiveContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+    inactiveBorderColor = Color.Transparent,
 )
