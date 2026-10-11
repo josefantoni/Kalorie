@@ -1,22 +1,23 @@
 package antoni.kalorie.components
 
-import androidx.compose.foundation.Image
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.isImeVisible
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,20 +29,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
-import antoni.kalorie.core.models.FoodItemFormPhoto
 import coil3.compose.SubcomposeAsyncImage
 
-private val THUMBNAIL_DIAMETER = 60.dp
-private val THUMBNAIL_BADGE_DIAMETER = 24.dp
-private val THUMBNAIL_BOTTOM_SPACE = THUMBNAIL_DIAMETER + 16.dp
+private val THUMBNAIL_HEIGHT = 44.dp
+private val THUMBNAIL_SIDE_RESERVE = 132.dp
+private val THUMBNAIL_MAX_WIDTH = 320.dp
+private const val THUMBNAIL_TRANSITION_KEY = "foodPhoto"
 
 class FoodPhotoThumbnailState(val url: String?) {
     var hasFailed by mutableStateOf(false)
+    var isViewerVisible by mutableStateOf(false)
 }
 
 @Composable
@@ -49,76 +53,109 @@ fun rememberFoodPhotoThumbnailState(url: String?): FoodPhotoThumbnailState = rem
 
 // MARK: - Body
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun BoxScope.FoodPhotoThumbnailOverlay(state: FoodPhotoThumbnailState) {
+fun FoodPhotoTransitionHost(state: FoodPhotoThumbnailState, content: @Composable (photoTitle: @Composable () -> Unit) -> Unit) {
     val url = state.url
-    var isViewerVisible by remember { mutableStateOf(false) }
-    if (url != null && !WindowInsets.isImeVisible) {
-        FoodPhotoThumbnail(
-            url = url,
-            onTapped = { isViewerVisible = true },
-            onFailed = { state.hasFailed = true },
-            modifier = Modifier.align(Alignment.BottomStart),
-        )
-    }
-    if (isViewerVisible && url != null) {
-        FoodPhotoViewer(photo = FoodItemFormPhoto.Remote(url), onClose = { isViewerVisible = false })
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun FoodPhotoThumbnailBottomSpace(state: FoodPhotoThumbnailState) {
-    if (state.url != null && !state.hasFailed && !WindowInsets.isImeVisible) {
-        Spacer(modifier = Modifier.height(THUMBNAIL_BOTTOM_SPACE))
-    }
-}
-
-@Composable
-private fun FoodPhotoThumbnail(url: String, onTapped: () -> Unit, onFailed: () -> Unit, modifier: Modifier = Modifier) {
-    val enlarge = stringResource(R.string.foodPhoto_accessibility_enlarge)
-    SubcomposeAsyncImage(
-        model = url,
-        contentDescription = null,
-        modifier = modifier,
-        onError = { onFailed() },
-        loading = {
-            Box(
-                modifier = Modifier
-                    .padding(start = 20.dp, bottom = 8.dp)
-                    .size(THUMBNAIL_DIAMETER)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center,
-            ) { CircularProgressIndicator(modifier = Modifier.size(24.dp)) }
-        },
-        error = {},
-        success = { state ->
-            Box(
-                modifier = Modifier
-                    .padding(start = 20.dp, bottom = 8.dp)
-                    .size(THUMBNAIL_DIAMETER)
-                    .clickable(onClick = onTapped)
-                    .semantics { contentDescription = enlarge },
-            ) {
-                Image(
-                    painter = state.painter,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(THUMBNAIL_DIAMETER).clip(CircleShape),
-                )
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(THUMBNAIL_BADGE_DIAMETER)
-                        .clip(CircleShape)
-                        .background(AppColors.accent),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.Filled.OpenInFull, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+    BackHandler(enabled = state.isViewerVisible) { state.isViewerVisible = false }
+    SharedTransitionLayout {
+        Box(modifier = Modifier.fillMaxSize()) {
+            content {
+                if (url != null && !state.hasFailed) {
+                    AnimatedVisibility(visible = !state.isViewerVisible, enter = EnterTransition.None, exit = ExitTransition.None) {
+                        FoodPhotoThumbnail(
+                            url = url,
+                            sharedTransitionScope = this@SharedTransitionLayout,
+                            animatedVisibilityScope = this,
+                            onTapped = { state.isViewerVisible = true },
+                            onFailed = { state.hasFailed = true },
+                        )
+                    }
                 }
             }
-        },
-    )
+            if (url != null) {
+                AnimatedVisibility(visible = state.isViewerVisible, enter = fadeIn(), exit = fadeOut()) {
+                    FoodPhotoOverlay(
+                        url = url,
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this,
+                        onClose = { state.isViewerVisible = false },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FoodPhotoThumbnail(
+    url: String,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onTapped: () -> Unit,
+    onFailed: () -> Unit,
+) {
+    val enlarge = stringResource(R.string.foodPhoto_accessibility_enlarge)
+    val width = thumbnailWidth()
+    with(sharedTransitionScope) {
+        SubcomposeAsyncImage(
+            model = url,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            onError = { onFailed() },
+            loading = {
+                Box(
+                    modifier = Modifier.size(width = width, height = THUMBNAIL_HEIGHT).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center,
+                ) { CircularProgressIndicator(modifier = Modifier.size(24.dp)) }
+            },
+            error = {},
+            modifier = Modifier
+                .sharedBounds(
+                    sharedContentState = rememberSharedContentState(THUMBNAIL_TRANSITION_KEY),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                )
+                .width(width)
+                .height(THUMBNAIL_HEIGHT)
+                .clip(CircleShape)
+                .clickable(onClick = onTapped)
+                .semantics { contentDescription = enlarge },
+        )
+    }
+}
+
+@Composable
+private fun FoodPhotoOverlay(
+    url: String,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onClose: () -> Unit,
+) {
+    val title = stringResource(R.string.foodPhoto_title)
+    with(sharedTransitionScope) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .clickable(onClick = onClose)
+                .semantics { contentDescription = title },
+            contentAlignment = Alignment.Center,
+        ) {
+            FoodPhotoRemoteContent(
+                url = url,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .sharedBounds(
+                        sharedContentState = rememberSharedContentState(THUMBNAIL_TRANSITION_KEY),
+                        animatedVisibilityScope = animatedVisibilityScope,
+                    )
+                    .fillMaxSize(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun thumbnailWidth(): Dp {
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    return (screenWidth - THUMBNAIL_SIDE_RESERVE * 2).coerceIn(0.dp, THUMBNAIL_MAX_WIDTH)
 }
