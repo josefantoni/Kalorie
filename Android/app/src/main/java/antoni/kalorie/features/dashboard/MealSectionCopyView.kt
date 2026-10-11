@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
@@ -77,6 +78,7 @@ fun MealSectionCopyView(
     DropdownMenu(
         expanded = isVisible,
         onDismissRequest = { if (!isBusy && !isDayPickerVisible) viewModel.copyPopoverIndex.value = null },
+        shape = RoundedCornerShape(12.dp),
     ) {
         Column(
             modifier = Modifier.width(300.dp).padding(16.dp),

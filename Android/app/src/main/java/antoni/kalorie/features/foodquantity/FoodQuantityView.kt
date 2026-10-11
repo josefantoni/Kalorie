@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -182,7 +183,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                                 )
                                 Box {
                                     DropdownRowButton(text = unitLabel(unit, measure), onClick = { isUnitMenuVisible = true })
-                                    DropdownMenu(expanded = isUnitMenuVisible, onDismissRequest = { isUnitMenuVisible = false }) {
+                                    DropdownMenu(expanded = isUnitMenuVisible, onDismissRequest = { isUnitMenuVisible = false }, shape = RoundedCornerShape(12.dp)) {
                                         for (option in viewModel.unitOptions) {
                                             DropdownMenuItem(
                                                 text = { Text(unitLabel(option, measure)) },
@@ -215,7 +216,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                                         ?: stringResource(R.string.foodQuantity_mealType_unassigned),
                                     onClick = { isMealTypeMenuVisible = true },
                                 )
-                                DropdownMenu(expanded = isMealTypeMenuVisible, onDismissRequest = { isMealTypeMenuVisible = false }) {
+                                DropdownMenu(expanded = isMealTypeMenuVisible, onDismissRequest = { isMealTypeMenuVisible = false }, shape = RoundedCornerShape(12.dp)) {
                                     for (mealType in mealTypes) {
                                         DropdownMenuItem(
                                             text = { Text(mealType.name) },
