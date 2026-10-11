@@ -1330,7 +1330,7 @@ class AddFoodSheetViewModelTest {
         id = id,
         kind = kind,
         czName = czName,
-        engName = "Oats",
+        engName = czName,
         weight = 80.0,
         date = Instant.now(),
         energyKJ = 1500.0,
