@@ -111,7 +111,7 @@ fun ModerationCatalogueEditorView(
                             text = stringResource(R.string.moderation_reports_title),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
+                            modifier = Modifier.padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
                         )
                         SectionCard {
                             reports.forEachIndexed { index, report ->

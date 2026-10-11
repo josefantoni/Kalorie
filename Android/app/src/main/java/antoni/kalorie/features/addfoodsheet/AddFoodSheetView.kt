@@ -309,7 +309,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                             text = stringResource(R.string.addFood_section_favourites),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(start = 32.dp, top = 8.dp, end = 32.dp, bottom = 2.dp),
                         )
                     }
                     item {
@@ -333,7 +333,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                             text = stringResource(R.string.addFood_section_myCreatedMeals),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(start = 32.dp, top = 8.dp, end = 32.dp, bottom = 2.dp),
                         )
                     }
                     item {
@@ -366,7 +366,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                             text = stringResource(R.string.addFood_section_mySubmissions),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(start = 32.dp, top = 8.dp, end = 32.dp, bottom = 2.dp),
                         )
                     }
                     item {
@@ -395,7 +395,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                             ),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(start = 32.dp, top = 8.dp, end = 32.dp, bottom = 2.dp),
                         )
                     }
                     if (displayedResults.isNotEmpty()) {

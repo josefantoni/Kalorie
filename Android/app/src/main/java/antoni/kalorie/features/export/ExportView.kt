@@ -142,7 +142,7 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
                     text = stringResource(R.string.export_button_export),
                     onClick = { scope.launch { viewModel.onExportTapped() } },
                     enabled = !isExportDisabled,
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp),
                 )
             }
             if (state == ExportViewModel.State.GENERATING) {

@@ -47,12 +47,12 @@ fun MacroSummaryView(macros: DailyMacros, modifier: Modifier = Modifier) {
             MacroLabel(color = AppColors.fat, name = stringResource(R.string.foodQuantity_macro_fat), value = macros.fat)
         }
 
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 32.dp))
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 32.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -84,12 +84,13 @@ private fun MacroLabel(color: Color, name: String, value: Double) {
 private fun DetailRow(label: String, value: Double, dotColor: Color?, modifier: Modifier = Modifier) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            if (dotColor != null) Dot(color = dotColor, size = 6, modifier = Modifier.padding(top = 5.dp))
+            if (dotColor != null) Dot(color = dotColor, size = 6, modifier = Modifier.alignBy { it.measuredHeight })
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
+                modifier = Modifier.alignByBaseline(),
             )
         }
         Text(text = value.formattedGrams(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)

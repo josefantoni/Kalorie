@@ -131,7 +131,7 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                 KeyboardDoneContainer(modifier = Modifier.fillMaxSize().imePadding()) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -202,7 +202,7 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                                         text = stringResource(R.string.settings_section_other),
                                         style = MaterialTheme.typography.titleSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+                                        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
                                     )
                                 }
                                 item {
@@ -240,7 +240,7 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                                             text = stringResource(R.string.moderation_section_title),
                                             style = MaterialTheme.typography.titleSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp),
+                                            modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
                                         )
                                     }
                                     item {

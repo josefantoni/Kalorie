@@ -120,7 +120,7 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                             text = stringResource(R.string.moderation_similarItems_title),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
+                            modifier = Modifier.padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
                         )
                         SectionCard {
                             if (similarCatalogueItems.isEmpty()) {
@@ -144,7 +144,7 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                             }
                         }
                     }
-                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 8.dp)) {
                         PrimaryButton(
                             text = stringResource(R.string.moderation_button_approve),
                             onClick = { scope.launch { viewModel.onApproveTapped() } },
