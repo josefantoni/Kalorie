@@ -238,6 +238,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     private let onFoodSaved: () -> Void
     private var editingSubmissionId: String?
     private var isNutritionLabelCameraReviewPending = false
+    private var lastSearchedQuery: String?
     private var submissionPendingDeletion: FoodItemSubmissionDomain?
     private var mealPendingDeletion: MyCreatedMealDomain?
 
@@ -245,25 +246,20 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         guard !searchText.isEmpty else { return localFoodItems }
         let query = SearchTermsKt.searchQuery(query: searchText)
         let matchingFavourites = favouriteFoods.filter {
-            SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query)
-                || SearchTermsKt.matchesSearchQuery(name: $0.engName, query: query)
+            SearchTermsKt.matchesSearchQuery(name: $0.displayName, query: query)
         }
         let matchingMeals = myCreatedMeals
             .map { $0.asFoodItem() }
             .filter { SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query) }
         let matchingSubmissions = mySubmissions
             .map(\.item)
-            .filter {
-                SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query)
-                    || SearchTermsKt.matchesSearchQuery(name: $0.engName, query: query)
-            }
+            .filter { SearchTermsKt.matchesSearchQuery(name: $0.displayName, query: query) }
         let candidates = foodFrequency
             .sorted { $0.key < $1.key }
             .map(\.value.item)
             .filter {
                 $0.kind != .createdMeal
-                    && (SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query)
-                        || SearchTermsKt.matchesSearchQuery(name: $0.engName, query: query))
+                    && SearchTermsKt.matchesSearchQuery(name: $0.displayName, query: query)
             }
         var seenIds = Set(matchingFavourites.map(\.id))
         let rest = (matchingMeals + matchingSubmissions + localFoodItems + candidates)
@@ -480,30 +476,42 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     func onSearchTextChanged() async {
         guard !isPushedToQuantityView else { return }
         guard !searchText.isEmpty else {
+            lastSearchedQuery = nil
             localFoodItems = []
             externalFoodItems = []
             return
         }
+        guard searchText != lastSearchedQuery else { return }
         do {
             try await Task.sleep(for: .milliseconds(300))
         } catch {
             return
         }
+        let query = searchText
+        lastSearchedQuery = nil
         do {
-            localFoodItems = try await searchFoodItems(query: searchText)
+            localFoodItems = try await searchFoodItems(query: query)
+        } catch is CancellationError {
+            return
         } catch {
             localFoodItems = []
             externalFoodItems = []
             return
         }
-        guard displayedResults.isEmpty && searchText.count >= 3 else {
+        guard displayedResults.isEmpty && query.count >= 3 else {
             externalFoodItems = []
+            lastSearchedQuery = query
             return
         }
         isExternalSearchLoading = true
         defer { isExternalSearchLoading = false }
         do {
-            externalFoodItems = try await searchFoodExternally(query: searchText)
+            externalFoodItems = try await searchFoodExternally(query: query)
+            lastSearchedQuery = query
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
             Log.warning(error, category: Constants.LogCategory.addFoodSheet)
             externalFoodItems = []

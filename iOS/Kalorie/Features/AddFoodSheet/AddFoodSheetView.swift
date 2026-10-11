@@ -256,7 +256,7 @@ struct AddFoodSheetView: View {
                     }
                 }
             }
-            if !results.isEmpty || !viewModel.searchText.isEmpty {
+            if !results.isEmpty || !viewModel.externalFoodItems.isEmpty {
                 Section(header: Text(results.isEmpty ? L10n.AddFood.sectionExternalResults : L10n.AddFood.sectionSearchResults)) {
                     if !results.isEmpty {
                         ForEach(results, id: \.id) { item in
@@ -265,9 +265,6 @@ struct AddFoodSheetView: View {
                                     onSelectResultRow(item)
                                 }
                         }
-                    } else if viewModel.isExternalSearchLoading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
                     } else {
                         ForEach(viewModel.externalFoodItems, id: \.id) { item in
                             Text(item.displayName)
@@ -282,6 +279,11 @@ struct AddFoodSheetView: View {
             }
         }
         .contentMargins(.top, 0, for: .scrollContent)
+        .overlay {
+            if viewModel.isExternalSearchLoading {
+                ProgressView()
+            }
+        }
     }
 
     var newItemPrompt: some View {

@@ -16,7 +16,7 @@ extension BilingualNamed {
     var displayName: String {
         let langCode = Locale.current.language.languageCode?.identifier ?? ""
         let isCzechOrSlovak = ["cs", "sk"].contains(langCode)
-        if isCzechOrSlovak { return czName }
+        if isCzechOrSlovak { return czName.isEmpty ? engName : czName }
         return engName.isEmpty ? czName : engName
     }
 }
