@@ -62,6 +62,7 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
         return (foldedNameResults + foldedOriginalNameResults + czTokenResults + engTokenResults)
             .filter { seen.insert($0.id).inserted }
             .map { $0.asDomain() }
+            .filter { SearchTermsKt.matchesSearchQuery(name: $0.displayName, query: searchQuery) }
     }
 }
 

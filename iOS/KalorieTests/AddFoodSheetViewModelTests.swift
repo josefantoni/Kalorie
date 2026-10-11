@@ -260,6 +260,30 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem)
     }
 
+    func test_onSearchTextChanged_whenRunAgainForTheSameQuery_keepsExternalResults() async {
+        let sut = makeSUT(searchFoodExternally: SearchFoodExternallyUseCaseFake(stubbedItems: [makeFoodItem(id: "beer")]))
+        sut.searchText = "Beer"
+        await sut.onSearchTextChanged()
+        XCTAssertEqual(sut.externalFoodItems.map(\.id), ["beer"])
+        sut.externalFoodItems = [makeFoodItem(id: "beer"), makeFoodItem(id: "marker")]
+        await sut.onSearchTextChanged()
+        XCTAssertEqual(
+            sut.externalFoodItems.map(\.id),
+            ["beer", "marker"],
+            "returning from the detail restarts the search task, and a repeated lookup that fails would wipe results the user already has"
+        )
+    }
+
+    func test_onSearchTextChanged_whenQueryChanges_searchesAgain() async {
+        let sut = makeSUT(searchFoodExternally: SearchFoodExternallyUseCaseFake(stubbedItems: [makeFoodItem(id: "beer")]))
+        sut.searchText = "Beer"
+        await sut.onSearchTextChanged()
+        sut.externalFoodItems = []
+        sut.searchText = "Beers"
+        await sut.onSearchTextChanged()
+        XCTAssertEqual(sut.externalFoodItems.map(\.id), ["beer"])
+    }
+
     @MainActor
     func test_onSelectFoodItem_setsSelectedFoodItemAndNavigates() {
         let sut = makeSUT()

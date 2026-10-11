@@ -15,7 +15,7 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
     func test_search_mergesResultsFromBothFoldedNameFields() async throws {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Tvaroh")]
-        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "2", czName: "Cottage cheese")]
+        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "2", czName: "Tvaroh jemný")]
 
         let result = try await sut(query: "tv")
 
@@ -44,6 +44,20 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
         XCTAssertEqual(result.map(\.id), ["1", "2", "3", "4"])
     }
 
+    func test_search_matchesOnlyTheNameInTheAppLanguage() async throws {
+        let (sut, dataProvider) = makeSUT()
+        let item = makeDTO(id: "1", czName: "Hovězí maso", engName: "Beef").asDomain()
+        let hidden = item.displayName == item.czName ? item.engName : item.czName
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Hovězí maso", engName: "Beef")]
+        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "1", czName: "Hovězí maso", engName: "Beef")]
+
+        let byHiddenName = try await sut(query: String(hidden.prefix(3)))
+        let byDisplayedName = try await sut(query: String(item.displayName.prefix(3)))
+
+        XCTAssertEqual(byHiddenName, [], "a row whose displayed name does not resemble the query reads as a wrong result")
+        XCTAssertEqual(byDisplayedName.map(\.id), ["1"])
+    }
+
     func test_search_withSingleCharacter_doesNotQueryFirestore() async throws {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1")]
@@ -60,7 +74,7 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1")]
 
-        let result = try await sut(query: "ml")
+        let result = try await sut(query: "tv")
 
         XCTAssertEqual(result.map(\.id), ["1"])
         XCTAssertEqual(
@@ -129,6 +143,7 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
     private func makeDTO(
         id: String = "8594004428464",
         czName: String = "Tvaroh",
+        engName: String? = nil,
         fat: Double = 0.5,
         carbohydrate: Double = 4,
         protein: Double = 13
@@ -138,7 +153,7 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
                 id: id,
                 kind: .catalogue,
                 czName: czName,
-                engName: "Cottage cheese",
+                engName: engName ?? czName,
                 weight: 100,
                 date: .now,
                 energyKJ: 335,
