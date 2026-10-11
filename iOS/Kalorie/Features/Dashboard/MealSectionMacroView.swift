@@ -35,7 +35,7 @@ struct MealSectionMacroView: View {
             macroRow(label: L10n.FoodQuantity.carbs, value: macros.carbs.formattedGrams(), dotColor: Color.carbs)
             macroRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar.formattedGrams(), dotColor: Color.carbs, indented: true)
             macroRow(label: L10n.FoodQuantity.fat, value: macros.fat.formattedGrams(), dotColor: Color.fat)
-            macroRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated.formattedGrams(), dotColor: Color.fat, indented: true)
+            macroRow(label: L10n.AddFood.fieldFatSaturated, value: macros.fatSaturated.formattedGrams(), dotColor: Color.fat, indented: true)
             macroRow(label: L10n.AddFood.fieldFiber, value: macros.fiber.formattedGrams())
             macroRow(label: L10n.AddFood.fieldSalt, value: macros.salt.formattedGrams())
         }

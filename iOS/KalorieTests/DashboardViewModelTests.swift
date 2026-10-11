@@ -15,6 +15,11 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertEqual(macros.fiber, 3)
     }
 
+    func test_dailyMacros_whenAFoodsSaturatedFatIsUnknown_countsItAsZeroInTheSum() {
+        let macros = DailyMacros(foods: [makeFood(id: "1", hour: 8, fatSaturated: nil), makeFood(id: "2", hour: 9, fatSaturated: 4)])
+        XCTAssertEqual(macros.fatSaturated, 4)
+    }
+
     func test_groupedFoods_withNoFoodsConsumed_returnsEmpty() {
         let sut = makeSUT()
         sut.mealTypes = [makeMealType(id: 0, hour: 8, endHour: 12)]
@@ -825,7 +830,7 @@ final class DashboardViewModelTests: XCTestCase {
         return MealTypeDomain(id: "\(id)", name: "Meal \(id)", startMinutes: start, endMinutes: (start + 60) % 1440)
     }
 
-    private func makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1, mealTypeId: String? = nil) -> FoodConsumedDomain {
+    private func makeFood(id: String, hour: Int, minute: Int = 0, fiber: Double? = 1, fatSaturated: Double? = 1, mealTypeId: String? = nil) -> FoodConsumedDomain {
         let cal = Calendar.current
         let base = Date.now
         let date = cal.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
@@ -844,7 +849,7 @@ final class DashboardViewModelTests: XCTestCase {
             carbohydrate: 20,
             carbohydrateSugar: 5,
             fat: 5,
-            fatSaturated: 1,
+            fatSaturated: fatSaturated,
             fatUnsaturated: 2,
             fiber: fiber,
             salt: 0.2,

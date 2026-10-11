@@ -41,7 +41,7 @@ struct MacroSummaryView: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 detailRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar, dotColor: Color.carbs)
                 detailRow(label: L10n.AddFood.fieldSalt, value: macros.salt)
-                detailRow(label: L10n.AddFood.fieldFatUnsaturated, value: macros.fatUnsaturated, dotColor: Color.fat)
+                detailRow(label: L10n.AddFood.fieldFatSaturated, value: macros.fatSaturated, dotColor: Color.fat)
                 detailRow(label: L10n.AddFood.fieldFiber, value: macros.fiber)
             }
             .padding(.horizontal)
@@ -99,7 +99,7 @@ struct MacroSummaryView: View {
             carbs: 210,
             carbohydrateSugar: 48,
             fat: 58,
-            fatUnsaturated: 22,
+            fatSaturated: 22,
             fiber: 18,
             salt: 3.2
         )
