@@ -14,7 +14,7 @@ struct DailyMacros {
     let carbs: Double
     let carbohydrateSugar: Double
     let fat: Double
-    let fatUnsaturated: Double
+    let fatSaturated: Double
     let fiber: Double
     let salt: Double
 
@@ -24,7 +24,7 @@ struct DailyMacros {
         carbs: Double,
         carbohydrateSugar: Double,
         fat: Double,
-        fatUnsaturated: Double,
+        fatSaturated: Double,
         fiber: Double,
         salt: Double
     ) {
@@ -33,7 +33,7 @@ struct DailyMacros {
         self.carbs = carbs
         self.carbohydrateSugar = carbohydrateSugar
         self.fat = fat
-        self.fatUnsaturated = fatUnsaturated
+        self.fatSaturated = fatSaturated
         self.fiber = fiber
         self.salt = salt
     }
@@ -46,6 +46,7 @@ struct DailyMacros {
                 carbohydrate: $0.carbohydrate,
                 carbohydrateSugar: $0.carbohydrateSugar,
                 fat: $0.fat,
+                fatSaturated: $0.fatSaturated ?? 0,
                 fatUnsaturated: $0.fatUnsaturated,
                 fiber: $0.fiber ?? 0,
                 salt: $0.salt
@@ -57,7 +58,7 @@ struct DailyMacros {
         carbs = total.carbohydrate
         carbohydrateSugar = total.carbohydrateSugar
         fat = total.fat
-        fatUnsaturated = total.fatUnsaturated
+        fatSaturated = total.fatSaturated
         fiber = total.fiber
         salt = total.salt
     }

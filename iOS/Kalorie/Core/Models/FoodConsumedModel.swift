@@ -116,6 +116,7 @@ struct ScaledMacros {
             carbohydrate: food.carbohydrate,
             carbohydrateSugar: food.carbohydrateSugar,
             fat: food.fat,
+            fatSaturated: food.fatSaturated ?? 0,
             fatUnsaturated: food.fatUnsaturated,
             fiber: food.fiber ?? 0,
             salt: food.salt
@@ -139,6 +140,7 @@ struct ScaledMacros {
             carbohydrate: item.carbohydrate,
             carbohydrateSugar: item.carbohydratePureSugar,
             fat: item.fat,
+            fatSaturated: item.fatSaturated ?? 0,
             fatUnsaturated: item.fatUnsaturatedFattyAcids,
             fiber: item.fiber ?? 0,
             salt: item.salt
