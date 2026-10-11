@@ -243,6 +243,7 @@
     <string name="settings_button_edit">Edit</string>
     <string name="settings_button_editDone">Done</string>
     <string name="settings_button_feedback">Feedback</string>
+    <string name="settings_button_support">Support development</string>
     <string name="settings_datePicker_from">From</string>
     <string name="settings_datePicker_to">To</string>
     <string name="settings_error_deleteError">An error occurred while deleting</string>
@@ -259,4 +260,6 @@
     <string name="settings_navigationTitle">Settings</string>
     <string name="settings_section_mealLayout">Meal layout</string>
     <string name="settings_section_other">Other</string>
+    <string name="settings_support_inProgress">Coming soon</string>
+    <string name="settings_support_subtitle">The app is free and ad-free</string>
 </resources>
