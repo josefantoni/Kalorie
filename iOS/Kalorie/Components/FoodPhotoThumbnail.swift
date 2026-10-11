@@ -12,6 +12,8 @@ struct FoodPhotoThumbnail: View {
     // MARK: - Properties
 
     let url: URL
+    let namespace: Namespace.ID
+    let width: CGFloat
     let onTapped: () -> Void
 
     // MARK: - Body
@@ -21,42 +23,35 @@ struct FoodPhotoThumbnail: View {
             switch phase {
             case .success(let image):
                 Button(action: onTapped) {
-                    ZStack(alignment: .bottomTrailing) {
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: Self.diameter, height: Self.diameter)
-                            .clipShape(.circle)
-                        Image(systemName: BaseImageName.enlarge.rawValue)
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                            .frame(width: Self.badgeDiameter, height: Self.badgeDiameter)
-                            .background(Color.accentColor, in: .circle)
-                    }
+                    Color.clear
+                        .frame(width: width, height: Self.height)
+                        .overlay {
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        }
+                        .clipShape(.capsule)
+                        .matchedTransitionSource(id: FoodPhotoTransition.id, in: namespace)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(L10n.FoodPhoto.accessibilityEnlarge)
-                .padding(.leading, 20)
-                .padding(.bottom, 8)
-                .frame(maxWidth: .infinity, alignment: .leading)
             case .loading:
                 ProgressView()
-                    .frame(width: Self.diameter, height: Self.diameter)
-                    .background(Color.secondary.opacity(0.15), in: .circle)
-                    .padding(.leading, 20)
-                    .padding(.bottom, 8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(width: width, height: Self.height)
+                    .background(Color.secondary.opacity(0.15), in: .capsule)
             case .failure:
-                Color.clear.frame(height: 0)
+                Color.clear.frame(width: 0, height: 0)
             }
         }
     }
 
     // MARK: - Functions
 
-    private static var diameter: CGFloat { 60 }
-    private static var badgeDiameter: CGFloat { 24 }
+    private static var height: CGFloat { 44 }
+}
+
+enum FoodPhotoTransition {
+    static let id = "foodPhoto"
 }
 
 private struct FoodPhotoThumbnailModifier: ViewModifier {
@@ -64,28 +59,55 @@ private struct FoodPhotoThumbnailModifier: ViewModifier {
     // MARK: - Properties
 
     let url: URL?
-    let isHidden: Bool
     @State private var isViewerVisible = false
+    @Namespace private var namespace
+    @State private var containerWidth: CGFloat = 0
+    @State private var containerMidX: CGFloat = 0
+    @State private var itemMidX: CGFloat = 0
+
+    private var centerOffset: CGFloat {
+        guard containerWidth != 0, itemMidX != 0 else { return 0 }
+        return (containerMidX - itemMidX).rounded()
+    }
+
+    private var bubbleWidth: CGFloat {
+        min(max(containerWidth - 2 * Self.sideReserve, 0), Self.maxBubbleWidth).rounded(.down)
+    }
+
+    private static var sideReserve: CGFloat { 132 }
+    private static var maxBubbleWidth: CGFloat { 320 }
 
     // MARK: - Body
 
     func body(content: Content) -> some View {
         content
-            .safeAreaInset(edge: .bottom) {
-                if let url, !isHidden {
-                    FoodPhotoThumbnail(url: url) { isViewerVisible = true }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width.rounded() } action: { containerWidth = $0 }
+            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX.rounded() } action: { containerMidX = $0 }
+            .toolbar {
+                if let url {
+                    ToolbarItem(placement: .principal) {
+                        ZStack {
+                            Color.clear
+                                .frame(width: 1, height: 1)
+                                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX.rounded() } action: { itemMidX = $0 }
+                            FoodPhotoThumbnail(url: url, namespace: namespace, width: bubbleWidth) { isViewerVisible = true }
+                                .offset(x: centerOffset)
+                        }
+                    }
+                    .sharedBackgroundVisibility(.hidden)
                 }
             }
             .fullScreenCover(isPresented: $isViewerVisible) {
                 if let url {
                     FoodPhotoViewer(photo: .remote(url)) { isViewerVisible = false }
+                        .navigationTransition(.zoom(sourceID: FoodPhotoTransition.id, in: namespace))
                 }
             }
     }
 }
 
 extension View {
-    func foodPhotoThumbnail(url: URL?, isHidden: Bool = false) -> some View {
-        modifier(FoodPhotoThumbnailModifier(url: url, isHidden: isHidden))
+    func foodPhotoThumbnail(url: URL?) -> some View {
+        modifier(FoodPhotoThumbnailModifier(url: url))
     }
 }
