@@ -2,13 +2,14 @@ package antoni.kalorie.features.dashboard
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -17,12 +18,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,10 +38,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
+import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.utils.zoned
@@ -70,6 +71,7 @@ fun MealSectionCopyView(
     val selectedDay by viewModel.selectedDay.collectAsState()
     val scope = rememberCoroutineScope()
     var isDayPickerVisible by remember { mutableStateOf(false) }
+    var isMealMenuVisible by remember { mutableStateOf(false) }
     val isBusy = isCopying || showCheckmark
     val isCopyEnabled = remember(targetDay, targetMealTypeId, selectedDay, isBusy) { viewModel.canCopy(mealType) }
 
@@ -77,7 +79,7 @@ fun MealSectionCopyView(
 
     DropdownMenu(
         expanded = isVisible,
-        onDismissRequest = { if (!isBusy && !isDayPickerVisible) viewModel.copyPopoverIndex.value = null },
+        onDismissRequest = { if (!isBusy && !isDayPickerVisible && !isMealMenuVisible) viewModel.copyPopoverIndex.value = null },
         shape = RoundedCornerShape(12.dp),
     ) {
         Column(
@@ -98,23 +100,27 @@ fun MealSectionCopyView(
                 }
             }
 
-            Text(text = stringResource(R.string.dashboard_copy_meal))
-            Column {
-                mealTypes.sortedBy { it.startMinutes }.forEach { option ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .selectable(
-                                selected = option.id == targetMealTypeId,
-                                enabled = !isBusy,
-                                role = Role.RadioButton,
-                                onClick = { viewModel.copyTargetMealTypeId.value = option.id },
-                            ),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = option.id == targetMealTypeId, onClick = null, enabled = !isBusy)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = option.name)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(text = stringResource(R.string.dashboard_copy_meal))
+                Box {
+                    DropdownRowButton(
+                        text = mealTypes.firstOrNull { it.id == targetMealTypeId }?.name.orEmpty(),
+                        onClick = { if (!isBusy) isMealMenuVisible = true },
+                    )
+                    DropdownMenu(expanded = isMealMenuVisible, onDismissRequest = { isMealMenuVisible = false }, shape = RoundedCornerShape(12.dp)) {
+                        mealTypes.sortedBy { it.startMinutes }.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.name) },
+                                onClick = {
+                                    viewModel.copyTargetMealTypeId.value = option.id
+                                    isMealMenuVisible = false
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -125,8 +131,12 @@ fun MealSectionCopyView(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                TextButton(onClick = { viewModel.copyPopoverIndex.value = null }, enabled = !isBusy) {
-                    Text(stringResource(R.string.common_button_cancel))
+                TextButton(
+                    onClick = { viewModel.copyPopoverIndex.value = null },
+                    enabled = !isBusy,
+                    contentPadding = PaddingValues(horizontal = 0.dp),
+                ) {
+                    Text(stringResource(R.string.common_button_cancel), modifier = Modifier.widthIn(min = ButtonDefaults.MinWidth))
                 }
                 Button(
                     onClick = { scope.launch { viewModel.onCopyConfirmed(foods, mealType) } },
