@@ -1,5 +1,6 @@
 package antoni.kalorie.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
@@ -16,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
 
 @Composable
@@ -29,7 +31,7 @@ fun ReportIncorrectDataMenu(hasReportedCurrentItem: Boolean, onReportTapped: () 
     IconButton(onClick = { isMenuVisible = true }) {
         Icon(Icons.Filled.MoreVert, contentDescription = null)
     }
-    DropdownMenu(expanded = isMenuVisible, onDismissRequest = { isMenuVisible = false }) {
+    DropdownMenu(expanded = isMenuVisible, onDismissRequest = { isMenuVisible = false }, shape = RoundedCornerShape(12.dp)) {
         DropdownMenuItem(
             text = {
                 Text(

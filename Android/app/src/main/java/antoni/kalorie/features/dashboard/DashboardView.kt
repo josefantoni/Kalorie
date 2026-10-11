@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Add
@@ -398,7 +399,7 @@ private fun SectionHeader(
                 IconButton(onClick = onPopoverRequested) {
                     Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                DropdownMenu(expanded = isPopoverVisible, onDismissRequest = onPopoverDismissed) {
+                DropdownMenu(expanded = isPopoverVisible, onDismissRequest = onPopoverDismissed, shape = RoundedCornerShape(12.dp)) {
                     MealSectionMacroView(name = name, foods = foods)
                 }
             }
