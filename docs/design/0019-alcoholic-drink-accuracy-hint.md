@@ -180,8 +180,8 @@ Energy                                   215 kcal
   On iOS the header measures the trailing edge of a nutrition value and pads itself to it, so the
   capsule lines up with the row content below it. A fixed inset does not work: the system margins
   of headers and rows differ by device settings, not only by screen width.
-  On Android the header is a row with the same 16 dp horizontal padding as the value rows, so no
-  measuring is needed.
+  On Android the header is a row with 32 dp horizontal padding, the same distance from the screen
+  edge as the value rows (16 dp card inset plus 16 dp row padding), so no measuring is needed.
 - The icon is SF Symbol `wineglass` on iOS and `Icons.Outlined.LocalBar` on Android, followed by
   `info.circle` / `Icons.Outlined.Info`.
 - The ABV is shown with the device locale's decimal separator.
