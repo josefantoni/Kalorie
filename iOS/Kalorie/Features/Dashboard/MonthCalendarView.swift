@@ -17,6 +17,7 @@ struct MonthCalendarView: View {
     let onMonthChanged: (Date) -> Void
 
     @State private var displayedMonth: Date
+    @ScaledMetric(relativeTo: .callout) private var dayCellHeight: CGFloat = 44
 
     private let calendar = Calendar.current
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
@@ -45,7 +46,7 @@ struct MonthCalendarView: View {
             daysGrid
         }
         .padding(16)
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .presentationBackground(.thinMaterial)
     }
@@ -89,11 +90,12 @@ struct MonthCalendarView: View {
     private var daysGrid: some View {
         LazyVGrid(columns: columns, spacing: 4) {
             ForEach(0..<leadingEmptyCells, id: \.self) { _ in
-                Color.clear.frame(height: 44)
+                Color.clear.frame(height: dayCellHeight)
             }
             ForEach(daysInDisplayedMonth, id: \.self) { day in
                 CalendarDayCell(
                     day: day,
+                    height: dayCellHeight,
                     isSelected: isSelected(day: day),
                     isToday: isToday(day: day),
                     hasActivity: activeDays.contains(day)
@@ -161,10 +163,13 @@ private struct CalendarDayCell: View {
     // MARK: - Properties
 
     let day: Int
+    let height: CGFloat
     let isSelected: Bool
     let isToday: Bool
     let hasActivity: Bool
     let onTap: () -> Void
+
+    @ScaledMetric(relativeTo: .callout) private var circleSize: CGFloat = 32
 
     // MARK: - Body
 
@@ -175,11 +180,11 @@ private struct CalendarDayCell: View {
                     if isSelected {
                         Circle()
                             .fill(Color.accentColor)
-                            .frame(width: 32, height: 32)
+                            .frame(width: circleSize, height: circleSize)
                     } else if isToday {
                         Circle()
                             .stroke(Color.accentColor, lineWidth: 1.5)
-                            .frame(width: 32, height: 32)
+                            .frame(width: circleSize, height: circleSize)
                     }
                     Text("\(day)")
                         .font(.callout)
@@ -189,7 +194,7 @@ private struct CalendarDayCell: View {
                     .fill(hasActivity ? Color.accentColor.opacity(0.7) : Color.clear)
                     .frame(width: 4, height: 4)
             }
-            .frame(height: 44)
+            .frame(height: height)
         }
         .buttonStyle(.plain)
     }

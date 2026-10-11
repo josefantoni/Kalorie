@@ -16,6 +16,8 @@ struct DayPickerView: View {
     let onDayChanged: (Date) -> Void
     let onTapSelectedDay: () -> Void
 
+    @ScaledMetric(relativeTo: .headline) private var circleSize: CGFloat = 36
+
     private let calendar = Calendar.current
 
     // MARK: - Body
@@ -71,11 +73,11 @@ struct DayPickerView: View {
                 if isSelected {
                     Circle()
                         .fill(Color.accentColor)
-                        .frame(width: 36, height: 36)
+                        .frame(width: circleSize, height: circleSize)
                 } else if calendar.isDateInToday(date) {
                     Circle()
                         .stroke(Color.accentColor, lineWidth: 1.5)
-                        .frame(width: 36, height: 36)
+                        .frame(width: circleSize, height: circleSize)
                 }
                 Text("\(calendar.component(.day, from: date))")
                     .font(isSelected ? .headline : .body)
