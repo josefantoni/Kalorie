@@ -2,6 +2,7 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.networking.FirestoreDataMapper
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodItemDTO
@@ -19,7 +20,7 @@ class SearchFoodItemsUseCaseTest {
         val (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByPrefixField = mapOf(
             "cz_name_folded" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
-            "eng_name_folded" to listOf(makeDTO(id = "2", czName = "Cottage cheese")),
+            "eng_name_folded" to listOf(makeDTO(id = "2", czName = "Tvaroh jemný")),
         )
 
         val result = sut(query = "tv")
@@ -38,6 +39,21 @@ class SearchFoodItemsUseCaseTest {
         val result = sut(query = "tv")
 
         assertEquals(1, result.size)
+    }
+
+    @Test
+    fun search_matchesOnlyTheNameInTheAppLanguage() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        val dto = makeDTO(id = "1", czName = "Hovězí maso", engName = "Beef")
+        dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(dto), "eng_name_folded" to listOf(dto))
+        val item = dto.asDomain()
+        val hidden = if (item.displayName == item.czName) item.engName else item.czName
+
+        val byHiddenName = sut(query = hidden.take(3))
+        val byDisplayedName = sut(query = item.displayName.take(3))
+
+        assertEquals(emptyList<FoodItemDomain>(), byHiddenName)
+        assertEquals(listOf("1"), byDisplayedName.map { it.id })
     }
 
     @Test
@@ -71,7 +87,7 @@ class SearchFoodItemsUseCaseTest {
         val (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(makeDTO(id = "1")))
 
-        val result = sut(query = "ml")
+        val result = sut(query = "tv")
 
         assertEquals(listOf("1"), result.map { it.id })
         assertEquals(
@@ -170,6 +186,7 @@ class SearchFoodItemsUseCaseTest {
     private fun makeDTO(
         id: String = "8594004428464",
         czName: String = "Tvaroh",
+        engName: String = czName,
         fat: Double = 0.5,
         carbohydrate: Double = 4.0,
         protein: Double = 13.0,
@@ -178,7 +195,7 @@ class SearchFoodItemsUseCaseTest {
             id = id,
             kind = FoodItemKind.CATALOGUE,
             czName = czName,
-            engName = "Cottage cheese",
+            engName = engName,
             weight = 100.0,
             date = Instant.now(),
             energyKJ = 335.0,
