@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import antoni.kalorie.core.extensions.scaledWithText
 import antoni.kalorie.core.utils.formatDateStyle
 import antoni.kalorie.core.utils.isSameDay
 import antoni.kalorie.core.utils.isSameMonth
@@ -121,7 +122,7 @@ private fun DayCard(
             color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        val circleModifier = Modifier.size(36.dp)
+        val circleModifier = Modifier.size(36.dp.scaledWithText())
         Box(
             modifier = when {
                 isSelected -> circleModifier.background(accent, CircleShape)
