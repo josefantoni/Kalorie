@@ -39,6 +39,7 @@ struct AlcoholicDrinkHintView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(width: 280)
                 .padding()
+                .dynamicTypeLimit()
                 .presentationCompactAdaptation(.popover)
         }
     }

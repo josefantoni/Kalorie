@@ -160,6 +160,9 @@ enum State {
 
 Navigation primitives used: `NavigationStack`, `navigationDestination`, `.sheet`, `.alert`.
 
+Text size is capped at `xLarge` (`dynamicTypeLimit()`, `Core/Extensions/View+DynamicTypeLimit.swift`). The app root has it, but a `.sheet` or `.popover` is a separate hosting controller and does not inherit it — apply `.dynamicTypeLimit()` to the content of every new one, or its text grows to the full accessibility sizes.
+Menus, `Picker(.menu)`, alerts, confirmation dialogs, date picker popups and the share sheet are rendered by UIKit and ignore it; `UIKitDynamicTypeLimit` (same file) caps them through the window scene's content size category, so they need nothing per call site.
+
 ---
 
 ## Error Handling

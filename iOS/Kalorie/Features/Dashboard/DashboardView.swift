@@ -74,6 +74,7 @@ struct DashboardView: View {
                                     mealType: group.mealType,
                                     foods: group.foods
                                 )
+                                .dynamicTypeLimit()
                                 .presentationCompactAdaptation(.popover)
                             }
                             .padding(.trailing, 8)
@@ -93,6 +94,7 @@ struct DashboardView: View {
                                     name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
                                     foods: group.foods
                                 )
+                                .dynamicTypeLimit()
                                 .presentationCompactAdaptation(.popover)
                             }
                         }
@@ -170,14 +172,17 @@ struct DashboardView: View {
                 router.makeSettingsView(mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onMealTypesChanged() }
                 }
+                .dynamicTypeLimit()
             }
             .sheet(isPresented: $viewModel.showAddFoodSheet, onDismiss: viewModel.onAddFoodSheetDismissed) {
                 router.makeAddFoodSheetView(for: viewModel.selectedDay, mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onFoodConsumedUpdated() }
                 }
+                .dynamicTypeLimit()
             }
             .sheet(isPresented: $viewModel.showAccountSheet) {
                 router.makeAccountView()
+                    .dynamicTypeLimit()
             }
             .sheet(isPresented: $viewModel.showCalendarSheet, onDismiss: viewModel.onCalendarDismissed) {
                 MonthCalendarView(
@@ -186,6 +191,7 @@ struct DashboardView: View {
                     onDaySelected: { day in Task { await viewModel.onDaySelected(day) } },
                     onMonthChanged: { month in Task { await viewModel.onCalendarMonthChanged(to: month) } }
                 )
+                .dynamicTypeLimit()
             }
             .alert(item: $viewModel.alertItem) { item in
                 Alert(

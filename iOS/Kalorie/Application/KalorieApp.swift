@@ -53,33 +53,40 @@ struct KalorieApp: App {
 
     var body: some Scene {
         WindowGroup {
-            switch authState.state {
-            case .idle, .loading:
-                ProgressView()
-            case .loaded:
-                DashboardConfigurator().createView(mergeStatusReporting: authState)
-                    // Forces a full rebuild on every auth transition so no view model is reused
-                    // across users. Side effect: it also resets the Dashboard's transient state,
-                    // including the selected day, back to today on sign-in/sign-out.
-                    .id(authState.userId)
-                    .overlay {
-                        if authState.isMerging {
-                            mergingOverlay
+            Group {
+                switch authState.state {
+                case .idle, .loading:
+                    ProgressView()
+                case .loaded:
+                    DashboardConfigurator().createView(mergeStatusReporting: authState)
+                        // Forces a full rebuild on every auth transition so no view model is reused
+                        // across users. Side effect: it also resets the Dashboard's transient state,
+                        // including the selected day, back to today on sign-in/sign-out.
+                        .id(authState.userId)
+                        .overlay {
+                            if authState.isMerging {
+                                mergingOverlay
+                            }
                         }
+                        .allowsHitTesting(!authState.isMerging)
+                        .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
+                case .error(let error):
+                    VStack(spacing: 16) {
+                        Text(L10n.Auth.errorSignInFailed)
+                            .font(.headline)
+                        Text(error?.localizedDescription ?? L10n.Common.errorUnknown)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        Button(L10n.Auth.buttonRetry) { authState.retry() }
                     }
-                    .allowsHitTesting(!authState.isMerging)
-                    .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
-            case .error(let error):
-                VStack(spacing: 16) {
-                    Text(L10n.Auth.errorSignInFailed)
-                        .font(.headline)
-                    Text(error?.localizedDescription ?? L10n.Common.errorUnknown)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                    Button(L10n.Auth.buttonRetry) { authState.retry() }
                 }
+            }
+            .dynamicTypeLimit()
+            .onAppear { UIKitDynamicTypeLimit.apply() }
+            .onReceive(NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification)) { _ in
+                UIKitDynamicTypeLimit.apply()
             }
         }
     }
