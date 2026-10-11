@@ -35,7 +35,7 @@ fun FoodPortionsSection(
             text = stringResource(R.string.foodPortion_section_title),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(start = 32.dp, top = 8.dp, end = 32.dp, bottom = 2.dp),
         )
         SectionCard {
             PortionDraftListView(

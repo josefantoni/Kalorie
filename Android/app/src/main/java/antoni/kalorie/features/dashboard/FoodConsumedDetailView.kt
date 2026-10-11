@@ -185,7 +185,7 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                     }
 
                     Row(
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 32.dp),
+                        modifier = Modifier.fillMaxWidth().padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
