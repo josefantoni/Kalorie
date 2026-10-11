@@ -910,7 +910,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             id: id,
             kind: kind,
             czName: czName,
-            engName: "Cottage cheese",
+            engName: czName,
             weight: 100,
             date: .now,
             energyKJ: 500,
