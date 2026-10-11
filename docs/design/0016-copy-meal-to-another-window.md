@@ -171,8 +171,8 @@ is copied, or none is. The use case is tested at the use-case layer, like every 
 
 On both platforms the calendar opens as a second layer on top of the anchored box (see *Risks*).
 
-The meal type picker is a menu on iOS. On Android it is a list of radio rows inside the box, so no
-menu opens from inside a menu.
+The meal type picker is a menu on both platforms. On Android it is a `DropdownRowButton` that opens a
+`DropdownMenu` on top of the box, and the box ignores an outside tap while that menu is open.
 
 ## Alternatives considered
 
