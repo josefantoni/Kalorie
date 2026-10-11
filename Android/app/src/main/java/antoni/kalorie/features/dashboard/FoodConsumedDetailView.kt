@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -27,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,8 +44,7 @@ import antoni.kalorie.R
 import antoni.kalorie.components.AlcoholicDrinkHintView
 import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.components.FavouriteButton
-import antoni.kalorie.components.FoodPhotoThumbnailBottomSpace
-import antoni.kalorie.components.FoodPhotoThumbnailOverlay
+import antoni.kalorie.components.FoodPhotoTransitionHost
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.ReportIncorrectDataMenu
 import antoni.kalorie.components.ReportReasonDialog
@@ -93,137 +92,136 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
 
     // MARK: - Body
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                        }
-                        if (viewModel.canReportIncorrectData) {
-                            Box {
-                                ReportIncorrectDataMenu(
-                                    hasReportedCurrentItem = hasReportedCurrentItem,
-                                    onReportTapped = viewModel::onReportIncorrectDataTapped,
-                                )
+    FoodPhotoTransitionHost(photoState) { photoTitle ->
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = photoTitle,
+                    navigationIcon = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = onBack) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                             }
-                        }
-                    }
-                },
-                actions = {
-                    SaveToolbarButton(
-                        title = stringResource(R.string.foodConsumedDetail_button_save),
-                        showCheckmark = showCheckmark,
-                        isEnabled = hasChanges && !state.isLoading,
-                    ) {
-                        scope.launch { viewModel.onSave() }
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
-        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                SectionCard(modifier = Modifier.padding(top = 8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(start = 16.dp, end = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = food.displayName,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.weight(1f),
-                        )
-                        if (isFavourite || catalogueItem != null) {
-                            FavouriteButton(isFavourite = isFavourite, isEnabled = !isTogglingFavourite) {
-                                scope.launch { viewModel.onFavouriteToggled() }
-                            }
-                        }
-                    }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.addFood_field_weight)) {
-                        NumericRowTextField(
-                            value = weightText,
-                            onValueChange = { text ->
-                                val sanitized = sanitizedWeightText(text)
-                                weightText = sanitized
-                                sanitized.replace(',', '.').toDoubleOrNull()?.let { viewModel.weight.value = it }
-                            },
-                            suffix = { Text(stringResource(food.measure.unitSymbolRes)) },
-                            modifier = Modifier.width(140.dp),
-                        )
-                    }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.foodConsumedDetail_label_time)) {
-                        Text(food.date.zoned().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)))
-                    }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.foodConsumedDetail_label_mealType)) {
-                        Box {
-                            DropdownRowButton(
-                                text = mealTypes.firstOrNull { it.id == mealTypeId }?.name
-                                    ?: stringResource(R.string.foodConsumedDetail_mealType_unassigned),
-                                onClick = { isMealTypeMenuVisible = true },
-                                showsArrow = false,
-                            )
-                            DropdownMenu(expanded = isMealTypeMenuVisible, onDismissRequest = { isMealTypeMenuVisible = false }) {
-                                for (mealType in mealTypes) {
-                                    DropdownMenuItem(
-                                        text = { Text(mealType.name) },
-                                        onClick = {
-                                            isMealTypeMenuVisible = false
-                                            viewModel.onMealTypeSelected(mealType.id)
-                                        },
+                            if (viewModel.canReportIncorrectData) {
+                                Box {
+                                    ReportIncorrectDataMenu(
+                                        hasReportedCurrentItem = hasReportedCurrentItem,
+                                        onReportTapped = viewModel::onReportIncorrectDataTapped,
                                     )
                                 }
                             }
                         }
+                    },
+                    actions = {
+                        SaveToolbarButton(
+                            title = stringResource(R.string.foodConsumedDetail_button_save),
+                            showCheckmark = showCheckmark,
+                            isEnabled = hasChanges && !state.isLoading,
+                        ) {
+                            scope.launch { viewModel.onSave() }
+                        }
+                    },
+                )
+            },
+        ) { innerPadding ->
+            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(start = 16.dp, end = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = food.displayName,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f),
+                            )
+                            if (isFavourite || catalogueItem != null) {
+                                FavouriteButton(isFavourite = isFavourite, isEnabled = !isTogglingFavourite) {
+                                    scope.launch { viewModel.onFavouriteToggled() }
+                                }
+                            }
+                        }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.addFood_field_weight)) {
+                            NumericRowTextField(
+                                value = weightText,
+                                onValueChange = { text ->
+                                    val sanitized = sanitizedWeightText(text)
+                                    weightText = sanitized
+                                    sanitized.replace(',', '.').toDoubleOrNull()?.let { viewModel.weight.value = it }
+                                },
+                                suffix = { Text(stringResource(food.measure.unitSymbolRes)) },
+                                modifier = Modifier.width(140.dp),
+                            )
+                        }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.foodConsumedDetail_label_time)) {
+                            Text(food.date.zoned().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)))
+                        }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.foodConsumedDetail_label_mealType)) {
+                            Box {
+                                DropdownRowButton(
+                                    text = mealTypes.firstOrNull { it.id == mealTypeId }?.name
+                                        ?: stringResource(R.string.foodConsumedDetail_mealType_unassigned),
+                                    onClick = { isMealTypeMenuVisible = true },
+                                    showsArrow = false,
+                                )
+                                DropdownMenu(expanded = isMealTypeMenuVisible, onDismissRequest = { isMealTypeMenuVisible = false }) {
+                                    for (mealType in mealTypes) {
+                                        DropdownMenuItem(
+                                            text = { Text(mealType.name) },
+                                            onClick = {
+                                                isMealTypeMenuVisible = false
+                                                viewModel.onMealTypeSelected(mealType.id)
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 32.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.foodQuantity_section_nutrition),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (viewModel.isAlcoholicDrink) {
+                            AlcoholicDrinkHintView(formattedAlcoholByVolume = viewModel.formattedAlcoholByVolume)
+                        }
+                    }
+                    SectionCard {
+                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_calories)) { Text("${macros.calories} kcal") }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_protein)) { Text(macros.protein.formattedGrams()) }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_carbs)) { Text(macros.carbohydrate.formattedGrams()) }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.addFood_field_carbsSugar)) { Text(macros.carbohydrateSugar.formattedGrams()) }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_fat)) { Text(macros.fat.formattedGrams()) }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.addFood_field_fatSaturated)) { Text(macros.fatSaturated.formattedGrams()) }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_fiber)) { Text(macros.fiber.formattedGrams()) }
+                        SectionCardDivider()
+                        LabeledRow(label = stringResource(R.string.addFood_field_salt)) { Text(macros.salt.formattedGrams(fractionDigits = 2)) }
                     }
                 }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 32.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.foodQuantity_section_nutrition),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (viewModel.isAlcoholicDrink) {
-                        AlcoholicDrinkHintView(formattedAlcoholByVolume = viewModel.formattedAlcoholByVolume)
+                if (state.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
                     }
-                }
-                SectionCard {
-                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_calories)) { Text("${macros.calories} kcal") }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_protein)) { Text(macros.protein.formattedGrams()) }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_carbs)) { Text(macros.carbohydrate.formattedGrams()) }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.addFood_field_carbsSugar)) { Text(macros.carbohydrateSugar.formattedGrams()) }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_fat)) { Text(macros.fat.formattedGrams()) }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.addFood_field_fatSaturated)) { Text(macros.fatSaturated.formattedGrams()) }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.foodQuantity_macro_fiber)) { Text(macros.fiber.formattedGrams()) }
-                    SectionCardDivider()
-                    LabeledRow(label = stringResource(R.string.addFood_field_salt)) { Text(macros.salt.formattedGrams(fractionDigits = 2)) }
-                }
-                FoodPhotoThumbnailBottomSpace(photoState)
-            }
-            FoodPhotoThumbnailOverlay(photoState)
-
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
                 }
             }
         }
