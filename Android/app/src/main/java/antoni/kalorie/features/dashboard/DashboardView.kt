@@ -385,7 +385,7 @@ private fun SectionHeader(
 ) {
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 24.dp, top = 8.dp).height(22.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 24.dp, top = 14.dp).height(22.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
