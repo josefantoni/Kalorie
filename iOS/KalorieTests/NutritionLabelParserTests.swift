@@ -14,7 +14,11 @@ final class NutritionLabelParserTests: XCTestCase {
         let fixture: ParsingFixture = try FixtureLoader.load("nutrition-label-parsing-cases")
         for parsingCase in fixture.cases where parsingCase.knownFailure == nil {
             let lines = parsingCase.lines.map {
-                RecognizedTextLine(text: $0.text, boundingBox: CGRect(x: $0.xPosition, y: $0.yPosition, width: $0.width, height: $0.height))
+                RecognizedTextLine(
+                    text: $0.text,
+                    boundingBox: CGRect(x: $0.xPosition, y: $0.yPosition, width: $0.width, height: $0.height),
+                    angleDegrees: $0.angleDegrees ?? 0
+                )
             }
             let reading = NutritionLabelParser.parse(lines: lines)
             let expected = parsingCase.expected
@@ -120,9 +124,10 @@ final class NutritionLabelParserTests: XCTestCase {
         let yPosition: Double
         let width: Double
         let height: Double
+        let angleDegrees: Double?
 
         enum CodingKeys: String, CodingKey {
-            case text, width, height
+            case text, width, height, angleDegrees
             case xPosition = "x"
             case yPosition = "y"
         }

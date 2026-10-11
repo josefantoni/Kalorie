@@ -10,6 +10,17 @@ import UIKit
 import VisionKit
 
 extension LiveTextItemConversion {
+    static func recognizedTextLines(transcript: String, bounds: RecognizedItem.Bounds, in viewSize: CGSize) -> [RecognizedTextLine] {
+        recognizedTextLines(
+            transcript: transcript,
+            topLeft: bounds.topLeft,
+            topRight: bounds.topRight,
+            bottomLeft: bounds.bottomLeft,
+            bottomRight: bounds.bottomRight,
+            in: viewSize
+        )
+    }
+
     static func recognizedTextLine(transcript: String, bounds: RecognizedItem.Bounds, in viewSize: CGSize) -> RecognizedTextLine {
         recognizedTextLine(
             transcript: transcript,
@@ -75,9 +86,9 @@ struct NutritionLabelScannerRepresentable: UIViewControllerRepresentable {
             guard now.timeIntervalSince(lastParseAt) >= Self.parseThrottleInterval else { return }
             lastParseAt = now
             let viewSize = dataScanner.view.bounds.size
-            let lines: [RecognizedTextLine] = allItems.compactMap { item in
-                guard case .text(let text) = item else { return nil }
-                return LiveTextItemConversion.recognizedTextLine(transcript: text.transcript, bounds: text.bounds, in: viewSize)
+            let lines: [RecognizedTextLine] = allItems.flatMap { item -> [RecognizedTextLine] in
+                guard case .text(let text) = item else { return [] }
+                return LiveTextItemConversion.recognizedTextLines(transcript: text.transcript, bounds: text.bounds, in: viewSize)
             }
             let reading = NutritionLabelParser.parse(lines: lines)
             guard reading.recognizedFields.contains(where: { $0 != .measure }) else {

@@ -13,4 +13,13 @@ struct RecognizedTextLine: Codable, Equatable {
 
     let text: String
     let boundingBox: CGRect
+    let angleDegrees: Double
+
+    // MARK: - Init
+
+    init(text: String, boundingBox: CGRect, angleDegrees: Double = 0) {
+        self.text = text
+        self.boundingBox = boundingBox
+        self.angleDegrees = angleDegrees
+    }
 }

@@ -15,6 +15,7 @@ object NutritionLabelParser {
     private const val ROW_OVERLAP_THRESHOLD = 0.4
     private const val INFERRED_COLUMN_TOLERANCE = 0.08
     private const val MIN_INFERRED_COLUMN_CELLS = 3
+    private const val MIN_SEQUENTIAL_ROWS = 4
     private const val ENERGY_TOLERANCE_RATIO = 0.05
     private const val DERIVED_ENERGY_TOLERANCE_RATIO = 0.15
 
@@ -26,6 +27,10 @@ object NutritionLabelParser {
     private const val MAX_VALUE_CELL_HEIGHT_RATIO = 2.0
     private const val MIN_ROW_SHIFT_IN_CELL_HEIGHTS = 0.75
     private const val MAX_ROW_SHIFT_IN_CELL_HEIGHTS = 1.5
+    private const val MAX_SPARSE_HEADER_COLUMN_CELLS = 2
+    private const val CONTINUATION_EDGE_TOLERANCE = 0.03
+    private const val CONTINUATION_GAP_IN_LINE_HEIGHTS = 0.25
+    private const val MAX_ENERGY_COMPANION_DISTANCE_IN_CELL_HEIGHTS = 1.5
 
     private val weightKeywords = listOf("hmotnost", "netto", "obsah", "net weight", "hmotnosc")
 
@@ -50,7 +55,7 @@ object NutritionLabelParser {
         LabelField.FAT to listOf("tuky", "tłuszcz", "tluszcz", "fett", "fat"),
         LabelField.SATURATES to listOf(
             "z toho nasycene", "z toho nasycené", "nasycené mastné", "nasycene mastne",
-            "w tym kwasy nasycone", "davon gesättigte", "davon gesattigte", "of which saturates", "saturated fat", "saturates",
+            "w tym kwasy nasycone", "kwasy tłuszczowe nasycone", "davon gesättigte", "davon gesattigte", "of which saturates", "saturated fat", "saturates",
         ),
         LabelField.CARBOHYDRATE to listOf("sacharidy", "węglowodany", "weglowodany", "kohlenhydrate", "carbohydrate"),
         LabelField.SUGARS to listOf("z toho cukry", "cukry", "davon zucker", "of which sugars", "sugars"),
@@ -64,28 +69,37 @@ object NutritionLabelParser {
 
     private val weightRegex = Regex("([0-9]+[.,]?[0-9]*)\\s*(kg|g|ml|l)\\b")
     private val energyRegex = Regex("([0-9]+[.,]?[0-9]*)\\s*(kj|kcal)")
-    private val thousandsRegex = Regex("[0-9] [0-9]")
+    private val misreadUnitRegex = Regex("(^|\\s)9\\s+(?=[0-9])")
+    private val thousandsRegex = Regex("[0-9] [0-9]{3}(?![0-9])")
 
     // MARK: - Functions
 
-    fun parse(lines: List<RecognizedTextLine>): NutritionLabelReading {
+    fun parse(recognizedLines: List<RecognizedTextLine>): NutritionLabelReading {
+        val lines = uprightLines(recognizedLines)
         val packageMeasure = packageWeight(lines)?.second
         var reading = NutritionLabelReading()
 
         val header = perHundredHeader(lines)
-        val columnX = header?.first ?: inferredValueColumnX(lines)
+        val columnX = valueColumnX(header?.first, lines)
         if (columnX != null) {
             val cells = valueCellsBelowHeader(lines)
-            val labels = lines
-                .mapNotNull { line -> matchedField(line.text)?.let { line to it } }
-                .sortedByDescending { it.first.boundingBox.midY }
-            for ((field, valueLine) in assignments(labels, cells, columnX, rowShift(labels, cells, columnX))) {
-                reading = applying(field, valueLine.text, reading)
+            val labels = mergingWrappedLabels(
+                lines
+                    .mapNotNull { line -> matchedField(line.text)?.let { line to it } }
+                    .sortedByDescending { it.first.boundingBox.midY },
+            )
+            val extendedLabels = extendingOverContinuationLines(labels, lines)
+            val shift = rowShift(extendedLabels, cells, columnX)
+            val assigned = assignments(extendedLabels, cells, columnX, shift)
+            for ((field, valueLine) in assigned) {
+                val companion = if (field == LabelField.ENERGY) energyCompanion(valueLine, cells, assigned.map { it.second }) else null
+                reading = applying(field, listOfNotNull(valueLine.text, companion?.text).joinToString(" "), reading)
             }
         }
 
         reading = if (hasNoMacros(reading) && hasNutritionContext(lines)) {
-            applyingConsistencyChecks(parseLinear(lines))
+            val sequential = parseSequential(lines)
+            applyingConsistencyChecks(if (hasNoMacros(sequential)) parseLinear(lines) else sequential)
         } else {
             applyingConsistencyChecks(reading)
         }
@@ -96,6 +110,26 @@ object NutritionLabelParser {
     }
 
     // MARK: - Measure
+
+    // Vision and ML Kit read sideways and upside-down text as well as upright, but the rows then run along another
+    // axis or bottom to top and every pairing below goes wrong. The quarter turn most text is printed at is undone
+    // for every box; normalised boxes simply swap and mirror their axes, so no image size is needed.
+    private fun uprightLines(lines: List<RecognizedTextLine>): List<RecognizedTextLine> {
+        val lengthByQuarterTurn = IntArray(4)
+        for (line in lines) lengthByQuarterTurn[quarterTurns(line.angleDegrees)] += line.text.length
+        val dominant = lengthByQuarterTurn.indices.maxByOrNull { lengthByQuarterTurn[it] } ?: return lines
+        if (dominant == 0 || lengthByQuarterTurn[dominant] <= lengthByQuarterTurn[0]) return lines
+        return lines.map { line -> RecognizedTextLine(text = line.text, boundingBox = turnedUpright(line.boundingBox, dominant)) }
+    }
+
+    private fun quarterTurns(angleDegrees: Double): Int = ((Math.round(angleDegrees / 90).toInt() % 4) + 4) % 4
+
+    // The text reads counter-clockwise by the given quarter turns, so the page is turned clockwise by as many.
+    private fun turnedUpright(box: NormalizedRect, quarterTurns: Int): NormalizedRect = when (quarterTurns) {
+        1 -> NormalizedRect(box.minY, 1 - box.maxX, box.height, box.width)
+        2 -> NormalizedRect(1 - box.maxX, 1 - box.maxY, box.width, box.height)
+        else -> NormalizedRect(1 - box.maxY, box.minX, box.height, box.width)
+    }
 
     private fun linearMeasure(lines: List<RecognizedTextLine>): FoodMeasure? {
         val compact = lines.joinToString(" ") { it.text }.lowercase().replace(" ", "")
@@ -122,6 +156,60 @@ object NutritionLabelParser {
 
     // Fallback for EU 1169/2011's linear declaration format on small packages, which has no column
     // geometry: each field's keyword marks where its value starts, the next field's keyword where it ends.
+    // A scanner that hands over a whole paragraph gives every line the same width, so no value lies "to the right of"
+    // its label, yet the rows still come in print order: labels and values each run top to bottom. From the first
+    // label down, the longest stretch that ends on a value and holds exactly as many labels as values is paired in
+    // that order; any other count would shift every pair after the odd one out, and a fragment without a keyword
+    // ("z toho / w tym") or a stray word between the rows must not end the table.
+    private fun parseSequential(lines: List<RecognizedTextLine>): NutritionLabelReading {
+        val ordered = lines.sortedByDescending { it.boundingBox.midY }
+        val start = ordered.indexOfFirst { matchedField(it.text) != null }
+        if (start < 0) return NutritionLabelReading()
+        for (end in ordered.indices.reversed()) {
+            if (end <= start || !isValueCell(ordered[end])) continue
+            val stretch = ordered.subList(start, end + 1)
+            val fields = stretch
+                .filter { !isValueCell(it) && matchedField(it.text) != null }
+                .flatMap { fieldsInOrder(it.text) }
+                .fold(mutableListOf<LabelField>()) { result, field ->
+                    if (result.lastOrNull() != field) result.add(field)
+                    result
+                }
+            val values = stretch.filter { isValueCell(it) }
+            if (fields.size != values.size || fields.size < MIN_SEQUENTIAL_ROWS) continue
+            var reading = NutritionLabelReading()
+            for ((field, value) in fields.zip(values)) {
+                reading = applying(field, value.text, reading)
+            }
+            return reading
+        }
+        return NutritionLabelReading()
+    }
+
+    // Several labels can share one line ("Sacharidy / z toho cukry / Bílkoviny"); a keyword inside a longer label of
+    // another field ("fat" in "saturated fat") is that label's own tail.
+    private fun fieldsInOrder(label: String): List<LabelField> {
+        val folded = foldedLabelText(label)
+        if (unsaturatedMarkers.any { folded.contains(foldedLabelText(it)) }) return listOf(LabelField.UNLISTED)
+        class KeywordMatch(val field: LabelField, val start: Int, val end: Int)
+        val matches = LabelField.entries.flatMap { field ->
+            foldedKeywords[field].orEmpty().flatMap { keyword ->
+                indicesOfKeyword(folded, keyword).map { KeywordMatch(field, it, it + keyword.length) }
+            }
+        }
+        return matches
+            .filter { match ->
+                matches.none { other ->
+                    other.field != match.field &&
+                        other.end - other.start > match.end - match.start &&
+                        other.start <= match.start &&
+                        other.end >= match.end
+                }
+            }
+            .sortedBy { it.start }
+            .map { it.field }
+    }
+
     private fun parseLinear(lines: List<RecognizedTextLine>): NutritionLabelReading {
         val fullText = lines.joinToString(" ") { it.text }.lowercase()
 
@@ -208,11 +296,12 @@ object NutritionLabelParser {
 
     private fun isValueCell(line: RecognizedTextLine): Boolean = line.text.any { it.isDigit() } && isPlausibleValueText(line.text)
 
-    private fun overlapsVertically(first: RecognizedTextLine, second: RecognizedTextLine): Boolean {
-        val overlap = min(first.boundingBox.maxY, second.boundingBox.maxY) - max(first.boundingBox.minY, second.boundingBox.minY)
-        val minHeight = min(first.boundingBox.height, second.boundingBox.height)
-        if (minHeight <= 0) return false
-        return overlap / minHeight > ROW_OVERLAP_THRESHOLD
+    private fun verticalOverlapRatio(first: NormalizedRect, second: NormalizedRect): Double? {
+        val overlap = min(first.maxY, second.maxY) - max(first.minY, second.minY)
+        val minHeight = min(first.height, second.height)
+        if (minHeight <= 0) return null
+        val ratio = overlap / minHeight
+        return if (ratio > ROW_OVERLAP_THRESHOLD) ratio else null
     }
 
     // Without a usable "per 100 g" header, a single column of values still identifies the per-100 g
@@ -223,6 +312,16 @@ object NutritionLabelParser {
         val median = cells.map { it.boundingBox.midX }.sorted()[cells.size / 2]
         val inColumn = cells.count { abs(it.boundingBox.midX - median) <= INFERRED_COLUMN_TOLERANCE }
         return if (inColumn * 2 > cells.size) median else null
+    }
+
+    // A header printed over the label column rather than the values has next to nothing under it, while the values
+    // form a column of their own; two real columns (per 100 g, per portion) both stay well populated.
+    private fun valueColumnX(headerX: Double?, lines: List<RecognizedTextLine>): Double? {
+        if (headerX == null) return inferredValueColumnX(lines)
+        val inferredX = inferredValueColumnX(lines) ?: return headerX
+        val cells = valueCells(lines)
+        fun cellCount(x: Double): Int = cells.count { abs(it.boundingBox.midX - x) <= COLUMN_TOLERANCE }
+        return if (cellCount(headerX) <= MAX_SPARSE_HEADER_COLUMN_CELLS && cellCount(inferredX) >= MIN_INFERRED_COLUMN_CELLS) inferredX else headerX
     }
 
     private fun perHundredHeader(lines: List<RecognizedTextLine>): Pair<Double, FoodMeasure?>? {
@@ -251,25 +350,119 @@ object NutritionLabelParser {
         return folded.contains("100g") || folded.contains("100ml") || folded.endsWith("100")
     }
 
-    // Rows run top to bottom, so a label takes the highest value cell it overlaps that no label above has
-    // taken; a skewed photo makes the neighbouring row's value overlap just as much.
+    // Rows run top to bottom and each holds one value, so labels and cells are matched in order, skipping any that
+    // find no partner: as many pairs as possible, and among those the highest cells and the earliest labels, which is
+    // where a label whose box also overlaps the row below belongs. Picking the best cell for each label on its own lets
+    // a label take a value another label needs and shifts every row below it.
     private fun assignments(
         labels: List<Pair<RecognizedTextLine, LabelField>>,
         cells: List<RecognizedTextLine>,
         columnX: Double,
         shift: Double,
     ): List<Pair<LabelField, RecognizedTextLine>> {
-        val unusedCells = cells.toMutableList()
-        return labels.mapNotNull { (label, field) ->
-            val shifted = label.copy(boundingBox = label.boundingBox.copy(y = label.boundingBox.y + shift))
-            val valueLine = unusedCells
-                .filter { it.boundingBox.minX > label.boundingBox.minX && overlapsVertically(shifted, it) }
-                .maxByOrNull { it.boundingBox.midY }
-                ?: return@mapNotNull null
-            if (abs(valueLine.boundingBox.midX - columnX) > COLUMN_TOLERANCE) return@mapNotNull null
-            unusedCells.remove(valueLine)
-            field to valueLine
+        val columnCells = cells
+            .filter { abs(it.boundingBox.midX - columnX) <= COLUMN_TOLERANCE }
+            .sortedByDescending { it.boundingBox.midY }
+        if (labels.isEmpty() || columnCells.isEmpty()) return emptyList()
+
+        val isPair = labels.map { (label, _) ->
+            val box = label.boundingBox.copy(y = label.boundingBox.y + shift)
+            columnCells.map { cell -> cell.boundingBox.minX > label.boundingBox.minX && verticalOverlapRatio(box, cell.boundingBox) != null }
         }
+        val pairWeight = (labels.size + 1) * (labels.size + 1) * (columnCells.size + 1)
+        val best = Array(labels.size + 1) { IntArray(columnCells.size + 1) }
+        for (labelIndex in 1..labels.size) {
+            for (cellIndex in 1..columnCells.size) {
+                best[labelIndex][cellIndex] = max(best[labelIndex - 1][cellIndex], best[labelIndex][cellIndex - 1])
+                if (isPair[labelIndex - 1][cellIndex - 1]) {
+                    val paired = best[labelIndex - 1][cellIndex - 1] + pairWeight - cellIndex * (labels.size + 1) - labelIndex
+                    best[labelIndex][cellIndex] = max(best[labelIndex][cellIndex], paired)
+                }
+            }
+        }
+
+        val result = mutableListOf<Pair<LabelField, RecognizedTextLine>>()
+        var labelIndex = labels.size
+        var cellIndex = columnCells.size
+        while (labelIndex > 0 && cellIndex > 0) {
+            val paired = best[labelIndex - 1][cellIndex - 1] + pairWeight - cellIndex * (labels.size + 1) - labelIndex
+            when {
+                isPair[labelIndex - 1][cellIndex - 1] && best[labelIndex][cellIndex] == paired -> {
+                    result.add(labels[labelIndex - 1].second to columnCells[cellIndex - 1])
+                    labelIndex--
+                    cellIndex--
+                }
+                best[labelIndex][cellIndex] == best[labelIndex - 1][cellIndex] -> labelIndex--
+                else -> cellIndex--
+            }
+        }
+        return result.reversed()
+    }
+
+    // A multilingual label wraps onto two lines that both name the same field. They overlap vertically and read
+    // differently, unlike two rows of the table that repeat the same label, and would otherwise each take a value.
+    private fun mergingWrappedLabels(labels: List<Pair<RecognizedTextLine, LabelField>>): List<Pair<RecognizedTextLine, LabelField>> {
+        val merged = mutableListOf<Pair<RecognizedTextLine, LabelField>>()
+        for (label in labels) {
+            val previous = merged.lastOrNull()
+            if (
+                previous != null &&
+                previous.second == label.second &&
+                label.second != LabelField.UNLISTED &&
+                previous.first.text != label.first.text &&
+                previous.first.boundingBox.minY < label.first.boundingBox.maxY
+            ) {
+                val first = previous.first.boundingBox
+                val second = label.first.boundingBox
+                val minX = min(first.minX, second.minX)
+                val minY = min(first.minY, second.minY)
+                val union = NormalizedRect(minX, minY, max(first.maxX, second.maxX) - minX, max(first.maxY, second.maxY) - minY)
+                merged[merged.size - 1] = previous.first.copy(boundingBox = union) to label.second
+            } else {
+                merged.add(label)
+            }
+        }
+        return merged
+    }
+
+    // A label that wraps ("z toho nasycené" / "mastné kyseliny") names its field on the first line only, and that line
+    // alone may barely touch the value printed between the two. Lines under it that name no field, start at the same
+    // edge and touch it belong to the label.
+    private fun extendingOverContinuationLines(
+        labels: List<Pair<RecognizedTextLine, LabelField>>,
+        lines: List<RecognizedTextLine>,
+    ): List<Pair<RecognizedTextLine, LabelField>> {
+        val candidates = lines.filter { matchedField(it.text) == null && !isValueCell(it) }
+        return labels.map { (label, field) ->
+            val box = label.boundingBox
+            val continuation = candidates.filter { candidate ->
+                val other = candidate.boundingBox
+                abs(other.minX - box.minX) <= CONTINUATION_EDGE_TOLERANCE &&
+                    other.midY < box.midY &&
+                    other.maxY >= box.minY - box.height * CONTINUATION_GAP_IN_LINE_HEIGHTS
+            }
+            if (continuation.isEmpty()) return@map label to field
+            val minX = min(box.minX, continuation.minOf { it.boundingBox.minX })
+            val minY = min(box.minY, continuation.minOf { it.boundingBox.minY })
+            val maxX = max(box.maxX, continuation.maxOf { it.boundingBox.maxX })
+            val maxY = max(box.maxY, continuation.maxOf { it.boundingBox.maxY })
+            label.copy(boundingBox = NormalizedRect(minX, minY, maxX - minX, maxY - minY)) to field
+        }
+    }
+
+    // The kJ and kcal of one energy row are sometimes printed as two cells, one under the other.
+    private fun energyCompanion(cell: RecognizedTextLine, cells: List<RecognizedTextLine>, used: List<RecognizedTextLine>): RecognizedTextLine? {
+        val (kJ, kcal) = energyValues(cell.text)
+        if ((kJ == null) == (kcal == null)) return null
+        return cells
+            .filter { candidate ->
+                val (otherKJ, otherKcal) = energyValues(candidate.text)
+                (if (kJ == null) otherKJ else otherKcal) != null &&
+                    candidate !in used &&
+                    abs(candidate.boundingBox.midX - cell.boundingBox.midX) <= cell.boundingBox.width &&
+                    abs(candidate.boundingBox.midY - cell.boundingBox.midY) <= cell.boundingBox.height * MAX_ENERGY_COMPANION_DISTANCE_IN_CELL_HEIGHTS
+            }
+            .minByOrNull { abs(it.boundingBox.midX - cell.boundingBox.midX) }
     }
 
     // A tilted photo or a curved jar lifts the value column against the label column by up to a whole row, and each
@@ -328,7 +521,7 @@ object NutritionLabelParser {
         ?.first
 
     // "ü" and "ľ" are OCR's readings of "ů" and the Slovak "ľ" in "soľ"; "q" is a misread "g".
-    private fun foldedLabelText(text: String): String = foldDiacritics(text.lowercase()).replace('ü', 'u').replace('ľ', 'l').replace('q', 'g')
+    private fun foldedLabelText(text: String): String = foldDiacritics(text.lowercase()).replace('ü', 'u').replace('ľ', 'l').replace('ł', 'l').replace('q', 'g')
 
     private fun containsWithinOneEdit(text: String, keyword: String): Boolean = text.indices
         .filter { it == 0 || !text[it - 1].isLetter() }
@@ -371,7 +564,7 @@ object NutritionLabelParser {
         for (unit in listOf("kcal", "kj", "ml", "g", "%")) {
             remainder = remainder.replace(unit, "")
         }
-        val allowed = "0123456789.,<≤/|() q_"
+        val allowed = "0123456789.,<≤/|() q_•·"
         return remainder.all { it in allowed }
     }
 
@@ -420,19 +613,22 @@ object NutritionLabelParser {
         return result
     }
 
+    // A lone "9" before a value is the "g" printed in front of it ("g 0,90").
     private fun numbers(text: String): List<Double> {
         val results = mutableListOf<Double>()
         var current = StringBuilder()
         fun flush() {
             if (current.isNotEmpty()) {
-                val token = current.toString().trimEnd(',', '.').replace(",", ".")
+                val trimmed = current.toString().trimEnd(',', '.')
+                // A speck read as a leading dot (".3,7") is not a decimal separator when a real one follows.
+                val token = (if (trimmed.firstOrNull() in listOf(',', '.') && trimmed.drop(1).any { it == ',' || it == '.' }) trimmed.drop(1) else trimmed).replace(",", ".")
                 // "0,10" read as "010": a whole number never starts with a zero.
                 val restored = if (token.length > 1 && token.startsWith("0") && token.all { it.isDigit() }) "0.${token.drop(1)}" else token
                 restored.toDoubleOrNull()?.let { results.add(it) }
             }
             current = StringBuilder()
         }
-        for (char in joiningThousandsSeparators(text)) {
+        for (char in joiningThousandsSeparators(misreadUnitRegex.replace(text, "\$1g "))) {
             if (char.isDigit() || char == ',' || char == '.') current.append(char) else flush()
         }
         flush()

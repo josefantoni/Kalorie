@@ -26,6 +26,7 @@ class NutritionLabelParserTest {
                 RecognizedTextLine(
                     text = line.getValue("text").jsonPrimitive.content,
                     boundingBox = NormalizedRect(line.double("x"), line.double("y"), line.double("width"), line.double("height")),
+                    angleDegrees = line["angleDegrees"]?.jsonPrimitive?.double ?: 0.0,
                 )
             }
             val reading = NutritionLabelParser.parse(lines)
