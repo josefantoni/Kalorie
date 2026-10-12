@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
@@ -23,9 +24,11 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -68,6 +71,7 @@ fun FloatingLabelTextField(
 ) {
     // MARK: - Properties
 
+    val focusManager = LocalFocusManager.current
     val hintColor = AppColors.hint
     val errorColor = AppColors.error
     val isError = message is FloatingLabelTextFieldMessage.Error
@@ -112,7 +116,8 @@ fun FloatingLabelTextField(
             enabled = enabled,
             textStyle = textStyle,
             cursorBrush = SolidColor(if (isError) colors.errorCursorColor else colors.cursorColor),
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
             singleLine = true,
             interactionSource = interactionSource,
             decorationBox = { innerTextField ->
