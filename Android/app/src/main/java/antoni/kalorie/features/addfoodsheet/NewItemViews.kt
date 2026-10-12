@@ -41,6 +41,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import antoni.kalorie.R
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
@@ -179,7 +180,7 @@ fun NewItemReviewContent(viewModel: AddFoodSheetViewModel, onBack: () -> Unit) {
                     item {
                         Text(
                             text = stringResource(R.string.addFood_submission_rejectedReason, reason),
-                            color = MaterialTheme.colorScheme.error,
+                            color = AppColors.error,
                             modifier = Modifier.padding(16.dp),
                         )
                     }

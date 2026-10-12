@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.utils.Constants
@@ -118,7 +119,7 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                             SectionCardDivider()
                             Text(
                                 text = stringResource(R.string.account_button_signOut),
-                                color = MaterialTheme.colorScheme.error,
+                                color = AppColors.error,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { scope.launch { viewModel.onSignOutTapped() } }
@@ -127,7 +128,7 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                             SectionCardDivider()
                             Text(
                                 text = stringResource(R.string.account_button_deleteAccount),
-                                color = MaterialTheme.colorScheme.error,
+                                color = AppColors.error,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { viewModel.showDeleteConfirmation.value = true }
@@ -174,7 +175,7 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                         viewModel.showDeleteConfirmation.value = false
                         scope.launch { viewModel.onDeleteAccountConfirmed() }
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    colors = ButtonDefaults.textButtonColors(contentColor = AppColors.error),
                 ) {
                     Text(stringResource(R.string.account_button_deleteAccount))
                 }
