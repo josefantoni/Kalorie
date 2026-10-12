@@ -90,6 +90,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import antoni.kalorie.BuildConfig
 import antoni.kalorie.R
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.CopyIcon
 import antoni.kalorie.components.FoodConsumedView
 import antoni.kalorie.components.SectionCard
@@ -364,7 +365,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         scope.launch { viewModel.onDeleteConfirmed() }
                     },
                 ) {
-                    Text(stringResource(R.string.common_button_yes), color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.common_button_yes), color = AppColors.error)
                 }
             },
         )
@@ -440,11 +441,11 @@ fun SwipeToDeleteRow(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.error)
+                    .background(AppColors.error)
                     .padding(horizontal = 24.dp),
                 contentAlignment = Alignment.CenterEnd,
             ) {
-                Icon(Icons.Outlined.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.onError)
+                Icon(Icons.Outlined.Delete, contentDescription = null, tint = Color.White)
             }
         },
     ) {

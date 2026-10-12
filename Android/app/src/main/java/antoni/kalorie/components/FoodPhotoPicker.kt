@@ -132,7 +132,7 @@ fun FoodPhotoPicker(
         onDenied = { isCameraDeniedVisible = true },
     )
     val title = stringResource(R.string.foodPhoto_title)
-    val outlineColor = if (isMissing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
+    val outlineColor = if (isMissing) AppColors.error else MaterialTheme.colorScheme.secondary
     val actionDescription = stringResource(if (photo == FoodItemFormPhoto.None) R.string.foodPhoto_action_take else R.string.foodPhoto_accessibility_retake)
 
     // MARK: - Body
@@ -187,7 +187,7 @@ fun FoodPhotoPicker(
         Text(
             text = stringResource(if (isMissing) R.string.foodPhoto_error_required else R.string.foodPhoto_title),
             style = MaterialTheme.typography.bodySmall,
-            color = if (isMissing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (isMissing) AppColors.error else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 

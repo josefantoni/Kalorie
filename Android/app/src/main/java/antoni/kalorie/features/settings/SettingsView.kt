@@ -68,6 +68,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import antoni.kalorie.R
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.BadgeButton
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.PrimaryButton
@@ -357,7 +358,7 @@ private fun SupportRow(onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier.size(36.dp).background(MaterialTheme.colorScheme.error, CircleShape),
+            modifier = Modifier.size(36.dp).background(AppColors.error, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.Filled.Favorite, contentDescription = null, tint = Color.White)

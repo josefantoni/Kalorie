@@ -52,7 +52,7 @@ fun FoodItemRow(
             Icon(
                 imageVector = Icons.Filled.Favorite,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
+                tint = AppColors.error,
             )
         }
     }

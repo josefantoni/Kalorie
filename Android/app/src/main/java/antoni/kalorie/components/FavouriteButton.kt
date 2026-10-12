@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,7 +36,7 @@ fun FavouriteButton(isFavourite: Boolean, isEnabled: Boolean = true, onClick: ()
     var wasTapped by remember { mutableStateOf(false) }
     var previousIsFavourite by remember { mutableStateOf(isFavourite) }
     val showsLabel = isFavourite && isLabelVisible
-    val tint = MaterialTheme.colorScheme.error
+    val tint = AppColors.error
 
     LaunchedEffect(isFavourite) {
         if (isFavourite == previousIsFavourite) return@LaunchedEffect
@@ -66,12 +65,12 @@ fun FavouriteButton(isFavourite: Boolean, isEnabled: Boolean = true, onClick: ()
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (showsLabel) {
-            Text(text = stringResource(R.string.common_button_favourite), color = MaterialTheme.colorScheme.onError)
+            Text(text = stringResource(R.string.common_button_favourite), color = Color.White)
         }
         Icon(
             imageVector = if (isFavourite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
             contentDescription = stringResource(R.string.common_button_favourite),
-            tint = if (showsLabel) MaterialTheme.colorScheme.onError else tint,
+            tint = if (showsLabel) Color.White else tint,
         )
     }
 }

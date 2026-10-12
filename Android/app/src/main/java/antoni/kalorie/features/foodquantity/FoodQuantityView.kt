@@ -49,6 +49,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.AlcoholicDrinkHintView
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.components.FoodPhotoTransitionHost
@@ -314,7 +315,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                         isDeleteConfirmationVisible = false
                         mealActions.onDelete()
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    colors = ButtonDefaults.textButtonColors(contentColor = AppColors.error),
                 ) {
                     Text(stringResource(R.string.myCreatedMeal_button_delete))
                 }

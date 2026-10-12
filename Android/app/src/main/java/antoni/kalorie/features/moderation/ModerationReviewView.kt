@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.PrimaryButton
@@ -189,7 +190,7 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                         viewModel.isRejectSheetVisible.value = false
                         scope.launch { viewModel.onRejectConfirmed() }
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    colors = ButtonDefaults.textButtonColors(contentColor = AppColors.error),
                 ) {
                     Text(stringResource(R.string.moderation_button_reject))
                 }
