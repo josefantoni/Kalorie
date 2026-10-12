@@ -11,25 +11,31 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
     <th align="center">Android (Jetpack Compose)<br>Dark mode</th>
   </tr>
   <tr>
-    <td align="center"><img src="https://github.com/user-attachments/assets/ba008549-042e-4f36-ba50-5854e803d6bb" width="250" alt="iOS dashboard"></td>
-    <td align="center"><img src="https://github.com/user-attachments/assets/ebbe2a3e-7669-4d99-b0c1-285602bd4d9b" width="250" alt="Android dashboard"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/2e66b321-c5ca-4817-9c77-570b5a567c78" width="250" alt="iOS dashboard"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/340f7f57-6d59-4432-9e4e-ac9bbe0ce4a6" width="250" alt="Android dashboard"></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://github.com/user-attachments/assets/d703198a-2672-41a3-a967-5086c04d7d75" width="250" alt="iOS add food"></td>
-    <td align="center"><img src="https://github.com/user-attachments/assets/a872a09f-1579-49aa-acec-e01c1d1fbaf9" width="250" alt="Android add food"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/1b7f3225-b55d-48b2-99a2-37f84901063a" width="250" alt="iOS add food"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/06b14870-5d29-4846-a7b1-de195a2a95f0" width="250" alt="Android add food"></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="https://github.com/user-attachments/assets/7ede7601-52d3-428d-b4aa-f11c26c846df" width="250" alt="iOS add new food to catalogue"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/b09333a6-67a9-4a84-8ee0-42aced06c360" width="250" alt="Android add new food to catalogue"></td>
   </tr>
 </table>
 
 ## What it does
 
 - Log food with calories, protein, carbs, fat, saturates, sugar, salt and fibre; per-entry weight or portion
-- Find food by typed search (whole-word, diacritics-insensitive) or barcode, with OpenFoodFacts as a fallback when the shared catalogue has no match
+- Find food by typed search (whole-word, diacritics-insensitive, most-logged foods first) or barcode, with OpenFoodFacts as a fallback when the shared catalogue has no match
 - Add a missing food by hand or by photographing its nutrition label (on-device OCR); submissions go through maintainer moderation before entering the shared catalogue
+- Product photos: when you log a food, or open a logged one, its photo is shown if there is one (the catalogue's own, or OpenFoodFacts' front photo); when you submit a missing food you can attach a photo from the camera or the library
 - Named portions on a food, plus personal portions per user
 - Favourites and your own composed meals, searchable and loggable like any other food
-- Customisable meal windows with drag-to-reorder; entries can be moved between meals
+- Customisable meal windows with drag-to-reorder; entries can be moved between meals, and a logged meal can be copied to another window or day
 - Millilitre foods next to gram foods
-- Report incorrect catalogue data
+- Report incorrect catalogue data, send feedback by mail from Settings
+- A hint on alcoholic drinks that their nutrition values are less reliable
 - Export logged food to PDF or Excel
 - Anonymous device identity out of the box, Google sign-in to keep data across devices (Apple sign-in is pending)
 - Czech and English
