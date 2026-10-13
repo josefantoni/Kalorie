@@ -530,6 +530,7 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, ["1"], "a failed write must not leave the row in a section the server does not know about")
         XCTAssertNotNil(sut.alertItem)
         XCTAssertTrue(range.calls.isEmpty, "the revert is local, not a reload")
+        XCTAssertEqual(sut.moveFeedbackTrigger, 0, "a failed move must not feel like a success")
     }
 
     @MainActor
