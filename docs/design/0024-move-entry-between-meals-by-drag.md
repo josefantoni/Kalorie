@@ -1,6 +1,6 @@
 # Design: Moving a logged entry to another meal by dragging it
 
-- **Status:** Approved
+- **Status:** Implemented in `8af132f3` (Android), `36d4903b` (iOS)
 - **Scope:** Cross-platform, iOS, Android
 - **Date:** 2026-10-13
 
@@ -194,8 +194,7 @@ recorded-calls property on both platforms if it does not have one.
 
 On a device, both platforms: tap still opens the detail; swipe still deletes; long-press lifts
 with a haptic; drop on another meal moves with a haptic; drop on own section / *Unassigned* /
-empty space does nothing; a failed write → the row snaps back and the alert shows (Firestore queues writes while offline instead
-of failing them, so this is covered by the unit test, not by switching the network off); the emptied
+empty space does nothing; a failed write → the row snaps back and the alert shows (covered by the unit test); the emptied
 section disappears with a sane animation. Autoscroll: log enough entries that the top and bottom
 sections cannot both be on screen, drag a row from the bottom section to the top one in a single
 drag — the list must scroll while the finger rests near the edge and stop when it leaves the edge
