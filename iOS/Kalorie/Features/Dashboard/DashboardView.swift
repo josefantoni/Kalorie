@@ -219,7 +219,7 @@ struct DashboardView: View {
             }
         }
         .onDrop(
-            of: [.kalorieFoodConsumed],
+            of: group.mealType == nil ? [] : [.kalorieFoodConsumed],
             isTargeted: Binding(
                 get: { isDropTarget },
                 set: { isTargeted in
