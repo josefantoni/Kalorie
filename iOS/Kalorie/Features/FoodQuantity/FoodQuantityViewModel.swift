@@ -226,7 +226,11 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         hasUserSelectedUnit = true
         let currentGrams = quantity * unit.gramsPerUnit
         unit = newUnit
-        quantity = currentGrams / newUnit.gramsPerUnit
+        if case .portion = newUnit {
+            quantity = 1
+        } else {
+            quantity = currentGrams / newUnit.gramsPerUnit
+        }
     }
 
     func onMealTypeSelected(_ mealTypeId: String) {

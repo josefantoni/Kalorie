@@ -302,8 +302,9 @@ follows the device locale like every other gram value in the app. No visual dist
 canonical and a personal portion in the list — the name the creator chose already carries that
 meaning, and a flat list is simplest; see *Alternatives considered*.
 
-`onUnitChanged(from:to:)` is untouched — it already converts by `gramsPerUnit` alone, which a
-`.portion` case now supplies just like the two fixed cases always have.
+`onUnitSelected` converts by `gramsPerUnit` alone for the two fixed cases, which a `.portion` case
+supplies just the same. **Revised 2026-10-13:** selecting a `.portion` no longer converts — it sets
+the quantity to `1`.
 
 ### Where a canonical portion is authored
 

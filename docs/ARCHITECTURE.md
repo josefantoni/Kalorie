@@ -1227,8 +1227,11 @@ one exception and stay `formattedGrams` unconditionally, since a nutrient amount
 regardless of what the food itself is measured in. See
 [design 0011](design/0011-food-measure-grams-or-millilitres.md).
 
-Unit switching goes through `onUnitChanged(from:to:)`, which converts the current gram amount
-into the new unit by dividing, with no rounding — a fractional quantity survives a unit switch.
+Unit switching goes through `onUnitSelected`. Switching to `g`/`ml` or `100 g`/`100 ml` converts the
+current gram amount into the new unit by dividing, with no rounding — a fractional quantity survives
+the switch. Switching to a portion (canonical, personal or of a created meal) instead resets the
+quantity to `1`, because a portion is a unit of its own — `1 × 1 balení` — not a gram amount to be
+re-expressed.
 
 A second `List` row, below the quantity row, holds a meal-type picker — `selectedMealTypeId`,
 preselected from `mealTypes.mealType(at: selectedDate)?.id` at init, the same window match
