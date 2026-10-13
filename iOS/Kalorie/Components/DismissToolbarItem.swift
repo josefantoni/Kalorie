@@ -18,7 +18,7 @@ struct DismissToolbarItem: ToolbarContent {
 
     var body: some ToolbarContent {
         ToolbarItem(placement: placement) {
-            BaseButton(style: .plain, imageName: .close, imageSize: .basic) {
+            BaseButton(style: .plain, imageName: .close, imageSize: .basic, imageWeight: .regular) {
                 dismiss()
             }
         }
