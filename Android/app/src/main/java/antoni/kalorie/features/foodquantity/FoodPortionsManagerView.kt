@@ -40,6 +40,7 @@ import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedAmount
+import antoni.kalorie.core.models.displayName
 import antoni.kalorie.features.dashboard.SwipeToDeleteRow
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -105,7 +106,7 @@ fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Text(portion.name)
+                                    Text(portion.displayName)
                                     Text(
                                         text = portion.grams.formattedAmount(measure, minFractionDigits = 0),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
