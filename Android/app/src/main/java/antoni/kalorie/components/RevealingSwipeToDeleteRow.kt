@@ -35,6 +35,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
@@ -115,6 +116,7 @@ fun RevealingSwipeToDeleteRow(
                 modifier = Modifier
                     .width(with(LocalDensity.current) { revealedWidth.toDp() })
                     .fillMaxHeight()
+                    .clearAndSetSemantics { }
                     .background(AppColors.error)
                     .clickable(enabled = -offset.value >= actionWidthPx * 0.95f) {
                         close()
