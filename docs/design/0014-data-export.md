@@ -343,3 +343,10 @@ the export dialog). Only the trigger moved, so `ExportView`, its view model and 
 untouched.
 
 **Rename — 2026-09-28.** The meal types sheet became the *Settings* sheet (title *Nastavení*): `MealTypeSheet*` is now `Settings*`, the `mealTypeSheet_*` string keys are `settings_*` and the Dashboard button is `dashboard_button_settings`. The text above uses the new names.
+
+**Update — 2026-10-13 (Android navigates with a back stack).** The Android half of the
+2026-09-28 update no longer holds. `SettingsViewModel` has no `isExportPushed` flag and the export
+is not a dialog: it is a pushed screen. The view model keeps `backStack`, a list of
+`SettingsDestination` keys starting at `Settings`; the Export row adds `SettingsDestination.Export`
+and back removes it, as with the moderation screens. iOS is unchanged and still sets
+`isExportPushed`. `ExportView`, its view model and the use cases are untouched.
