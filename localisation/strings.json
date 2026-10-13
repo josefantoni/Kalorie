@@ -387,6 +387,10 @@
     "cs": "Ne",
     "en": "No"
   },
+  "common_button_delete": {
+    "cs": "Smazat",
+    "en": "Delete"
+  },
   "common_button_yes": {
     "cs": "Ano",
     "en": "Yes"
@@ -486,6 +490,10 @@
   "dashboard_error_deleteFailed": {
     "cs": "Potravinu se nepodařilo smazat",
     "en": "Could not delete the food"
+  },
+  "dashboard_error_moveFailed": {
+    "cs": "Potravinu se nepodařilo přesunout",
+    "en": "Could not move the food"
   },
   "dashboard_section_unassignedFoods": {
     "cs": "Ostatní nezařazená jídla",
