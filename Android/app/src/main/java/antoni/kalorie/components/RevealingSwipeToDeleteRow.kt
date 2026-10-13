@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -68,12 +69,13 @@ fun RevealingSwipeToDeleteRow(
     val offset = remember { Animatable(0f) }
     var rowWidthPx by remember { mutableFloatStateOf(0f) }
     var lastDragVelocity by remember { mutableFloatStateOf(0f) }
+    var isDragStarted by remember { mutableStateOf(false) }
     val dragInteractionSource = remember { MutableInteractionSource() }
     val isDragged by dragInteractionSource.collectIsDraggedAsState()
     val deleteLabel = stringResource(R.string.common_button_delete)
 
     LaunchedEffect(openRowId) {
-        if (openRowId != id && offset.value != 0f) offset.animateTo(0f)
+        if (openRowId != id && !isDragStarted && offset.value != 0f) offset.animateTo(0f)
     }
 
     LaunchedEffect(isDragged) {
@@ -141,9 +143,13 @@ fun RevealingSwipeToDeleteRow(
                     },
                     orientation = Orientation.Horizontal,
                     onDragStarted = {
+                        isDragStarted = true
                         if (currentOpenRowId != id) currentOnOpenRowChange(null)
                     },
-                    onDragStopped = { velocity -> lastDragVelocity = velocity },
+                    onDragStopped = { velocity ->
+                        isDragStarted = false
+                        lastDragVelocity = velocity
+                    },
                     interactionSource = dragInteractionSource,
                 ),
             color = containerColor,
