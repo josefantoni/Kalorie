@@ -16,6 +16,7 @@ enum L10n {
         static var errorOffline: String { String(localized: "common_error_offline") }
         static var errorOfflineMessage: String { String(localized: "common_error_offline_message") }
         static var buttonFavourite: String { String(localized: "common_button_favourite") }
+        static var buttonDelete: String { String(localized: "common_button_delete") }
         static var buttonYes: String { String(localized: "common_button_yes") }
         static var buttonNo: String { String(localized: "common_button_no") }
         static var buttonCancel: String { String(localized: "common_button_cancel") }
@@ -78,6 +79,7 @@ enum L10n {
         static var confirmDeleteFood: String { String(localized: "dashboard_confirm_deleteFood") }
         static var errorDeleteFailed: String { String(localized: "dashboard_error_deleteFailed") }
         static var errorCopyFailed: String { String(localized: "dashboard_error_copyFailed") }
+        static var errorMoveFailed: String { String(localized: "dashboard_error_moveFailed") }
     }
 
     enum AddFood {

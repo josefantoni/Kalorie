@@ -2108,6 +2108,23 @@
         }
       }
     },
+    "dashboard_error_moveFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravinu se nepodařilo přesunout"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not move the food"
+          }
+        }
+      }
+    },
     "dashboard_section_unassignedFoods" : {
       "extractionState" : "manual",
       "localizations" : {

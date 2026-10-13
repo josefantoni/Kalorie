@@ -15,6 +15,8 @@ struct DashboardView: View {
     @StateObject var viewModel: DashboardViewModel
     @State private var pulseAnimation = false
     @State private var accountButtonFrame: CGRect = .zero
+    @State private var targetedMealTypeId: String?
+    @State private var openSwipeRowId: String?
     @Environment(\.scenePhase) private var scenePhase
     let router: DashboardRouter
 
@@ -29,82 +31,25 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                if !viewModel.foodsConsumed.isEmpty {
-                    MacroSummaryView(macros: viewModel.dailyMacros)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                }
+            ScrollView {
+                LazyVStack(spacing: 30) {
+                    if !viewModel.foodsConsumed.isEmpty {
+                        MacroSummaryView(macros: viewModel.dailyMacros)
+                    }
 
-                ForEach(Array(viewModel.groupedFoods.enumerated()), id: \.offset) { index, group in
-                    Section {
-                        ForEach(group.foods, id: \.id) { food in
-                            NavigationLink(value: food) {
-                                FoodConsumedView(food)
-                            }
-                            .swipeActions(edge: .trailing) {
-                                Button(role: .destructive) {
-                                    viewModel.onDeleteRequested(food)
-                                } label: {
-                                    Image(systemName: BaseImageName.trash.rawValue)
-                                }
-                            }
-                        }
-                    } header: {
-                        Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .overlay(alignment: .trailing) {
-                                HStack(spacing: 4) {
-                                    Button {
-                                        viewModel.onCopyRequested(from: group.mealType, at: index)
-                                    } label: {
-                                        Image(systemName: BaseImageName.docOnDoc.rawValue)
-                                            .foregroundStyle(Color(.label))
-                                    }
-                                    .buttonStyle(.glass)
-                                    .buttonBorderShape(.circle)
-                                    .accessibilityLabel(L10n.Dashboard.buttonCopy)
-                                    .popover(isPresented: Binding(
-                                        get: { viewModel.copyPopoverIndex == index },
-                                        set: { if !$0 { viewModel.copyPopoverIndex = nil } }
-                                    )) {
-                                        MealSectionCopyView(
-                                            viewModel: viewModel,
-                                            name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
-                                            mealType: group.mealType,
-                                            foods: group.foods
-                                        )
-                                        .dynamicTypeLimit()
-                                        .presentationCompactAdaptation(.popover)
-                                    }
-                                    .padding(.trailing, 8)
-                                    Button {
-                                        viewModel.macroPopoverIndex = index
-                                    } label: {
-                                        Image(systemName: BaseImageName.infoCircle.rawValue)
-                                            .foregroundStyle(Color(.label))
-                                    }
-                                    .buttonStyle(.glass)
-                                    .buttonBorderShape(.circle)
-                                    .popover(isPresented: Binding(
-                                        get: { viewModel.macroPopoverIndex == index },
-                                        set: { if !$0 { viewModel.macroPopoverIndex = nil } }
-                                    )) {
-                                        MealSectionMacroView(
-                                            name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
-                                            foods: group.foods
-                                        )
-                                        .dynamicTypeLimit()
-                                        .presentationCompactAdaptation(.popover)
-                                    }
-                                }
-                                .controlSize(.small)
-                                .offset(y: -7)
-                            }
+                    ForEach(Array(viewModel.groupedFoods.enumerated()), id: \.element.mealType?.id) { index, group in
+                        mealSection(index: index, group: group)
                     }
                 }
+                .padding(.horizontal)
+                .padding(.bottom, 24)
             }
+            .background(Color(.systemGroupedBackground))
+            .simultaneousGesture(TapGesture().onEnded { openSwipeRowId = nil })
+            .onScrollPhaseChange { _, newPhase in
+                if newPhase == .interacting { openSwipeRowId = nil }
+            }
+            .sensoryFeedback(.success, trigger: viewModel.moveFeedbackTrigger)
             .refreshable { await viewModel.onRefresh() }
             .navigationDestination(for: FoodConsumedDomain.self) { food in
                 router.makeFoodConsumedDetailView(food: food, mealTypes: viewModel.mealTypes) {
@@ -222,6 +167,122 @@ struct DashboardView: View {
     }
 
     // MARK: - Functions
+
+    @ViewBuilder
+    private func mealSection(index: Int, group: (mealType: MealTypeDomain?, foods: [FoodConsumedDomain])) -> some View {
+        let isDropTarget = group.mealType != nil && targetedMealTypeId == group.mealType?.id
+        VStack(alignment: .leading, spacing: 10) {
+            Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
+                .font(.headline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(alignment: .trailing) {
+                    sectionHeaderButtons(index: index, group: group)
+                }
+                .padding(.horizontal, 16)
+
+            VStack(spacing: 0) {
+                ForEach(Array(group.foods.enumerated()), id: \.element.id) { foodIndex, food in
+                    RevealingSwipeToDeleteRow(id: food.id, openRowId: $openSwipeRowId) {
+                        viewModel.onDeleteRequested(food)
+                    } content: {
+                        NavigationLink(value: food) {
+                            HStack(spacing: 12) {
+                                FoodConsumedView(food)
+                                Image(systemName: BaseImageName.chevronRight.rawValue)
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 15)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .onDrag {
+                            DraggedFoodConsumed(id: food.id).itemProvider
+                        } preview: {
+                            FoodConsumedView(food)
+                        }
+                    }
+                    if foodIndex < group.foods.count - 1 {
+                        Divider().padding(.horizontal, 16)
+                    }
+                }
+            }
+            .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 24))
+            .clipShape(.rect(cornerRadius: 24))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(Color.accentColor, lineWidth: isDropTarget ? 3 : 0)
+            }
+        }
+        .onDrop(
+            of: [.kalorieFoodConsumed],
+            isTargeted: Binding(
+                get: { isDropTarget },
+                set: { isTargeted in
+                    if isTargeted {
+                        targetedMealTypeId = group.mealType?.id
+                    } else if targetedMealTypeId == group.mealType?.id {
+                        targetedMealTypeId = nil
+                    }
+                }
+            )
+        ) { providers in
+            guard let mealType = group.mealType else { return false }
+            viewModel.onFoodsDropped(providers, on: mealType)
+            return true
+        }
+    }
+
+    private func sectionHeaderButtons(index: Int, group: (mealType: MealTypeDomain?, foods: [FoodConsumedDomain])) -> some View {
+        HStack(spacing: 4) {
+            Button {
+                viewModel.onCopyRequested(from: group.mealType, at: index)
+            } label: {
+                Image(systemName: BaseImageName.docOnDoc.rawValue)
+                    .foregroundStyle(Color(.label))
+            }
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+            .accessibilityLabel(L10n.Dashboard.buttonCopy)
+            .popover(isPresented: Binding(
+                get: { viewModel.copyPopoverIndex == index },
+                set: { if !$0 { viewModel.copyPopoverIndex = nil } }
+            )) {
+                MealSectionCopyView(
+                    viewModel: viewModel,
+                    name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
+                    mealType: group.mealType,
+                    foods: group.foods
+                )
+                .dynamicTypeLimit()
+                .presentationCompactAdaptation(.popover)
+            }
+            .padding(.trailing, 8)
+            Button {
+                viewModel.macroPopoverIndex = index
+            } label: {
+                Image(systemName: BaseImageName.infoCircle.rawValue)
+                    .foregroundStyle(Color(.label))
+            }
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+            .popover(isPresented: Binding(
+                get: { viewModel.macroPopoverIndex == index },
+                set: { if !$0 { viewModel.macroPopoverIndex = nil } }
+            )) {
+                MealSectionMacroView(
+                    name: group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods,
+                    foods: group.foods
+                )
+                .dynamicTypeLimit()
+                .presentationCompactAdaptation(.popover)
+            }
+        }
+        .controlSize(.small)
+        .offset(y: -7)
+    }
 
     private enum SelectedDayKind {
         case past, today, future
@@ -359,6 +420,7 @@ struct DashboardView: View {
         confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseFake(),
         deleteFoodConsumed: DeleteFoodConsumedUseCaseFake(),
         copyFoodsConsumed: CopyFoodsConsumedUseCaseFake(),
+        assignFoodMealType: AssignFoodMealTypeUseCaseFake(),
         authProvider: AuthProviderFake(),
         signInSpotlightStore: SignInSpotlightStoreFake()
     )

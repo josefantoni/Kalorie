@@ -86,6 +86,7 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var isCopying = false
     @Published private(set) var showCopyCheckmark = false
     @Published private(set) var activeDaysInMonth: Set<Int> = []
+    @Published private(set) var moveFeedbackTrigger = 0
 
     private var activeDaysMonth = Date.now
     private var isViewingToday = true
@@ -102,6 +103,7 @@ final class DashboardViewModel: ObservableObject {
     private let confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol
     private let deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
     private let copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol
+    private let assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol
     private let authProvider: any AuthProviderProtocol
     private let signInSpotlightStore: any SignInSpotlightStoreProtocol
     private let now: () -> Date
@@ -116,6 +118,7 @@ final class DashboardViewModel: ObservableObject {
         confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol,
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol,
         copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol,
+        assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol,
         authProvider: any AuthProviderProtocol,
         signInSpotlightStore: any SignInSpotlightStoreProtocol,
         now: @escaping () -> Date = { Date.now }
@@ -130,6 +133,7 @@ final class DashboardViewModel: ObservableObject {
         self.confirmMealTypesEmpty = confirmMealTypesEmpty
         self.deleteFoodConsumed = deleteFoodConsumed
         self.copyFoodsConsumed = copyFoodsConsumed
+        self.assignFoodMealType = assignFoodMealType
         observeDayChange()
     }
 
@@ -261,6 +265,32 @@ final class DashboardViewModel: ObservableObject {
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Dashboard.errorDeleteFailed)
+        }
+    }
+
+    @MainActor
+    func onFoodsDropped(_ providers: [NSItemProvider], on mealType: MealTypeDomain) {
+        Task { [weak self] in
+            guard
+                let id = await DraggedFoodConsumed.loadId(from: providers),
+                let self,
+                let food = foodsConsumed.first(where: { $0.id == id })
+            else { return }
+            await onFoodMoved(food, to: mealType)
+        }
+    }
+
+    @MainActor
+    func onFoodMoved(_ food: FoodConsumedDomain, to mealType: MealTypeDomain) async {
+        guard mealTypes.resolvedMealTypeId(for: food) != mealType.id else { return }
+        replaceInCache(food.copy(mealTypeId: mealType.id))
+        moveFeedbackTrigger += 1
+        do {
+            try await assignFoodMealType(food, mealTypeId: mealType.id)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
+            if cachedFood(food)?.mealTypeId == mealType.id { replaceInCache(food) }
+            alertItem = AlertItem(title: L10n.Dashboard.errorMoveFailed)
         }
     }
 
@@ -493,6 +523,21 @@ final class DashboardViewModel: ObservableObject {
             let dayKey = dayCacheKey(for: food.date)
             monthCache[dayKey, default: []].append(food)
         }
+    }
+
+    @MainActor
+    private func replaceInCache(_ food: FoodConsumedDomain) {
+        let key = dayCacheKey(for: food.date)
+        guard let index = monthCache[key]?.firstIndex(where: { $0.id == food.id }) else { return }
+        monthCache[key]?[index] = food
+        if dayCacheKey(for: selectedDay) == key {
+            foodsConsumed = foodsFromCache(for: selectedDay)
+        }
+    }
+
+    @MainActor
+    private func cachedFood(_ food: FoodConsumedDomain) -> FoodConsumedDomain? {
+        monthCache[dayCacheKey(for: food.date)]?.first(where: { $0.id == food.id })
     }
 
     @MainActor

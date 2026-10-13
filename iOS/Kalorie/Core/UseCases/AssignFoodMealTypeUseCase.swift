@@ -35,15 +35,28 @@ struct AssignFoodMealTypeUseCase: AssignFoodMealTypeUseCaseProtocol {
 }
 
 #if DEBUG
-struct AssignFoodMealTypeUseCaseFake: AssignFoodMealTypeUseCaseProtocol {
+final class AssignFoodMealTypeUseCaseFake: AssignFoodMealTypeUseCaseProtocol {
 
     // MARK: - Properties
 
-    var shouldThrow = false
+    var shouldThrow: Bool
+    var beforeResult: (() async -> Void)?
+    private(set) var calls: [(food: FoodConsumedDomain, mealTypeId: String)] = []
+
+    // MARK: - Init
+
+    init(shouldThrow: Bool = false) {
+        self.shouldThrow = shouldThrow
+    }
 
     // MARK: - Functions
 
     func callAsFunction(_ food: FoodConsumedDomain, mealTypeId: String) async throws {
+        calls.append((food: food, mealTypeId: mealTypeId))
+        if let hook = beforeResult {
+            beforeResult = nil
+            await hook()
+        }
         if shouldThrow { throw URLError(.unknown) }
     }
 }
