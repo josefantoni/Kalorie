@@ -180,7 +180,7 @@
     <string name="foodPortion_field_namePlaceholder">Name (e.g. 1 package)</string>
     <string name="foodPortion_quickAdd_package">1 package</string>
     <string name="foodPortion_quickAdd_piece">1 piece</string>
-    <string name="foodPortion_quickAdd_spoon">1 spoon</string>
+    <string name="foodPortion_quickAdd_spoon">1 tbsp</string>
     <string name="foodPortion_section_title">Portions</string>
     <string name="foodQuantity_button_add">Add</string>
     <string name="foodQuantity_button_myPortions">My portions</string>
