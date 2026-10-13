@@ -278,11 +278,16 @@ private fun SettingsContent(
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 MealTypeItemView(mealType = mealType, modifier = Modifier.weight(1f))
                                                 if (isEditing) {
-                                                    IconButton(onClick = { viewModel.onMove(from = index, to = index - 1) }, enabled = index > 0) {
+                                                    IconButton(
+                                                        onClick = { viewModel.onMove(from = index, to = index - 1) },
+                                                        modifier = Modifier.size(36.dp),
+                                                        enabled = index > 0,
+                                                    ) {
                                                         Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null)
                                                     }
                                                     IconButton(
                                                         onClick = { viewModel.onMove(from = index, to = index + 2) },
+                                                        modifier = Modifier.size(36.dp),
                                                         enabled = index < mealTypes.lastIndex,
                                                     ) {
                                                         Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
