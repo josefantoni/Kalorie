@@ -118,6 +118,7 @@ import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.CopyIcon
 import antoni.kalorie.components.FoodConsumedView
+import antoni.kalorie.components.RevealingSwipeToDeleteRow
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.models.FoodConsumedDomain
@@ -164,12 +165,19 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val isFabPressed by fabInteractionSource.collectIsPressedAsState()
     var fabLongPressFired by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-    var hoveredSectionKey by remember { mutableStateOf<String?>(null) }
+    var hoveredDropTargets by remember { mutableStateOf(emptySet<String>()) }
+    val onDropTargetHover: (String, Boolean) -> Unit = { targetId, isHovered ->
+        hoveredDropTargets = if (isHovered) hoveredDropTargets + targetId else hoveredDropTargets - targetId
+    }
+    var openSwipeRowId by remember { mutableStateOf<String?>(null) }
     val haptic = LocalHapticFeedback.current
     val moveFeedbackTrigger by viewModel.moveFeedbackTrigger.collectAsState()
     val currentFoodsConsumed by rememberUpdatedState(foodsConsumed)
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (listState.isScrollInProgress) openSwipeRowId = null
+    }
     LaunchedEffect(isFabPressed) {
         if (isFabPressed && BuildConfig.DEBUG) {
             delay(FAB_LONG_PRESS_MILLIS)
@@ -255,7 +263,13 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        LazyColumn(state = listState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = FAB_CLEARANCE)) {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .closeSwipeRowOnTapOutside { openSwipeRowId = null },
+                            contentPadding = PaddingValues(bottom = FAB_CLEARANCE),
+                        ) {
                             if (foodsConsumed.isNotEmpty()) {
                                 item { MacroSummaryView(macros = dailyMacros) }
                             }
@@ -273,8 +287,8 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                 }
                                 item(key = "header-$sectionKey") {
                                     val headerDropTarget = rememberMealDropTarget(
-                                        sectionKey = sectionKey,
-                                        onHoverChange = { hoveredSectionKey = it },
+                                        targetId = "header-$sectionKey",
+                                        onHoverChange = onDropTargetHover,
                                         onDropped = onDropped,
                                     )
                                     val sectionName = group.mealType?.name ?: stringResource(R.string.dashboard_section_unassignedFoods)
@@ -303,8 +317,8 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                 }
                                 item(key = "card-$sectionKey") {
                                     val dropTarget = rememberMealDropTarget(
-                                        sectionKey = sectionKey,
-                                        onHoverChange = { hoveredSectionKey = it },
+                                        targetId = "card-$sectionKey",
+                                        onHoverChange = onDropTargetHover,
                                         onDropped = onDropped,
                                     )
                                     SectionCard(
@@ -313,7 +327,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                         } else {
                                             Modifier
                                         },
-                                        border = if (hoveredSectionKey == sectionKey && group.mealType != null) {
+                                        border = if (group.mealType != null && ("header-$sectionKey" in hoveredDropTargets || "card-$sectionKey" in hoveredDropTargets)) {
                                             BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
                                         } else {
                                             null
@@ -321,7 +335,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                     ) {
                                         group.foods.forEachIndexed { foodIndex, food ->
                                             key(food.id) {
-                                                SwipeToDeleteRow(
+                                                RevealingSwipeToDeleteRow(
+                                                    id = food.id,
+                                                    openRowId = openSwipeRowId,
+                                                    onOpenRowChange = { openSwipeRowId = it },
                                                     onDeleteRequested = { viewModel.onDeleteRequested(food) },
                                                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
                                                 ) {
@@ -553,6 +570,16 @@ private const val AUTOSCROLL_STEP_PX = 12f
 private const val UNASSIGNED_SECTION_KEY = "unassigned"
 private const val DRAGGED_FOOD_LABEL = "dragged-food-consumed"
 
+private fun Modifier.closeSwipeRowOnTapOutside(onClose: () -> Unit): Modifier = composed {
+    val currentOnClose by rememberUpdatedState(onClose)
+    pointerInput(Unit) {
+        awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Final)
+            if (waitForUpOrCancellation(pass = PointerEventPass.Final) != null) currentOnClose()
+        }
+    }
+}
+
 private fun Modifier.tapBeforeChildren(onTap: () -> Unit): Modifier = composed {
     val currentOnTap by rememberUpdatedState(onTap)
     val interactionSource = remember { MutableInteractionSource() }
@@ -583,22 +610,22 @@ private fun isDraggedFood(event: DragAndDropEvent): Boolean = event.toAndroidDra
 
 @Composable
 private fun rememberMealDropTarget(
-    sectionKey: String,
-    onHoverChange: (String?) -> Unit,
+    targetId: String,
+    onHoverChange: (String, Boolean) -> Unit,
     onDropped: (String) -> Boolean,
 ): DragAndDropTarget {
     val currentOnHoverChange by rememberUpdatedState(onHoverChange)
     val currentOnDropped by rememberUpdatedState(onDropped)
-    return remember(sectionKey) {
+    return remember(targetId) {
         object : DragAndDropTarget {
-            override fun onEntered(event: DragAndDropEvent) = currentOnHoverChange(sectionKey)
+            override fun onEntered(event: DragAndDropEvent) = currentOnHoverChange(targetId, true)
 
-            override fun onExited(event: DragAndDropEvent) = currentOnHoverChange(null)
+            override fun onExited(event: DragAndDropEvent) = currentOnHoverChange(targetId, false)
 
-            override fun onEnded(event: DragAndDropEvent) = currentOnHoverChange(null)
+            override fun onEnded(event: DragAndDropEvent) = currentOnHoverChange(targetId, false)
 
             override fun onDrop(event: DragAndDropEvent): Boolean {
-                currentOnHoverChange(null)
+                currentOnHoverChange(targetId, false)
                 val id = event.toAndroidDragEvent().clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
                 return id != null && currentOnDropped(id)
             }
