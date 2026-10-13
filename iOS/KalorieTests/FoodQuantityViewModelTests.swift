@@ -147,6 +147,22 @@ final class FoodQuantityViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onUnitSelected_toPortion_afterAGramQuantity_countsExactlyOnePortionInGrams() {
+        let sut = makeSUT()
+        sut.quantity = 100
+        sut.onUnitSelected(.portion(FoodPortionDomain(name: "1 balení", grams: 33)))
+        XCTAssertEqual(sut.grams, 33, "picking a portion must log one portion, not the typed amount of them")
+    }
+
+    @MainActor
+    func test_onUnitSelected_fromPortionBackToGrams_keepsTheGramsOfThePortion() {
+        let sut = makeSUT()
+        sut.onUnitSelected(.portion(FoodPortionDomain(name: "1 balení", grams: 33)))
+        sut.onUnitSelected(.grams)
+        XCTAssertEqual(sut.quantity, 33)
+    }
+
+    @MainActor
     func test_onUnitSelected_thenOnAppearResolvesPersonalPortions_doesNotOverrideUserChoice() async {
         let cataloguePortion = FoodPortionDomain(name: "1 balení", grams: 250)
         let personalPortion = FoodPortionDomain(name: "1 hrnek", grams: 40)

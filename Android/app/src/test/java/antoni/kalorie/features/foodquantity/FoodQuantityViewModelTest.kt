@@ -240,6 +240,26 @@ class FoodQuantityViewModelTest {
     }
 
     @Test
+    fun onUnitSelected_toPortion_afterAGramQuantity_countsExactlyOnePortionInGrams() {
+        val sut = makeSUT()
+        sut.quantity.value = 100.0
+
+        sut.onUnitSelected(FoodQuantityUnit.Portion(FoodPortionDomain(name = "1 balení", grams = 33.0)))
+
+        assertEquals("picking a portion must log one portion, not the typed amount of them", 33.0, sut.grams, 0.0)
+    }
+
+    @Test
+    fun onUnitSelected_fromPortionBackToGrams_keepsTheGramsOfThePortion() {
+        val sut = makeSUT()
+        sut.onUnitSelected(FoodQuantityUnit.Portion(FoodPortionDomain(name = "1 balení", grams = 33.0)))
+
+        sut.onUnitSelected(FoodQuantityUnit.Grams)
+
+        assertEquals(33.0, sut.quantity.value, 0.0)
+    }
+
+    @Test
     fun onConfirm_withZeroQuantity_showsInvalidQuantityAlert() = runTest {
         val sut = makeSUT()
         sut.quantity.value = 0.0

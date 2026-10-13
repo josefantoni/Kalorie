@@ -107,6 +107,11 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
     LaunchedEffect(unit) { quantityText = viewModel.quantity.value.formattedTrimmed() }
+    LaunchedEffect(quantity) {
+        if ((quantityText.replace(',', '.').toDoubleOrNull() ?: 0.0) != quantity) {
+            quantityText = quantity.formattedTrimmed()
+        }
+    }
 
     // MARK: - Body
 

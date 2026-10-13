@@ -212,6 +212,12 @@ struct FoodQuantityView: View {
             .onChange(of: viewModel.unit) { _, _ in
                 quantityText = viewModel.quantity.formattedTrimmed()
             }
+            .onChange(of: viewModel.quantity) { _, quantity in
+                let typedQuantity = Double(quantityText.replacingOccurrences(of: ",", with: ".")) ?? 0
+                if typedQuantity != quantity {
+                    quantityText = quantity.formattedTrimmed()
+                }
+            }
         }
     }
 
