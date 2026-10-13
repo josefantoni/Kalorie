@@ -85,7 +85,7 @@ struct FoodPortionsManagerView: View {
 
     private func readOnlyPortionRow(portion: FoodPortionDomain, index: Int) -> some View {
         HStack {
-            Text(portion.name)
+            Text(portion.displayName)
             Spacer()
             Text(portion.grams.formattedAmount(measure: viewModel.item.measure, minFractionDigits: 0))
                 .foregroundStyle(.secondary)
