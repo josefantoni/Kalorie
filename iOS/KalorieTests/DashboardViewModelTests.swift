@@ -590,8 +590,7 @@ final class DashboardViewModelTests: XCTestCase {
         )
         await sut.onAppear()
 
-        sut.onFoodsDropped([DraggedFoodConsumed(id: "unknown").itemProvider], on: breakfast)
-        await waitUntil(timeout: 0.3) { !assign.calls.isEmpty }
+        await sut.onFoodsDropped([DraggedFoodConsumed(id: "unknown").itemProvider], on: breakfast).value
 
         XCTAssertTrue(assign.calls.isEmpty)
         XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, ["1"])

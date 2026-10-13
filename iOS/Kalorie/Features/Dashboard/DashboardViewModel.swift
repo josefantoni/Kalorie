@@ -269,7 +269,8 @@ final class DashboardViewModel: ObservableObject {
     }
 
     @MainActor
-    func onFoodsDropped(_ providers: [NSItemProvider], on mealType: MealTypeDomain) {
+    @discardableResult
+    func onFoodsDropped(_ providers: [NSItemProvider], on mealType: MealTypeDomain) -> Task<Void, Never> {
         Task { [weak self] in
             guard
                 let id = await DraggedFoodConsumed.loadId(from: providers),
