@@ -94,6 +94,7 @@
     <string name="common_alcoholicDrink_explanation">Alkoholické nápoje nemusí na etiketě uvádět nutriční hodnoty. Sacharidy a bílkoviny proto mohou pocházet z jiných zdrojů nebo chybět.</string>
     <string name="common_alcoholicDrink_label">Alkoholický nápoj</string>
     <string name="common_button_cancel">Zrušit</string>
+    <string name="common_button_delete">Smazat</string>
     <string name="common_button_done">Hotovo</string>
     <string name="common_button_favourite">Oblíbené</string>
     <string name="common_button_no">Ne</string>

@@ -94,6 +94,7 @@
     <string name="common_alcoholicDrink_explanation">Alcoholic drinks don\'t have to list nutrition values on the label. Carbohydrates and protein may therefore come from other sources or be missing.</string>
     <string name="common_alcoholicDrink_label">Alcoholic drink</string>
     <string name="common_button_cancel">Cancel</string>
+    <string name="common_button_delete">Delete</string>
     <string name="common_button_done">Done</string>
     <string name="common_button_favourite">Favourite</string>
     <string name="common_button_no">No</string>

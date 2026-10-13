@@ -1615,6 +1615,23 @@
         }
       }
     },
+    "common_button_delete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smazat"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
     "common_button_done" : {
       "extractionState" : "manual",
       "localizations" : {
