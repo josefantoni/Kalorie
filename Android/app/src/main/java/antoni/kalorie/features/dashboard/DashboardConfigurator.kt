@@ -15,6 +15,7 @@ import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.core.auth.AuthProvider
 import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.networking.FirestoreDataProvider
+import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCase
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCase
 import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCase
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCase
@@ -49,6 +50,7 @@ class DashboardConfigurator {
                 confirmMealTypesEmpty = ConfirmMealTypesEmptyUseCase(dataProvider, authProvider),
                 deleteFoodConsumed = DeleteFoodConsumedUseCase(dataProvider, authProvider),
                 copyFoodsConsumed = CopyFoodsConsumedUseCase(dataProvider, authProvider),
+                assignFoodMealType = AssignFoodMealTypeUseCase(dataProvider, authProvider),
                 authProvider = authProvider,
                 signInSpotlightStore = signInSpotlightStore,
             )

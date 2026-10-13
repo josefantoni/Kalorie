@@ -2,6 +2,7 @@ package antoni.kalorie.features.dashboard
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import antoni.kalorie.BuildConfig
 import antoni.kalorie.R
 import antoni.kalorie.core.auth.AuthProviderProtocol
@@ -9,6 +10,7 @@ import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.mealType
 import antoni.kalorie.core.models.resolvedMealTypeId
+import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseProtocol
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCaseProtocol
 import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
@@ -30,6 +32,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -90,6 +93,7 @@ class DashboardViewModel(
     private val confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseProtocol,
     private val deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol,
     private val copyFoodsConsumed: CopyFoodsConsumedUseCaseProtocol,
+    private val assignFoodMealType: AssignFoodMealTypeUseCaseProtocol,
     private val authProvider: AuthProviderProtocol,
     private val signInSpotlightStore: SignInSpotlightStoreProtocol,
     private val now: () -> Instant = { Instant.now() },
@@ -121,6 +125,8 @@ class DashboardViewModel(
     val showCopyCheckmark: StateFlow<Boolean> = _showCopyCheckmark
     private val _activeDaysInMonth = MutableStateFlow<Set<Int>>(emptySet())
     val activeDaysInMonth: StateFlow<Set<Int>> = _activeDaysInMonth
+    private val _moveFeedbackTrigger = MutableStateFlow(0)
+    val moveFeedbackTrigger: StateFlow<Int> = _moveFeedbackTrigger
 
     private var activeDaysMonth = Instant.now()
     private var isViewingToday = true
@@ -236,6 +242,24 @@ class DashboardViewModel(
             deleteFoodConsumed(id = food.id)
             reloadDay(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
+        }
+    }
+
+    fun onFoodDropped(food: FoodConsumedDomain, mealType: MealTypeDomain) {
+        viewModelScope.launch { onFoodMoved(food, mealType) }
+    }
+
+    suspend fun onFoodMoved(food: FoodConsumedDomain, mealType: MealTypeDomain) {
+        if (mealTypes.value.resolvedMealTypeId(food) == mealType.id) return
+        replaceInCache(food.copy(mealTypeId = mealType.id))
+        _moveFeedbackTrigger.value += 1
+        perform(
+            onFailure = {
+                if (cachedFood(food)?.mealTypeId == mealType.id) replaceInCache(food)
+                alertItem.value = AlertItem(titleRes = R.string.dashboard_error_moveFailed)
+            },
+        ) {
+            assignFoodMealType(food, mealTypeId = mealType.id)
         }
     }
 
@@ -419,6 +443,19 @@ class DashboardViewModel(
             monthCache[dayKey] = monthCache[dayKey].orEmpty() + dayFoods
         }
     }
+
+    private fun replaceInCache(food: FoodConsumedDomain) {
+        val key = dayCacheKey(food.date)
+        val foods = monthCache[key] ?: return
+        val index = foods.indexOfFirst { it.id == food.id }
+        if (index < 0) return
+        monthCache[key] = foods.toMutableList().also { it[index] = food }
+        if (dayCacheKey(selectedDay.value) == key) {
+            foodsConsumed.value = foodsFromCache(selectedDay.value)
+        }
+    }
+
+    private fun cachedFood(food: FoodConsumedDomain): FoodConsumedDomain? = monthCache[dayCacheKey(food.date)]?.firstOrNull { it.id == food.id }
 
     private fun foodsFromCache(date: Instant): List<FoodConsumedDomain> = monthCache[dayCacheKey(date)].orEmpty()
 
