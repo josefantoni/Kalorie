@@ -84,6 +84,7 @@ import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.popTransitionSpec
 import antoni.kalorie.components.predictivePopTransitionSpec
 import antoni.kalorie.components.pushTransitionSpec
+import antoni.kalorie.components.sheetScrollGuard
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
@@ -118,8 +119,10 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
             confirmValueChange = { it != SheetValue.Hidden || !isEditingState.value },
         ),
         dragHandle = null,
+        sheetGesturesEnabled = viewModel.backStack.size <= 1,
     ) {
         NavDisplay(
+            modifier = Modifier.sheetScrollGuard(),
             backStack = viewModel.backStack,
             onBack = { viewModel.backStack.removeLastOrNull() },
             transitionSpec = pushTransitionSpec<SettingsDestination>(),

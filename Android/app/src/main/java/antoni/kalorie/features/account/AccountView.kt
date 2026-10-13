@@ -37,6 +37,7 @@ import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.sheetScrollGuard
 import antoni.kalorie.core.utils.Constants
 import kotlinx.coroutines.launch
 
@@ -62,6 +63,7 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
         dragHandle = null,
     ) {
         Scaffold(
+            modifier = Modifier.sheetScrollGuard(),
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(R.string.account_navigationTitle)) },
