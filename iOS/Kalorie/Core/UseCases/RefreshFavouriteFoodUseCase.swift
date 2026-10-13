@@ -28,7 +28,7 @@ struct RefreshFavouriteFoodUseCase: RefreshFavouriteFoodUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemDomain {
-        guard item.kind == .catalogue else { return item }
+        guard item.kind != .createdMeal else { return item }
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let catalogueDTO: FoodItemDTO? = try await dataProvider.loadAsync(id: item.id, from: Constants.Firestore.foodItems)
         guard let fresh = catalogueDTO?.asDomain(), fresh != item else { return item }
