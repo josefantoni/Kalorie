@@ -285,9 +285,9 @@ final class DashboardViewModel: ObservableObject {
     func onFoodMoved(_ food: FoodConsumedDomain, to mealType: MealTypeDomain) async {
         guard mealTypes.resolvedMealTypeId(for: food) != mealType.id else { return }
         replaceInCache(food.copy(mealTypeId: mealType.id))
-        moveFeedbackTrigger += 1
         do {
             try await assignFoodMealType(food, mealTypeId: mealType.id)
+            moveFeedbackTrigger += 1
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             if cachedFood(food)?.mealTypeId == mealType.id { replaceInCache(food) }
