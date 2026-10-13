@@ -1,5 +1,6 @@
 package antoni.kalorie.features.settings
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.MealTypeDomain
@@ -39,7 +40,7 @@ class SettingsViewModel(
     val newMealStart = MutableStateFlow(Instant.now())
     val newMealEnd = MutableStateFlow(Instant.now())
     val isAddFormVisible = MutableStateFlow(false)
-    val isExportPushed = MutableStateFlow(false)
+    val backStack = mutableStateListOf<SettingsDestination>(SettingsDestination.Settings)
     private val _isMaintainer = MutableStateFlow(false)
     val isMaintainer: StateFlow<Boolean> = _isMaintainer
     val alertItem = MutableStateFlow<AlertItem?>(null)

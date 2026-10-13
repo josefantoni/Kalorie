@@ -22,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -29,6 +30,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -61,6 +63,9 @@ import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
+import antoni.kalorie.components.popTransitionSpec
+import antoni.kalorie.components.predictivePopTransitionSpec
+import antoni.kalorie.components.pushTransitionSpec
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.models.FoodItemDomain
@@ -73,6 +78,7 @@ import antoni.kalorie.features.dashboard.SwipeToDeleteRow
 import antoni.kalorie.features.foodquantity.MealActions
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddFoodSheetView(
     viewModel: AddFoodSheetViewModel,
@@ -125,9 +131,10 @@ fun AddFoodSheetView(
 
     // MARK: - Body
 
-    Dialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        dragHandle = null,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             NavDisplay(
@@ -139,6 +146,9 @@ fun AddFoodSheetView(
                         else -> onDismiss()
                     }
                 },
+                transitionSpec = pushTransitionSpec<AddFoodSheetDestination>(),
+                popTransitionSpec = popTransitionSpec<AddFoodSheetDestination>(),
+                predictivePopTransitionSpec = predictivePopTransitionSpec<AddFoodSheetDestination>(),
                 entryDecorators = listOf(
                     rememberSaveableStateHolderNavEntryDecorator(),
                     rememberViewModelStoreNavEntryDecorator(),

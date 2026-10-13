@@ -1,5 +1,6 @@
 package antoni.kalorie.features.foodquantity
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodPortionDraft
@@ -105,7 +106,7 @@ class FoodQuantityViewModel(
     val selectedMealTypeId = MutableStateFlow(mealTypes.mealType(selectedDate)?.id)
     private val _personalPortions = MutableStateFlow(meal?.portions ?: emptyList())
     val personalPortions: StateFlow<List<FoodPortionDomain>> = _personalPortions
-    val isPersonalPortionsManagerPushed = MutableStateFlow(false)
+    val backStack = mutableStateListOf<FoodQuantityDestination>(FoodQuantityDestination.Quantity)
     val portionDrafts = MutableStateFlow(listOf(FoodPortionDraft.blank))
     private val _showPortionCheckmark = MutableStateFlow(false)
     val showPortionCheckmark: StateFlow<Boolean> = _showPortionCheckmark

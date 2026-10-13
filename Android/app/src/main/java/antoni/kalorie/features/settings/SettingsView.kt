@@ -35,7 +35,9 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -43,6 +45,7 @@ import androidx.compose.material3.TimePickerDialog
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +55,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,9 +68,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.BadgeButton
@@ -75,6 +81,9 @@ import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.popTransitionSpec
+import antoni.kalorie.components.predictivePopTransitionSpec
+import antoni.kalorie.components.pushTransitionSpec
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
@@ -90,200 +99,60 @@ import java.time.Instant
 fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss: () -> Unit) {
     // MARK: - Properties
 
-    val state by viewModel.state.collectAsState()
     val mealTypes by viewModel.mealTypes.collectAsState()
-    val isAddFormVisible by viewModel.isAddFormVisible.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
-    val isExportPushed by viewModel.isExportPushed.collectAsState()
-    val isMaintainer by viewModel.isMaintainer.collectAsState()
     val scope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
-    val context = LocalContext.current
     val clipboard = LocalClipboard.current
-    val feedbackSubject = stringResource(R.string.settings_button_feedback)
     var isEditing by remember { mutableStateOf(false) }
-    var isModerationQueuePushed by remember { mutableStateOf(false) }
-    var isModerationReportsPushed by remember { mutableStateOf(false) }
     var isFeedbackMailUnavailableAlertPresented by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
 
     // MARK: - Body
 
-    Dialog(
-        onDismissRequest = { if (!isEditing) onDismiss() },
-        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
+    val isEditingState = rememberUpdatedState(isEditing)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+            confirmValueChange = { it != SheetValue.Hidden || !isEditingState.value },
+        ),
+        dragHandle = null,
     ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.settings_navigationTitle)) },
-                    navigationIcon = {
-                        if (!isEditing) {
-                            IconButton(onClick = onDismiss) {
-                                Icon(Icons.Filled.Close, contentDescription = null)
-                            }
-                        }
-                    },
-                )
+        NavDisplay(
+            backStack = viewModel.backStack,
+            onBack = { viewModel.backStack.removeLastOrNull() },
+            transitionSpec = pushTransitionSpec<SettingsDestination>(),
+            popTransitionSpec = popTransitionSpec<SettingsDestination>(),
+            predictivePopTransitionSpec = predictivePopTransitionSpec<SettingsDestination>(),
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
+            entryProvider = { destination ->
+                when (destination) {
+                    is SettingsDestination.Settings -> NavEntry(destination) {
+                        SettingsContent(
+                            viewModel = viewModel,
+                            isEditing = isEditing,
+                            onEditingChange = { isEditing = it },
+                            onDismiss = onDismiss,
+                            onFeedbackMailUnavailable = { isFeedbackMailUnavailableAlertPresented = true },
+                        )
+                    }
+                    is SettingsDestination.Export -> NavEntry(destination) {
+                        router.makeExportView(mealTypes = mealTypes, onBack = { viewModel.backStack.removeLastOrNull() })
+                    }
+                    is SettingsDestination.ModerationQueue -> NavEntry(destination) {
+                        router.makeModerationQueueView { viewModel.backStack.removeLastOrNull() }
+                    }
+                    is SettingsDestination.ModerationReports -> NavEntry(destination) {
+                        router.makeModerationReportsView { viewModel.backStack.removeLastOrNull() }
+                    }
+                }
             },
-        ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
-                KeyboardDoneContainer(modifier = Modifier.fillMaxSize().imePadding()) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.settings_section_mealLayout),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            FilledTonalButton(
-                                onClick = {
-                                    if (isEditing) {
-                                        isEditing = false
-                                        scope.launch { viewModel.onSaveReorder() }
-                                    } else {
-                                        isEditing = true
-                                    }
-                                },
-                            ) {
-                                Text(
-                                    text = stringResource(
-                                        if (isEditing) R.string.settings_button_editDone else R.string.settings_button_edit,
-                                    ),
-                                )
-                            }
-                        }
-
-                        LazyColumn(modifier = Modifier.weight(1f)) {
-                            item {
-                                SectionCard {
-                                    mealTypes.forEachIndexed { index, mealType ->
-                                        key(mealType.id) {
-                                            SwipeToDeleteRow(
-                                                onDeleteRequested = { scope.launch { viewModel.onDelete(index) } },
-                                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                            ) {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    MealTypeItemView(mealType = mealType, modifier = Modifier.weight(1f))
-                                                    if (isEditing) {
-                                                        IconButton(onClick = { viewModel.onMove(from = index, to = index - 1) }, enabled = index > 0) {
-                                                            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null)
-                                                        }
-                                                        IconButton(
-                                                            onClick = { viewModel.onMove(from = index, to = index + 2) },
-                                                            enabled = index < mealTypes.lastIndex,
-                                                        ) {
-                                                            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            if (index < mealTypes.lastIndex) SectionCardDivider()
-                                        }
-                                    }
-                                }
-                            }
-                            if (isEditing) {
-                                item {
-                                    FooterView(
-                                        isAddFormVisible = isAddFormVisible,
-                                        viewModel = viewModel,
-                                        focusManager = focusManager,
-                                        onCreate = { scope.launch { viewModel.onCreateMealType() } },
-                                    )
-                                }
-                            } else {
-                                item {
-                                    Text(
-                                        text = stringResource(R.string.settings_section_other),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
-                                    )
-                                }
-                                item {
-                                    SectionCard {
-                                        NavigationRow(
-                                            title = stringResource(R.string.export_navigationTitle),
-                                            onClick = { viewModel.isExportPushed.value = true },
-                                        )
-                                        SectionCardDivider()
-                                        NavigationRow(
-                                            title = feedbackSubject,
-                                            onClick = {
-                                                val intent = Intent(Intent.ACTION_SENDTO, "mailto:".toUri()).apply {
-                                                    putExtra(Intent.EXTRA_EMAIL, arrayOf(Constants.Support.EMAIL))
-                                                    putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
-                                                }
-                                                try {
-                                                    context.startActivity(intent)
-                                                } catch (_: ActivityNotFoundException) {
-                                                    isFeedbackMailUnavailableAlertPresented = true
-                                                }
-                                            },
-                                        )
-                                    }
-                                }
-                                item {
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    SectionCard {
-                                        SupportRow(onClick = viewModel::onSupportTapped)
-                                    }
-                                }
-                                if (isMaintainer) {
-                                    item {
-                                        Text(
-                                            text = stringResource(R.string.moderation_section_title),
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
-                                        )
-                                    }
-                                    item {
-                                        SectionCard {
-                                            NavigationRow(
-                                                title = stringResource(R.string.moderation_queue_title),
-                                                onClick = { isModerationQueuePushed = true },
-                                            )
-                                            SectionCardDivider()
-                                            NavigationRow(
-                                                title = stringResource(R.string.moderation_reports_title),
-                                                onClick = { isModerationReportsPushed = true },
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (state.isLoading) {
-                    Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-        }
+        )
     }
-
-    if (isExportPushed) {
-        Dialog(
-            onDismissRequest = { viewModel.isExportPushed.value = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
-        ) {
-            router.makeExportView(mealTypes = mealTypes, onBack = { viewModel.isExportPushed.value = false })
-        }
-    }
-
-    if (isModerationQueuePushed) router.makeModerationQueueView { isModerationQueuePushed = false }
-    if (isModerationReportsPushed) router.makeModerationReportsView { isModerationReportsPushed = false }
-
     if (isFeedbackMailUnavailableAlertPresented) {
         AlertDialog(
             onDismissRequest = { isFeedbackMailUnavailableAlertPresented = false },
@@ -326,6 +195,186 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
 }
 
 // MARK: - Functions
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsContent(
+    viewModel: SettingsViewModel,
+    isEditing: Boolean,
+    onEditingChange: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+    onFeedbackMailUnavailable: () -> Unit,
+) {
+    // MARK: - Properties
+
+    val state by viewModel.state.collectAsState()
+    val mealTypes by viewModel.mealTypes.collectAsState()
+    val isAddFormVisible by viewModel.isAddFormVisible.collectAsState()
+    val isMaintainer by viewModel.isMaintainer.collectAsState()
+    val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+    val feedbackSubject = stringResource(R.string.settings_button_feedback)
+
+    // MARK: - Body
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.settings_navigationTitle)) },
+                navigationIcon = {
+                    if (!isEditing) {
+                        IconButton(onClick = onDismiss) {
+                            Icon(Icons.Filled.Close, contentDescription = null)
+                        }
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
+            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().imePadding()) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_section_mealLayout),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        FilledTonalButton(
+                            onClick = {
+                                if (isEditing) {
+                                    onEditingChange(false)
+                                    scope.launch { viewModel.onSaveReorder() }
+                                } else {
+                                    onEditingChange(true)
+                                }
+                            },
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    if (isEditing) R.string.settings_button_editDone else R.string.settings_button_edit,
+                                ),
+                            )
+                        }
+                    }
+
+                    LazyColumn(modifier = Modifier.weight(1f)) {
+                        item {
+                            SectionCard {
+                                mealTypes.forEachIndexed { index, mealType ->
+                                    key(mealType.id) {
+                                        SwipeToDeleteRow(
+                                            onDeleteRequested = { scope.launch { viewModel.onDelete(index) } },
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                MealTypeItemView(mealType = mealType, modifier = Modifier.weight(1f))
+                                                if (isEditing) {
+                                                    IconButton(onClick = { viewModel.onMove(from = index, to = index - 1) }, enabled = index > 0) {
+                                                        Icon(Icons.Filled.KeyboardArrowUp, contentDescription = null)
+                                                    }
+                                                    IconButton(
+                                                        onClick = { viewModel.onMove(from = index, to = index + 2) },
+                                                        enabled = index < mealTypes.lastIndex,
+                                                    ) {
+                                                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (index < mealTypes.lastIndex) SectionCardDivider()
+                                    }
+                                }
+                            }
+                        }
+                        if (isEditing) {
+                            item {
+                                FooterView(
+                                    isAddFormVisible = isAddFormVisible,
+                                    viewModel = viewModel,
+                                    focusManager = focusManager,
+                                    onCreate = { scope.launch { viewModel.onCreateMealType() } },
+                                )
+                            }
+                        } else {
+                            item {
+                                Text(
+                                    text = stringResource(R.string.settings_section_other),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
+                                )
+                            }
+                            item {
+                                SectionCard {
+                                    NavigationRow(
+                                        title = stringResource(R.string.export_navigationTitle),
+                                        onClick = { viewModel.backStack.add(SettingsDestination.Export) },
+                                    )
+                                    SectionCardDivider()
+                                    NavigationRow(
+                                        title = feedbackSubject,
+                                        onClick = {
+                                            val intent = Intent(Intent.ACTION_SENDTO, "mailto:".toUri()).apply {
+                                                putExtra(Intent.EXTRA_EMAIL, arrayOf(Constants.Support.EMAIL))
+                                                putExtra(Intent.EXTRA_SUBJECT, feedbackSubject)
+                                            }
+                                            try {
+                                                context.startActivity(intent)
+                                            } catch (_: ActivityNotFoundException) {
+                                                onFeedbackMailUnavailable()
+                                            }
+                                        },
+                                    )
+                                }
+                            }
+                            item {
+                                Spacer(modifier = Modifier.height(24.dp))
+                                SectionCard {
+                                    SupportRow(onClick = viewModel::onSupportTapped)
+                                }
+                            }
+                            if (isMaintainer) {
+                                item {
+                                    Text(
+                                        text = stringResource(R.string.moderation_section_title),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
+                                    )
+                                }
+                                item {
+                                    SectionCard {
+                                        NavigationRow(
+                                            title = stringResource(R.string.moderation_queue_title),
+                                            onClick = { viewModel.backStack.add(SettingsDestination.ModerationQueue) },
+                                        )
+                                        SectionCardDivider()
+                                        NavigationRow(
+                                            title = stringResource(R.string.moderation_reports_title),
+                                            onClick = { viewModel.backStack.add(SettingsDestination.ModerationReports) },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (state.isLoading) {
+                Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun NavigationRow(title: String, onClick: () -> Unit) {

@@ -1,5 +1,6 @@
 package antoni.kalorie.features.moderation
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
@@ -27,6 +28,7 @@ class ModerationQueueViewModel(
     private val _collidingBarcodes = MutableStateFlow<Set<String>>(emptySet())
     val collidingBarcodes: StateFlow<Set<String>> = _collidingBarcodes
     val alertItem = MutableStateFlow<AlertItem?>(null)
+    val backStack = mutableStateListOf<ModerationQueueDestination>(ModerationQueueDestination.Queue)
 
     // MARK: - Functions
 

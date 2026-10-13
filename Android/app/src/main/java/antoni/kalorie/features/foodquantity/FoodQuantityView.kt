@@ -45,8 +45,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.components.AlcoholicDrinkHintView
 import antoni.kalorie.components.AppColors
@@ -61,6 +63,9 @@ import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.popTransitionSpec
+import antoni.kalorie.components.predictivePopTransitionSpec
+import antoni.kalorie.components.pushTransitionSpec
 import antoni.kalorie.components.rememberFoodPhotoThumbnailState
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedAmount
@@ -76,13 +81,86 @@ class MealActions(
     val onDelete: () -> Unit,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealActions: MealActions? = null) {
     // MARK: - Properties
 
-    val state by viewModel.state.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
+    val isReportReasonAlertVisible by viewModel.isReportReasonAlertVisible.collectAsState()
+    val reportReasonText by viewModel.reportReasonText.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) { viewModel.onAppear() }
+
+    // MARK: - Body
+
+    NavDisplay(
+        backStack = viewModel.backStack,
+        onBack = { viewModel.backStack.removeLastOrNull() },
+        transitionSpec = pushTransitionSpec<FoodQuantityDestination>(),
+        popTransitionSpec = popTransitionSpec<FoodQuantityDestination>(),
+        predictivePopTransitionSpec = predictivePopTransitionSpec<FoodQuantityDestination>(),
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
+        entryProvider = { destination ->
+            when (destination) {
+                is FoodQuantityDestination.Quantity -> NavEntry(destination) {
+                    FoodQuantityContent(
+                        viewModel = viewModel,
+                        onBack = onBack,
+                        mealActions = mealActions,
+                        onMealEditorTapped = { viewModel.backStack.add(FoodQuantityDestination.MealEditor) },
+                    )
+                }
+                is FoodQuantityDestination.PortionsManager -> NavEntry(destination) {
+                    FoodPortionsManagerView(viewModel = viewModel, onBack = { viewModel.backStack.removeLastOrNull() })
+                }
+                is FoodQuantityDestination.MealEditor -> NavEntry(destination) {
+                    mealActions?.makeEditorView { viewModel.backStack.removeLastOrNull() }
+                }
+            }
+        },
+    )
+
+    if (isReportReasonAlertVisible) {
+        ReportReasonDialog(
+            text = reportReasonText,
+            onTextChange = { viewModel.reportReasonText.value = it },
+            onDismiss = { viewModel.isReportReasonAlertVisible.value = false },
+            onSend = {
+                viewModel.isReportReasonAlertVisible.value = false
+                scope.launch { viewModel.onReportSubmitted() }
+            },
+        )
+    }
+
+    alertItem?.let { alert ->
+        AlertDialog(
+            onDismissRequest = { viewModel.alertItem.value = null },
+            title = { Text(stringResource(alert.titleRes)) },
+            text = alert.messageRes?.let { messageRes -> { Text(stringResource(messageRes)) } },
+            confirmButton = {
+                TextButton(onClick = { viewModel.alertItem.value = null }) {
+                    Text(stringResource(R.string.common_ok))
+                }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FoodQuantityContent(
+    viewModel: FoodQuantityViewModel,
+    onBack: () -> Unit,
+    mealActions: MealActions?,
+    onMealEditorTapped: () -> Unit,
+) {
+    // MARK: - Properties
+
+    val state by viewModel.state.collectAsState()
     val unit by viewModel.unit.collectAsState()
     val quantity by viewModel.quantity.collectAsState()
     val mealTypes by viewModel.mealTypes.collectAsState()
@@ -90,9 +168,6 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
     val isFavourite by viewModel.isFavourite.collectAsState()
     val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
     val hasReportedCurrentItem by viewModel.hasReportedCurrentItem.collectAsState()
-    val isReportReasonAlertVisible by viewModel.isReportReasonAlertVisible.collectAsState()
-    val reportReasonText by viewModel.reportReasonText.collectAsState()
-    val isPersonalPortionsManagerPushed by viewModel.isPersonalPortionsManagerPushed.collectAsState()
     val photoUrl by viewModel.photoUrl.collectAsState()
     val photoState = rememberFoodPhotoThumbnailState(photoUrl)
     val scope = rememberCoroutineScope()
@@ -100,12 +175,10 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
     var quantityText by remember { mutableStateOf(quantity.formattedTrimmed()) }
     var isUnitMenuVisible by remember { mutableStateOf(false) }
     var isMealTypeMenuVisible by remember { mutableStateOf(false) }
-    var isMealEditorPushed by remember { mutableStateOf(false) }
     var isDeleteConfirmationVisible by remember { mutableStateOf(false) }
     val item = viewModel.item
     val measure = item.measure
 
-    LaunchedEffect(Unit) { viewModel.onAppear() }
     LaunchedEffect(unit) { quantityText = viewModel.quantity.value.formattedTrimmed() }
     LaunchedEffect(quantity) {
         if ((quantityText.replace(',', '.').toDoubleOrNull() ?: 0.0) != quantity) {
@@ -126,7 +199,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                             }
                             if (mealActions != null) {
-                                IconButton(onClick = { isMealEditorPushed = true }) {
+                                IconButton(onClick = onMealEditorTapped) {
                                     Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.myCreatedMeal_button_edit))
                                 }
                             }
@@ -206,7 +279,7 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                                                 onClick = {
                                                     isUnitMenuVisible = false
                                                     viewModel.onPortionsManagerOpened()
-                                                    viewModel.isPersonalPortionsManagerPushed.value = true
+                                                    viewModel.backStack.add(FoodQuantityDestination.PortionsManager)
                                                 },
                                             )
                                         }
@@ -292,19 +365,6 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
         }
     }
 
-    if (isPersonalPortionsManagerPushed) {
-        FoodPortionsManagerView(viewModel = viewModel, onBack = { viewModel.isPersonalPortionsManagerPushed.value = false })
-    }
-
-    if (isMealEditorPushed && mealActions != null) {
-        Dialog(
-            onDismissRequest = { isMealEditorPushed = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
-        ) {
-            mealActions.makeEditorView { isMealEditorPushed = false }
-        }
-    }
-
     if (isDeleteConfirmationVisible && mealActions != null) {
         AlertDialog(
             onDismissRequest = { isDeleteConfirmationVisible = false },
@@ -323,31 +383,6 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                     colors = ButtonDefaults.textButtonColors(contentColor = AppColors.error),
                 ) {
                     Text(stringResource(R.string.myCreatedMeal_button_delete))
-                }
-            },
-        )
-    }
-
-    if (isReportReasonAlertVisible) {
-        ReportReasonDialog(
-            text = reportReasonText,
-            onTextChange = { viewModel.reportReasonText.value = it },
-            onDismiss = { viewModel.isReportReasonAlertVisible.value = false },
-            onSend = {
-                viewModel.isReportReasonAlertVisible.value = false
-                scope.launch { viewModel.onReportSubmitted() }
-            },
-        )
-    }
-
-    alertItem?.let { alert ->
-        AlertDialog(
-            onDismissRequest = { viewModel.alertItem.value = null },
-            title = { Text(stringResource(alert.titleRes)) },
-            text = alert.messageRes?.let { messageRes -> { Text(stringResource(messageRes)) } },
-            confirmButton = {
-                TextButton(onClick = { viewModel.alertItem.value = null }) {
-                    Text(stringResource(R.string.common_ok))
                 }
             },
         )
