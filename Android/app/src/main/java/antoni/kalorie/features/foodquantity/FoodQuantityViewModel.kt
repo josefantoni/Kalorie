@@ -208,7 +208,7 @@ class FoodQuantityViewModel(
         hasUserSelectedUnit = true
         val currentGrams = quantity.value * unit.value.gramsPerUnit
         unit.value = newUnit
-        quantity.value = currentGrams / newUnit.gramsPerUnit
+        quantity.value = if (newUnit is FoodQuantityUnit.Portion) 1.0 else currentGrams / newUnit.gramsPerUnit
     }
 
     fun onMealTypeSelected(mealTypeId: String) {

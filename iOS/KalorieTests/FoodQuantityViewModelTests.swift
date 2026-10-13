@@ -139,6 +139,13 @@ final class FoodQuantityViewModelTests: XCTestCase {
         XCTAssertEqual(sut.unit, .portion(portion))
     }
 
+    func test_onUnitSelected_toPortion_resetsQuantityToOne() {
+        let sut = makeSUT()
+        sut.quantity = 100
+        sut.onUnitSelected(.portion(FoodPortionDomain(name: "1 balení", grams: 33)))
+        XCTAssertEqual(sut.quantity, 1)
+    }
+
     @MainActor
     func test_onUnitSelected_thenOnAppearResolvesPersonalPortions_doesNotOverrideUserChoice() async {
         let cataloguePortion = FoodPortionDomain(name: "1 balení", grams: 250)

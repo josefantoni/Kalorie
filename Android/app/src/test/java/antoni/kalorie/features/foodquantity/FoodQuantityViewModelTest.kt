@@ -230,6 +230,16 @@ class FoodQuantityViewModelTest {
     }
 
     @Test
+    fun onUnitSelected_toPortion_resetsQuantityToOne() {
+        val sut = makeSUT()
+        sut.quantity.value = 100.0
+
+        sut.onUnitSelected(FoodQuantityUnit.Portion(FoodPortionDomain(name = "1 balení", grams = 33.0)))
+
+        assertEquals(1.0, sut.quantity.value, 0.0)
+    }
+
+    @Test
     fun onConfirm_withZeroQuantity_showsInvalidQuantityAlert() = runTest {
         val sut = makeSUT()
         sut.quantity.value = 0.0
