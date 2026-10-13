@@ -240,7 +240,7 @@ understanding why.
 | [0022](adr/0022-meal-assignment-may-be-pinned-by-the-user.md) | A logged food may be pinned to a meal type, overriding the time-of-day rule | Accepted | Backend, Cross-platform |
 | [0023](adr/0023-external-search-gate-includes-favourites-and-meals.md) | External search fallback gate description corrected — favourites and saved meals count as "found" | Accepted | Cross-platform |
 | [0024](adr/0024-token-array-field-for-whole-word-search.md) | A per-word prefix array closes the "second word" gap in catalogue search | Accepted | Backend, Cross-platform |
-| [0025](adr/0025-food-item-kind-discriminates-entry-origin.md) | `food_item_kind` discriminates what `food_item_id` points to | Accepted | Backend, Cross-platform |
+| [0025](adr/0025-food-item-kind-discriminates-entry-origin.md) | `food_item_kind` discriminates what `food_item_id` points to | Superseded in part by 0044 | Backend, Cross-platform |
 | [0026](adr/0026-js-backfill-duplicates-textkit-under-a-shared-fixture.md) | The JS backfill scripts' TextKit duplication is governed by a shared fixture | Superseded (Kotlin half) | Backend, Cross-platform |
 | [0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) | Catalogue writes require a maintainer claim, with user contributions queued for approval | Accepted | Backend, Cross-platform |
 | [0028](adr/0028-foodItemSubmissions-update-rule-validates-the-maintainer-branch.md) | The `foodItemSubmissions` update rule validates the maintainer branch too | Accepted | Backend |
@@ -257,3 +257,6 @@ understanding why.
 | [0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) | Swift-only rules either move into KMP or are pinned by shared golden-vector fixtures | Accepted | Cross-platform, Backend |
 | [0040](adr/0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md) | Search is diacritic-insensitive everywhere, no longer queries the lowercase fields, and needs two characters | Accepted | Backend, Cross-platform, iOS, Android |
 | [0041](adr/0041-dashboard-reloads-only-the-affected-day-after-a-write-or-foreground.md) | The Dashboard reloads only the affected day after a write or on returning to the foreground | Accepted | iOS, Android |
+| [0042](adr/0042-search-matches-the-displayed-name-only.md) | Search matches the displayed name only | Accepted | Cross-platform |
+| [0043](adr/0043-portion-names-are-localized-and-normalized-at-render-time.md) | Portion names are localized and normalized at render time | Accepted | Cross-platform |
+| [0044](adr/0044-external-favourites-are-upgraded-when-the-food-enters-the-catalogue.md) | An `external` food is upgraded to its catalogue version when it appears in `foodItems` | Accepted | Backend, Cross-platform |

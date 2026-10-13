@@ -1,6 +1,8 @@
 # 0025. `food_item_kind` discriminates what `food_item_id` points to
 
-- **Status:** Accepted
+- **Status:** Superseded in part by [ADR 0044](0044-external-favourites-are-upgraded-when-the-food-enters-the-catalogue.md)
+  (the description of `.external` as "guaranteed not to resolve against `foodItems`" — everything
+  else in this record is unchanged)
 - **Scope:** Backend, Cross-platform
 - **Date:** 2026-09-08
 
