@@ -209,6 +209,23 @@ class AddFoodSheetViewModelTest {
     }
 
     @Test
+    fun onSelectResult_whenExternalFrequencyCandidate_refreshesStaleSnapshotBeforeSelecting() = runTest {
+        val stale = makeFoodItem(id = "ext", czName = "Mléko", kind = FoodItemKind.EXTERNAL)
+        val fresh = makeFoodItem(id = "ext", czName = "Mléko z katalogu")
+        val sut = makeSUT(
+            refreshFavouriteFood = RefreshFavouriteFoodUseCaseFake(stubbedItem = fresh),
+            fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(
+                stubbedEntries = mapOf("ext" to FoodFrequencyEntry(count = 1, lastLoggedAt = Instant.now(), item = stale)),
+            ),
+        )
+        sut.onAppear()
+
+        sut.onSelectResult(stale)
+
+        assertEquals(fresh, sut.selectedFoodItem.value)
+    }
+
+    @Test
     fun onSelectResult_whenFoodCameFromTheCatalogueQuery_selectsItAsIs() = runTest {
         val item = makeFoodItem(id = "cat", czName = "Mléko")
         val sut = makeSUT(

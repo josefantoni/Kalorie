@@ -24,7 +24,7 @@ class RefreshFavouriteFoodUseCase(
     // MARK: - Functions
 
     override suspend fun invoke(item: FoodItemDomain): FoodItemDomain {
-        if (item.kind != FoodItemKind.CATALOGUE) return item
+        if (item.kind == FoodItemKind.CREATED_MEAL) return item
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
         val catalogueDTO: FoodItemDTO? = dataProvider.loadAsync(id = item.id, from = Constants.Firestore.FOOD_ITEMS)
         val fresh = catalogueDTO?.asDomain()
