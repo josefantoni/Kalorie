@@ -2,11 +2,16 @@ package antoni.kalorie.core.models
 
 import androidx.annotation.StringRes
 import antoni.kalorie.R
+import antoni.kalorie.textkit.localizedPortionName
+import java.util.Locale
 
 data class FoodPortionDomain(
     val name: String,
     val grams: Double,
 )
+
+val FoodPortionDomain.displayName: String
+    get() = localizedPortionName(name, czech = Locale.getDefault().language in listOf("cs", "sk"))
 
 sealed class FoodPortionError : Exception() {
     data object InvalidName : FoodPortionError()
