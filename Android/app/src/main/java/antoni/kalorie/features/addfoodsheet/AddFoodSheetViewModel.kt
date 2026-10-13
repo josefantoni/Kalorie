@@ -458,7 +458,7 @@ class AddFoodSheetViewModel(
     }
 
     suspend fun onSelectResult(item: FoodItemDomain) {
-        val isFrequencyCandidate = item.kind == FoodItemKind.CATALOGUE &&
+        val isFrequencyCandidate = item.kind != FoodItemKind.CREATED_MEAL &&
             foodFrequency.value.containsKey(item.id) &&
             item.id !in _favouriteIds.value &&
             localFoodItems.value.none { it.id == item.id } &&

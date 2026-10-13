@@ -4,6 +4,7 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodItemDTO
@@ -60,13 +61,42 @@ class RefreshFavouriteFoodUseCaseTest {
     }
 
     @Test
-    fun refresh_whenItemIsNotFromCatalogue_doesNotReadOrWrite() = runTest {
+    fun refresh_whenExternalItemNowExistsInCatalogue_returnsCatalogueItemAndRewritesFavouriteKeepingFavouritedAt() = runTest {
         val external = makeItem(kind = FoodItemKind.EXTERNAL)
-        val (sut, dataProvider) = makeSUT(catalogue = FoodItemDTO(makeItem(calories = 1.0)), favourite = null)
+        val portions = listOf(FoodPortionDomain(name = "1 kus", grams = 55.0))
+        val (sut, dataProvider) = makeSUT(
+            catalogue = FoodItemDTO(makeItem(calories = 140.0, portions = portions)),
+            favourite = FavouriteFoodDTO(external, Instant.ofEpochSecond(1_000)),
+        )
+
+        val result = sut(external)
+
+        assertEquals(FoodItemKind.CATALOGUE, result.kind)
+        assertEquals(portions, result.portions)
+        assertEquals("users/test-user/favouriteFoods", dataProvider.setSavedCollection)
+        assertEquals(FoodItemKind.CATALOGUE, dataProvider.savedDTO?.foodItemKind)
+        assertEquals(1_000.0, dataProvider.savedDTO?.favouritedAt)
+    }
+
+    @Test
+    fun refresh_whenExternalItemIsNotInCatalogue_returnsInputWithoutWriting() = runTest {
+        val external = makeItem(kind = FoodItemKind.EXTERNAL)
+        val (sut, dataProvider) = makeSUT(catalogue = null, favourite = FavouriteFoodDTO(external, Instant.now()))
 
         val result = sut(external)
 
         assertEquals(external, result)
+        assertNull(dataProvider.savedDTO)
+    }
+
+    @Test
+    fun refresh_whenItemIsCreatedMeal_doesNotReadOrWrite() = runTest {
+        val meal = makeItem(kind = FoodItemKind.CREATED_MEAL)
+        val (sut, dataProvider) = makeSUT(catalogue = FoodItemDTO(makeItem(calories = 1.0)), favourite = null)
+
+        val result = sut(meal)
+
+        assertEquals(meal, result)
         assertEquals(emptyList<String>(), dataProvider.loadedIdCollections)
         assertNull(dataProvider.savedDTO)
     }
@@ -123,7 +153,11 @@ class RefreshFavouriteFoodUseCaseTest {
         return RefreshFavouriteFoodUseCase(dataProvider, AuthProviderFake(userId = userId)) to dataProvider
     }
 
-    private fun makeItem(kind: FoodItemKind = FoodItemKind.CATALOGUE, calories: Double = 155.0): FoodItemDomain = FoodItemDomain(
+    private fun makeItem(
+        kind: FoodItemKind = FoodItemKind.CATALOGUE,
+        calories: Double = 155.0,
+        portions: List<FoodPortionDomain> = emptyList(),
+    ): FoodItemDomain = FoodItemDomain(
         id = "12345",
         kind = kind,
         czName = "Vejce",
@@ -140,5 +174,6 @@ class RefreshFavouriteFoodUseCaseTest {
         fiber = 0.0,
         protein = 13.0,
         salt = 0.3,
+        portions = portions,
     )
 }
