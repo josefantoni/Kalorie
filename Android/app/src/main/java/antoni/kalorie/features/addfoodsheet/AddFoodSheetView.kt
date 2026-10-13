@@ -67,6 +67,7 @@ import antoni.kalorie.components.popTransitionSpec
 import antoni.kalorie.components.predictivePopTransitionSpec
 import antoni.kalorie.components.pushTransitionSpec
 import antoni.kalorie.components.rememberScannerAccess
+import antoni.kalorie.components.sheetScrollGuard
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
@@ -135,8 +136,9 @@ fun AddFoodSheetView(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         dragHandle = null,
+        sheetGesturesEnabled = backStack.size <= 1,
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().sheetScrollGuard()) {
             NavDisplay(
                 backStack = backStack,
                 onBack = {
