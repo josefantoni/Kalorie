@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TextKit
 
 struct FoodPortionDomain: Hashable {
 
@@ -13,6 +14,11 @@ struct FoodPortionDomain: Hashable {
 
     let name: String
     let grams: Double
+
+    var displayName: String {
+        let langCode = Locale.current.language.languageCode?.identifier ?? ""
+        return PortionNamesKt.localizedPortionName(name: name, czech: ["cs", "sk"].contains(langCode))
+    }
 }
 
 enum FoodPortionError: Error, Equatable {
