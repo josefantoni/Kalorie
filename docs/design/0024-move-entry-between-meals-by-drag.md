@@ -65,13 +65,13 @@ that is currently on screen, on the client. No backend, rules or schema change.
 2. Optimistic update: `moved = food.copy(mealTypeId: target.id)` (Android: `food.copy(mealTypeId =
    target.id)`; the `withMealTypeId` helper in `FoodConsumedDetailViewModel.swift` is `private`). Replace the entry (match by `id`) in `monthCache[dayCacheKey(food.date)]`; if
    that day is `selectedDay`, set `foodsConsumed = foodsFromCache(for: selectedDay)`.
-3. Bump a haptic trigger (see below).
-4. `try await assignFoodMealType(food, mealTypeId: target.id)`.
+3. `try await assignFoodMealType(food, mealTypeId: target.id)`.
+4. On success bump the haptic trigger (see below). A failed write never bumps it.
 5. On failure: `Log.error(…, category: Constants.LogCategory.dashboard)`, restore the **original**
    `food` in the same cache slot (again only refresh `foodsConsumed` if that day is still
    selected), `alertItem = AlertItem(title: L10n.Dashboard.errorMoveFailed)`. Revert locally —
    do **not** call `reloadDay`.
-6. On success: nothing more. No `reloadDay` — only `meal_type_id` changed and the cache already
+6. On success: nothing more than the haptic. No `reloadDay` — only `meal_type_id` changed and the cache already
    holds it. (This is consistent with [ADR 0041](../adr/0041-dashboard-reloads-only-the-affected-day-after-a-write-or-foreground.md):
    the affected day is already correct.)
 
@@ -113,7 +113,7 @@ was dropped. Deployment target is iOS 26.
   `foodsConsumed` and calls `onFoodMoved`. The entry sorts by `date` after the drop.
 - **Haptics:** the system drag lift has its own haptic — verify on device; add nothing for the lift
   unless it is missing. For the commit add `@Published private(set) var moveFeedbackTrigger = 0`
-  to the view model, increment it in step 3, and `.sensoryFeedback(.success, trigger:
+  to the view model, increment it in step 4, and `.sensoryFeedback(.success, trigger:
   viewModel.moveFeedbackTrigger)` on the scroll view.
 - **Wiring:** add `assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol` to
   `DashboardViewModel.init`. Call sites that break: `DashboardConfigurator.swift:18`
