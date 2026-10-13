@@ -175,6 +175,7 @@ struct DashboardView: View {
             Text(group.mealType?.name ?? L10n.Dashboard.sectionUnassignedFoods)
                 .font(.headline)
                 .foregroundStyle(.secondary)
+                .accessibilityAddTraits(.isHeader)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .overlay(alignment: .trailing) {
                     sectionHeaderButtons(index: index, group: group)
