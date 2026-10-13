@@ -51,6 +51,7 @@ struct RevealingSwipeToDeleteRow<Content: View>: View {
                     .background(Color.error)
             }
             .opacity(offset < 0 ? 1 : 0)
+            .accessibilityHidden(true)
 
             content
                 .background(Color(.secondarySystemGroupedBackground))
