@@ -538,7 +538,7 @@ final class DashboardViewModel: ObservableObject {
 
     @MainActor
     private func cachedFood(_ food: FoodConsumedDomain) -> FoodConsumedDomain? {
-        monthCache[dayCacheKey(for: food.date)]?.first(where: { $0.id == food.id })
+        monthCache[dayCacheKey(for: food.date)]?.first { $0.id == food.id }
     }
 
     @MainActor
