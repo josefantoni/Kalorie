@@ -1356,7 +1356,8 @@ incidental: `FavouriteButton` exists as a component precisely because the button
 `Cross-platform`.
 
 **Read first:** [ADR 0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md)
-(which of a food's two names is shown). Otherwise nothing: no design doc covers error presentation, localization or `Components/` —
+(which of a food's two names is shown), [ADR 0043](adr/0043-portion-names-are-localized-and-normalized-at-render-time.md)
+(how a portion's name is shown). Otherwise nothing: no design doc covers error presentation, localization or `Components/` —
 this area has never been designed up front, which is itself worth knowing.
 [design 0004](design/0004-shared-macro-calculation-module.md) and
 [design 0005](design/0005-meal-window-and-html-entity-decoding.md) cover only the KMP modules the
@@ -1438,6 +1439,11 @@ One thing about the app is Czech-first in a way neither catalogue covers:
   matching, and the empty-`engName` fallback that a created meal relies on are recorded in
   [ADR 0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md). It is
   resolved at render time and never stored.
+- A portion's single free-text `name` is passed through `TextKit`'s `localizedPortionName(name, czech)`
+  when displayed: a closed cs↔en vocabulary (`1 porce` / `1 serving`, `1 lžíce` / `1 tbsp`, …)
+  rendered as "count + unit", and anything else shown as typed with its first letter uppercased.
+  **Cross-platform**, recorded in
+  [ADR 0043](adr/0043-portion-names-are-localized-and-normalized-at-render-time.md). Also never stored.
 
 Numbers and units go through `Double.formattedGrams(fractionDigits:)`
 (`Core/Extensions/Double+Extension.swift`), a locale-aware helper that replaced seventeen
