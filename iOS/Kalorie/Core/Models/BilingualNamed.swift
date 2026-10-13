@@ -12,11 +12,16 @@ protocol BilingualNamed {
     var engName: String { get }
 }
 
+extension Locale {
+    static var isCzechOrSlovak: Bool {
+        let langCode = Locale.current.language.languageCode?.identifier ?? ""
+        return ["cs", "sk"].contains(langCode)
+    }
+}
+
 extension BilingualNamed {
     var displayName: String {
-        let langCode = Locale.current.language.languageCode?.identifier ?? ""
-        let isCzechOrSlovak = ["cs", "sk"].contains(langCode)
-        if isCzechOrSlovak { return czName.isEmpty ? engName : czName }
+        if Locale.isCzechOrSlovak { return czName.isEmpty ? engName : czName }
         return engName.isEmpty ? czName : engName
     }
 }
