@@ -346,7 +346,9 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                                         food,
                                                         modifier = Modifier
                                                             .tapBeforeChildren {
-                                                                viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
+                                                                if (openSwipeRowId == null) {
+                                                                    viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
+                                                                }
                                                             }
                                                             .dragAndDropSource(
                                                                 transferData = {
