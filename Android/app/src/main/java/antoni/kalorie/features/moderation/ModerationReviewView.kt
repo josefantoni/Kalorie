@@ -80,89 +80,84 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
 
     // MARK: - Body
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(formInput.name) },
-                    navigationIcon = {
-                        IconButton(onClick = onDismiss) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                        }
-                    },
-                )
-            },
-        ) { innerPadding ->
-            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    viewModel.rejectReasonIfAny?.let { reason ->
-                        SectionCard(modifier = Modifier.padding(top = 8.dp)) {
-                            Text(
-                                text = stringResource(R.string.addFood_submission_rejectedReason, reason),
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            )
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(formInput.name) },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
-                    FoodItemFormSections(
-                        formInput = formInput,
-                        onFormInputChange = { viewModel.formInput.value = it },
-                        barcodeRow = FoodItemFormBarcodeRow.Locked,
-                        highlightedFields = recognizedFields,
-                        showsAlcoholByVolumeField = true,
-                        onNutritionLabelScanTapped = scannerAccess.open,
-                        onFieldEdited = viewModel::onFormFieldEdited,
-                    )
-                    if (viewModel.showsSimilarCatalogueItemsSection && isSimilarSectionAvailable) {
+                },
+            )
+        },
+    ) { innerPadding ->
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                viewModel.rejectReasonIfAny?.let { reason ->
+                    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
                         Text(
-                            text = stringResource(R.string.moderation_similarItems_title),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
-                        )
-                        SectionCard {
-                            if (similarCatalogueItems.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.moderation_similarItems_empty),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                                )
-                            } else {
-                                similarCatalogueItems.forEachIndexed { index, item ->
-                                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-                                        Text(item.displayName)
-                                        Text(
-                                            text = "${item.caloriesPerHundredGrams.roundToInt()} kcal / 100 ${stringResource(item.measure.unitSymbolRes)}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
-                                    if (index < similarCatalogueItems.lastIndex) SectionCardDivider()
-                                }
-                            }
-                        }
-                    }
-                    Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 8.dp)) {
-                        PrimaryButton(
-                            text = stringResource(R.string.moderation_button_approve),
-                            onClick = { scope.launch { viewModel.onApproveTapped() } },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        PrimaryButton(
-                            text = stringResource(R.string.moderation_button_reject),
-                            onClick = { viewModel.isRejectSheetVisible.value = true },
-                            style = PrimaryButtonStyle.DESTRUCTIVE,
-                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                            text = stringResource(R.string.addFood_submission_rejectedReason, reason),
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
                         )
                     }
                 }
-                if (state.isLoading) {
-                    Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                FoodItemFormSections(
+                    formInput = formInput,
+                    onFormInputChange = { viewModel.formInput.value = it },
+                    barcodeRow = FoodItemFormBarcodeRow.Locked,
+                    highlightedFields = recognizedFields,
+                    showsAlcoholByVolumeField = true,
+                    onNutritionLabelScanTapped = scannerAccess.open,
+                    onFieldEdited = viewModel::onFormFieldEdited,
+                )
+                if (viewModel.showsSimilarCatalogueItemsSection && isSimilarSectionAvailable) {
+                    Text(
+                        text = stringResource(R.string.moderation_similarItems_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
+                    )
+                    SectionCard {
+                        if (similarCatalogueItems.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.moderation_similarItems_empty),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            )
+                        } else {
+                            similarCatalogueItems.forEachIndexed { index, item ->
+                                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                                    Text(item.displayName)
+                                    Text(
+                                        text = "${item.caloriesPerHundredGrams.roundToInt()} kcal / 100 ${stringResource(item.measure.unitSymbolRes)}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                if (index < similarCatalogueItems.lastIndex) SectionCardDivider()
+                            }
+                        }
                     }
+                }
+                Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 8.dp)) {
+                    PrimaryButton(
+                        text = stringResource(R.string.moderation_button_approve),
+                        onClick = { scope.launch { viewModel.onApproveTapped() } },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    PrimaryButton(
+                        text = stringResource(R.string.moderation_button_reject),
+                        onClick = { viewModel.isRejectSheetVisible.value = true },
+                        style = PrimaryButtonStyle.DESTRUCTIVE,
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    )
+                }
+            }
+            if (state.isLoading) {
+                Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
         }

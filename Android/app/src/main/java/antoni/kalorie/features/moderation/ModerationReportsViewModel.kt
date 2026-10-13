@@ -1,5 +1,6 @@
 package antoni.kalorie.features.moderation
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodItemReportDomain
@@ -35,6 +36,7 @@ class ModerationReportsViewModel(
     private val _groups = MutableStateFlow<List<ReportGroup>>(emptyList())
     val groups: StateFlow<List<ReportGroup>> = _groups
     val alertItem = MutableStateFlow<AlertItem?>(null)
+    val backStack = mutableStateListOf<ModerationReportsDestination>(ModerationReportsDestination.Reports)
 
     // MARK: - Functions
 

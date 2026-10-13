@@ -30,8 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.PortionDraftAddSection
 import antoni.kalorie.components.PortionDraftListView
@@ -60,78 +58,73 @@ fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit
 
     // MARK: - Body
 
-    Dialog(
-        onDismissRequest = onBack,
-        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.myPortions_title)) },
-                    navigationIcon = {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                        }
-                    },
-                    actions = {
-                        SaveToolbarButton(
-                            title = stringResource(R.string.myPortions_button_save),
-                            showCheckmark = showPortionCheckmark,
-                            isEnabled = canSavePortionDrafts,
-                        ) {
-                            focusedDraftId = null
-                            scope.launch { viewModel.onSavePersonalPortions() }
-                        }
-                    },
-                )
-            },
-        ) { innerPadding ->
-            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    if (personalPortions.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.myPortions_empty),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(16.dp),
-                        )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.myPortions_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
-                    SectionCard {
-                        personalPortions.forEachIndexed { index, portion ->
-                            SwipeToDeleteRow(
-                                onDeleteRequested = { scope.launch { viewModel.onDeletePersonalPortion(portion) } },
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(portion.displayName)
-                                    Text(
-                                        text = portion.grams.formattedAmount(measure, minFractionDigits = 0),
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                            if (index < personalPortions.lastIndex || portionDrafts.isNotEmpty()) SectionCardDivider()
-                        }
-                        PortionDraftListView(
-                            drafts = portionDrafts,
-                            onDraftsChange = { viewModel.portionDrafts.value = it },
-                            focusedDraftId = focusedDraftId,
-                            onDelete = viewModel::onDeletePortionDraft,
-                            measure = measure,
-                        )
+                },
+                actions = {
+                    SaveToolbarButton(
+                        title = stringResource(R.string.myPortions_button_save),
+                        showCheckmark = showPortionCheckmark,
+                        isEnabled = canSavePortionDrafts,
+                    ) {
+                        focusedDraftId = null
+                        scope.launch { viewModel.onSavePersonalPortions() }
                     }
-                    PortionDraftAddSection(
-                        drafts = portionDrafts,
-                        onAdd = { draft ->
-                            viewModel.portionDrafts.value = portionDrafts + draft
-                            focusedDraftId = draft.id
-                        },
-                        modifier = Modifier.padding(vertical = 8.dp),
+                },
+            )
+        },
+    ) { innerPadding ->
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                if (personalPortions.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.myPortions_empty),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(16.dp),
                     )
                 }
+                SectionCard {
+                    personalPortions.forEachIndexed { index, portion ->
+                        SwipeToDeleteRow(
+                            onDeleteRequested = { scope.launch { viewModel.onDeletePersonalPortion(portion) } },
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(portion.displayName)
+                                Text(
+                                    text = portion.grams.formattedAmount(measure, minFractionDigits = 0),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        if (index < personalPortions.lastIndex || portionDrafts.isNotEmpty()) SectionCardDivider()
+                    }
+                    PortionDraftListView(
+                        drafts = portionDrafts,
+                        onDraftsChange = { viewModel.portionDrafts.value = it },
+                        focusedDraftId = focusedDraftId,
+                        onDelete = viewModel::onDeletePortionDraft,
+                        measure = measure,
+                    )
+                }
+                PortionDraftAddSection(
+                    drafts = portionDrafts,
+                    onAdd = { draft ->
+                        viewModel.portionDrafts.value = portionDrafts + draft
+                        focusedDraftId = draft.id
+                    },
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
             }
         }
     }

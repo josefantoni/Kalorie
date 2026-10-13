@@ -12,6 +12,9 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import antoni.kalorie.components.popTransitionSpec
+import antoni.kalorie.components.predictivePopTransitionSpec
+import antoni.kalorie.components.pushTransitionSpec
 import antoni.kalorie.core.auth.AuthProvider
 import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.networking.FirestoreDataProvider
@@ -68,6 +71,9 @@ class DashboardConfigurator {
         NavDisplay(
             backStack = viewModel.backStack,
             onBack = { viewModel.backStack.removeLastOrNull() },
+            transitionSpec = pushTransitionSpec<DashboardDestination>(),
+            popTransitionSpec = popTransitionSpec<DashboardDestination>(),
+            predictivePopTransitionSpec = predictivePopTransitionSpec<DashboardDestination>(),
             entryDecorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator(),

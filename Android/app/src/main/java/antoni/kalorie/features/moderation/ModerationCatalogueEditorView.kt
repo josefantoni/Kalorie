@@ -79,82 +79,77 @@ fun ModerationCatalogueEditorView(
 
     // MARK: - Body
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false),
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text(stringResource(R.string.moderation_editor_title)) },
-                    navigationIcon = {
-                        IconButton(onClick = onDismiss) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                        }
-                    },
-                    actions = {
-                        SaveToolbarButton(
-                            title = stringResource(R.string.moderation_button_save),
-                            showCheckmark = showCheckmark,
-                            isEnabled = loadedItem != null && !state.isLoading,
-                        ) {
-                            scope.launch { viewModel.onSaveTapped() }
-                        }
-                    },
-                )
-            },
-        ) { innerPadding ->
-            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    if (reports.isNotEmpty()) {
-                        Text(
-                            text = stringResource(R.string.moderation_reports_title),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
-                        )
-                        SectionCard {
-                            reports.forEachIndexed { index, report ->
-                                Text(
-                                    text = report.reason,
-                                    fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                                )
-                                if (index < reports.lastIndex) SectionCardDivider()
-                            }
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.moderation_editor_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
-                    if (!viewModel.isOpenedFromReport) {
-                        SectionCard(modifier = Modifier.padding(top = 8.dp)) {
-                            FloatingLabelTextField(
-                                title = stringResource(R.string.moderation_editor_searchPlaceholder),
-                                isUnderlineFullWidth = true,
-                                text = barcodeQuery,
-                                onTextChange = { viewModel.barcodeQuery.value = it },
-                                keyboardType = KeyboardType.Number,
-                                trailingButton = {
-                                    BadgeButton(icon = BarcodeIcon, onClick = { scope.launch { viewModel.onSearchTapped() } }, contentDescription = null)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
+                },
+                actions = {
+                    SaveToolbarButton(
+                        title = stringResource(R.string.moderation_button_save),
+                        showCheckmark = showCheckmark,
+                        isEnabled = loadedItem != null && !state.isLoading,
+                    ) {
+                        scope.launch { viewModel.onSaveTapped() }
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                if (reports.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.moderation_reports_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
+                    )
+                    SectionCard {
+                        reports.forEachIndexed { index, report ->
+                            Text(
+                                text = report.reason,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                             )
+                            if (index < reports.lastIndex) SectionCardDivider()
                         }
                     }
-                    if (loadedItem != null) {
-                        FoodItemFormSections(
-                            formInput = formInput,
-                            onFormInputChange = { viewModel.formInput.value = it },
-                            highlightedFields = recognizedFields,
-                            barcodeRow = if (viewModel.isOpenedFromReport) FoodItemFormBarcodeRow.Locked else FoodItemFormBarcodeRow.Hidden,
-                            showsAlcoholByVolumeField = true,
-                            onNutritionLabelScanTapped = if (viewModel.isOpenedFromReport) null else scannerAccess.open,
-                            onFieldEdited = viewModel::onFormFieldEdited,
+                }
+                if (!viewModel.isOpenedFromReport) {
+                    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                        FloatingLabelTextField(
+                            title = stringResource(R.string.moderation_editor_searchPlaceholder),
+                            isUnderlineFullWidth = true,
+                            text = barcodeQuery,
+                            onTextChange = { viewModel.barcodeQuery.value = it },
+                            keyboardType = KeyboardType.Number,
+                            trailingButton = {
+                                BadgeButton(icon = BarcodeIcon, onClick = { scope.launch { viewModel.onSearchTapped() } }, contentDescription = null)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
-                if (state.isLoading) {
-                    Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+                if (loadedItem != null) {
+                    FoodItemFormSections(
+                        formInput = formInput,
+                        onFormInputChange = { viewModel.formInput.value = it },
+                        highlightedFields = recognizedFields,
+                        barcodeRow = if (viewModel.isOpenedFromReport) FoodItemFormBarcodeRow.Locked else FoodItemFormBarcodeRow.Hidden,
+                        showsAlcoholByVolumeField = true,
+                        onNutritionLabelScanTapped = if (viewModel.isOpenedFromReport) null else scannerAccess.open,
+                        onFieldEdited = viewModel::onFormFieldEdited,
+                    )
+                }
+            }
+            if (state.isLoading) {
+                Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
         }
