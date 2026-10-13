@@ -1,6 +1,7 @@
 package antoni.kalorie.features.dashboard
 
 import android.content.BroadcastReceiver
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -10,9 +11,18 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.draganddrop.dragAndDropSource
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +38,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -58,6 +70,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -70,16 +83,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.DragAndDropTransferData
+import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
@@ -98,7 +123,9 @@ import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.Instant
 import kotlin.math.ceil
@@ -136,6 +163,11 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val fabInteractionSource = remember { MutableInteractionSource() }
     val isFabPressed by fabInteractionSource.collectIsPressedAsState()
     var fabLongPressFired by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    var hoveredSectionKey by remember { mutableStateOf<String?>(null) }
+    val haptic = LocalHapticFeedback.current
+    val moveFeedbackTrigger by viewModel.moveFeedbackTrigger.collectAsState()
+    val currentFoodsConsumed by rememberUpdatedState(foodsConsumed)
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
     LaunchedEffect(isFabPressed) {
@@ -144,6 +176,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
             fabLongPressFired = true
             viewModel.onSignInSpotlightDebugTriggered()
         }
+    }
+    val initialMoveFeedbackTrigger = remember { moveFeedbackTrigger }
+    LaunchedEffect(moveFeedbackTrigger) {
+        if (moveFeedbackTrigger != initialMoveFeedbackTrigger) haptic.performHapticFeedback(HapticFeedbackType.Confirm)
     }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { scope.launch { viewModel.onForeground() } }
     DayChangeEffect { scope.launch { viewModel.onForeground() } }
@@ -219,14 +255,35 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = FAB_CLEARANCE)) {
+                        LazyColumn(state = listState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = FAB_CLEARANCE)) {
                             if (foodsConsumed.isNotEmpty()) {
                                 item { MacroSummaryView(macros = dailyMacros) }
                             }
                             groupedFoods.forEachIndexed { index, group ->
-                                item {
+                                val sectionKey = group.mealType?.id ?: UNASSIGNED_SECTION_KEY
+                                val onDropped: (String) -> Boolean = { id ->
+                                    val mealType = group.mealType
+                                    val dropped = currentFoodsConsumed.firstOrNull { it.id == id }
+                                    if (mealType != null && dropped != null) {
+                                        viewModel.onFoodDropped(dropped, mealType)
+                                        true
+                                    } else {
+                                        false
+                                    }
+                                }
+                                item(key = "header-$sectionKey") {
+                                    val headerDropTarget = rememberMealDropTarget(
+                                        sectionKey = sectionKey,
+                                        onHoverChange = { hoveredSectionKey = it },
+                                        onDropped = onDropped,
+                                    )
                                     val sectionName = group.mealType?.name ?: stringResource(R.string.dashboard_section_unassignedFoods)
                                     SectionHeader(
+                                        modifier = if (group.mealType != null) {
+                                            Modifier.dragAndDropTarget(shouldStartDragAndDrop = ::isDraggedFood, target = headerDropTarget)
+                                        } else {
+                                            Modifier
+                                        },
                                         name = sectionName,
                                         foods = group.foods,
                                         isPopoverVisible = macroPopoverIndex == index,
@@ -244,8 +301,24 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                         },
                                     )
                                 }
-                                item {
-                                    SectionCard {
+                                item(key = "card-$sectionKey") {
+                                    val dropTarget = rememberMealDropTarget(
+                                        sectionKey = sectionKey,
+                                        onHoverChange = { hoveredSectionKey = it },
+                                        onDropped = onDropped,
+                                    )
+                                    SectionCard(
+                                        modifier = if (group.mealType != null) {
+                                            Modifier.dragAndDropTarget(shouldStartDragAndDrop = ::isDraggedFood, target = dropTarget)
+                                        } else {
+                                            Modifier
+                                        },
+                                        border = if (hoveredSectionKey == sectionKey && group.mealType != null) {
+                                            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                                        } else {
+                                            null
+                                        },
+                                    ) {
                                         group.foods.forEachIndexed { foodIndex, food ->
                                             key(food.id) {
                                                 SwipeToDeleteRow(
@@ -254,9 +327,16 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                                 ) {
                                                     FoodConsumedView(
                                                         food,
-                                                        modifier = Modifier.clickable {
-                                                            viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
-                                                        },
+                                                        modifier = Modifier
+                                                            .tapBeforeChildren {
+                                                                viewModel.backStack.add(DashboardDestination.FoodConsumedDetail(food))
+                                                            }
+                                                            .dragAndDropSource(
+                                                                transferData = {
+                                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                    DragAndDropTransferData(ClipData.newPlainText(DRAGGED_FOOD_LABEL, food.id))
+                                                                },
+                                                            ),
                                                     )
                                                 }
                                                 if (foodIndex < group.foods.lastIndex) SectionCardDivider()
@@ -266,6 +346,17 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                 }
                             }
                         }
+
+                        DragAutoscrollEdge(
+                            listState = listState,
+                            direction = -1f,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                        )
+                        DragAutoscrollEdge(
+                            listState = listState,
+                            direction = 1f,
+                            modifier = Modifier.align(Alignment.BottomCenter),
+                        )
 
                         if (foodsConsumed.isEmpty() && !state.isLoading) {
                             EmptyStateView(
@@ -376,6 +467,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
 
 @Composable
 private fun SectionHeader(
+    modifier: Modifier = Modifier,
     name: String,
     foods: List<FoodConsumedDomain>,
     isPopoverVisible: Boolean,
@@ -386,7 +478,7 @@ private fun SectionHeader(
 ) {
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 24.dp, top = 14.dp).height(22.dp),
+            modifier = modifier.fillMaxWidth().padding(start = 32.dp, end = 24.dp, top = 14.dp).height(22.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -456,6 +548,103 @@ fun SwipeToDeleteRow(
 }
 
 private val FAB_CLEARANCE = 88.dp
+private val AUTOSCROLL_EDGE = 72.dp
+private const val AUTOSCROLL_STEP_PX = 12f
+private const val UNASSIGNED_SECTION_KEY = "unassigned"
+private const val DRAGGED_FOOD_LABEL = "dragged-food-consumed"
+
+private fun Modifier.tapBeforeChildren(onTap: () -> Unit): Modifier = composed {
+    val currentOnTap by rememberUpdatedState(onTap)
+    val interactionSource = remember { MutableInteractionSource() }
+    indication(interactionSource, ripple()).semantics(mergeDescendants = true) {
+        onClick {
+            currentOnTap()
+            true
+        }
+    }.pointerInput(Unit) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+            val press = PressInteraction.Press(down.position)
+            interactionSource.tryEmit(press)
+            val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
+            interactionSource.tryEmit(if (up != null) PressInteraction.Release(press) else PressInteraction.Cancel(press))
+            if (
+                up != null &&
+                up.uptimeMillis - down.uptimeMillis < viewConfiguration.longPressTimeoutMillis &&
+                (up.position - down.position).getDistance() <= viewConfiguration.touchSlop
+            ) {
+                currentOnTap()
+            }
+        }
+    }
+}
+
+private fun isDraggedFood(event: DragAndDropEvent): Boolean = event.toAndroidDragEvent().clipDescription?.label == DRAGGED_FOOD_LABEL
+
+@Composable
+private fun rememberMealDropTarget(
+    sectionKey: String,
+    onHoverChange: (String?) -> Unit,
+    onDropped: (String) -> Boolean,
+): DragAndDropTarget {
+    val currentOnHoverChange by rememberUpdatedState(onHoverChange)
+    val currentOnDropped by rememberUpdatedState(onDropped)
+    return remember(sectionKey) {
+        object : DragAndDropTarget {
+            override fun onEntered(event: DragAndDropEvent) = currentOnHoverChange(sectionKey)
+
+            override fun onExited(event: DragAndDropEvent) = currentOnHoverChange(null)
+
+            override fun onEnded(event: DragAndDropEvent) = currentOnHoverChange(null)
+
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                currentOnHoverChange(null)
+                val id = event.toAndroidDragEvent().clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
+                return id != null && currentOnDropped(id)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DragAutoscrollEdge(listState: LazyListState, direction: Float, modifier: Modifier = Modifier) {
+    val scope = rememberCoroutineScope()
+    val target = remember {
+        object : DragAndDropTarget {
+            private var job: Job? = null
+
+            private fun stop() {
+                job?.cancel()
+                job = null
+            }
+
+            override fun onEntered(event: DragAndDropEvent) {
+                stop()
+                job = scope.launch {
+                    while (isActive) {
+                        listState.scrollBy(direction * AUTOSCROLL_STEP_PX)
+                        withFrameNanos {}
+                    }
+                }
+            }
+
+            override fun onExited(event: DragAndDropEvent) = stop()
+
+            override fun onEnded(event: DragAndDropEvent) = stop()
+
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                stop()
+                return false
+            }
+        }
+    }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(AUTOSCROLL_EDGE)
+            .dragAndDropTarget(shouldStartDragAndDrop = ::isDraggedFood, target = target),
+    )
+}
 private const val PULSE_INTERVAL_MILLIS = 3000L
 private const val PULSE_DURATION_MILLIS = 700
 private const val PULSE_SCALE = 1.2f

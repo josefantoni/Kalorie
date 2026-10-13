@@ -123,6 +123,7 @@
     <string name="dashboard_empty_title_past">Žádné snězené jídlo.</string>
     <string name="dashboard_error_copyFailed">Jídlo se nepodařilo zkopírovat.</string>
     <string name="dashboard_error_deleteFailed">Potravinu se nepodařilo smazat</string>
+    <string name="dashboard_error_moveFailed">Potravinu se nepodařilo přesunout</string>
     <string name="dashboard_section_unassignedFoods">Ostatní nezařazená jídla</string>
     <string name="dashboard_signInSpotlight_actionSignIn">Přihlásit se</string>
     <string name="dashboard_signInSpotlight_message">Po přihlášení zůstane tvůj deník zachovaný, i když telefon ztratíš nebo vyměníš, a najdeš ho i na jiném zařízení.</string>

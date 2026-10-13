@@ -7,6 +7,8 @@ import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderError
+import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseFake
+import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseProtocol
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCaseFake
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCaseProtocol
 import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseFake
@@ -417,6 +419,143 @@ class DashboardViewModelTest {
         assertEquals("a confirmed delete must refetch the day so the removed entry disappears", listOf("f2"), sut.foodsConsumed.value.map { it.id })
         assertNull(sut.alertItem.value)
         assertSingleDayReload(range, month, sut.selectedDay.value)
+    }
+
+    @Test
+    fun onFoodMoved_ontoTheSectionItAlreadyResolvesTo_writesNothing() = runTest {
+        val breakfast = makeMealType(id = 0, hour = 6, endHour = 9)
+        val food = makeFood(id = "f1", hour = 7)
+        val assign = AssignFoodMealTypeUseCaseFake()
+        val sut = makeSUT(assignFoodMealType = assign)
+        sut.mealTypes.value = listOf(breakfast)
+        sut.foodsConsumed.value = listOf(food)
+
+        sut.onFoodMoved(food, breakfast)
+
+        assertTrue("a write here would pin an unpinned entry and freeze it against future window edits", assign.calls.isEmpty())
+        assertEquals(0, sut.moveFeedbackTrigger.value)
+    }
+
+    @Test
+    fun onFoodMoved_toAnotherMeal_movesTheEntryImmediatelyAndWritesTheTargetId() = runTest {
+        val breakfast = makeMealType(id = 0, hour = 6, endHour = 8)
+        val secondBreakfast = makeMealType(id = 1, hour = 8, endHour = 11)
+        val food = makeFood(id = "f1", hour = 9)
+        val assign = AssignFoodMealTypeUseCaseFake()
+        val sut = makeSUT(
+            fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(breakfast, secondBreakfast)),
+            fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(food)),
+            assignFoodMealType = assign,
+        )
+        sut.onAppear()
+
+        sut.onFoodMoved(food, breakfast)
+
+        assertEquals("the entry must sit in the target section without waiting for a reload", listOf("0"), sut.groupedFoods.map { it.mealType?.id })
+        assertEquals(listOf("0"), assign.calls.map { it.second })
+        assertEquals(1, sut.moveFeedbackTrigger.value)
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onFoodMoved_lastEntryOfASection_removesThatSection() = runTest {
+        val breakfast = makeMealType(id = 0, hour = 6, endHour = 8)
+        val secondBreakfast = makeMealType(id = 1, hour = 8, endHour = 11)
+        val early = makeFood(id = "f1", hour = 7)
+        val late = makeFood(id = "f2", hour = 9)
+        val sut = makeSUT(
+            fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(breakfast, secondBreakfast)),
+            fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(early, late)),
+        )
+        sut.onAppear()
+        assertEquals(2, sut.groupedFoods.size)
+
+        sut.onFoodMoved(late, breakfast)
+
+        assertEquals("an emptied section disappearing is the user-visible promise of the move", listOf("0"), sut.groupedFoods.map { it.mealType?.id })
+    }
+
+    @Test
+    fun onFoodMoved_fromUnassigned_pinsTheEntryAndDropsTheUnassignedSection() = runTest {
+        val breakfast = makeMealType(id = 0, hour = 6, endHour = 7)
+        val food = makeFood(id = "f1", hour = 20)
+        val assign = AssignFoodMealTypeUseCaseFake()
+        val sut = makeSUT(
+            fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(breakfast)),
+            fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(food)),
+            assignFoodMealType = assign,
+        )
+        sut.onAppear()
+        assertEquals(listOf<String?>(null), sut.groupedFoods.map { it.mealType?.id })
+
+        sut.onFoodMoved(food, breakfast)
+
+        assertEquals(listOf<String?>("0"), sut.groupedFoods.map { it.mealType?.id })
+        assertEquals(listOf("0"), assign.calls.map { it.second })
+    }
+
+    @Test
+    fun onFoodMoved_whenWriteFails_putsTheEntryBackAndShowsAlert() = runTest {
+        val breakfast = makeMealType(id = 0, hour = 6, endHour = 8)
+        val secondBreakfast = makeMealType(id = 1, hour = 8, endHour = 11)
+        val food = makeFood(id = "f1", hour = 9)
+        val range = FetchFoodsConsumedInRangeUseCaseSpy()
+        val sut = makeSUT(
+            fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(breakfast, secondBreakfast)),
+            fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(food)),
+            fetchFoodsConsumedInRange = range,
+            assignFoodMealType = AssignFoodMealTypeUseCaseFake(shouldThrow = true),
+        )
+        sut.onAppear()
+
+        sut.onFoodMoved(food, breakfast)
+
+        assertEquals("a failed write must not leave the row in a section the server does not know about", listOf("1"), sut.groupedFoods.map { it.mealType?.id })
+        assertEquals(R.string.dashboard_error_moveFailed, sut.alertItem.value?.titleRes)
+        assertTrue("the revert is local, not a reload", range.ranges.isEmpty())
+    }
+
+    @Test
+    fun onFoodMoved_whenAnEarlierWriteFailsAfterALaterMove_keepsTheLaterMove() = runTest {
+        val breakfast = makeMealType(id = 0, hour = 6, endHour = 8)
+        val secondBreakfast = makeMealType(id = 1, hour = 8, endHour = 11)
+        val lunch = makeMealType(id = 2, hour = 11, endHour = 14)
+        val food = makeFood(id = "f1", hour = 9)
+        val assign = AssignFoodMealTypeUseCaseFake(shouldThrow = true)
+        val sut = makeSUT(
+            fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(breakfast, secondBreakfast, lunch)),
+            fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(food)),
+            assignFoodMealType = assign,
+        )
+        sut.onAppear()
+        assign.beforeResult = {
+            assign.shouldThrow = false
+            sut.onFoodMoved(sut.foodsConsumed.value.first(), lunch)
+            assign.shouldThrow = true
+        }
+
+        sut.onFoodMoved(food, breakfast)
+
+        assertEquals("a failure of an earlier write must not undo a later move the server accepted", listOf<String?>("2"), sut.groupedFoods.map { it.mealType?.id })
+        assertEquals(R.string.dashboard_error_moveFailed, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onFoodMoved_keepsTheDayTotalUnchanged() = runTest {
+        val breakfast = makeMealType(id = 0, hour = 6, endHour = 8)
+        val secondBreakfast = makeMealType(id = 1, hour = 8, endHour = 11)
+        val early = makeFood(id = "f1", hour = 7)
+        val late = makeFood(id = "f2", hour = 9)
+        val sut = makeSUT(
+            fetchMealTypes = FetchMealTypesUseCaseFake(stubbedTypes = listOf(breakfast, secondBreakfast)),
+            fetchFoodsConsumedForMonth = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods = listOf(early, late)),
+        )
+        sut.onAppear()
+        val before = sut.dailyMacros.calories
+
+        sut.onFoodMoved(late, breakfast)
+
+        assertEquals("every entry sits in exactly one section, so a move never changes the day total", before, sut.dailyMacros.calories)
     }
 
     @Test
@@ -993,6 +1132,7 @@ class DashboardViewModelTest {
         confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult = true),
         deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
         copyFoodsConsumed: CopyFoodsConsumedUseCaseProtocol = CopyFoodsConsumedUseCaseFake(),
+        assignFoodMealType: AssignFoodMealTypeUseCaseProtocol = AssignFoodMealTypeUseCaseFake(),
         authProvider: AuthProviderProtocol = AuthProviderFake(),
         signInSpotlightStore: SignInSpotlightStoreProtocol = SignInSpotlightStoreFake(),
         now: Instant = Instant.now(),
@@ -1004,6 +1144,7 @@ class DashboardViewModelTest {
         confirmMealTypesEmpty = confirmMealTypesEmpty,
         deleteFoodConsumed = deleteFoodConsumed,
         copyFoodsConsumed = copyFoodsConsumed,
+        assignFoodMealType = assignFoodMealType,
         authProvider = authProvider,
         signInSpotlightStore = signInSpotlightStore,
         now = { now },
