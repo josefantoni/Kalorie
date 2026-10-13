@@ -184,28 +184,7 @@ struct DashboardView: View {
 
             VStack(spacing: 0) {
                 ForEach(Array(group.foods.enumerated()), id: \.element.id) { foodIndex, food in
-                    RevealingSwipeToDeleteRow(id: food.id, openRowId: $openSwipeRowId) {
-                        viewModel.onDeleteRequested(food)
-                    } content: {
-                        NavigationLink(value: food) {
-                            HStack(spacing: 12) {
-                                FoodConsumedView(food)
-                                Image(systemName: BaseImageName.chevronRight.rawValue)
-                                    .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 15)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .allowsHitTesting(openSwipeRowId == nil)
-                        .onDrag {
-                            DraggedFoodConsumed(id: food.id).itemProvider
-                        } preview: {
-                            FoodConsumedView(food)
-                        }
-                    }
+                    foodRow(food)
                     if foodIndex < group.foods.count - 1 {
                         Divider().padding(.horizontal, 16)
                     }
@@ -234,6 +213,31 @@ struct DashboardView: View {
             guard let mealType = group.mealType else { return false }
             viewModel.onFoodsDropped(providers, on: mealType)
             return true
+        }
+    }
+
+    private func foodRow(_ food: FoodConsumedDomain) -> some View {
+        RevealingSwipeToDeleteRow(id: food.id, openRowId: $openSwipeRowId) {
+            viewModel.onDeleteRequested(food)
+        } content: {
+            NavigationLink(value: food) {
+                HStack(spacing: 12) {
+                    FoodConsumedView(food)
+                    Image(systemName: BaseImageName.chevronRight.rawValue)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 15)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .allowsHitTesting(openSwipeRowId == nil)
+            .onDrag {
+                DraggedFoodConsumed(id: food.id).itemProvider
+            } preview: {
+                FoodConsumedView(food)
+            }
         }
     }
 
