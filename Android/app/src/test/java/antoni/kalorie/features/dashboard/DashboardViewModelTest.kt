@@ -513,6 +513,7 @@ class DashboardViewModelTest {
         assertEquals("a failed write must not leave the row in a section the server does not know about", listOf("1"), sut.groupedFoods.map { it.mealType?.id })
         assertEquals(R.string.dashboard_error_moveFailed, sut.alertItem.value?.titleRes)
         assertTrue("the revert is local, not a reload", range.ranges.isEmpty())
+        assertEquals("a failed move must not feel like a success", 0, sut.moveFeedbackTrigger.value)
     }
 
     @Test

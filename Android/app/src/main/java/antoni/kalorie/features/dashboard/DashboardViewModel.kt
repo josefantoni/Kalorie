@@ -252,7 +252,6 @@ class DashboardViewModel(
     suspend fun onFoodMoved(food: FoodConsumedDomain, mealType: MealTypeDomain) {
         if (mealTypes.value.resolvedMealTypeId(food) == mealType.id) return
         replaceInCache(food.copy(mealTypeId = mealType.id))
-        _moveFeedbackTrigger.value += 1
         perform(
             onFailure = {
                 if (cachedFood(food)?.mealTypeId == mealType.id) replaceInCache(food)
@@ -260,6 +259,7 @@ class DashboardViewModel(
             },
         ) {
             assignFoodMealType(food, mealTypeId = mealType.id)
+            _moveFeedbackTrigger.value += 1
         }
     }
 
