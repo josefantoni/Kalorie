@@ -444,6 +444,19 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onSelectResult_whenExternalFrequencyCandidate_refreshesStaleSnapshotBeforeSelecting() async {
+        let stale = makeFoodItem(id: "ext", czName: "Mléko", kind: .external)
+        let fresh = makeFoodItem(id: "ext", czName: "Mléko z katalogu")
+        let sut = makeSUT(
+            refreshFavouriteFood: RefreshFavouriteFoodUseCaseFake(stubbedItem: fresh),
+            fetchFoodFrequency: FetchFoodFrequencyUseCaseFake(stubbedEntries: ["ext": FoodFrequencyEntry(count: 1, lastLoggedAt: .now, item: stale)])
+        )
+        await sut.onAppear()
+        await sut.onSelectResult(stale)
+        XCTAssertEqual(sut.selectedFoodItem, fresh)
+    }
+
+    @MainActor
     func test_onSelectResult_whenFoodCameFromTheCatalogueQuery_selectsItAsIs() async {
         let item = makeFoodItem(id: "cat", czName: "Mléko")
         let sut = makeSUT(

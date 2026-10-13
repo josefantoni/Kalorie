@@ -37,11 +37,34 @@ final class RefreshFavouriteFoodUseCaseTests: XCTestCase {
         XCTAssertNil(dataProvider.savedDTO)
     }
 
-    func test_refresh_whenItemIsNotFromCatalogue_doesNotReadOrWrite() async throws {
+    func test_refresh_whenExternalItemNowExistsInCatalogue_returnsCatalogueItemAndRewritesFavouriteKeepingFavouritedAt() async throws {
         let external = makeItem(kind: .external)
-        let (sut, dataProvider) = makeSUT(catalogue: FoodItemDTO(item: makeItem(calories: 1)), favourite: nil)
+        let portions = [FoodPortionDomain(name: "1 kus", grams: 55)]
+        let (sut, dataProvider) = makeSUT(
+            catalogue: FoodItemDTO(item: makeItem(calories: 140, portions: portions)),
+            favourite: FavouriteFoodDTO(item: external, favouritedAt: Date(timeIntervalSince1970: 1_000))
+        )
+        let result = try await sut(external)
+        XCTAssertEqual(result.kind, .catalogue)
+        XCTAssertEqual(result.portions, portions)
+        XCTAssertEqual(dataProvider.savedToCollection, "users/test-user/favouriteFoods")
+        XCTAssertEqual(dataProvider.savedDTO?.foodItemKind, .catalogue)
+        XCTAssertEqual(dataProvider.savedDTO?.favouritedAt, 1_000)
+    }
+
+    func test_refresh_whenExternalItemIsNotInCatalogue_returnsInputWithoutWriting() async throws {
+        let external = makeItem(kind: .external)
+        let (sut, dataProvider) = makeSUT(catalogue: nil, favourite: FavouriteFoodDTO(item: external, favouritedAt: .now))
         let result = try await sut(external)
         XCTAssertEqual(result, external)
+        XCTAssertNil(dataProvider.savedDTO)
+    }
+
+    func test_refresh_whenItemIsCreatedMeal_doesNotReadOrWrite() async throws {
+        let meal = makeItem(kind: .createdMeal)
+        let (sut, dataProvider) = makeSUT(catalogue: FoodItemDTO(item: makeItem(calories: 1)), favourite: nil)
+        let result = try await sut(meal)
+        XCTAssertEqual(result, meal)
         XCTAssertEqual(dataProvider.loadedIds, [])
         XCTAssertNil(dataProvider.savedDTO)
     }
@@ -84,7 +107,7 @@ final class RefreshFavouriteFoodUseCaseTests: XCTestCase {
         return (sut, dataProvider)
     }
 
-    private func makeItem(kind: FoodItemKind = .catalogue, calories: Double = 155) -> FoodItemDomain {
+    private func makeItem(kind: FoodItemKind = .catalogue, calories: Double = 155, portions: [FoodPortionDomain] = []) -> FoodItemDomain {
         FoodItemDomain(
             id: "12345",
             kind: kind,
@@ -101,7 +124,8 @@ final class RefreshFavouriteFoodUseCaseTests: XCTestCase {
             carbohydratePureSugar: 0,
             fiber: 0,
             protein: 13,
-            salt: 0.3
+            salt: 0.3,
+            portions: portions
         )
     }
 }

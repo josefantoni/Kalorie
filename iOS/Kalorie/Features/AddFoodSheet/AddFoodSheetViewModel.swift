@@ -528,7 +528,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     @MainActor
     func onSelectResult(_ item: FoodItemDomain) async {
         guard
-            item.kind == .catalogue,
+            item.kind != .createdMeal,
             foodFrequency[item.id] != nil,
             !favouriteIds.contains(item.id),
             !localFoodItems.contains(where: { $0.id == item.id }),
