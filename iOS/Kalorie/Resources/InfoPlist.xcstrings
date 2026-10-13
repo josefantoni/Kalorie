@@ -25,6 +25,22 @@
         }
       }
     },
+    "Kalorie consumed food entry" : {
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Záznam snězené potraviny v Kalorie"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie consumed food entry"
+          }
+        }
+      }
+    },
     "NSCameraUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {

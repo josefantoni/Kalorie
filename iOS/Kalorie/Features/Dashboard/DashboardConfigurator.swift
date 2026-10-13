@@ -23,6 +23,7 @@ struct DashboardConfigurator {
                 confirmMealTypesEmpty: ConfirmMealTypesEmptyUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteFoodConsumed: DeleteFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 copyFoodsConsumed: CopyFoodsConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                assignFoodMealType: AssignFoodMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 authProvider: authProvider,
                 signInSpotlightStore: SignInSpotlightStore()
             ),

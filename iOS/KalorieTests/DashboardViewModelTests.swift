@@ -434,6 +434,188 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.alertItem)
     }
 
+    @MainActor
+    func test_onFoodMoved_ontoTheSectionItAlreadyResolvesTo_writesNothing() async {
+        let breakfast = makeMealType(id: 0, hour: 6, endHour: 9)
+        let food = makeFood(id: "f1", hour: 7)
+        let assign = AssignFoodMealTypeUseCaseFake()
+        let sut = makeSUT(assignFoodMealType: assign)
+        sut.mealTypes = [breakfast]
+        sut.foodsConsumed = [food]
+
+        await sut.onFoodMoved(food, to: breakfast)
+
+        XCTAssertTrue(assign.calls.isEmpty, "a write here would pin an unpinned entry and freeze it against future window edits")
+        XCTAssertEqual(sut.moveFeedbackTrigger, 0)
+    }
+
+    @MainActor
+    func test_onFoodMoved_toAnotherMeal_movesTheEntryImmediatelyAndWritesTheTargetId() async {
+        let breakfast = makeMealType(id: 0, hour: 6, endHour: 8)
+        let secondBreakfast = makeMealType(id: 1, hour: 8, endHour: 11)
+        let food = makeFood(id: "f1", hour: 9)
+        let assign = AssignFoodMealTypeUseCaseFake()
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [food])
+        let sut = makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [breakfast, secondBreakfast]),
+            fetchFoodsConsumedForMonth: month,
+            assignFoodMealType: assign
+        )
+        await sut.onAppear()
+
+        await sut.onFoodMoved(food, to: breakfast)
+
+        XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, ["0"], "the entry must sit in the target section without waiting for a reload")
+        XCTAssertEqual(assign.calls.map(\.mealTypeId), ["0"])
+        XCTAssertEqual(sut.moveFeedbackTrigger, 1)
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onFoodMoved_lastEntryOfASection_removesThatSection() async {
+        let breakfast = makeMealType(id: 0, hour: 6, endHour: 8)
+        let secondBreakfast = makeMealType(id: 1, hour: 8, endHour: 11)
+        let early = makeFood(id: "f1", hour: 7)
+        let late = makeFood(id: "f2", hour: 9)
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [early, late])
+        let sut = makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [breakfast, secondBreakfast]),
+            fetchFoodsConsumedForMonth: month
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.groupedFoods.count, 2)
+
+        await sut.onFoodMoved(late, to: breakfast)
+
+        XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, ["0"], "an emptied section disappearing is the user-visible promise of the move")
+    }
+
+    @MainActor
+    func test_onFoodMoved_fromUnassigned_pinsTheEntryAndDropsTheUnassignedSection() async {
+        let breakfast = makeMealType(id: 0, hour: 6, endHour: 7)
+        let food = makeFood(id: "f1", hour: 20)
+        let assign = AssignFoodMealTypeUseCaseFake()
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [food])
+        let sut = makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [breakfast]),
+            fetchFoodsConsumedForMonth: month,
+            assignFoodMealType: assign
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, [nil])
+
+        await sut.onFoodMoved(food, to: breakfast)
+
+        XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, ["0"])
+        XCTAssertEqual(assign.calls.map(\.mealTypeId), ["0"])
+    }
+
+    @MainActor
+    func test_onFoodMoved_whenWriteFails_putsTheEntryBackAndShowsAlert() async {
+        let breakfast = makeMealType(id: 0, hour: 6, endHour: 8)
+        let secondBreakfast = makeMealType(id: 1, hour: 8, endHour: 11)
+        let food = makeFood(id: "f1", hour: 9)
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [food])
+        let range = FetchFoodsConsumedInRangeUseCaseFake()
+        let sut = makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [breakfast, secondBreakfast]),
+            fetchFoodsConsumedForMonth: month,
+            fetchFoodsConsumedInRange: range,
+            assignFoodMealType: AssignFoodMealTypeUseCaseFake(shouldThrow: true)
+        )
+        await sut.onAppear()
+
+        await sut.onFoodMoved(food, to: breakfast)
+
+        XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, ["1"], "a failed write must not leave the row in a section the server does not know about")
+        XCTAssertNotNil(sut.alertItem)
+        XCTAssertTrue(range.calls.isEmpty, "the revert is local, not a reload")
+    }
+
+    @MainActor
+    func test_onFoodMoved_whenAnEarlierWriteFailsAfterALaterMove_keepsTheLaterMove() async {
+        let breakfast = makeMealType(id: 0, hour: 6, endHour: 8)
+        let secondBreakfast = makeMealType(id: 1, hour: 8, endHour: 11)
+        let lunch = makeMealType(id: 2, hour: 11, endHour: 14)
+        let food = makeFood(id: "f1", hour: 9)
+        let assign = AssignFoodMealTypeUseCaseFake(shouldThrow: true)
+        let sut = makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [breakfast, secondBreakfast, lunch]),
+            fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [food]),
+            assignFoodMealType: assign
+        )
+        await sut.onAppear()
+        assign.beforeResult = {
+            assign.shouldThrow = false
+            await sut.onFoodMoved(sut.foodsConsumed[0], to: lunch)
+            assign.shouldThrow = true
+        }
+
+        await sut.onFoodMoved(food, to: breakfast)
+
+        XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, ["2"], "a failure of an earlier write must not undo a later move the server accepted")
+        XCTAssertNotNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onFoodsDropped_withTheDraggedEntry_movesItToTheTargetMeal() async {
+        let breakfast = makeMealType(id: 0, hour: 6, endHour: 8)
+        let secondBreakfast = makeMealType(id: 1, hour: 8, endHour: 11)
+        let food = makeFood(id: "f1", hour: 9)
+        let assign = AssignFoodMealTypeUseCaseFake()
+        let sut = makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [breakfast, secondBreakfast]),
+            fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [food]),
+            assignFoodMealType: assign
+        )
+        await sut.onAppear()
+
+        sut.onFoodsDropped([DraggedFoodConsumed(id: "f1").itemProvider], on: breakfast)
+        await waitUntil { !assign.calls.isEmpty }
+
+        XCTAssertEqual(assign.calls.map(\.mealTypeId), ["0"])
+        XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, ["0"])
+    }
+
+    @MainActor
+    func test_onFoodsDropped_withAnIdOfNoEntryOnTheDay_writesNothing() async {
+        let breakfast = makeMealType(id: 0, hour: 6, endHour: 8)
+        let secondBreakfast = makeMealType(id: 1, hour: 8, endHour: 11)
+        let food = makeFood(id: "f1", hour: 9)
+        let assign = AssignFoodMealTypeUseCaseFake()
+        let sut = makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [breakfast, secondBreakfast]),
+            fetchFoodsConsumedForMonth: FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [food]),
+            assignFoodMealType: assign
+        )
+        await sut.onAppear()
+
+        sut.onFoodsDropped([DraggedFoodConsumed(id: "unknown").itemProvider], on: breakfast)
+        await waitUntil(timeout: 0.3) { !assign.calls.isEmpty }
+
+        XCTAssertTrue(assign.calls.isEmpty)
+        XCTAssertEqual(sut.groupedFoods.map { $0.mealType?.id }, ["1"])
+    }
+
+    @MainActor
+    func test_onFoodMoved_keepsTheDayTotalUnchanged() async {
+        let breakfast = makeMealType(id: 0, hour: 6, endHour: 8)
+        let secondBreakfast = makeMealType(id: 1, hour: 8, endHour: 11)
+        let early = makeFood(id: "f1", hour: 7)
+        let late = makeFood(id: "f2", hour: 9)
+        let month = FetchFoodsConsumedForMonthUseCaseFake(stubbedFoods: [early, late])
+        let sut = makeSUT(
+            fetchMealTypes: FetchMealTypesUseCaseFake(stubbedTypes: [breakfast, secondBreakfast]),
+            fetchFoodsConsumedForMonth: month
+        )
+        await sut.onAppear()
+        let before = sut.dailyMacros.calories
+
+        await sut.onFoodMoved(late, to: breakfast)
+
+        XCTAssertEqual(sut.dailyMacros.calories, before, "every entry sits in exactly one section, so a move never changes the day total")
+    }
+
     func test_onCopyRequested_opensTheBoxOnTodayAndTheWindowTheCurrentTimeFallsIn() {
         let sut = makeSUT()
         let wholeDay = makeMealType(id: 0, hour: 0, endHour: 24)
@@ -772,6 +954,13 @@ final class DashboardViewModelTests: XCTestCase {
         }
     }
 
+    private func waitUntil(timeout: TimeInterval = 2, _ condition: () -> Bool) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() && Date() < deadline {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+    }
+
     private func makeSUT(
         fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
         fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol = FetchFoodsConsumedForMonthUseCaseFake(),
@@ -780,6 +969,7 @@ final class DashboardViewModelTests: XCTestCase {
         confirmMealTypesEmpty: any ConfirmMealTypesEmptyUseCaseProtocol = ConfirmMealTypesEmptyUseCaseFake(stubbedResult: true),
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
         copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol = CopyFoodsConsumedUseCaseFake(),
+        assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol = AssignFoodMealTypeUseCaseFake(),
         authProvider: any AuthProviderProtocol = AuthProviderFake(),
         signInSpotlightStore: any SignInSpotlightStoreProtocol = SignInSpotlightStoreFake(),
         now: @escaping () -> Date = { Date.now }
@@ -792,6 +982,7 @@ final class DashboardViewModelTests: XCTestCase {
             confirmMealTypesEmpty: confirmMealTypesEmpty,
             deleteFoodConsumed: deleteFoodConsumed,
             copyFoodsConsumed: copyFoodsConsumed,
+            assignFoodMealType: assignFoodMealType,
             authProvider: authProvider,
             signInSpotlightStore: signInSpotlightStore,
             now: now
