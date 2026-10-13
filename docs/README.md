@@ -212,6 +212,7 @@ understanding why.
 | [0021](design/0021-privacy-policy.md) | Privacy policy | Proposed | Cross-platform, Backend, iOS, Android |
 | [0022](design/0022-food-photos.md) | Food photos | Approved | Backend, Cross-platform, iOS, Android |
 | [0023](design/0023-support-development-tips.md) | Support development with in-app tips | Proposed | Cross-platform, iOS, Android |
+| [0024](design/0024-move-entry-between-meals-by-drag.md) | Moving a logged entry to another meal by dragging it | Approved | Cross-platform, iOS, Android |
 
 ### Decision records
 

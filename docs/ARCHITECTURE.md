@@ -203,7 +203,7 @@ backfilled.
 weight**, already scaled, not per 100 g; `calories` is an `Int`. `food_item_id` points back at
 the catalogue entry and is required (no optional, no backfill — see `TODO.md`), and
 `food_item_kind` says what it points at: `catalogue` (a `foodItems` document), `external` (an
-OpenFoodFacts barcode that resolves against nothing — ADR 0012) or `created_meal` (a
+OpenFoodFacts barcode that did not resolve against `foodItems` when it was selected — ADR 0012, ADR 0044) or `created_meal` (a
 `myCreatedMeals` UUID). It is required for the same reason `food_item_id` is, and an absent or
 unrecognised value fails the whole day's fetch — see
 [ADR 0025](adr/0025-food-item-kind-discriminates-entry-origin.md). This DTO's
@@ -229,7 +229,8 @@ the suffixes of the `defaultMeals_*` strings (§ 3.4).
 **`favouriteFoods`** (`FavouriteFoodDTO`) — a full copy of the `FoodItemDomain` plus
 `favourited_at`, `portions` included — leaving it out would silently drop a favourited item's
 canonical portions, inconsistent with every other copied field. The snapshot is refreshed from the catalogue when the
-favourite is tapped (`RefreshFavouriteFoodUseCase`, `.catalogue` items only, rewritten only if it
+favourite is tapped (`RefreshFavouriteFoodUseCase`, every kind except `created_meal` — an `external` item that has since
+entered the catalogue is upgraded to it, [ADR 0044](adr/0044-external-favourites-are-upgraded-when-the-food-enters-the-catalogue.md) — rewritten only if it
 differs, `favourited_at` kept, any failure falls back to the stored copy). The document id is the food's own id, and
 `food_item_kind` says which of the three things that id is, exactly as on `foodConsumed`
 (ADR 0025) — required here too. Also carries `measure_unit`, for the same reason `portions` is
@@ -618,7 +619,7 @@ Favourites stay first and are sorted by log count. Lists 2–5 are merged, dedup
 stably sorted by `count` descending, then by the more recent `last_logged_at`; foods never logged
 keep the order above beneath every counted food ([design 0020](design/0020-search-ranked-by-log-frequency.md)).
 The counts are read once in `onAppear` (`FetchFoodFrequencyUseCase`), so ranking costs one read per
-sheet opening. Tapping a catalogue candidate goes through `onSelectResult`, which refreshes the
+sheet opening. Tapping a catalogue or `external` candidate goes through `onSelectResult`, which refreshes the
 stored snapshot with `RefreshFavouriteFoodUseCase` before the quantity screen opens.
 
 A created-meal row carries a trailing chevron and a swipe-to-delete with confirmation. Editing happens on the meal's quantity screen instead (§ 4.2): a pencil in the leading toolbar pushes `MyCreatedMealEditorView`, and a *Delete meal* button closes the list. Those two places are the only ones where created meals are edited or deleted ([design 0006](design/0006-own-daily-meals.md), *Update — 2026-09-19*).
@@ -857,7 +858,9 @@ minimum-length rules a second client must match when creating a meal type),
 [ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) (meal resolution
 lives in `MealKit`, over minutes),
 [design 0016](design/0016-copy-meal-to-another-window.md) (copying a section into another window and
-day — § 3.8).
+day — § 3.8),
+[design 0024](design/0024-move-entry-between-meals-by-drag.md) (moving an entry to another meal by
+dragging it — § 3.7a).
 
 ### 3.1 What the Dashboard is
 
@@ -1045,7 +1048,8 @@ what that leaves stale, is in
 
 ### 3.7 Deleting a logged entry
 
-A trailing swipe on a food row calls `onDeleteRequested`, which stages the entry in
+A trailing swipe on a food row reveals a delete button (`RevealingSwipeToDeleteRow` on both clients;
+only one row is open at a time); tapping it calls `onDeleteRequested`, which stages the entry in
 `foodPendingDeletion` and raises a confirmation alert; `onDeleteConfirmed` then calls
 `DeleteFoodConsumedUseCase` — a single `deleteAsync(id:from:)` against the user's `foodConsumed`
 collection — invalidates the day's month cache entry and reloads it, exactly as the update path
@@ -1060,6 +1064,28 @@ This path did not exist when [design 0006](design/0006-own-daily-meals.md) was w
 fourth argument for Variant A — *"Variant B would therefore let one tap deposit eight permanently
 unremovable rows"* — is no longer true. The design doc is frozen and stays as written; the
 decision it reached still stands, since its other three arguments are untouched.
+
+### 3.7a Moving a logged entry to another meal
+
+**Cross-platform** ([design 0024](design/0024-move-entry-between-meals-by-drag.md)). A long press
+on a food row starts a drag; releasing it over another meal's section card pins the entry to that
+meal type through `AssignFoodMealTypeUseCase` — the same write the detail screen's picker does
+(§ 3.2), so `date` is never touched and the entry sorts by `date` inside the target section.
+
+- `onFoodMoved(food, to:)` does nothing when the entry already resolves to the target. Otherwise
+  it replaces the entry in the month cache slot keyed by the entry's own `date`, bumps
+  `moveFeedbackTrigger` (success haptic), then writes. There is no reload on success; on failure
+  the original entry is restored in the same slot and `errorMoveFailed` is shown.
+- Only sections with a meal type are drop targets; *Unassigned* is not, since that would mean
+  clearing the pin. Moving across days is not possible.
+- iOS carries the entry id in a `DraggedFoodConsumed` item provider (`UTType`
+  `antoni.Kalorie.food-consumed`, exported in `Info.plist`, `.ownProcess` visibility), received by
+  `onFoodsDropped`. Android carries it as plain-text `ClipData` without `DRAG_FLAG_GLOBAL`. Both
+  keep the drag inside the app.
+- To make this possible the iOS dashboard is a `ScrollView` + `LazyVStack` of section cards rather
+  than a `List`, because a `List` row could not be dragged into another section.
+- The list scrolls while a row is dragged near its top or bottom edge, so a section off screen can
+  be reached.
 
 ### 3.8 Copying a section into another window and day
 
