@@ -199,6 +199,7 @@ struct DashboardView: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .allowsHitTesting(openSwipeRowId == nil)
                         .onDrag {
                             DraggedFoodConsumed(id: food.id).itemProvider
                         } preview: {
