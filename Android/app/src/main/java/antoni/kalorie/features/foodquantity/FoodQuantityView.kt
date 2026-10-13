@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -253,7 +253,7 @@ private fun FoodQuantityContent(
                                         quantityText = sanitized
                                         viewModel.quantity.value = sanitized.replace(',', '.').toDoubleOrNull() ?: 0.0
                                     },
-                                    modifier = Modifier.width(96.dp),
+                                    modifier = Modifier.widthIn(min = 30.dp, max = 96.dp).weight(1f),
                                 )
                                 Text(
                                     text = "×",

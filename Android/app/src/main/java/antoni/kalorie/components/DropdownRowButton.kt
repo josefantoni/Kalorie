@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 // MARK: - Body
@@ -30,7 +31,14 @@ fun DropdownRowButton(text: String, onClick: () -> Unit) {
             .padding(start = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
+        )
         // The glyph has a 7dp transparent margin on each side; trim it so the triangle sits 5dp from the text and flush with the trailing edge.
         Icon(
             Icons.Filled.ArrowDropDown,
@@ -38,7 +46,7 @@ fun DropdownRowButton(text: String, onClick: () -> Unit) {
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.layout { measurable, constraints ->
                 val placeable = measurable.measure(constraints)
-                layout(placeable.width - 9.dp.roundToPx(), placeable.height) {
+                layout((placeable.width - 9.dp.roundToPx()).coerceAtLeast(0), placeable.height) {
                     placeable.place(-2.dp.roundToPx(), 0)
                 }
             },
