@@ -21,7 +21,7 @@ struct RemoteFoodImage<Content: View>: View {
     let loader: RemoteImageLoader
     let content: (RemoteFoodImagePhase) -> Content
 
-    @State private var phase: RemoteFoodImagePhase = .loading
+    @State private var phase: RemoteFoodImagePhase
 
     // MARK: - Init
 
@@ -33,6 +33,11 @@ struct RemoteFoodImage<Content: View>: View {
         self.url = url
         self.loader = loader
         self.content = content
+        if let cached = loader.cachedImage(for: url) {
+            _phase = State(initialValue: .success(Image(uiImage: cached)))
+        } else {
+            _phase = State(initialValue: .loading)
+        }
     }
 
     // MARK: - Body
@@ -45,7 +50,7 @@ struct RemoteFoodImage<Content: View>: View {
     // MARK: - Functions
 
     private func load() async {
-        phase = .loading
+        if loader.cachedImage(for: url) == nil { phase = .loading }
         do {
             phase = .success(Image(uiImage: try await loader.load(url)))
         } catch is CancellationError {
