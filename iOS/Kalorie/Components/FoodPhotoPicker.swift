@@ -25,7 +25,6 @@ struct FoodPhotoPicker: View {
     @State private var isCameraDeniedAlertVisible = false
     @State private var isProcessingFailedAlertVisible = false
     @State private var libraryItem: PhotosPickerItem?
-    @Namespace private var namespace
 
     // MARK: - Body
 
@@ -46,7 +45,7 @@ struct FoodPhotoPicker: View {
         .frame(maxWidth: .infinity)
         .confirmationDialog(L10n.FoodPhoto.title, isPresented: $isActionSheetVisible, titleVisibility: .hidden) {
             if photo != .none {
-                Button(L10n.FoodPhoto.actionShow) { isViewerVisible = true }
+                Button(L10n.FoodPhoto.actionShow) { withoutAnimation { isViewerVisible = true } }
             }
             if UIImagePickerController.isSourceTypeAvailable(.camera) {
                 Button(L10n.FoodPhoto.actionTake) { Task { await onTakePhotoTapped() } }
@@ -71,7 +70,6 @@ struct FoodPhotoPicker: View {
         }
         .fullScreenCover(isPresented: $isViewerVisible) {
             FoodPhotoViewer(photo: photo) { isViewerVisible = false }
-                .navigationTransition(.zoom(sourceID: FoodPhotoTransition.id, in: namespace))
         }
         .alert(L10n.AddFood.cameraPermissionAlert, isPresented: $isCameraDeniedAlertVisible) {
             Button(L10n.AddFood.buttonOpenSettings) { openSettings() }
@@ -100,7 +98,6 @@ struct FoodPhotoPicker: View {
             }
             .frame(width: Self.diameter, height: Self.diameter)
             .contentShape(.circle)
-            .matchedTransitionSource(id: FoodPhotoTransition.id, in: namespace)
             badge
         }
     }
