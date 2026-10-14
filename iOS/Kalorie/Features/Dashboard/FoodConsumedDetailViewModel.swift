@@ -104,9 +104,8 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
     @MainActor
     func onAppear() async {
         async let favourite = loadIsFavourite()
-        async let catalogueItem = loadCatalogueItem()
+        catalogueItem = await loadCatalogueItem()
         isFavourite = await favourite
-        self.catalogueItem = await catalogueItem
         if canReportIncorrectData {
             await loadReportState(barcode: food.foodItemId, fetchMyFoodItemReport: fetchMyFoodItemReport)
         }
