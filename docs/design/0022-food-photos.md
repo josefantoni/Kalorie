@@ -85,9 +85,12 @@ not a bare path. Reasons:
 - A download URL is readable by anyone holding it. Accepted: these are photos of shop products shown
   to every user anyway.
 
-`photo_url` is **not** added to `favouriteFoods`, `foodFrequencies` or `foodConsumed` snapshots — a
-snapshot would go stale the moment the maintainer replaces a photo, and older snapshots would lack it
-regardless. Screens resolve it at open time (see *Display*).
+`photo_url` is an optional field of the `favouriteFoods` snapshot and of each `foodFrequency` item, so a
+favourite or a frequent food opens with its photo without another catalogue read. It is refreshed
+with the rest of the snapshot (`RefreshFavouriteFoodUseCase`, `RecordFoodFrequencyUseCase`), so after
+the maintainer replaces a photo the old one shows until the snapshot is next refreshed — replacements
+are rare, and the old file stays readable. It is **not** added to `foodConsumed`: a history entry is
+a record of what was logged, and its detail screen already reads the catalogue item on appear.
 
 Domain: `FoodItemDomain` gains `photoURL: URL?` (Kotlin `photoUrl: String?`), filled from
 `photo_url` for `.catalogue`, from `image_front_url` for `.external`, `nil` for created meals and
@@ -309,12 +312,12 @@ OpenFoodFacts images are CC BY-SA. The existing attribution in `AccountView`
 
 ### Display
 
-**Resolving the URL on open.** `FoodQuantityView` receives the item from search (has `photoURL`),
-from a favourite or the frequency list (snapshot, no `photoURL`), or from OFF.
-`FoodConsumedDetailViewModel.loadCatalogueItem()` already fetches the full item on appear by kind.
-`FoodQuantityViewModel.onAppear()` does the same, **only when `item.photoURL == nil`** and kind is
-`.catalogue` or `.external`, reusing `FetchFoodItemByBarcodeUseCase` /
-`FetchFoodByBarcodeExternallyUseCase`. Search-originated items cost nothing extra.
+**Resolving the URL on open.** `FoodQuantityView` receives the item from search, from a favourite or
+the frequency list (both snapshots carry `photoURL`, or lack it only when written before the field
+existed), or from OFF. `FoodConsumedDetailViewModel.loadCatalogueItem()` already fetches the full item on
+appear by kind. `FoodQuantityViewModel.onAppear()` fetches it **only when `item.photoURL == nil`** and
+kind is `.catalogue` or `.external`, reusing `FetchFoodItemByBarcodeUseCase` /
+`FetchFoodByBarcodeExternallyUseCase`. Items that already carry the URL cost nothing extra.
 
 **`FoodPhotoThumbnail`** (new component, both screens):
 
@@ -330,9 +333,10 @@ from a favourite or the frequency list (snapshot, no `photoURL`), or from OFF.
   loading failed. No placeholder, no spinner.
 - **Hidden while the quantity keyboard is up** (`isQuantityFocused`), so it does not sit over the
   little content left visible.
-- Tap → **`FoodPhotoViewer`**: full-screen overlay, black background, image `scaledToFit`, animated
-  out of the thumbnail (`matchedGeometryEffect`; Android `SharedTransitionLayout`). Tap anywhere or
-  swipe down closes it. No zoom.
+- Tap → **`FoodPhotoViewer`**: full-screen cover with a 0.5-alpha black background so the form stays
+  visible, the image centred in a circle with 16 pt horizontal padding. It fades and scales in and out
+  itself; the cover is presented without the system animation, so the form underneath does not move.
+  Tap anywhere closes it. No zoom.
 
 Moderation screens show the photo through the form's `FoodPhotoPicker` (filled state). A 120 pt
 circle is too small to check a product against its name, so when the slot is filled its action
