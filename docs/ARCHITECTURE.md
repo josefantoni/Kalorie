@@ -235,7 +235,7 @@ differs, `favourited_at` kept, any failure falls back to the stored copy). The d
 `food_item_kind` says which of the three things that id is, exactly as on `foodConsumed`
 (ADR 0025) — required here too. Also carries `measure_unit`, for the same reason `portions` is
 carried: leaving it out would silently relabel a favourited millilitre item as grams. The same goes
-for optional `alcohol_by_volume` (§ 1.3), which would otherwise drop the hint. Fetched
+for optional `alcohol_by_volume` (§ 1.3), which would otherwise drop the hint, and for optional `photo_url` ([design 0022](design/0022-food-photos.md)), which lets a favourite open with its photo without a catalogue read. Fetched
 ordered by `favourited_at` descending, limit 50.
 
 **`stats/foodFrequency`** (`FoodFrequencyDocumentDTO`) — a single document, not a collection, so
