@@ -12,7 +12,6 @@ struct FoodPhotoThumbnail: View {
     // MARK: - Properties
 
     let url: URL
-    let namespace: Namespace.ID
     let width: CGFloat
     let onTapped: () -> Void
 
@@ -31,7 +30,6 @@ struct FoodPhotoThumbnail: View {
                                 .scaledToFill()
                         }
                         .clipShape(.capsule)
-                        .matchedTransitionSource(id: FoodPhotoTransition.id, in: namespace)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(L10n.FoodPhoto.accessibilityEnlarge)
@@ -50,17 +48,12 @@ struct FoodPhotoThumbnail: View {
     private static var height: CGFloat { 44 }
 }
 
-enum FoodPhotoTransition {
-    static let id = "foodPhoto"
-}
-
 private struct FoodPhotoThumbnailModifier: ViewModifier {
 
     // MARK: - Properties
 
     let url: URL?
     @State private var isViewerVisible = false
-    @Namespace private var namespace
     @State private var containerWidth: CGFloat = 0
     @State private var containerMidX: CGFloat = 0
     @State private var itemMidX: CGFloat = 0
@@ -90,7 +83,7 @@ private struct FoodPhotoThumbnailModifier: ViewModifier {
                             Color.clear
                                 .frame(width: 1, height: 1)
                                 .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).midX.rounded() } action: { itemMidX = $0 }
-                            FoodPhotoThumbnail(url: url, namespace: namespace, width: bubbleWidth) { isViewerVisible = true }
+                            FoodPhotoThumbnail(url: url, width: bubbleWidth) { withoutAnimation { isViewerVisible = true } }
                                 .offset(x: centerOffset)
                         }
                     }
@@ -100,7 +93,6 @@ private struct FoodPhotoThumbnailModifier: ViewModifier {
             .fullScreenCover(isPresented: $isViewerVisible) {
                 if let url {
                     FoodPhotoViewer(photo: .remote(url)) { isViewerVisible = false }
-                        .navigationTransition(.zoom(sourceID: FoodPhotoTransition.id, in: namespace))
                 }
             }
     }
