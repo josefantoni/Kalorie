@@ -32,6 +32,7 @@ data class FavouriteFoodDTO(
     val portions: List<FoodPortionDTO>? = null,
     @SerialName("measure_unit") val measureUnit: String? = null,
     @SerialName("alcohol_by_volume") val alcoholByVolume: Double? = null,
+    @SerialName("photo_url") val photoUrl: String? = null,
 ) {
 
     // MARK: - Init
@@ -57,6 +58,7 @@ data class FavouriteFoodDTO(
         portions = item.portions.map(::FoodPortionDTO),
         measureUnit = item.measure.rawValue,
         alcoholByVolume = item.alcoholByVolume,
+        photoUrl = item.photoUrl,
     )
 
     // MARK: - Functions
@@ -81,5 +83,6 @@ data class FavouriteFoodDTO(
         portions = portions?.map(FoodPortionDTO::asDomain) ?: emptyList(),
         measure = measureUnit?.let(FoodMeasure::fromRawValue) ?: FoodMeasure.GRAMS,
         alcoholByVolume = alcoholByVolume,
+        photoUrl = photoUrl,
     )
 }
