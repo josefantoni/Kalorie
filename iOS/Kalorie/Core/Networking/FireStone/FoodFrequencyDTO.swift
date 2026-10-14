@@ -31,6 +31,7 @@ struct FoodFrequencyItemDTO: Codable {
     let portions: [FoodPortionDTO]?
     let measureUnit: String?
     let alcoholByVolume: Double?
+    let photoUrl: String?
 
     // MARK: - Coding keys
 
@@ -46,6 +47,7 @@ struct FoodFrequencyItemDTO: Codable {
         case foodItemKind = "food_item_kind"
         case measureUnit = "measure_unit"
         case alcoholByVolume = "alcohol_by_volume"
+        case photoUrl = "photo_url"
     }
 
     // MARK: - Init
@@ -70,6 +72,7 @@ struct FoodFrequencyItemDTO: Codable {
         portions = item.portions.map(FoodPortionDTO.init(portion:))
         measureUnit = item.measure.rawValue
         alcoholByVolume = item.alcoholByVolume
+        photoUrl = item.photoURL?.absoluteString
     }
 
     // MARK: - Functions
@@ -94,7 +97,8 @@ struct FoodFrequencyItemDTO: Codable {
             salt: salt,
             portions: portions?.map { $0.asDomain() } ?? [],
             measure: measureUnit.flatMap(FoodMeasure.init(rawValue:)) ?? .grams,
-            alcoholByVolume: alcoholByVolume
+            alcoholByVolume: alcoholByVolume,
+            photoURL: photoUrl.flatMap(URL.init(string:))
         )
     }
 }
