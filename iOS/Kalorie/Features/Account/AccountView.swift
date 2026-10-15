@@ -37,11 +37,7 @@ struct AccountView: View {
                                     Button {
                                         Task { await viewModel.onSignInWithAppleTapped() }
                                     } label: {
-                                        Image(systemName: BaseImageName.appleLogo.rawValue)
-                                            .font(.system(size: 22, weight: .medium))
-                                            .foregroundStyle(Color(uiColor: .systemBackground))
-                                            .frame(width: 56, height: 56)
-                                            .background(Color.primary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                        providerLogo(kind: .apple)
                                     }
                                     .buttonStyle(.plain)
                                     .accessibilityLabel(L10n.Account.buttonSignInWithApple)
@@ -55,16 +51,7 @@ struct AccountView: View {
                                     Button {
                                         Task { await viewModel.onSignInWithGoogleTapped() }
                                     } label: {
-                                        Image(.googleLogo)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 22, height: 22)
-                                            .frame(width: 56, height: 56)
-                                            .background(Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                    .strokeBorder(Color(uiColor: .separator))
-                                            )
+                                        providerLogo(kind: .google)
                                     }
                                     .buttonStyle(.plain)
                                     .accessibilityLabel(L10n.Account.buttonSignInWithGoogle)
