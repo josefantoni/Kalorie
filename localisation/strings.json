@@ -7,6 +7,10 @@
     "cs": "Opravdu smazat účet?",
     "en": "Delete account?"
   },
+  "account_alert_linkSuccessTitle": {
+    "cs": "Přihlašovací metoda byla propojena",
+    "en": "Sign-in method linked"
+  },
   "account_alert_reauthenticateTitle": {
     "cs": "Vyžadováno přihlášení",
     "en": "Sign in required"
@@ -18,6 +22,10 @@
   "account_button_deleteAccount": {
     "cs": "Smazat účet",
     "en": "Delete account"
+  },
+  "account_button_linkProvider": {
+    "cs": "Propojit",
+    "en": "Link"
   },
   "account_button_reauthenticate": {
     "cs": "Přihlásit se znovu",
@@ -55,6 +63,22 @@
     "cs": "Pro smazání účtu se prosím znovu přihlas.",
     "en": "Please sign in again to delete your account."
   },
+  "account_error_linkAlreadyLinked": {
+    "cs": "Tato přihlašovací metoda už je k účtu připojená.",
+    "en": "This sign-in method is already linked to your account."
+  },
+  "account_error_linkCredentialBelongsToAnotherAccount": {
+    "cs": "Toto přihlášení už má vlastní účet v Kalorie. Chceš-li ho propojit sem, přihlas se jím, smaž ten účet, přihlas se zpět a propoj ho. Nic se nezměnilo.",
+    "en": "This sign-in already has its own Kalorie account. To link it here, sign in with it, delete that account, sign back in, and link it. Nothing has changed."
+  },
+  "account_error_linkEmailBelongsToAnotherAccount": {
+    "cs": "E-mail tohoto přihlášení patří jinému účtu. Nic se nepropojilo.",
+    "en": "The email of this sign-in belongs to another account. Nothing was linked."
+  },
+  "account_error_linkMergeInProgress": {
+    "cs": "Přenos tvých dřívějších záznamů ještě neskončil. Zkus to za chvíli znovu.",
+    "en": "Moving your earlier entries has not finished yet. Please try again in a moment."
+  },
   "account_error_noGoogleAccount": {
     "cs": "Na zařízení není žádný účet Google",
     "en": "No Google account on this device"
@@ -67,9 +91,17 @@
     "cs": "Odhlášení se nezdařilo",
     "en": "Sign out failed"
   },
+  "account_error_wrongAccount": {
+    "cs": "Vyber prosím stejný účet, se kterým jsi v aplikaci přihlášen/a.",
+    "en": "Choose the account you are signed in with."
+  },
   "account_navigationTitle": {
     "cs": "Účet",
     "en": "Account"
+  },
+  "account_signInMethods_title": {
+    "cs": "Přihlašovací metody",
+    "en": "Sign-in methods"
   },
   "account_signInProvider_apple": {
     "cs": "Apple",
