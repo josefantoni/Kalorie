@@ -370,6 +370,23 @@ class DeleteAccountUseCaseTest {
     }
 
     @Test
+    fun invoke_whenAccountHasApple_andLoginIsStale_reauthenticatesWithAppleInsteadOfAskingForAnotherLogin() = runTest {
+        val fixture = makeSUT(
+            authProvider = AuthProviderFake(
+                userId = USER_ID,
+                linkedProviderKinds = setOf(AuthProviderKind.APPLE),
+                authenticationDate = Instant.now().minusSeconds(10 * 60),
+            ),
+            appleSignInProvider = AppleSignInProviderFake(result = AppleAuthResult(displayName = null, email = null, accessToken = "apple-token")),
+        )
+
+        fixture.sut()
+
+        assertEquals("the Apple prompt already proves a fresh login, so a stale one must not send the user through a second prompt", 1, fixture.appleSignInProvider.reauthenticateCallCount)
+        assertEquals(1, fixture.authCommandProvider.deleteCallCount)
+    }
+
+    @Test
     fun invoke_whenAppleIdentityDoesNotMatchTheAccount_deletesAndRevokesNothing() = runTest {
         val fixture = makeSUT(
             authProvider = AuthProviderFake(userId = USER_ID, linkedProviderKinds = setOf(AuthProviderKind.APPLE)),
