@@ -6,107 +6,89 @@
 //
 
 import XCTest
+import FirebaseAuth
 @testable import Kalorie
 
 final class SignInWithAppleUseCaseTests: XCTestCase {
 
-    func test_saveProfileIfNeeded_withNameAndEmail_updatesDisplayNameAndSavesProfile() async {
-        let (sut, authCommandProvider, dataProvider) = makeSUT()
+    func test_callAsFunction_afterLinkingOrMerging_fillsTheEmptyProfileFieldsWithTheFormattedNameAndEmail() async throws {
         var fullName = PersonNameComponents()
         fullName.givenName = "Josef"
         fullName.familyName = "Antoni"
+        let fillEmptyProfile = FillEmptyProfileSpy()
+        let sut = makeSUT(
+            appleSignInProvider: makeAppleSignInProvider(fullName: fullName, email: "josef@example.com"),
+            fillEmptyProfile: fillEmptyProfile
+        )
 
-        await sut.saveProfileIfNeeded(fullName: fullName, email: "josef@example.com")
+        try await sut()
 
-        XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 1)
-        XCTAssertEqual(dataProvider.savedProfile?.displayName, "Josef Antoni")
-        XCTAssertEqual(dataProvider.savedProfile?.email, "josef@example.com")
+        XCTAssertEqual(fillEmptyProfile.callCount, 1, "an existing profile of the merged account must be filled, never replaced")
+        XCTAssertEqual(fillEmptyProfile.receivedDisplayName, "Josef Antoni")
+        XCTAssertEqual(fillEmptyProfile.receivedEmail, "josef@example.com")
     }
 
-    func test_saveProfileIfNeeded_withNilNameAndEmail_doesNothing() async {
-        let (sut, authCommandProvider, dataProvider) = makeSUT()
+    func test_callAsFunction_withEmptyNameComponents_passesNilNameSoItCannotBlankTheStoredOne() async throws {
+        let fillEmptyProfile = FillEmptyProfileSpy()
+        let sut = makeSUT(
+            appleSignInProvider: makeAppleSignInProvider(fullName: PersonNameComponents(), email: "josef@example.com"),
+            fillEmptyProfile: fillEmptyProfile
+        )
 
-        await sut.saveProfileIfNeeded(fullName: nil, email: nil)
+        try await sut()
 
-        XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 0)
-        XCTAssertNil(dataProvider.savedProfile)
+        XCTAssertNil(fillEmptyProfile.receivedDisplayName)
+        XCTAssertEqual(fillEmptyProfile.receivedEmail, "josef@example.com")
     }
 
-    func test_saveProfileIfNeeded_withEmptyNameComponents_treatsNameAsNilButStillSavesEmail() async {
-        let (sut, authCommandProvider, dataProvider) = makeSUT()
+    func test_callAsFunction_whenLinkOrMergeFails_propagatesErrorAndLeavesTheProfileAlone() async {
+        let fillEmptyProfile = FillEmptyProfileSpy()
+        let sut = makeSUT(
+            linkOrMergeCredential: LinkOrMergeCredentialUseCaseFake(shouldThrow: true),
+            fillEmptyProfile: fillEmptyProfile
+        )
 
-        await sut.saveProfileIfNeeded(fullName: PersonNameComponents(), email: "josef@example.com")
-
-        XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 0, "prázdné jméno se nesmí uložit jako displayName")
-        XCTAssertNil(dataProvider.savedProfile?.displayName)
-        XCTAssertEqual(dataProvider.savedProfile?.email, "josef@example.com")
+        do {
+            try await sut()
+            XCTFail("Expected error to be thrown")
+        } catch {
+            XCTAssertEqual(fillEmptyProfile.callCount, 0)
+        }
     }
 
-    func test_saveProfileIfNeeded_withNameButNoEmail_savesProfileWithNilEmail() async {
-        let (sut, authCommandProvider, dataProvider) = makeSUT()
-        var fullName = PersonNameComponents()
-        fullName.givenName = "Josef"
+    func test_callAsFunction_whenProviderFails_propagatesError() async {
+        let sut = makeSUT(appleSignInProvider: AppleSignInProviderFake(errorToThrow: AppleSignInError.signInAlreadyInProgress))
 
-        await sut.saveProfileIfNeeded(fullName: fullName, email: nil)
-
-        XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 1)
-        XCTAssertEqual(dataProvider.savedProfile?.displayName, "Josef")
-        XCTAssertNil(dataProvider.savedProfile?.email)
-    }
-
-    func test_saveProfileIfNeeded_whenNotAuthenticated_updatesDisplayNameButDoesNotSaveProfile() async {
-        let (sut, authCommandProvider, dataProvider) = makeSUT(userId: nil)
-        var fullName = PersonNameComponents()
-        fullName.givenName = "Josef"
-
-        await sut.saveProfileIfNeeded(fullName: fullName, email: nil)
-
-        XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 1)
-        XCTAssertNil(dataProvider.savedProfile, "bez userId není kam profil uložit")
+        do {
+            try await sut()
+            XCTFail("Expected error to be thrown")
+        } catch {
+            // pass
+        }
     }
 
     // MARK: - Helpers
 
-    private func makeSUT(
-        userId: String? = "user-1"
-    ) -> (sut: SignInWithAppleUseCase, authCommandProvider: AuthCommandProviderFake, dataProvider: SignInWithAppleDataProviderFake) {
-        let authCommandProvider = AuthCommandProviderFake()
-        let dataProvider = SignInWithAppleDataProviderFake()
-        let sut = SignInWithAppleUseCase(
-            appleSignInProvider: AppleSignInProviderFake(),
-            linkOrMergeCredential: LinkOrMergeCredentialUseCaseFake(),
-            authCommandProvider: authCommandProvider,
-            dataProvider: dataProvider,
-            authProvider: AuthProviderFake(userId: userId)
+    private func makeAppleSignInProvider(fullName: PersonNameComponents?, email: String?) -> AppleSignInProviderFake {
+        AppleSignInProviderFake(
+            result: AppleSignInResult(
+                credential: OAuthProvider.appleCredential(withIDToken: "token", rawNonce: "nonce", fullName: fullName),
+                fullName: fullName,
+                email: email,
+                authorizationCode: nil
+            )
         )
-        return (sut, authCommandProvider, dataProvider)
-    }
-}
-
-private final class SignInWithAppleDataProviderFake: FirestoreDataProviderProtocol {
-
-    // MARK: - Properties
-
-    private(set) var savedProfile: UserProfileDTO?
-
-    // MARK: - Functions
-
-    func loadAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
-    func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
-    func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
-    func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
-    func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
-
-    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
-        savedProfile = item as? UserProfileDTO
     }
 
-    func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
-    func deleteAsync(id: String, from collection: String) async throws {}
+    private func makeSUT(
+        appleSignInProvider: AppleSignInProviderFake = AppleSignInProviderFake(),
+        linkOrMergeCredential: any LinkOrMergeCredentialUseCaseProtocol = LinkOrMergeCredentialUseCaseFake(),
+        fillEmptyProfile: FillEmptyProfileSpy = FillEmptyProfileSpy()
+    ) -> SignInWithAppleUseCase {
+        SignInWithAppleUseCase(
+            appleSignInProvider: appleSignInProvider,
+            linkOrMergeCredential: linkOrMergeCredential,
+            fillEmptyProfile: fillEmptyProfile
+        )
+    }
 }

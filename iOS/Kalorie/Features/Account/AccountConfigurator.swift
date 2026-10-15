@@ -43,6 +43,16 @@ struct AccountConfigurator {
             authCommandProvider: authCommandProvider,
             migrateAnonymousData: migrateAnonymousData
         )
+        let linkCredential = LinkCredentialUseCase(
+            authProvider: authProvider,
+            authCommandProvider: authCommandProvider,
+            snapshotStore: snapshotStore
+        )
+        let fillEmptyProfile = FillEmptyProfileUseCase(
+            authProvider: authProvider,
+            authCommandProvider: authCommandProvider,
+            dataProvider: dataProvider
+        )
         return AccountView(
             viewModel: AccountViewModel(
                 authProvider: authProvider,
@@ -54,16 +64,22 @@ struct AccountConfigurator {
                 signInWithApple: SignInWithAppleUseCase(
                     appleSignInProvider: AppleSignInProvider(),
                     linkOrMergeCredential: linkOrMergeCredential,
-                    authCommandProvider: authCommandProvider,
-                    dataProvider: dataProvider,
-                    authProvider: authProvider
+                    fillEmptyProfile: fillEmptyProfile
                 ),
                 signInWithGoogle: SignInWithGoogleUseCase(
                     googleSignInProvider: GoogleSignInProvider(),
                     linkOrMergeCredential: linkOrMergeCredential,
-                    authCommandProvider: authCommandProvider,
-                    dataProvider: dataProvider,
-                    authProvider: authProvider
+                    fillEmptyProfile: fillEmptyProfile
+                ),
+                linkApple: LinkAppleUseCase(
+                    appleSignInProvider: AppleSignInProvider(),
+                    linkCredential: linkCredential,
+                    fillEmptyProfile: fillEmptyProfile
+                ),
+                linkGoogle: LinkGoogleUseCase(
+                    googleSignInProvider: GoogleSignInProvider(),
+                    linkCredential: linkCredential,
+                    fillEmptyProfile: fillEmptyProfile
                 ),
                 deleteAccount: DeleteAccountUseCase(
                     dataProvider: dataProvider,

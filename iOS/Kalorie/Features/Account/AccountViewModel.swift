@@ -25,11 +25,14 @@ final class AccountViewModel: ObservableObject {
     @Published var alertItem: AlertItem?
     @Published var showDeleteConfirmation = false
     @Published var isReauthenticateAlertVisible = false
+    @Published private(set) var linkedProviderKinds: Set<AuthProviderKind>
 
     private let authProvider: any AuthProviderProtocol
     private let signOut: any SignOutUseCaseProtocol
     private let signInWithApple: any SignInWithAppleUseCaseProtocol
     private let signInWithGoogle: any SignInWithGoogleUseCaseProtocol
+    private let linkApple: any LinkAppleUseCaseProtocol
+    private let linkGoogle: any LinkGoogleUseCaseProtocol
     private let deleteAccount: any DeleteAccountUseCaseProtocol
     private let reauthenticate: any ReauthenticateUseCaseProtocol
     private let mergeStatusReporting: any MergeStatusReporting
@@ -45,6 +48,8 @@ final class AccountViewModel: ObservableObject {
         signOut: any SignOutUseCaseProtocol,
         signInWithApple: any SignInWithAppleUseCaseProtocol,
         signInWithGoogle: any SignInWithGoogleUseCaseProtocol,
+        linkApple: any LinkAppleUseCaseProtocol,
+        linkGoogle: any LinkGoogleUseCaseProtocol,
         deleteAccount: any DeleteAccountUseCaseProtocol,
         reauthenticate: any ReauthenticateUseCaseProtocol,
         mergeStatusReporting: any MergeStatusReporting
@@ -53,9 +58,12 @@ final class AccountViewModel: ObservableObject {
         self.signOut = signOut
         self.signInWithApple = signInWithApple
         self.signInWithGoogle = signInWithGoogle
+        self.linkApple = linkApple
+        self.linkGoogle = linkGoogle
         self.deleteAccount = deleteAccount
         self.reauthenticate = reauthenticate
         self.mergeStatusReporting = mergeStatusReporting
+        self.linkedProviderKinds = authProvider.linkedProviderKinds
     }
 
     // MARK: - Functions
@@ -106,6 +114,35 @@ final class AccountViewModel: ObservableObject {
     }
 
     @MainActor
+    func onLinkProviderTapped(_ kind: AuthProviderKind) async {
+        state = .linking
+        defer { state = .idle }
+        do {
+            switch kind {
+            case .apple:
+                try await linkApple()
+            case .google:
+                try await linkGoogle()
+            }
+            linkedProviderKinds = authProvider.linkedProviderKinds
+            alertItem = AlertItem(title: L10n.Account.alertLinkSuccessTitle)
+        } catch LinkCredentialError.alreadyLinked {
+            linkedProviderKinds = authProvider.linkedProviderKinds
+            alertItem = AlertItem(title: L10n.Account.errorLinkAlreadyLinked)
+        } catch LinkCredentialError.credentialBelongsToAnotherAccount {
+            alertItem = AlertItem(title: L10n.Account.errorLinkCredentialBelongsToAnotherAccount)
+        } catch LinkCredentialError.emailBelongsToAnotherAccount {
+            alertItem = AlertItem(title: L10n.Account.errorLinkEmailBelongsToAnotherAccount)
+        } catch LinkCredentialError.mergeInProgress {
+            alertItem = AlertItem(title: L10n.Account.errorLinkMergeInProgress)
+        } catch where isUserCancellation(error) {
+        } catch {
+            Log.error(error, category: Constants.LogCategory.account)
+            alertItem = AlertItem(title: L10n.Account.errorSignInFailed)
+        }
+    }
+
+    @MainActor
     func onDeleteAccountConfirmed() async {
         isDataAlreadyWiped = false
         defer { state = .idle }
@@ -119,6 +156,8 @@ final class AccountViewModel: ObservableObject {
         do {
             try await reauthenticate()
             await performDelete()
+        } catch ReauthenticateError.wrongAccount {
+            alertItem = AlertItem(title: L10n.Account.errorWrongAccount)
         } catch where isUserCancellation(error) {
         } catch {
             Log.error(error, category: Constants.LogCategory.account)

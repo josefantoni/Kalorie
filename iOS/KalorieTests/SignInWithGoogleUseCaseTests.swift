@@ -11,46 +11,37 @@ import FirebaseAuth
 
 final class SignInWithGoogleUseCaseTests: XCTestCase {
 
-    func test_saveProfileIfNeeded_withNameAndEmail_updatesDisplayNameAndSavesProfile() async {
-        let (sut, authCommandProvider, dataProvider) = makeSUT()
+    func test_callAsFunction_afterLinkingOrMerging_fillsTheEmptyProfileFieldsWithTheNameAndEmail() async throws {
+        let fillEmptyProfile = FillEmptyProfileSpy()
+        let (sut, _) = makeSUT(
+            googleSignInProvider: GoogleSignInProviderFake(result: makeResult(displayName: "Josef Antoni", email: "josef@example.com")),
+            fillEmptyProfile: fillEmptyProfile
+        )
 
-        await sut.saveProfileIfNeeded(displayName: "Josef Antoni", email: "josef@example.com")
+        try await sut()
 
-        XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 1)
-        XCTAssertEqual(dataProvider.savedProfile?.displayName, "Josef Antoni")
-        XCTAssertEqual(dataProvider.savedProfile?.email, "josef@example.com")
+        XCTAssertEqual(fillEmptyProfile.callCount, 1, "an existing profile of the merged account must be filled, never replaced")
+        XCTAssertEqual(fillEmptyProfile.receivedDisplayName, "Josef Antoni")
+        XCTAssertEqual(fillEmptyProfile.receivedEmail, "josef@example.com")
     }
 
-    func test_saveProfileIfNeeded_withNilNameAndEmail_doesNothing() async {
-        let (sut, authCommandProvider, dataProvider) = makeSUT()
+    func test_callAsFunction_whenLinkOrMergeFails_propagatesErrorAndLeavesTheProfileAlone() async {
+        let fillEmptyProfile = FillEmptyProfileSpy()
+        let (sut, _) = makeSUT(
+            linkOrMergeCredential: LinkOrMergeCredentialUseCaseFake(shouldThrow: true),
+            fillEmptyProfile: fillEmptyProfile
+        )
 
-        await sut.saveProfileIfNeeded(displayName: nil, email: nil)
-
-        XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 0)
-        XCTAssertNil(dataProvider.savedProfile)
-    }
-
-    func test_saveProfileIfNeeded_withEmailOnly_doesNotUpdateDisplayNameButSavesProfile() async {
-        let (sut, authCommandProvider, dataProvider) = makeSUT()
-
-        await sut.saveProfileIfNeeded(displayName: nil, email: "josef@example.com")
-
-        XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 0, "bez jména není co do Auth profilu zapisovat")
-        XCTAssertNil(dataProvider.savedProfile?.displayName)
-        XCTAssertEqual(dataProvider.savedProfile?.email, "josef@example.com")
-    }
-
-    func test_saveProfileIfNeeded_whenNotAuthenticated_updatesDisplayNameButDoesNotSaveProfile() async {
-        let (sut, authCommandProvider, dataProvider) = makeSUT(userId: nil)
-
-        await sut.saveProfileIfNeeded(displayName: "Josef Antoni", email: "josef@example.com")
-
-        XCTAssertEqual(authCommandProvider.updateDisplayNameCallCount, 1)
-        XCTAssertNil(dataProvider.savedProfile, "bez userId není kam profil uložit")
+        do {
+            try await sut()
+            XCTFail("Expected error to be thrown")
+        } catch {
+            XCTAssertEqual(fillEmptyProfile.callCount, 0)
+        }
     }
 
     func test_callAsFunction_whenProviderFails_propagatesError() async {
-        let (sut, _, _) = makeSUT(googleSignInProvider: GoogleSignInProviderFake(errorToThrow: URLError(.notConnectedToInternet)))
+        let (sut, _) = makeSUT(googleSignInProvider: GoogleSignInProviderFake(errorToThrow: URLError(.notConnectedToInternet)))
 
         do {
             try await sut()
@@ -67,7 +58,7 @@ final class SignInWithGoogleUseCaseTests: XCTestCase {
             email: nil
         )
         let linkOrMergeCredential = LinkOrMergeCredentialCapturingFake()
-        let (sut, _, _) = makeSUT(
+        let (sut, _) = makeSUT(
             googleSignInProvider: GoogleSignInProviderFake(result: stubbedResult),
             linkOrMergeCredential: linkOrMergeCredential
         )
@@ -80,50 +71,26 @@ final class SignInWithGoogleUseCaseTests: XCTestCase {
 
     // MARK: - Helpers
 
+    private func makeResult(displayName: String?, email: String?) -> GoogleSignInResult {
+        GoogleSignInResult(
+            credential: GoogleAuthProvider.credential(withIDToken: "id-token", accessToken: "access-token"),
+            displayName: displayName,
+            email: email
+        )
+    }
+
     private func makeSUT(
         googleSignInProvider: any GoogleSignInProviderProtocol = GoogleSignInProviderFake(),
         linkOrMergeCredential: any LinkOrMergeCredentialUseCaseProtocol = LinkOrMergeCredentialUseCaseFake(),
-        userId: String? = "user-1"
-    ) -> (sut: SignInWithGoogleUseCase, authCommandProvider: AuthCommandProviderFake, dataProvider: SignInWithGoogleDataProviderFake) {
-        let authCommandProvider = AuthCommandProviderFake()
-        let dataProvider = SignInWithGoogleDataProviderFake()
+        fillEmptyProfile: FillEmptyProfileSpy = FillEmptyProfileSpy()
+    ) -> (sut: SignInWithGoogleUseCase, fillEmptyProfile: FillEmptyProfileSpy) {
         let sut = SignInWithGoogleUseCase(
             googleSignInProvider: googleSignInProvider,
             linkOrMergeCredential: linkOrMergeCredential,
-            authCommandProvider: authCommandProvider,
-            dataProvider: dataProvider,
-            authProvider: AuthProviderFake(userId: userId)
+            fillEmptyProfile: fillEmptyProfile
         )
-        return (sut, authCommandProvider, dataProvider)
+        return (sut, fillEmptyProfile)
     }
-}
-
-private final class SignInWithGoogleDataProviderFake: FirestoreDataProviderProtocol {
-
-    // MARK: - Properties
-
-    private(set) var savedProfile: UserProfileDTO?
-
-    // MARK: - Functions
-
-    func loadAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
-    func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
-    func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
-    func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
-    func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
-
-    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
-        savedProfile = item as? UserProfileDTO
-    }
-
-    func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
-    func deleteAsync(id: String, from collection: String) async throws {}
 }
 
 private final class LinkOrMergeCredentialCapturingFake: LinkOrMergeCredentialUseCaseProtocol {

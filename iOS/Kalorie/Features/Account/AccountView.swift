@@ -89,6 +89,13 @@ struct AccountView: View {
                         }
                     }
                 }
+
+                if !viewModel.isAnonymous {
+                    Section(L10n.Account.signInMethodsTitle) {
+                        signInMethodRow(title: L10n.Account.signInProviderApple, kind: .apple)
+                        signInMethodRow(title: L10n.Account.signInProviderGoogle, kind: .google)
+                    }
+                }
             }
             .safeAreaInset(edge: .bottom) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -152,6 +159,26 @@ struct AccountView: View {
     }
 }
 
+private extension AccountView {
+    func signInMethodRow(title: String, kind: AuthProviderKind) -> some View {
+        HStack {
+            Text(title)
+
+            Spacer()
+
+            if viewModel.linkedProviderKinds.contains(kind) {
+                Image(systemName: BaseImageName.checkmark.rawValue)
+                    .foregroundStyle(Color.accentColor)
+            } else {
+                Button(L10n.Account.buttonLinkProvider) {
+                    Task { await viewModel.onLinkProviderTapped(kind) }
+                }
+                .buttonStyle(.borderless)
+            }
+        }
+    }
+}
+
 extension AccountViewModel.State: Equatable {}
 
 #if DEBUG
@@ -164,6 +191,8 @@ extension AccountViewModel.State: Equatable {}
             signOut: SignOutUseCaseFake(),
             signInWithApple: SignInWithAppleUseCaseFake(),
             signInWithGoogle: SignInWithGoogleUseCaseFake(),
+            linkApple: LinkAppleUseCaseFake(),
+            linkGoogle: LinkGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
             reauthenticate: ReauthenticateUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
@@ -178,6 +207,8 @@ extension AccountViewModel.State: Equatable {}
             signOut: SignOutUseCaseFake(),
             signInWithApple: SignInWithAppleUseCaseFake(),
             signInWithGoogle: SignInWithGoogleUseCaseFake(),
+            linkApple: LinkAppleUseCaseFake(),
+            linkGoogle: LinkGoogleUseCaseFake(),
             deleteAccount: DeleteAccountUseCaseFake(),
             reauthenticate: ReauthenticateUseCaseFake(),
             mergeStatusReporting: MergeStatusReportingFake()
