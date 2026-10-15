@@ -79,6 +79,10 @@
     "cs": "Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.",
     "en": "Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them."
   },
+  "account_error_accountExistsWithGoogle": {
+    "cs": "Tvé dřívější záznamy jsou u účtu propojeného s Googlem. Pro přístup k nim se prosím přihlas přes Google.",
+    "en": "Your earlier entries are on a Google-linked account. Please sign in with Google to reach them."
+  },
   "account_error_deleteFailed": {
     "cs": "Smazání účtu se nezdařilo",
     "en": "Failed to delete account"

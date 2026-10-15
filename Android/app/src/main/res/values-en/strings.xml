@@ -16,6 +16,7 @@
     <string name="account_button_signOut">Sign out</string>
     <string name="account_dataAttribution">Nutrition data and photos of some foods come from Open Food Facts. The data is available under the Open Database License, the photos under CC BY-SA.</string>
     <string name="account_error_accountExistsWithApple">Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them.</string>
+    <string name="account_error_accountExistsWithGoogle">Your earlier entries are on a Google-linked account. Please sign in with Google to reach them.</string>
     <string name="account_error_deleteFailed">Failed to delete account</string>
     <string name="account_error_deleteRequiresRecentLogin">Please sign in again to delete your account.</string>
     <string name="account_error_linkAlreadyLinked">This sign-in method is already linked to your account.</string>
