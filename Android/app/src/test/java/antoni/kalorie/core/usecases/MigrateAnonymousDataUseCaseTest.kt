@@ -110,6 +110,36 @@ class MigrateAnonymousDataUseCaseTest {
     }
 
     @Test
+    fun migrate_marksTheSourceAnonymousAccountOnTheTargetUser_becauseOnlyTheTargetCanWriteAfterSignIn() = runTest {
+        val sut = makeSUT(currentUserId = "target-1")
+
+        sut.useCase.migrate("anon-1", makeCredential())
+
+        assertEquals(Constants.Firestore.mergedAnonymousAccounts("target-1"), sut.dataProvider.setSavedCollection)
+        assertEquals("anon-1", sut.dataProvider.setSavedId)
+    }
+
+    @Test
+    fun resumeIfNeeded_whenAlreadyOnTargetUid_marksTheSourceAnonymousAccount() = runTest {
+        val sut = makeSUT(currentUserId = "target-1")
+        sut.snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId = "anon-1", foodConsumed = emptyList())
+
+        sut.useCase.resumeIfNeeded()
+
+        assertEquals("anon-1", sut.dataProvider.setSavedId)
+    }
+
+    @Test
+    fun resumeIfNeeded_whenStillOnSourceUid_marksNothing_becauseTheMergeNeverHappened() = runTest {
+        val sut = makeSUT(currentUserId = "anon-1")
+        sut.snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId = "anon-1", foodConsumed = emptyList())
+
+        sut.useCase.resumeIfNeeded()
+
+        assertEquals(null, sut.dataProvider.setSavedId)
+    }
+
+    @Test
     fun resumeIfNeeded_withNoSnapshot_doesNothing() = runTest {
         val sut = makeSUT()
 

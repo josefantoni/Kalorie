@@ -68,6 +68,33 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.batchSavedItemCount, 2, "opakovaný setAsync se stejným id přepíše, nevytvoří duplicitu")
     }
 
+    func test_migrate_marksTheSourceAnonymousAccountOnTheTargetUser_becauseOnlyTheTargetCanWriteAfterSignIn() async throws {
+        let (sut, dataProvider, _, _) = makeSUT(currentUserId: "target-1")
+
+        try await sut.migrate(fromAnonymousUserId: "anon-1", credential: makeCredential())
+
+        XCTAssertEqual(dataProvider.setSavedIds.map(\.collection), [Constants.Firestore.mergedAnonymousAccounts(userId: "target-1")])
+        XCTAssertEqual(dataProvider.setSavedIds.map(\.id), ["anon-1"])
+    }
+
+    func test_resumeIfNeeded_whenAlreadyOnTargetUid_marksTheSourceAnonymousAccount() async throws {
+        let (sut, dataProvider, _, snapshotStore) = makeSUT(currentUserId: "target-1")
+        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [], favouriteFoods: [], myCreatedMeals: [])
+
+        try await sut.resumeIfNeeded()
+
+        XCTAssertEqual(dataProvider.setSavedIds.map(\.id), ["anon-1"])
+    }
+
+    func test_resumeIfNeeded_whenStillOnSourceUid_marksNothing_becauseTheMergeNeverHappened() async throws {
+        let (sut, dataProvider, _, snapshotStore) = makeSUT(currentUserId: "anon-1")
+        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [], favouriteFoods: [], myCreatedMeals: [])
+
+        try await sut.resumeIfNeeded()
+
+        XCTAssertTrue(dataProvider.setSavedIds.isEmpty)
+    }
+
     func test_resumeIfNeeded_withNoSnapshot_doesNothing() async throws {
         let (sut, dataProvider, authCommandProvider, _) = makeSUT()
 
@@ -221,6 +248,7 @@ private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProto
     private(set) var batchSavedFavouriteFoodIds: [String] = []
     private(set) var batchSavedMyCreatedMealIds: [String] = []
     private(set) var batchSavedFoodItemPortionIds: [String] = []
+    private(set) var setSavedIds: [(collection: String, id: String)] = []
 
     // MARK: - Functions
 
@@ -247,7 +275,9 @@ private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProto
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
-    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
+    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
+        setSavedIds.append((collection, id))
+    }
 
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {
         if collection.contains("favouriteFoods") {

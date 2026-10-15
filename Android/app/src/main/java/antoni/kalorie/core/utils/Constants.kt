@@ -70,5 +70,6 @@ object Constants {
         fun foodItemPortions(userId: String): String = "users/$userId/foodItemPortions"
         fun myCreatedMeals(userId: String): String = "users/$userId/myCreatedMeals"
         fun stats(userId: String): String = "users/$userId/stats"
+        fun mergedAnonymousAccounts(userId: String): String = "users/$userId/mergedAnonymousAccounts"
     }
 }

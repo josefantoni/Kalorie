@@ -23,6 +23,7 @@ import antoni.kalorie.core.networking.FoodItemReportDTO
 import antoni.kalorie.core.networking.FoodItemSubmissionDTO
 import antoni.kalorie.core.networking.FoodPortionDTO
 import antoni.kalorie.core.networking.MealTypeDTO
+import antoni.kalorie.core.networking.MergedAnonymousAccountDTO
 import antoni.kalorie.core.networking.MyCreatedMealDTO
 import antoni.kalorie.core.networking.StorageDataProviderFake
 import antoni.kalorie.core.utils.Constants
@@ -63,6 +64,18 @@ class DeleteAccountUseCaseTest {
         fixture.sut()
 
         assertEquals(listOf("meal1"), fixture.deleted(Constants.Firestore.myCreatedMeals(USER_ID)))
+    }
+
+    @Test
+    fun invoke_deletesTheMergedAnonymousAccountMarkersSoNoCollectionOutlivesTheUser() = runTest {
+        val fixture = makeSUT()
+        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(
+            Constants.Firestore.mergedAnonymousAccounts(USER_ID) to listOf(MergedAnonymousAccountDTO(id = "anon-1")),
+        )
+
+        fixture.sut()
+
+        assertEquals(listOf("anon-1"), fixture.deleted(Constants.Firestore.mergedAnonymousAccounts(USER_ID)))
     }
 
     @Test

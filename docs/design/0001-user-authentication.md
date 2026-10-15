@@ -41,7 +41,7 @@ not cover the shared `foodItems` catalogue or its future moderation flow.
   ships one provider.
 - **Recovering data from a device whose anonymous identity was already lost.** Nothing on the
   server links that data to a person; it is unreachable by construction.
-- **Cleaning up orphaned anonymous accounts.** Left for a later server-side job.
+- **Cleaning up orphaned anonymous accounts.** The client marks the abandoned account under the target user (`users/{target}/mergedAnonymousAccounts/{source}`); deleting the marked accounts is `scripts/cleanup-merged-anonymous-accounts.js`, run by hand, not a scheduled job.
 
 ## Design
 

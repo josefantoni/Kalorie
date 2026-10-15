@@ -47,6 +47,17 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertTrue(log.entries.dropLast().contains("deletePortions:12345678"), "Firestore does not cascade — personal portions are user data and must not survive account deletion as orphans")
     }
 
+    func test_callAsFunction_deletesTheMergedAnonymousAccountMarkersSoNoCollectionOutlivesTheUser() async throws {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedMergedAnonymousAccounts = [MergedAnonymousAccountDTO(id: "anon-1")]
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
+
+        try await sut()
+
+        XCTAssertTrue(log.entries.dropLast().contains("deleteMergedAnonymousAccount:anon-1"), "Firestore does not cascade — the marker would stay as an orphaned collection")
+    }
+
     func test_callAsFunction_deletesOwnSubmissionsAsPrivacyObligation() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
@@ -525,6 +536,7 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     var stubbedFavouriteFoods: [FavouriteFoodDTO] = []
     var stubbedMyCreatedMeals: [MyCreatedMealDTO] = []
     var stubbedFoodItemPortions: [FoodItemPersonalPortionsDTO] = []
+    var stubbedMergedAnonymousAccounts: [MergedAnonymousAccountDTO] = []
     var stubbedSubmissions: [FoodItemSubmissionDTO] = []
     var stubbedReports: [FoodItemReportDTO] = []
     private(set) var deletedIds: [String] = []
@@ -549,6 +561,9 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
         }
         if collection.hasSuffix("foodItemPortions") {
             return stubbedFoodItemPortions.compactMap { $0 as? T }
+        }
+        if collection.hasSuffix("mergedAnonymousAccounts") {
+            return stubbedMergedAnonymousAccounts.compactMap { $0 as? T }
         }
         return stubbedFoodConsumed.compactMap { $0 as? T }
     }
@@ -581,6 +596,8 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
             log.record("deleteMeal:\(id)")
         } else if collection.hasSuffix("foodItemPortions") {
             log.record("deletePortions:\(id)")
+        } else if collection.hasSuffix("mergedAnonymousAccounts") {
+            log.record("deleteMergedAnonymousAccount:\(id)")
         } else if collection.hasSuffix("foodConsumed") {
             log.record("deleteFood:\(id)")
         } else if collection.hasSuffix("stats") {
