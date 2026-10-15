@@ -2,9 +2,11 @@
 <resources>
     <string name="account_alert_deleteConfirmMessage">Tuto akci nelze vzít zpět. Všechna tvá data budou trvale smazána.</string>
     <string name="account_alert_deleteConfirmTitle">Opravdu smazat účet?</string>
+    <string name="account_alert_linkSuccessTitle">Přihlašovací metoda byla propojena</string>
     <string name="account_alert_reauthenticateTitle">Vyžadováno přihlášení</string>
     <string name="account_anonymous_description">Nejsi přihlášen/a. Data jsou vázaná na toto zařízení — při jeho výměně o ně můžeš přijít.</string>
     <string name="account_button_deleteAccount">Smazat účet</string>
+    <string name="account_button_linkProvider">Propojit</string>
     <string name="account_button_reauthenticate">Přihlásit se znovu</string>
     <string name="account_button_signInWithApple">Přihlásit se přes Apple</string>
     <string name="account_button_signInWithGoogle">Přihlásit se přes Google</string>
@@ -14,10 +16,16 @@
     <string name="account_error_accountExistsWithApple">Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.</string>
     <string name="account_error_deleteFailed">Smazání účtu se nezdařilo</string>
     <string name="account_error_deleteRequiresRecentLogin">Pro smazání účtu se prosím znovu přihlas.</string>
+    <string name="account_error_linkAlreadyLinked">Tato přihlašovací metoda už je k účtu připojená.</string>
+    <string name="account_error_linkCredentialBelongsToAnotherAccount">Toto přihlášení už má vlastní účet v Kalorie. Chceš-li ho propojit sem, přihlas se jím, smaž ten účet, přihlas se zpět a propoj ho. Nic se nezměnilo.</string>
+    <string name="account_error_linkEmailBelongsToAnotherAccount">E-mail tohoto přihlášení patří jinému účtu. Nic se nepropojilo.</string>
+    <string name="account_error_linkMergeInProgress">Přenos tvých dřívějších záznamů ještě neskončil. Zkus to za chvíli znovu.</string>
     <string name="account_error_noGoogleAccount">Na zařízení není žádný účet Google</string>
     <string name="account_error_signInFailed">Nepodařilo se přihlásit</string>
     <string name="account_error_signOutFailed">Odhlášení se nezdařilo</string>
+    <string name="account_error_wrongAccount">Vyber prosím stejný účet, se kterým jsi v aplikaci přihlášen/a.</string>
     <string name="account_navigationTitle">Účet</string>
+    <string name="account_signInMethods_title">Přihlašovací metody</string>
     <string name="account_signInProvider_apple">Apple</string>
     <string name="account_signInProvider_google">Google</string>
     <string name="account_signedIn_defaultName">Přihlášen/a</string>

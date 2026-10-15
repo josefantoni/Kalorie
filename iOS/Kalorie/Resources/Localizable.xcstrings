@@ -51,6 +51,23 @@
         }
       }
     },
+    "account_alert_linkSuccessTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlašovací metoda byla propojena"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in method linked"
+          }
+        }
+      }
+    },
     "account_alert_reauthenticateTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -98,6 +115,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete account"
+          }
+        }
+      }
+    },
+    "account_button_linkProvider" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Propojit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link"
           }
         }
       }
@@ -255,6 +289,74 @@
         }
       }
     },
+    "account_error_linkAlreadyLinked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tato přihlašovací metoda už je k účtu připojená."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This sign-in method is already linked to your account."
+          }
+        }
+      }
+    },
+    "account_error_linkCredentialBelongsToAnotherAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toto přihlášení už má vlastní účet v Kalorie. Chceš-li ho propojit sem, přihlas se jím, smaž ten účet, přihlas se zpět a propoj ho. Nic se nezměnilo."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This sign-in already has its own Kalorie account. To link it here, sign in with it, delete that account, sign back in, and link it. Nothing has changed."
+          }
+        }
+      }
+    },
+    "account_error_linkEmailBelongsToAnotherAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-mail tohoto přihlášení patří jinému účtu. Nic se nepropojilo."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The email of this sign-in belongs to another account. Nothing was linked."
+          }
+        }
+      }
+    },
+    "account_error_linkMergeInProgress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přenos tvých dřívějších záznamů ještě neskončil. Zkus to za chvíli znovu."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moving your earlier entries has not finished yet. Please try again in a moment."
+          }
+        }
+      }
+    },
     "account_error_noGoogleAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -306,6 +408,23 @@
         }
       }
     },
+    "account_error_wrongAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyber prosím stejný účet, se kterým jsi v aplikaci přihlášen/a."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the account you are signed in with."
+          }
+        }
+      }
+    },
     "account_navigationTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -336,6 +455,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Signed in"
+          }
+        }
+      }
+    },
+    "account_signInMethods_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přihlašovací metody"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in methods"
           }
         }
       }

@@ -54,6 +54,14 @@ enum L10n {
         static var alertDeleteConfirmTitle: String { String(localized: "account_alert_deleteConfirmTitle") }
         static var alertDeleteConfirmMessage: String { String(localized: "account_alert_deleteConfirmMessage") }
         static var alertReauthenticateTitle: String { String(localized: "account_alert_reauthenticateTitle") }
+        static var alertLinkSuccessTitle: String { String(localized: "account_alert_linkSuccessTitle") }
+        static var buttonLinkProvider: String { String(localized: "account_button_linkProvider") }
+        static var signInMethodsTitle: String { String(localized: "account_signInMethods_title") }
+        static var errorLinkAlreadyLinked: String { String(localized: "account_error_linkAlreadyLinked") }
+        static var errorLinkCredentialBelongsToAnotherAccount: String { String(localized: "account_error_linkCredentialBelongsToAnotherAccount") }
+        static var errorLinkEmailBelongsToAnotherAccount: String { String(localized: "account_error_linkEmailBelongsToAnotherAccount") }
+        static var errorLinkMergeInProgress: String { String(localized: "account_error_linkMergeInProgress") }
+        static var errorWrongAccount: String { String(localized: "account_error_wrongAccount") }
     }
 
     enum Dashboard {

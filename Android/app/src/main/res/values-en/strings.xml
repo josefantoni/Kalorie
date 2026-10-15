@@ -2,9 +2,11 @@
 <resources>
     <string name="account_alert_deleteConfirmMessage">This action can\'t be undone. All your data will be permanently deleted.</string>
     <string name="account_alert_deleteConfirmTitle">Delete account?</string>
+    <string name="account_alert_linkSuccessTitle">Sign-in method linked</string>
     <string name="account_alert_reauthenticateTitle">Sign in required</string>
     <string name="account_anonymous_description">You\'re not signed in. Your data is tied to this device — you may lose it if you switch devices.</string>
     <string name="account_button_deleteAccount">Delete account</string>
+    <string name="account_button_linkProvider">Link</string>
     <string name="account_button_reauthenticate">Sign in again</string>
     <string name="account_button_signInWithApple">Sign in with Apple</string>
     <string name="account_button_signInWithGoogle">Sign in with Google</string>
@@ -14,10 +16,16 @@
     <string name="account_error_accountExistsWithApple">Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them.</string>
     <string name="account_error_deleteFailed">Failed to delete account</string>
     <string name="account_error_deleteRequiresRecentLogin">Please sign in again to delete your account.</string>
+    <string name="account_error_linkAlreadyLinked">This sign-in method is already linked to your account.</string>
+    <string name="account_error_linkCredentialBelongsToAnotherAccount">This sign-in already has its own Kalorie account. To link it here, sign in with it, delete that account, sign back in, and link it. Nothing has changed.</string>
+    <string name="account_error_linkEmailBelongsToAnotherAccount">The email of this sign-in belongs to another account. Nothing was linked.</string>
+    <string name="account_error_linkMergeInProgress">Moving your earlier entries has not finished yet. Please try again in a moment.</string>
     <string name="account_error_noGoogleAccount">No Google account on this device</string>
     <string name="account_error_signInFailed">Sign in failed</string>
     <string name="account_error_signOutFailed">Sign out failed</string>
+    <string name="account_error_wrongAccount">Choose the account you are signed in with.</string>
     <string name="account_navigationTitle">Account</string>
+    <string name="account_signInMethods_title">Sign-in methods</string>
     <string name="account_signInProvider_apple">Apple</string>
     <string name="account_signInProvider_google">Google</string>
     <string name="account_signedIn_defaultName">Signed in</string>
