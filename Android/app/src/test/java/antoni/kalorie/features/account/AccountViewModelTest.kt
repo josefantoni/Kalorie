@@ -3,6 +3,7 @@ package antoni.kalorie.features.account
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import antoni.kalorie.R
 import antoni.kalorie.core.auth.AuthProviderFake
+import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.GoogleSignInError
 import antoni.kalorie.core.auth.MergeStatusReporting
@@ -10,6 +11,11 @@ import antoni.kalorie.core.auth.MergeStatusReportingFake
 import antoni.kalorie.core.usecases.DeleteAccountError
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseFake
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseProtocol
+import antoni.kalorie.core.usecases.LinkAppleUseCaseFake
+import antoni.kalorie.core.usecases.LinkAppleUseCaseProtocol
+import antoni.kalorie.core.usecases.LinkCredentialError
+import antoni.kalorie.core.usecases.LinkGoogleUseCaseFake
+import antoni.kalorie.core.usecases.LinkGoogleUseCaseProtocol
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialError
 import antoni.kalorie.core.usecases.ReauthenticateError
 import antoni.kalorie.core.usecases.ReauthenticateUseCaseFake
@@ -257,6 +263,76 @@ class AccountViewModelTest {
         assertEquals(AccountViewModel.State.IDLE, sut.state.value)
     }
 
+    @Test
+    fun linkedProviderKinds_reflectsAuthProvider() {
+        val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false, linkedProviderKinds = setOf(AuthProviderKind.GOOGLE)))
+        assertEquals(setOf(AuthProviderKind.GOOGLE), sut.linkedProviderKinds.value)
+    }
+
+    @Test
+    fun onLinkProviderTapped_whenSucceeds_showsConfirmationAndReturnsToIdle() = runTest {
+        val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false))
+
+        sut.onLinkProviderTapped(AuthProviderKind.APPLE)
+
+        assertEquals(R.string.account_alert_linkSuccessTitle, sut.alertItem.value?.titleRes)
+        assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
+    @Test
+    fun onLinkProviderTapped_runsTheUseCaseOfTheChosenProvider() = runTest {
+        val sut = makeSUT(linkApple = LinkAppleUseCaseFake(errorToThrow = RuntimeException("unknown")))
+
+        sut.onLinkProviderTapped(AuthProviderKind.GOOGLE)
+
+        assertEquals("linking Google must not run the Apple use case", R.string.account_alert_linkSuccessTitle, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onLinkProviderTapped_whenAlreadyLinked_showsAlreadyLinkedAlert() = runTest {
+        val sut = makeSUT(linkGoogle = LinkGoogleUseCaseFake(errorToThrow = LinkCredentialError.AlreadyLinked))
+        sut.onLinkProviderTapped(AuthProviderKind.GOOGLE)
+        assertEquals(R.string.account_error_linkAlreadyLinked, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onLinkProviderTapped_whenCredentialBelongsToAnotherAccount_explainsHowToProceed() = runTest {
+        val sut = makeSUT(linkApple = LinkAppleUseCaseFake(errorToThrow = LinkCredentialError.CredentialBelongsToAnotherAccount))
+        sut.onLinkProviderTapped(AuthProviderKind.APPLE)
+        assertEquals(R.string.account_error_linkCredentialBelongsToAnotherAccount, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onLinkProviderTapped_whenEmailBelongsToAnotherAccount_showsEmailAlert() = runTest {
+        val sut = makeSUT(linkApple = LinkAppleUseCaseFake(errorToThrow = LinkCredentialError.EmailBelongsToAnotherAccount))
+        sut.onLinkProviderTapped(AuthProviderKind.APPLE)
+        assertEquals(R.string.account_error_linkEmailBelongsToAnotherAccount, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onLinkProviderTapped_whenMergeInProgress_showsMergeInProgressAlert() = runTest {
+        val sut = makeSUT(linkGoogle = LinkGoogleUseCaseFake(errorToThrow = LinkCredentialError.MergeInProgress))
+        sut.onLinkProviderTapped(AuthProviderKind.GOOGLE)
+        assertEquals(R.string.account_error_linkMergeInProgress, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onLinkProviderTapped_whenCancelled_showsNoAlertAndReturnsToIdle() = runTest {
+        val sut = makeSUT(linkApple = LinkAppleUseCaseFake(errorToThrow = FirebaseAuthWebException("ERROR_WEB_CONTEXT_CANCELED", "cancelled")))
+
+        sut.onLinkProviderTapped(AuthProviderKind.APPLE)
+
+        assertNull("the user closed the prompt themselves, which is not an error worth reporting", sut.alertItem.value)
+        assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
+    @Test
+    fun onLinkProviderTapped_whenFailsWithOtherError_showsGenericAlert() = runTest {
+        val sut = makeSUT(linkGoogle = LinkGoogleUseCaseFake(errorToThrow = RuntimeException("offline")))
+        sut.onLinkProviderTapped(AuthProviderKind.GOOGLE)
+        assertEquals(R.string.account_error_signInFailed, sut.alertItem.value?.titleRes)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
@@ -264,6 +340,8 @@ class AccountViewModelTest {
         signOut: SignOutUseCaseProtocol = SignOutUseCaseFake(),
         signInWithApple: SignInWithAppleUseCaseProtocol = SignInWithAppleUseCaseFake(),
         signInWithGoogle: SignInWithGoogleUseCaseProtocol = SignInWithGoogleUseCaseFake(),
+        linkApple: LinkAppleUseCaseProtocol = LinkAppleUseCaseFake(),
+        linkGoogle: LinkGoogleUseCaseProtocol = LinkGoogleUseCaseFake(),
         deleteAccount: DeleteAccountUseCaseProtocol = DeleteAccountUseCaseFake(),
         reauthenticate: ReauthenticateUseCaseProtocol = ReauthenticateUseCaseFake(),
         mergeStatusReporting: MergeStatusReporting = MergeStatusReportingFake(),
@@ -272,6 +350,8 @@ class AccountViewModelTest {
         signOut = signOut,
         signInWithApple = signInWithApple,
         signInWithGoogle = signInWithGoogle,
+        linkApple = linkApple,
+        linkGoogle = linkGoogle,
         deleteAccount = deleteAccount,
         reauthenticate = reauthenticate,
         mergeStatusReporting = mergeStatusReporting,

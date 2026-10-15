@@ -3,10 +3,12 @@ package antoni.kalorie.features.account
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -38,6 +40,7 @@ import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.sheetScrollGuard
+import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.utils.Constants
 import kotlinx.coroutines.launch
 
@@ -52,6 +55,7 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
     val isReauthenticateAlertVisible by viewModel.isReauthenticateAlertVisible.collectAsState()
     val isAnonymous by viewModel.isAnonymous.collectAsState()
     val displayName by viewModel.displayName.collectAsState()
+    val linkedProviderKinds by viewModel.linkedProviderKinds.collectAsState()
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
 
@@ -144,6 +148,25 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                                     .padding(16.dp),
                             )
                         }
+                        Text(
+                            text = stringResource(R.string.account_signInMethods_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 32.dp, top = 24.dp, end = 16.dp, bottom = 8.dp),
+                        )
+                        SectionCard {
+                            SignInMethodRow(
+                                title = stringResource(R.string.account_signInProvider_apple),
+                                isLinked = AuthProviderKind.APPLE in linkedProviderKinds,
+                                onLink = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.APPLE) } },
+                            )
+                            SectionCardDivider()
+                            SignInMethodRow(
+                                title = stringResource(R.string.account_signInProvider_google),
+                                isLinked = AuthProviderKind.GOOGLE in linkedProviderKinds,
+                                onLink = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.GOOGLE) } },
+                            )
+                        }
                     }
                 }
                 if (state != AccountViewModel.State.IDLE) {
@@ -213,5 +236,22 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun SignInMethodRow(title: String, isLinked: Boolean, onLink: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = title, modifier = Modifier.weight(1f))
+        if (isLinked) {
+            Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        } else {
+            TextButton(onClick = onLink) {
+                Text(stringResource(R.string.account_button_linkProvider))
+            }
+        }
     }
 }

@@ -3,11 +3,15 @@ package antoni.kalorie.features.account
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
+import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.GoogleSignInError
 import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.usecases.DeleteAccountError
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseProtocol
+import antoni.kalorie.core.usecases.LinkAppleUseCaseProtocol
+import antoni.kalorie.core.usecases.LinkCredentialError
+import antoni.kalorie.core.usecases.LinkGoogleUseCaseProtocol
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialError
 import antoni.kalorie.core.usecases.ReauthenticateError
 import antoni.kalorie.core.usecases.ReauthenticateUseCaseProtocol
@@ -27,6 +31,8 @@ class AccountViewModel(
     private val signOut: SignOutUseCaseProtocol,
     private val signInWithApple: SignInWithAppleUseCaseProtocol,
     private val signInWithGoogle: SignInWithGoogleUseCaseProtocol,
+    private val linkApple: LinkAppleUseCaseProtocol,
+    private val linkGoogle: LinkGoogleUseCaseProtocol,
     private val deleteAccount: DeleteAccountUseCaseProtocol,
     private val reauthenticate: ReauthenticateUseCaseProtocol,
     private val mergeStatusReporting: MergeStatusReporting,
@@ -53,6 +59,8 @@ class AccountViewModel(
     val isAnonymous: StateFlow<Boolean> = _isAnonymous
     private val _displayName = MutableStateFlow(authProvider.displayName)
     val displayName: StateFlow<String?> = _displayName
+    private val _linkedProviderKinds = MutableStateFlow(authProvider.linkedProviderKinds)
+    val linkedProviderKinds: StateFlow<Set<AuthProviderKind>> = _linkedProviderKinds
 
     // MARK: - Functions
 
@@ -112,6 +120,38 @@ class AccountViewModel(
         }
     }
 
+    suspend fun onLinkProviderTapped(kind: AuthProviderKind) {
+        _state.value = State.LINKING
+        try {
+            when (kind) {
+                AuthProviderKind.APPLE -> linkApple()
+                AuthProviderKind.GOOGLE -> linkGoogle()
+            }
+            refreshAuthState()
+            alertItem.value = AlertItem(titleRes = R.string.account_alert_linkSuccessTitle)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: LinkCredentialError.AlreadyLinked) {
+            refreshAuthState()
+            alertItem.value = AlertItem(titleRes = R.string.account_error_linkAlreadyLinked)
+        } catch (_: LinkCredentialError.CredentialBelongsToAnotherAccount) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_linkCredentialBelongsToAnotherAccount)
+        } catch (_: LinkCredentialError.EmailBelongsToAnotherAccount) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_linkEmailBelongsToAnotherAccount)
+        } catch (_: LinkCredentialError.MergeInProgress) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_linkMergeInProgress)
+        } catch (_: GoogleSignInError.NoGoogleAccount) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_noGoogleAccount)
+        } catch (error: Exception) {
+            if (!isUserCancellation(error)) {
+                Log.error(error, Constants.LogCategory.ACCOUNT)
+                alertItem.value = AlertItem(titleRes = R.string.account_error_signInFailed)
+            }
+        } finally {
+            _state.value = State.IDLE
+        }
+    }
+
     suspend fun onDeleteAccountConfirmed() {
         isDataAlreadyWiped = false
         try {
@@ -149,6 +189,7 @@ class AccountViewModel(
     private fun refreshAuthState() {
         _isAnonymous.value = authProvider.isAnonymous
         _displayName.value = authProvider.displayName
+        _linkedProviderKinds.value = authProvider.linkedProviderKinds
     }
 
     private fun isUserCancellation(error: Throwable): Boolean = error is GetCredentialCancellationException || (error is FirebaseAuthWebException && error.errorCode == WEB_CONTEXT_CANCELED)
