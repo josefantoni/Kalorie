@@ -32,6 +32,20 @@ final class LinkOrMergeCredentialUseCaseTests: XCTestCase {
         XCTAssertEqual(migrateAnonymousData.lastSourceUserId, "anon-123")
     }
 
+    func test_callAsFunction_whenCredentialAlreadyInUse_migratesWithTheUpdatedCredentialFromTheError() async throws {
+        let (sut, authCommandProvider, migrateAnonymousData) = makeSUT()
+        let updatedCredential = EmailAuthProvider.credential(withEmail: "updated@example.com", password: "password")
+        authCommandProvider.linkError = NSError(
+            domain: AuthErrorDomain,
+            code: AuthErrorCode.credentialAlreadyInUse.rawValue,
+            userInfo: [AuthErrorUserInfoUpdatedCredentialKey: updatedCredential]
+        )
+
+        try await sut(credential: makeCredential())
+
+        XCTAssertTrue(migrateAnonymousData.lastCredential === updatedCredential, "the original Apple credential is spent by the failed link, so signing in with it fails")
+    }
+
     func test_callAsFunction_whenLinkFailsWithOtherError_propagatesErrorAndDoesNotCallMigrate() async {
         let (sut, authCommandProvider, migrateAnonymousData) = makeSUT()
         authCommandProvider.linkError = URLError(.notConnectedToInternet)

@@ -54,7 +54,9 @@ struct LinkOrMergeCredentialUseCase: LinkOrMergeCredentialUseCaseProtocol {
                 error.matches(domain: AuthErrorDomain, code: AuthErrorCode.credentialAlreadyInUse.rawValue)
             else { throw error }
 
-            try await migrateAnonymousData.migrate(fromAnonymousUserId: anonymousUserId, credential: credential)
+            // An Apple ID token is single-use: the credential that just failed to link is spent, and Firebase hands back a usable one.
+            let updatedCredential = (error as NSError).userInfo[AuthErrorUserInfoUpdatedCredentialKey] as? AuthCredential
+            try await migrateAnonymousData.migrate(fromAnonymousUserId: anonymousUserId, credential: updatedCredential ?? credential)
         }
     }
 }
