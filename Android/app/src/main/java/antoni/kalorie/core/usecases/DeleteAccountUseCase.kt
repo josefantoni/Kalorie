@@ -1,7 +1,9 @@
 package antoni.kalorie.core.usecases
 
+import antoni.kalorie.core.auth.AppleSignInProviderProtocol
 import antoni.kalorie.core.auth.AuthCommandProviderProtocol
 import antoni.kalorie.core.auth.AuthError
+import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreProtocol
 import antoni.kalorie.core.models.FoodItemReportDomain
@@ -36,6 +38,7 @@ class DeleteAccountUseCase(
     private val authCommandProvider: AuthCommandProviderProtocol,
     private val snapshotStore: PendingMergeSnapshotStoreProtocol,
     private val storageProvider: StorageDataProviderProtocol,
+    private val appleSignInProvider: AppleSignInProviderProtocol,
 ) : DeleteAccountUseCaseProtocol {
 
     // MARK: - Functions
@@ -46,10 +49,20 @@ class DeleteAccountUseCase(
         if (lastSignInDate != null && Duration.between(lastSignInDate, Instant.now()).seconds > Constants.Auth.RECENT_LOGIN_THRESHOLD_SECONDS) {
             throw DeleteAccountError.RequiresRecentLogin(dataAlreadyDeleted = false)
         }
+        val appleAccessToken = if (AuthProviderKind.APPLE in authProvider.linkedProviderKinds) appleSignInProvider.reauthenticate().accessToken else null
         // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
         // account that follows the deletion. Idempotent, so a retry with skipDataWipe is safe.
         snapshotStore.delete()
         if (!skipDataWipe) wipeFirestoreData(userId)
+        if (appleAccessToken != null) {
+            try {
+                authCommandProvider.revokeAppleToken(appleAccessToken)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.error(error, Constants.LogCategory.ACCOUNT)
+            }
+        }
         try {
             authCommandProvider.deleteCurrentUser()
         } catch (error: CancellationException) {

@@ -18,11 +18,20 @@ they can be removed next time the file is touched.
 Enable **Sign in with Apple** for the App ID. This is separate from the Xcode capability; both
 are required.
 
+Android signs in with Apple through Firebase's web OAuth flow, and account deletion revokes the
+Apple token on both clients ([design 0025](design/0025-linking-a-second-sign-in-provider.md)). That
+needs two more items under Certificates, Identifiers & Profiles:
+
+| Item | Where | Value |
+|---|---|---|
+| Services ID | Identifiers → Services IDs | Identifier `antoni.Kalorie.signin`, Sign in with Apple enabled, primary App ID `antoni.Kalorie`, domain `kalorie-bf11c.firebaseapp.com`, return URL `https://kalorie-bf11c.firebaseapp.com/__/auth/handler`. |
+| Key | Keys | A key with Sign in with Apple configured for `antoni.Kalorie`. The `.p8` file can be downloaded **once**; keep it in a password manager. Apple limits how many of these keys exist. Note the Key ID and the Team ID. |
+
 ## Firebase Console
 
 | Setting | Where | Notes |
 |---|---|---|
-| Apple sign-in provider | Authentication → Sign-in method → Apple | Must be enabled before Apple credentials are accepted. |
+| Apple sign-in provider | Authentication → Sign-in method → Apple | Must be enabled before Apple credentials are accepted. Fill in the Services ID, Apple Team ID, Key ID and the private key (the `.p8` content) from § Apple Developer portal; Android sign-in and token revocation on deletion fail without them. The key lives in Firebase, so no CI secret is needed. |
 | Google sign-in provider | Authentication → Sign-in method → Google | Must be enabled before Google credentials are accepted — turning it on is what adds `CLIENT_ID` and `REVERSED_CLIENT_ID` to `GoogleService-Info.plist`; without those keys the Google SDK cannot be configured at all. |
 | User account linking | Authentication → Settings → User account linking | Must stay on **One account per email address** (the default). [ADR 0006](adr/0006-google-sign-in-identity-collisions.md) depends on it: switching to *multiple accounts* silently disables the collision warning in every client and makes silent account splitting unconditional. Do not change without superseding that record. |
 | Anonymous provider | Authentication → Sign-in method → Anonymous | Already enabled; the app depends on it for the signed-out mode (see [ADR 0001](adr/0001-anonymous-firebase-auth-as-device-identity.md)). |
@@ -136,10 +145,12 @@ by design.
 | Compile against API 37 | Android app's `compileSdk` | [ADR 0037](adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md): ExportKit's PDF dependency refuses anything lower. |
 | Consume the shared modules | Android app's `settings.gradle.kts` | Composite build, per [ADR 0037](adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md); the app lives in this repository, so the paths are relative to it. |
 
-Not covered because it is undecided: how Apple sign-in works on Android (Firebase offers it only
-through a web-based OAuth flow, which needs an Apple Services ID this project does not have), and
-how the maintainer claim (§ Maintainer claim) is set for an Android session — it is per-UID, so an
-account already claimed on iOS carries over once the same Apple/Google account signs in.
+Apple sign-in on Android needs no Gradle or `google-services.json` change: it runs through Firebase's
+web OAuth flow, using the Services ID and key from § Apple Developer portal and § Firebase Console.
+
+Not covered because it is undecided: how the maintainer claim (§ Maintainer claim) is set for an
+Android session — it is per-UID, so an account already claimed on iOS carries over once the same
+Apple/Google account signs in.
 
 ## Crashlytics
 

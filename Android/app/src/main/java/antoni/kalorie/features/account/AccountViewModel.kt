@@ -9,12 +9,15 @@ import antoni.kalorie.core.auth.MergeStatusReporting
 import antoni.kalorie.core.usecases.DeleteAccountError
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseProtocol
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialError
+import antoni.kalorie.core.usecases.ReauthenticateError
 import antoni.kalorie.core.usecases.ReauthenticateUseCaseProtocol
+import antoni.kalorie.core.usecases.SignInWithAppleUseCaseProtocol
 import antoni.kalorie.core.usecases.SignInWithGoogleUseCaseProtocol
 import antoni.kalorie.core.usecases.SignOutUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
+import com.google.firebase.auth.FirebaseAuthWebException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 class AccountViewModel(
     private val authProvider: AuthProviderProtocol,
     private val signOut: SignOutUseCaseProtocol,
+    private val signInWithApple: SignInWithAppleUseCaseProtocol,
     private val signInWithGoogle: SignInWithGoogleUseCaseProtocol,
     private val deleteAccount: DeleteAccountUseCaseProtocol,
     private val reauthenticate: ReauthenticateUseCaseProtocol,
@@ -61,6 +65,27 @@ class AccountViewModel(
         } catch (error: Exception) {
             Log.error(error, Constants.LogCategory.ACCOUNT)
             alertItem.value = AlertItem(titleRes = R.string.account_error_signOutFailed)
+        }
+    }
+
+    suspend fun onSignInWithAppleTapped() {
+        _state.value = State.LINKING
+        mergeStatusReporting.beginMerge()
+        try {
+            signInWithApple()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: LinkOrMergeCredentialError.AccountExistsWithAnotherProvider) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_accountExistsWithGoogle)
+        } catch (error: Exception) {
+            if (!isUserCancellation(error)) {
+                Log.error(error, Constants.LogCategory.ACCOUNT)
+                alertItem.value = AlertItem(titleRes = R.string.account_error_signInFailed)
+            }
+        } finally {
+            mergeStatusReporting.endMerge()
+            refreshAuthState()
+            _state.value = State.IDLE
         }
     }
 
@@ -104,6 +129,8 @@ class AccountViewModel(
             performDelete()
         } catch (error: CancellationException) {
             throw error
+        } catch (_: ReauthenticateError.WrongAccount) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_wrongAccount)
         } catch (_: GoogleSignInError.NoGoogleAccount) {
             alertItem.value = AlertItem(titleRes = R.string.account_error_noGoogleAccount)
         } catch (error: Exception) {
@@ -124,7 +151,7 @@ class AccountViewModel(
         _displayName.value = authProvider.displayName
     }
 
-    private fun isUserCancellation(error: Throwable): Boolean = error is GetCredentialCancellationException
+    private fun isUserCancellation(error: Throwable): Boolean = error is GetCredentialCancellationException || (error is FirebaseAuthWebException && error.errorCode == WEB_CONTEXT_CANCELED)
 
     private suspend fun performDelete() {
         _state.value = State.DELETING_ACCOUNT
@@ -136,8 +163,14 @@ class AccountViewModel(
             isDataAlreadyWiped = error.dataAlreadyDeleted
             isReauthenticateAlertVisible.value = true
         } catch (error: Exception) {
-            Log.error(error, Constants.LogCategory.ACCOUNT)
-            alertItem.value = AlertItem(titleRes = R.string.account_error_deleteFailed)
+            if (!isUserCancellation(error)) {
+                Log.error(error, Constants.LogCategory.ACCOUNT)
+                alertItem.value = AlertItem(titleRes = R.string.account_error_deleteFailed)
+            }
         }
+    }
+
+    private companion object {
+        const val WEB_CONTEXT_CANCELED = "ERROR_WEB_CONTEXT_CANCELED"
     }
 }

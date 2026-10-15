@@ -1,5 +1,6 @@
 package antoni.kalorie.core.usecases
 
+import antoni.kalorie.core.auth.AppleSignInProviderFake
 import antoni.kalorie.core.auth.AuthCommandProviderFake
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderFake
@@ -60,6 +61,7 @@ class ReauthenticateUseCaseTest {
         val authCommandProvider = AuthCommandProviderFake()
         authCommandProvider.reauthenticateError = RuntimeException("offline")
         val sut = ReauthenticateUseCase(
+            appleSignInProvider = AppleSignInProviderFake(),
             googleSignInProvider = GoogleSignInProviderFake(),
             authCommandProvider = authCommandProvider,
             authProvider = AuthProviderFake(linkedProviderKinds = setOf(AuthProviderKind.GOOGLE)),
@@ -117,9 +119,39 @@ class ReauthenticateUseCaseTest {
         val authCommandProvider = AuthCommandProviderFake()
         authCommandProvider.reauthenticateError = FirebaseAuthException("ERROR_USER_MISMATCH", "mismatch")
         val sut = ReauthenticateUseCase(
+            appleSignInProvider = AppleSignInProviderFake(),
             googleSignInProvider = GoogleSignInProviderFake(),
             authCommandProvider = authCommandProvider,
             authProvider = AuthProviderFake(linkedProviderKinds = setOf(AuthProviderKind.GOOGLE)),
+        )
+
+        try {
+            sut()
+            fail("Expected ReauthenticateError.WrongAccount to be thrown")
+        } catch (_: ReauthenticateError.WrongAccount) {
+        }
+    }
+
+    @Test
+    fun invoke_whenSessionIsApple_reauthenticatesThroughTheAppleWebFlow() = runTest {
+        val appleSignInProvider = AppleSignInProviderFake()
+        val (sut, _) = makeSUT(
+            linkedProviderKinds = setOf(AuthProviderKind.APPLE, AuthProviderKind.GOOGLE),
+            sessionProviderKind = AuthProviderKind.APPLE,
+            appleSignInProvider = appleSignInProvider,
+            googleSignInProvider = GoogleSignInProviderFake(errorToThrow = GoogleSignInError.UnexpectedCredential),
+        )
+
+        sut()
+
+        assertEquals(1, appleSignInProvider.reauthenticateCallCount)
+    }
+
+    @Test
+    fun invoke_whenAppleReauthenticationPicksADifferentIdentity_throwsWrongAccount() = runTest {
+        val (sut, _) = makeSUT(
+            linkedProviderKinds = setOf(AuthProviderKind.APPLE),
+            appleSignInProvider = AppleSignInProviderFake(reauthenticateError = FirebaseAuthException("ERROR_USER_MISMATCH", "mismatch")),
         )
 
         try {
@@ -134,10 +166,12 @@ class ReauthenticateUseCaseTest {
     private fun makeSUT(
         linkedProviderKinds: Set<AuthProviderKind>,
         sessionProviderKind: AuthProviderKind? = null,
+        appleSignInProvider: AppleSignInProviderFake = AppleSignInProviderFake(),
         googleSignInProvider: GoogleSignInProviderProtocol = GoogleSignInProviderFake(),
     ): Pair<ReauthenticateUseCase, AuthCommandProviderFake> {
         val authCommandProvider = AuthCommandProviderFake()
         val sut = ReauthenticateUseCase(
+            appleSignInProvider = appleSignInProvider,
             googleSignInProvider = googleSignInProvider,
             authCommandProvider = authCommandProvider,
             authProvider = AuthProviderFake(linkedProviderKinds = linkedProviderKinds, sessionProviderKind = sessionProviderKind),

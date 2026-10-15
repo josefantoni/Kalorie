@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.KalorieApplication
+import antoni.kalorie.core.auth.AppleSignInProvider
 import antoni.kalorie.core.auth.AuthCommandProvider
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.GoogleSessionProvider
@@ -16,6 +17,7 @@ import antoni.kalorie.core.usecases.DeleteAccountUseCase
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialUseCase
 import antoni.kalorie.core.usecases.MigrateAnonymousDataUseCase
 import antoni.kalorie.core.usecases.ReauthenticateUseCase
+import antoni.kalorie.core.usecases.SignInWithAppleUseCase
 import antoni.kalorie.core.usecases.SignInWithGoogleUseCase
 import antoni.kalorie.core.usecases.SignOutUseCase
 import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
@@ -34,7 +36,9 @@ class AccountConfigurator(
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             val authCommandProvider = AuthCommandProvider()
             val snapshotStore = PendingMergeSnapshotStore(context.filesDir)
-            val googleSignInProvider = GoogleSignInProvider(context, (context as KalorieApplication).currentActivityProvider)
+            val currentActivityProvider = (context as KalorieApplication).currentActivityProvider
+            val googleSignInProvider = GoogleSignInProvider(context, currentActivityProvider)
+            val appleSignInProvider = AppleSignInProvider(currentActivityProvider)
             val migrateAnonymousData = MigrateAnonymousDataUseCase(
                 dataProvider = dataProvider,
                 authProvider = authProvider,
@@ -53,6 +57,13 @@ class AccountConfigurator(
                     snapshotStore = snapshotStore,
                     googleSessionProvider = GoogleSessionProvider(context),
                 ),
+                signInWithApple = SignInWithAppleUseCase(
+                    appleSignInProvider = appleSignInProvider,
+                    linkOrMergeCredential = linkOrMergeCredential,
+                    authCommandProvider = authCommandProvider,
+                    dataProvider = dataProvider,
+                    authProvider = authProvider,
+                ),
                 signInWithGoogle = SignInWithGoogleUseCase(
                     googleSignInProvider = googleSignInProvider,
                     linkOrMergeCredential = linkOrMergeCredential,
@@ -66,8 +77,10 @@ class AccountConfigurator(
                     authCommandProvider = authCommandProvider,
                     snapshotStore = snapshotStore,
                     storageProvider = StorageDataProvider(),
+                    appleSignInProvider = appleSignInProvider,
                 ),
                 reauthenticate = ReauthenticateUseCase(
+                    appleSignInProvider = appleSignInProvider,
                     googleSignInProvider = googleSignInProvider,
                     authCommandProvider = authCommandProvider,
                     authProvider = authProvider,

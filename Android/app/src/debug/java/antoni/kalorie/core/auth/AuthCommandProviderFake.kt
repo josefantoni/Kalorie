@@ -11,6 +11,9 @@ class AuthCommandProviderFake : AuthCommandProviderProtocol {
     var reauthenticateError: Exception? = null
     var signOutError: Exception? = null
     var deleteError: Exception? = null
+    var revokeError: Exception? = null
+    var onRevoke: (() -> Unit)? = null
+    val revokedAccessTokens = mutableListOf<String>()
     var onDelete: (() -> Unit)? = null
     var linkCallCount = 0
         private set
@@ -55,5 +58,11 @@ class AuthCommandProviderFake : AuthCommandProviderProtocol {
         deleteCallCount += 1
         onDelete?.invoke()
         deleteError?.let { throw it }
+    }
+
+    override suspend fun revokeAppleToken(accessToken: String) {
+        revokedAccessTokens += accessToken
+        onRevoke?.invoke()
+        revokeError?.let { throw it }
     }
 }

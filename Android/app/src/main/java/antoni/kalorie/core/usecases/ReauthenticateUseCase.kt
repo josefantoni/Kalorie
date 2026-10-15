@@ -1,5 +1,6 @@
 package antoni.kalorie.core.usecases
 
+import antoni.kalorie.core.auth.AppleSignInProviderProtocol
 import antoni.kalorie.core.auth.AuthCommandProviderProtocol
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderKind
@@ -17,6 +18,7 @@ interface ReauthenticateUseCaseProtocol {
 }
 
 class ReauthenticateUseCase(
+    private val appleSignInProvider: AppleSignInProviderProtocol,
     private val googleSignInProvider: GoogleSignInProviderProtocol,
     private val authCommandProvider: AuthCommandProviderProtocol,
     private val authProvider: AuthProviderProtocol,
@@ -25,12 +27,12 @@ class ReauthenticateUseCase(
     // MARK: - Functions
 
     override suspend fun invoke() {
-        val credential = when (providerKind()) {
-            AuthProviderKind.GOOGLE -> googleSignInProvider.signIn().credential
-            AuthProviderKind.APPLE -> throw AuthError.NotAuthenticated
-        }
+        val kind = providerKind()
         try {
-            authCommandProvider.reauthenticate(credential)
+            when (kind) {
+                AuthProviderKind.APPLE -> appleSignInProvider.reauthenticate()
+                AuthProviderKind.GOOGLE -> authCommandProvider.reauthenticate(googleSignInProvider.signIn().credential)
+            }
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {

@@ -12,6 +12,8 @@ class MigrateAnonymousDataUseCaseFake : MigrateAnonymousDataUseCaseProtocol {
         private set
     var lastSourceUserId: String? = null
         private set
+    var lastCredential: AuthCredential? = null
+        private set
     var resumeCallCount = 0
         private set
 
@@ -20,6 +22,7 @@ class MigrateAnonymousDataUseCaseFake : MigrateAnonymousDataUseCaseProtocol {
     override suspend fun migrate(sourceUserId: String, credential: AuthCredential) {
         migrateCallCount += 1
         lastSourceUserId = sourceUserId
+        lastCredential = credential
         migrateError?.let { throw it }
     }
 
