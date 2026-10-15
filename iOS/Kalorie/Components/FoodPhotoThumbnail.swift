@@ -15,6 +15,8 @@ struct FoodPhotoThumbnail: View {
     let width: CGFloat
     let onTapped: () -> Void
 
+    @State private var isRevealed = false
+
     // MARK: - Body
 
     var body: some View {
@@ -30,13 +32,15 @@ struct FoodPhotoThumbnail: View {
                                 .scaledToFill()
                         }
                         .clipShape(.capsule)
+                        .mask { Capsule().scaleEffect(isRevealed ? 1 : 0.01) }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(L10n.FoodPhoto.accessibilityEnlarge)
+                .onAppear {
+                    withAnimation(.easeOut(duration: 0.35)) { isRevealed = true }
+                }
             case .loading:
-                ProgressView()
-                    .frame(width: width, height: Self.height)
-                    .background(Color.secondary.opacity(0.15), in: .capsule)
+                Color.clear.frame(width: width, height: Self.height)
             case .failure:
                 Color.clear.frame(width: 0, height: 0)
             }
