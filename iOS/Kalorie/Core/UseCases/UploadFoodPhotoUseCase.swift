@@ -33,20 +33,3 @@ struct UploadFoodPhotoUseCase: UploadFoodPhotoUseCaseProtocol {
         )
     }
 }
-
-#if DEBUG
-struct UploadFoodPhotoUseCaseFake: UploadFoodPhotoUseCaseProtocol {
-
-    // MARK: - Properties
-
-    var result = URL(string: "https://storage.fake/photo.jpg")
-    var shouldThrow = false
-
-    // MARK: - Functions
-
-    func callAsFunction(data: Data, folder: String) async throws -> URL {
-        guard !shouldThrow, let result else { throw URLError(.unknown) }
-        return result
-    }
-}
-#endif
