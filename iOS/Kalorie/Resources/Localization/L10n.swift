@@ -54,9 +54,14 @@ enum L10n {
         static var alertDeleteConfirmTitle: String { String(localized: "account_alert_deleteConfirmTitle") }
         static var alertDeleteConfirmMessage: String { String(localized: "account_alert_deleteConfirmMessage") }
         static var alertReauthenticateTitle: String { String(localized: "account_alert_reauthenticateTitle") }
-        static var alertLinkSuccessTitle: String { String(localized: "account_alert_linkSuccessTitle") }
-        static var buttonLinkProvider: String { String(localized: "account_button_linkProvider") }
-        static var signInMethodsTitle: String { String(localized: "account_signInMethods_title") }
+        static var linkInfoApple: String { String(localized: "account_linkInfo_apple") }
+        static var linkInfoBoth: String { String(localized: "account_linkInfo_both") }
+        static var linkInfoGoogle: String { String(localized: "account_linkInfo_google") }
+        static var pillLink: String { String(localized: "account_pill_link") }
+        static var alertLinkSuccessApple: String { String(localized: "account_alert_linkSuccessApple") }
+        static var alertLinkSuccessGoogle: String { String(localized: "account_alert_linkSuccessGoogle") }
+        static var buttonLinkWithApple: String { String(localized: "account_button_linkWithApple") }
+        static var buttonLinkWithGoogle: String { String(localized: "account_button_linkWithGoogle") }
         static var errorLinkAlreadyLinked: String { String(localized: "account_error_linkAlreadyLinked") }
         static var errorLinkCredentialBelongsToAnotherAccount: String { String(localized: "account_error_linkCredentialBelongsToAnotherAccount") }
         static var errorLinkEmailBelongsToAnotherAccount: String { String(localized: "account_error_linkEmailBelongsToAnotherAccount") }
