@@ -21,9 +21,9 @@ protocol AuthProviderProtocol {
     var userId: String? { get }
     var isAnonymous: Bool { get }
     var displayName: String? { get }
-    var lastSignInDate: Date? { get }
     var linkedProviderKinds: Set<AuthProviderKind> { get }
     func currentSessionProviderKind() async -> AuthProviderKind?
+    func currentAuthenticationDate() async -> Date?
 }
 
 struct AuthProvider: AuthProviderProtocol {
@@ -42,10 +42,6 @@ struct AuthProvider: AuthProviderProtocol {
         Auth.auth().currentUser?.displayName
     }
 
-    var lastSignInDate: Date? {
-        Auth.auth().currentUser?.metadata.lastSignInDate
-    }
-
     var linkedProviderKinds: Set<AuthProviderKind> {
         Set((Auth.auth().currentUser?.providerData ?? []).compactMap { Self.kind(forProviderId: $0.providerID) })
     }
@@ -54,6 +50,11 @@ struct AuthProvider: AuthProviderProtocol {
         guard let user = Auth.auth().currentUser else { return nil }
         let signInProvider = try? await user.getIDTokenResult().signInProvider
         return signInProvider.flatMap(Self.kind(forProviderId:))
+    }
+
+    func currentAuthenticationDate() async -> Date? {
+        guard let user = Auth.auth().currentUser else { return nil }
+        return try? await user.getIDTokenResult(forcingRefresh: true).authDate
     }
 
     private static func kind(forProviderId providerId: String) -> AuthProviderKind? {
@@ -73,14 +74,18 @@ struct AuthProviderFake: AuthProviderProtocol {
     var userId: String? = "test-user-id"
     var isAnonymous = true
     var displayName: String?
-    var lastSignInDate: Date? = .now
     var linkedProviderKinds: Set<AuthProviderKind> = []
     var sessionProviderKind: AuthProviderKind?
+    var authenticationDate: Date? = .now
 
     // MARK: - Functions
 
     func currentSessionProviderKind() async -> AuthProviderKind? {
         sessionProviderKind
+    }
+
+    func currentAuthenticationDate() async -> Date? {
+        authenticationDate
     }
 }
 #endif

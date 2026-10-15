@@ -174,7 +174,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         snapshotStore.stubbedSnapshot = makeSnapshot()
         let sut = DeleteAccountUseCase(
             dataProvider: dataProvider,
-            authProvider: AuthProviderFake(lastSignInDate: Date().addingTimeInterval(-10 * 60)),
+            authProvider: AuthProviderFake(authenticationDate: Date().addingTimeInterval(-10 * 60)),
             authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
             snapshotStore: snapshotStore,
             storageProvider: StorageDataProviderFake(),
