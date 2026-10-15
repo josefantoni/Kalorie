@@ -92,6 +92,7 @@ final class AccountViewModel: ObservableObject {
         mergeStatusReporting.beginMerge()
         defer {
             mergeStatusReporting.endMerge()
+            linkedProviderKinds = authProvider.linkedProviderKinds
             state = .idle
         }
         do {
@@ -109,6 +110,7 @@ final class AccountViewModel: ObservableObject {
         mergeStatusReporting.beginMerge()
         defer {
             mergeStatusReporting.endMerge()
+            linkedProviderKinds = authProvider.linkedProviderKinds
             state = .idle
         }
         do {
