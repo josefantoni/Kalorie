@@ -11,4 +11,9 @@ data class LinkOrMergeCredentialUseCaseFake(
     override suspend fun invoke(credential: AuthCredential) {
         if (shouldThrow) throw RuntimeException("unknown")
     }
+
+    override suspend fun linkOrMerge(link: suspend () -> Unit) {
+        if (shouldThrow) throw RuntimeException("unknown")
+        link()
+    }
 }

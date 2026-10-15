@@ -124,5 +124,7 @@ class SignInWithGoogleUseCaseTest {
             callCount += 1
             receivedCredential = credential
         }
+
+        override suspend fun linkOrMerge(link: suspend () -> Unit) = link()
     }
 }

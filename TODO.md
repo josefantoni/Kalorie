@@ -107,9 +107,6 @@ this file that still has the steps (`git show 60dcabb:TODO.md`). What is still o
   diacritics, box coordinates hold under a rotated frame (rows and columns must not collapse), the
   3-second scan window fills the form, and the permission prompt, denied state and revocation behave.
   Real-world glare and curved packaging still need checking before release.
-- **Apple sign-in on Android** — Firebase offers it only through a web OAuth flow that needs an
-  Apple Services ID this project does not have. The iOS app currently signs in with Google only,
-  since there is no paid Apple Developer account, so this waits for both.
 - **Android release signing** — Google sign-in works for the debug keystore and the Play App
   Signing key (both fingerprints are in Firebase and in the `GOOGLE_SERVICES_JSON` CI secret,
   `docs/SETUP.md` Android section). The upload keystore exists and `signingConfigs.release` uses it

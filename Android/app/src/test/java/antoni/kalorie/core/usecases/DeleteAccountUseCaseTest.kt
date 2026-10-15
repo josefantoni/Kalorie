@@ -1,8 +1,11 @@
 package antoni.kalorie.core.usecases
 
+import antoni.kalorie.core.auth.AppleAuthResult
+import antoni.kalorie.core.auth.AppleSignInProviderFake
 import antoni.kalorie.core.auth.AuthCommandProviderFake
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderFake
+import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.auth.PendingMergeSnapshot
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreFake
 import antoni.kalorie.core.models.FoodItemDomain
@@ -298,11 +301,66 @@ class DeleteAccountUseCaseTest {
 
     // MARK: - Helpers
 
+    @Test
+    fun invoke_whenAccountHasApple_revokesTheAppleTokenBeforeDeletingTheUser() = runTest {
+        val order = mutableListOf<String>()
+        val fixture = makeSUT(
+            authProvider = AuthProviderFake(userId = USER_ID, linkedProviderKinds = setOf(AuthProviderKind.APPLE)),
+            appleSignInProvider = AppleSignInProviderFake(result = AppleAuthResult(displayName = null, email = null, accessToken = "apple-token")),
+        )
+        fixture.authCommandProvider.onRevoke = { order += "revoke" }
+        fixture.authCommandProvider.onDelete = { order += "delete" }
+
+        fixture.sut()
+
+        assertEquals(listOf("apple-token"), fixture.authCommandProvider.revokedAccessTokens)
+        assertEquals("Apple requires the token to be revoked as part of account deletion, and revoking after the user is gone is impossible", listOf("revoke", "delete"), order)
+    }
+
+    @Test
+    fun invoke_whenAccountHasNoApple_doesNotAskAppleForAuthorizationOrRevoke() = runTest {
+        val fixture = makeSUT(authProvider = AuthProviderFake(userId = USER_ID, linkedProviderKinds = setOf(AuthProviderKind.GOOGLE)))
+
+        fixture.sut()
+
+        assertEquals(0, fixture.appleSignInProvider.reauthenticateCallCount)
+        assertTrue(fixture.authCommandProvider.revokedAccessTokens.isEmpty())
+    }
+
+    @Test
+    fun invoke_whenRevocationFails_stillDeletesTheUser() = runTest {
+        val fixture = makeSUT(authProvider = AuthProviderFake(userId = USER_ID, linkedProviderKinds = setOf(AuthProviderKind.APPLE)))
+        fixture.authCommandProvider.revokeError = RuntimeException("offline")
+
+        fixture.sut()
+
+        assertEquals("a failed revocation is only logged: the user asked to delete the account and must not be stuck with it", 1, fixture.authCommandProvider.deleteCallCount)
+    }
+
+    @Test
+    fun invoke_whenAppleAuthorizationFails_deletesNothing() = runTest {
+        val fixture = makeSUT(
+            authProvider = AuthProviderFake(userId = USER_ID, linkedProviderKinds = setOf(AuthProviderKind.APPLE)),
+            appleSignInProvider = AppleSignInProviderFake(reauthenticateError = RuntimeException("cancelled")),
+        )
+        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
+
+        try {
+            fixture.sut()
+            fail("Expected the failure to be thrown")
+        } catch (_: RuntimeException) {
+        }
+
+        assertTrue("cancelling the Apple prompt must leave the account and its data intact so the user can retry", fixture.dataProvider.deletedIdsByCollection.isEmpty())
+        assertEquals(0, fixture.authCommandProvider.deleteCallCount)
+    }
+
     private class Fixture(
         val dataProvider: FirestoreDataProviderFake,
         val authCommandProvider: AuthCommandProviderFake,
         val snapshotStore: PendingMergeSnapshotStoreFake,
         val sut: DeleteAccountUseCase,
+        val appleSignInProvider: AppleSignInProviderFake,
         val snapshots: MutableList<Map<String, List<String>>>,
     ) {
         val deletedBeforeAccountDeletion: Map<String, List<String>>
@@ -314,6 +372,7 @@ class DeleteAccountUseCaseTest {
     private fun makeSUT(
         authProvider: AuthProviderFake = AuthProviderFake(userId = USER_ID),
         storage: StorageDataProviderFake = StorageDataProviderFake(),
+        appleSignInProvider: AppleSignInProviderFake = AppleSignInProviderFake(),
     ): Fixture {
         val dataProvider = FirestoreDataProviderFake()
         val snapshots = mutableListOf<Map<String, List<String>>>()
@@ -326,8 +385,9 @@ class DeleteAccountUseCaseTest {
             authCommandProvider = authCommandProvider,
             snapshotStore = snapshotStore,
             storageProvider = storage,
+            appleSignInProvider = appleSignInProvider,
         )
-        return Fixture(dataProvider, authCommandProvider, snapshotStore, sut, snapshots)
+        return Fixture(dataProvider, authCommandProvider, snapshotStore, sut, appleSignInProvider, snapshots)
     }
 
     private fun makeSnapshot() = PendingMergeSnapshot(sourceAnonymousUserId = "anon-1", foodConsumed = emptyList())

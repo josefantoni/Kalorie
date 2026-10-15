@@ -11,12 +11,16 @@ import antoni.kalorie.core.usecases.DeleteAccountError
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseFake
 import antoni.kalorie.core.usecases.DeleteAccountUseCaseProtocol
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialError
+import antoni.kalorie.core.usecases.ReauthenticateError
 import antoni.kalorie.core.usecases.ReauthenticateUseCaseFake
 import antoni.kalorie.core.usecases.ReauthenticateUseCaseProtocol
+import antoni.kalorie.core.usecases.SignInWithAppleUseCaseFake
+import antoni.kalorie.core.usecases.SignInWithAppleUseCaseProtocol
 import antoni.kalorie.core.usecases.SignInWithGoogleUseCaseFake
 import antoni.kalorie.core.usecases.SignInWithGoogleUseCaseProtocol
 import antoni.kalorie.core.usecases.SignOutUseCaseFake
 import antoni.kalorie.core.usecases.SignOutUseCaseProtocol
+import com.google.firebase.auth.FirebaseAuthWebException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -191,11 +195,74 @@ class AccountViewModelTest {
         assertEquals(AccountViewModel.State.IDLE, sut.state.value)
     }
 
+    @Test
+    fun onSignInWithAppleTapped_whenSucceeds_showsNoAlertAndReturnsToIdle() = runTest {
+        val sut = makeSUT()
+
+        sut.onSignInWithAppleTapped()
+
+        assertNull(sut.alertItem.value)
+        assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
+    @Test
+    fun onSignInWithAppleTapped_whenAccountExistsWithAnotherProvider_showsSpecificAlert() = runTest {
+        val sut = makeSUT(signInWithApple = SignInWithAppleUseCaseFake(errorToThrow = LinkOrMergeCredentialError.AccountExistsWithAnotherProvider))
+
+        sut.onSignInWithAppleTapped()
+
+        assertEquals(R.string.account_error_accountExistsWithGoogle, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onSignInWithAppleTapped_whenWebFlowCancelled_showsNoAlertAndReturnsToIdle() = runTest {
+        val sut = makeSUT(signInWithApple = SignInWithAppleUseCaseFake(errorToThrow = FirebaseAuthWebException("ERROR_WEB_CONTEXT_CANCELED", "cancelled")))
+
+        sut.onSignInWithAppleTapped()
+
+        assertNull("the user closed the Apple page themselves, which is not an error worth reporting", sut.alertItem.value)
+        assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
+    @Test
+    fun onSignInWithAppleTapped_whenFailsWithOtherError_showsAlert() = runTest {
+        val sut = makeSUT(signInWithApple = SignInWithAppleUseCaseFake(errorToThrow = RuntimeException("unknown")))
+
+        sut.onSignInWithAppleTapped()
+
+        assertEquals(R.string.account_error_signInFailed, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
+    fun onSignInWithAppleTapped_stillReportsMergeBeginAndEnd() = runTest {
+        val mergeStatusReporting = MergeStatusReportingFake()
+        val sut = makeSUT(
+            signInWithApple = SignInWithAppleUseCaseFake(errorToThrow = FirebaseAuthWebException("ERROR_WEB_CONTEXT_CANCELED", "cancelled")),
+            mergeStatusReporting = mergeStatusReporting,
+        )
+
+        sut.onSignInWithAppleTapped()
+
+        assertEquals(1, mergeStatusReporting.beginMergeCallCount)
+        assertEquals(1, mergeStatusReporting.endMergeCallCount)
+    }
+
+    @Test
+    fun onReauthenticateConfirmed_whenWrongAccount_showsWrongAccountAlert() = runTest {
+        val sut = makeSUT(reauthenticate = ReauthenticateUseCaseFake(errorToThrow = ReauthenticateError.WrongAccount))
+
+        sut.onReauthenticateConfirmed()
+
+        assertEquals("picking another identity needs its own message, not the generic sign-in failure", R.string.account_error_wrongAccount, sut.alertItem.value?.titleRes)
+        assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
         authProvider: AuthProviderProtocol = AuthProviderFake(),
         signOut: SignOutUseCaseProtocol = SignOutUseCaseFake(),
+        signInWithApple: SignInWithAppleUseCaseProtocol = SignInWithAppleUseCaseFake(),
         signInWithGoogle: SignInWithGoogleUseCaseProtocol = SignInWithGoogleUseCaseFake(),
         deleteAccount: DeleteAccountUseCaseProtocol = DeleteAccountUseCaseFake(),
         reauthenticate: ReauthenticateUseCaseProtocol = ReauthenticateUseCaseFake(),
@@ -203,6 +270,7 @@ class AccountViewModelTest {
     ): AccountViewModel = AccountViewModel(
         authProvider = authProvider,
         signOut = signOut,
+        signInWithApple = signInWithApple,
         signInWithGoogle = signInWithGoogle,
         deleteAccount = deleteAccount,
         reauthenticate = reauthenticate,

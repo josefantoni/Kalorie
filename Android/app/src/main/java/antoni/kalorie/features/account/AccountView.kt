@@ -107,6 +107,12 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                             modifier = Modifier.padding(horizontal = 16.dp),
                         )
                         Button(
+                            onClick = { scope.launch { viewModel.onSignInWithAppleTapped() } },
+                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp),
+                        ) {
+                            Text(stringResource(R.string.account_button_signInWithApple))
+                        }
+                        Button(
                             onClick = { scope.launch { viewModel.onSignInWithGoogleTapped() } },
                             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp),
                         ) {

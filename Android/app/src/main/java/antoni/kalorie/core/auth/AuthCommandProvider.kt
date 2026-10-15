@@ -12,6 +12,7 @@ interface AuthCommandProviderProtocol {
     fun signOut()
     suspend fun updateDisplayName(name: String)
     suspend fun deleteCurrentUser()
+    suspend fun revokeAppleToken(accessToken: String)
 }
 
 class AuthCommandProvider(
@@ -46,5 +47,9 @@ class AuthCommandProvider(
     override suspend fun deleteCurrentUser() {
         val user = auth.currentUser ?: throw AuthError.NotAuthenticated
         user.delete().await()
+    }
+
+    override suspend fun revokeAppleToken(accessToken: String) {
+        auth.revokeAccessToken(accessToken).await()
     }
 }
