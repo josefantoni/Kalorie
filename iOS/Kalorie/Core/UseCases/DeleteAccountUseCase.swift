@@ -58,7 +58,7 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         }
 
         let appleAuthorizationCode = authProvider.linkedProviderKinds.contains(.apple)
-            ? try await appleSignInProvider.signIn().authorizationCode
+            ? try await reauthenticateWithApple()
             : nil
 
         // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
@@ -83,6 +83,19 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
             guard error.matches(domain: AuthErrorDomain, code: AuthErrorCode.requiresRecentLogin.rawValue) else { throw error }
             throw DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: true)
         }
+    }
+
+    private func reauthenticateWithApple() async throws -> String? {
+        let result = try await appleSignInProvider.signIn()
+        do {
+            try await authCommandProvider.reauthenticate(with: result.credential)
+        } catch {
+            if error.matches(domain: AuthErrorDomain, code: AuthErrorCode.userMismatch.rawValue) {
+                throw ReauthenticateError.wrongAccount
+            }
+            throw error
+        }
+        return result.authorizationCode
     }
 
     private func wipeFirestoreData(userId: String) async throws {
