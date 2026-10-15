@@ -42,18 +42,3 @@ struct DeleteFoodPhotoUseCase: DeleteFoodPhotoUseCaseProtocol {
         try await storageProvider.deleteAsync(url: url)
     }
 }
-
-#if DEBUG
-struct DeleteFoodPhotoUseCaseFake: DeleteFoodPhotoUseCaseProtocol {
-
-    // MARK: - Properties
-
-    var shouldThrow = false
-
-    // MARK: - Functions
-
-    func callAsFunction(url: URL) async throws {
-        if shouldThrow { throw URLError(.unknown) }
-    }
-}
-#endif
