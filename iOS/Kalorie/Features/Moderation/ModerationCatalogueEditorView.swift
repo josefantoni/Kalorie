@@ -95,6 +95,7 @@ struct ModerationCatalogueEditorView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -109,3 +110,4 @@ struct ModerationCatalogueEditorView: View {
         )
     }
 }
+#endif

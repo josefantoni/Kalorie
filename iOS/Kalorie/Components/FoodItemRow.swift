@@ -54,6 +54,7 @@ struct FoodItemRow: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -102,3 +103,4 @@ struct FoodItemRow: View {
         )
     }
 }
+#endif

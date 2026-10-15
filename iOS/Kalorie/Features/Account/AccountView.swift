@@ -154,6 +154,7 @@ struct AccountView: View {
 
 extension AccountViewModel.State: Equatable {}
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -183,3 +184,4 @@ extension AccountViewModel.State: Equatable {}
         )
     )
 }
+#endif

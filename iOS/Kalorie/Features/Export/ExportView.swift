@@ -61,6 +61,7 @@ struct ExportView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -68,3 +69,4 @@ struct ExportView: View {
         ExportView(viewModel: ExportViewModel(mealTypes: [], generateFoodExport: GenerateFoodExportUseCaseFake()))
     }
 }
+#endif

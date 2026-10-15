@@ -35,6 +35,7 @@ struct FoodPortionsSection: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -42,3 +43,4 @@ struct FoodPortionsSection: View {
         FoodPortionsSection(portions: .constant([FoodPortionDraft(name: "1 balení", gramsText: "33"), FoodPortionDraft(name: "1 balení", gramsText: "33")]))
     }
 }
+#endif

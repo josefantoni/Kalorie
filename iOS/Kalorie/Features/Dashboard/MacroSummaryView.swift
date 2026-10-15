@@ -89,6 +89,7 @@ struct MacroSummaryView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -105,3 +106,4 @@ struct MacroSummaryView: View {
         )
     )
 }
+#endif

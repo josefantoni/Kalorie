@@ -67,6 +67,7 @@ struct FavouriteButton: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -75,3 +76,4 @@ struct FavouriteButton: View {
         FavouriteButton(isFavourite: true) {}
     }
 }
+#endif

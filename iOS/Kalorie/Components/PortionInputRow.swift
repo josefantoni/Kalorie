@@ -109,6 +109,8 @@ private struct PortionInputRowPreview: View {
     }
 }
 
+#if DEBUG
 #Preview {
     PortionInputRowPreview()
 }
+#endif

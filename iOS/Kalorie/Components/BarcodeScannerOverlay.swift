@@ -43,8 +43,10 @@ struct BarcodeScannerOverlay: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
     BarcodeScannerOverlay(scannedCode: .constant(""), isSearching: false) {}
 }
+#endif

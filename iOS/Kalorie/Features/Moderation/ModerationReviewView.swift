@@ -126,6 +126,7 @@ struct ModerationReviewView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -167,3 +168,4 @@ struct ModerationReviewView: View {
         )
     }
 }
+#endif

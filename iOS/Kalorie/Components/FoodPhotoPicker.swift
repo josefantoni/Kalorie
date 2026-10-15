@@ -158,6 +158,7 @@ struct FoodPhotoPicker: View {
     private static var badgeDiameter: CGFloat { 36 }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -166,3 +167,4 @@ struct FoodPhotoPicker: View {
         FoodPhotoPicker(photo: .constant(.none), isMissing: true)
     }
 }
+#endif

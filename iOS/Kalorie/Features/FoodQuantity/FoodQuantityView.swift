@@ -271,6 +271,7 @@ struct FoodQuantityView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -317,3 +318,4 @@ struct FoodQuantityView: View {
         )
     }
 }
+#endif

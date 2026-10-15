@@ -255,6 +255,7 @@ struct SettingsView: View {
 
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -279,3 +280,4 @@ struct SettingsView: View {
         )
     ])
 }
+#endif

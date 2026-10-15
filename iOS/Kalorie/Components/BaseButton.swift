@@ -59,6 +59,7 @@ struct BaseButton: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -66,3 +67,4 @@ struct BaseButton: View {
         BaseButton(style: .plain, imageName: .plusCircle) {}
     }
 }
+#endif

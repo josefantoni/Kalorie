@@ -313,6 +313,7 @@ private struct FloatingLabelTextFieldPreviewPair: View {
     }
 }
 
+#if DEBUG
 #Preview("Empty") {
     FloatingLabelTextFieldPreviewPair(content: FloatingLabelTextFieldPreview(title: "Food name"))
 }
@@ -365,3 +366,4 @@ private struct FloatingLabelTextFieldPreviewPair: View {
 #Preview("Trailing button with hint") {
     FloatingLabelTextFieldPreviewPair(content: FloatingLabelTextFieldPreview(title: "Food barcode", message: .hint("no barcode"), hasTrailingButton: true))
 }
+#endif

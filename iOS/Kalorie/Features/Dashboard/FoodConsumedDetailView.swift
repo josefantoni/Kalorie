@@ -182,6 +182,7 @@ struct FoodConsumedDetailView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -225,3 +226,4 @@ struct FoodConsumedDetailView: View {
         )
     }
 }
+#endif

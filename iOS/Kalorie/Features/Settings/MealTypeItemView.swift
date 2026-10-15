@@ -39,6 +39,7 @@ struct MealTypeItemView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -51,3 +52,4 @@ struct MealTypeItemView: View {
         )
     )
 }
+#endif
