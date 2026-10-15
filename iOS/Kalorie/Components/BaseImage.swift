@@ -37,8 +37,10 @@ struct BaseImage: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
     BaseImage(imageName: .plusCircle, imageSize: .extraLarge)
 }
+#endif

@@ -36,6 +36,7 @@ struct SaveToolbarButton: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -48,3 +49,4 @@ struct SaveToolbarButton: View {
             }
     }
 }
+#endif

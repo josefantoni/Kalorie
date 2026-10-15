@@ -109,6 +109,7 @@ struct FoodPortionsManagerView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -155,3 +156,4 @@ struct FoodPortionsManagerView: View {
         )
     }
 }
+#endif

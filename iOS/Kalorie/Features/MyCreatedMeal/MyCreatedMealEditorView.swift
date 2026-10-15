@@ -178,6 +178,7 @@ struct MyCreatedMealEditorView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -195,3 +196,4 @@ struct MyCreatedMealEditorView: View {
         )
     }
 }
+#endif

@@ -45,8 +45,10 @@ struct AlcoholicDrinkHintView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
     AlcoholicDrinkHintView(formattedAlcoholByVolume: "4.4 %", isPopoverVisible: .constant(false))
 }
+#endif

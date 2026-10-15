@@ -57,6 +57,7 @@ struct PrimaryButton: View {
     private static var height: CGFloat { 56 }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -68,3 +69,4 @@ struct PrimaryButton: View {
     }
     .padding()
 }
+#endif

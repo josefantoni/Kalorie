@@ -67,8 +67,10 @@ struct NutritionLabelCameraView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
     NutritionLabelCameraView(isRecognizing: false, hint: nil, onRecognized: { _, _, _ in }) {}
 }
+#endif

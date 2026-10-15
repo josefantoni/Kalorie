@@ -111,6 +111,7 @@ struct FoodItemFormSections: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -118,3 +119,4 @@ struct FoodItemFormSections: View {
         FoodItemFormSections(formInput: .constant(FoodItemFormInput()), barcodeRow: .editable {})
     }
 }
+#endif

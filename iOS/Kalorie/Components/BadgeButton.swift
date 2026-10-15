@@ -43,6 +43,7 @@ struct BadgeButton: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -53,3 +54,4 @@ struct BadgeButton: View {
     }
     .padding()
 }
+#endif

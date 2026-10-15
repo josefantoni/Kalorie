@@ -99,6 +99,8 @@ private struct PortionDraftListPreview: View {
     }
 }
 
+#if DEBUG
 #Preview {
     PortionDraftListPreview()
 }
+#endif

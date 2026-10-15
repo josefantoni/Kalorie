@@ -135,6 +135,7 @@ struct FoodItemFormFields: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -142,3 +143,4 @@ struct FoodItemFormFields: View {
         FoodItemFormFields(formInput: .constant(FoodItemFormInput()))
     }
 }
+#endif

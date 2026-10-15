@@ -76,6 +76,7 @@ struct ModerationQueueView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -112,3 +113,4 @@ struct ModerationQueueView: View {
         )
     }
 }
+#endif

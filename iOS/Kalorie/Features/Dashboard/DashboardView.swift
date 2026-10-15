@@ -340,6 +340,7 @@ struct DashboardView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -443,3 +444,4 @@ struct DashboardView: View {
         )
     )
 }
+#endif

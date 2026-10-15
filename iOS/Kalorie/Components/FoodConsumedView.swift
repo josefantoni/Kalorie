@@ -45,6 +45,7 @@ struct FoodConsumedView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -72,3 +73,4 @@ struct FoodConsumedView: View {
         )
     )
 }
+#endif

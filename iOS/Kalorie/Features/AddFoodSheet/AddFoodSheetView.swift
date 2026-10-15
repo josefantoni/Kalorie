@@ -412,6 +412,7 @@ struct AddFoodSheetView: View {
     }
 }
 
+#if DEBUG
 // MARK: - Preview
 
 #Preview {
@@ -490,3 +491,4 @@ struct AddFoodSheetView: View {
         )
     }
 }
+#endif
