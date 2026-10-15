@@ -27,6 +27,7 @@ import java.time.Instant
 
 sealed class DeleteAccountError : Exception() {
     data class RequiresRecentLogin(val dataAlreadyDeleted: Boolean) : DeleteAccountError()
+    data object MissingAppleAccessToken : DeleteAccountError()
 }
 
 interface DeleteAccountUseCaseProtocol {
@@ -75,13 +76,17 @@ class DeleteAccountUseCase(
 
     // MARK: - Private
 
-    private suspend fun reauthenticateWithApple(): String? = try {
-        appleSignInProvider.reauthenticate().accessToken
-    } catch (error: CancellationException) {
-        throw error
-    } catch (error: Exception) {
-        if ((error as? FirebaseAuthException)?.errorCode == USER_MISMATCH) throw ReauthenticateError.WrongAccount
-        throw error
+    private suspend fun reauthenticateWithApple(): String? {
+        val accessToken = try {
+            appleSignInProvider.reauthenticate().accessToken
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            if ((error as? FirebaseAuthException)?.errorCode == USER_MISMATCH) throw ReauthenticateError.WrongAccount
+            throw error
+        }
+        if (accessToken == null) Log.error(DeleteAccountError.MissingAppleAccessToken, Constants.LogCategory.ACCOUNT)
+        return accessToken
     }
 
     private suspend fun wipeFirestoreData(userId: String) {
