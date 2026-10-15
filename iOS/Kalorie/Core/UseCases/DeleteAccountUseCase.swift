@@ -10,6 +10,7 @@ import Foundation
 
 enum DeleteAccountError: Error {
     case requiresRecentLogin(dataAlreadyDeleted: Bool)
+    case missingAppleAuthorizationCode
 }
 
 protocol DeleteAccountUseCaseProtocol {
@@ -94,6 +95,9 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
                 throw ReauthenticateError.wrongAccount
             }
             throw error
+        }
+        if result.authorizationCode == nil {
+            Log.error(DeleteAccountError.missingAppleAuthorizationCode, category: Constants.LogCategory.account)
         }
         return result.authorizationCode
     }
