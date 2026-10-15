@@ -18,24 +18,18 @@ struct SignInWithGoogleUseCase: SignInWithGoogleUseCaseProtocol {
 
     private let googleSignInProvider: any GoogleSignInProviderProtocol
     private let linkOrMergeCredential: any LinkOrMergeCredentialUseCaseProtocol
-    private let authCommandProvider: any AuthCommandProviderProtocol
-    private let dataProvider: any FirestoreDataProviderProtocol
-    private let authProvider: any AuthProviderProtocol
+    private let fillEmptyProfile: any FillEmptyProfileUseCaseProtocol
 
     // MARK: - Init
 
     init(
         googleSignInProvider: any GoogleSignInProviderProtocol,
         linkOrMergeCredential: any LinkOrMergeCredentialUseCaseProtocol,
-        authCommandProvider: any AuthCommandProviderProtocol,
-        dataProvider: any FirestoreDataProviderProtocol,
-        authProvider: any AuthProviderProtocol
+        fillEmptyProfile: any FillEmptyProfileUseCaseProtocol
     ) {
         self.googleSignInProvider = googleSignInProvider
         self.linkOrMergeCredential = linkOrMergeCredential
-        self.authCommandProvider = authCommandProvider
-        self.dataProvider = dataProvider
-        self.authProvider = authProvider
+        self.fillEmptyProfile = fillEmptyProfile
     }
 
     // MARK: - Functions
@@ -43,28 +37,7 @@ struct SignInWithGoogleUseCase: SignInWithGoogleUseCaseProtocol {
     func callAsFunction() async throws {
         let result = try await googleSignInProvider.signIn()
         try await linkOrMergeCredential(credential: result.credential)
-        await saveProfileIfNeeded(displayName: result.displayName, email: result.email)
-    }
-
-    func saveProfileIfNeeded(displayName: String?, email: String?) async {
-        guard displayName != nil || email != nil else { return }
-
-        if let displayName {
-            do {
-                try await authCommandProvider.updateDisplayName(displayName)
-            } catch {
-                Log.error(error, category: Constants.LogCategory.auth)
-            }
-        }
-
-        guard let userId = authProvider.userId else { return }
-
-        let dto = UserProfileDTO(displayName: displayName, email: email)
-        do {
-            try await dataProvider.setAsync(dto, id: userId, in: Constants.Firestore.users)
-        } catch {
-            Log.error(error, category: Constants.LogCategory.auth)
-        }
+        await fillEmptyProfile(displayName: result.displayName, email: result.email)
     }
 }
 

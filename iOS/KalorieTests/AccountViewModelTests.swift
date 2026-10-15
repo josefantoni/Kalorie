@@ -204,6 +204,88 @@ final class AccountViewModelTests: XCTestCase {
         XCTAssertEqual(sut.state, .idle)
     }
 
+    func test_linkedProviderKinds_reflectsAuthProvider() {
+        let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false, linkedProviderKinds: [.google]))
+        XCTAssertEqual(sut.linkedProviderKinds, [.google])
+    }
+
+    @MainActor
+    func test_onLinkProviderTapped_whenSucceeds_showsConfirmationAndReturnsToIdle() async {
+        let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false))
+
+        await sut.onLinkProviderTapped(.apple)
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.alertLinkSuccessTitle)
+        XCTAssertEqual(sut.state, .idle)
+    }
+
+    @MainActor
+    func test_onLinkProviderTapped_runsTheUseCaseOfTheChosenProvider() async {
+        let sut = makeSUT(
+            authProvider: AuthProviderFake(isAnonymous: false),
+            linkApple: LinkAppleUseCaseFake(errorToThrow: URLError(.unknown))
+        )
+
+        await sut.onLinkProviderTapped(.google)
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.alertLinkSuccessTitle, "linking Google must not run the Apple use case")
+    }
+
+    @MainActor
+    func test_onLinkProviderTapped_whenAlreadyLinked_showsAlreadyLinkedAlert() async {
+        let sut = makeSUT(linkGoogle: LinkGoogleUseCaseFake(errorToThrow: LinkCredentialError.alreadyLinked))
+        await sut.onLinkProviderTapped(.google)
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorLinkAlreadyLinked)
+    }
+
+    @MainActor
+    func test_onLinkProviderTapped_whenCredentialBelongsToAnotherAccount_explainsHowToProceed() async {
+        let sut = makeSUT(linkApple: LinkAppleUseCaseFake(errorToThrow: LinkCredentialError.credentialBelongsToAnotherAccount))
+        await sut.onLinkProviderTapped(.apple)
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorLinkCredentialBelongsToAnotherAccount)
+    }
+
+    @MainActor
+    func test_onLinkProviderTapped_whenEmailBelongsToAnotherAccount_showsEmailAlert() async {
+        let sut = makeSUT(linkApple: LinkAppleUseCaseFake(errorToThrow: LinkCredentialError.emailBelongsToAnotherAccount))
+        await sut.onLinkProviderTapped(.apple)
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorLinkEmailBelongsToAnotherAccount)
+    }
+
+    @MainActor
+    func test_onLinkProviderTapped_whenMergeInProgress_showsMergeInProgressAlert() async {
+        let sut = makeSUT(linkGoogle: LinkGoogleUseCaseFake(errorToThrow: LinkCredentialError.mergeInProgress))
+        await sut.onLinkProviderTapped(.google)
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorLinkMergeInProgress)
+    }
+
+    @MainActor
+    func test_onLinkProviderTapped_whenCancelled_showsNoAlertAndReturnsToIdle() async {
+        let sut = makeSUT(linkApple: LinkAppleUseCaseFake(errorToThrow: makeAuthorizationError(.canceled)))
+
+        await sut.onLinkProviderTapped(.apple)
+
+        XCTAssertNil(sut.alertItem, "the user dismissed the prompt themselves — not an error worth reporting")
+        XCTAssertEqual(sut.state, .idle)
+    }
+
+    @MainActor
+    func test_onLinkProviderTapped_whenFailsWithOtherError_showsGenericAlert() async {
+        let sut = makeSUT(linkGoogle: LinkGoogleUseCaseFake(errorToThrow: URLError(.notConnectedToInternet)))
+        await sut.onLinkProviderTapped(.google)
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorSignInFailed)
+    }
+
+    @MainActor
+    func test_onReauthenticateConfirmed_whenWrongAccount_showsWrongAccountAlert() async {
+        let sut = makeSUT(reauthenticate: ReauthenticateUseCaseFake(errorToThrow: ReauthenticateError.wrongAccount))
+
+        await sut.onReauthenticateConfirmed()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorWrongAccount, "picking another identity needs its own message, not the generic sign-in failure")
+        XCTAssertEqual(sut.state, .idle)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
@@ -211,6 +293,8 @@ final class AccountViewModelTests: XCTestCase {
         signOut: any SignOutUseCaseProtocol = SignOutUseCaseFake(),
         signInWithApple: any SignInWithAppleUseCaseProtocol = SignInWithAppleUseCaseFake(),
         signInWithGoogle: any SignInWithGoogleUseCaseProtocol = SignInWithGoogleUseCaseFake(),
+        linkApple: any LinkAppleUseCaseProtocol = LinkAppleUseCaseFake(),
+        linkGoogle: any LinkGoogleUseCaseProtocol = LinkGoogleUseCaseFake(),
         deleteAccount: any DeleteAccountUseCaseProtocol = DeleteAccountUseCaseFake(),
         reauthenticate: any ReauthenticateUseCaseProtocol = ReauthenticateUseCaseFake(),
         mergeStatusReporting: any MergeStatusReporting = MergeStatusReportingFake()
@@ -220,6 +304,8 @@ final class AccountViewModelTests: XCTestCase {
             signOut: signOut,
             signInWithApple: signInWithApple,
             signInWithGoogle: signInWithGoogle,
+            linkApple: linkApple,
+            linkGoogle: linkGoogle,
             deleteAccount: deleteAccount,
             reauthenticate: reauthenticate,
             mergeStatusReporting: mergeStatusReporting

@@ -17,24 +17,18 @@ struct SignInWithAppleUseCase: SignInWithAppleUseCaseProtocol {
 
     private let appleSignInProvider: any AppleSignInProviderProtocol
     private let linkOrMergeCredential: any LinkOrMergeCredentialUseCaseProtocol
-    private let authCommandProvider: any AuthCommandProviderProtocol
-    private let dataProvider: any FirestoreDataProviderProtocol
-    private let authProvider: any AuthProviderProtocol
+    private let fillEmptyProfile: any FillEmptyProfileUseCaseProtocol
 
     // MARK: - Init
 
     init(
         appleSignInProvider: any AppleSignInProviderProtocol,
         linkOrMergeCredential: any LinkOrMergeCredentialUseCaseProtocol,
-        authCommandProvider: any AuthCommandProviderProtocol,
-        dataProvider: any FirestoreDataProviderProtocol,
-        authProvider: any AuthProviderProtocol
+        fillEmptyProfile: any FillEmptyProfileUseCaseProtocol
     ) {
         self.appleSignInProvider = appleSignInProvider
         self.linkOrMergeCredential = linkOrMergeCredential
-        self.authCommandProvider = authCommandProvider
-        self.dataProvider = dataProvider
-        self.authProvider = authProvider
+        self.fillEmptyProfile = fillEmptyProfile
     }
 
     // MARK: - Functions
@@ -42,33 +36,10 @@ struct SignInWithAppleUseCase: SignInWithAppleUseCaseProtocol {
     func callAsFunction() async throws {
         let result = try await appleSignInProvider.signIn()
         try await linkOrMergeCredential(credential: result.credential)
-        await saveProfileIfNeeded(fullName: result.fullName, email: result.email)
-    }
-
-    func saveProfileIfNeeded(fullName: PersonNameComponents?, email: String?) async {
-        let name = fullName.flatMap { components -> String? in
-            let formatted = PersonNameComponentsFormatter().string(from: components)
-            return formatted.isEmpty ? nil : formatted
-        }
-
-        guard name != nil || email != nil else { return }
-
-        if let name {
-            do {
-                try await authCommandProvider.updateDisplayName(name)
-            } catch {
-                Log.error(error, category: Constants.LogCategory.auth)
-            }
-        }
-
-        if let userId = authProvider.userId {
-            let dto = UserProfileDTO(displayName: name, email: email)
-            do {
-                try await dataProvider.setAsync(dto, id: userId, in: Constants.Firestore.users)
-            } catch {
-                Log.error(error, category: Constants.LogCategory.auth)
-            }
-        }
+        let name = result.fullName
+            .map { PersonNameComponentsFormatter().string(from: $0) }
+            .flatMap { $0.isEmpty ? nil : $0 }
+        await fillEmptyProfile(displayName: name, email: result.email)
     }
 }
 
