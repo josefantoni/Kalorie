@@ -197,8 +197,8 @@ class DeleteAccountUseCaseTest {
     }
 
     @Test
-    fun invoke_whenLastSignInIsStale_throwsBeforeDeletingAnyData() = runTest {
-        val fixture = makeSUT(authProvider = AuthProviderFake(userId = USER_ID, lastSignInDate = Instant.now().minusSeconds(10 * 60)))
+    fun invoke_whenAuthenticationIsStale_throwsBeforeDeletingAnyData() = runTest {
+        val fixture = makeSUT(authProvider = AuthProviderFake(userId = USER_ID, authenticationDate = Instant.now().minusSeconds(10 * 60)))
         fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
         fixture.snapshotStore.stubbedSnapshot = makeSnapshot()
 
