@@ -289,6 +289,23 @@
         }
       }
     },
+    "account_error_accountExistsWithGoogle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvé dřívější záznamy jsou u účtu propojeného s Googlem. Pro přístup k nim se prosím přihlas přes Google."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your earlier entries are on a Google-linked account. Please sign in with Google to reach them."
+          }
+        }
+      }
+    },
     "account_error_deleteFailed" : {
       "extractionState" : "manual",
       "localizations" : {

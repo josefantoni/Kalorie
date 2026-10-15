@@ -16,6 +16,7 @@
     <string name="account_button_signOut">Odhlásit se</string>
     <string name="account_dataAttribution">Nutriční data a fotky některých potravin pocházejí z Open Food Facts. Data jsou dostupná pod licencí Open Database License, fotky pod licencí CC BY-SA.</string>
     <string name="account_error_accountExistsWithApple">Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.</string>
+    <string name="account_error_accountExistsWithGoogle">Tvé dřívější záznamy jsou u účtu propojeného s Googlem. Pro přístup k nim se prosím přihlas přes Google.</string>
     <string name="account_error_deleteFailed">Smazání účtu se nezdařilo</string>
     <string name="account_error_deleteRequiresRecentLogin">Pro smazání účtu se prosím znovu přihlas.</string>
     <string name="account_error_linkAlreadyLinked">Tato přihlašovací metoda už je k účtu připojená.</string>
