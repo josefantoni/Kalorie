@@ -86,6 +86,7 @@ users/{userId}/favouriteFoods/{barcode}    explicitly favourited catalogue items
 users/{userId}/myCreatedMeals/{uuid}       user-composed meals
 users/{userId}/foodItemPortions/{barcode}  personal gram-shortcut portions
 users/{userId}/stats/foodFrequency         one document, per-food log counts (design 0020)
+users/{userId}/mergedAnonymousAccounts/{uid}  marker: the anonymous account {uid} was merged into this user (§ 6.2)
 foodItemSubmissions/{uuid}                 shared, a user's pending/rejected catalogue submission
 foodItemReports/{barcode}_{userId}         shared, a report that a catalogue entry looks wrong
 ```
@@ -499,6 +500,7 @@ ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
 | | `defaultKey` | string, one of the five default meal keys, **camelCase** | no | absent on user-created meal types |
 | **`foodItemPortions`** (`FoodItemPersonalPortionsDTO`) | `id` | string, the barcode | yes | user-scoped only |
 | | `portions` | array of `{name, grams}` | yes | |
+| **`mergedAnonymousAccounts`** (`MergedAnonymousAccountDTO`) | `id` | string, the uid of the merged anonymous account | yes | user-scoped only, equal to the document id |
 | **`users/{userId}`** (`UserProfileDTO`) | `displayName`, `email` | string, **camelCase** | no | user-scoped only |
 | **`foodItemSubmissions`** (`FoodItemSubmissionDTO`) | `id` | string | yes | equal to the document id |
 | | `barcode` | string | no — absent for a UUID-identified food | unchanged on update, not validated on create |
@@ -1616,7 +1618,10 @@ outcomes, all from [ADR 0006](adr/0006-google-sign-in-identity-collisions.md):
 
 - **Succeeds** — the anonymous account is upgraded in place, same UID, nothing to migrate.
 - **`credentialAlreadyInUse`** — the credential already belongs to another Firebase account (the
-  normal case on a second device). Handled by migrating, below.
+  normal case on a second device). Handled by migrating, below. The abandoned anonymous account
+  cannot be deleted from the client, so the migration writes a `mergedAnonymousAccounts/{sourceUid}`
+  marker under the *target* user, the only one it can still write to after signing in.
+  `scripts/cleanup-merged-anonymous-accounts.js` deletes the marked accounts (dry run by default).
 - **`emailAlreadyInUse`** — the credential's e-mail belongs to an account reached through the
   *other* provider. `LinkOrMergeCredentialUseCase` throws
   `LinkOrMergeCredentialError.accountExistsWithAnotherProvider`, which `AccountViewModel` catches
@@ -1700,7 +1705,7 @@ itself throwing `requiresRecentLogin`. That second path still exists as a fallba
 where the session goes stale between the check and the call, and is distinguished by
 `dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
 Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods`,
-`myCreatedMeals`, `foodItemPortions`, the `stats/foodFrequency` document and the user's own `foodItemSubmissions` document by document,
+`myCreatedMeals`, `foodItemPortions`, `mergedAnonymousAccounts`, the `stats/foodFrequency` document and the user's own `foodItemSubmissions` document by document,
 then the `users` profile document last — the profile delete
 alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
 not the kind of correctness problem an orphaned collection would be.

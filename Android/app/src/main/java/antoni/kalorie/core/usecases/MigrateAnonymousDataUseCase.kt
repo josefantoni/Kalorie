@@ -9,9 +9,11 @@ import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.FoodConsumedDTO
 import antoni.kalorie.core.networking.FoodItemPersonalPortionsDTO
+import antoni.kalorie.core.networking.MergedAnonymousAccountDTO
 import antoni.kalorie.core.networking.MyCreatedMealDTO
 import antoni.kalorie.core.networking.batchSetAsync
 import antoni.kalorie.core.networking.loadAsync
+import antoni.kalorie.core.networking.setAsync
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.AuthCredential
 import kotlinx.coroutines.async
@@ -70,6 +72,11 @@ class MigrateAnonymousDataUseCase(
         dataProvider.batchSetAsync(snapshot.favouriteFoods.map { it to it.id }, inCollection = Constants.Firestore.favouriteFoods(userId))
         dataProvider.batchSetAsync(snapshot.myCreatedMeals.map { it to it.id }, inCollection = Constants.Firestore.myCreatedMeals(userId))
         dataProvider.batchSetAsync(snapshot.foodItemPortions.map { it to it.id }, inCollection = Constants.Firestore.foodItemPortions(userId))
+        dataProvider.setAsync(
+            MergedAnonymousAccountDTO(id = snapshot.sourceAnonymousUserId),
+            id = snapshot.sourceAnonymousUserId,
+            inCollection = Constants.Firestore.mergedAnonymousAccounts(userId),
+        )
         snapshotStore.delete()
     }
 }

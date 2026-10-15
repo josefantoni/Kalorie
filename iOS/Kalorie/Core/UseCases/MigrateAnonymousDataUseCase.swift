@@ -80,6 +80,11 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
         try await dataProvider.batchSetAsync(meals, in: Constants.Firestore.myCreatedMeals(userId: userId))
         let portions = snapshot.foodItemPortions.map { (item: $0, id: $0.id) }
         try await dataProvider.batchSetAsync(portions, in: Constants.Firestore.foodItemPortions(userId: userId))
+        try await dataProvider.setAsync(
+            MergedAnonymousAccountDTO(id: snapshot.sourceAnonymousUserId),
+            id: snapshot.sourceAnonymousUserId,
+            in: Constants.Firestore.mergedAnonymousAccounts(userId: userId)
+        )
         try snapshotStore.delete()
     }
 }
