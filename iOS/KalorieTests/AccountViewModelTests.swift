@@ -295,6 +295,20 @@ final class AccountViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onLinkProviderTapped_closesTheLinkInfoPopoverSoTheResultAlertCanBePresented() async {
+        let sut = makeSUT(
+            authProvider: AuthProviderFake(isAnonymous: false),
+            linkApple: LinkAppleUseCaseFake(errorToThrow: LinkCredentialError.alreadyLinked)
+        )
+        sut.isLinkInfoPopoverVisible = true
+
+        await sut.onLinkProviderTapped(.apple)
+
+        XCTAssertFalse(sut.isLinkInfoPopoverVisible, "an alert cannot be presented while the popover is still up")
+        XCTAssertNotNil(sut.alertItem)
+    }
+
+    @MainActor
     func test_onLinkProviderTapped_whenGoogleSucceeds_tellsTheUserTheyCanSignInWithGoogle() async {
         let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false))
 
