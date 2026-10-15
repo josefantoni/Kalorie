@@ -132,6 +132,7 @@ final class AccountViewModel: ObservableObject {
 
     @MainActor
     func onLinkProviderTapped(_ kind: AuthProviderKind) async {
+        isLinkInfoPopoverVisible = false
         state = .linking
         defer { state = .idle }
         do {
