@@ -93,6 +93,7 @@ final class MigrateAnonymousDataUseCaseFake: MigrateAnonymousDataUseCaseProtocol
     var resumeError: Error?
     private(set) var migrateCallCount = 0
     private(set) var lastSourceUserId: String?
+    private(set) var lastCredential: AuthCredential?
     private(set) var resumeCallCount = 0
 
     // MARK: - Functions
@@ -100,6 +101,7 @@ final class MigrateAnonymousDataUseCaseFake: MigrateAnonymousDataUseCaseProtocol
     func migrate(fromAnonymousUserId sourceUserId: String, credential: AuthCredential) async throws {
         migrateCallCount += 1
         lastSourceUserId = sourceUserId
+        lastCredential = credential
         if let migrateError { throw migrateError }
     }
 
