@@ -156,6 +156,17 @@ final class AccountViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onSignInWithAppleTapped_whenAccountExistsWithAnotherProvider_showsSpecificAlert() async {
+        let sut = makeSUT(
+            signInWithApple: SignInWithAppleUseCaseFake(errorToThrow: LinkOrMergeCredentialError.accountExistsWithAnotherProvider)
+        )
+
+        await sut.onSignInWithAppleTapped()
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorAccountExistsWithGoogle)
+    }
+
+    @MainActor
     func test_onSignInWithGoogleTapped_whenAccountExistsWithAnotherProvider_showsSpecificAlert() async {
         let sut = makeSUT(
             signInWithGoogle: SignInWithGoogleUseCaseFake(errorToThrow: LinkOrMergeCredentialError.accountExistsWithAnotherProvider)

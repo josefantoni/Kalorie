@@ -46,6 +46,7 @@ enum L10n {
         static var signInProviderGoogle: String { String(localized: "account_signInProvider_google") }
         static var errorSignInFailed: String { String(localized: "account_error_signInFailed") }
         static var errorAccountExistsWithApple: String { String(localized: "account_error_accountExistsWithApple") }
+        static var errorAccountExistsWithGoogle: String { String(localized: "account_error_accountExistsWithGoogle") }
         static var errorSignOutFailed: String { String(localized: "account_error_signOutFailed") }
         static var errorDeleteFailed: String { String(localized: "account_error_deleteFailed") }
         static var errorDeleteRequiresRecentLogin: String { String(localized: "account_error_deleteRequiresRecentLogin") }
