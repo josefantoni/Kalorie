@@ -303,7 +303,11 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         try await sut()
 
         XCTAssertEqual(authCommandProvider.revokedAuthorizationCodes, ["auth-code"])
-        XCTAssertEqual(log.entries.suffix(2), ["revokeAppleToken", "deleteCurrentUser"], "Apple requires the token to be revoked as part of account deletion, and revoking after the user is gone is impossible")
+        XCTAssertEqual(
+            log.entries.suffix(2),
+            ["revokeAppleToken", "deleteCurrentUser"],
+            "Apple requires the token to be revoked as part of account deletion, and revoking after the user is gone is impossible"
+        )
     }
 
     func test_callAsFunction_whenAccountHasNoApple_doesNotAskAppleForAuthorizationOrRevoke() async throws {

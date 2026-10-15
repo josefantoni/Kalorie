@@ -63,7 +63,7 @@ enum L10n {
         static var buttonLinkWithApple: String { String(localized: "account_button_linkWithApple") }
         static var buttonLinkWithGoogle: String { String(localized: "account_button_linkWithGoogle") }
         static var errorLinkAlreadyLinked: String { String(localized: "account_error_linkAlreadyLinked") }
-        static var errorLinkCredentialBelongsToAnotherAccount: String { String(localized: "account_error_linkCredentialBelongsToAnotherAccount") }
+        static var errorLinkCredentialOfAnotherAccount: String { String(localized: "account_error_linkCredentialBelongsToAnotherAccount") }
         static var errorLinkEmailBelongsToAnotherAccount: String { String(localized: "account_error_linkEmailBelongsToAnotherAccount") }
         static var errorLinkMergeInProgress: String { String(localized: "account_error_linkMergeInProgress") }
         static var errorWrongAccount: String { String(localized: "account_error_wrongAccount") }

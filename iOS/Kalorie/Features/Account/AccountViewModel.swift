@@ -141,7 +141,7 @@ final class AccountViewModel: ObservableObject {
             linkedProviderKinds = authProvider.linkedProviderKinds
             alertItem = AlertItem(title: L10n.Account.errorLinkAlreadyLinked)
         } catch LinkCredentialError.credentialBelongsToAnotherAccount {
-            alertItem = AlertItem(title: L10n.Account.errorLinkCredentialBelongsToAnotherAccount)
+            alertItem = AlertItem(title: L10n.Account.errorLinkCredentialOfAnotherAccount)
         } catch LinkCredentialError.emailBelongsToAnotherAccount {
             alertItem = AlertItem(title: L10n.Account.errorLinkEmailBelongsToAnotherAccount)
         } catch LinkCredentialError.mergeInProgress {

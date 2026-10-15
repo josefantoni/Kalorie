@@ -56,11 +56,7 @@ struct AccountConfigurator {
         return AccountView(
             viewModel: AccountViewModel(
                 authProvider: authProvider,
-                signOut: SignOutUseCase(
-                    authCommandProvider: authCommandProvider,
-                    snapshotStore: snapshotStore,
-                    googleSessionProvider: GoogleSessionProvider()
-                ),
+                signOut: makeSignOut(authCommandProvider: authCommandProvider, snapshotStore: snapshotStore),
                 signInWithApple: SignInWithAppleUseCase(
                     appleSignInProvider: AppleSignInProvider(),
                     linkOrMergeCredential: linkOrMergeCredential,
@@ -81,22 +77,38 @@ struct AccountConfigurator {
                     linkCredential: linkCredential,
                     fillEmptyProfile: fillEmptyProfile
                 ),
-                deleteAccount: DeleteAccountUseCase(
-                    dataProvider: dataProvider,
-                    authProvider: authProvider,
-                    authCommandProvider: authCommandProvider,
-                    snapshotStore: snapshotStore,
-                    storageProvider: StorageDataProvider(),
-                    appleSignInProvider: AppleSignInProvider()
-                ),
-                reauthenticate: ReauthenticateUseCase(
-                    appleSignInProvider: AppleSignInProvider(),
-                    googleSignInProvider: GoogleSignInProvider(),
-                    authCommandProvider: authCommandProvider,
-                    authProvider: authProvider
-                ),
+                deleteAccount: makeDeleteAccount(authCommandProvider: authCommandProvider, snapshotStore: snapshotStore),
+                reauthenticate: makeReauthenticate(authCommandProvider: authCommandProvider),
                 mergeStatusReporting: mergeStatusReporting
             )
+        )
+    }
+
+    private func makeSignOut(authCommandProvider: AuthCommandProvider, snapshotStore: PendingMergeSnapshotStore) -> SignOutUseCase {
+        SignOutUseCase(
+            authCommandProvider: authCommandProvider,
+            snapshotStore: snapshotStore,
+            googleSessionProvider: GoogleSessionProvider()
+        )
+    }
+
+    private func makeDeleteAccount(authCommandProvider: AuthCommandProvider, snapshotStore: PendingMergeSnapshotStore) -> DeleteAccountUseCase {
+        DeleteAccountUseCase(
+            dataProvider: dataProvider,
+            authProvider: authProvider,
+            authCommandProvider: authCommandProvider,
+            snapshotStore: snapshotStore,
+            storageProvider: StorageDataProvider(),
+            appleSignInProvider: AppleSignInProvider()
+        )
+    }
+
+    private func makeReauthenticate(authCommandProvider: AuthCommandProvider) -> ReauthenticateUseCase {
+        ReauthenticateUseCase(
+            appleSignInProvider: AppleSignInProvider(),
+            googleSignInProvider: GoogleSignInProvider(),
+            authCommandProvider: authCommandProvider,
+            authProvider: authProvider
         )
     }
 }

@@ -298,7 +298,7 @@ final class AccountViewModelTests: XCTestCase {
     func test_onLinkProviderTapped_whenCredentialBelongsToAnotherAccount_explainsHowToProceed() async {
         let sut = makeSUT(linkApple: LinkAppleUseCaseFake(errorToThrow: LinkCredentialError.credentialBelongsToAnotherAccount))
         await sut.onLinkProviderTapped(.apple)
-        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorLinkCredentialBelongsToAnotherAccount)
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorLinkCredentialOfAnotherAccount)
     }
 
     @MainActor
