@@ -482,13 +482,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tvůj účet je propojený s Apple ID i s Google."
+            "value" : "Tvůj účet je propojený s Apple ID i s Google. Přihlašovat se můžeš (klidně na jiném zařízení) kteroukoli z těchto metod, jak se ti zrovna hodí."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your account is linked with both Apple ID and Google."
+            "value" : "Your account is linked with both Apple ID and Google. You can sign in (even on another device) with whichever method you like."
           }
         }
       }

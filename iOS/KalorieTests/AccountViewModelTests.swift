@@ -209,14 +209,43 @@ final class AccountViewModelTests: XCTestCase {
         XCTAssertEqual(sut.linkedProviderKinds, [.google])
     }
 
+    func test_linkInfoText_whenOnlyGoogleLinked_offersLinkingApple() {
+        let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false, linkedProviderKinds: [.google]))
+        XCTAssertEqual(sut.linkInfoText, L10n.Account.linkInfoGoogle)
+    }
+
+    func test_linkInfoText_whenOnlyAppleLinked_offersLinkingGoogle() {
+        let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false, linkedProviderKinds: [.apple]))
+        XCTAssertEqual(sut.linkInfoText, L10n.Account.linkInfoApple)
+    }
+
+    func test_linkInfoText_whenBothLinked_saysSo() {
+        let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false, linkedProviderKinds: [.apple, .google]))
+        XCTAssertEqual(sut.linkInfoText, L10n.Account.linkInfoBoth)
+    }
+
+    func test_linkInfoText_whenNoProviderLinked_isNil() {
+        let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false, linkedProviderKinds: []))
+        XCTAssertNil(sut.linkInfoText)
+    }
+
     @MainActor
-    func test_onLinkProviderTapped_whenSucceeds_showsConfirmationAndReturnsToIdle() async {
+    func test_onLinkProviderTapped_whenAppleSucceeds_tellsTheUserTheyCanSignInWithAppleAndReturnsToIdle() async {
         let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false))
 
         await sut.onLinkProviderTapped(.apple)
 
-        XCTAssertEqual(sut.alertItem?.title, L10n.Account.alertLinkSuccessTitle)
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.alertLinkSuccessApple)
         XCTAssertEqual(sut.state, .idle)
+    }
+
+    @MainActor
+    func test_onLinkProviderTapped_whenGoogleSucceeds_tellsTheUserTheyCanSignInWithGoogle() async {
+        let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false))
+
+        await sut.onLinkProviderTapped(.google)
+
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.alertLinkSuccessGoogle)
     }
 
     @MainActor
@@ -228,7 +257,7 @@ final class AccountViewModelTests: XCTestCase {
 
         await sut.onLinkProviderTapped(.google)
 
-        XCTAssertEqual(sut.alertItem?.title, L10n.Account.alertLinkSuccessTitle, "linking Google must not run the Apple use case")
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.alertLinkSuccessGoogle, "linking Google must not run the Apple use case")
     }
 
     @MainActor

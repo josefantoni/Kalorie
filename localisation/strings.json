@@ -20,8 +20,8 @@
     "en": "You are signed in with Apple ID. If you like, you can also link Google and sign in either way."
   },
   "account_linkInfo_both": {
-    "cs": "Tvůj účet je propojený s Apple ID i s Google.",
-    "en": "Your account is linked with both Apple ID and Google."
+    "cs": "Tvůj účet je propojený s Apple ID i s Google. Přihlašovat se můžeš (klidně na jiném zařízení) kteroukoli z těchto metod, jak se ti zrovna hodí.",
+    "en": "Your account is linked with both Apple ID and Google. You can sign in (even on another device) with whichever method you like."
   },
   "account_linkInfo_google": {
     "cs": "Jsi přihlášen/a přes účet Google. Pokud chceš, můžeš se propojit i s Apple ID a přihlašovat se oběma způsoby.",
