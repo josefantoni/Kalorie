@@ -44,6 +44,16 @@ class SetupDefaultMealsUseCaseTest {
     }
 
     @Test
+    fun setupDefaultMeals_twoRunsWriteTheSameIds_soConcurrentSetupsCannotDuplicateTheMeals() = runTest {
+        val (sut, _) = makeSUT()
+
+        val first = sut().map { it.id }
+        val second = sut().map { it.id }
+
+        assertEquals(first, second)
+    }
+
+    @Test
     fun setupDefaultMeals_writesUppercaseIds() = runTest {
         val (sut, _) = makeSUT()
 

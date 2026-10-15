@@ -54,6 +54,10 @@ The app works with three kinds of data. The distinction matters for the items be
     build must carry a new `CURRENT_PROJECT_VERSION` after the fix above, so build 3).
   - *Open question for a lawyer:* whether a food diary is health data under GDPR Art. 9 (design 0021 chose
     no explicit-consent step); the privacy policy also still lists Sign in with Apple, which now exists.
+- **Verify the duplicate default meals fix** — default meal types now get fixed ids from MealKit's
+  `DEFAULT_MEAL_WINDOWS` (the setup raced and wrote them twice, 10 instead of 5, on 4 of 24 accounts).
+  The day after the fix ships to a device, sign in with fresh anonymous accounts on both platforms and
+  count `users/{uid}/mealTypes` in prod Firestore: it must be exactly 5 for every new account.
 
 ## Android readiness
 

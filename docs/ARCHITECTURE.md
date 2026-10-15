@@ -965,7 +965,7 @@ either reintroduces the bug.
 The defaults are five contiguous windows covering 05:00–20:00: breakfast 05:00–08:30, second
 breakfast 08:30–11:00, lunch 11:00–14:30, snack 14:30–17:00, dinner 17:00–20:00. 20:00–05:00
 belongs to no meal, so a food logged then lands in the unassigned section (§ 3.2). Each default
-carries a `defaultKey`, and the name is resolved once where the DTO becomes a domain
+carries a `defaultKey` and a fixed uppercase-UUID `id` (ids only need to be unique within the user's `mealTypes`), so two concurrent setups write the same five documents instead of ten; the name is resolved once where the DTO becomes a domain
 (`FetchMealTypesUseCase`, and the domains `SetupDefaultMealsUseCase` returns): a known key gives
 the current-language `defaultMeals_<key>` string, an absent or unknown key gives the stored `name`.
 `name` is still written (the creating device's string) so a document stays readable by anything
