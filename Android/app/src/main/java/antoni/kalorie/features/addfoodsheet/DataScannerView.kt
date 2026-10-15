@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -36,7 +35,6 @@ private class BoundCamera {
 fun DataScannerView(onScannedCode: (String) -> Unit, isSearching: Boolean, modifier: Modifier = Modifier) {
     // MARK: - Properties
 
-    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val currentOnScannedCode by rememberUpdatedState(onScannedCode)
     val currentIsSearching by rememberUpdatedState(isSearching)
