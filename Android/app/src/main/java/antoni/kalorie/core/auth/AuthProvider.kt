@@ -19,10 +19,11 @@ interface AuthProviderProtocol {
     val userId: String?
     val isAnonymous: Boolean
     val displayName: String?
-    val lastSignInDate: Instant?
     val linkedProviderKinds: Set<AuthProviderKind>
 
     suspend fun currentSessionProviderKind(): AuthProviderKind?
+
+    suspend fun currentAuthenticationDate(): Instant?
 }
 
 class AuthProvider(
@@ -40,9 +41,6 @@ class AuthProvider(
     override val displayName: String?
         get() = auth.currentUser?.displayName
 
-    override val lastSignInDate: Instant?
-        get() = auth.currentUser?.metadata?.lastSignInTimestamp?.let(Instant::ofEpochMilli)
-
     override val linkedProviderKinds: Set<AuthProviderKind>
         get() = auth.currentUser?.providerData.orEmpty().mapNotNull { kind(it.providerId) }.toSet()
 
@@ -58,6 +56,17 @@ class AuthProvider(
             null
         }
         return signInProvider?.let(::kind)
+    }
+
+    override suspend fun currentAuthenticationDate(): Instant? {
+        val user = auth.currentUser ?: return null
+        return try {
+            Instant.ofEpochSecond(user.getIdToken(true).await().authTimestamp)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun kind(providerId: String): AuthProviderKind? = when (providerId) {

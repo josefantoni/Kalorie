@@ -45,8 +45,8 @@ class DeleteAccountUseCase(
 
     override suspend fun invoke(skipDataWipe: Boolean) {
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
-        val lastSignInDate = authProvider.lastSignInDate
-        if (lastSignInDate != null && Duration.between(lastSignInDate, Instant.now()).seconds > Constants.Auth.RECENT_LOGIN_THRESHOLD_SECONDS) {
+        val authenticationDate = authProvider.currentAuthenticationDate()
+        if (authenticationDate != null && Duration.between(authenticationDate, Instant.now()).seconds > Constants.Auth.RECENT_LOGIN_THRESHOLD_SECONDS) {
             throw DeleteAccountError.RequiresRecentLogin(dataAlreadyDeleted = false)
         }
         val appleAccessToken = if (AuthProviderKind.APPLE in authProvider.linkedProviderKinds) appleSignInProvider.reauthenticate().accessToken else null
