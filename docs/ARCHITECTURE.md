@@ -1553,7 +1553,9 @@ provider adapters, the on-disk snapshot format and the account screen.
 
 **Read first:** [design 0001](design/0001-user-authentication.md) (anonymous-first identity,
 Apple sign-in, the merge algorithm), [design 0002](design/0002-google-sign-in.md) (Google as a
-second provider, identity collisions), [ADR 0001](adr/0001-anonymous-firebase-auth-as-device-identity.md),
+second provider, identity collisions), [design 0025](design/0025-linking-a-second-sign-in-provider.md)
+(linking the second provider, Apple on Android), [ADR 0045](adr/0045-signed-in-users-may-link-the-other-provider.md),
+[ADR 0001](adr/0001-anonymous-firebase-auth-as-device-identity.md),
 [ADR 0002](adr/0002-merge-anonymous-data-before-switching-accounts.md),
 [ADR 0003](adr/0003-separate-auth-command-provider.md),
 [ADR 0004](adr/0004-migrate-usecase-exposes-two-methods.md),
