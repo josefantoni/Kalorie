@@ -47,11 +47,12 @@ class DeleteAccountUseCase(
 
     override suspend fun invoke(skipDataWipe: Boolean) {
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
-        val authenticationDate = authProvider.currentAuthenticationDate()
+        val hasApple = AuthProviderKind.APPLE in authProvider.linkedProviderKinds
+        val appleAccessToken = if (hasApple) reauthenticateWithApple() else null
+        val authenticationDate = if (hasApple) null else authProvider.currentAuthenticationDate()
         if (authenticationDate != null && Duration.between(authenticationDate, Instant.now()).seconds > Constants.Auth.RECENT_LOGIN_THRESHOLD_SECONDS) {
             throw DeleteAccountError.RequiresRecentLogin(dataAlreadyDeleted = false)
         }
-        val appleAccessToken = if (AuthProviderKind.APPLE in authProvider.linkedProviderKinds) reauthenticateWithApple() else null
         // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
         // account that follows the deletion. Idempotent, so a retry with skipDataWipe is safe.
         snapshotStore.delete()
