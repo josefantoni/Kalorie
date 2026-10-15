@@ -63,13 +63,31 @@ class LinkOrMergeCredentialUseCaseTest {
         assertEquals("emailAlreadyInUse steers to the other provider, it does not merge", 0, migrateAnonymousData.migrateCallCount)
     }
 
+    @Test
+    fun invoke_whenSignedIn_throwsNotAnonymousAndDoesNotLinkOrMigrate() = runTest {
+        val (sut, authCommandProvider, migrateAnonymousData) = makeSUT(isAnonymous = false)
+        authCommandProvider.linkError = FirebaseAuthUserCollisionException("ERROR_CREDENTIAL_ALREADY_IN_USE", "in use")
+
+        try {
+            sut(makeCredential())
+            fail("Expected error to be thrown")
+        } catch (_: LinkOrMergeCredentialError.NotAnonymous) {
+        }
+
+        assertEquals(0, authCommandProvider.linkCallCount)
+        assertEquals("a signed-in user must never have their data merged into another account", 0, migrateAnonymousData.migrateCallCount)
+    }
+
     // MARK: - Helpers
 
-    private fun makeSUT(anonymousUserId: String? = "anon-123"): Triple<LinkOrMergeCredentialUseCase, AuthCommandProviderFake, MigrateAnonymousDataUseCaseFake> {
+    private fun makeSUT(
+        anonymousUserId: String? = "anon-123",
+        isAnonymous: Boolean = true,
+    ): Triple<LinkOrMergeCredentialUseCase, AuthCommandProviderFake, MigrateAnonymousDataUseCaseFake> {
         val authCommandProvider = AuthCommandProviderFake()
         val migrateAnonymousData = MigrateAnonymousDataUseCaseFake()
         val sut = LinkOrMergeCredentialUseCase(
-            authProvider = AuthProviderFake(userId = anonymousUserId),
+            authProvider = AuthProviderFake(userId = anonymousUserId, isAnonymous = isAnonymous),
             authCommandProvider = authCommandProvider,
             migrateAnonymousData = migrateAnonymousData,
         )
