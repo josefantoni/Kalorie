@@ -38,6 +38,62 @@ The app works with three kinds of data. The distinction matters for the items be
   gets production access only after a closed test with at least 12 testers opted in for 14 days in a
   row. Start it as early as possible; it is also the cheapest way to find out whether anyone uses the app.
 
+- **iOS: tell the user when Apple sign-in hits an account that was created through Google**
+  (analysed 2026-10-15). **Handoff** — no other context needed.
+
+  *Symptom.* On the account screen a user whose e-mail already belongs to a Google-created account
+  taps Sign in with Apple (sharing the same e-mail) and gets the generic *"Nepodařilo se přihlásit"*.
+  Firebase answers `emailAlreadyInUse`; `LinkOrMergeCredentialUseCase.callAsFunction`
+  (`iOS/Kalorie/Core/UseCases/LinkOrMergeCredentialUseCase.swift:46`) already turns that into
+  `LinkOrMergeCredentialError.accountExistsWithAnotherProvider`, and `SignInWithAppleUseCase` passes it
+  through (line 44). Only the Google handler catches it:
+  `AccountViewModel.onSignInWithGoogleTapped` (`iOS/Kalorie/Features/Account/AccountViewModel.swift:99`).
+  `onSignInWithAppleTapped` (same file, ~line 70–86) has no such `catch`, so the error lands in the
+  generic one at line 85. [ADR 0006](docs/adr/0006-google-sign-in-identity-collisions.md) requires the
+  warning in both directions and in every client; it was written when Apple was the only provider, so
+  the one existing message (`account_error_accountExistsWithApple`) only fits Google → Apple. This is a
+  gap in the code, not a decision — the ADR stays as it is.
+
+  *Change.*
+  1. Add to `onSignInWithAppleTapped`, before the cancellation catch, the same shape as the Google
+     handler: `catch LinkOrMergeCredentialError.accountExistsWithAnotherProvider { alertItem = AlertItem(title: L10n.Account.errorAccountExistsWithGoogle) }`.
+  2. Add the key `account_error_accountExistsWithGoogle` to **`localisation/strings.json`** (next to
+     `account_error_accountExistsWithApple`, line 46) — cs: *"Tvé dřívější záznamy jsou u účtu
+     propojeného s Google. Pro přístup k nim se prosím přihlas přes Google."*, en: *"Your earlier entries
+     are on a Google-linked account. Please sign in with Google to reach them."* Then run
+     `npm run generate-strings` in `scripts/`. **Never edit `Localizable.xcstrings` or the Android
+     `strings.xml` by hand** — the generator rewrites them (`docs/ARCHITECTURE.md` § localisation).
+  3. Add `errorAccountExistsWithGoogle` to `iOS/Kalorie/Resources/Localization/L10n.swift` next to line 49.
+  4. Add `test_onSignInWithAppleTapped_whenAccountExistsWithAnotherProvider_showsSpecificAlert` to
+     `iOS/KalorieTests/AccountViewModelTests.swift`, copied from the Google variant at line 115
+     (`SignInWithAppleUseCaseFake(errorToThrow: LinkOrMergeCredentialError.accountExistsWithAnotherProvider)`).
+
+  *Not needed.* Android has no Apple sign-in yet (`AccountViewModel.kt` handles only Google, line 67), so
+  it has no Apple handler to fix; the generated Android strings pick the new key up automatically.
+
+  *Verify by hand* (no automated test reaches Firebase): on a device sign in with Google using an
+  e-mail, sign out, then Sign in with Apple choosing **Share My Email** with that same address — the
+  specific alert must appear. With **Hide My Email** Apple sends a `privaterelay.appleid.com` address,
+  Firebase sees no collision and silently creates a second empty account; that case is accepted and
+  undetectable per ADR 0006, so do not try to "fix" it. Commit as `[FIX]` for iOS; the strings JSON and
+  generated Android files belong to the same commit because the key is shared.
+- **Store release checklist after the Apple/Google developer accounts exist** (state on 2026-10-15):
+  - *Done:* iOS build 1 is in TestFlight; Sign in with Apple is enabled for the App ID, the Firebase
+    Apple provider and `Kalorie.entitlements`; App Privacy answers (8 data types, no tracking) are saved in
+    App Store Connect **but not published**; the privacy policy page in the repo says 15 October 2026 but is
+    **not deployed**.
+  - *Still to do, user's console work:* press **Publish** on App Store Connect → App Privacy; deploy the
+    policy (`firebase deploy --only hosting` from `backend/`, never a bare `firebase deploy`); fill the Play
+    **Data safety** form from the table in [design 0021](docs/design/0021-privacy-policy.md) plus *Photos —
+    collected, not shared, App functionality, optional*; create the Play app `antoni.kalorie`, upload
+    `Android/app/build/outputs/bundle/release/app-release.aab` (`./gradlew :app:bundleRelease`) to Internal
+    testing, then add the *App signing* and *Upload* SHA-1/SHA-256 to Firebase, re-download
+    `google-services.json` into `Android/app/` and update the `GOOGLE_SERVICES_JSON` CI secret.
+  - *iOS beta:* a public TestFlight link needs an **External testing** group and Beta App Review (the
+    build must carry a new `CURRENT_PROJECT_VERSION` after the fix above, so build 3).
+  - *Open question for a lawyer:* whether a food diary is health data under GDPR Art. 9 (design 0021 chose
+    no explicit-consent step); the privacy policy also still lists Sign in with Apple, which now exists.
+
 ## Android readiness
 
 The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md)).
