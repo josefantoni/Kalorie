@@ -1568,8 +1568,8 @@ branches (§ 6.4), and Google session clearing (§ 6.1).
 ### 6.1 Reading vs. mutating auth state
 
 `AuthProviderProtocol` (`AuthProvider.swift`) is read-only — `userId`, `isAnonymous`,
-`displayName`, `lastSignInDate`, `linkedProviderKind` — every property computed straight from
-`Auth.auth().currentUser`. `AuthCommandProviderProtocol` (`AuthCommandProvider.swift`) holds every
+`displayName`, `linkedProviderKinds`, `currentSessionProviderKind()` and
+`currentAuthenticationDate()` — all derived straight from `Auth.auth().currentUser`. `AuthCommandProviderProtocol` (`AuthCommandProvider.swift`) holds every
 mutation: `link`, `signIn`, `reauthenticate`, `signOut`, `updateDisplayName`,
 `deleteCurrentUser`. The split exists so the eight persistence use cases that only ever need a
 `userId` keep depending on the narrow read-only protocol instead of carrying auth mutations they
@@ -1689,7 +1689,9 @@ Both sign-in handlers filter user cancellation before it reaches the generic ale
 0002's note that an unfiltered cancellation looks like a spurious failure every time the sheet is
 dismissed.
 
-`DeleteAccountUseCase.callAsFunction(skipDataWipe:)` checks `authProvider.lastSignInDate` against
+`DeleteAccountUseCase.callAsFunction(skipDataWipe:)` checks `authProvider.currentAuthenticationDate()` — the `auth_time` of a force-refreshed ID token,
+the value the server judges `requiresRecentLogin` by; `metadata.lastSignInDate` is not updated by a
+reauthentication, so the guard kept firing after the user signed in again — against
 `Constants.Auth.recentLoginThreshold` (4 minutes) **before** touching Firestore, and throws
 `DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: false)` immediately if the session is
 stale — this upfront guard is finding **A1-2**, fixed: previously the same failure was discovered
