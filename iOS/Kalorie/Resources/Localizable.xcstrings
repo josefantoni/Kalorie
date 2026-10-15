@@ -102,6 +102,23 @@
         }
       }
     },
+    "account_alert_signOutConfirmTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opravdu se odhlásit?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out?"
+          }
+        }
+      }
+    },
     "account_anonymous_description" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -251,23 +268,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nutrition data and photos of some foods come from Open Food Facts. The data is available under the Open Database License, the photos under CC BY-SA."
-          }
-        }
-      }
-    },
-    "account_dataAttribution_linkTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "openfoodfacts.org"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "openfoodfacts.org"
           }
         }
       }

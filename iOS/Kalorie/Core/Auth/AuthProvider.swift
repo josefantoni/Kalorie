@@ -21,6 +21,7 @@ protocol AuthProviderProtocol {
     var userId: String? { get }
     var isAnonymous: Bool { get }
     var displayName: String? { get }
+    var providerDisplayName: String? { get }
     var linkedProviderKinds: Set<AuthProviderKind> { get }
     func currentSessionProviderKind() async -> AuthProviderKind?
     func currentAuthenticationDate() async -> Date?
@@ -40,6 +41,10 @@ struct AuthProvider: AuthProviderProtocol {
 
     var displayName: String? {
         Auth.auth().currentUser?.displayName
+    }
+
+    var providerDisplayName: String? {
+        Auth.auth().currentUser?.providerData.compactMap(\.displayName).first { !$0.isEmpty }
     }
 
     var linkedProviderKinds: Set<AuthProviderKind> {
@@ -74,6 +79,7 @@ struct AuthProviderFake: AuthProviderProtocol {
     var userId: String? = "test-user-id"
     var isAnonymous = true
     var displayName: String?
+    var providerDisplayName: String?
     var linkedProviderKinds: Set<AuthProviderKind> = []
     var sessionProviderKind: AuthProviderKind?
     var authenticationDate: Date? = .now

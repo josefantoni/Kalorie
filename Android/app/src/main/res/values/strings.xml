@@ -5,6 +5,7 @@
     <string name="account_alert_linkSuccessApple">Nyní se můžeš přihlašovat i přes Apple ID</string>
     <string name="account_alert_linkSuccessGoogle">Nyní se můžeš přihlašovat i přes Google</string>
     <string name="account_alert_reauthenticateTitle">Vyžadováno přihlášení</string>
+    <string name="account_alert_signOutConfirmTitle">Opravdu se odhlásit?</string>
     <string name="account_anonymous_description">Nejsi přihlášen/a. Data jsou vázaná na toto zařízení — při jeho výměně o ně můžeš přijít.</string>
     <string name="account_button_deleteAccount">Smazat účet</string>
     <string name="account_button_linkWithApple">Propojit s Apple ID</string>
@@ -14,7 +15,6 @@
     <string name="account_button_signInWithGoogle">Přihlásit se přes Google</string>
     <string name="account_button_signOut">Odhlásit se</string>
     <string name="account_dataAttribution">Nutriční data a fotky některých potravin pocházejí z Open Food Facts. Data jsou dostupná pod licencí Open Database License, fotky pod licencí CC BY-SA.</string>
-    <string name="account_dataAttribution_linkTitle">openfoodfacts.org</string>
     <string name="account_error_accountExistsWithApple">Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.</string>
     <string name="account_error_deleteFailed">Smazání účtu se nezdařilo</string>
     <string name="account_error_deleteRequiresRecentLogin">Pro smazání účtu se prosím znovu přihlas.</string>

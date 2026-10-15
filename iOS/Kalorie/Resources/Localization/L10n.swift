@@ -42,7 +42,6 @@ enum L10n {
         static var buttonDeleteAccount: String { String(localized: "account_button_deleteAccount") }
         static var buttonReauthenticate: String { String(localized: "account_button_reauthenticate") }
         static var dataAttribution: String { String(localized: "account_dataAttribution") }
-        static var dataAttributionLinkTitle: String { String(localized: "account_dataAttribution_linkTitle") }
         static var signInProviderApple: String { String(localized: "account_signInProvider_apple") }
         static var signInProviderGoogle: String { String(localized: "account_signInProvider_google") }
         static var errorSignInFailed: String { String(localized: "account_error_signInFailed") }
@@ -53,6 +52,7 @@ enum L10n {
         static var signedInDefaultName: String { String(localized: "account_signedIn_defaultName") }
         static var alertDeleteConfirmTitle: String { String(localized: "account_alert_deleteConfirmTitle") }
         static var alertDeleteConfirmMessage: String { String(localized: "account_alert_deleteConfirmMessage") }
+        static var alertSignOutConfirmTitle: String { String(localized: "account_alert_signOutConfirmTitle") }
         static var alertReauthenticateTitle: String { String(localized: "account_alert_reauthenticateTitle") }
         static var linkInfoApple: String { String(localized: "account_linkInfo_apple") }
         static var linkInfoBoth: String { String(localized: "account_linkInfo_both") }

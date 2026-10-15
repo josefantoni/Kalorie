@@ -19,6 +19,7 @@ interface AuthProviderProtocol {
     val userId: String?
     val isAnonymous: Boolean
     val displayName: String?
+    val providerDisplayName: String?
     val linkedProviderKinds: Set<AuthProviderKind>
 
     suspend fun currentSessionProviderKind(): AuthProviderKind?
@@ -40,6 +41,9 @@ class AuthProvider(
 
     override val displayName: String?
         get() = auth.currentUser?.displayName
+
+    override val providerDisplayName: String?
+        get() = auth.currentUser?.providerData.orEmpty().firstNotNullOfOrNull { it.displayName?.takeIf(String::isNotEmpty) }
 
     override val linkedProviderKinds: Set<AuthProviderKind>
         get() = auth.currentUser?.providerData.orEmpty().mapNotNull { kind(it.providerId) }.toSet()

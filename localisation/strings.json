@@ -31,6 +31,10 @@
     "cs": "Vyžadováno přihlášení",
     "en": "Sign in required"
   },
+  "account_alert_signOutConfirmTitle": {
+    "cs": "Opravdu se odhlásit?",
+    "en": "Sign out?"
+  },
   "account_anonymous_description": {
     "cs": "Nejsi přihlášen/a. Data jsou vázaná na toto zařízení — při jeho výměně o ně můžeš přijít.",
     "en": "You're not signed in. Your data is tied to this device — you may lose it if you switch devices."
@@ -70,10 +74,6 @@
   "account_dataAttribution": {
     "cs": "Nutriční data a fotky některých potravin pocházejí z Open Food Facts. Data jsou dostupná pod licencí Open Database License, fotky pod licencí CC BY-SA.",
     "en": "Nutrition data and photos of some foods come from Open Food Facts. The data is available under the Open Database License, the photos under CC BY-SA."
-  },
-  "account_dataAttribution_linkTitle": {
-    "cs": "openfoodfacts.org",
-    "en": "openfoodfacts.org"
   },
   "account_error_accountExistsWithApple": {
     "cs": "Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.",

@@ -7,25 +7,33 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,8 +62,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
+import antoni.kalorie.components.PrimaryButton
+import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.sheetScrollGuard
 import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.utils.Constants
@@ -69,6 +80,8 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
     val state by viewModel.state.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val showDeleteConfirmation by viewModel.showDeleteConfirmation.collectAsState()
+    val showSignOutConfirmation by viewModel.showSignOutConfirmation.collectAsState()
+    val isLinkInfoPopoverVisible by viewModel.isLinkInfoPopoverVisible.collectAsState()
     val isReauthenticateAlertVisible by viewModel.isReauthenticateAlertVisible.collectAsState()
     val isAnonymous by viewModel.isAnonymous.collectAsState()
     val displayName by viewModel.displayName.collectAsState()
@@ -96,98 +109,113 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                 )
             },
             bottomBar = {
-                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
-                    Text(
-                        text = stringResource(R.string.account_dataAttribution),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                if (!isAnonymous) {
+                    PrimaryButton(
+                        text = stringResource(R.string.account_button_deleteAccount),
+                        onClick = { viewModel.showDeleteConfirmation.value = true },
+                        style = PrimaryButtonStyle.DESTRUCTIVE,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                     )
-                    TextButton(
-                        onClick = { uriHandler.openUri("https://${Constants.OpenFoodFacts.HOST}") },
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                    ) {
-                        Text(stringResource(R.string.account_dataAttribution_linkTitle))
-                    }
-                    HorizontalDivider()
-                    TextButton(
-                        onClick = { uriHandler.openUri(Constants.Support.PRIVACY_POLICY_URL) },
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                    ) {
-                        Text(stringResource(R.string.common_privacyPolicy))
-                    }
                 }
             },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                Column(modifier = Modifier.fillMaxSize().padding(vertical = 16.dp)) {
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 16.dp)) {
                     if (isAnonymous) {
-                        Text(
-                            text = stringResource(R.string.account_anonymous_description),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                        Button(
-                            onClick = { scope.launch { viewModel.onSignInWithAppleTapped() } },
-                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp),
-                        ) {
-                            Text(stringResource(R.string.account_button_signInWithApple))
-                        }
-                        Button(
-                            onClick = { scope.launch { viewModel.onSignInWithGoogleTapped() } },
-                            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp),
-                        ) {
-                            Text(stringResource(R.string.account_button_signInWithGoogle))
+                        SectionCard {
+                            Text(
+                                text = stringResource(R.string.account_anonymous_description),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
+                            ) {
+                                SignInTile(
+                                    kind = AuthProviderKind.APPLE,
+                                    onClick = { scope.launch { viewModel.onSignInWithAppleTapped() } },
+                                )
+                                SignInTile(
+                                    kind = AuthProviderKind.GOOGLE,
+                                    onClick = { scope.launch { viewModel.onSignInWithGoogleTapped() } },
+                                )
+                            }
                         }
                     } else {
                         SectionCard {
-                            Text(
-                                text = displayName ?: stringResource(R.string.account_signedIn_defaultName),
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            )
-                            viewModel.linkInfoText?.let { linkInfoText ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(start = 16.dp, end = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
                                 Text(
-                                    text = stringResource(linkInfoText),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                                    text = displayName ?: stringResource(R.string.account_signedIn_defaultName),
+                                    style = MaterialTheme.typography.titleMedium,
                                 )
-                            }
-                            if (!viewModel.areAllProvidersLinked) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterHorizontally),
-                                ) {
-                                    LinkTile(
-                                        kind = AuthProviderKind.APPLE,
-                                        isLinked = AuthProviderKind.APPLE in linkedProviderKinds,
-                                        onClick = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.APPLE) } },
-                                    )
-                                    LinkTile(
-                                        kind = AuthProviderKind.GOOGLE,
-                                        isLinked = AuthProviderKind.GOOGLE in linkedProviderKinds,
-                                        onClick = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.GOOGLE) } },
-                                    )
+                                Box {
+                                    IconButton(onClick = { viewModel.isLinkInfoPopoverVisible.value = true }) {
+                                        Icon(Icons.Outlined.Info, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    DropdownMenu(
+                                        expanded = isLinkInfoPopoverVisible,
+                                        onDismissRequest = { viewModel.isLinkInfoPopoverVisible.value = false },
+                                        shape = RoundedCornerShape(12.dp),
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.widthIn(max = 280.dp).padding(16.dp),
+                                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                        ) {
+                                            viewModel.linkInfoText?.let { linkInfoText ->
+                                                Text(
+                                                    text = stringResource(linkInfoText),
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                            }
+                                            Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+                                                LinkTile(
+                                                    kind = AuthProviderKind.APPLE,
+                                                    isLinked = AuthProviderKind.APPLE in linkedProviderKinds,
+                                                    onClick = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.APPLE) } },
+                                                )
+                                                LinkTile(
+                                                    kind = AuthProviderKind.GOOGLE,
+                                                    isLinked = AuthProviderKind.GOOGLE in linkedProviderKinds,
+                                                    onClick = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.GOOGLE) } },
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                            SectionCardDivider()
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    SectionCard {
+                        LinkRow(
+                            title = stringResource(R.string.common_privacyPolicy),
+                            onClick = { uriHandler.openUri(Constants.Support.PRIVACY_POLICY_URL) },
+                        )
+                        SectionCardDivider()
+                        LinkRow(
+                            title = stringResource(R.string.account_dataAttribution),
+                            isDescription = true,
+                            onClick = { uriHandler.openUri("https://${Constants.OpenFoodFacts.HOST}") },
+                        )
+                    }
+                    if (!isAnonymous) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        FilledTonalButton(
+                            onClick = { viewModel.showSignOutConfirmation.value = true },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(56.dp),
+                        ) {
                             Text(
                                 text = stringResource(R.string.account_button_signOut),
-                                color = AppColors.error,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { scope.launch { viewModel.onSignOutTapped() } }
-                                    .padding(16.dp),
-                            )
-                            SectionCardDivider()
-                            Text(
-                                text = stringResource(R.string.account_button_deleteAccount),
-                                color = AppColors.error,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { viewModel.showDeleteConfirmation.value = true }
-                                    .padding(16.dp),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
                             )
                         }
                     }
@@ -209,6 +237,29 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
             confirmButton = {
                 TextButton(onClick = { viewModel.alertItem.value = null }) {
                     Text(stringResource(R.string.common_ok))
+                }
+            },
+        )
+    }
+
+    if (showSignOutConfirmation) {
+        AlertDialog(
+            onDismissRequest = { viewModel.showSignOutConfirmation.value = false },
+            title = { Text(stringResource(R.string.account_alert_signOutConfirmTitle)) },
+            dismissButton = {
+                TextButton(onClick = { viewModel.showSignOutConfirmation.value = false }) {
+                    Text(stringResource(R.string.common_button_cancel))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.showSignOutConfirmation.value = false
+                        scope.launch { viewModel.onSignOutTapped() }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = AppColors.error),
+                ) {
+                    Text(stringResource(R.string.account_button_signOut))
                 }
             },
         )
@@ -263,6 +314,86 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
 }
 
 @Composable
+private fun LinkRow(title: String, onClick: () -> Unit, isDescription: Boolean = false) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .heightIn(min = SectionRowMinHeight)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            style = if (isDescription) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f),
+        )
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun ProviderLogo(kind: AuthProviderKind) {
+    val tileShape = RoundedCornerShape(16.dp)
+    if (kind == AuthProviderKind.APPLE) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .background(MaterialTheme.colorScheme.onBackground, tileShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_apple_logo),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.background,
+            )
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .background(MaterialTheme.colorScheme.background, tileShape)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, tileShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_google_logo),
+                contentDescription = null,
+                tint = Color.Unspecified,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SignInTile(kind: AuthProviderKind, onClick: () -> Unit) {
+    val description = stringResource(
+        if (kind == AuthProviderKind.APPLE) R.string.account_button_signInWithApple else R.string.account_button_signInWithGoogle,
+    )
+    Column(
+        modifier = Modifier
+            .semantics(mergeDescendants = true) { contentDescription = description }
+            .clickable(role = Role.Button, onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        ProviderLogo(kind)
+        Text(
+            text = stringResource(
+                if (kind == AuthProviderKind.APPLE) R.string.account_signInProvider_apple else R.string.account_signInProvider_google,
+            ),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
 private fun LinkTile(kind: AuthProviderKind, isLinked: Boolean, onClick: () -> Unit) {
     val description = stringResource(
         if (kind == AuthProviderKind.APPLE) R.string.account_button_linkWithApple else R.string.account_button_linkWithGoogle,
@@ -276,35 +407,7 @@ private fun LinkTile(kind: AuthProviderKind, isLinked: Boolean, onClick: () -> U
             }
             .clickable(enabled = !isLinked, role = Role.Button, onClick = onClick),
     ) {
-        val tileShape = RoundedCornerShape(16.dp)
-        if (kind == AuthProviderKind.APPLE) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(MaterialTheme.colorScheme.onBackground, tileShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_apple_logo),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.background,
-                )
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(MaterialTheme.colorScheme.background, tileShape)
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, tileShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_google_logo),
-                    contentDescription = null,
-                    tint = Color.Unspecified,
-                )
-            }
-        }
+        ProviderLogo(kind)
         if (isLinked) {
             Box(
                 modifier = Modifier
