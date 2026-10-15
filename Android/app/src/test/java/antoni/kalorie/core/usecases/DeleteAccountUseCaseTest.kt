@@ -27,6 +27,7 @@ import antoni.kalorie.core.networking.MergedAnonymousAccountDTO
 import antoni.kalorie.core.networking.MyCreatedMealDTO
 import antoni.kalorie.core.networking.StorageDataProviderFake
 import antoni.kalorie.core.utils.Constants
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -365,6 +366,25 @@ class DeleteAccountUseCaseTest {
         }
 
         assertTrue("cancelling the Apple prompt must leave the account and its data intact so the user can retry", fixture.dataProvider.deletedIdsByCollection.isEmpty())
+        assertEquals(0, fixture.authCommandProvider.deleteCallCount)
+    }
+
+    @Test
+    fun invoke_whenAppleIdentityDoesNotMatchTheAccount_deletesAndRevokesNothing() = runTest {
+        val fixture = makeSUT(
+            authProvider = AuthProviderFake(userId = USER_ID, linkedProviderKinds = setOf(AuthProviderKind.APPLE)),
+            appleSignInProvider = AppleSignInProviderFake(reauthenticateError = FirebaseAuthException("ERROR_USER_MISMATCH", "mismatch")),
+        )
+        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
+
+        try {
+            fixture.sut()
+            fail("Expected ReauthenticateError.WrongAccount to be thrown")
+        } catch (_: ReauthenticateError.WrongAccount) {
+        }
+
+        assertTrue("an access token of another Apple identity would revoke the wrong grant, so nothing may be revoked or deleted", fixture.dataProvider.deletedIdsByCollection.isEmpty())
+        assertTrue(fixture.authCommandProvider.revokedAccessTokens.isEmpty())
         assertEquals(0, fixture.authCommandProvider.deleteCallCount)
     }
 

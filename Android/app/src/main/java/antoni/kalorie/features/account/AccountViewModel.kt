@@ -221,6 +221,8 @@ class AccountViewModel(
         } catch (error: DeleteAccountError.RequiresRecentLogin) {
             isDataAlreadyWiped = error.dataAlreadyDeleted
             isReauthenticateAlertVisible.value = true
+        } catch (_: ReauthenticateError.WrongAccount) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_wrongAccount)
         } catch (error: Exception) {
             if (!isUserCancellation(error)) {
                 Log.error(error, Constants.LogCategory.ACCOUNT)

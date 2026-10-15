@@ -19,6 +19,7 @@ import antoni.kalorie.core.networking.StorageDataProviderProtocol
 import antoni.kalorie.core.networking.loadAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import kotlinx.coroutines.CancellationException
 import java.time.Duration
@@ -49,7 +50,7 @@ class DeleteAccountUseCase(
         if (authenticationDate != null && Duration.between(authenticationDate, Instant.now()).seconds > Constants.Auth.RECENT_LOGIN_THRESHOLD_SECONDS) {
             throw DeleteAccountError.RequiresRecentLogin(dataAlreadyDeleted = false)
         }
-        val appleAccessToken = if (AuthProviderKind.APPLE in authProvider.linkedProviderKinds) appleSignInProvider.reauthenticate().accessToken else null
+        val appleAccessToken = if (AuthProviderKind.APPLE in authProvider.linkedProviderKinds) reauthenticateWithApple() else null
         // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
         // account that follows the deletion. Idempotent, so a retry with skipDataWipe is safe.
         snapshotStore.delete()
@@ -73,6 +74,15 @@ class DeleteAccountUseCase(
     }
 
     // MARK: - Private
+
+    private suspend fun reauthenticateWithApple(): String? = try {
+        appleSignInProvider.reauthenticate().accessToken
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        if ((error as? FirebaseAuthException)?.errorCode == USER_MISMATCH) throw ReauthenticateError.WrongAccount
+        throw error
+    }
 
     private suspend fun wipeFirestoreData(userId: String) {
         val mealTypes: List<MealTypeDTO> = dataProvider.loadAsync(from = Constants.Firestore.mealTypes(userId))
@@ -114,5 +124,9 @@ class DeleteAccountUseCase(
         } catch (error: Exception) {
             Log.error(error, Constants.LogCategory.ACCOUNT)
         }
+    }
+
+    private companion object {
+        const val USER_MISMATCH = "ERROR_USER_MISMATCH"
     }
 }

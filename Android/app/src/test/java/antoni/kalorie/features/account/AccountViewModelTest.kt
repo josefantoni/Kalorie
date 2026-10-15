@@ -97,6 +97,16 @@ class AccountViewModelTest {
     }
 
     @Test
+    fun onDeleteAccountConfirmed_whenAppleIdentityIsWrong_showsWrongAccountAlert() = runTest {
+        val sut = makeSUT(deleteAccount = DeleteAccountUseCaseFake(errorToThrow = ReauthenticateError.WrongAccount))
+
+        sut.onDeleteAccountConfirmed()
+
+        assertEquals(R.string.account_error_wrongAccount, sut.alertItem.value?.titleRes)
+        assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
+    @Test
     fun onDeleteAccountConfirmed_whenFailsWithOtherError_showsGenericAlert() = runTest {
         val sut = makeSUT(deleteAccount = DeleteAccountUseCaseFake(errorToThrow = RuntimeException("unknown")))
 
