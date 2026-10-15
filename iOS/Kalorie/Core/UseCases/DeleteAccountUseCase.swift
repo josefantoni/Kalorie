@@ -51,16 +51,16 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
     func callAsFunction(skipDataWipe: Bool = false) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
 
+        let hasApple = authProvider.linkedProviderKinds.contains(.apple)
+        let appleAuthorizationCode = hasApple ? try await reauthenticateWithApple() : nil
+
         if
+            !hasApple,
             let authenticationDate = await authProvider.currentAuthenticationDate(),
             Date().timeIntervalSince(authenticationDate) > Constants.Auth.recentLoginThreshold
         {
             throw DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: false)
         }
-
-        let appleAuthorizationCode = authProvider.linkedProviderKinds.contains(.apple)
-            ? try await reauthenticateWithApple()
-            : nil
 
         // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
         // account that follows the deletion. Idempotent, so a retry with skipDataWipe is safe.

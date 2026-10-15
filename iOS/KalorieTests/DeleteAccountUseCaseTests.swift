@@ -374,6 +374,24 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         }
     }
 
+    func test_callAsFunction_whenAccountHasApple_andLoginIsStale_reauthenticatesWithAppleInsteadOfAskingForAnotherLogin() async throws {
+        let log = OperationLog()
+        let authCommandProvider = DeleteAccountAuthCommandProviderFake(log: log)
+        let sut = DeleteAccountUseCase(
+            dataProvider: DeleteAccountDataProviderFake(log: log),
+            authProvider: AuthProviderFake(linkedProviderKinds: [.apple], authenticationDate: Date().addingTimeInterval(-10 * 60)),
+            authCommandProvider: authCommandProvider,
+            snapshotStore: PendingMergeSnapshotStoreFake(),
+            storageProvider: StorageDataProviderFake(),
+            appleSignInProvider: makeAppleSignInProvider(authorizationCode: "auth-code")
+        )
+
+        try await sut()
+
+        XCTAssertEqual(log.entries.first, "reauthenticate", "the Apple prompt already proves a fresh login, so a stale one must not send the user through a second prompt")
+        XCTAssertEqual(log.entries.last, "deleteCurrentUser")
+    }
+
     func test_callAsFunction_whenAppleIdentityDoesNotMatchTheAccount_deletesAndRevokesNothing() async {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
