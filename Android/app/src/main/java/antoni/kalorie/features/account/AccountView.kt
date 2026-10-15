@@ -1,12 +1,22 @@
 package antoni.kalorie.features.account
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -32,9 +42,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.SectionCard
@@ -129,6 +147,31 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                             )
+                            viewModel.linkInfoText?.let { linkInfoText ->
+                                Text(
+                                    text = stringResource(linkInfoText),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                                )
+                            }
+                            if (!viewModel.areAllProvidersLinked) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterHorizontally),
+                                ) {
+                                    LinkTile(
+                                        kind = AuthProviderKind.APPLE,
+                                        isLinked = AuthProviderKind.APPLE in linkedProviderKinds,
+                                        onClick = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.APPLE) } },
+                                    )
+                                    LinkTile(
+                                        kind = AuthProviderKind.GOOGLE,
+                                        isLinked = AuthProviderKind.GOOGLE in linkedProviderKinds,
+                                        onClick = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.GOOGLE) } },
+                                    )
+                                }
+                            }
                             SectionCardDivider()
                             Text(
                                 text = stringResource(R.string.account_button_signOut),
@@ -146,25 +189,6 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                                     .fillMaxWidth()
                                     .clickable { viewModel.showDeleteConfirmation.value = true }
                                     .padding(16.dp),
-                            )
-                        }
-                        Text(
-                            text = stringResource(R.string.account_signInMethods_title),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 32.dp, top = 24.dp, end = 16.dp, bottom = 8.dp),
-                        )
-                        SectionCard {
-                            SignInMethodRow(
-                                title = stringResource(R.string.account_signInProvider_apple),
-                                isLinked = AuthProviderKind.APPLE in linkedProviderKinds,
-                                onLink = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.APPLE) } },
-                            )
-                            SectionCardDivider()
-                            SignInMethodRow(
-                                title = stringResource(R.string.account_signInProvider_google),
-                                isLinked = AuthProviderKind.GOOGLE in linkedProviderKinds,
-                                onLink = { scope.launch { viewModel.onLinkProviderTapped(AuthProviderKind.GOOGLE) } },
                             )
                         }
                     }
@@ -240,18 +264,73 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun SignInMethodRow(title: String, isLinked: Boolean, onLink: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = title, modifier = Modifier.weight(1f))
-        if (isLinked) {
-            Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-        } else {
-            TextButton(onClick = onLink) {
-                Text(stringResource(R.string.account_button_linkProvider))
+private fun LinkTile(kind: AuthProviderKind, isLinked: Boolean, onClick: () -> Unit) {
+    val description = stringResource(
+        if (kind == AuthProviderKind.APPLE) R.string.account_button_linkWithApple else R.string.account_button_linkWithGoogle,
+    )
+    Box(
+        modifier = Modifier
+            .padding(bottom = if (isLinked) 0.dp else 10.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = description
+                selected = isLinked
             }
+            .clickable(enabled = !isLinked, role = Role.Button, onClick = onClick),
+    ) {
+        val tileShape = RoundedCornerShape(16.dp)
+        if (kind == AuthProviderKind.APPLE) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(MaterialTheme.colorScheme.onBackground, tileShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_apple_logo),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.background,
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(MaterialTheme.colorScheme.background, tileShape)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, tileShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_google_logo),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                )
+            }
+        }
+        if (isLinked) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 6.dp, y = 6.dp)
+                    .size(18.dp)
+                    .background(AppColors.success, CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.surfaceContainer, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(10.dp))
+            }
+        } else {
+            BasicText(
+                text = stringResource(R.string.account_pill_link),
+                style = MaterialTheme.typography.labelSmall.copy(color = Color.White, fontWeight = FontWeight.SemiBold),
+                maxLines = 1,
+                autoSize = TextAutoSize.StepBased(minFontSize = 6.sp, maxFontSize = 11.sp),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .offset(y = 10.dp)
+                    .widthIn(max = 56.dp)
+                    .background(AppColors.accent, CircleShape)
+                    .padding(horizontal = 6.dp, vertical = 3.dp),
+            )
         }
     }
 }
