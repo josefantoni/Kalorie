@@ -5,6 +5,7 @@
 //  Created by Josef Antoni on 07.08.2026.
 //
 
+import AuthenticationServices
 import XCTest
 import FirebaseAuth
 @testable import Kalorie
@@ -150,7 +151,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             authProvider: AuthProviderFake(userId: nil),
             authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
             snapshotStore: PendingMergeSnapshotStoreFake(),
-            storageProvider: StorageDataProviderFake()
+            storageProvider: StorageDataProviderFake(),
+            appleSignInProvider: AppleSignInProviderFake()
         )
 
         do {
@@ -175,7 +177,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             authProvider: AuthProviderFake(lastSignInDate: Date().addingTimeInterval(-10 * 60)),
             authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
             snapshotStore: snapshotStore,
-            storageProvider: StorageDataProviderFake()
+            storageProvider: StorageDataProviderFake(),
+            appleSignInProvider: AppleSignInProviderFake()
         )
 
         do {
@@ -199,7 +202,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             authProvider: AuthProviderFake(),
             authCommandProvider: authCommandProvider,
             snapshotStore: PendingMergeSnapshotStoreFake(),
-            storageProvider: StorageDataProviderFake()
+            storageProvider: StorageDataProviderFake(),
+            appleSignInProvider: AppleSignInProviderFake()
         )
 
         do {
@@ -271,7 +275,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
             authProvider: AuthProviderFake(),
             authCommandProvider: authCommandProvider,
             snapshotStore: PendingMergeSnapshotStoreFake(),
-            storageProvider: StorageDataProviderFake()
+            storageProvider: StorageDataProviderFake(),
+            appleSignInProvider: AppleSignInProviderFake()
         )
 
         do {
@@ -284,20 +289,105 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         }
     }
 
+    func test_callAsFunction_whenAccountHasApple_revokesTheAppleTokenBeforeDeletingTheUser() async throws {
+        let log = OperationLog()
+        let authCommandProvider = DeleteAccountAuthCommandProviderFake(log: log)
+        let sut = makeSUT(
+            dataProvider: DeleteAccountDataProviderFake(log: log),
+            log: log,
+            linkedProviderKind: .apple,
+            appleSignInProvider: makeAppleSignInProvider(authorizationCode: "auth-code"),
+            authCommandProvider: authCommandProvider
+        )
+
+        try await sut()
+
+        XCTAssertEqual(authCommandProvider.revokedAuthorizationCodes, ["auth-code"])
+        XCTAssertEqual(log.entries.suffix(2), ["revokeAppleToken", "deleteCurrentUser"], "Apple requires the token to be revoked as part of account deletion, and revoking after the user is gone is impossible")
+    }
+
+    func test_callAsFunction_whenAccountHasNoApple_doesNotAskAppleForAuthorizationOrRevoke() async throws {
+        let log = OperationLog()
+        let authCommandProvider = DeleteAccountAuthCommandProviderFake(log: log)
+        let sut = makeSUT(
+            dataProvider: DeleteAccountDataProviderFake(log: log),
+            log: log,
+            linkedProviderKind: .google,
+            appleSignInProvider: AppleSignInProviderFake(errorToThrow: URLError(.unknown)),
+            authCommandProvider: authCommandProvider
+        )
+
+        try await sut()
+
+        XCTAssertTrue(authCommandProvider.revokedAuthorizationCodes.isEmpty)
+        XCTAssertEqual(log.entries.last, "deleteCurrentUser")
+    }
+
+    func test_callAsFunction_whenRevocationFails_stillDeletesTheUser() async throws {
+        let log = OperationLog()
+        let authCommandProvider = DeleteAccountAuthCommandProviderFake(log: log)
+        authCommandProvider.revokeError = URLError(.notConnectedToInternet)
+        let sut = makeSUT(
+            dataProvider: DeleteAccountDataProviderFake(log: log),
+            log: log,
+            linkedProviderKind: .apple,
+            appleSignInProvider: makeAppleSignInProvider(authorizationCode: "auth-code"),
+            authCommandProvider: authCommandProvider
+        )
+
+        try await sut()
+
+        XCTAssertEqual(log.entries.last, "deleteCurrentUser", "a failed revocation is only logged: the user asked to delete the account and must not be stuck with it")
+    }
+
+    func test_callAsFunction_whenAppleAuthorizationIsCancelled_deletesNothing() async {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        let sut = makeSUT(
+            dataProvider: dataProvider,
+            log: log,
+            linkedProviderKind: .apple,
+            appleSignInProvider: AppleSignInProviderFake(errorToThrow: ASAuthorizationError(.canceled))
+        )
+
+        do {
+            try await sut()
+            XCTFail("Expected the cancellation to be thrown")
+        } catch {
+            XCTAssertTrue(log.entries.isEmpty, "cancelling the Apple prompt must leave the account and its data intact so the user can retry")
+        }
+    }
+
     // MARK: - Helpers
+
+    private func makeAppleSignInProvider(authorizationCode: String?) -> AppleSignInProviderFake {
+        AppleSignInProviderFake(
+            result: AppleSignInResult(
+                credential: OAuthProvider.appleCredential(withIDToken: "token", rawNonce: "nonce", fullName: nil),
+                fullName: nil,
+                email: nil,
+                authorizationCode: authorizationCode
+            )
+        )
+    }
 
     private func makeSUT(
         dataProvider: DeleteAccountDataProviderFake,
         log: OperationLog,
         snapshotStore: PendingMergeSnapshotStoreFake = PendingMergeSnapshotStoreFake(),
-        storage: StorageDataProviderFake = StorageDataProviderFake()
+        storage: StorageDataProviderFake = StorageDataProviderFake(),
+        linkedProviderKind: AuthProviderKind? = nil,
+        appleSignInProvider: AppleSignInProviderFake = AppleSignInProviderFake(),
+        authCommandProvider: DeleteAccountAuthCommandProviderFake? = nil
     ) -> DeleteAccountUseCase {
         DeleteAccountUseCase(
             dataProvider: dataProvider,
-            authProvider: AuthProviderFake(),
-            authCommandProvider: DeleteAccountAuthCommandProviderFake(log: log),
+            authProvider: AuthProviderFake(linkedProviderKind: linkedProviderKind),
+            authCommandProvider: authCommandProvider ?? DeleteAccountAuthCommandProviderFake(log: log),
             snapshotStore: snapshotStore,
-            storageProvider: storage
+            storageProvider: storage,
+            appleSignInProvider: appleSignInProvider
         )
     }
 
@@ -507,6 +597,8 @@ private final class DeleteAccountAuthCommandProviderFake: AuthCommandProviderPro
 
     private let log: OperationLog
     var deleteError: Error?
+    var revokeError: Error?
+    private(set) var revokedAuthorizationCodes: [String] = []
 
     // MARK: - Init
 
@@ -525,5 +617,11 @@ private final class DeleteAccountAuthCommandProviderFake: AuthCommandProviderPro
     func deleteCurrentUser() async throws {
         log.record("deleteCurrentUser")
         if let deleteError { throw deleteError }
+    }
+
+    func revokeAppleToken(authorizationCode: String) async throws {
+        log.record("revokeAppleToken")
+        revokedAuthorizationCodes.append(authorizationCode)
+        if let revokeError { throw revokeError }
     }
 }
