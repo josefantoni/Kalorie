@@ -8,6 +8,7 @@ import kotlinx.coroutines.CancellationException
 
 sealed class LinkOrMergeCredentialError : Exception() {
     data object AccountExistsWithAnotherProvider : LinkOrMergeCredentialError()
+    data object NotAnonymous : LinkOrMergeCredentialError()
 }
 
 interface LinkOrMergeCredentialUseCaseProtocol {
@@ -23,6 +24,7 @@ class LinkOrMergeCredentialUseCase(
     // MARK: - Functions
 
     override suspend fun invoke(credential: AuthCredential) {
+        if (!authProvider.isAnonymous) throw LinkOrMergeCredentialError.NotAnonymous
         val anonymousUserId = authProvider.userId
         try {
             authCommandProvider.link(credential)
