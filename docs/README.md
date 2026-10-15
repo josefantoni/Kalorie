@@ -213,6 +213,7 @@ understanding why.
 | [0022](design/0022-food-photos.md) | Food photos | Approved | Backend, Cross-platform, iOS, Android |
 | [0023](design/0023-support-development-tips.md) | Support development with in-app tips | Proposed | Cross-platform, iOS, Android |
 | [0024](design/0024-move-entry-between-meals-by-drag.md) | Moving a logged entry to another meal by dragging it | Implemented | Cross-platform, iOS, Android |
+| [0025](design/0025-linking-a-second-sign-in-provider.md) | Linking a second sign-in provider to one account | Approved | Cross-platform, iOS, Android |
 
 ### Decision records
 
@@ -262,3 +263,4 @@ understanding why.
 | [0042](adr/0042-search-matches-the-displayed-name-only.md) | Search matches the displayed name only | Accepted | Cross-platform |
 | [0043](adr/0043-portion-names-are-localized-and-normalized-at-render-time.md) | Portion names are localized and normalized at render time | Accepted | Cross-platform |
 | [0044](adr/0044-external-favourites-are-upgraded-when-the-food-enters-the-catalogue.md) | An `external` food is upgraded to its catalogue version when it appears in `foodItems` | Accepted | Backend, Cross-platform |
+| [0045](adr/0045-signed-in-users-may-link-the-other-provider.md) | A signed-in user may link the other provider; existing named accounts are never merged | Accepted | Cross-platform |
