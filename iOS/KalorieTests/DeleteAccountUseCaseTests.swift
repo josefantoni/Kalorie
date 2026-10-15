@@ -47,7 +47,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertTrue(log.entries.dropLast().contains("deletePortions:12345678"), "Firestore does not cascade — personal portions are user data and must not survive account deletion as orphans")
     }
 
-    func test_callAsFunction_deletesTheMergedAnonymousAccountMarkersSoNoCollectionOutlivesTheUser() async throws {
+    func test_callAsFunction_keepsTheMergedAnonymousAccountMarkersSoTheCleanupScriptCanStillFindTheAbandonedAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
         dataProvider.stubbedMergedAnonymousAccounts = [MergedAnonymousAccountDTO(id: "anon-1")]
@@ -55,7 +55,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
 
         try await sut()
 
-        XCTAssertTrue(log.entries.dropLast().contains("deleteMergedAnonymousAccount:anon-1"), "Firestore does not cascade — the marker would stay as an orphaned collection")
+        XCTAssertFalse(log.entries.contains("deleteMergedAnonymousAccount:anon-1"), "The marker is the cleanup script's only pointer to the abandoned anonymous account")
     }
 
     func test_callAsFunction_deletesOwnSubmissionsAsPrivacyObligation() async throws {
