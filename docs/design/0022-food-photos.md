@@ -343,9 +343,17 @@ circle is too small to check a product against its name, so when the slot is fil
 sheet gains a first option *Show photo* / *Zobrazit fotku* → `FoodPhotoViewer`. The same sheet is
 used on the author's form, so the component has one behaviour everywhere.
 
-**Loading.** iOS: `AsyncImage` (no new dependency; `URLCache.shared` caches by URL, and URLs never
-change content). Android has no image loader today: add **Coil 3** (`io.coil-kt.coil3:coil-compose`
-and `coil-network-okhttp`) — a new dependency, the Android equivalent of `AsyncImage`.
+**Loading.** URLs never change content, so a photo is cached by its URL string with no expiry or
+revalidation. iOS: `RemoteImageLoader` (3 attempts, 500 ms apart) keeps decoded images in an
+`NSCache` and the downloaded bytes in `RemoteImageStore` (`Caches/RemotePhotos/`, file name = SHA-256
+of the URL, oldest file evicted above 50 MB), on top of `URLCache.shared`. `RemoteFoodImage` reads
+both stores synchronously in `init`, so a photo seen before is shown on the first frame, also after
+the app is killed. The viewer reuses the same image and never downloads. Android: **Coil 3**
+(`io.coil-kt.coil3:coil-compose` and `coil-network-okhttp`) with its default memory and disk cache.
+
+The thumbnail shows nothing while the image loads (an empty slot of the same size, so the toolbar does
+not shift) and then reveals it from its centre to the full pill, every time the thumbnail appears, also
+for a photo that was already cached.
 
 ### Dependencies
 
