@@ -1,5 +1,6 @@
 package antoni.kalorie.features.account
 
+import androidx.annotation.StringRes
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
@@ -62,6 +63,18 @@ class AccountViewModel(
     private val _linkedProviderKinds = MutableStateFlow(authProvider.linkedProviderKinds)
     val linkedProviderKinds: StateFlow<Set<AuthProviderKind>> = _linkedProviderKinds
 
+    @get:StringRes
+    val linkInfoText: Int?
+        get() {
+            val kinds = _linkedProviderKinds.value
+            return when (Pair(AuthProviderKind.APPLE in kinds, AuthProviderKind.GOOGLE in kinds)) {
+                Pair(true, true) -> R.string.account_linkInfo_both
+                Pair(true, false) -> R.string.account_linkInfo_apple
+                Pair(false, true) -> R.string.account_linkInfo_google
+                else -> null
+            }
+        }
+
     // MARK: - Functions
 
     suspend fun onSignOutTapped() {
@@ -83,8 +96,6 @@ class AccountViewModel(
             signInWithApple()
         } catch (error: CancellationException) {
             throw error
-        } catch (_: LinkOrMergeCredentialError.AccountExistsWithAnotherProvider) {
-            alertItem.value = AlertItem(titleRes = R.string.account_error_accountExistsWithGoogle)
         } catch (error: Exception) {
             if (!isUserCancellation(error)) {
                 Log.error(error, Constants.LogCategory.ACCOUNT)
@@ -128,7 +139,9 @@ class AccountViewModel(
                 AuthProviderKind.GOOGLE -> linkGoogle()
             }
             refreshAuthState()
-            alertItem.value = AlertItem(titleRes = R.string.account_alert_linkSuccessTitle)
+            alertItem.value = AlertItem(
+                titleRes = if (kind == AuthProviderKind.APPLE) R.string.account_alert_linkSuccessApple else R.string.account_alert_linkSuccessGoogle,
+            )
         } catch (error: CancellationException) {
             throw error
         } catch (_: LinkCredentialError.AlreadyLinked) {

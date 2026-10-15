@@ -29,6 +29,7 @@ import antoni.kalorie.core.usecases.SignOutUseCaseProtocol
 import com.google.firebase.auth.FirebaseAuthWebException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -212,15 +213,6 @@ class AccountViewModelTest {
     }
 
     @Test
-    fun onSignInWithAppleTapped_whenAccountExistsWithAnotherProvider_showsSpecificAlert() = runTest {
-        val sut = makeSUT(signInWithApple = SignInWithAppleUseCaseFake(errorToThrow = LinkOrMergeCredentialError.AccountExistsWithAnotherProvider))
-
-        sut.onSignInWithAppleTapped()
-
-        assertEquals(R.string.account_error_accountExistsWithGoogle, sut.alertItem.value?.titleRes)
-    }
-
-    @Test
     fun onSignInWithAppleTapped_whenWebFlowCancelled_showsNoAlertAndReturnsToIdle() = runTest {
         val sut = makeSUT(signInWithApple = SignInWithAppleUseCaseFake(errorToThrow = FirebaseAuthWebException("ERROR_WEB_CONTEXT_CANCELED", "cancelled")))
 
@@ -270,13 +262,46 @@ class AccountViewModelTest {
     }
 
     @Test
-    fun onLinkProviderTapped_whenSucceeds_showsConfirmationAndReturnsToIdle() = runTest {
+    fun linkInfoText_whenOnlyGoogleLinked_offersLinkingApple() {
+        val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false, linkedProviderKinds = setOf(AuthProviderKind.GOOGLE)))
+        assertEquals(R.string.account_linkInfo_google, sut.linkInfoText)
+    }
+
+    @Test
+    fun linkInfoText_whenOnlyAppleLinked_offersLinkingGoogle() {
+        val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false, linkedProviderKinds = setOf(AuthProviderKind.APPLE)))
+        assertEquals(R.string.account_linkInfo_apple, sut.linkInfoText)
+    }
+
+    @Test
+    fun linkInfoText_whenBothLinked_saysSo() {
+        val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false, linkedProviderKinds = setOf(AuthProviderKind.APPLE, AuthProviderKind.GOOGLE)))
+        assertEquals(R.string.account_linkInfo_both, sut.linkInfoText)
+    }
+
+    @Test
+    fun linkInfoText_whenNoProviderLinked_isNil() {
+        val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false, linkedProviderKinds = emptySet()))
+        assertNull(sut.linkInfoText)
+    }
+
+    @Test
+    fun onLinkProviderTapped_whenAppleSucceeds_tellsTheUserTheyCanSignInWithAppleAndReturnsToIdle() = runTest {
         val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false))
 
         sut.onLinkProviderTapped(AuthProviderKind.APPLE)
 
-        assertEquals(R.string.account_alert_linkSuccessTitle, sut.alertItem.value?.titleRes)
+        assertEquals(R.string.account_alert_linkSuccessApple, sut.alertItem.value?.titleRes)
         assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
+    @Test
+    fun onLinkProviderTapped_whenGoogleSucceeds_tellsTheUserTheyCanSignInWithGoogle() = runTest {
+        val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false))
+
+        sut.onLinkProviderTapped(AuthProviderKind.GOOGLE)
+
+        assertEquals(R.string.account_alert_linkSuccessGoogle, sut.alertItem.value?.titleRes)
     }
 
     @Test
@@ -285,7 +310,7 @@ class AccountViewModelTest {
 
         sut.onLinkProviderTapped(AuthProviderKind.GOOGLE)
 
-        assertEquals("linking Google must not run the Apple use case", R.string.account_alert_linkSuccessTitle, sut.alertItem.value?.titleRes)
+        assertEquals("linking Google must not run the Apple use case", R.string.account_alert_linkSuccessGoogle, sut.alertItem.value?.titleRes)
     }
 
     @Test
