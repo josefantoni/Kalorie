@@ -101,6 +101,8 @@ final class AccountViewModel: ObservableObject {
         }
         do {
             try await signInWithApple()
+        } catch LinkOrMergeCredentialError.accountExistsWithAnotherProvider {
+            alertItem = AlertItem(title: L10n.Account.errorAccountExistsWithGoogle)
         } catch where isUserCancellation(error) {
         } catch {
             Log.error(error, category: Constants.LogCategory.account)
