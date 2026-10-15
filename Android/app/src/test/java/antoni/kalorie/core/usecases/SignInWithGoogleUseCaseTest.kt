@@ -1,17 +1,12 @@
 package antoni.kalorie.core.usecases
 
-import antoni.kalorie.core.auth.AuthCommandProviderFake
-import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.auth.GoogleSignInProviderFake
 import antoni.kalorie.core.auth.GoogleSignInProviderProtocol
 import antoni.kalorie.core.auth.GoogleSignInResult
-import antoni.kalorie.core.networking.FirestoreDataProviderFake
-import antoni.kalorie.core.networking.UserProfileDTO
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -20,49 +15,32 @@ class SignInWithGoogleUseCaseTest {
     // MARK: - Tests
 
     @Test
-    fun saveProfileIfNeeded_withNameAndEmail_updatesDisplayNameAndSavesProfile() = runTest {
-        val fixture = makeSUT()
+    fun invoke_afterLinkingOrMerging_fillsTheEmptyProfileFieldsWithNameAndEmail() = runTest {
+        val credential = GoogleAuthProvider.getCredential("id-token", null)
+        val fixture = makeSUT(
+            googleSignInProvider = GoogleSignInProviderFake(
+                result = GoogleSignInResult(credential = credential, displayName = "Josef Antoni", email = "josef@example.com"),
+            ),
+        )
 
-        fixture.sut.saveProfileIfNeeded(displayName = "Josef Antoni", email = "josef@example.com")
+        fixture.sut()
 
-        val profile = fixture.dataProvider.setSavedItem as UserProfileDTO
-        assertEquals(1, fixture.authCommandProvider.updateDisplayNameCallCount)
-        assertEquals("Josef Antoni", profile.displayName)
-        assertEquals("josef@example.com", profile.email)
-        assertEquals("users", fixture.dataProvider.setSavedCollection)
-        assertEquals("user-1", fixture.dataProvider.setSavedId)
+        assertEquals("an existing profile of the merged account must be filled, never replaced", 1, fixture.fillEmptyProfile.callCount)
+        assertEquals("Josef Antoni", fixture.fillEmptyProfile.receivedDisplayName)
+        assertEquals("josef@example.com", fixture.fillEmptyProfile.receivedEmail)
     }
 
     @Test
-    fun saveProfileIfNeeded_withNullNameAndEmail_doesNothing() = runTest {
-        val fixture = makeSUT()
+    fun invoke_whenLinkOrMergeFails_propagatesErrorAndLeavesTheProfileAlone() = runTest {
+        val fixture = makeSUT(linkOrMergeCredential = LinkOrMergeCredentialUseCaseFake(shouldThrow = true))
 
-        fixture.sut.saveProfileIfNeeded(displayName = null, email = null)
+        try {
+            fixture.sut()
+            fail("Expected error to be thrown")
+        } catch (_: RuntimeException) {
+        }
 
-        assertEquals(0, fixture.authCommandProvider.updateDisplayNameCallCount)
-        assertNull(fixture.dataProvider.setSavedItem)
-    }
-
-    @Test
-    fun saveProfileIfNeeded_withEmailOnly_doesNotUpdateDisplayNameButSavesProfile() = runTest {
-        val fixture = makeSUT()
-
-        fixture.sut.saveProfileIfNeeded(displayName = null, email = "josef@example.com")
-
-        val profile = fixture.dataProvider.setSavedItem as UserProfileDTO
-        assertEquals("without a name there is nothing to write to the Auth profile", 0, fixture.authCommandProvider.updateDisplayNameCallCount)
-        assertNull(profile.displayName)
-        assertEquals("josef@example.com", profile.email)
-    }
-
-    @Test
-    fun saveProfileIfNeeded_whenNotAuthenticated_updatesDisplayNameButDoesNotSaveProfile() = runTest {
-        val fixture = makeSUT(userId = null)
-
-        fixture.sut.saveProfileIfNeeded(displayName = "Josef Antoni", email = "josef@example.com")
-
-        assertEquals(1, fixture.authCommandProvider.updateDisplayNameCallCount)
-        assertNull("without a userId there is nowhere to save the profile", fixture.dataProvider.setSavedItem)
+        assertEquals(0, fixture.fillEmptyProfile.callCount)
     }
 
     @Test
@@ -95,25 +73,20 @@ class SignInWithGoogleUseCaseTest {
 
     private class Fixture(
         val sut: SignInWithGoogleUseCase,
-        val authCommandProvider: AuthCommandProviderFake,
-        val dataProvider: FirestoreDataProviderFake,
+        val fillEmptyProfile: FillEmptyProfileUseCaseFake,
     )
 
     private fun makeSUT(
         googleSignInProvider: GoogleSignInProviderProtocol = GoogleSignInProviderFake(),
         linkOrMergeCredential: LinkOrMergeCredentialUseCaseProtocol = LinkOrMergeCredentialUseCaseFake(),
-        userId: String? = "user-1",
     ): Fixture {
-        val authCommandProvider = AuthCommandProviderFake()
-        val dataProvider = FirestoreDataProviderFake()
+        val fillEmptyProfile = FillEmptyProfileUseCaseFake()
         val sut = SignInWithGoogleUseCase(
             googleSignInProvider = googleSignInProvider,
             linkOrMergeCredential = linkOrMergeCredential,
-            authCommandProvider = authCommandProvider,
-            dataProvider = dataProvider,
-            authProvider = AuthProviderFake(userId = userId),
+            fillEmptyProfile = fillEmptyProfile,
         )
-        return Fixture(sut, authCommandProvider, dataProvider)
+        return Fixture(sut, fillEmptyProfile)
     }
 
     private class LinkOrMergeCredentialCapturingFake : LinkOrMergeCredentialUseCaseProtocol {

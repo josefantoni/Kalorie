@@ -2,12 +2,8 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.auth.AppleAuthResult
 import antoni.kalorie.core.auth.AppleSignInProviderFake
-import antoni.kalorie.core.auth.AuthCommandProviderFake
-import antoni.kalorie.core.auth.AuthProviderFake
-import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Test
@@ -18,55 +14,57 @@ class SignInWithAppleUseCaseTest {
 
     @Test
     fun invoke_linksThroughTheAppleWebFlow() = runTest {
-        val (sut, appleSignInProvider, _, _) = makeSUT()
+        val fixture = makeSUT()
 
-        sut()
+        fixture.sut()
 
-        assertEquals(1, appleSignInProvider.linkCallCount)
+        assertEquals(1, fixture.appleSignInProvider.linkCallCount)
     }
 
     @Test
-    fun invoke_whenAppleReturnsNameAndEmail_updatesDisplayNameAndSavesProfile() = runTest {
-        val (sut, _, authCommandProvider, dataProvider) = makeSUT(
+    fun invoke_afterLinkingOrMerging_fillsTheEmptyProfileFieldsWithNameAndEmail() = runTest {
+        val fixture = makeSUT(
             result = AppleAuthResult(displayName = "Josef Antoni", email = "josef@example.com", accessToken = null),
         )
 
-        sut()
+        fixture.sut()
 
-        assertEquals(1, authCommandProvider.updateDisplayNameCallCount)
-        assertNotNull(dataProvider.setSavedItem)
+        assertEquals("an existing profile of the merged account must be filled, never replaced", 1, fixture.fillEmptyProfile.callCount)
+        assertEquals("Josef Antoni", fixture.fillEmptyProfile.receivedDisplayName)
+        assertEquals("josef@example.com", fixture.fillEmptyProfile.receivedEmail)
     }
 
     @Test
-    fun invoke_whenAppleReturnsNothing_doesNothingToTheProfile() = runTest {
-        val (sut, _, authCommandProvider, dataProvider) = makeSUT()
+    fun invoke_whenAppleReturnsNoName_passesNullSoItCannotBlankTheStoredOne() = runTest {
+        val fixture = makeSUT(
+            result = AppleAuthResult(displayName = null, email = "josef@example.com", accessToken = null),
+        )
 
-        sut()
+        fixture.sut()
 
-        assertEquals(0, authCommandProvider.updateDisplayNameCallCount)
-        assertNull("the web flow may not pass the name to Firebase, and an empty profile must not be written", dataProvider.setSavedItem)
+        assertNull(fixture.fillEmptyProfile.receivedDisplayName)
+        assertEquals("josef@example.com", fixture.fillEmptyProfile.receivedEmail)
     }
 
     @Test
-    fun invoke_whenLinkFails_propagatesErrorAndSavesNoProfile() = runTest {
-        val (sut, _, authCommandProvider, _) = makeSUT(linkError = RuntimeException("offline"))
+    fun invoke_whenLinkFails_propagatesErrorAndLeavesTheProfileAlone() = runTest {
+        val fixture = makeSUT(linkError = RuntimeException("offline"))
 
         try {
-            sut()
+            fixture.sut()
             fail("Expected error to be thrown")
         } catch (_: RuntimeException) {
         }
 
-        assertEquals(0, authCommandProvider.updateDisplayNameCallCount)
+        assertEquals(0, fixture.fillEmptyProfile.callCount)
     }
 
     // MARK: - Helpers
 
-    private data class Fixture(
+    private class Fixture(
         val sut: SignInWithAppleUseCase,
         val appleSignInProvider: AppleSignInProviderFake,
-        val authCommandProvider: AuthCommandProviderFake,
-        val dataProvider: FirestoreDataProviderFake,
+        val fillEmptyProfile: FillEmptyProfileUseCaseFake,
     )
 
     private fun makeSUT(
@@ -74,15 +72,12 @@ class SignInWithAppleUseCaseTest {
         linkError: Exception? = null,
     ): Fixture {
         val appleSignInProvider = AppleSignInProviderFake(result = result, linkError = linkError)
-        val authCommandProvider = AuthCommandProviderFake()
-        val dataProvider = FirestoreDataProviderFake()
+        val fillEmptyProfile = FillEmptyProfileUseCaseFake()
         val sut = SignInWithAppleUseCase(
             appleSignInProvider = appleSignInProvider,
             linkOrMergeCredential = LinkOrMergeCredentialUseCaseFake(),
-            authCommandProvider = authCommandProvider,
-            dataProvider = dataProvider,
-            authProvider = AuthProviderFake(userId = "user-1"),
+            fillEmptyProfile = fillEmptyProfile,
         )
-        return Fixture(sut, appleSignInProvider, authCommandProvider, dataProvider)
+        return Fixture(sut, appleSignInProvider, fillEmptyProfile)
     }
 }

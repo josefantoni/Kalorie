@@ -14,6 +14,10 @@ import antoni.kalorie.core.auth.PendingMergeSnapshotStore
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.StorageDataProvider
 import antoni.kalorie.core.usecases.DeleteAccountUseCase
+import antoni.kalorie.core.usecases.FillEmptyProfileUseCase
+import antoni.kalorie.core.usecases.LinkAppleUseCase
+import antoni.kalorie.core.usecases.LinkCredentialUseCase
+import antoni.kalorie.core.usecases.LinkGoogleUseCase
 import antoni.kalorie.core.usecases.LinkOrMergeCredentialUseCase
 import antoni.kalorie.core.usecases.MigrateAnonymousDataUseCase
 import antoni.kalorie.core.usecases.ReauthenticateUseCase
@@ -50,6 +54,16 @@ class AccountConfigurator(
                 authCommandProvider = authCommandProvider,
                 migrateAnonymousData = migrateAnonymousData,
             )
+            val linkCredential = LinkCredentialUseCase(
+                authProvider = authProvider,
+                authCommandProvider = authCommandProvider,
+                snapshotStore = snapshotStore,
+            )
+            val fillEmptyProfile = FillEmptyProfileUseCase(
+                authProvider = authProvider,
+                authCommandProvider = authCommandProvider,
+                dataProvider = dataProvider,
+            )
             AccountViewModel(
                 authProvider = authProvider,
                 signOut = SignOutUseCase(
@@ -60,16 +74,22 @@ class AccountConfigurator(
                 signInWithApple = SignInWithAppleUseCase(
                     appleSignInProvider = appleSignInProvider,
                     linkOrMergeCredential = linkOrMergeCredential,
-                    authCommandProvider = authCommandProvider,
-                    dataProvider = dataProvider,
-                    authProvider = authProvider,
+                    fillEmptyProfile = fillEmptyProfile,
                 ),
                 signInWithGoogle = SignInWithGoogleUseCase(
                     googleSignInProvider = googleSignInProvider,
                     linkOrMergeCredential = linkOrMergeCredential,
-                    authCommandProvider = authCommandProvider,
-                    dataProvider = dataProvider,
-                    authProvider = authProvider,
+                    fillEmptyProfile = fillEmptyProfile,
+                ),
+                linkApple = LinkAppleUseCase(
+                    appleSignInProvider = appleSignInProvider,
+                    linkCredential = linkCredential,
+                    fillEmptyProfile = fillEmptyProfile,
+                ),
+                linkGoogle = LinkGoogleUseCase(
+                    googleSignInProvider = googleSignInProvider,
+                    linkCredential = linkCredential,
+                    fillEmptyProfile = fillEmptyProfile,
                 ),
                 deleteAccount = DeleteAccountUseCase(
                     dataProvider = dataProvider,
