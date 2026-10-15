@@ -7,9 +7,25 @@
     "cs": "Opravdu smazat účet?",
     "en": "Delete account?"
   },
-  "account_alert_linkSuccessTitle": {
-    "cs": "Přihlašovací metoda byla propojena",
-    "en": "Sign-in method linked"
+  "account_alert_linkSuccessApple": {
+    "cs": "Nyní se můžeš přihlašovat i přes Apple ID",
+    "en": "You can now also sign in with Apple ID"
+  },
+  "account_alert_linkSuccessGoogle": {
+    "cs": "Nyní se můžeš přihlašovat i přes Google",
+    "en": "You can now also sign in with Google"
+  },
+  "account_linkInfo_apple": {
+    "cs": "Jsi přihlášen/a přes Apple ID. Pokud chceš, můžeš se propojit i s Google a přihlašovat se oběma způsoby.",
+    "en": "You are signed in with Apple ID. If you like, you can also link Google and sign in either way."
+  },
+  "account_linkInfo_both": {
+    "cs": "Tvůj účet je propojený s Apple ID i s Google.",
+    "en": "Your account is linked with both Apple ID and Google."
+  },
+  "account_linkInfo_google": {
+    "cs": "Jsi přihlášen/a přes účet Google. Pokud chceš, můžeš se propojit i s Apple ID a přihlašovat se oběma způsoby.",
+    "en": "You are signed in with a Google account. If you like, you can also link Apple ID and sign in either way."
   },
   "account_alert_reauthenticateTitle": {
     "cs": "Vyžadováno přihlášení",
@@ -23,7 +39,15 @@
     "cs": "Smazat účet",
     "en": "Delete account"
   },
-  "account_button_linkProvider": {
+  "account_button_linkWithApple": {
+    "cs": "Propojit s Apple ID",
+    "en": "Link with Apple ID"
+  },
+  "account_button_linkWithGoogle": {
+    "cs": "Propojit s Google",
+    "en": "Link with Google"
+  },
+  "account_pill_link": {
     "cs": "Propojit",
     "en": "Link"
   },
@@ -98,10 +122,6 @@
   "account_navigationTitle": {
     "cs": "Účet",
     "en": "Account"
-  },
-  "account_signInMethods_title": {
-    "cs": "Přihlašovací metody",
-    "en": "Sign-in methods"
   },
   "account_signInProvider_apple": {
     "cs": "Apple",

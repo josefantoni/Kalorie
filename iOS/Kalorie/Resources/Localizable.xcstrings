@@ -51,19 +51,36 @@
         }
       }
     },
-    "account_alert_linkSuccessTitle" : {
+    "account_alert_linkSuccessApple" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Přihlašovací metoda byla propojena"
+            "value" : "Nyní se můžeš přihlašovat i přes Apple ID"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sign-in method linked"
+            "value" : "You can now also sign in with Apple ID"
+          }
+        }
+      }
+    },
+    "account_alert_linkSuccessGoogle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nyní se můžeš přihlašovat i přes Google"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can now also sign in with Google"
           }
         }
       }
@@ -119,19 +136,36 @@
         }
       }
     },
-    "account_button_linkProvider" : {
+    "account_button_linkWithApple" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Propojit"
+            "value" : "Propojit s Apple ID"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Link"
+            "value" : "Link with Apple ID"
+          }
+        }
+      }
+    },
+    "account_button_linkWithGoogle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Propojit s Google"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link with Google"
           }
         }
       }
@@ -425,6 +459,57 @@
         }
       }
     },
+    "account_linkInfo_apple" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jsi přihlášen/a přes Apple ID. Pokud chceš, můžeš se propojit i s Google a přihlašovat se oběma způsoby."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You are signed in with Apple ID. If you like, you can also link Google and sign in either way."
+          }
+        }
+      }
+    },
+    "account_linkInfo_both" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvůj účet je propojený s Apple ID i s Google."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account is linked with both Apple ID and Google."
+          }
+        }
+      }
+    },
+    "account_linkInfo_google" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jsi přihlášen/a přes účet Google. Pokud chceš, můžeš se propojit i s Apple ID a přihlašovat se oběma způsoby."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You are signed in with a Google account. If you like, you can also link Apple ID and sign in either way."
+          }
+        }
+      }
+    },
     "account_navigationTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -442,6 +527,23 @@
         }
       }
     },
+    "account_pill_link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Propojit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link"
+          }
+        }
+      }
+    },
     "account_signedIn_defaultName" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -455,23 +557,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Signed in"
-          }
-        }
-      }
-    },
-    "account_signInMethods_title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Přihlašovací metody"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign-in methods"
           }
         }
       }
