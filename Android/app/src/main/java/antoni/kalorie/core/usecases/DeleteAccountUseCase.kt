@@ -91,7 +91,7 @@ class DeleteAccountUseCase(
             field = "submitted_by",
             isEqualTo = userId,
             orderBy = "submitted_at",
-            descending = false,
+            descending = true,
         )
         submissions.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS) }
         // Listing the folder, rather than following the deleted submissions' URLs, also removes
@@ -102,7 +102,7 @@ class DeleteAccountUseCase(
             field = "reported_by",
             isEqualTo = userId,
             orderBy = "reported_at",
-            descending = false,
+            descending = true,
         )
         reports.forEach {
             dataProvider.deleteAsync(id = FoodItemReportDomain.id(barcode = it.barcode, userId = userId), from = Constants.Firestore.FOOD_ITEM_REPORTS)
