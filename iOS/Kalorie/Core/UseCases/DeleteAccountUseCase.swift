@@ -57,7 +57,7 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
             throw DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: false)
         }
 
-        let appleAuthorizationCode = authProvider.linkedProviderKind == .apple
+        let appleAuthorizationCode = authProvider.linkedProviderKinds.contains(.apple)
             ? try await appleSignInProvider.signIn().authorizationCode
             : nil
 

@@ -22,7 +22,8 @@ protocol AuthProviderProtocol {
     var isAnonymous: Bool { get }
     var displayName: String? { get }
     var lastSignInDate: Date? { get }
-    var linkedProviderKind: AuthProviderKind? { get }
+    var linkedProviderKinds: Set<AuthProviderKind> { get }
+    func currentSessionProviderKind() async -> AuthProviderKind?
 }
 
 struct AuthProvider: AuthProviderProtocol {
@@ -45,10 +46,18 @@ struct AuthProvider: AuthProviderProtocol {
         Auth.auth().currentUser?.metadata.lastSignInDate
     }
 
-    var linkedProviderKind: AuthProviderKind? {
-        // .first relies on an account never having more than one linked provider —
-        // enforced by LinkOrMergeCredentialUseCase, not by Firebase Auth itself.
-        switch Auth.auth().currentUser?.providerData.first?.providerID {
+    var linkedProviderKinds: Set<AuthProviderKind> {
+        Set((Auth.auth().currentUser?.providerData ?? []).compactMap { Self.kind(forProviderId: $0.providerID) })
+    }
+
+    func currentSessionProviderKind() async -> AuthProviderKind? {
+        guard let user = Auth.auth().currentUser else { return nil }
+        let signInProvider = try? await user.getIDTokenResult().signInProvider
+        return signInProvider.flatMap(Self.kind(forProviderId:))
+    }
+
+    private static func kind(forProviderId providerId: String) -> AuthProviderKind? {
+        switch providerId {
         case "apple.com": .apple
         case "google.com": .google
         default: nil
@@ -65,6 +74,13 @@ struct AuthProviderFake: AuthProviderProtocol {
     var isAnonymous = true
     var displayName: String?
     var lastSignInDate: Date? = .now
-    var linkedProviderKind: AuthProviderKind?
+    var linkedProviderKinds: Set<AuthProviderKind> = []
+    var sessionProviderKind: AuthProviderKind?
+
+    // MARK: - Functions
+
+    func currentSessionProviderKind() async -> AuthProviderKind? {
+        sessionProviderKind
+    }
 }
 #endif
