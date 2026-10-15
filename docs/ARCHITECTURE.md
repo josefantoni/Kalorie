@@ -1577,10 +1577,11 @@ mutation: `link`, `signIn`, `reauthenticate`, `signOut`, `updateDisplayName`,
 `userId` keep depending on the narrow read-only protocol instead of carrying auth mutations they
 never call — see [ADR 0003](adr/0003-separate-auth-command-provider.md).
 
-`linkedProviderKind` maps `providerData.first?.providerID` (`"apple.com"` / `"google.com"`) to
-`AuthProviderKind`. The `.first` relies on an invariant the type itself does not enforce — an
-account never carries more than one linked provider — which is instead guaranteed by
-`LinkOrMergeCredentialUseCase` (§ 6.2) refusing to link a second one.
+`linkedProviderKinds` maps every entry of `providerData` (`"apple.com"` / `"google.com"`) to an
+`AuthProviderKind`, so an account can carry both providers
+([design 0025](design/0025-linking-a-second-sign-in-provider.md)). `currentSessionProviderKind()`
+returns the provider the current session was signed in with, read from the ID token's
+`signInProvider`.
 
 Each provider gets its own sign-in adapter with no shared protocol above them:
 `AppleSignInProvider` wraps a delegate-driven `ASAuthorizationController`, generating and hashing
@@ -1599,8 +1600,8 @@ Firebase forgetting the user does not make the Google SDK forget its cached sess
 0002 requires that signing out actually offers the account chooser again.
 
 `ReauthenticateUseCase`, added 2026-09-01 and covered by neither design doc, is a third consumer of
-the same two adapters: it switches on `authProvider.linkedProviderKind` to decide which provider to
-re-run, then feeds the resulting credential to `authCommandProvider.reauthenticate(with:)`. See
+the same two adapters: it re-runs the provider of the current session (`currentSessionProviderKind()`,
+or the only linked provider when the session provider is not linked), then feeds the resulting credential to `authCommandProvider.reauthenticate(with:)`. See
 § 6.3 for why it exists.
 
 ### 6.2 Anonymous-first identity and the merge
@@ -1705,8 +1706,9 @@ itself throwing `requiresRecentLogin`. That second path still exists as a fallba
 where the session goes stale between the check and the call, and is distinguished by
 `dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
 Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods`,
-`myCreatedMeals`, `foodItemPortions`, `mergedAnonymousAccounts`, the `stats/foodFrequency` document and the user's own `foodItemSubmissions` document by document,
-then the `users` profile document last — the profile delete
+`myCreatedMeals`, `foodItemPortions`, the `stats/foodFrequency` document, the user's own `foodItemSubmissions` and `foodItemReports` documents and the
+`submissionPhotos/{uid}/` folder, document by document. The `mergedAnonymousAccounts` markers are deliberately kept: they carry no personal data and let
+the cleanup script still find the abandoned anonymous accounts after the target account is gone. The `users` profile document goes last — the profile delete
 alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
 not the kind of correctness problem an orphaned collection would be.
 
@@ -1725,8 +1727,8 @@ and `CreateMealTypeError` as the enums a view model switches over by case rather
 `L10n.Common.errorUnknown`.
 
 What is specific to auth is where `Log.warning` / `Log.error` sit inside `try?`-shaped code —
-finding **A5-2**, fixed. `SignInWithAppleUseCase.saveProfileIfNeeded` and its Google counterpart
-each wrap `updateDisplayName` and the profile `setAsync` in their own `do/catch` that only logs: a
+finding **A5-2**, fixed. `FillEmptyProfileUseCase`, which both sign-in use cases and both link
+use cases call, wraps `updateDisplayName` and the profile `setAsync` in their own `do/catch` that only logs: a
 failed profile write must not fail the sign-in it is attached to, but before this fix the failure
 was invisible even in Crashlytics. `AuthStateObserver.resumePendingMergeOnce` logs the same way
 around `resumeIfNeeded()` — a failed crash-recovery merge must not block app launch, but it must
