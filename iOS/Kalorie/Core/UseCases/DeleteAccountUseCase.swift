@@ -111,11 +111,6 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
             try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.foodItemPortions(userId: userId))
         }
 
-        let mergedAnonymousAccounts: [MergedAnonymousAccountDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.mergedAnonymousAccounts(userId: userId))
-        for dto in mergedAnonymousAccounts {
-            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.mergedAnonymousAccounts(userId: userId))
-        }
-
         try await dataProvider.deleteAsync(
             id: Constants.Firestore.foodFrequencyDocumentId,
             from: Constants.Firestore.stats(userId: userId)
