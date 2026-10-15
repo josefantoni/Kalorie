@@ -10,6 +10,7 @@ import Foundation
 
 enum LinkOrMergeCredentialError: Error {
     case accountExistsWithAnotherProvider
+    case notAnonymous
 }
 
 protocol LinkOrMergeCredentialUseCaseProtocol {
@@ -39,6 +40,7 @@ struct LinkOrMergeCredentialUseCase: LinkOrMergeCredentialUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction(credential: AuthCredential) async throws {
+        guard authProvider.isAnonymous else { throw LinkOrMergeCredentialError.notAnonymous }
         let anonymousUserId = authProvider.userId
         do {
             try await authCommandProvider.link(with: credential)
