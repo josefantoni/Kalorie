@@ -51,7 +51,7 @@ The app works with three kinds of data. The distinction matters for the items be
     testing, then add the *App signing* and *Upload* SHA-1/SHA-256 to Firebase, re-download
     `google-services.json` into `Android/app/` and update the `GOOGLE_SERVICES_JSON` CI secret.
   - *iOS beta:* a public TestFlight link needs an **External testing** group and Beta App Review (the
-    build must carry a new `CURRENT_PROJECT_VERSION` after the fix above, so build 3).
+    build must carry a new `CURRENT_PROJECT_VERSION` after the fix above, so build 2).
   - *Open question for a lawyer:* whether a food diary is health data under GDPR Art. 9 (design 0021 chose
     no explicit-consent step); the privacy policy also still lists Sign in with Apple, which now exists.
 - **Verify the duplicate default meals fix** — default meal types now get fixed ids from MealKit's
