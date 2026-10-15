@@ -51,8 +51,8 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
 
         if
-            let lastSignInDate = authProvider.lastSignInDate,
-            Date().timeIntervalSince(lastSignInDate) > Constants.Auth.recentLoginThreshold
+            let authenticationDate = await authProvider.currentAuthenticationDate(),
+            Date().timeIntervalSince(authenticationDate) > Constants.Auth.recentLoginThreshold
         {
             throw DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: false)
         }
