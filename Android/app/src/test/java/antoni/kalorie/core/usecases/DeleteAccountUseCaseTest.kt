@@ -67,7 +67,7 @@ class DeleteAccountUseCaseTest {
     }
 
     @Test
-    fun invoke_deletesTheMergedAnonymousAccountMarkersSoNoCollectionOutlivesTheUser() = runTest {
+    fun invoke_keepsTheMergedAnonymousAccountMarkersSoTheCleanupScriptCanStillFindTheAbandonedAccount() = runTest {
         val fixture = makeSUT()
         fixture.dataProvider.stubbedDocumentsByCollection = mapOf(
             Constants.Firestore.mergedAnonymousAccounts(USER_ID) to listOf(MergedAnonymousAccountDTO(id = "anon-1")),
@@ -75,7 +75,7 @@ class DeleteAccountUseCaseTest {
 
         fixture.sut()
 
-        assertEquals(listOf("anon-1"), fixture.deleted(Constants.Firestore.mergedAnonymousAccounts(USER_ID)))
+        assertEquals(emptyList<String>(), fixture.deleted(Constants.Firestore.mergedAnonymousAccounts(USER_ID)))
     }
 
     @Test
