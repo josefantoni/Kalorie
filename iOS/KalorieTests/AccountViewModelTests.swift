@@ -69,6 +69,33 @@ final class AccountViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onSignInWithGoogleTapped_whenSucceeds_showsTheProviderTheUserSignedInWithAsLinked() async {
+        let authProvider = AuthProviderMutableFake()
+        let sut = makeSUT(
+            authProvider: authProvider,
+            signInWithGoogle: SignInUseCaseStub { authProvider.linkedProviderKinds = [.google] }
+        )
+        XCTAssertEqual(sut.linkedProviderKinds, [])
+
+        await sut.onSignInWithGoogleTapped()
+
+        XCTAssertEqual(sut.linkedProviderKinds, [.google], "a freshly signed-in user must see their provider ticked, not both tiles offering to link it")
+    }
+
+    @MainActor
+    func test_onSignInWithAppleTapped_whenSucceeds_showsTheProviderTheUserSignedInWithAsLinked() async {
+        let authProvider = AuthProviderMutableFake()
+        let sut = makeSUT(
+            authProvider: authProvider,
+            signInWithApple: SignInUseCaseStub { authProvider.linkedProviderKinds = [.apple] }
+        )
+
+        await sut.onSignInWithAppleTapped()
+
+        XCTAssertEqual(sut.linkedProviderKinds, [.apple])
+    }
+
+    @MainActor
     func test_onSignInWithAppleTapped_whenCancelled_showsNoAlertAndReturnsToIdle() async {
         let sut = makeSUT(signInWithApple: SignInWithAppleUseCaseFake(errorToThrow: makeAuthorizationError(.canceled)))
 
@@ -364,4 +391,20 @@ private final class SequencedDeleteAccountUseCaseFake: DeleteAccountUseCaseProto
         receivedSkipDataWipe.append(skipDataWipe)
         if let errorToThrow { throw errorToThrow }
     }
+}
+
+private final class AuthProviderMutableFake: AuthProviderProtocol {
+    var userId: String? = "test-user-id"
+    var isAnonymous = false
+    var displayName: String?
+    var linkedProviderKinds: Set<AuthProviderKind> = []
+
+    func currentSessionProviderKind() async -> AuthProviderKind? { nil }
+    func currentAuthenticationDate() async -> Date? { .now }
+}
+
+private struct SignInUseCaseStub: SignInWithAppleUseCaseProtocol, SignInWithGoogleUseCaseProtocol {
+    let onCall: () -> Void
+
+    func callAsFunction() async throws { onCall() }
 }
