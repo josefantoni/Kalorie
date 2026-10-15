@@ -374,6 +374,31 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         }
     }
 
+    func test_callAsFunction_whenAppleIdentityDoesNotMatchTheAccount_deletesAndRevokesNothing() async {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        let authCommandProvider = DeleteAccountAuthCommandProviderFake(log: log)
+        authCommandProvider.reauthenticateError = NSError(domain: AuthErrorDomain, code: AuthErrorCode.userMismatch.rawValue)
+        let sut = makeSUT(
+            dataProvider: dataProvider,
+            log: log,
+            linkedProviderKinds: [.apple],
+            appleSignInProvider: makeAppleSignInProvider(authorizationCode: "other-identity-code"),
+            authCommandProvider: authCommandProvider
+        )
+
+        do {
+            try await sut()
+            XCTFail("Expected ReauthenticateError.wrongAccount to be thrown")
+        } catch ReauthenticateError.wrongAccount {
+            XCTAssertEqual(log.entries, ["reauthenticate"], "an authorization code of another Apple identity would revoke the wrong grant, so nothing may be revoked or deleted")
+            XCTAssertTrue(authCommandProvider.revokedAuthorizationCodes.isEmpty)
+        } catch {
+            XCTFail("Expected ReauthenticateError.wrongAccount but got \(error)")
+        }
+    }
+
     // MARK: - Helpers
 
     private func makeAppleSignInProvider(authorizationCode: String?) -> AppleSignInProviderFake {
@@ -619,6 +644,7 @@ private final class DeleteAccountAuthCommandProviderFake: AuthCommandProviderPro
     private let log: OperationLog
     var deleteError: Error?
     var revokeError: Error?
+    var reauthenticateError: Error?
     private(set) var revokedAuthorizationCodes: [String] = []
 
     // MARK: - Init
@@ -631,7 +657,12 @@ private final class DeleteAccountAuthCommandProviderFake: AuthCommandProviderPro
 
     func link(with credential: AuthCredential) async throws {}
     func signIn(with credential: AuthCredential) async throws {}
-    func reauthenticate(with credential: AuthCredential) async throws {}
+
+    func reauthenticate(with credential: AuthCredential) async throws {
+        log.record("reauthenticate")
+        if let reauthenticateError { throw reauthenticateError }
+    }
+
     func signOut() throws {}
     func updateDisplayName(_ name: String) async throws {}
 

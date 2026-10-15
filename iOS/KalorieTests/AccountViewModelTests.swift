@@ -69,6 +69,13 @@ final class AccountViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onDeleteAccountConfirmed_whenAppleIdentityIsWrong_showsWrongAccountAlert() async {
+        let sut = makeSUT(deleteAccount: DeleteAccountUseCaseFake(errorToThrow: ReauthenticateError.wrongAccount))
+        await sut.onDeleteAccountConfirmed()
+        XCTAssertEqual(sut.alertItem?.title, L10n.Account.errorWrongAccount)
+    }
+
+    @MainActor
     func test_onSignInWithAppleTapped_whenSucceeds_showsNoAlertAndReturnsToIdle() async {
         let sut = makeSUT()
 

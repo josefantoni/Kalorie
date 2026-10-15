@@ -201,6 +201,8 @@ final class AccountViewModel: ObservableObject {
         } catch DeleteAccountError.requiresRecentLogin(let dataAlreadyDeleted) {
             isDataAlreadyWiped = dataAlreadyDeleted
             isReauthenticateAlertVisible = true
+        } catch ReauthenticateError.wrongAccount {
+            alertItem = AlertItem(title: L10n.Account.errorWrongAccount)
         } catch where isUserCancellation(error) {
         } catch {
             Log.error(error, category: Constants.LogCategory.account)
