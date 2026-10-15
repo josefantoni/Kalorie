@@ -127,6 +127,15 @@ class AccountViewModelTest {
     }
 
     @Test
+    fun onSignInWithAppleTapped_whenAccountExistsWithAnotherProvider_showsSpecificAlert() = runTest {
+        val sut = makeSUT(signInWithApple = SignInWithAppleUseCaseFake(errorToThrow = LinkOrMergeCredentialError.AccountExistsWithAnotherProvider))
+
+        sut.onSignInWithAppleTapped()
+
+        assertEquals(R.string.account_error_accountExistsWithGoogle, sut.alertItem.value?.titleRes)
+    }
+
+    @Test
     fun onSignInWithGoogleTapped_whenAccountExistsWithAnotherProvider_showsSpecificAlert() = runTest {
         val sut = makeSUT(signInWithGoogle = SignInWithGoogleUseCaseFake(errorToThrow = LinkOrMergeCredentialError.AccountExistsWithAnotherProvider))
 

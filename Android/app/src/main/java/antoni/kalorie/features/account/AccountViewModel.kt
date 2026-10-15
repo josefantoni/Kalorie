@@ -98,6 +98,8 @@ class AccountViewModel(
             signInWithApple()
         } catch (error: CancellationException) {
             throw error
+        } catch (_: LinkOrMergeCredentialError.AccountExistsWithAnotherProvider) {
+            alertItem.value = AlertItem(titleRes = R.string.account_error_accountExistsWithGoogle)
         } catch (error: Exception) {
             if (!isUserCancellation(error)) {
                 Log.error(error, Constants.LogCategory.ACCOUNT)
