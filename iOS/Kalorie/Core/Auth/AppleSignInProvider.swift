@@ -20,6 +20,7 @@ struct AppleSignInResult {
     let credential: AuthCredential
     let fullName: PersonNameComponents?
     let email: String?
+    let authorizationCode: String?
 }
 
 @MainActor
@@ -100,7 +101,8 @@ extension AppleSignInProvider: ASAuthorizationControllerDelegate {
                 fullName: credential.fullName
             ),
             fullName: credential.fullName,
-            email: credential.email
+            email: credential.email,
+            authorizationCode: credential.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }
         ))
     }
 
@@ -145,7 +147,8 @@ struct AppleSignInProviderFake: AppleSignInProviderProtocol {
         result: AppleSignInResult = AppleSignInResult(
             credential: OAuthProvider.appleCredential(withIDToken: "fake-identity-token", rawNonce: "fake-nonce", fullName: nil),
             fullName: nil,
-            email: nil
+            email: nil,
+            authorizationCode: nil
         ),
         errorToThrow: Error? = nil
     ) {

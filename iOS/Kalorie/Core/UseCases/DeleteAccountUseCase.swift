@@ -25,6 +25,7 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
     private let authCommandProvider: any AuthCommandProviderProtocol
     private let snapshotStore: any PendingMergeSnapshotStoreProtocol
     private let storageProvider: any StorageDataProviderProtocol
+    private let appleSignInProvider: any AppleSignInProviderProtocol
 
     // MARK: - Init
 
@@ -33,13 +34,15 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         authProvider: any AuthProviderProtocol,
         authCommandProvider: any AuthCommandProviderProtocol,
         snapshotStore: any PendingMergeSnapshotStoreProtocol,
-        storageProvider: any StorageDataProviderProtocol
+        storageProvider: any StorageDataProviderProtocol,
+        appleSignInProvider: any AppleSignInProviderProtocol
     ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
         self.authCommandProvider = authCommandProvider
         self.snapshotStore = snapshotStore
         self.storageProvider = storageProvider
+        self.appleSignInProvider = appleSignInProvider
     }
 
     // MARK: - Functions
@@ -54,12 +57,24 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
             throw DeleteAccountError.requiresRecentLogin(dataAlreadyDeleted: false)
         }
 
+        let appleAuthorizationCode = authProvider.linkedProviderKind == .apple
+            ? try await appleSignInProvider.signIn().authorizationCode
+            : nil
+
         // A snapshot left by a failed merge would otherwise be resumed into the fresh anonymous
         // account that follows the deletion. Idempotent, so a retry with skipDataWipe is safe.
         try snapshotStore.delete()
 
         if !skipDataWipe {
             try await wipeFirestoreData(userId: userId)
+        }
+
+        if let appleAuthorizationCode {
+            do {
+                try await authCommandProvider.revokeAppleToken(authorizationCode: appleAuthorizationCode)
+            } catch {
+                Log.error(error, category: Constants.LogCategory.account)
+            }
         }
 
         do {

@@ -15,6 +15,7 @@ protocol AuthCommandProviderProtocol {
     func signOut() throws
     func updateDisplayName(_ name: String) async throws
     func deleteCurrentUser() async throws
+    func revokeAppleToken(authorizationCode: String) async throws
 }
 
 struct AuthCommandProvider: AuthCommandProviderProtocol {
@@ -50,6 +51,10 @@ struct AuthCommandProvider: AuthCommandProviderProtocol {
         guard let user = Auth.auth().currentUser else { throw AuthError.notAuthenticated }
         try await user.delete()
     }
+
+    func revokeAppleToken(authorizationCode: String) async throws {
+        try await Auth.auth().revokeToken(withAuthorizationCode: authorizationCode)
+    }
 }
 
 #if DEBUG
@@ -62,6 +67,8 @@ final class AuthCommandProviderFake: AuthCommandProviderProtocol {
     var reauthenticateError: Error?
     var signOutError: Error?
     var deleteError: Error?
+    var revokeError: Error?
+    private(set) var revokedAuthorizationCodes: [String] = []
     private(set) var linkCallCount = 0
     private(set) var signInCallCount = 0
     private(set) var reauthenticateCallCount = 0
@@ -98,6 +105,11 @@ final class AuthCommandProviderFake: AuthCommandProviderProtocol {
     func deleteCurrentUser() async throws {
         deleteCallCount += 1
         if let deleteError { throw deleteError }
+    }
+
+    func revokeAppleToken(authorizationCode: String) async throws {
+        revokedAuthorizationCodes.append(authorizationCode)
+        if let revokeError { throw revokeError }
     }
 }
 #endif
