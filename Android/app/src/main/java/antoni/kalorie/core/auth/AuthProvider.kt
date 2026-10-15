@@ -2,6 +2,8 @@ package antoni.kalorie.core.auth
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.tasks.await
 import java.time.Instant
 
 sealed class AuthError : Exception() {
@@ -9,6 +11,7 @@ sealed class AuthError : Exception() {
 }
 
 enum class AuthProviderKind {
+    APPLE,
     GOOGLE,
 }
 
@@ -17,7 +20,9 @@ interface AuthProviderProtocol {
     val isAnonymous: Boolean
     val displayName: String?
     val lastSignInDate: Instant?
-    val linkedProviderKind: AuthProviderKind?
+    val linkedProviderKinds: Set<AuthProviderKind>
+
+    suspend fun currentSessionProviderKind(): AuthProviderKind?
 }
 
 class AuthProvider(
@@ -38,13 +43,30 @@ class AuthProvider(
     override val lastSignInDate: Instant?
         get() = auth.currentUser?.metadata?.lastSignInTimestamp?.let(Instant::ofEpochMilli)
 
-    override val linkedProviderKind: AuthProviderKind?
-        get() = when (auth.currentUser?.providerData?.firstOrNull { it.providerId != FIREBASE_PROVIDER_ID }?.providerId) {
-            GoogleAuthProvider.PROVIDER_ID -> AuthProviderKind.GOOGLE
-            else -> null
+    override val linkedProviderKinds: Set<AuthProviderKind>
+        get() = auth.currentUser?.providerData.orEmpty().mapNotNull { kind(it.providerId) }.toSet()
+
+    // MARK: - Functions
+
+    override suspend fun currentSessionProviderKind(): AuthProviderKind? {
+        val user = auth.currentUser ?: return null
+        val signInProvider = try {
+            user.getIdToken(false).await().signInProvider
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            null
         }
+        return signInProvider?.let(::kind)
+    }
+
+    private fun kind(providerId: String): AuthProviderKind? = when (providerId) {
+        APPLE_PROVIDER_ID -> AuthProviderKind.APPLE
+        GoogleAuthProvider.PROVIDER_ID -> AuthProviderKind.GOOGLE
+        else -> null
+    }
 
     private companion object {
-        const val FIREBASE_PROVIDER_ID = "firebase"
+        const val APPLE_PROVIDER_ID = "apple.com"
     }
 }
