@@ -62,15 +62,33 @@ final class LinkOrMergeCredentialUseCaseTests: XCTestCase {
         XCTAssertEqual(migrateAnonymousData.migrateCallCount, 0, "emailAlreadyInUse steers to Apple, it does not merge")
     }
 
+    func test_callAsFunction_whenSignedIn_throwsNotAnonymousAndDoesNotLinkOrMigrate() async {
+        let (sut, authCommandProvider, migrateAnonymousData) = makeSUT(isAnonymous: false)
+        authCommandProvider.linkError = makeCredentialAlreadyInUseError()
+
+        do {
+            try await sut(credential: makeCredential())
+            XCTFail("Expected error to be thrown")
+        } catch LinkOrMergeCredentialError.notAnonymous {
+            // pass
+        } catch {
+            XCTFail("Expected notAnonymous, got \(error)")
+        }
+
+        XCTAssertEqual(authCommandProvider.linkCallCount, 0)
+        XCTAssertEqual(migrateAnonymousData.migrateCallCount, 0, "a signed-in user must never have their data merged into another account")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
-        anonymousUserId: String? = "anon-123"
+        anonymousUserId: String? = "anon-123",
+        isAnonymous: Bool = true
     ) -> (sut: LinkOrMergeCredentialUseCase, authCommandProvider: AuthCommandProviderFake, migrateAnonymousData: MigrateAnonymousDataUseCaseFake) {
         let authCommandProvider = AuthCommandProviderFake()
         let migrateAnonymousData = MigrateAnonymousDataUseCaseFake()
         let sut = LinkOrMergeCredentialUseCase(
-            authProvider: AuthProviderFake(userId: anonymousUserId),
+            authProvider: AuthProviderFake(userId: anonymousUserId, isAnonymous: isAnonymous),
             authCommandProvider: authCommandProvider,
             migrateAnonymousData: migrateAnonymousData
         )
