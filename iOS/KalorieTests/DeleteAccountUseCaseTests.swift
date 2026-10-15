@@ -295,7 +295,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         let sut = makeSUT(
             dataProvider: DeleteAccountDataProviderFake(log: log),
             log: log,
-            linkedProviderKind: .apple,
+            linkedProviderKinds: [.apple],
             appleSignInProvider: makeAppleSignInProvider(authorizationCode: "auth-code"),
             authCommandProvider: authCommandProvider
         )
@@ -312,7 +312,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         let sut = makeSUT(
             dataProvider: DeleteAccountDataProviderFake(log: log),
             log: log,
-            linkedProviderKind: .google,
+            linkedProviderKinds: [.google],
             appleSignInProvider: AppleSignInProviderFake(errorToThrow: URLError(.unknown)),
             authCommandProvider: authCommandProvider
         )
@@ -330,7 +330,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         let sut = makeSUT(
             dataProvider: DeleteAccountDataProviderFake(log: log),
             log: log,
-            linkedProviderKind: .apple,
+            linkedProviderKinds: [.apple],
             appleSignInProvider: makeAppleSignInProvider(authorizationCode: "auth-code"),
             authCommandProvider: authCommandProvider
         )
@@ -347,7 +347,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         let sut = makeSUT(
             dataProvider: dataProvider,
             log: log,
-            linkedProviderKind: .apple,
+            linkedProviderKinds: [.apple],
             appleSignInProvider: AppleSignInProviderFake(errorToThrow: ASAuthorizationError(.canceled))
         )
 
@@ -377,13 +377,13 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         log: OperationLog,
         snapshotStore: PendingMergeSnapshotStoreFake = PendingMergeSnapshotStoreFake(),
         storage: StorageDataProviderFake = StorageDataProviderFake(),
-        linkedProviderKind: AuthProviderKind? = nil,
+        linkedProviderKinds: Set<AuthProviderKind> = [],
         appleSignInProvider: AppleSignInProviderFake = AppleSignInProviderFake(),
         authCommandProvider: DeleteAccountAuthCommandProviderFake? = nil
     ) -> DeleteAccountUseCase {
         DeleteAccountUseCase(
             dataProvider: dataProvider,
-            authProvider: AuthProviderFake(linkedProviderKind: linkedProviderKind),
+            authProvider: AuthProviderFake(linkedProviderKinds: linkedProviderKinds),
             authCommandProvider: authCommandProvider ?? DeleteAccountAuthCommandProviderFake(log: log),
             snapshotStore: snapshotStore,
             storageProvider: storage,

@@ -8,6 +8,10 @@
 import FirebaseAuth
 import Foundation
 
+enum ReauthenticateError: Error {
+    case wrongAccount
+}
+
 protocol ReauthenticateUseCaseProtocol {
     func callAsFunction() async throws
 }
@@ -39,15 +43,36 @@ struct ReauthenticateUseCase: ReauthenticateUseCaseProtocol {
 
     func callAsFunction() async throws {
         let credential: AuthCredential
-        switch authProvider.linkedProviderKind {
+        switch try await providerKind() {
         case .apple:
             credential = try await appleSignInProvider.signIn().credential
         case .google:
             credential = try await googleSignInProvider.signIn().credential
-        case nil:
-            throw AuthError.notAuthenticated
         }
-        try await authCommandProvider.reauthenticate(with: credential)
+
+        do {
+            try await authCommandProvider.reauthenticate(with: credential)
+        } catch {
+            if error.matches(domain: AuthErrorDomain, code: AuthErrorCode.userMismatch.rawValue) {
+                throw ReauthenticateError.wrongAccount
+            }
+            throw error
+        }
+    }
+
+    private func providerKind() async throws -> AuthProviderKind {
+        let linkedKinds = authProvider.linkedProviderKinds
+        if
+            let sessionKind = await authProvider.currentSessionProviderKind(),
+            linkedKinds.contains(sessionKind)
+        {
+            return sessionKind
+        }
+        guard
+            linkedKinds.count == 1,
+            let onlyKind = linkedKinds.first
+        else { throw AuthError.notAuthenticated }
+        return onlyKind
     }
 }
 
