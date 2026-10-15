@@ -27,7 +27,7 @@
     <string name="account_error_signOutFailed">Sign out failed</string>
     <string name="account_error_wrongAccount">Choose the account you are signed in with.</string>
     <string name="account_linkInfo_apple">You are signed in with Apple ID. If you like, you can also link Google and sign in either way.</string>
-    <string name="account_linkInfo_both">Your account is linked with both Apple ID and Google.</string>
+    <string name="account_linkInfo_both">Your account is linked with both Apple ID and Google. You can sign in (even on another device) with whichever method you like.</string>
     <string name="account_linkInfo_google">You are signed in with a Google account. If you like, you can also link Apple ID and sign in either way.</string>
     <string name="account_navigationTitle">Account</string>
     <string name="account_pill_link">Link</string>

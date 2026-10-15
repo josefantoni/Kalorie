@@ -41,6 +41,15 @@ final class AccountViewModel: ObservableObject {
     var isAnonymous: Bool { authProvider.isAnonymous }
     var displayName: String? { authProvider.displayName }
 
+    var linkInfoText: String? {
+        switch (linkedProviderKinds.contains(.apple), linkedProviderKinds.contains(.google)) {
+        case (true, true): L10n.Account.linkInfoBoth
+        case (true, false): L10n.Account.linkInfoApple
+        case (false, true): L10n.Account.linkInfoGoogle
+        case (false, false): nil
+        }
+    }
+
     // MARK: - Init
 
     init(
@@ -125,7 +134,7 @@ final class AccountViewModel: ObservableObject {
                 try await linkGoogle()
             }
             linkedProviderKinds = authProvider.linkedProviderKinds
-            alertItem = AlertItem(title: L10n.Account.alertLinkSuccessTitle)
+            alertItem = AlertItem(title: kind == .apple ? L10n.Account.alertLinkSuccessApple : L10n.Account.alertLinkSuccessGoogle)
         } catch LinkCredentialError.alreadyLinked {
             linkedProviderKinds = authProvider.linkedProviderKinds
             alertItem = AlertItem(title: L10n.Account.errorLinkAlreadyLinked)

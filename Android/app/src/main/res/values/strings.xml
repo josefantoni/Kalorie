@@ -27,7 +27,7 @@
     <string name="account_error_signOutFailed">Odhlášení se nezdařilo</string>
     <string name="account_error_wrongAccount">Vyber prosím stejný účet, se kterým jsi v aplikaci přihlášen/a.</string>
     <string name="account_linkInfo_apple">Jsi přihlášen/a přes Apple ID. Pokud chceš, můžeš se propojit i s Google a přihlašovat se oběma způsoby.</string>
-    <string name="account_linkInfo_both">Tvůj účet je propojený s Apple ID i s Google.</string>
+    <string name="account_linkInfo_both">Tvůj účet je propojený s Apple ID i s Google. Přihlašovat se můžeš (klidně na jiném zařízení) kteroukoli z těchto metod, jak se ti zrovna hodí.</string>
     <string name="account_linkInfo_google">Jsi přihlášen/a přes účet Google. Pokud chceš, můžeš se propojit i s Apple ID a přihlašovat se oběma způsoby.</string>
     <string name="account_navigationTitle">Účet</string>
     <string name="account_pill_link">Propojit</string>
