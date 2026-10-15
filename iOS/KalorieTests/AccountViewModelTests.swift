@@ -24,6 +24,16 @@ final class AccountViewModelTests: XCTestCase {
         XCTAssertEqual(sut.displayName, "Josef")
     }
 
+    func test_displayName_fallsBackToProviderName_whenAuthNameIsMissing() {
+        let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false, providerDisplayName: "Josef Antoni"))
+        XCTAssertEqual(sut.displayName, "Josef Antoni")
+    }
+
+    func test_displayName_prefersAuthName_overProviderName() {
+        let sut = makeSUT(authProvider: AuthProviderFake(isAnonymous: false, displayName: "Josef", providerDisplayName: "Josef Antoni"))
+        XCTAssertEqual(sut.displayName, "Josef")
+    }
+
     func test_onSignOutTapped_whenSucceeds_showsNoAlert() {
         let sut = makeSUT()
         sut.onSignOutTapped()
@@ -397,6 +407,7 @@ private final class AuthProviderMutableFake: AuthProviderProtocol {
     var userId: String? = "test-user-id"
     var isAnonymous = false
     var displayName: String?
+    var providerDisplayName: String?
     var linkedProviderKinds: Set<AuthProviderKind> = []
 
     func currentSessionProviderKind() async -> AuthProviderKind? { nil }

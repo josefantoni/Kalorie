@@ -30,6 +30,7 @@ import com.google.firebase.auth.FirebaseAuthWebException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,6 +45,18 @@ class AccountViewModelTest {
     @Test
     fun displayName_reflectsAuthProvider() {
         assertEquals("Josef", makeSUT(authProvider = AuthProviderFake(isAnonymous = false, displayName = "Josef")).displayName.value)
+    }
+
+    @Test
+    fun displayName_fallsBackToProviderName_whenAuthNameIsMissing() {
+        val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false, providerDisplayName = "Josef Antoni"))
+        assertEquals("Josef Antoni", sut.displayName.value)
+    }
+
+    @Test
+    fun displayName_prefersAuthName_overProviderName() {
+        val sut = makeSUT(authProvider = AuthProviderFake(isAnonymous = false, displayName = "Josef", providerDisplayName = "Josef Antoni"))
+        assertEquals("Josef", sut.displayName.value)
     }
 
     @Test
@@ -293,6 +306,20 @@ class AccountViewModelTest {
 
         assertEquals(R.string.account_alert_linkSuccessApple, sut.alertItem.value?.titleRes)
         assertEquals(AccountViewModel.State.IDLE, sut.state.value)
+    }
+
+    @Test
+    fun onLinkProviderTapped_closesTheLinkInfoPopoverSoTheResultAlertCanBePresented() = runTest {
+        val sut = makeSUT(
+            authProvider = AuthProviderFake(isAnonymous = false),
+            linkApple = LinkAppleUseCaseFake(errorToThrow = LinkCredentialError.AlreadyLinked),
+        )
+        sut.isLinkInfoPopoverVisible.value = true
+
+        sut.onLinkProviderTapped(AuthProviderKind.APPLE)
+
+        assertFalse(sut.isLinkInfoPopoverVisible.value)
+        assertNotNull(sut.alertItem.value)
     }
 
     @Test

@@ -25,6 +25,8 @@ final class AccountViewModel: ObservableObject {
     @Published var alertItem: AlertItem?
     @Published var showDeleteConfirmation = false
     @Published var isReauthenticateAlertVisible = false
+    @Published var isLinkInfoPopoverVisible = false
+    @Published var showSignOutConfirmation = false
     @Published private(set) var linkedProviderKinds: Set<AuthProviderKind>
 
     private let authProvider: any AuthProviderProtocol
@@ -39,7 +41,9 @@ final class AccountViewModel: ObservableObject {
     private var isDataAlreadyWiped = false
 
     var isAnonymous: Bool { authProvider.isAnonymous }
-    var displayName: String? { authProvider.displayName }
+    var displayName: String? {
+        authProvider.displayName.flatMap { $0.isEmpty ? nil : $0 } ?? authProvider.providerDisplayName
+    }
 
     var linkInfoText: String? {
         switch (linkedProviderKinds.contains(.apple), linkedProviderKinds.contains(.google)) {

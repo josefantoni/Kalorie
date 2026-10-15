@@ -53,12 +53,14 @@ class AccountViewModel(
     val state: StateFlow<State> = _state
     val alertItem = MutableStateFlow<AlertItem?>(null)
     val showDeleteConfirmation = MutableStateFlow(false)
+    val showSignOutConfirmation = MutableStateFlow(false)
+    val isLinkInfoPopoverVisible = MutableStateFlow(false)
     val isReauthenticateAlertVisible = MutableStateFlow(false)
     private var isDataAlreadyWiped = false
 
     private val _isAnonymous = MutableStateFlow(authProvider.isAnonymous)
     val isAnonymous: StateFlow<Boolean> = _isAnonymous
-    private val _displayName = MutableStateFlow(authProvider.displayName)
+    private val _displayName = MutableStateFlow(resolvedDisplayName())
     val displayName: StateFlow<String?> = _displayName
     private val _linkedProviderKinds = MutableStateFlow(authProvider.linkedProviderKinds)
     val linkedProviderKinds: StateFlow<Set<AuthProviderKind>> = _linkedProviderKinds
@@ -132,6 +134,7 @@ class AccountViewModel(
     }
 
     suspend fun onLinkProviderTapped(kind: AuthProviderKind) {
+        isLinkInfoPopoverVisible.value = false
         _state.value = State.LINKING
         try {
             when (kind) {
@@ -199,9 +202,11 @@ class AccountViewModel(
 
     // MARK: - Private
 
+    private fun resolvedDisplayName(): String? = authProvider.displayName?.takeIf(String::isNotEmpty) ?: authProvider.providerDisplayName
+
     private fun refreshAuthState() {
         _isAnonymous.value = authProvider.isAnonymous
-        _displayName.value = authProvider.displayName
+        _displayName.value = resolvedDisplayName()
         _linkedProviderKinds.value = authProvider.linkedProviderKinds
     }
 
