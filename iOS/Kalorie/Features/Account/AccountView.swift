@@ -72,15 +72,9 @@ struct AccountView: View {
 
                                 Spacer()
 
-                                Button {
+                                BadgeButton(imageName: .infoCircle) {
                                     viewModel.isLinkInfoPopoverVisible = true
-                                } label: {
-                                    Image(systemName: BaseImageName.infoCircle.rawValue)
-                                        .foregroundStyle(Color(.label))
                                 }
-                                .buttonStyle(.glass)
-                                .buttonBorderShape(.circle)
-                                .controlSize(.small)
                                 .popover(isPresented: $viewModel.isLinkInfoPopoverVisible) {
                                     linkInfoPopover
                                         .dynamicTypeLimit()
