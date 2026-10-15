@@ -7,5 +7,9 @@ data class AuthProviderFake(
     override val isAnonymous: Boolean = true,
     override val displayName: String? = null,
     override val lastSignInDate: Instant? = Instant.now(),
-    override val linkedProviderKind: AuthProviderKind? = null,
-) : AuthProviderProtocol
+    override val linkedProviderKinds: Set<AuthProviderKind> = emptySet(),
+    val sessionProviderKind: AuthProviderKind? = null,
+) : AuthProviderProtocol {
+
+    override suspend fun currentSessionProviderKind(): AuthProviderKind? = sessionProviderKind
+}
