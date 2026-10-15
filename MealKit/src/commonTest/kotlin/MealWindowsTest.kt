@@ -193,4 +193,11 @@ class MealWindowsTest {
     fun defaultMealWindows_keysAreUnique_becauseTheyResolveTheLocalisedName() {
         assertEquals(DEFAULT_MEAL_WINDOWS.size, DEFAULT_MEAL_WINDOWS.map { it.key }.toSet().size)
     }
+
+    @Test
+    fun defaultMealWindows_idsAreFixedUppercaseUuids_soConcurrentSetupsWriteTheSameDocuments() {
+        val uuid = Regex("[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}")
+        DEFAULT_MEAL_WINDOWS.forEach { assertTrue(uuid.matches(it.id), "${it.key} id is not an uppercase UUID") }
+        assertEquals(DEFAULT_MEAL_WINDOWS.size, DEFAULT_MEAL_WINDOWS.map { it.id }.toSet().size)
+    }
 }

@@ -38,7 +38,7 @@ struct SetupDefaultMealsUseCase: SetupDefaultMealsUseCaseProtocol {
             let mealName = L10n.DefaultMeals.name(forKey: defaultKey) ?? defaultKey
             let startMinutes = Int(window.startMinutes)
             let endMinutes = Int(window.endMinutes)
-            let id = UUID().uuidString
+            let id = window.id
             dtos.append((
                 item: MealTypeDTO(
                     id: id,

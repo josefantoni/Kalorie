@@ -4,14 +4,14 @@ private const val MINUTES_PER_DAY = 1440
 
 const val MIN_MEAL_WINDOW_MINUTES = 30
 
-data class DefaultMealWindow(val key: String, val startMinutes: Int, val endMinutes: Int)
+data class DefaultMealWindow(val key: String, val id: String, val startMinutes: Int, val endMinutes: Int)
 
 val DEFAULT_MEAL_WINDOWS = listOf(
-    DefaultMealWindow(key = "breakfast", startMinutes = 5 * 60, endMinutes = 8 * 60 + 30),
-    DefaultMealWindow(key = "secondBreakfast", startMinutes = 8 * 60 + 30, endMinutes = 11 * 60),
-    DefaultMealWindow(key = "lunch", startMinutes = 11 * 60, endMinutes = 14 * 60 + 30),
-    DefaultMealWindow(key = "snack", startMinutes = 14 * 60 + 30, endMinutes = 17 * 60),
-    DefaultMealWindow(key = "dinner", startMinutes = 17 * 60, endMinutes = 20 * 60),
+    DefaultMealWindow(key = "breakfast", id = "986FCBA6-D4D3-435E-A398-E654DF088679", startMinutes = 5 * 60, endMinutes = 8 * 60 + 30),
+    DefaultMealWindow(key = "secondBreakfast", id = "DA748BB0-B72A-4607-BC59-B23AAA9EC3E2", startMinutes = 8 * 60 + 30, endMinutes = 11 * 60),
+    DefaultMealWindow(key = "lunch", id = "182F51E8-7080-488A-97CB-8A07863F3760", startMinutes = 11 * 60, endMinutes = 14 * 60 + 30),
+    DefaultMealWindow(key = "snack", id = "FFF11ADE-07DF-4DB7-93EE-FB06986D3787", startMinutes = 14 * 60 + 30, endMinutes = 17 * 60),
+    DefaultMealWindow(key = "dinner", id = "60D18038-3A9F-4265-9F5A-85F22111EC04", startMinutes = 17 * 60, endMinutes = 20 * 60),
 )
 
 fun minutesSinceMidnight(hour: Int, minute: Int): Int = hour * 60 + minute

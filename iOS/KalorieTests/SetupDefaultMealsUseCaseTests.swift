@@ -32,6 +32,13 @@ final class SetupDefaultMealsUseCaseTests: XCTestCase {
         XCTAssertTrue(ids.allSatisfy { !$0.isEmpty })
     }
 
+    func test_setupDefaultMeals_twoRunsWriteTheSameIds_soConcurrentSetupsCannotDuplicateTheMeals() async throws {
+        let (sut, _) = makeSUT()
+        let first = try await sut().map { $0.id }
+        let second = try await sut().map { $0.id }
+        XCTAssertEqual(first, second)
+    }
+
     func test_setupDefaultMeals_secondBreakfastStartsWhereBreakfastEnds_at0830() async throws {
         let (sut, _) = makeSUT()
         let result = try await sut()

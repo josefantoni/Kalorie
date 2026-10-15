@@ -10,7 +10,6 @@ import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.DefaultMeals
 import antoni.kalorie.core.utils.StringProvider
 import antoni.kalorie.mealkit.DEFAULT_MEAL_WINDOWS
-import java.util.UUID
 
 interface SetupDefaultMealsUseCaseProtocol {
     suspend operator fun invoke(): List<MealTypeDomain>
@@ -34,7 +33,7 @@ class SetupDefaultMealsUseCase(
             val mealName = DefaultMeals.name(defaultKey, stringProvider) ?: defaultKey
             val startMinutes = window.startMinutes
             val endMinutes = window.endMinutes
-            val id = UUID.randomUUID().toString().uppercase()
+            val id = window.id
             dtos += MealTypeDTO(
                 id = id,
                 name = mealName,
