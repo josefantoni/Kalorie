@@ -54,8 +54,6 @@ fun ModerationReportsView(
 ) {
     // MARK: - Properties
 
-    val scope = rememberCoroutineScope()
-
     LaunchedEffect(Unit) { viewModel.onAppear() }
 
     // MARK: - Body
