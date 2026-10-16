@@ -42,10 +42,10 @@ The app works with three kinds of data. The distinction matters for the items be
 - **Store release checklist** (state on 2026-10-16):
   - *Done:* iOS build 2 is archived and sent to TestFlight; Sign in with Apple is enabled for the App ID, the
     Firebase Apple provider and `Kalorie.entitlements`; App Privacy answers (8 data types, no tracking) are saved
-    in App Store Connect **but not published**; the privacy policy (photos, Apple, tips) is deployed, effective
+    in App Store Connect and published; the privacy policy (photos, Apple, tips) is deployed, effective
     16 October 2026. The Play app `antoni.kalorie` exists, build 1.0 (2) is rolled out to Internal testing and
     Google sign-in works on a device installed from Play.
-  - *Still to do, user's console work:* press **Publish** on App Store Connect → App Privacy; fill the Play
+  - *Still to do, user's console work:* fill the Play
     **Data safety** form from the table in [design 0021](docs/design/0021-privacy-policy.md) plus *Photos —
     collected, not shared, App functionality, optional*, and the other Play App content declarations (content
     rating, target audience, ads); store listings and screenshots for both stores.
