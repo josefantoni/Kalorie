@@ -17,9 +17,7 @@ The app works with three kinds of data. The distinction matters for the items be
   (budget alert 150 CZK/month) and the default Storage bucket (`us-central1`) are set up. Before
   the release that ships it: update the App Store privacy label and the Google Play Data safety form
   (*Photos*) — see the design's *Privacy* section. Do not change the store declarations earlier, they
-  must match the published build. The privacy policy page (`backend/hosting/privacy.html`) already
-  describes the photos; before the apps are sent to the stores, change its effective date (both
-  language halves) to the deploy date, re-read it against the shipped behaviour, and deploy it.
+  must match the published build.
 - **Firebase App Check** — Storage and Firestore rules only check who writes, not what writes, so
   anyone with an account can upload files (up to the rules' limits) from a script and the Blaze bill
   is ours. App Check makes the backend accept requests only from genuine builds: App Attest on iOS,
@@ -34,8 +32,7 @@ The app works with three kinds of data. The distinction matters for the items be
   in-app products, App Store Connect *Paid Apps* agreement and the products (use neutral names and
   Czech + English descriptions there), the EU trader status decision (the stores publish the
   developer's address), and an accountant for the trade licence and taxes. Test a real purchase on
-  Android from the internal testing track with a license tester, and mention the tips in the privacy
-  policy (Apple / Google process the payment).
+  Android from the internal testing track with a license tester.
 - **First Play release needs a closed test** — a personal developer account created after Nov 2023
   gets production access only after a closed test with at least 12 testers opted in for 14 days in a
   row. Start it as early as possible; it is also the cheapest way to find out whether anyone uses the app.
@@ -43,10 +40,8 @@ The app works with three kinds of data. The distinction matters for the items be
 - **Store release checklist after the Apple/Google developer accounts exist** (state on 2026-10-15):
   - *Done:* iOS build 1 is in TestFlight; Sign in with Apple is enabled for the App ID, the Firebase
     Apple provider and `Kalorie.entitlements`; App Privacy answers (8 data types, no tracking) are saved in
-    App Store Connect **but not published**; the privacy policy page in the repo says 15 October 2026 but is
-    **not deployed**.
-  - *Still to do, user's console work:* press **Publish** on App Store Connect → App Privacy; deploy the
-    policy (`firebase deploy --only hosting` from `backend/`, never a bare `firebase deploy`); fill the Play
+    App Store Connect **but not published**; the privacy policy (photos, Apple, tips) is deployed, effective 16 October 2026.
+  - *Still to do, user's console work:* press **Publish** on App Store Connect → App Privacy; fill the Play
     **Data safety** form from the table in [design 0021](docs/design/0021-privacy-policy.md) plus *Photos —
     collected, not shared, App functionality, optional*; create the Play app `antoni.kalorie`, upload
     `Android/app/build/outputs/bundle/release/app-release.aab` (`./gradlew :app:bundleRelease`) to Internal
@@ -55,7 +50,7 @@ The app works with three kinds of data. The distinction matters for the items be
   - *iOS beta:* a public TestFlight link needs an **External testing** group and Beta App Review (the
     build must carry a new `CURRENT_PROJECT_VERSION` after the fix above, so build 2).
   - *Open question for a lawyer:* whether a food diary is health data under GDPR Art. 9 (design 0021 chose
-    no explicit-consent step); the privacy policy also still lists Sign in with Apple, which now exists.
+    no explicit-consent step).
 - **Verify the duplicate default meals fix** — default meal types now get fixed ids from MealKit's
   `DEFAULT_MEAL_WINDOWS` (the setup raced and wrote them twice, 10 instead of 5, on 4 of 24 accounts).
   The day after the fix ships to a device, sign in with fresh anonymous accounts on both platforms and
