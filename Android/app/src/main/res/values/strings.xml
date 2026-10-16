@@ -276,6 +276,16 @@
     <string name="settings_navigationTitle">Nastavení</string>
     <string name="settings_section_mealLayout">Rozvržení jídel</string>
     <string name="settings_section_other">Ostatní</string>
-    <string name="settings_support_inProgress">Připravujeme</string>
     <string name="settings_support_subtitle">Aplikace je zdarma a bez reklam</string>
+    <string name="support_error_productsUnavailable">Příspěvky teď nejdou načíst. Zkus to prosím později.</string>
+    <string name="support_error_purchaseFailed">Platba se nepovedla. Nic ti nebylo strženo.</string>
+    <string name="support_intro">Aplikace je zdarma a bez reklam. Pokud ti pomáhá, můžeš dobrovolně přispět na její provoz a další vývoj. Nic se tím neodemyká.</string>
+    <string name="support_pending_message">Platba čeká na schválení. Dokončí se, jakmile ji obchod potvrdí.</string>
+    <string name="support_product_tip_large">Babička navařila</string>
+    <string name="support_product_tip_medium">Trošku větší obídek</string>
+    <string name="support_product_tip_small">Svačina</string>
+    <string name="support_thankYou_dismiss">Nech si chutnat!</string>
+    <string name="support_thankYou_message_large">Babička přijela na výkrm. Vypadá to, že jsem prý zase nějaký pohublý! 😊 Děkuji.</string>
+    <string name="support_thankYou_message_medium">Téda, toto už bude na pěkný obídek. Na snídani bylo jen kafe! 😊 Děkuji.</string>
+    <string name="support_thankYou_message_small">To bude na obložený chleba! I programátor je člověk hladový a nemůže žít jen z kafe! 😊 Děkuji.</string>
 </resources>

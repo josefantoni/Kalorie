@@ -8,4 +8,20 @@
     <color name="hint">#6C6C89</color>
     <color name="warning">#FFB300</color>
     <color name="error">#F3164E</color>
+    <color name="plate">#F4F1EA</color>
+    <color name="chicken_roast">#C97A2E</color>
+    <color name="chicken_shade">#8F4F1A</color>
+    <color name="bread_crumb">#F2D79E</color>
+    <color name="lemonade">#F7DB4D</color>
+    <color name="lemon_slice">#E8C52E</color>
+    <color name="bone">#F7F0DC</color>
+    <color name="baguette_crust">#D99B4A</color>
+    <color name="baguette_score">#A8682A</color>
+    <color name="grandma_eye">#1C1C1E</color>
+    <color name="grandma_mouth">#D4607A</color>
+    <color name="grandma_skin">#F3C9A5</color>
+    <color name="grandma_hair">#D8D8DC</color>
+    <color name="grandma_dress">#4F8F8B</color>
+    <color name="pot_metal">#8D9AA8</color>
+    <color name="pot_shade">#5E6B78</color>
 </resources>

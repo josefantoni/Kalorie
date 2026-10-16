@@ -146,6 +146,9 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                     is SettingsDestination.Export -> NavEntry(destination) {
                         router.makeExportView(mealTypes = mealTypes, onBack = { viewModel.backStack.removeLastOrNull() })
                     }
+                    is SettingsDestination.Support -> NavEntry(destination) {
+                        router.makeSupportView(onBack = { viewModel.backStack.removeLastOrNull() })
+                    }
                     is SettingsDestination.ModerationQueue -> NavEntry(destination) {
                         router.makeModerationQueueView { viewModel.backStack.removeLastOrNull() }
                     }
@@ -344,7 +347,7 @@ private fun SettingsContent(
                             item {
                                 Spacer(modifier = Modifier.height(24.dp))
                                 SectionCard {
-                                    SupportRow(onClick = viewModel::onSupportTapped)
+                                    SupportRow(onClick = { viewModel.backStack.add(SettingsDestination.Support) })
                                 }
                             }
                             if (isMaintainer) {

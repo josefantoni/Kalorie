@@ -2,6 +2,8 @@ package antoni.kalorie
 
 import android.app.Application
 import antoni.kalorie.core.auth.CurrentActivityProvider
+import antoni.kalorie.core.tips.TipStoreProtocol
+import antoni.kalorie.core.tips.createTipStore
 import antoni.kalorie.core.utils.ErrorReporting
 import antoni.kalorie.core.utils.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -13,6 +15,7 @@ class KalorieApplication : Application() {
 
     val currentActivityProvider = CurrentActivityProvider()
     val applicationScope = MainScope()
+    val tipStore: TipStoreProtocol by lazy { createTipStore(this, currentActivityProvider) }
 
     // MARK: - Functions
 
@@ -22,5 +25,6 @@ class KalorieApplication : Application() {
         val crashlytics = FirebaseCrashlytics.getInstance()
         crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
         Log.errorReporting = ErrorReporting { error -> crashlytics.recordException(error) }
+        tipStore.start()
     }
 }
