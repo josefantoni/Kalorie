@@ -47,6 +47,7 @@ enum Constants {
     }
 
     enum Tips {
+        static let isEnabled = false
         static let mediumProductId = "tip_medium"
         static let largeProductId = "tip_large"
         static let productIds = ["tip_small", mediumProductId, largeProductId]
