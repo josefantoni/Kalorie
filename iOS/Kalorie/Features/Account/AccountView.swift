@@ -256,11 +256,12 @@ private extension AccountView {
     func providerLogo(kind: AuthProviderKind) -> some View {
         switch kind {
         case .apple:
-            Image(systemName: BaseImageName.appleLogo.rawValue)
-                .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(Color(uiColor: .systemBackground))
+            Image(.appleLogo)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 22, height: 27)
                 .frame(width: 56, height: 56)
-                .background(Color.primary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(Color.appleTile, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         case .google:
             Image(.googleLogo)
                 .resizable()

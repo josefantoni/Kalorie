@@ -28,7 +28,6 @@ enum BaseImageName: String {
     case gearshape = "gearshape"
     case listBulletRectanglePortrait = "list.bullet.rectangle.portrait"
     case checkmark = "checkmark"
-    case appleLogo = "apple.logo"
     case wineglass = "wineglass"
     case cameraFill = "camera.fill"
     case retakePhoto = "arrow.triangle.2.circlepath.camera"
