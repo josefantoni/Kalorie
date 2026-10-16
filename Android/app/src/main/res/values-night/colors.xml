@@ -5,4 +5,18 @@
     <color name="fat">#FF375F</color>
     <color name="success">#30D158</color>
     <color name="hint">#8A8AA3</color>
+    <color name="plate">#E6E2D8</color>
+    <color name="chicken_roast">#D08438</color>
+    <color name="chicken_shade">#9C5B24</color>
+    <color name="bread_crumb">#EACF96</color>
+    <color name="lemonade">#F2D240</color>
+    <color name="lemon_slice">#E0BC28</color>
+    <color name="bone">#ECE4CE</color>
+    <color name="baguette_crust">#E0A555</color>
+    <color name="baguette_score">#B87838</color>
+    <color name="grandma_skin">#EBBF9B</color>
+    <color name="grandma_hair">#C4C4CA</color>
+    <color name="grandma_dress">#5A9C97</color>
+    <color name="pot_metal">#9AA7B5</color>
+    <color name="pot_shade">#6C7986</color>
 </resources>

@@ -25,6 +25,14 @@ object Constants {
         const val MODERATION = "moderation"
         const val NUTRITION_LABEL_RECOGNITION = "nutritionLabelRecognition"
         const val STORAGE = "storage"
+        const val SUPPORT = "support"
+    }
+
+    object Tips {
+        const val SMALL_PRODUCT_ID = "tip_small"
+        const val MEDIUM_PRODUCT_ID = "tip_medium"
+        const val LARGE_PRODUCT_ID = "tip_large"
+        val productIds = listOf(SMALL_PRODUCT_ID, MEDIUM_PRODUCT_ID, LARGE_PRODUCT_ID)
     }
 
     object Auth {

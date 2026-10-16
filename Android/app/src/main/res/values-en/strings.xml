@@ -276,6 +276,16 @@
     <string name="settings_navigationTitle">Settings</string>
     <string name="settings_section_mealLayout">Meal layout</string>
     <string name="settings_section_other">Other</string>
-    <string name="settings_support_inProgress">Coming soon</string>
     <string name="settings_support_subtitle">The app is free and ad-free</string>
+    <string name="support_error_productsUnavailable">Tips could not be loaded right now. Please try again later.</string>
+    <string name="support_error_purchaseFailed">The payment failed. You have not been charged.</string>
+    <string name="support_intro">The app is free and ad-free. If it helps you, you can voluntarily chip in towards running and developing it. Nothing is unlocked by it.</string>
+    <string name="support_pending_message">The payment is pending. It will complete once the store confirms it.</string>
+    <string name="support_product_tip_large">Grandma cooked</string>
+    <string name="support_product_tip_medium">A slightly bigger lunch</string>
+    <string name="support_product_tip_small">A snack</string>
+    <string name="support_thankYou_dismiss">Enjoy your meal!</string>
+    <string name="support_thankYou_message_large">Grandma has arrived to fatten me up. Apparently I look skinny again! 😊 Thank you.</string>
+    <string name="support_thankYou_message_medium">Wow, that\'s shaping up to be a proper lunch. Breakfast was just coffee! 😊 Thank you.</string>
+    <string name="support_thankYou_message_small">This one\'s going towards a sandwich! Even a programmer gets hungry and can\'t live on coffee alone! 😊 Thank you.</string>
 </resources>
