@@ -621,7 +621,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Kalorie;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Prosím povolte využití kamery pro skenování čárových kódů potravin";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Prosím povolte využití kamery pro skenování čárových kódů a nutričních tabulek potravin a pro fotky produktů";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -668,7 +668,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Kalorie;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Prosím povolte využití kamery pro skenování čárových kódů potravin";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Prosím povolte využití kamery pro skenování čárových kódů a nutričních tabulek potravin a pro fotky produktů";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
