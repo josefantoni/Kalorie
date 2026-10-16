@@ -1043,10 +1043,6 @@
     "cs": "Aplikace je zdarma a bez reklam",
     "en": "The app is free and ad-free"
   },
-  "settings_support_inProgress": {
-    "cs": "Připravujeme",
-    "en": "Coming soon"
-  },
   "settings_datePicker_from": {
     "cs": "Od",
     "en": "From"
@@ -1110,5 +1106,49 @@
   "settings_section_other": {
     "cs": "Ostatní",
     "en": "Other"
+  },
+  "support_intro": {
+    "cs": "Aplikace je zdarma a bez reklam. Pokud ti pomáhá, můžeš dobrovolně přispět na její provoz a další vývoj. Nic se tím neodemyká.",
+    "en": "The app is free and ad-free. If it helps you, you can voluntarily chip in towards running and developing it. Nothing is unlocked by it."
+  },
+  "support_product_tip_small": {
+    "cs": "Svačina",
+    "en": "A snack"
+  },
+  "support_product_tip_medium": {
+    "cs": "Trošku větší obídek",
+    "en": "A slightly bigger lunch"
+  },
+  "support_product_tip_large": {
+    "cs": "Babička navařila",
+    "en": "Grandma cooked"
+  },
+  "support_thankYou_message_small": {
+    "cs": "To bude na obložený chleba! I programátor je člověk hladový a nemůže žít jen z kafe! 😊 Děkuji.",
+    "en": "This one's going towards a sandwich! Even a programmer gets hungry and can't live on coffee alone! 😊 Thank you."
+  },
+  "support_thankYou_message_medium": {
+    "cs": "Téda, toto už bude na pěkný obídek. Na snídani bylo jen kafe! 😊 Děkuji.",
+    "en": "Wow, that's shaping up to be a proper lunch. Breakfast was just coffee! 😊 Thank you."
+  },
+  "support_thankYou_message_large": {
+    "cs": "Babička přijela na výkrm. Vypadá to, že jsem prý zase nějaký pohublý! 😊 Děkuji.",
+    "en": "Grandma has arrived to fatten me up. Apparently I look skinny again! 😊 Thank you."
+  },
+  "support_thankYou_dismiss": {
+    "cs": "Nech si chutnat!",
+    "en": "Enjoy your meal!"
+  },
+  "support_pending_message": {
+    "cs": "Platba čeká na schválení. Dokončí se, jakmile ji obchod potvrdí.",
+    "en": "The payment is pending. It will complete once the store confirms it."
+  },
+  "support_error_productsUnavailable": {
+    "cs": "Příspěvky teď nejdou načíst. Zkus to prosím později.",
+    "en": "Tips could not be loaded right now. Please try again later."
+  },
+  "support_error_purchaseFailed": {
+    "cs": "Platba se nepovedla. Nic ti nebylo strženo.",
+    "en": "The payment failed. You have not been charged."
   }
 }
