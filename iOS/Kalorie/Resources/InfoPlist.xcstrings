@@ -47,13 +47,13 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prosím povolte využití kamery pro skenování čárových kódů a nutričních tabulek potravin"
+            "value" : "Prosím povolte využití kamery pro skenování čárových kódů a nutričních tabulek potravin a pro fotky produktů"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please allow camera access to scan food barcodes and nutrition labels"
+            "value" : "Please allow camera access to scan food barcodes and nutrition labels and to take product photos"
           }
         }
       }
