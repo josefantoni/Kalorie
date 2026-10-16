@@ -1131,7 +1131,10 @@ whole, top to bottom, and it is identical on both clients:
      *Feedback*, or an alert with a copyable address when no mail app handles it
      ([design 0018](design/0018-feedback-by-mail.md)). It needs no account, so it is
      available to anonymous users.
-3. **Moderation** — *Pending review* and *Reports*, rendered only for a maintainer (§ 7.3).
+3. **Support** — *Support development*, a row of its own styled differently from the *Other* rows
+   (icon, subtitle). It pushes `SupportView` with three consumable tips bought through the store's
+   billing ([design 0023](design/0023-support-development-tips.md)); it needs no account.
+4. **Moderation** — *Pending review* and *Reports*, rendered only for a maintainer (§ 7.3).
 
 The account screen is a separate sheet reached from the Dashboard's account icon (§ 6.3); it holds
 identity only, and new general-purpose rows belong here rather than there.
