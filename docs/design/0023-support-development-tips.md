@@ -1,7 +1,7 @@
 # Design: Support development with in-app tips
 
-- **Status:** Proposed — the Settings row exists as a placeholder on both platforms that shows a
-  "Coming soon" alert
+- **Status:** Proposed — implemented on both platforms (StoreKit 2, Play Billing); not shipped, the
+  products do not exist in the store consoles yet
 - **Scope:** Cross-platform, iOS, Android
 - **Date:** 2026-10-11
 
@@ -145,6 +145,25 @@ These are the user's to do; the code cannot be released without them.
    implementation → internal testing with a license tester.
 2. iOS when the Apple account is paid for: the same products in App Store Connect, StoreKit 2.
 3. Until the feature is implemented, the placeholder row only shows a "Coming soon" alert.
+
+## Implementation notes
+
+- **Error handling:** when the products do not load, `SupportView` shows the error alert and stays on
+  screen so the user can leave and retry; the Settings row is always visible. The goal "do not show the
+  row at all" above was not implemented, because the row cannot know in advance that the store is down.
+- **Thank-you:** a successful purchase does not show an alert. The screen fades in "Děkuji!" for five
+  seconds with an animation drawn in code (no image assets), chosen by the tier: `tip_small` rains
+  baguettes, `tip_medium` shows a roast chicken lunch, `tip_large` shows a grandma cooking. The tiers
+  are named *Svačina* / *Trošku větší obídek* / *Babička navařila* in the app; the store listings use
+  neutral names.
+- **Ports:** the iOS and Android drawings use the same coordinates and colour roles
+  (`Android/.../components/illustrations/` mirrors `iOS/.../Components/`). Android draws them in
+  `DrawScope` units of dp around the centre of the canvas.
+
+- **Testing without a store:** iOS gets the products from `iOS/Tips.storekit`; Android debug builds
+  use `TipStoreFake` (`createTipStore` in the `debug` source set returns it; the `release` source set
+  returns `PlayBillingTipStore`). Setting `USE_FAKE_STORE` to `false` in the debug factory tests the real
+  Play Billing, which only resolves for a build signed like the one uploaded to the testing track.
 
 ## Outcome
 
