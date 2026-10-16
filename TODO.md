@@ -26,29 +26,30 @@ The app works with three kinds of data. The distinction matters for the items be
   metrics show legitimate traffic, otherwise the app locks itself out. Needs the App Attest
   capability on iOS and the Play Console link on Android. Not blocking the food photos release, but
   do it soon after it.
-- **Support development (tips)** — designed in [design 0023](docs/design/0023-support-development-tips.md):
-  three consumable products (`tip_small`, `tip_medium`, `tip_large`) through store billing. What is
-  left is the console work and the first real purchase: Play Console payments profile and the three
-  in-app products, App Store Connect *Paid Apps* agreement and the products (use neutral names and
-  Czech + English descriptions there), the EU trader status decision (the stores publish the
-  developer's address), and an accountant for the trade licence and taxes. Test a real purchase on
-  Android from the internal testing track with a license tester.
+- **Support development (tips)** — designed in [design 0023](docs/design/0023-support-development-tips.md) and
+  implemented on both platforms and switched off by `Constants.Tips.isEnabled`, so the apps ship without
+  tips. Blocked on the owner's trade licence being suspended: income from the stores
+  likely counts as business income, so decide with an accountant before enabling. To enable: renew the
+  licence, create the Play payments profile and the three consumable products (`tip_small`, `tip_medium`,
+  `tip_large`), accept the App Store Connect *Paid Apps* agreement and create the same products (neutral
+  names, Czech + English descriptions), decide the EU trader address, then set `Constants.Tips.isEnabled` / `IS_ENABLED` to `true` on both platforms and restore the tips paragraph in
+  `backend/hosting/privacy.html` (Apple / Google process the payment, the app receives no card or purchase
+  data) and test a real purchase from Internal testing with a license tester.
 - **First Play release needs a closed test** — a personal developer account created after Nov 2023
   gets production access only after a closed test with at least 12 testers opted in for 14 days in a
   row. Start it as early as possible; it is also the cheapest way to find out whether anyone uses the app.
 
-- **Store release checklist after the Apple/Google developer accounts exist** (state on 2026-10-15):
-  - *Done:* iOS build 1 is in TestFlight; Sign in with Apple is enabled for the App ID, the Firebase
-    Apple provider and `Kalorie.entitlements`; App Privacy answers (8 data types, no tracking) are saved in
-    App Store Connect **but not published**; the privacy policy (photos, Apple, tips) is deployed, effective 16 October 2026.
+- **Store release checklist** (state on 2026-10-16):
+  - *Done:* iOS build 2 is archived and sent to TestFlight; Sign in with Apple is enabled for the App ID, the
+    Firebase Apple provider and `Kalorie.entitlements`; App Privacy answers (8 data types, no tracking) are saved
+    in App Store Connect **but not published**; the privacy policy (photos, Apple, tips) is deployed, effective
+    16 October 2026. The Play app `antoni.kalorie` exists, build 1.0 (2) is rolled out to Internal testing and
+    Google sign-in works on a device installed from Play.
   - *Still to do, user's console work:* press **Publish** on App Store Connect → App Privacy; fill the Play
     **Data safety** form from the table in [design 0021](docs/design/0021-privacy-policy.md) plus *Photos —
-    collected, not shared, App functionality, optional*; create the Play app `antoni.kalorie`, upload
-    `Android/app/build/outputs/bundle/release/app-release.aab` (`./gradlew :app:bundleRelease`) to Internal
-    testing, then add the *App signing* and *Upload* SHA-1/SHA-256 to Firebase, re-download
-    `google-services.json` into `Android/app/` and update the `GOOGLE_SERVICES_JSON` CI secret.
-  - *iOS beta:* a public TestFlight link needs an **External testing** group and Beta App Review (the
-    build must carry a new `CURRENT_PROJECT_VERSION` after the fix above, so build 2).
+    collected, not shared, App functionality, optional*, and the other Play App content declarations (content
+    rating, target audience, ads); store listings and screenshots for both stores.
+  - *iOS beta:* a public TestFlight link needs an **External testing** group and Beta App Review.
   - *Open question for a lawyer:* whether a food diary is health data under GDPR Art. 9 (design 0021 chose
     no explicit-consent step).
 - **Verify the duplicate default meals fix** — default meal types now get fixed ids from MealKit's
@@ -61,28 +62,7 @@ The app works with three kinds of data. The distinction matters for the items be
 The shared KMP modules build for Android ([ADR 0037](docs/adr/0037-shared-modules-target-ios-and-jvm-and-are-consumed-by-composite-build.md)).
 The Android client in `Android/` ([ADR 0038](docs/adr/0038-android-client-mirrors-the-ios-architecture-natively.md))
 has every screen of the iOS app ported; how each step deviated from iOS is recorded in the last version of
-this file that still has the steps (`git show 60dcabb:TODO.md`). What is still open:
-
-- **Verify the nutrition-label OCR on a device with a good camera** — the barcode scanner reads codes
-  on a real Android device, but that device's camera is poor, so the OCR accuracy is untested; the
-  label OCR has only been checked by unit tests. Check: ML Kit reads cs/pl/de/en labels including
-  diacritics, box coordinates hold under a rotated frame (rows and columns must not collapse), the
-  3-second scan window fills the form, and the permission prompt, denied state and revocation behave.
-  Real-world glare and curved packaging still need checking before release.
-- **Android release signing** — Google sign-in works for the debug keystore and the Play App
-  Signing key (both fingerprints are in Firebase and in the `GOOGLE_SERVICES_JSON` CI secret,
-  `docs/SETUP.md` Android section). The upload keystore exists and `signingConfigs.release` uses it
-  (`docs/SETUP.md` Android section). Still to do before the first Play release:
-
-  **Handoff (analysed 2026-10-08).** The upload key's fingerprints appear in Play Console
-  (Protected with Play → App signing) only after the first app bundle is uploaded; add them to
-  Firebase too (needed only for release builds signed and installed locally), then **tell the user**
-  to re-download `google-services.json` and update the `GOOGLE_SERVICES_JSON` CI secret (base64 of
-  the file, `docs/SETUP.md` § CI) — nothing updates it automatically. Pre-release gate.
-- **Check the recent Android fixes by hand on an emulator or device** — they were only built and unit
-  tested; the camera and the touch handling cannot be covered that way. The barcode scanner must release
-  the camera when its dialog is dismissed (the indicator goes off); and approving and rejecting a
-  submission that was written from the iOS app must work (it failed on `submitted_at` precision).
+this file that still has the steps (`git show 60dcabb:TODO.md`). Nothing is open at the moment.
 
 ## Documentation baseline
 

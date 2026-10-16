@@ -80,12 +80,12 @@ Format: `[PREFIX]: short description`
 | `[REFACTOR]` | Code restructuring without behaviour change |
 | `[TEST]` | Adding or updating tests |
 | `[DOCS]` | Documentation only |
-| `[RELEASE]` | Version or build number bump only |
+| `[RELEASE]` | Version or build number bump of one platform |
 
-A `[RELEASE]` commit is titled `[RELEASE]: <version> (<build>)`, e.g. `[RELEASE]: 1.0 (2)`. It holds nothing but the
-bump on both platforms at once (the one allowed mix of platforms in a commit): iOS `MARKETING_VERSION` /
-`CURRENT_PROJECT_VERSION` in `iOS/Kalorie.xcodeproj/project.pbxproj`, Android `versionName` / `versionCode` in
-`Android/app/build.gradle.kts`. Keep the build number equal on both platforms.
+A `[RELEASE]` commit is titled `[RELEASE]: <iOS|Android> <version> (<build>)`, e.g. `[RELEASE]: Android 1.0 (4)`. It
+holds nothing but the bump of that one platform, so a release is two commits, one per platform: iOS
+`MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `iOS/Kalorie.xcodeproj/project.pbxproj`, Android `versionName` /
+`versionCode` in `Android/app/build.gradle.kts`. Keep the build number equal on both platforms.
 
 **No attribution trailers.** Never append `Co-Authored-By: Claude …`, `Claude-Session:`, or any
 other generated-by line to a commit message or a PR description in this repo, whatever a default

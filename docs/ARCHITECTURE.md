@@ -1133,7 +1133,8 @@ whole, top to bottom, and it is identical on both clients:
      available to anonymous users.
 3. **Support** — *Support development*, a row of its own styled differently from the *Other* rows
    (icon, subtitle). It pushes `SupportView` with three consumable tips bought through the store's
-   billing ([design 0023](design/0023-support-development-tips.md)); it needs no account.
+   billing ([design 0023](design/0023-support-development-tips.md)); it needs no account. The row is
+   rendered only while `Constants.Tips.isEnabled` is `true`, which it is not yet.
 4. **Moderation** — *Pending review* and *Reports*, rendered only for a maintainer (§ 7.3).
 
 The account screen is a separate sheet reached from the Dashboard's account icon (§ 6.3); it holds
