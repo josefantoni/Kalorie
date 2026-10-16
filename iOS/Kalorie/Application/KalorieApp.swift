@@ -12,6 +12,10 @@ import GoogleSignIn
 
 class AppDelegate: NSObject, UIApplicationDelegate {
 
+    // MARK: - Properties
+
+    private let tipTransactionObserver = TipTransactionObserver()
+
     // MARK: - Functions
 
     func application(
@@ -19,6 +23,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         FirebaseApp.configure()
+        tipTransactionObserver.start()
         URLCache.shared = URLCache(
             memoryCapacity: Constants.Storage.imageCacheMemoryBytes,
             diskCapacity: Constants.Storage.imageCacheDiskBytes

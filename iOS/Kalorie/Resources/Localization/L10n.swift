@@ -300,7 +300,6 @@ enum L10n {
         static var buttonFeedback: String { String(localized: "settings_button_feedback") }
         static var buttonSupport: String { String(localized: "settings_button_support") }
         static var supportSubtitle: String { String(localized: "settings_support_subtitle") }
-        static var supportInProgress: String { String(localized: "settings_support_inProgress") }
         static var feedbackNoMailTitle: String { String(localized: "settings_feedback_noMail_title") }
         static var feedbackNoMailCopy: String { String(localized: "settings_feedback_noMail_copy") }
         static func feedbackNoMailMessage(_ email: String) -> String {
@@ -313,6 +312,24 @@ enum L10n {
         static var errorDeleteError: String { String(localized: "settings_error_deleteError") }
         static var errorLastMealType: String { String(localized: "settings_error_lastMealType") }
         static var errorUnexpected: String { String(localized: "settings_error_unexpected") }
+    }
+
+    enum Support {
+        static var intro: String { String(localized: "support_intro") }
+        static var thankYouDismiss: String { String(localized: "support_thankYou_dismiss") }
+        static var thankYouMessageSmall: String { String(localized: "support_thankYou_message_small") }
+        static var thankYouMessageMedium: String { String(localized: "support_thankYou_message_medium") }
+        static var thankYouMessageLarge: String { String(localized: "support_thankYou_message_large") }
+        static var pendingMessage: String { String(localized: "support_pending_message") }
+        static var errorProductsUnavailable: String { String(localized: "support_error_productsUnavailable") }
+        static var errorPurchaseFailed: String { String(localized: "support_error_purchaseFailed") }
+        static func productTitle(_ productId: String) -> String {
+            switch productId {
+            case "tip_small": String(localized: "support_product_tip_small")
+            case "tip_medium": String(localized: "support_product_tip_medium")
+            default: String(localized: "support_product_tip_large")
+            }
+        }
     }
 
     enum Export {

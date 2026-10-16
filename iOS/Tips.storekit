@@ -1,0 +1,75 @@
+{
+  "identifier": "A1B2C3D4",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "29",
+      "familyShareable": false,
+      "internalID": "6740000001",
+      "localizations": [
+        {
+          "description": "A small tip to support development",
+          "displayName": "Small tip",
+          "locale": "en_US"
+        },
+        {
+          "description": "Malý příspěvek na podporu vývoje",
+          "displayName": "Malý příspěvek",
+          "locale": "cs_CZ"
+        }
+      ],
+      "productID": "tip_small",
+      "referenceName": "Small tip",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "79",
+      "familyShareable": false,
+      "internalID": "6740000002",
+      "localizations": [
+        {
+          "description": "A medium tip to support development",
+          "displayName": "Medium tip",
+          "locale": "en_US"
+        },
+        {
+          "description": "Střední příspěvek na podporu vývoje",
+          "displayName": "Střední příspěvek",
+          "locale": "cs_CZ"
+        }
+      ],
+      "productID": "tip_medium",
+      "referenceName": "Medium tip",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "199",
+      "familyShareable": false,
+      "internalID": "6740000003",
+      "localizations": [
+        {
+          "description": "A large tip to support development",
+          "displayName": "Large tip",
+          "locale": "en_US"
+        },
+        {
+          "description": "Velký příspěvek na podporu vývoje",
+          "displayName": "Velký příspěvek",
+          "locale": "cs_CZ"
+        }
+      ],
+      "productID": "tip_large",
+      "referenceName": "Large tip",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_locale": "cs_CZ",
+    "_storefront": "CZE"
+  },
+  "subscriptionGroups": [],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

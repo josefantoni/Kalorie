@@ -122,7 +122,7 @@ struct SettingsView: View {
 
                         Section {
                             Button {
-                                viewModel.onSupportTapped()
+                                viewModel.isSupportPushed = true
                             } label: {
                                 HStack(spacing: 12) {
                                     Image(systemName: BaseImageName.heartFill.rawValue)
@@ -178,6 +178,9 @@ struct SettingsView: View {
             }
             .navigationDestination(isPresented: $viewModel.isExportPushed) {
                 router.makeExportView(mealTypes: viewModel.mealTypes)
+            }
+            .navigationDestination(isPresented: $viewModel.isSupportPushed) {
+                router.makeSupportView()
             }
             .loader(viewModel.state.isLoading)
             .interactiveDismissDisabled(editMode == .active)
