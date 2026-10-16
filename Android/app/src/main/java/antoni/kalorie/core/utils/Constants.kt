@@ -29,6 +29,7 @@ object Constants {
     }
 
     object Tips {
+        val IS_ENABLED = false
         const val SMALL_PRODUCT_ID = "tip_small"
         const val MEDIUM_PRODUCT_ID = "tip_medium"
         const val LARGE_PRODUCT_ID = "tip_large"
