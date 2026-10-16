@@ -19,6 +19,7 @@ final class SettingsViewModel: ObservableObject {
     @Published var newMealEnd = Date.now
     @Published var isAddFormVisible = false
     @Published var isExportPushed = false
+    @Published var isSupportPushed = false
     @Published var isFeedbackMailUnavailableAlertPresented = false
     @Published private(set) var isMaintainer = false
     @Published var alertItem: AlertItem?
@@ -145,10 +146,6 @@ final class SettingsViewModel: ObservableObject {
             Log.error(error, category: Constants.LogCategory.settings)
             alertItem = AlertItem(title: L10n.Settings.errorUnexpected)
         }
-    }
-
-    func onSupportTapped() {
-        alertItem = AlertItem(title: L10n.Settings.supportInProgress)
     }
 
     func onShowAddForm() {

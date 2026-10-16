@@ -4715,23 +4715,6 @@
         }
       }
     },
-    "settings_support_inProgress" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Připravujeme"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Coming soon"
-          }
-        }
-      }
-    },
     "settings_support_subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4745,6 +4728,193 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The app is free and ad-free"
+          }
+        }
+      }
+    },
+    "support_error_productsUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Příspěvky teď nejdou načíst. Zkus to prosím později."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tips could not be loaded right now. Please try again later."
+          }
+        }
+      }
+    },
+    "support_error_purchaseFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Platba se nepovedla. Nic ti nebylo strženo."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The payment failed. You have not been charged."
+          }
+        }
+      }
+    },
+    "support_intro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikace je zdarma a bez reklam. Pokud ti pomáhá, můžeš dobrovolně přispět na její provoz a další vývoj. Nic se tím neodemyká."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app is free and ad-free. If it helps you, you can voluntarily chip in towards running and developing it. Nothing is unlocked by it."
+          }
+        }
+      }
+    },
+    "support_pending_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Platba čeká na schválení. Dokončí se, jakmile ji obchod potvrdí."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The payment is pending. It will complete once the store confirms it."
+          }
+        }
+      }
+    },
+    "support_product_tip_large" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Babička navařila"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grandma cooked"
+          }
+        }
+      }
+    },
+    "support_product_tip_medium" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trošku větší obídek"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A slightly bigger lunch"
+          }
+        }
+      }
+    },
+    "support_product_tip_small" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Svačina"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A snack"
+          }
+        }
+      }
+    },
+    "support_thankYou_dismiss" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nech si chutnat!"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enjoy your meal!"
+          }
+        }
+      }
+    },
+    "support_thankYou_message_large" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Babička přijela na výkrm. Vypadá to, že jsem prý zase nějaký pohublý! 😊 Děkuji."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grandma has arrived to fatten me up. Apparently I look skinny again! 😊 Thank you."
+          }
+        }
+      }
+    },
+    "support_thankYou_message_medium" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Téda, toto už bude na pěkný obídek. Na snídani bylo jen kafe! 😊 Děkuji."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wow, that's shaping up to be a proper lunch. Breakfast was just coffee! 😊 Thank you."
+          }
+        }
+      }
+    },
+    "support_thankYou_message_small" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To bude na obložený chleba! I programátor je člověk hladový a nemůže žít jen z kafe! 😊 Děkuji."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This one's going towards a sandwich! Even a programmer gets hungry and can't live on coffee alone! 😊 Thank you."
           }
         }
       }
