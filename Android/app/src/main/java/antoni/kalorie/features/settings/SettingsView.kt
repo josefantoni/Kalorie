@@ -344,10 +344,12 @@ private fun SettingsContent(
                                     )
                                 }
                             }
-                            item {
-                                Spacer(modifier = Modifier.height(24.dp))
-                                SectionCard {
-                                    SupportRow(onClick = { viewModel.backStack.add(SettingsDestination.Support) })
+                            if (Constants.Tips.IS_ENABLED) {
+                                item {
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    SectionCard {
+                                        SupportRow(onClick = { viewModel.backStack.add(SettingsDestination.Support) })
+                                    }
                                 }
                             }
                             if (isMaintainer) {
