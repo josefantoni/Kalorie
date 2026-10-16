@@ -1,7 +1,7 @@
 # Design: Support development with in-app tips
 
-- **Status:** Proposed — implemented on both platforms (StoreKit 2, Play Billing); not shipped, the
-  products do not exist in the store consoles yet
+- **Status:** Proposed — implemented on both platforms (StoreKit 2, Play Billing) and switched off by
+  `Constants.Tips.isEnabled`; the products do not exist in the store consoles yet
 - **Scope:** Cross-platform, iOS, Android
 - **Date:** 2026-10-11
 
@@ -20,8 +20,9 @@ fully free and nothing about the existing features changes.
 - A user can send a one-off tip in a few taps from Settings, on both platforms, signed in or
   anonymous.
 - The purchase goes through the store's own billing, so it passes review on both stores.
-- If the store is unavailable or the products do not load, the row is not shown at all — no empty
-  or broken screen.
+- The row is shown only while `Constants.Tips.isEnabled` (iOS) / `Constants.Tips.IS_ENABLED` (Android)
+  is `true`. It is `false` until the store products exist, so a build without them shows no row and no
+  empty or broken screen. The screen itself still shows an error alert when products fail to load.
 - After a successful tip the user sees a thank-you; nothing else in the app changes.
 
 ## Non-goals
