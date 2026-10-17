@@ -2,8 +2,8 @@
 
 Mobile apps for tracking calories and macros. Built because existing apps are bloated with features I don't need.
 
-- **iOS** (`iOS/`) — feature complete, ready for alpha distribution
-- **Android** (`Android/`) — every screen ported from iOS; camera features still need on-device verification before release
+- **iOS** (`iOS/`) — version 1.0 in closed testing (TestFlight)
+- **Android** (`Android/`) — version 1.0 in closed testing on Google Play; production access needs 12 testers
 
 <table>
   <tr>
@@ -37,7 +37,8 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 - Report incorrect catalogue data, send feedback by mail from Settings
 - A hint on alcoholic drinks that their nutrition values are less reliable
 - Export logged food to PDF or Excel
-- Anonymous device identity out of the box, Google sign-in to keep data across devices (Apple sign-in is pending)
+- Anonymous device identity out of the box, Sign in with Apple or Google to keep data across devices; the other provider can be linked later from the Account screen
+- Delete your account together with all your data, submissions and photos from Settings
 - Czech and English
 
 ## Repository layout
@@ -51,7 +52,7 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 | `fixtures/` | Golden vectors that pin cross-platform rules (validation, scaling, OpenFoodFacts mapping, export bucketing) |
 | `firestore-rules-tests/` | Security-rules tests |
 | `localisation/` | Shared strings |
-| `scripts/` | One-off Admin SDK scripts (backfills, maintainer claim) |
+| `scripts/` | One-off Admin SDK scripts (backfills, maintainer claim, cleanup of merged anonymous accounts) |
 | `docs/` | Architecture, ADRs, design docs and setup notes |
 
 ## Stack
@@ -59,7 +60,7 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 - **iOS:** SwiftUI, Combine, XCTest, Liquid Glass (iOS 26)
 - **Android:** Kotlin, Jetpack Compose, Material 3, `ViewModel` + `StateFlow`
 - **Shared:** Kotlin Multiplatform modules consumed by both apps
-- **Backend:** Firebase — Firestore and Auth; no custom server
+- **Backend:** Firebase — Firestore, Auth and Storage (food photos); no custom server
 - **CI:** GitHub Actions on pull requests to `main`; path filters run only the jobs a change touches (rules, KMP, iOS, Android, localisation)
 
 ## Architecture
@@ -81,7 +82,7 @@ Data is private per user (`users/{userId}/…`) except the shared food catalogue
 
 ## Status
 
-Work in progress. Both apps are meant to ship on the App Store and Google Play; the Play release waits on a Play Console account. Open items, mainly Android release readiness, are tracked in [TODO.md](TODO.md).
+Both apps are in closed testing ahead of the first public release. iOS 1.0 is in external TestFlight testing and goes to App Store review next. On Google Play a new personal developer account has to run the closed test with at least 12 testers opted in for 14 days before it can apply for production access. Open items are tracked in [TODO.md](TODO.md).
 
 ## License
 
