@@ -19,7 +19,7 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
     <td align="center"><img src="https://github.com/user-attachments/assets/06b14870-5d29-4846-a7b1-de195a2a95f0" width="250" alt="Android add food"></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://github.com/user-attachments/assets/7ede7601-52d3-428d-b4aa-f11c26c846df" width="250" alt="iOS add new food to catalogue"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/19ed6bfb-bd4e-4a4f-9545-18632d6eeb6d" width="250" alt="iOS add new food to catalogue"></td>
     <td align="center"><img src="https://github.com/user-attachments/assets/b09333a6-67a9-4a84-8ee0-42aced06c360" width="250" alt="Android add new food to catalogue"></td>
   </tr>
 </table>
