@@ -1449,8 +1449,8 @@ reach — today just `NSCameraUsageDescription`, matched by key name rather than
 
 **Cross-platform:** the single source of truth for both clients is `localisation/strings.json` —
 `{ "<key>": { "cs": "…", "en": "…" } }`, edited by hand or by AI. `scripts/generate-strings.js`
-writes `Localizable.xcstrings` and Android's `values/strings.xml` (`cs`) and `values-en/strings.xml`
-(`en`) from it; **none of the three is edited by hand**, and Xcode's own string extraction is off
+writes `Localizable.xcstrings` and Android's `values-cs/strings.xml` (`cs`) and `values/strings.xml`
+(`en`, the default for any other device language) from it; **none of the three is edited by hand**, and Xcode's own string extraction is off
 (`SWIFT_EMIT_LOC_STRINGS = NO` on the app target) so a build cannot rewrite the generated catalogue.
 A key therefore has the same name on both platforms whether or not the Android screen using it exists
 yet, and a string only Android needs is still added to the source. Placeholders are written iOS-style
