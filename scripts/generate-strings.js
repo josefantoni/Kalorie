@@ -15,8 +15,8 @@ const xcstrings = path.join(root, 'iOS', 'Kalorie', 'Resources', 'Localizable.xc
 const existingXcstrings = fs.existsSync(xcstrings) ? fs.readFileSync(xcstrings, 'utf8') : null;
 const outputs = {
   [xcstrings]: generateXcstrings(strings, existingXcstrings),
-  [path.join(res, 'values', 'strings.xml')]: android.cs,
-  [path.join(res, 'values-en', 'strings.xml')]: android.en,
+  [path.join(res, 'values-cs', 'strings.xml')]: android.cs,
+  [path.join(res, 'values', 'strings.xml')]: android.en,
 };
 
 const stale = [];
