@@ -68,6 +68,24 @@ The app works with three kinds of data. The distinction matters for the items be
   "Párek (vepřovohovězí)", "Jelito krevní", "Švestková povidla") got the extra paren-free terms written by
   hand into `cz_name_search_terms` / `eng_name_search_terms`; re-saving such an item from the app would
   regenerate the terms and drop them again.
+- **Ciqual attribution (CC BY 4.0)** — about 160 `foodItems` added in October 2026 take their nutrition values
+  from the French ANSES Ciqual 2020 tables (Zenodo record 4770600): 135 generic basics and 28 cooked staples
+  (ids from `2000000000541`). CC BY 4.0 requires credit to ANSES, a link to the licence, a note that the data was
+  modified, and no suggestion of endorsement. The account screen credits only Open Food Facts today
+  (`account_dataAttribution` in `localisation/strings.json`, one link row in `AccountView.swift` / `AccountView.kt`).
+  Add a second link row right under it on both platforms, linking to the Ciqual dataset page, with a new string
+  `account_ciqualAttribution`. Draft: cs "Nutriční hodnoty obecných potravin pocházejí z tabulek ANSES Ciqual 2020
+  (licence CC BY 4.0). Hodnoty jsme upravili: přepočítali jsme je na 100 ml, dopočítali chybějící kalorie a doplnili
+  porce." / en "Nutrition values of generic foods come from the ANSES Ciqual 2020 tables (CC BY 4.0). We modified
+  them: converted to 100 ml, derived missing calories and added portions." Add the string, run
+  `npm run generate-strings` in `scripts/`, one commit per platform. The Wikimedia chicken liver photo that also
+  needed CC BY credit was deleted on 2026-10-20, so only Ciqual is left. Items taken from product labels (Milko,
+  salám, párek) and the Pexels photos need no credit.
+- **Banana portions: English name and stale favourites** — on 2026-10-20 both bananas (`2000000000046`,
+  `6560969924406`) got the portions `1 kus` (90 g) and `1 větší kus` (110 g). `1 větší kus` has no entry in
+  `PortionNames.kt` (ADR 0043), so English users see it untranslated; add one (e.g. "1 larger piece") in `TextKit`
+  and check both clients. Users who saved a banana as a favourite with `food_item_kind: external` (or have it in
+  `stats/foodFrequency`) keep the old snapshot without portions until it is patched by hand or refreshed.
 
 ## Android readiness
 
