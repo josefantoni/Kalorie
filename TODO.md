@@ -42,10 +42,32 @@ The app works with three kinds of data. The distinction matters for the items be
     (no tags), all App content declarations including Data safety, submitted and approved or in review.
   - *Still to do, user's console work:* press **Add for Review** on the iOS 1.0 version once the TestFlight
     review is done.
+- **Basal metabolic rate (opt-in)** — not designed yet; write a design doc first (Scope: Cross-platform).
+  Decisions taken so far: the app offers to estimate the user's BMR (sex, age, height, weight) and the
+  dashboard then shows the day's kcal total against it. The offer is never automatic: it reuses the
+  [design 0017](docs/design/0017-sign-in-spotlight.md) spotlight and repeats the same way until the user
+  enters the data. The inputs are stored in Firestore under `users/{userId}`, so they follow the account
+  across devices. Open points for the design doc: `ARCHITECTURE.md` § 944 states there are no goals or
+  targets in the app, so this introduces the first one (decide whether to compare against BMR alone or
+  against total daily expenditure with an activity level); the formula (Mifflin-St Jeor) belongs in a
+  shared KMP module next to `MacroKit`; `users/{userId}` is currently written only by the Apple sign-in
+  use case and uses camelCase; health data is a new category, so `backend/hosting/privacy.html`, App
+  Privacy (App Store Connect), Data safety (Play), the Firestore rules and account deletion all need
+  updating; the spotlight needs a second, independent "last shown" state.
 - **Verify the duplicate default meals fix** — default meal types now get fixed ids from MealKit's
   `DEFAULT_MEAL_WINDOWS` (the setup raced and wrote them twice, 10 instead of 5, on 4 of 24 accounts).
   The day after the fix ships to a device, sign in with fresh anonymous accounts on both platforms and
   count `users/{uid}/mealTypes` in prod Firestore: it must be exactly 5 for every new account.
+- **Search ignores words wrapped in parentheses** — `searchTerms` (`TextKit/.../SearchTerms.kt`, mirrored by
+  `scripts/lib/search-terms.js`, both pinned by `TextKit/fixtures/text-kit-cases.json`) and
+  `matchesSearchQuery` split a name on spaces only, so in "Jahodová marmeláda (džem)" the word `(džem)`
+  produces the terms `(`, `(d`, `(dz`… and a query for "džem" finds nothing. Fix: strip punctuation when
+  splitting (add the cases to the fixture), then run `scripts/backfill-search-terms.js` on prod. Until then
+  the catalogue items added in October 2026 whose names carry a parenthesised word (the nine "… marmeláda
+  (džem)" items, "Rýže natural (hnědá)", "Rýže vařená (bílá)", "Vejce smažené (volské oko)",
+  "Párek (vepřovohovězí)", "Jelito krevní", "Švestková povidla") got the extra paren-free terms written by
+  hand into `cz_name_search_terms` / `eng_name_search_terms`; re-saving such an item from the app would
+  regenerate the terms and drop them again.
 
 ## Android readiness
 
