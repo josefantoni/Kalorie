@@ -58,16 +58,6 @@ The app works with three kinds of data. The distinction matters for the items be
   `DEFAULT_MEAL_WINDOWS` (the setup raced and wrote them twice, 10 instead of 5, on 4 of 24 accounts).
   The day after the fix ships to a device, sign in with fresh anonymous accounts on both platforms and
   count `users/{uid}/mealTypes` in prod Firestore: it must be exactly 5 for every new account.
-- **Search ignores words wrapped in parentheses** — `searchTerms` (`TextKit/.../SearchTerms.kt`, mirrored by
-  `scripts/lib/search-terms.js`, both pinned by `TextKit/fixtures/text-kit-cases.json`) and
-  `matchesSearchQuery` split a name on spaces only, so in "Jahodová marmeláda (džem)" the word `(džem)`
-  produces the terms `(`, `(d`, `(dz`… and a query for "džem" finds nothing. Fix: strip punctuation when
-  splitting (add the cases to the fixture), then run `scripts/backfill-search-terms.js` on prod. Until then
-  the catalogue items added in October 2026 whose names carry a parenthesised word (the nine "… marmeláda
-  (džem)" items, "Rýže natural (hnědá)", "Rýže vařená (bílá)", "Vejce smažené (volské oko)",
-  "Párek (vepřovohovězí)", "Jelito krevní", "Švestková povidla") got the extra paren-free terms written by
-  hand into `cz_name_search_terms` / `eng_name_search_terms`; re-saving such an item from the app would
-  regenerate the terms and drop them again.
 - **Ciqual attribution (CC BY 4.0)** — about 160 `foodItems` added in October 2026 take their nutrition values
   from the French ANSES Ciqual 2020 tables (Zenodo record 4770600): 135 generic basics and 28 cooked staples
   (ids from `2000000000541`). CC BY 4.0 requires credit to ANSES, a link to the licence, a note that the data was
