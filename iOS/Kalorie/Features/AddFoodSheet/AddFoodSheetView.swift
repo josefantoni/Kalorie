@@ -196,13 +196,7 @@ struct AddFoodSheetView: View {
                 FloatingLabelTextField(
                     title: viewModel.searchPlaceholder,
                     text: $viewModel.searchText,
-                    trailingButton: BadgeButton(imageName: .barCode) {
-                        if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-                            viewModel.onScannerButtonTapped()
-                        } else {
-                            viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
-                        }
-                    }
+                    trailingButton: barcodeScanButton
                 )
                 .listRowInsets(.vertical, 0)
             }
@@ -338,6 +332,17 @@ struct AddFoodSheetView: View {
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+    }
+
+    private var barcodeScanButton: BadgeButton? {
+        guard !ProcessInfo.isRunningOnMac else { return nil }
+        return BadgeButton(imageName: .barCode) {
+            if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
+                viewModel.onScannerButtonTapped()
+            } else {
+                viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
             }
         }
     }

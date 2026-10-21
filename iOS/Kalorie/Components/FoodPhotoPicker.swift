@@ -47,7 +47,7 @@ struct FoodPhotoPicker: View {
             if photo != .none {
                 Button(L10n.FoodPhoto.actionShow) { withoutAnimation { isViewerVisible = true } }
             }
-            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            if !ProcessInfo.isRunningOnMac && UIImagePickerController.isSourceTypeAvailable(.camera) {
                 Button(L10n.FoodPhoto.actionTake) { Task { await onTakePhotoTapped() } }
             }
             Button(L10n.FoodPhoto.actionChoose) { isLibraryVisible = true }

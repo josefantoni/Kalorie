@@ -56,13 +56,7 @@ struct MyCreatedMealEditorView: View {
                 FloatingLabelTextField(
                     title: viewModel.searchPlaceholder,
                     text: $viewModel.searchText,
-                    trailingButton: BadgeButton(imageName: .barCode) {
-                        if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
-                            viewModel.onScannerButtonTapped()
-                        } else {
-                            viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
-                        }
-                    }
+                    trailingButton: barcodeScanButton
                 )
                 .listRowInsets(.vertical, 0)
             }
@@ -148,6 +142,17 @@ struct MyCreatedMealEditorView: View {
     }
 
     // MARK: - Functions
+
+    private var barcodeScanButton: BadgeButton? {
+        guard !ProcessInfo.isRunningOnMac else { return nil }
+        return BadgeButton(imageName: .barCode) {
+            if DataScannerViewController.isSupported && DataScannerViewController.isAvailable {
+                viewModel.onScannerButtonTapped()
+            } else {
+                viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
+            }
+        }
+    }
 
     private func ingredientRow(_ draft: Binding<MyCreatedMealIngredientDraft>) -> some View {
         HStack {
