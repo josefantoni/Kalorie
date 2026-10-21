@@ -332,7 +332,7 @@ private fun LinkRow(title: String, onClick: () -> Unit, isDescription: Boolean =
     ) {
         Text(
             text = title,
-            style = if (isDescription) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
+            style = if (isDescription) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyLarge,
             modifier = Modifier.weight(1f),
         )
         Icon(
