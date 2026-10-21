@@ -51,6 +51,10 @@ struct KalorieApp: App {
     // MARK: - Properties
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var versionGate = AppVersionGate(
+        fetchMinimumVersion: FetchMinimumVersionUseCase(dataProvider: FirestoreDataProvider())
+    )
     @StateObject private var authState = AuthStateObserver(
         resumePendingMerge: MigrateAnonymousDataUseCase(
             dataProvider: FirestoreDataProvider(),
@@ -65,36 +69,19 @@ struct KalorieApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                switch authState.state {
-                case .idle, .loading:
-                    ProgressView()
-                case .loaded:
-                    DashboardConfigurator().createView(mergeStatusReporting: authState)
-                        // Forces a full rebuild on every auth transition so no view model is reused
-                        // across users. Side effect: it also resets the Dashboard's transient state,
-                        // including the selected day, back to today on sign-in/sign-out.
-                        .id(authState.userId)
-                        .overlay {
-                            if authState.isMerging {
-                                mergingOverlay
-                            }
-                        }
-                        .allowsHitTesting(!authState.isMerging)
-                        .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
-                case .error(let error):
-                    VStack(spacing: 16) {
-                        Text(L10n.Auth.errorSignInFailed)
-                            .font(.headline)
-                        Text(error?.localizedDescription ?? L10n.Common.errorUnknown)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        Button(L10n.Auth.buttonRetry) { authState.retry() }
-                    }
+                if versionGate.isUpdateRequired {
+                    UpdateRequiredView()
+                } else {
+                    authContent
                 }
             }
             .dynamicTypeLimit()
+            .task { await versionGate.check() }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    Task { await versionGate.check() }
+                }
+            }
             .onAppear { UIKitDynamicTypeLimit.apply() }
             .onReceive(NotificationCenter.default.publisher(for: UIContentSizeCategory.didChangeNotification)) { _ in
                 UIKitDynamicTypeLimit.apply()
@@ -103,6 +90,37 @@ struct KalorieApp: App {
     }
 
     // MARK: - Functions
+
+    @ViewBuilder private var authContent: some View {
+        switch authState.state {
+        case .idle, .loading:
+            ProgressView()
+        case .loaded:
+            DashboardConfigurator().createView(mergeStatusReporting: authState)
+                // Forces a full rebuild on every auth transition so no view model is reused
+                // across users. Side effect: it also resets the Dashboard's transient state,
+                // including the selected day, back to today on sign-in/sign-out.
+                .id(authState.userId)
+                .overlay {
+                    if authState.isMerging {
+                        mergingOverlay
+                    }
+                }
+                .allowsHitTesting(!authState.isMerging)
+                .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
+        case .error(let error):
+            VStack(spacing: 16) {
+                Text(L10n.Auth.errorSignInFailed)
+                    .font(.headline)
+                Text(error?.localizedDescription ?? L10n.Common.errorUnknown)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                Button(L10n.Auth.buttonRetry) { authState.retry() }
+            }
+        }
+    }
 
     private var mergingOverlay: some View {
         ZStack {

@@ -50,6 +50,10 @@ enum Constants {
         static let privacyPolicyURL = URL(string: "https://kalorie-bf11c.web.app/privacy")
     }
 
+    enum Store {
+        static let appStoreURL = URL(string: "https://apps.apple.com/app/id6823155404")
+    }
+
     enum Tips {
         static let isEnabled = false
         static let mediumProductId = "tip_medium"
@@ -73,6 +77,7 @@ enum Constants {
         static let nutritionLabelRecognition = "nutritionLabelRecognition"
         static let export = "export"
         static let support = "support"
+        static let appVersion = "appVersion"
     }
 
     enum Search {
@@ -84,6 +89,8 @@ enum Constants {
         static let foodItems = "foodItems"
         static let foodItemSubmissions = "foodItemSubmissions"
         static let foodItemReports = "foodItemReports"
+        static let config = "config"
+        static let appConfigDocumentId = "app"
         static let users = "users"
         static let batchWriteLimit = 500
         static let inQueryLimit = 30

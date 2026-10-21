@@ -33,6 +33,12 @@ enum L10n {
         static var mergingMessage: String { String(localized: "auth_mergingMessage") }
     }
 
+    enum UpdateRequired {
+        static var title: String { String(localized: "updateRequired_title") }
+        static var message: String { String(localized: "updateRequired_message") }
+        static var button: String { String(localized: "updateRequired_button") }
+    }
+
     enum Account {
         static var navigationTitle: String { String(localized: "account_navigationTitle") }
         static var anonymousDescription: String { String(localized: "account_anonymous_description") }
