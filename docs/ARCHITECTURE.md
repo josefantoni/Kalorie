@@ -44,7 +44,9 @@ barcode-keyed `foodItemPortions` collection), [design 0009](design/0009-catalogu
 `favouriteFoods` and `foodConsumed`, and why the numbers are never converted between grams and
 millilitres), [design 0019](design/0019-alcoholic-drink-accuracy-hint.md) (`alcohol_by_volume` on
 the same three collections), [design 0020](design/0020-search-ranked-by-log-frequency.md)
-(`users/{userId}/stats/foodFrequency`, one document of per-food log counts).
+(`users/{userId}/stats/foodFrequency`, one document of per-food log counts),
+[design 0026](design/0026-minimum-supported-version.md) (`config/app`, the one document readable
+without signing in — see § 5.1 for the client side).
 
 ### 1.1 Layering
 
@@ -89,10 +91,12 @@ users/{userId}/stats/foodFrequency         one document, per-food log counts (de
 users/{userId}/mergedAnonymousAccounts/{uid}  marker: the anonymous account {uid} was merged into this user (§ 6.2)
 foodItemSubmissions/{uuid}                 shared, a user's pending/rejected catalogue submission
 foodItemReports/{barcode}_{userId}         shared, a report that a catalogue entry looks wrong
+config/app                                 shared, minimum supported app version per platform (design 0026)
 ```
 
 Everything under `users/{userId}` is private to that user. `foodItems` is shared by every user
-and every future client.
+and every future client. `config/app` is written by hand in the Firebase Console and is readable
+without signing in (§ 1.6).
 
 Product photos ([design 0022](design/0022-food-photos.md)) live in Firebase Storage, not in
 Firestore; a document only carries the download URL in `photo_url`:
@@ -422,6 +426,13 @@ Consequences worth knowing before adding a method:
   `catalogPhotos/{itemId}/{file}` is readable by any signed-in user and writable/deletable only by a
   maintainer. Every `create` requires `contentType == 'image/jpeg'` and a size under 1 MB. Covered
   by `firestore-rules-tests` against the Storage emulator.
+- `config/{docId}`: `allow read: if true`, `allow write: if false` — the only read in the project
+  that does not require `request.auth`. The version gate runs alongside anonymous sign-in, not
+  after it, and the document holds nothing private. Writes come only from the Firebase Console and
+  the Admin SDK, which bypass rules; the document is edited by hand following the runbook in
+  `docs/SETUP.md` (§ Raising the minimum app version). Covered by `firestore-rules-tests`: an
+  unauthenticated and a signed-in read succeed, and a write by an anonymous user, an ordinary user
+  and a maintainer is denied. See [design 0026](design/0026-minimum-supported-version.md).
 - Everything else is denied by Firestore's default.
 
 `backend/firestore.indexes.json`, deployed via the same `firebase.json`, disables single-field
@@ -513,6 +524,8 @@ ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
 | | `reported_by` | string, the reporter's uid | yes | equal to `request.auth.uid` |
 | | `reason` | string | yes | 1–500 characters |
 | | `reported_at` | number, seconds | yes | number |
+| **`config/app`** (`AppConfigDTO`) | `min_version_ios` | string, e.g. `1.0.1` | no — absent means no minimum | writes denied; edited in the console |
+| | `min_version_android` | string, e.g. `1.0.1` | no — absent means no minimum | writes denied; edited in the console |
 
 Written by: `foodItems` — `CreateFoodItemUseCase` (only via `ApproveSubmissionUseCase`) and
 `UpdateFoodItemUseCase`; `favouriteFoods` — `AddFavouriteFoodUseCase`, `RefreshFavouriteFoodUseCase`;
@@ -521,7 +534,14 @@ Written by: `foodItems` — `CreateFoodItemUseCase` (only via `ApproveSubmission
 `CreateMealTypeUseCase`, `UpdateMealTypeTimesUseCase`; `foodItemPortions` —
 `SaveFoodItemPersonalPortionsUseCase`; `users/{userId}` — `SignInWithAppleUseCase`,
 `SignInWithGoogleUseCase`; `foodItemSubmissions` — `SubmitFoodItemUseCase` (create),
-`RejectSubmissionUseCase` (maintainer update); `foodItemReports` — `SubmitFoodItemReportUseCase`.
+`RejectSubmissionUseCase` (maintainer update); `foodItemReports` — `SubmitFoodItemReportUseCase`;
+`config/app` — nobody in the app, only the Firebase Console.
+
+`AppConfigDTO` is the one DTO that decodes leniently: a field whose type is not a string (a number
+typed into the console by mistake) decodes as absent instead of throwing, on both platforms. The
+version gate fails open by design, and a thrown decode error would be treated as a failed read that
+leaves a blocked client blocked. A fixed type error in the console therefore switches the gate off
+on the next launch or foreground. The DTO's tests pin this.
 
 `FoodPortionDTO` (`name`, `grams`, both required) has no `CodingKeys`; its two names coincide with
 their wire spelling. Wherever a *required on read* field has *none* in the Rules column, a client
@@ -1384,10 +1404,11 @@ incidental: `FavouriteButton` exists as a component precisely because the button
 
 ## 5. Cross-cutting concerns
 
-**Scope:** `iOS`, except the display-name rule in § 5.3 and the palette in § 5.6, which are
-`Cross-platform`.
+**Scope:** `iOS`, except the display-name rule in § 5.3, the palette in § 5.6 and the version gate
+in § 5.1, which are `Cross-platform`.
 
-**Read first:** [ADR 0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md)
+**Read first:** [design 0026](design/0026-minimum-supported-version.md) (the version gate in § 5.1),
+[ADR 0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md)
 (which of a food's two names is shown), [ADR 0043](adr/0043-portion-names-are-localized-and-normalized-at-render-time.md)
 (how a portion's name is shown). Otherwise nothing: no design doc covers error presentation, localization or `Components/` —
 this area has never been designed up front, which is itself worth knowing.
@@ -1412,6 +1433,30 @@ Firebase App Check is installed before any Firebase service is used: `AppDelegat
 debug provider under `#if DEBUG`), and `KalorieApplication.onCreate` installs the factory returned by
 `createAppCheckProviderFactory()` (Play Integrity in `src/release`, the debug provider in `src/debug`)
 as its first call after `super.onCreate()`.
+
+The root also owns the **version gate** ([design 0026](design/0026-minimum-supported-version.md)).
+`AppVersionGate` (iOS `Application/AppVersionGate.swift`, Android
+`application/AppVersionGate.kt`) runs `FetchMinimumVersionUseCase` at launch and every time the app
+returns to the foreground (iOS `scenePhase == .active`, Android `Lifecycle.Event.ON_START`) and
+publishes `isUpdateRequired`, which starts as `false`. While it is `true` the root renders
+`UpdateRequiredView` instead of the whole auth switch — loading, error, Dashboard and the merge
+overlay alike — so nothing behind it is reachable, and a block that arrives late replaces whatever
+is on screen. The view is a title, one sentence and a store button; on Android it draws its own
+`Surface` background, because the activity theme is light and the text colours follow the Material
+colour scheme.
+
+What is compared is the marketing version (iOS `CFBundleShortVersionString`, Android `versionName`),
+never the build number, component by component as integers with a missing component counting as 0.
+`AppVersion` is the failable value type that does it on both platforms; both read the cases in
+`fixtures/app-version-comparison.json` ([ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md)).
+Components are 64-bit on both sides: Swift `Int`, Kotlin `Long` — a 32-bit parse on Android once
+disagreed with iOS about `3000000000`, which the fixture now pins.
+
+The gate **fails open**: a missing document, a missing or mistyped field, a version string that does
+not parse, or a current version that does not parse all mean "no minimum". A failed read (network,
+permission) is logged and leaves `isUpdateRequired` unchanged, so a blocked client stays blocked
+until a read succeeds. Raising or lowering the minimum is a console edit with a runbook in
+`docs/SETUP.md`.
 
 ### 5.2 Error handling
 

@@ -43,6 +43,21 @@ is duplicated is the `CFBundleURLTypes` URL scheme in `iOS/Kalorie/Resources/Inf
 match `REVERSED_CLIENT_ID` exactly; if the Firebase project is ever replaced, that scheme has to
 be updated by hand along with the plist and the CI secret.
 
+### Raising the minimum app version
+
+The `config/app` document ([design 0026](design/0026-minimum-supported-version.md)) is written by hand
+in Firestore → Data; rules forbid client writes. Fields are strings, compared as in the design:
+`min_version_ios` (against `MARKETING_VERSION`) and `min_version_android` (against `versionName`).
+
+1. Wait until the new version is **live** on that platform's store, not just approved.
+2. Set `config/app.min_version_<platform>` to that version string, exactly as in `MARKETING_VERSION` /
+   `versionName`. Every gated build below it shows the update screen on its next launch or foreground.
+3. Lowering the value or deleting the field undoes it on the next launch or foreground, with no release.
+
+A value for a version that is not published yet locks every user out of the app.
+A field that is not a string (for example a number) or does not parse as `1.2.3` is ignored, so the
+gate is off for that platform until the value is corrected.
+
 ## Firestore security rules
 
 Rules are versioned in `backend/firestore.rules` and field-index overrides in
