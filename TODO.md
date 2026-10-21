@@ -50,19 +50,6 @@ The app works with three kinds of data. The distinction matters for the items be
   `DEFAULT_MEAL_WINDOWS` (the setup raced and wrote them twice, 10 instead of 5, on 4 of 24 accounts).
   The day after the fix ships to a device, sign in with fresh anonymous accounts on both platforms and
   count `users/{uid}/mealTypes` in prod Firestore: it must be exactly 5 for every new account.
-- **Ciqual attribution (CC BY 4.0)** — about 160 `foodItems` added in October 2026 take their nutrition values
-  from the French ANSES Ciqual 2020 tables (Zenodo record 4770600): 135 generic basics and 28 cooked staples
-  (ids from `2000000000541`). CC BY 4.0 requires credit to ANSES, a link to the licence, a note that the data was
-  modified, and no suggestion of endorsement. The account screen credits only Open Food Facts today
-  (`account_dataAttribution` in `localisation/strings.json`, one link row in `AccountView.swift` / `AccountView.kt`).
-  Add a second link row right under it on both platforms, linking to the Ciqual dataset page, with a new string
-  `account_ciqualAttribution`. Draft: cs "Nutriční hodnoty obecných potravin pocházejí z tabulek ANSES Ciqual 2020
-  (licence CC BY 4.0). Hodnoty jsme upravili: přepočítali jsme je na 100 ml, dopočítali chybějící kalorie a doplnili
-  porce." / en "Nutrition values of generic foods come from the ANSES Ciqual 2020 tables (CC BY 4.0). We modified
-  them: converted to 100 ml, derived missing calories and added portions." Add the string, run
-  `npm run generate-strings` in `scripts/`, one commit per platform. The Wikimedia chicken liver photo that also
-  needed CC BY credit was deleted on 2026-10-20, so only Ciqual is left. Items taken from product labels (Milko,
-  salám, párek) and the Pexels photos need no credit.
 
 ## Android readiness
 
