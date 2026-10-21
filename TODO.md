@@ -69,10 +69,6 @@ The app works with three kinds of data. The distinction matters for the items be
   use case and uses camelCase; health data is a new category, so `backend/hosting/privacy.html`, App
   Privacy (App Store Connect), Data safety (Play), the Firestore rules and account deletion all need
   updating; the spotlight needs a second, independent "last shown" state.
-- **Verify the duplicate default meals fix** — default meal types now get fixed ids from MealKit's
-  `DEFAULT_MEAL_WINDOWS` (the setup raced and wrote them twice, 10 instead of 5, on 4 of 24 accounts).
-  The day after the fix ships to a device, sign in with fresh anonymous accounts on both platforms and
-  count `users/{uid}/mealTypes` in prod Firestore: it must be exactly 5 for every new account.
 
 ## Android readiness
 
