@@ -453,6 +453,20 @@ describe('foodItemReports', () => {
   });
 });
 
+describe('config', () => {
+  it('can be read without signing in', async () => {
+    await seed((db) => setDoc(doc(db, 'config/app'), { min_version_ios: '1.0.1' }));
+    await assertSucceeds(getDoc(doc(anonymous(), 'config/app')));
+    await assertSucceeds(getDoc(doc(user('alice'), 'config/app')));
+  });
+
+  it('cannot be written by anyone, maintainer included', async () => {
+    await assertFails(setDoc(doc(anonymous(), 'config/app'), { min_version_ios: '9.9' }));
+    await assertFails(setDoc(doc(user('alice'), 'config/app'), { min_version_ios: '9.9' }));
+    await assertFails(setDoc(doc(maintainer(), 'config/app'), { min_version_ios: '9.9' }));
+  });
+});
+
 describe('everything else', () => {
   it('is denied by default', async () => {
     await assertFails(getDoc(doc(user('alice'), 'somethingElse/x')));

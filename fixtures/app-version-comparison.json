@@ -1,0 +1,30 @@
+{
+  "parse": [
+    {"name": "two components", "version": "1.0", "valid": true},
+    {"name": "three components", "version": "1.0.1", "valid": true},
+    {"name": "single component", "version": "2", "valid": true},
+    {"name": "leading zero", "version": "1.01", "valid": true},
+    {"name": "empty string", "version": "", "valid": false},
+    {"name": "pre-release suffix", "version": "1.1-beta", "valid": false},
+    {"name": "letters", "version": "one.two", "valid": false},
+    {"name": "trailing dot", "version": "1.0.", "valid": false},
+    {"name": "leading dot", "version": ".1", "valid": false},
+    {"name": "empty component", "version": "1..1", "valid": false},
+    {"name": "whitespace", "version": " 1.0", "valid": false},
+    {"name": "negative component", "version": "1.-1", "valid": false},
+    {"name": "component above 32 bits", "version": "3000000000", "valid": true},
+    {"name": "component above 64 bits", "version": "99999999999999999999", "valid": false}
+  ],
+  "compare": [
+    {"name": "equal", "lhs": "1.0", "rhs": "1.0", "expected": 0},
+    {"name": "missing component counts as 0", "lhs": "1.0", "rhs": "1.0.0", "expected": 0},
+    {"name": "patch is newer", "lhs": "1.0", "rhs": "1.0.1", "expected": -1},
+    {"name": "leading zero equals the same number", "lhs": "1.01", "rhs": "1.1", "expected": 0},
+    {"name": "1.01 is newer than 1.0.1", "lhs": "1.01", "rhs": "1.0.1", "expected": 1},
+    {"name": "components compare as integers, not text", "lhs": "1.10", "rhs": "1.2", "expected": 1},
+    {"name": "major dominates", "lhs": "2.0", "rhs": "1.99", "expected": 1},
+    {"name": "order does not matter", "lhs": "1.2", "rhs": "1.10", "expected": -1},
+    {"name": "trailing zeros are ignored", "lhs": "1.0.0.0", "rhs": "1", "expected": 0},
+    {"name": "components above 32 bits compare as integers", "lhs": "3000000000", "rhs": "2999999999", "expected": 1}
+  ]
+}
