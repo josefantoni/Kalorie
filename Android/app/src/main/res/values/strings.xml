@@ -289,4 +289,7 @@
     <string name="support_thankYou_message_large">Grandma has arrived to fatten me up. Apparently I look skinny again! 😊 Thank you.</string>
     <string name="support_thankYou_message_medium">Wow, that\'s shaping up to be a proper lunch. Breakfast was just coffee! 😊 Thank you.</string>
     <string name="support_thankYou_message_small">This one\'s going towards a sandwich! Even a programmer gets hungry and can\'t live on coffee alone! 😊 Thank you.</string>
+    <string name="updateRequired_button">Update</string>
+    <string name="updateRequired_message">This version of the app is no longer supported. Please install the update from the store to continue.</string>
+    <string name="updateRequired_title">Update required</string>
 </resources>

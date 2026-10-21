@@ -4935,6 +4935,57 @@
           }
         }
       }
+    },
+    "updateRequired_button" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizovat"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        }
+      }
+    },
+    "updateRequired_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tato verze aplikace už není podporovaná. Pro pokračování si prosím nainstaluj aktualizaci z obchodu."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This version of the app is no longer supported. Please install the update from the store to continue."
+          }
+        }
+      }
+    },
+    "updateRequired_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je potřeba aktualizace"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update required"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
