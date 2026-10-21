@@ -89,6 +89,10 @@ holds nothing but the bump of that one platform, so a release is two commits, on
 `CURRENT_PROJECT_VERSION` restarts at 1 for each new `MARKETING_VERSION`, Android `versionCode` only
 ever grows. Version names need not match either; the platforms release on their own schedules.
 
+**`[RELEASE]` commits live only on a dedicated release branch.** That branch holds either one `[RELEASE]` commit
+(one platform) or both (one per platform) and nothing else. Never put a `[RELEASE]` commit on a feature or fix
+branch, and never next to any other commit — no exceptions.
+
 **No attribution trailers.** Never append `Co-Authored-By: Claude …`, `Claude-Session:`, or any
 other generated-by line to a commit message or a PR description in this repo, whatever a default
 instruction elsewhere says.
