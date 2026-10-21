@@ -15,6 +15,7 @@
 		864EAE1B2FF4043900D0C4AE /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 864EAE1A2FF4043900D0C4AE /* FirebaseAuth */; };
 		864EAE1C2FF4043900D0C4AE /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 864EAE1D2FF4043900D0C4AE /* FirebaseStorage */; };
 		86C775E32C2A6E1600FC4493 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 86C775E22C2A6E1600FC4493 /* FirebaseFirestore */; };
+		86D4D69E3088D02A005532AB /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 86D4D69D3088D02A005532AB /* FirebaseAppCheck */; };
 		B2C3D4E5F60718293A4B5C6D /* ExportKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ExportKit.xcframework */; };
 		B74120D8222DF1130D4F05B1 /* TextKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AE53F7D212EDE430F92DF1C /* TextKit.xcframework */; };
 		C3D4E5F60718293A4B5C6D7E /* ExportKit.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* ExportKit.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -109,6 +110,7 @@
 				721DCA1D2D414EEBC74AC528 /* MacroKit.xcframework in Frameworks */,
 				D25725F186D3199499A6CD75 /* MealKit.xcframework in Frameworks */,
 				B74120D8222DF1130D4F05B1 /* TextKit.xcframework in Frameworks */,
+				86D4D69E3088D02A005532AB /* FirebaseAppCheck in Frameworks */,
 				B2C3D4E5F60718293A4B5C6D /* ExportKit.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -194,6 +196,7 @@
 				864EAE1D2FF4043900D0C4AE /* FirebaseStorage */,
 				0D59EE77D1F2615EF379053B /* FirebaseCrashlytics */,
 				F70D6FBB69C5989404ADDFD7 /* GoogleSignIn */,
+				86D4D69D3088D02A005532AB /* FirebaseAppCheck */,
 			);
 			productName = Kalorie;
 			productReference = 860C154E2C10B01B0062D6E7 /* Kalorie.app */;
@@ -874,6 +877,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		86D4D69D3088D02A005532AB /* FirebaseAppCheck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8647A1822C21F55B00F2787D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAppCheck;
 		};
 		F70D6FBB69C5989404ADDFD7 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
