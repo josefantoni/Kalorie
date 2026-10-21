@@ -173,7 +173,7 @@ private extension AccountView {
         } label: {
             HStack {
                 Text(title)
-                    .font(isDescription ? .subheadline : .body)
+                    .font(isDescription ? .footnote : .body)
                     .multilineTextAlignment(.leading)
                 Spacer()
                 Image(systemName: BaseImageName.chevronRight.rawValue)
