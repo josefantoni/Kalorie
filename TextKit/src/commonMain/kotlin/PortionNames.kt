@@ -8,6 +8,7 @@ private val portionEntries = listOf(
     PortionEntry("1 lžíce", "1 tbsp", listOf("lzice", "tbsp", "tablespoon", "spoon")),
     PortionEntry("1 lžička", "1 tsp", listOf("lzicka", "tsp", "teaspoon")),
     PortionEntry("1 kus", "1 piece", listOf("kus", "ks", "piece")),
+    PortionEntry("1 větší kus", "1 larger piece", listOf("vetsi kus", "larger piece")),
     PortionEntry("1 balení", "1 package", listOf("baleni", "package", "pack")),
     PortionEntry("1 vanička", "1 tub", listOf("vanicka", "tub")),
     PortionEntry("1 vejce", "1 egg", listOf("vejce", "egg")),

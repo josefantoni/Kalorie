@@ -63,11 +63,6 @@ The app works with three kinds of data. The distinction matters for the items be
   `npm run generate-strings` in `scripts/`, one commit per platform. The Wikimedia chicken liver photo that also
   needed CC BY credit was deleted on 2026-10-20, so only Ciqual is left. Items taken from product labels (Milko,
   salám, párek) and the Pexels photos need no credit.
-- **Banana portions: English name and stale favourites** — on 2026-10-20 both bananas (`2000000000046`,
-  `6560969924406`) got the portions `1 kus` (90 g) and `1 větší kus` (110 g). `1 větší kus` has no entry in
-  `PortionNames.kt` (ADR 0043), so English users see it untranslated; add one (e.g. "1 larger piece") in `TextKit`
-  and check both clients. Users who saved a banana as a favourite with `food_item_kind: external` (or have it in
-  `stats/foodFrequency`) keep the old snapshot without portions until it is patched by hand or refreshed.
 
 ## Android readiness
 
