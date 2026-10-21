@@ -90,7 +90,7 @@ struct FoodItemFormSections: View {
                 text: $formInput.scannedCode,
                 message: formInput.scannedCode.isEmpty ? .hint(L10n.AddFood.warningMissingBarcode) : nil,
                 keyboardType: .numberPad,
-                trailingButton: BadgeButton(
+                trailingButton: ProcessInfo.isRunningOnMac ? nil : BadgeButton(
                     imageName: .barCode,
                     accessibilityLabel: L10n.AddFood.nutritionLabelBarcodeScanAccessibility
                 ) {
@@ -101,7 +101,7 @@ struct FoodItemFormSections: View {
     }
 
     @ViewBuilder private var nutritionLabelScanButton: some View {
-        if let onNutritionLabelScanTapped {
+        if let onNutritionLabelScanTapped, !ProcessInfo.isRunningOnMac {
             Button {
                 onNutritionLabelScanTapped()
             } label: {
