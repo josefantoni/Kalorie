@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAppCheck
 import FirebaseCore
 import FirebaseCrashlytics
 import GoogleSignIn
@@ -22,6 +23,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        #if DEBUG
+        AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
+        #else
+        AppCheck.setAppCheckProviderFactory(AppAttestProviderFactory())
+        #endif
         FirebaseApp.configure()
         tipTransactionObserver.start()
         URLCache.shared = URLCache(
