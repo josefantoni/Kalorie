@@ -30,6 +30,10 @@ enum Constants {
         }
     }
 
+    enum Ciqual {
+        static let datasetURL = URL(string: "https://zenodo.org/records/4770600")
+    }
+
     enum Storage {
         static let submissionPhotosFolder = "submissionPhotos"
         static let catalogPhotosFolder = "catalogPhotos"
