@@ -10,6 +10,10 @@ object Constants {
         const val PRIVACY_POLICY_URL = "https://kalorie-bf11c.web.app/privacy"
     }
 
+    object Store {
+        const val PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=antoni.kalorie"
+    }
+
     object LogCategory {
         const val FIRESTORE = "firestore"
         const val AUTH = "auth"
@@ -26,6 +30,7 @@ object Constants {
         const val NUTRITION_LABEL_RECOGNITION = "nutritionLabelRecognition"
         const val STORAGE = "storage"
         const val SUPPORT = "support"
+        const val APP_VERSION = "appVersion"
     }
 
     object Tips {
@@ -72,6 +77,8 @@ object Constants {
         const val USERS = "users"
         const val FOOD_ITEMS = "foodItems"
         const val FOOD_ITEM_REPORTS = "foodItemReports"
+        const val CONFIG = "config"
+        const val APP_CONFIG_DOCUMENT_ID = "app"
         const val FOOD_ITEM_SUBMISSIONS = "foodItemSubmissions"
         const val REPORT_REASON_MAX_LENGTH = 500
         const val REPORTS_PAGE_LIMIT = 50
