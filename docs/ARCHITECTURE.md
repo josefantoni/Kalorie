@@ -1407,6 +1407,12 @@ signed-in user changes — every view model below is rebuilt rather than re-poin
 user's data. This is deliberate; the accepted cost is that any auth transition also discards the
 Dashboard's transient state, including the selected day.
 
+Firebase App Check is installed before any Firebase service is used: `AppDelegate` calls
+`AppCheck.setAppCheckProviderFactory` ahead of `FirebaseApp.configure()` (App Attest in Release, the
+debug provider under `#if DEBUG`), and `KalorieApplication.onCreate` installs the factory returned by
+`createAppCheckProviderFactory()` (Play Integrity in `src/release`, the debug provider in `src/debug`)
+as its first call after `super.onCreate()`.
+
 ### 5.2 Error handling
 
 Two conventions coexist, and the split is intentional:
