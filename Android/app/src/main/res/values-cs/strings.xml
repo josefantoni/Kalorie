@@ -14,6 +14,7 @@
     <string name="account_button_signInWithApple">Přihlásit se přes Apple</string>
     <string name="account_button_signInWithGoogle">Přihlásit se přes Google</string>
     <string name="account_button_signOut">Odhlásit se</string>
+    <string name="account_ciqualAttribution">Nutriční hodnoty obecných potravin pocházejí z tabulek ANSES Ciqual 2020 (licence CC BY 4.0). Hodnoty jsme upravili: přepočítali jsme je na 100 ml, dopočítali chybějící kalorie a doplnili porce.</string>
     <string name="account_dataAttribution">Nutriční data a fotky některých potravin pocházejí z Open Food Facts. Data jsou dostupná pod licencí Open Database License, fotky pod licencí CC BY-SA.</string>
     <string name="account_error_accountExistsWithApple">Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.</string>
     <string name="account_error_accountExistsWithGoogle">Tvé dřívější záznamy jsou u účtu propojeného s Googlem. Pro přístup k nim se prosím přihlas přes Google.</string>

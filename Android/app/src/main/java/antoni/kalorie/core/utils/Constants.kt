@@ -49,6 +49,10 @@ object Constants {
         val USER_AGENT: String = "Kalorie-Android/${BuildConfig.VERSION_NAME}"
     }
 
+    object Ciqual {
+        const val DATASET_URL = "https://zenodo.org/records/4770600"
+    }
+
     object Storage {
         const val SUBMISSION_PHOTOS_FOLDER = "submissionPhotos"
         const val CATALOG_PHOTOS_FOLDER = "catalogPhotos"

@@ -205,6 +205,12 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                             isDescription = true,
                             onClick = { uriHandler.openUri("https://${Constants.OpenFoodFacts.HOST}") },
                         )
+                        SectionCardDivider()
+                        LinkRow(
+                            title = stringResource(R.string.account_ciqualAttribution),
+                            isDescription = true,
+                            onClick = { uriHandler.openUri(Constants.Ciqual.DATASET_URL) },
+                        )
                     }
                     if (!isAnonymous) {
                         Spacer(modifier = Modifier.height(16.dp))
