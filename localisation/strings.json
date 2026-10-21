@@ -1154,5 +1154,17 @@
   "support_error_purchaseFailed": {
     "cs": "Platba se nepovedla. Nic ti nebylo strženo.",
     "en": "The payment failed. You have not been charged."
+  },
+  "updateRequired_button": {
+    "cs": "Aktualizovat",
+    "en": "Update"
+  },
+  "updateRequired_message": {
+    "cs": "Tato verze aplikace už není podporovaná. Pro pokračování si prosím nainstaluj aktualizaci z obchodu.",
+    "en": "This version of the app is no longer supported. Please install the update from the store to continue."
+  },
+  "updateRequired_title": {
+    "cs": "Je potřeba aktualizace",
+    "en": "Update required"
   }
 }

@@ -289,4 +289,7 @@
     <string name="support_thankYou_message_large">Babička přijela na výkrm. Vypadá to, že jsem prý zase nějaký pohublý! 😊 Děkuji.</string>
     <string name="support_thankYou_message_medium">Téda, toto už bude na pěkný obídek. Na snídani bylo jen kafe! 😊 Děkuji.</string>
     <string name="support_thankYou_message_small">To bude na obložený chleba! I programátor je člověk hladový a nemůže žít jen z kafe! 😊 Děkuji.</string>
+    <string name="updateRequired_button">Aktualizovat</string>
+    <string name="updateRequired_message">Tato verze aplikace už není podporovaná. Pro pokračování si prosím nainstaluj aktualizaci z obchodu.</string>
+    <string name="updateRequired_title">Je potřeba aktualizace</string>
 </resources>
