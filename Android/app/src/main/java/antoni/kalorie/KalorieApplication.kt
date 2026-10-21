@@ -1,11 +1,13 @@
 package antoni.kalorie
 
 import android.app.Application
+import antoni.kalorie.core.appcheck.createAppCheckProviderFactory
 import antoni.kalorie.core.auth.CurrentActivityProvider
 import antoni.kalorie.core.tips.TipStoreProtocol
 import antoni.kalorie.core.tips.createTipStore
 import antoni.kalorie.core.utils.ErrorReporting
 import antoni.kalorie.core.utils.Log
+import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.MainScope
 
@@ -21,6 +23,7 @@ class KalorieApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(createAppCheckProviderFactory())
         registerActivityLifecycleCallbacks(currentActivityProvider)
         val crashlytics = FirebaseCrashlytics.getInstance()
         crashlytics.isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
