@@ -75,6 +75,10 @@
     "cs": "Nutriční data a fotky některých potravin pocházejí z Open Food Facts. Data jsou dostupná pod licencí Open Database License, fotky pod licencí CC BY-SA.",
     "en": "Nutrition data and photos of some foods come from Open Food Facts. The data is available under the Open Database License, the photos under CC BY-SA."
   },
+  "account_ciqualAttribution": {
+    "cs": "Nutriční hodnoty obecných potravin pocházejí z tabulek ANSES Ciqual 2020 (licence CC BY 4.0). Hodnoty jsme upravili: přepočítali jsme je na 100 ml, dopočítali chybějící kalorie a doplnili porce.",
+    "en": "Nutrition values of generic foods come from the ANSES Ciqual 2020 tables (CC BY 4.0). We modified them: converted to 100 ml, derived missing calories and added portions."
+  },
   "account_error_accountExistsWithApple": {
     "cs": "Tvé dřívější záznamy jsou u účtu propojeného s Apple ID. Pro přístup k nim se prosím přihlas přes Apple ID.",
     "en": "Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them."

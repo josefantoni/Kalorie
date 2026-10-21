@@ -92,6 +92,10 @@ struct AccountView: View {
                         if let openFoodFactsURL = Constants.OpenFoodFacts.baseURL {
                             linkRow(L10n.Account.dataAttribution, url: openFoodFactsURL, isDescription: true)
                         }
+
+                        if let ciqualURL = Constants.Ciqual.datasetURL {
+                            linkRow(L10n.Account.ciqualAttribution, url: ciqualURL, isDescription: true)
+                        }
                     }
 
                     if !viewModel.isAnonymous {

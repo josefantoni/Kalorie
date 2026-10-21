@@ -42,6 +42,7 @@ enum L10n {
         static var buttonDeleteAccount: String { String(localized: "account_button_deleteAccount") }
         static var buttonReauthenticate: String { String(localized: "account_button_reauthenticate") }
         static var dataAttribution: String { String(localized: "account_dataAttribution") }
+        static var ciqualAttribution: String { String(localized: "account_ciqualAttribution") }
         static var signInProviderApple: String { String(localized: "account_signInProvider_apple") }
         static var signInProviderGoogle: String { String(localized: "account_signInProvider_google") }
         static var errorSignInFailed: String { String(localized: "account_error_signInFailed") }
