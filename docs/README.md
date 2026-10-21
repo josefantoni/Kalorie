@@ -214,6 +214,7 @@ understanding why.
 | [0023](design/0023-support-development-tips.md) | Support development with in-app tips | Proposed | Cross-platform, iOS, Android |
 | [0024](design/0024-move-entry-between-meals-by-drag.md) | Moving a logged entry to another meal by dragging it | Implemented | Cross-platform, iOS, Android |
 | [0025](design/0025-linking-a-second-sign-in-provider.md) | Linking a second sign-in provider to one account | Approved | Cross-platform, iOS, Android |
+| [0026](design/0026-minimum-supported-version.md) | Minimum supported version | Approved | Backend, Cross-platform, iOS, Android |
 
 ### Decision records
 
