@@ -19,7 +19,7 @@ object FirestoreDataMapper {
 
     // MARK: - Functions
 
-    fun <T> decode(data: Map<String, Any?>, serializer: KSerializer<T>): T = json.decodeFromJsonElement(serializer, toJsonElement(data))
+    fun <T> decode(data: Map<String, Any?>, serializer: KSerializer<T>): T = json.decodeFromJsonElement(serializer, toJsonElement(data) ?: JsonNull)
 
     fun <T> encode(item: T, serializer: KSerializer<T>): Map<String, Any?> {
         val element = json.encodeToJsonElement(serializer, item)
@@ -29,14 +29,16 @@ object FirestoreDataMapper {
 
     // MARK: - Private
 
-    private fun toJsonElement(value: Any?): JsonElement = when (value) {
+    // Values with no JSON form (Timestamp, GeoPoint, ...) are dropped like unknown keys, as on iOS, so a
+    // field this client never reads cannot fail the whole document.
+    private fun toJsonElement(value: Any?): JsonElement? = when (value) {
         null -> JsonNull
         is String -> JsonPrimitive(value)
         is Boolean -> JsonPrimitive(value)
         is Number -> JsonPrimitive(value)
-        is Map<*, *> -> JsonObject(value.entries.associate { (key, item) -> key.toString() to toJsonElement(item) })
-        is List<*> -> JsonArray(value.map(::toJsonElement))
-        else -> error("Unsupported Firestore value: ${value::class}")
+        is Map<*, *> -> JsonObject(value.entries.mapNotNull { (key, item) -> toJsonElement(item)?.let { key.toString() to it } }.toMap())
+        is List<*> -> JsonArray(value.mapNotNull(::toJsonElement))
+        else -> null
     }
 
     private fun toFirestoreValue(element: JsonElement): Any? = when (element) {
