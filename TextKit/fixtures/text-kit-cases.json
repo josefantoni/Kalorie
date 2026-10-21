@@ -21,6 +21,30 @@
     {
       "input": "ROHLÍK",
       "expected": ["r", "ro", "roh", "rohl", "rohli", "rohlik"]
+    },
+    {
+      "input": "Jahodová marmeláda (džem)",
+      "expected": ["j", "ja", "jah", "jaho", "jahod", "jahodo", "jahodov", "jahodova", "m", "ma", "mar", "marm", "marme", "marmel", "marmela", "marmelad", "marmelada", "d", "dz", "dze", "dzem"]
+    },
+    {
+      "input": "Vejce smažené (volské oko)",
+      "expected": ["v", "ve", "vej", "vejc", "vejce", "s", "sm", "sma", "smaz", "smaze", "smazen", "smazene", "vo", "vol", "vols", "volsk", "volske", "o", "ok", "oko"]
+    },
+    {
+      "input": "„Bio“ jogurt",
+      "expected": ["b", "bi", "bio", "j", "jo", "jog", "jogu", "jogur", "jogurt"]
+    },
+    {
+      "input": "Sýr, eidam",
+      "expected": ["s", "sy", "syr", "e", "ei", "eid", "eida", "eidam"]
+    },
+    {
+      "input": "Mléko 1,5%",
+      "expected": ["m", "ml", "mle", "mlek", "mleko", "1", "1,", "1,5", "1,5%"]
+    },
+    {
+      "input": "Vepřovo-hovězí maso",
+      "expected": ["v", "ve", "vep", "vepr", "vepro", "veprov", "veprovo", "veprovo-", "veprovo-h", "veprovo-ho", "veprovo-hov", "veprovo-hove", "veprovo-hovez", "veprovo-hovezi", "m", "ma", "mas", "maso"]
     }
   ],
   "portionName": [

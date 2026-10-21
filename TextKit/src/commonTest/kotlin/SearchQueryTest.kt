@@ -59,4 +59,24 @@ class SearchQueryTest {
     fun matches_emptyQueryMatchesEverything() {
         assertTrue(matchesSearchQuery("Rohlík", searchQuery("")))
     }
+
+    @Test
+    fun matches_wordWrappedInParentheses() {
+        assertTrue(matchesSearchQuery("Jahodová marmeláda (džem)", searchQuery("džem")))
+    }
+
+    @Test
+    fun lastWord_ignoresWrappingPunctuation() {
+        assertEquals("dzem", searchQuery("(džem)").lastWord)
+    }
+
+    @Test
+    fun lastWord_withOnlyPunctuation_fallsBackToTheWholeFoldedQuery() {
+        assertEquals("(", searchQuery("(").lastWord)
+    }
+
+    @Test
+    fun matches_punctuationOnlyQueryMatchesNothing() {
+        assertFalse(matchesSearchQuery("Jahodová marmeláda (džem)", searchQuery(")")))
+    }
 }
