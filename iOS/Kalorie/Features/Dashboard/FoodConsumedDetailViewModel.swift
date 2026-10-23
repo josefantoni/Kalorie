@@ -25,6 +25,8 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
     @Published var isReportReasonAlertVisible = false
     @Published var reportReasonText = ""
     @Published var isAlcoholHintPopoverVisible = false
+    @Published var isDeleteConfirmationVisible = false
+    @Published private(set) var isDeleted = false
 
     private(set) var food: FoodConsumedDomain
     @Published private(set) var mealTypes: [MealTypeDomain]
@@ -41,6 +43,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
     private let fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol
     private let submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol
+    private let deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
     private let onFoodUpdated: () -> Void
 
     var photoURL: URL? { catalogueItem?.photoURL }
@@ -71,6 +74,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
         fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol,
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol,
+        deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol,
         onFoodUpdated: @escaping () -> Void
     ) {
         self.food = food
@@ -88,6 +92,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
         self.fetchMyFoodItemReport = fetchMyFoodItemReport
         self.submitFoodItemReport = submitFoodItemReport
+        self.deleteFoodConsumed = deleteFoodConsumed
         self.onFoodUpdated = onFoodUpdated
     }
 
@@ -150,6 +155,27 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
             addFavouriteFood: addFavouriteFood,
             removeFavouriteFood: removeFavouriteFood
         )
+    }
+
+    @MainActor
+    func onDeleteRequested() {
+        isDeleteConfirmationVisible = true
+    }
+
+    @MainActor
+    func onDeleteConfirmed() async {
+        guard !state.isLoading else { return }
+        state = .loading
+        do {
+            try await deleteFoodConsumed(id: food.id)
+            state = .loaded
+            onFoodUpdated()
+            isDeleted = true
+        } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
+            alertItem = AlertItem(title: L10n.Dashboard.errorDeleteFailed)
+            state = .loaded
+        }
     }
 
     @MainActor

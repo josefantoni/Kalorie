@@ -11,6 +11,7 @@ struct FoodConsumedDetailView: View {
 
     // MARK: - Properties
 
+    @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: FoodConsumedDetailViewModel
     @State private var weightText: String
     @FocusState private var isWeightFocused: Bool
@@ -141,18 +142,21 @@ struct FoodConsumedDetailView: View {
         .task { await viewModel.onAppear() }
         .keyboardDoneToolbar(isVisible: isWeightFocused)
         .toolbar {
-            if viewModel.canReportIncorrectData {
-                ToolbarItem(placement: .topBarLeading) {
-                    Menu {
+            ToolbarItem(placement: .topBarLeading) {
+                Menu {
+                    if viewModel.canReportIncorrectData {
                         Button(
                             viewModel.hasReportedCurrentItem ? L10n.FoodItemReport.buttonAlreadyReported : L10n.FoodItemReport.buttonReport
                         ) {
                             viewModel.onReportIncorrectDataTapped()
                         }
                         .disabled(viewModel.hasReportedCurrentItem)
-                    } label: {
-                        Image(systemName: BaseImageName.ellipsisCircle.rawValue)
                     }
+                    Button(L10n.Common.buttonDelete, role: .destructive) {
+                        viewModel.onDeleteRequested()
+                    }
+                } label: {
+                    Image(systemName: BaseImageName.ellipsisCircle.rawValue)
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -171,6 +175,15 @@ struct FoodConsumedDetailView: View {
                 message: item.message.map(Text.init),
                 dismissButton: .default(Text(L10n.Common.ok))
             )
+        }
+        .alert(L10n.Dashboard.confirmDeleteFood, isPresented: $viewModel.isDeleteConfirmationVisible) {
+            Button(L10n.Common.buttonNo, role: .cancel) {}
+            Button(L10n.Common.buttonYes, role: .destructive) {
+                Task { await viewModel.onDeleteConfirmed() }
+            }
+        }
+        .onChange(of: viewModel.isDeleted) { _, isDeleted in
+            if isDeleted { dismiss() }
         }
         .alert(L10n.FoodItemReport.alertTitle, isPresented: $viewModel.isReportReasonAlertVisible) {
             TextField(L10n.FoodItemReport.alertPlaceholder, text: $viewModel.reportReasonText)
@@ -221,7 +234,8 @@ struct FoodConsumedDetailView: View {
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
                 fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
-                submitFoodItemReport: SubmitFoodItemReportUseCaseFake()
+                submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
+                deleteFoodConsumed: DeleteFoodConsumedUseCaseFake()
             ) {}
         )
     }
