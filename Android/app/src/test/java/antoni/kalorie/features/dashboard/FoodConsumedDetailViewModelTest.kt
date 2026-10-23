@@ -10,6 +10,8 @@ import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseFake
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseProtocol
+import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseFake
+import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
@@ -347,6 +349,29 @@ class FoodConsumedDetailViewModelTest {
         assertNull(sut.alertItem.value)
     }
 
+    @Test
+    fun onDeleteConfirmed_marksDeletedAndNotifiesDashboardSoTheRowDisappears() = runTest {
+        var updateCount = 0
+        val sut = makeSUT(onFoodUpdated = { updateCount += 1 })
+
+        sut.onDeleteConfirmed()
+
+        assertTrue(sut.isDeleted.value)
+        assertEquals(1, updateCount)
+    }
+
+    @Test
+    fun onDeleteConfirmed_whenDeleteFails_keepsTheDetailOpenAndShowsAnError() = runTest {
+        var updateCount = 0
+        val sut = makeSUT(deleteFoodConsumed = DeleteFoodConsumedUseCaseFake(shouldThrow = true), onFoodUpdated = { updateCount += 1 })
+
+        sut.onDeleteConfirmed()
+
+        assertFalse(sut.isDeleted.value)
+        assertNotNull(sut.alertItem.value)
+        assertEquals(0, updateCount)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
@@ -362,6 +387,7 @@ class FoodConsumedDetailViewModelTest {
         fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
         submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
+        deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
         onFoodUpdated: () -> Unit = {},
     ): FoodConsumedDetailViewModel = FoodConsumedDetailViewModel(
         food = food ?: makeFood(),
@@ -376,6 +402,7 @@ class FoodConsumedDetailViewModelTest {
         fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
         fetchMyFoodItemReport = fetchMyFoodItemReport,
         submitFoodItemReport = submitFoodItemReport,
+        deleteFoodConsumed = deleteFoodConsumed,
         onFoodUpdated = onFoodUpdated,
     )
 

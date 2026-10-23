@@ -10,6 +10,7 @@ import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCase
+import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCase
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
@@ -50,6 +51,7 @@ class FoodConsumedDetailConfigurator(
                 fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                 fetchMyFoodItemReport = FetchMyFoodItemReportUseCase(dataProvider, authProvider),
                 submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider),
+                deleteFoodConsumed = DeleteFoodConsumedUseCase(dataProvider, authProvider),
                 onFoodUpdated = onFoodUpdated,
             )
         }

@@ -11,6 +11,7 @@ import antoni.kalorie.core.models.ScaledMacros
 import antoni.kalorie.core.models.resolvedMealTypeId
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseProtocol
+import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
@@ -48,6 +49,7 @@ class FoodConsumedDetailViewModel(
     private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
     private val fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol,
     private val submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol,
+    private val deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol,
     private val onFoodUpdated: () -> Unit,
 ) : ViewModel(),
     FavouriteToggling,
@@ -67,6 +69,9 @@ class FoodConsumedDetailViewModel(
     override val isSubmittingReport = MutableStateFlow(false)
     override val isReportReasonAlertVisible = MutableStateFlow(false)
     override val reportReasonText = MutableStateFlow("")
+    val isDeleteConfirmationVisible = MutableStateFlow(false)
+    private val _isDeleted = MutableStateFlow(false)
+    val isDeleted: StateFlow<Boolean> = _isDeleted
     private val _catalogueItem = MutableStateFlow<FoodItemDomain?>(null)
     val catalogueItem: StateFlow<FoodItemDomain?> = _catalogueItem
     private val _mealTypeId = MutableStateFlow(mealTypes.resolvedMealTypeId(food))
@@ -153,6 +158,27 @@ class FoodConsumedDetailViewModel(
             addFavouriteFood = addFavouriteFood,
             removeFavouriteFood = removeFavouriteFood,
         )
+    }
+
+    fun onDeleteRequested() {
+        isDeleteConfirmationVisible.value = true
+    }
+
+    suspend fun onDeleteConfirmed() {
+        if (_state.value.isLoading) return
+        _state.value = LoadingState.Loading
+        try {
+            deleteFoodConsumed(id = food.id)
+            _state.value = LoadingState.loaded
+            onFoodUpdated()
+            _isDeleted.value = true
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.DASHBOARD)
+            alertItem.value = AlertItem(titleRes = R.string.dashboard_error_deleteFailed)
+            _state.value = LoadingState.loaded
+        }
     }
 
     fun onMealTypeSelected(mealTypeId: String) {
