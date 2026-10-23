@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,11 +44,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
 import antoni.kalorie.components.AlcoholicDrinkHintView
+import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.components.FoodPhotoTransitionHost
 import antoni.kalorie.components.NumericRowTextField
-import antoni.kalorie.components.ReportIncorrectDataMenu
 import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
@@ -82,14 +83,18 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
     val catalogueItem by viewModel.catalogueItem.collectAsState()
     val photoState = rememberFoodPhotoThumbnailState(catalogueItem?.photoUrl)
     val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
+    val isDeleteConfirmationVisible by viewModel.isDeleteConfirmationVisible.collectAsState()
+    val isDeleted by viewModel.isDeleted.collectAsState()
     val scope = rememberCoroutineScope()
     var weightText by remember { mutableStateOf(initialWeightText(viewModel.weight.value)) }
     var isMealTypeMenuVisible by remember { mutableStateOf(false) }
+    var isActionsMenuVisible by remember { mutableStateOf(false) }
     val food = viewModel.food
     val macros = viewModel.scaledMacros
     val hasChanges = remember(weight, mealTypeId, didSelectMealType, state) { viewModel.hasChanges }
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
+    LaunchedEffect(isDeleted) { if (isDeleted) onBack() }
 
     // MARK: - Body
 
@@ -103,11 +108,41 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                             IconButton(onClick = onBack) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                             }
-                            if (viewModel.canReportIncorrectData) {
-                                Box {
-                                    ReportIncorrectDataMenu(
-                                        hasReportedCurrentItem = hasReportedCurrentItem,
-                                        onReportTapped = viewModel::onReportIncorrectDataTapped,
+                            Box {
+                                IconButton(onClick = { isActionsMenuVisible = true }) {
+                                    Icon(Icons.Filled.MoreVert, contentDescription = null)
+                                }
+                                DropdownMenu(
+                                    expanded = isActionsMenuVisible,
+                                    onDismissRequest = { isActionsMenuVisible = false },
+                                    shape = RoundedCornerShape(12.dp),
+                                ) {
+                                    if (viewModel.canReportIncorrectData) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    stringResource(
+                                                        if (hasReportedCurrentItem) {
+                                                            R.string.foodItemReport_button_alreadyReported
+                                                        } else {
+                                                            R.string.foodItemReport_button_report
+                                                        },
+                                                    ),
+                                                )
+                                            },
+                                            enabled = !hasReportedCurrentItem,
+                                            onClick = {
+                                                isActionsMenuVisible = false
+                                                viewModel.onReportIncorrectDataTapped()
+                                            },
+                                        )
+                                    }
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.common_button_delete), color = AppColors.error) },
+                                        onClick = {
+                                            isActionsMenuVisible = false
+                                            viewModel.onDeleteRequested()
+                                        },
                                     )
                                 }
                             }
@@ -235,6 +270,28 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
             onSend = {
                 viewModel.isReportReasonAlertVisible.value = false
                 scope.launch { viewModel.onReportSubmitted() }
+            },
+        )
+    }
+
+    if (isDeleteConfirmationVisible) {
+        AlertDialog(
+            onDismissRequest = { viewModel.isDeleteConfirmationVisible.value = false },
+            title = { Text(stringResource(R.string.dashboard_confirm_deleteFood)) },
+            dismissButton = {
+                TextButton(onClick = { viewModel.isDeleteConfirmationVisible.value = false }) {
+                    Text(stringResource(R.string.common_button_no))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.isDeleteConfirmationVisible.value = false
+                        scope.launch { viewModel.onDeleteConfirmed() }
+                    },
+                ) {
+                    Text(stringResource(R.string.common_button_yes), color = AppColors.error)
+                }
             },
         )
     }
