@@ -162,6 +162,27 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         XCTAssertNil(sut.alertItem)
     }
 
+    func test_onDeleteConfirmed_marksDeletedAndNotifiesDashboardSoTheRowDisappears() async {
+        var updateCount = 0
+        let sut = makeSUT { updateCount += 1 }
+
+        await sut.onDeleteConfirmed()
+
+        XCTAssertTrue(sut.isDeleted)
+        XCTAssertEqual(updateCount, 1)
+    }
+
+    func test_onDeleteConfirmed_whenDeleteFails_keepsTheDetailOpenAndShowsAnError() async {
+        var updateCount = 0
+        let sut = makeSUT(deleteFoodConsumed: DeleteFoodConsumedUseCaseFake(shouldThrow: true)) { updateCount += 1 }
+
+        await sut.onDeleteConfirmed()
+
+        XCTAssertFalse(sut.isDeleted)
+        XCTAssertNotNil(sut.alertItem)
+        XCTAssertEqual(updateCount, 0)
+    }
+
     @MainActor
     func test_onMealTypeSelected_stagesTheSelectionWithoutWritingOrEnablingSaveAlone() {
         let breakfast = MealTypeDomain(id: "breakfast", name: "Breakfast", startMinutes: 360, endMinutes: 600)
@@ -321,6 +342,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
+        deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
         onFoodUpdated: @escaping () -> Void = {}
     ) -> FoodConsumedDetailViewModel {
         let sut = FoodConsumedDetailViewModel(
@@ -336,6 +358,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             fetchMyFoodItemReport: fetchMyFoodItemReport,
             submitFoodItemReport: submitFoodItemReport,
+            deleteFoodConsumed: deleteFoodConsumed,
             onFoodUpdated: onFoodUpdated
         )
         addTeardownBlock { [weak sut] in
