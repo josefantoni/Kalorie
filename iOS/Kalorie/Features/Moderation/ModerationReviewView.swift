@@ -115,7 +115,7 @@ struct ModerationReviewView: View {
                     ForEach(viewModel.similarCatalogueItems, id: \.id) { item in
                         VStack(alignment: .leading) {
                             Text(item.displayName)
-                            Text("\(Int(item.caloriesPerHundredGrams)) kcal / 100 \(item.measure.unitSymbol)")
+                            Text(verbatim: "\(Int(item.caloriesPerHundredGrams)) \(L10n.Common.unitKcal) / 100 \(item.measure.unitSymbol)")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

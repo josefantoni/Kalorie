@@ -97,7 +97,7 @@ struct FoodConsumedDetailView: View {
 
             Section {
                 LabeledContent(L10n.FoodQuantity.calories) {
-                    Text("\(macros.calories) kcal")
+                    Text(verbatim: "\(macros.calories) \(L10n.Common.unitKcal)")
                         .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxX } action: { nutritionValueMaxX = $0 }
                 }
                 LabeledContent(L10n.FoodQuantity.protein) {

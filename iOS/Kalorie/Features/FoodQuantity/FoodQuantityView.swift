@@ -52,7 +52,7 @@ struct FoodQuantityView: View {
             }
 
             Section {
-                macroRow(label: L10n.FoodQuantity.calories, value: "\(viewModel.scaledCalories) kcal")
+                macroRow(label: L10n.FoodQuantity.calories, value: "\(viewModel.scaledCalories) \(L10n.Common.unitKcal)")
                 macroRow(label: L10n.FoodQuantity.protein, value: viewModel.scaledProtein.formattedGrams())
                 macroRow(label: L10n.FoodQuantity.carbs, value: viewModel.scaledCarbohydrate.formattedGrams())
                 macroRow(label: L10n.AddFood.fieldCarbsSugar, value: viewModel.scaledCarbohydrateSugar.formattedGrams())
