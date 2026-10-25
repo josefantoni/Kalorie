@@ -74,6 +74,8 @@ import antoni.kalorie.core.extensions.formattedTrimmed
 import antoni.kalorie.core.models.FoodMeasure
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.isLoading
+import antoni.kalorie.textkit.parseDecimalInput
+import antoni.kalorie.textkit.sanitizeDecimalInput
 import kotlinx.coroutines.launch
 
 class MealActions(
@@ -181,7 +183,7 @@ private fun FoodQuantityContent(
 
     LaunchedEffect(unit) { quantityText = viewModel.quantity.value.formattedTrimmed() }
     LaunchedEffect(quantity) {
-        if ((quantityText.replace(',', '.').toDoubleOrNull() ?: 0.0) != quantity) {
+        if ((parseDecimalInput(quantityText) ?: 0.0) != quantity) {
             quantityText = quantity.formattedTrimmed()
         }
     }
@@ -249,9 +251,9 @@ private fun FoodQuantityContent(
                                 NumericRowTextField(
                                     value = quantityText,
                                     onValueChange = { text ->
-                                        val sanitized = sanitizedQuantityText(text)
+                                        val sanitized = sanitizeDecimalInput(text)
                                         quantityText = sanitized
-                                        viewModel.quantity.value = sanitized.replace(',', '.').toDoubleOrNull() ?: 0.0
+                                        viewModel.quantity.value = parseDecimalInput(sanitized) ?: 0.0
                                     },
                                     modifier = Modifier.widthIn(min = 30.dp, max = 96.dp).weight(1f),
                                 )
@@ -412,17 +414,4 @@ private fun unitLabel(unit: FoodQuantityUnit, measure: FoodMeasure): String = wh
         if (measure == FoodMeasure.GRAMS) R.string.foodQuantity_unit_hundredGrams else R.string.foodQuantity_unit_hundredMillilitres,
     )
     is FoodQuantityUnit.Portion -> "${unit.portion.displayName} (${unit.portion.grams.formattedAmount(measure, minFractionDigits = 0)})"
-}
-
-private fun sanitizedQuantityText(text: String): String {
-    var seenSeparator = false
-    return text.filter { char ->
-        if (char == '.' || char == ',') {
-            if (seenSeparator) return@filter false
-            seenSeparator = true
-            true
-        } else {
-            char in '0'..'9'
-        }
-    }
 }

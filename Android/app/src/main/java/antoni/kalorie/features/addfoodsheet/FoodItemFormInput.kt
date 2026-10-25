@@ -8,6 +8,7 @@ import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodMeasure
 import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
+import antoni.kalorie.textkit.parseDecimalInput
 import java.time.Instant
 
 data class FoodItemFormInput(
@@ -133,7 +134,7 @@ data class FoodItemFormInput(
         )
 
         fun parsedPortions(drafts: List<FoodPortionDraft>): List<FoodPortionDomain> = drafts.mapNotNull { draft ->
-            val grams = draft.gramsText.replace(',', '.').toDoubleOrNull() ?: 0.0
+            val grams = parseDecimalInput(draft.gramsText) ?: 0.0
             if (grams >= 1) FoodPortionDomain(name = draft.name, grams = grams) else null
         }
 

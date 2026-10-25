@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodMeasure
+import antoni.kalorie.textkit.sanitizeDecimalInput
 
 @Composable
 fun PortionInputRow(
@@ -58,7 +59,7 @@ fun PortionInputRow(
             )
             NumericRowTextField(
                 value = gramsText,
-                onValueChange = { onGramsTextChange(sanitizedGramsText(it)) },
+                onValueChange = { onGramsTextChange(sanitizeDecimalInput(it)) },
                 placeholder = "0",
                 modifier = Modifier.width(88.dp).height(56.dp),
                 fieldAlignment = Alignment.BottomCenter,
@@ -94,19 +95,6 @@ fun PortionInputRow(
                     }
                 }
             }
-        }
-    }
-}
-
-internal fun sanitizedGramsText(text: String): String {
-    var seenSeparator = false
-    return text.filter { char ->
-        if (char == '.' || char == ',') {
-            if (seenSeparator) return@filter false
-            seenSeparator = true
-            true
-        } else {
-            char in '0'..'9'
         }
     }
 }
