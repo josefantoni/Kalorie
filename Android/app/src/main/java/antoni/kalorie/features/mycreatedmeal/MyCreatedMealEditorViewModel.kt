@@ -23,6 +23,7 @@ import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetViewModel
+import antoni.kalorie.textkit.parseDecimalInput
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -300,7 +301,7 @@ class MyCreatedMealEditorViewModel(
             )
         }
 
-        fun parsedGrams(text: String): Double = text.replace(',', '.').toDoubleOrNull() ?: 0.0
+        fun parsedGrams(text: String): Double = parseDecimalInput(text) ?: 0.0
 
         fun parsedPortions(drafts: List<FoodPortionDraft>): List<FoodPortionDomain> = drafts.mapNotNull { draft ->
             val grams = parsedGrams(draft.gramsText)

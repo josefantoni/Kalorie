@@ -36,6 +36,7 @@ import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
 import antoni.kalorie.macrokit.isAlcoholicDrink
+import antoni.kalorie.textkit.parseDecimalInput
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
@@ -234,7 +235,7 @@ class FoodQuantityViewModel(
         if (filledDrafts.isEmpty()) return
         val newPortions = mutableListOf<FoodPortionDomain>()
         for (draft in filledDrafts) {
-            val grams = draft.gramsText.replace(',', '.').toDoubleOrNull() ?: 0.0
+            val grams = parseDecimalInput(draft.gramsText) ?: 0.0
             val error = FoodPortionValidation.validate(name = draft.name, grams = grams)
             if (error != null) {
                 alertItem.value = AlertItem(titleRes = error.alertTitleRes)

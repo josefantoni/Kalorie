@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodMeasure
 import antoni.kalorie.features.addfoodsheet.FoodItemFormInput
+import antoni.kalorie.textkit.parseDecimalInput
+import antoni.kalorie.textkit.sanitizeDecimalInput
 import java.math.BigDecimal
 
 sealed interface FoodItemFormBarcodeRow {
@@ -265,15 +267,15 @@ private fun DecimalTextField(value: Double, onValueChange: (Double) -> Unit, isH
     var text by remember { mutableStateOf(formattedDecimal(value)) }
 
     LaunchedEffect(value) {
-        if ((text.replace(',', '.').toDoubleOrNull() ?: 0.0) != value) text = formattedDecimal(value)
+        if ((parseDecimalInput(text) ?: 0.0) != value) text = formattedDecimal(value)
     }
 
     NumericRowTextField(
         value = text,
         onValueChange = { newText ->
-            val sanitized = sanitizedGramsText(newText)
+            val sanitized = sanitizeDecimalInput(newText)
             text = sanitized
-            onValueChange(sanitized.replace(',', '.').toDoubleOrNull() ?: 0.0)
+            onValueChange(parseDecimalInput(sanitized) ?: 0.0)
         },
         placeholder = "0",
         fontWeight = highlightWeight(isHighlighted),

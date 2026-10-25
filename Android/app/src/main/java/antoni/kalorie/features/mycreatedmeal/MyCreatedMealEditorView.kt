@@ -50,12 +50,12 @@ import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.rememberScannerAccess
-import antoni.kalorie.components.sanitizedGramsText
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.dashboard.SwipeToDeleteRow
+import antoni.kalorie.textkit.sanitizeDecimalInput
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -318,7 +318,7 @@ private fun IngredientRow(
         Text(text = draft.item.displayName, modifier = Modifier.weight(1f))
         NumericRowTextField(
             value = draft.gramsText,
-            onValueChange = { onGramsTextChange(sanitizedGramsText(it)) },
+            onValueChange = { onGramsTextChange(sanitizeDecimalInput(it)) },
             placeholder = "100",
             modifier = Modifier
                 .width(88.dp)

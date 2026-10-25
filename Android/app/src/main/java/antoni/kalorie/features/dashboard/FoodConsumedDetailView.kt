@@ -60,6 +60,8 @@ import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.zoned
+import antoni.kalorie.textkit.parseDecimalInput
+import antoni.kalorie.textkit.sanitizeDecimalInput
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -183,9 +185,9 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                             NumericRowTextField(
                                 value = weightText,
                                 onValueChange = { text ->
-                                    val sanitized = sanitizedWeightText(text)
+                                    val sanitized = sanitizeDecimalInput(text)
                                     weightText = sanitized
-                                    sanitized.replace(',', '.').toDoubleOrNull()?.let { viewModel.weight.value = it }
+                                    parseDecimalInput(sanitized)?.let { viewModel.weight.value = it }
                                 },
                                 suffix = { Text(stringResource(food.measure.unitSymbolRes)) },
                                 modifier = Modifier.width(140.dp),
@@ -325,16 +327,3 @@ private fun LabeledRow(label: String, content: @Composable () -> Unit) {
 }
 
 private fun initialWeightText(weight: Double): String = if (weight % 1 == 0.0) weight.toLong().toString() else weight.toString()
-
-private fun sanitizedWeightText(text: String): String {
-    var seenSeparator = false
-    return text.filter { char ->
-        if (char == '.' || char == ',') {
-            if (seenSeparator) return@filter false
-            seenSeparator = true
-            true
-        } else {
-            char.isDigit()
-        }
-    }
-}
