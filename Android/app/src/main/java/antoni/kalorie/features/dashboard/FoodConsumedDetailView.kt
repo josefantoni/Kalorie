@@ -233,7 +233,7 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                         }
                     }
                     SectionCard {
-                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_calories)) { Text("${macros.calories} kcal") }
+                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_calories)) { Text("${macros.calories} ${stringResource(R.string.common_unit_kcal)}") }
                         SectionCardDivider()
                         LabeledRow(label = stringResource(R.string.foodQuantity_macro_protein)) { Text(macros.protein.formattedGrams()) }
                         SectionCardDivider()

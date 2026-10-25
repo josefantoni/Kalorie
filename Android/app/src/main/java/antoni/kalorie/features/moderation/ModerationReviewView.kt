@@ -131,7 +131,7 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
                                     Text(item.displayName)
                                     Text(
-                                        text = "${item.caloriesPerHundredGrams.roundToInt()} kcal / 100 ${stringResource(item.measure.unitSymbolRes)}",
+                                        text = "${item.caloriesPerHundredGrams.roundToInt()} ${stringResource(R.string.common_unit_kcal)} / 100 ${stringResource(item.measure.unitSymbolRes)}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
