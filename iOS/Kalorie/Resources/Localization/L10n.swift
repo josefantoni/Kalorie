@@ -22,6 +22,8 @@ enum L10n {
         static var buttonCancel: String { String(localized: "common_button_cancel") }
         static var buttonDone: String { String(localized: "common_button_done") }
         static var unitGrams: String { String(localized: "common_unit_grams") }
+        static var unitKcal: String { String(localized: "common_unit_kcal") }
+        static var unitKilojoules: String { String(localized: "common_unit_kilojoules") }
         static var unitMillilitres: String { String(localized: "common_unit_millilitres") }
         static var alcoholicDrinkLabel: String { String(localized: "common_alcoholicDrink_label") }
         static var alcoholicDrinkExplanation: String { String(localized: "common_alcoholicDrink_explanation") }

@@ -35,7 +35,7 @@ struct FoodConsumedView: View {
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
-            Text("\(foodConsumed.calories) kcal")
+            Text(verbatim: "\(foodConsumed.calories) \(L10n.Common.unitKcal)")
                 .font(.callout)
                 .monospacedDigit()
                 .fixedSize(horizontal: true, vertical: false)

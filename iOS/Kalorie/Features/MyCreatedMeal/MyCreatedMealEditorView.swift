@@ -177,7 +177,7 @@ struct MyCreatedMealEditorView: View {
                         draft.gramsText.wrappedValue = sanitized
                     }
                 }
-            Text("g")
+            Text(draft.wrappedValue.item.measure.unitSymbol)
                 .foregroundStyle(.secondary)
         }
     }

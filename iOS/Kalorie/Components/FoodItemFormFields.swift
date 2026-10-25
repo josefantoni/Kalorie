@@ -27,13 +27,13 @@ struct FoodItemFormFields: View {
             measureRow
             BaseDoubleTextField(
                 title: L10n.AddFood.fieldEnergyKJ,
-                unit: "kJ",
+                unit: L10n.Common.unitKilojoules,
                 weight: doubleBinding(\.energyKJ, field: .energyKJ),
                 isHighlighted: highlightedFields.contains(.energyKJ)
             )
             BaseDoubleTextField(
                 title: formInput.measure == .grams ? L10n.AddFood.fieldCaloriesPer100g : L10n.AddFood.fieldCaloriesPer100ml,
-                unit: "kcal",
+                unit: L10n.Common.unitKcal,
                 weight: doubleBinding(\.caloriesPerHundredGrams, field: .calories),
                 isHighlighted: highlightedFields.contains(.calories)
             )

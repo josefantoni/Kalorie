@@ -29,7 +29,7 @@ struct MacroDonutView: View {
             VStack(spacing: 0) {
                 Text("\(calories)")
                     .font(.title3.bold())
-                Text("kcal")
+                Text(L10n.Common.unitKcal)
                     .font(.caption2)
             }
             .foregroundStyle(Color(.label))
