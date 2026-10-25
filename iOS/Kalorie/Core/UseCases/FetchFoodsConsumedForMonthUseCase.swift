@@ -35,7 +35,7 @@ struct FetchFoodsConsumedForMonthUseCase: FetchFoodsConsumedForMonthUseCaseProto
         let startOfNextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth) ?? startOfMonth.addingTimeInterval(Constants.Time.secondsPerDay * 31)
         let dtos: [FoodConsumedDTO] = try await dataProvider.loadAsync(
             from: Constants.Firestore.foodConsumed(userId: userId),
-            where: "date",
+            where: Constants.Firestore.Field.date,
             isGreaterThanOrEqualTo: startOfMonth.timeIntervalSince1970,
             isLessThan: startOfNextMonth.timeIntervalSince1970
         )

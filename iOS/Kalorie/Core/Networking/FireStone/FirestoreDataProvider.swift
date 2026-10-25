@@ -319,14 +319,14 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             let document = Firestore.firestore().collection(collection).document(documentId)
             do {
                 try await document.updateData([
-                    FieldPath(["entries", entryId, "item"]): itemData,
-                    FieldPath(["entries", entryId, "last_logged_at"]): lastLoggedAt,
-                    FieldPath(["entries", entryId, "count"]): FieldValue.increment(Int64(1))
+                    FieldPath([Constants.Firestore.FoodFrequency.entries, entryId, Constants.Firestore.FoodFrequency.item]): itemData,
+                    FieldPath([Constants.Firestore.FoodFrequency.entries, entryId, Constants.Firestore.FoodFrequency.lastLoggedAt]): lastLoggedAt,
+                    FieldPath([Constants.Firestore.FoodFrequency.entries, entryId, Constants.Firestore.FoodFrequency.count]): FieldValue.increment(Int64(1))
                 ])
             } catch {
                 guard error.matches(domain: FirestoreErrorDomain, code: FirestoreErrorCode.notFound.rawValue) else { throw error }
                 try await document.setData(
-                    ["entries": [entryId: ["item": itemData, "last_logged_at": lastLoggedAt, "count": 1]]],
+                    [Constants.Firestore.FoodFrequency.entries: [entryId: [Constants.Firestore.FoodFrequency.item: itemData, Constants.Firestore.FoodFrequency.lastLoggedAt: lastLoggedAt, Constants.Firestore.FoodFrequency.count: 1]]],
                     merge: true
                 )
             }
@@ -343,7 +343,7 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("🚀 DELETE \(ids.count) entries from \(collection)/\(documentId)")
             var fields: [AnyHashable: Any] = [:]
             for id in ids {
-                fields[FieldPath(["entries", id])] = FieldValue.delete()
+                fields[FieldPath([Constants.Firestore.FoodFrequency.entries, id])] = FieldValue.delete()
             }
             try await Firestore.firestore().collection(collection).document(documentId).updateData(fields)
             log("✅ DELETE \(ids.count) entries from \(collection)/\(documentId)")

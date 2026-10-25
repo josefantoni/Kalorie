@@ -31,7 +31,7 @@ struct FetchFavouriteFoodsUseCase: FetchFavouriteFoodsUseCaseProtocol {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let dtos: [FavouriteFoodDTO] = try await dataProvider.loadAsync(
             from: Constants.Firestore.favouriteFoods(userId: userId),
-            orderBy: "favourited_at",
+            orderBy: Constants.Firestore.Field.favouritedAt,
             descending: true,
             limit: 50
         )

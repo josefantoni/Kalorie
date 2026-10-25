@@ -30,7 +30,7 @@ struct FetchPendingSubmissionsUseCase: FetchPendingSubmissionsUseCaseProtocol {
     func callAsFunction() async throws -> [FoodItemSubmissionDomain] {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
         return try await FoodItemSubmissionFetcher.fetch(
-            where: "status",
+            where: Constants.Firestore.Field.status,
             isEqualTo: FoodItemSubmissionStatus.pending.rawValue,
             dataProvider: dataProvider
         )

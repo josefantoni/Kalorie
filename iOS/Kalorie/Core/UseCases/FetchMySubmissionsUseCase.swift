@@ -29,7 +29,7 @@ struct FetchMySubmissionsUseCase: FetchMySubmissionsUseCaseProtocol {
 
     func callAsFunction() async throws -> [FoodItemSubmissionDomain] {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        return try await FoodItemSubmissionFetcher.fetch(where: "submitted_by", isEqualTo: userId, dataProvider: dataProvider)
+        return try await FoodItemSubmissionFetcher.fetch(where: Constants.Firestore.Field.submittedBy, isEqualTo: userId, dataProvider: dataProvider)
     }
 }
 

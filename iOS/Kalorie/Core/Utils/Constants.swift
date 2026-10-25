@@ -14,8 +14,12 @@ enum Constants {
     }
 
     enum Auth {
+        static let appleProviderId = "apple.com"
+        static let googleProviderId = "google.com"
+        static let pendingMergeSnapshotFileName = "pending-merge.json"
         static let recentLoginThreshold: TimeInterval = 4 * 60
         static let maintainerClaimCacheTTL: TimeInterval = 5 * 60
+        static let maintainerClaim = "maintainer"
     }
 
     enum OpenFoodFacts {
@@ -24,6 +28,8 @@ enum Constants {
         static let requestTimeout: TimeInterval = 10
         static let maxAttempts = 3
         static let retryDelay: Duration = .milliseconds(500)
+        static let searchPageSize = 20
+        static let productFields = "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url"
         static var userAgent: String {
             let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
             return "Kalorie-iOS/\(version)"
@@ -61,7 +67,14 @@ enum Constants {
         static let productIds = ["tip_small", mediumProductId, largeProductId]
     }
 
+    enum DateFormat {
+        static let monthCacheKey = "yyyy-MM"
+        static let dayCacheKey = "yyyy-MM-dd"
+    }
+
     enum LogCategory {
+        static let subsystem = "antoni.Kalorie"
+        static let defaultCategory = "app"
         static let firestore = "firestore"
         static let storage = "storage"
         static let auth = "auth"
@@ -97,6 +110,28 @@ enum Constants {
         static let reportsPageLimit = 50
         static let reportReasonMaxLength = 500
         static let foodFrequencyDocumentId = "foodFrequency"
+
+        enum Field {
+            static let czNameFolded = "cz_name_folded"
+            static let engNameFolded = "eng_name_folded"
+            static let czNameSearchTerms = "cz_name_search_terms"
+            static let engNameSearchTerms = "eng_name_search_terms"
+            static let submittedBy = "submitted_by"
+            static let submittedAt = "submitted_at"
+            static let reportedBy = "reported_by"
+            static let reportedAt = "reported_at"
+            static let favouritedAt = "favourited_at"
+            static let updatedAt = "updated_at"
+            static let status = "status"
+            static let date = "date"
+        }
+
+        enum FoodFrequency {
+            static let entries = "entries"
+            static let item = "item"
+            static let lastLoggedAt = "last_logged_at"
+            static let count = "count"
+        }
         static func mealTypes(userId: String) -> String { "users/\(userId)/mealTypes" }
         static func foodConsumed(userId: String) -> String { "users/\(userId)/foodConsumed" }
         static func favouriteFoods(userId: String) -> String { "users/\(userId)/favouriteFoods" }

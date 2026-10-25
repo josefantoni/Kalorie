@@ -60,7 +60,7 @@ struct FetchMaintainerClaimUseCase: FetchMaintainerClaimUseCaseProtocol {
             return value
         }
         let result = try await user.getIDTokenResult(forcingRefresh: cache.entry != nil)
-        let isMaintainer = result.claims["maintainer"] as? Bool ?? false
+        let isMaintainer = result.claims[Constants.Auth.maintainerClaim] as? Bool ?? false
         cache.entry = MaintainerClaimCache.Entry(value: isMaintainer, cachedAt: .now, userId: user.uid)
         return isMaintainer
     }

@@ -507,12 +507,12 @@ final class DashboardViewModel: ObservableObject {
 
     @MainActor
     private func monthCacheKey(for date: Date) -> String {
-        date.formatCacheKey(with: "yyyy-MM")
+        date.formatCacheKey(with: Constants.DateFormat.monthCacheKey)
     }
 
     @MainActor
     private func dayCacheKey(for date: Date) -> String {
-        date.formatCacheKey(with: "yyyy-MM-dd")
+        date.formatCacheKey(with: Constants.DateFormat.dayCacheKey)
     }
 
     @MainActor

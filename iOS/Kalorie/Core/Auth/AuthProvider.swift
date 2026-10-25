@@ -64,8 +64,8 @@ struct AuthProvider: AuthProviderProtocol {
 
     private static func kind(forProviderId providerId: String) -> AuthProviderKind? {
         switch providerId {
-        case "apple.com": .apple
-        case "google.com": .google
+        case Constants.Auth.appleProviderId: .apple
+        case Constants.Auth.googleProviderId: .google
         default: nil
         }
     }

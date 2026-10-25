@@ -37,8 +37,8 @@ struct SearchFoodExternallyUseCase: SearchFoodExternallyUseCaseProtocol {
         components?.queryItems = [
             URLQueryItem(name: "search_terms", value: query),
             URLQueryItem(name: "json", value: "1"),
-            URLQueryItem(name: "page_size", value: "20"),
-            URLQueryItem(name: "fields", value: "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url")
+            URLQueryItem(name: "page_size", value: String(Constants.OpenFoodFacts.searchPageSize)),
+            URLQueryItem(name: "fields", value: Constants.OpenFoodFacts.productFields)
         ]
         guard let url = components?.url else { throw SearchFoodExternallyError.invalidURL }
         var request = URLRequest(url: url, timeoutInterval: Constants.OpenFoodFacts.requestTimeout)

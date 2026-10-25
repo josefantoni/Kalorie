@@ -20,7 +20,7 @@ enum FoodItemSubmissionFetcher {
             from: Constants.Firestore.foodItemSubmissions,
             where: field,
             isEqualTo: value,
-            orderBy: "submitted_at",
+            orderBy: Constants.Firestore.Field.submittedAt,
             descending: true
         )
         return dtos.map { $0.asDomain() }

@@ -33,25 +33,25 @@ struct SearchFoodItemsUseCase: SearchFoodItemsUseCaseProtocol {
         let foldedLastWord = searchQuery.lastWord
         async let byFoldedName: [FoodItemDTO] = dataProvider.loadAsync(
             from: Constants.Firestore.foodItems,
-            where: "cz_name_folded",
+            where: Constants.Firestore.Field.czNameFolded,
             hasPrefix: foldedQuery,
             limit: 10
         )
         async let byFoldedOriginalName: [FoodItemDTO] = dataProvider.loadAsync(
             from: Constants.Firestore.foodItems,
-            where: "eng_name_folded",
+            where: Constants.Firestore.Field.engNameFolded,
             hasPrefix: foldedQuery,
             limit: 10
         )
         async let byCzNameToken: [FoodItemDTO] = dataProvider.loadAsync(
             from: Constants.Firestore.foodItems,
-            where: "cz_name_search_terms",
+            where: Constants.Firestore.Field.czNameSearchTerms,
             arrayContains: foldedLastWord,
             limit: 10
         )
         async let byEngNameToken: [FoodItemDTO] = dataProvider.loadAsync(
             from: Constants.Firestore.foodItems,
-            where: "eng_name_search_terms",
+            where: Constants.Firestore.Field.engNameSearchTerms,
             arrayContains: foldedLastWord,
             limit: 10
         )
