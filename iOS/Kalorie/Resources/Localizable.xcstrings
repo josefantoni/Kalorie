@@ -31,6 +31,12 @@
             "state" : "translated",
             "value" : "This action can't be undone. All your data will be permanently deleted."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Túto akciu nie je možné vrátiť späť. Všetky tvoje dáta budú natrvalo zmazané."
+          }
         }
       }
     },
@@ -47,6 +53,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete account?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Naozaj zmazať účet?"
           }
         }
       }
@@ -65,6 +77,12 @@
             "state" : "translated",
             "value" : "You can now also sign in with Apple ID"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teraz sa môžeš prihlasovať aj cez Apple ID"
+          }
         }
       }
     },
@@ -81,6 +99,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You can now also sign in with Google"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teraz sa môžeš prihlasovať aj cez Google"
           }
         }
       }
@@ -99,6 +123,12 @@
             "state" : "translated",
             "value" : "Sign in required"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyžaduje sa prihlásenie"
+          }
         }
       }
     },
@@ -115,6 +145,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign out?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Naozaj sa odhlásiť?"
           }
         }
       }
@@ -133,6 +169,12 @@
             "state" : "translated",
             "value" : "You're not signed in. Your data is tied to this device — you may lose it if you switch devices."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie si prihlásený/á. Dáta sú viazané na toto zariadenie — pri jeho výmene o ne môžeš prísť."
+          }
         }
       }
     },
@@ -149,6 +191,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete account"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmazať účet"
           }
         }
       }
@@ -167,6 +215,12 @@
             "state" : "translated",
             "value" : "Link with Apple ID"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prepojiť s Apple ID"
+          }
         }
       }
     },
@@ -183,6 +237,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Link with Google"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prepojiť s Googlom"
           }
         }
       }
@@ -201,6 +261,12 @@
             "state" : "translated",
             "value" : "Sign in again"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prihlásiť sa znova"
+          }
         }
       }
     },
@@ -217,6 +283,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign in with Apple"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prihlásiť sa cez Apple"
           }
         }
       }
@@ -235,6 +307,12 @@
             "state" : "translated",
             "value" : "Sign in with Google"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prihlásiť sa cez Google"
+          }
         }
       }
     },
@@ -251,6 +329,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign out"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlásiť sa"
           }
         }
       }
@@ -269,6 +353,12 @@
             "state" : "translated",
             "value" : "Nutrition values of generic foods come from the ANSES Ciqual 2020 tables (CC BY 4.0). We modified them: converted to 100 ml, derived missing calories and added portions."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutričné hodnoty všeobecných potravín pochádzajú z tabuliek ANSES Ciqual 2020 (licencia CC BY 4.0). Hodnoty sme upravili: prepočítali sme ich na 100 ml, dopočítali chýbajúce kalórie a doplnili porcie."
+          }
         }
       }
     },
@@ -285,6 +375,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nutrition data and photos of some foods come from Open Food Facts. The data is available under the Open Database License, the photos under CC BY-SA."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutričné údaje a fotky niektorých potravín pochádzajú z Open Food Facts. Údaje sú dostupné pod licenciou Open Database License, fotky pod licenciou CC BY-SA."
           }
         }
       }
@@ -303,6 +399,12 @@
             "state" : "translated",
             "value" : "Your earlier entries are on an Apple-linked account. Please sign in with Apple to reach them."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvoje skoršie záznamy sú pri účte prepojenom s Apple ID. Na prístup k nim sa, prosím, prihlás cez Apple ID."
+          }
         }
       }
     },
@@ -319,6 +421,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your earlier entries are on a Google-linked account. Please sign in with Google to reach them."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvoje skoršie záznamy sú pri účte prepojenom s Googlom. Na prístup k nim sa, prosím, prihlás cez Google."
           }
         }
       }
@@ -337,6 +445,12 @@
             "state" : "translated",
             "value" : "Failed to delete account"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmazanie účtu sa nepodarilo"
+          }
         }
       }
     },
@@ -353,6 +467,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Please sign in again to delete your account."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na zmazanie účtu sa, prosím, znova prihlás."
           }
         }
       }
@@ -371,6 +491,12 @@
             "state" : "translated",
             "value" : "This sign-in method is already linked to your account."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Táto metóda prihlásenia je už k účtu pripojená."
+          }
         }
       }
     },
@@ -387,6 +513,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This sign-in already has its own Kalorie account. To link it here, sign in with it, delete that account, sign back in, and link it. Nothing has changed."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toto prihlásenie už má vlastný účet v Kalorie. Ak ho chceš prepojiť sem, prihlás sa ním, zmaž ten účet, prihlás sa späť a prepoj ho. Nič sa nezmenilo."
           }
         }
       }
@@ -405,6 +537,12 @@
             "state" : "translated",
             "value" : "The email of this sign-in belongs to another account. Nothing was linked."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "E-mail tohto prihlásenia patrí inému účtu. Nič sa neprepojilo."
+          }
         }
       }
     },
@@ -421,6 +559,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Moving your earlier entries has not finished yet. Please try again in a moment."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prenos tvojich skorších záznamov ešte neskončil. Skús to o chvíľu znova."
           }
         }
       }
@@ -439,6 +583,12 @@
             "state" : "translated",
             "value" : "No Google account on this device"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V zariadení nie je žiadny účet Google"
+          }
         }
       }
     },
@@ -455,6 +605,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign in failed"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prihlásenie sa nepodarilo"
           }
         }
       }
@@ -473,6 +629,12 @@
             "state" : "translated",
             "value" : "Sign out failed"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odhlásenie sa nepodarilo"
+          }
         }
       }
     },
@@ -489,6 +651,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose the account you are signed in with."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyber, prosím, rovnaký účet, s ktorým si v aplikácii prihlásený/á."
           }
         }
       }
@@ -507,6 +675,12 @@
             "state" : "translated",
             "value" : "You are signed in with Apple ID. If you like, you can also link Google and sign in either way."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si prihlásený/á cez Apple ID. Ak chceš, môžeš sa prepojiť aj s Googlom a prihlasovať sa oboma spôsobmi."
+          }
         }
       }
     },
@@ -523,6 +697,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your account is linked with both Apple ID and Google. You can sign in (even on another device) with whichever method you like."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvoj účet je prepojený s Apple ID aj s Googlom. Prihlasovať sa môžeš (pokojne aj na inom zariadení) ktoroukoľvek z týchto metód, ako sa ti práve hodí."
           }
         }
       }
@@ -541,6 +721,12 @@
             "state" : "translated",
             "value" : "You are signed in with a Google account. If you like, you can also link Apple ID and sign in either way."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si prihlásený/á cez účet Google. Ak chceš, môžeš sa prepojiť aj s Apple ID a prihlasovať sa oboma spôsobmi."
+          }
         }
       }
     },
@@ -557,6 +743,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Account"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Účet"
           }
         }
       }
@@ -575,6 +767,12 @@
             "state" : "translated",
             "value" : "Link"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prepojiť"
+          }
         }
       }
     },
@@ -592,6 +790,12 @@
             "state" : "translated",
             "value" : "Signed in"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prihlásený/á"
+          }
         }
       }
     },
@@ -605,6 +809,12 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple"
+          }
+        },
+        "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apple"
@@ -626,6 +836,12 @@
             "state" : "translated",
             "value" : "Google"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google"
+          }
         }
       }
     },
@@ -642,6 +858,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pridať"
           }
         }
       }
@@ -660,6 +882,12 @@
             "state" : "translated",
             "value" : "Add food manually"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pridať potravinu ručne"
+          }
         }
       }
     },
@@ -676,6 +904,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Or add the item manually"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alebo pridaj položku ručne"
           }
         }
       }
@@ -694,6 +928,12 @@
             "state" : "translated",
             "value" : "Open Settings"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otvoriť Nastavenia"
+          }
         }
       }
     },
@@ -710,6 +950,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scan nutrition label"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odfotiť nutričnú tabuľku"
           }
         }
       }
@@ -728,6 +974,12 @@
             "state" : "translated",
             "value" : "Please enable camera access in settings to scan barcodes. 🙁"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Povoľ v nastaveniach fotoaparát, bez neho nevieme skenovať čiarový kód. 🙁"
+          }
         }
       }
     },
@@ -744,6 +996,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This food has no barcode assigned. Do you really want to continue?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "K jedlu nemáte priradený čiarový kód. Naozaj chcete pokračovať?"
           }
         }
       }
@@ -762,6 +1020,12 @@
             "state" : "translated",
             "value" : "Withdraw this submission? You will also lose the rejection reason."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zrušiť túto položku na schválenie? Prídeš tým aj o dôvod zamietnutia."
+          }
         }
       }
     },
@@ -778,6 +1042,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No food found for this barcode"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravina s týmto čiarovým kódom sa nenašla"
           }
         }
       }
@@ -796,6 +1066,12 @@
             "state" : "translated",
             "value" : "Could not save favourite"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obľúbenú položku sa nepodarilo uložiť"
+          }
         }
       }
     },
@@ -812,6 +1088,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Invalid alcohol by volume"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neplatný obsah alkoholu"
           }
         }
       }
@@ -830,6 +1112,12 @@
             "state" : "translated",
             "value" : "Calories must be greater than zero"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalórie musia byť väčšie ako nula"
+          }
         }
       }
     },
@@ -846,6 +1134,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Invalid barcode"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neplatný čiarový kód"
           }
         }
       }
@@ -864,6 +1158,12 @@
             "state" : "translated",
             "value" : "Please check the entered name"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skontroluj zadaný názov"
+          }
         }
       }
     },
@@ -880,6 +1180,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Weight must be greater than zero"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hmotnosť musí byť väčšia ako nula"
           }
         }
       }
@@ -898,6 +1204,12 @@
             "state" : "translated",
             "value" : "A food item with this barcode already exists in the database"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravina s týmto čiarovým kódom už v databáze existuje"
+          }
         }
       }
     },
@@ -914,6 +1226,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to load results. Please try again."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodarilo sa načítať výsledky. Skús to, prosím, znova."
           }
         }
       }
@@ -932,6 +1250,12 @@
             "state" : "translated",
             "value" : "Could not withdraw the submission"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Položku sa nepodarilo zrušiť"
+          }
         }
       }
     },
@@ -948,6 +1272,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alcohol"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alkohol"
           }
         }
       }
@@ -966,6 +1296,12 @@
             "state" : "translated",
             "value" : "no barcode"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bez čiarového kódu"
+          }
         }
       }
     },
@@ -982,6 +1318,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Food barcode"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čiarový kód potraviny"
           }
         }
       }
@@ -1000,6 +1342,12 @@
             "state" : "translated",
             "value" : "Calories per 100g"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalórie na 100 gramov"
+          }
         }
       }
     },
@@ -1016,6 +1364,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Calories per 100ml"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalórie na 100 mililitrov"
           }
         }
       }
@@ -1034,6 +1388,12 @@
             "state" : "translated",
             "value" : "Carbohydrates"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sacharidy"
+          }
         }
       }
     },
@@ -1050,6 +1410,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "of which sugars"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho cukry"
           }
         }
       }
@@ -1068,6 +1434,12 @@
             "state" : "translated",
             "value" : "Energy (kJ) per 100g"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Energia (kJ) na 100 g"
+          }
         }
       }
     },
@@ -1084,6 +1456,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fat"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuky"
           }
         }
       }
@@ -1102,6 +1480,12 @@
             "state" : "translated",
             "value" : "of which saturates"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho nasýtené"
+          }
         }
       }
     },
@@ -1118,6 +1502,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "of which unsaturated"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho nenasýtené"
           }
         }
       }
@@ -1136,6 +1526,12 @@
             "state" : "translated",
             "value" : "Fibre"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vláknina"
+          }
         }
       }
     },
@@ -1152,6 +1548,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nutrition per"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nutričné hodnoty na"
           }
         }
       }
@@ -1170,6 +1572,12 @@
             "state" : "translated",
             "value" : "Low-fat cottage cheese"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvaroh nízkotučný"
+          }
         }
       }
     },
@@ -1186,6 +1594,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Food name"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Názov potraviny"
           }
         }
       }
@@ -1204,6 +1618,12 @@
             "state" : "translated",
             "value" : "Protein"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bielkoviny"
+          }
         }
       }
     },
@@ -1220,6 +1640,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Salt"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soľ"
           }
         }
       }
@@ -1238,6 +1664,12 @@
             "state" : "translated",
             "value" : "Weight"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hmotnosť"
+          }
         }
       }
     },
@@ -1254,6 +1686,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "My meal"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlastné jedlo"
           }
         }
       }
@@ -1272,6 +1710,12 @@
             "state" : "translated",
             "value" : "New food"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nová potravina"
+          }
         }
       }
     },
@@ -1288,6 +1732,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Search"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hľadať"
           }
         }
       }
@@ -1306,6 +1756,12 @@
             "state" : "translated",
             "value" : "Add food to catalogue"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pridať potravinu do katalógu"
+          }
         }
       }
     },
@@ -1322,6 +1778,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Search catalogue"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hľadať v katalógu"
           }
         }
       }
@@ -1340,6 +1802,12 @@
             "state" : "translated",
             "value" : "Scan barcode"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Naskenovať čiarový kód"
+          }
         }
       }
     },
@@ -1356,6 +1824,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Point the camera at the nutrition table"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Namier kameru na nutričnú tabuľku"
           }
         }
       }
@@ -1374,6 +1848,12 @@
             "state" : "translated",
             "value" : "Reading the nutrition table needs camera access enabled in Settings."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na čítanie nutričnej tabuľky je potrebné povoliť prístup ku kamere v Nastaveniach."
+          }
         }
       }
     },
@@ -1390,6 +1870,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No nutrition table found in the photo. Photograph the table on the back of the packaging."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na fotke sa nepodarilo nájsť nutričnú tabuľku. Odfoť tabuľku na zadnej strane obalu."
           }
         }
       }
@@ -1408,6 +1894,12 @@
             "state" : "translated",
             "value" : "Photograph the nutrition table on the packaging, then check the values."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odfoťte nutričnú tabuľku na obale, potom skontrolujte hodnoty."
+          }
         }
       }
     },
@@ -1424,6 +1916,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This device cannot scan the nutrition table."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toto zariadenie nevie skenovať nutričnú tabuľku."
           }
         }
       }
@@ -1442,6 +1940,12 @@
             "state" : "translated",
             "value" : "apple 🍎"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jablko 🍎"
+          }
         }
       }
     },
@@ -1458,6 +1962,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "banana 🍌"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "banán 🍌"
           }
         }
       }
@@ -1476,6 +1986,12 @@
             "state" : "translated",
             "value" : "bread 🍞"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "chlieb 🍞"
+          }
         }
       }
     },
@@ -1492,6 +2008,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "egg 🥚"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vajce 🥚"
           }
         }
       }
@@ -1510,6 +2032,12 @@
             "state" : "translated",
             "value" : "chicken breast 🍗"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kuracie prsia 🍗"
+          }
         }
       }
     },
@@ -1526,6 +2054,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "yogurt 🥛"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jogurt 🥛"
           }
         }
       }
@@ -1544,6 +2078,12 @@
             "state" : "translated",
             "value" : "broccoli 🥦"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "brokolica 🥦"
+          }
         }
       }
     },
@@ -1560,6 +2100,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "pasta 🍝"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cestoviny 🍝"
           }
         }
       }
@@ -1578,6 +2124,12 @@
             "state" : "translated",
             "value" : "Search for food … try %@"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hľadaj potravinu … napríklad %@"
+          }
         }
       }
     },
@@ -1594,6 +2146,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Online results"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Online výsledky"
           }
         }
       }
@@ -1612,6 +2170,12 @@
             "state" : "translated",
             "value" : "Favourites"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obľúbené"
+          }
         }
       }
     },
@@ -1628,6 +2192,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "My meals"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vlastné jedlá"
           }
         }
       }
@@ -1646,6 +2216,12 @@
             "state" : "translated",
             "value" : "My submissions"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moje návrhy"
+          }
         }
       }
     },
@@ -1662,6 +2238,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Search results"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyhľadané jedlá"
           }
         }
       }
@@ -1680,6 +2262,12 @@
             "state" : "translated",
             "value" : "Waiting for approval"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čaká na schválenie"
+          }
         }
       }
     },
@@ -1696,6 +2284,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rejected"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamietnuté"
           }
         }
       }
@@ -1714,6 +2308,12 @@
             "state" : "translated",
             "value" : "Rejected: %@"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamietnuté: %@"
+          }
         }
       }
     },
@@ -1730,6 +2330,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Submitted for approval"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odoslané na schválenie"
           }
         }
       }
@@ -1748,6 +2354,12 @@
             "state" : "translated",
             "value" : "We've sent what you entered to the maintainer for approval. Until then, the item won't be visible in the food catalogue. You'll find its status under \"My submissions\" the next time you open Add food."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadané údaje sme odoslali správcovi na schválenie. Dovtedy nebude položka v katalógu potravín viditeľná. Stav nájdeš v sekcii „Moje návrhy“, keď nabudúce otvoríš pridanie potraviny."
+          }
         }
       }
     },
@@ -1764,6 +2376,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A barcode is optional. With one, you can find this item by scanning next time."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čiarový kód nie je povinný. S ním sa dá potravina nabudúce nájsť skenerom."
           }
         }
       }
@@ -1782,6 +2400,12 @@
             "state" : "translated",
             "value" : "Try again"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skúsiť znova"
+          }
         }
       }
     },
@@ -1798,6 +2422,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign in failed"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prihlásenie sa nepodarilo"
           }
         }
       }
@@ -1816,6 +2446,12 @@
             "state" : "translated",
             "value" : "Merging this device's data into your account…"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zlučujeme dáta z tohto zariadenia s tvojím účtom…"
+          }
         }
       }
     },
@@ -1832,6 +2468,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alcoholic drinks don't have to list nutrition values on the label. Carbohydrates and protein may therefore come from other sources or be missing."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alkoholické nápoje nemusia na etikete uvádzať nutričné hodnoty. Sacharidy a bielkoviny preto môžu pochádzať z iných zdrojov alebo chýbať."
           }
         }
       }
@@ -1850,6 +2492,12 @@
             "state" : "translated",
             "value" : "Alcoholic drink"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alkoholický nápoj"
+          }
         }
       }
     },
@@ -1866,6 +2514,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancel"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zrušiť"
           }
         }
       }
@@ -1884,6 +2538,12 @@
             "state" : "translated",
             "value" : "Delete"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmazať"
+          }
         }
       }
     },
@@ -1900,6 +2560,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Done"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotovo"
           }
         }
       }
@@ -1918,6 +2584,12 @@
             "state" : "translated",
             "value" : "Favourite"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obľúbené"
+          }
         }
       }
     },
@@ -1934,6 +2606,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie"
           }
         }
       }
@@ -1952,6 +2630,12 @@
             "state" : "translated",
             "value" : "Yes"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áno"
+          }
         }
       }
     },
@@ -1968,6 +2652,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't reach the server."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nepodarilo sa pripojiť k serveru."
           }
         }
       }
@@ -1986,6 +2676,12 @@
             "state" : "translated",
             "value" : "Check your connection and try again."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skontroluj pripojenie na internet a skús to znova."
+          }
         }
       }
     },
@@ -2002,6 +2698,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "An unknown error occurred"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastala neznáma chyba"
           }
         }
       }
@@ -2020,6 +2722,12 @@
             "state" : "translated",
             "value" : "Please try again in a moment."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skús to, prosím, o chvíľu znova."
+          }
         }
       }
     },
@@ -2036,6 +2744,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dobre"
           }
         }
       }
@@ -2054,6 +2768,12 @@
             "state" : "translated",
             "value" : "Privacy policy"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zásady ochrany osobných údajov"
+          }
         }
       }
     },
@@ -2067,6 +2787,12 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "g"
+          }
+        },
+        "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "g"
@@ -2088,6 +2814,12 @@
             "state" : "translated",
             "value" : "kcal"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kcal"
+          }
         }
       }
     },
@@ -2101,6 +2833,12 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kJ"
+          }
+        },
+        "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "kJ"
@@ -2122,6 +2860,12 @@
             "state" : "translated",
             "value" : "ml"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ml"
+          }
         }
       }
     },
@@ -2138,6 +2882,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copy meal"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopírovať jedlo"
           }
         }
       }
@@ -2156,6 +2906,12 @@
             "state" : "translated",
             "value" : "Settings"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nastavenia"
+          }
         }
       }
     },
@@ -2172,6 +2928,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete this food entry?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmazať tento záznam jedla?"
           }
         }
       }
@@ -2190,6 +2952,12 @@
             "state" : "translated",
             "value" : "Copy"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopírovať"
+          }
         }
       }
     },
@@ -2206,6 +2974,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Day"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deň"
           }
         }
       }
@@ -2224,6 +2998,12 @@
             "state" : "translated",
             "value" : "Meal"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedlo"
+          }
         }
       }
     },
@@ -2240,6 +3020,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Food from %@ will be copied to"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedlo zo sekcie %@ sa skopíruje do"
           }
         }
       }
@@ -2258,6 +3044,12 @@
             "state" : "translated",
             "value" : "Add food"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pridať jedlo"
+          }
         }
       }
     },
@@ -2274,6 +3066,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You haven't eaten anything today, let's add some food."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ešte ste dnes nič nezjedli, pridajme nejaké jedlo."
           }
         }
       }
@@ -2292,6 +3090,12 @@
             "state" : "translated",
             "value" : "Records don't exist yet — but feel free to help them along today."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Záznamy ešte len vzniknú — ale pokojne im dnes pomôž."
+          }
         }
       }
     },
@@ -2308,6 +3112,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Go back and add some food! 🚀"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Späť do minulosti pridaním jedla! 🚀"
           }
         }
       }
@@ -2326,6 +3136,12 @@
             "state" : "translated",
             "value" : "No food records"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žiadne záznamy jedál"
+          }
         }
       }
     },
@@ -2342,6 +3158,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Planning meals for the future?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plánuješ jedlo do budúcnosti?"
           }
         }
       }
@@ -2360,6 +3182,12 @@
             "state" : "translated",
             "value" : "No food eaten."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žiadne zjedené jedlo."
+          }
         }
       }
     },
@@ -2376,6 +3204,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't copy the food."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedlo sa nepodarilo skopírovať."
           }
         }
       }
@@ -2394,6 +3228,12 @@
             "state" : "translated",
             "value" : "Could not delete the food"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravinu sa nepodarilo zmazať"
+          }
         }
       }
     },
@@ -2410,6 +3250,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not move the food"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potravinu sa nepodarilo presunúť"
           }
         }
       }
@@ -2428,6 +3274,12 @@
             "state" : "translated",
             "value" : "Other unassigned foods"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatné nezaradené jedlá"
+          }
         }
       }
     },
@@ -2444,6 +3296,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign in"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prihlásiť sa"
           }
         }
       }
@@ -2462,6 +3320,12 @@
             "state" : "translated",
             "value" : "Once you sign in, your diary survives losing or replacing your phone, and you can open it on another device."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Po prihlásení ti denník zostane zachovaný, aj keď telefón stratíš alebo vymeníš, a nájdeš ho aj na inom zariadení."
+          }
         }
       }
     },
@@ -2478,6 +3342,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keep your diary safe"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ochráň si svoj denník"
           }
         }
       }
@@ -2496,6 +3366,12 @@
             "state" : "translated",
             "value" : "Breakfast"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raňajky"
+          }
         }
       }
     },
@@ -2512,6 +3388,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dinner"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Večera"
           }
         }
       }
@@ -2530,6 +3412,12 @@
             "state" : "translated",
             "value" : "Lunch"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obed"
+          }
         }
       }
     },
@@ -2546,6 +3434,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Second breakfast"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Druhé raňajky"
           }
         }
       }
@@ -2564,6 +3458,12 @@
             "state" : "translated",
             "value" : "Snack"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desiata"
+          }
         }
       }
     },
@@ -2580,6 +3480,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Export"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportovať"
           }
         }
       }
@@ -2598,6 +3504,12 @@
             "state" : "translated",
             "value" : "Amount"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Množstvo"
+          }
         }
       }
     },
@@ -2611,6 +3523,12 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kcal"
+          }
+        },
+        "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "kcal"
@@ -2632,6 +3550,12 @@
             "state" : "translated",
             "value" : "Carbohydrate"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sacharidy"
+          }
         }
       }
     },
@@ -2645,6 +3569,12 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kJ"
+          }
+        },
+        "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "kJ"
@@ -2666,6 +3596,12 @@
             "state" : "translated",
             "value" : "Fat"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuky"
+          }
         }
       }
     },
@@ -2682,6 +3618,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fibre"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vláknina"
           }
         }
       }
@@ -2700,6 +3642,12 @@
             "state" : "translated",
             "value" : "Food"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedlo"
+          }
         }
       }
     },
@@ -2716,6 +3664,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Protein"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bielkoviny"
           }
         }
       }
@@ -2734,6 +3688,12 @@
             "state" : "translated",
             "value" : "Salt"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soľ"
+          }
         }
       }
     },
@@ -2750,6 +3710,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "of which saturated"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho nasýtené"
           }
         }
       }
@@ -2768,6 +3734,12 @@
             "state" : "translated",
             "value" : "of which sugars"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho cukry"
+          }
         }
       }
     },
@@ -2784,6 +3756,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "of which unsaturated"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z toho nenasýtené"
           }
         }
       }
@@ -2802,6 +3780,12 @@
             "state" : "translated",
             "value" : "From"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Od"
+          }
         }
       }
     },
@@ -2819,6 +3803,12 @@
             "state" : "translated",
             "value" : "To"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do"
+          }
         }
       }
     },
@@ -2832,6 +3822,12 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excel"
+          }
+        },
+        "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Excel"
@@ -2853,6 +3849,12 @@
             "state" : "translated",
             "value" : "PDF"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF"
+          }
         }
       }
     },
@@ -2866,6 +3868,12 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export"
+          }
+        },
+        "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Export"
@@ -2887,6 +3895,12 @@
             "state" : "translated",
             "value" : "Format"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formát"
+          }
         }
       }
     },
@@ -2903,6 +3917,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Day total"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spolu za deň"
           }
         }
       }
@@ -2921,6 +3941,12 @@
             "state" : "translated",
             "value" : "No entries"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žiadne záznamy"
+          }
         }
       }
     },
@@ -2937,6 +3963,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Subtotal"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medzisúčet"
           }
         }
       }
@@ -2955,6 +3987,12 @@
             "state" : "translated",
             "value" : "Food diary: %@"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedálny lístok: %@"
+          }
         }
       }
     },
@@ -2971,6 +4009,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložiť"
           }
         }
       }
@@ -2989,6 +4033,12 @@
             "state" : "translated",
             "value" : "Meal"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaradenie"
+          }
         }
       }
     },
@@ -3005,6 +4055,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logged at"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čas zápisu"
           }
         }
       }
@@ -3023,6 +4079,12 @@
             "state" : "translated",
             "value" : "By time"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podľa času"
+          }
         }
       }
     },
@@ -3039,6 +4101,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Describe what's incorrect about this item"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opíšte, čo je pri položke zle"
           }
         }
       }
@@ -3057,6 +4125,12 @@
             "state" : "translated",
             "value" : "What's wrong?"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čo je zle?"
+          }
         }
       }
     },
@@ -3073,6 +4147,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Already reported"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Už nahlásené"
           }
         }
       }
@@ -3091,6 +4171,12 @@
             "state" : "translated",
             "value" : "Report incorrect data"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nahlásiť chybný údaj"
+          }
         }
       }
     },
@@ -3107,6 +4193,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Send"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odoslať"
           }
         }
       }
@@ -3125,6 +4217,12 @@
             "state" : "translated",
             "value" : "Please describe what's wrong"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napíšte, prosím, čo je zle"
+          }
         }
       }
     },
@@ -3141,6 +4239,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keep the description under 500 characters"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skráťte opis na 500 znakov"
           }
         }
       }
@@ -3159,6 +4263,12 @@
             "state" : "translated",
             "value" : "Enlarge photo"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zväčšiť fotku"
+          }
         }
       }
     },
@@ -3175,6 +4285,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Retake photo"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odfotiť znova"
           }
         }
       }
@@ -3193,6 +4309,12 @@
             "state" : "translated",
             "value" : "Choose from library"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vybrať z galérie"
+          }
         }
       }
     },
@@ -3209,6 +4331,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show photo"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobraziť fotku"
           }
         }
       }
@@ -3227,6 +4355,12 @@
             "state" : "translated",
             "value" : "Take photo"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odfotiť"
+          }
         }
       }
     },
@@ -3243,6 +4377,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add a product photo"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pridajte fotku produktu"
           }
         }
       }
@@ -3261,6 +4401,12 @@
             "state" : "translated",
             "value" : "The photo could not be uploaded. Try again."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotku sa nepodarilo nahrať. Skúste to znova."
+          }
         }
       }
     },
@@ -3277,6 +4423,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Product photo"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fotka produktu"
           }
         }
       }
@@ -3295,6 +4447,12 @@
             "state" : "translated",
             "value" : "Add portion"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pridať porciu"
+          }
         }
       }
     },
@@ -3311,6 +4469,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enter a weight greater than 0"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadajte gramáž väčšiu ako 0"
           }
         }
       }
@@ -3329,6 +4493,12 @@
             "state" : "translated",
             "value" : "Enter a portion name"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadajte názov porcie"
+          }
         }
       }
     },
@@ -3345,6 +4515,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You can add at most 20 portions"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Môžete pridať najviac 20 porcií"
           }
         }
       }
@@ -3363,6 +4539,12 @@
             "state" : "translated",
             "value" : "Name (e.g. 1 package)"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Názov (napr. 1 balenie)"
+          }
         }
       }
     },
@@ -3379,6 +4561,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 package"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 balenie"
           }
         }
       }
@@ -3397,6 +4585,12 @@
             "state" : "translated",
             "value" : "1 piece"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 kus"
+          }
         }
       }
     },
@@ -3413,6 +4607,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 tbsp"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 lyžica"
           }
         }
       }
@@ -3431,6 +4631,12 @@
             "state" : "translated",
             "value" : "Portions"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porcie"
+          }
         }
       }
     },
@@ -3447,6 +4653,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pridať"
           }
         }
       }
@@ -3465,6 +4677,12 @@
             "state" : "translated",
             "value" : "My portions"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moje porcie"
+          }
         }
       }
     },
@@ -3481,6 +4699,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Amount must be greater than zero"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Množstvo musí byť väčšie ako nula"
           }
         }
       }
@@ -3499,6 +4723,12 @@
             "state" : "translated",
             "value" : "Amount"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Množstvo"
+          }
         }
       }
     },
@@ -3515,6 +4745,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Meal"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaradenie"
           }
         }
       }
@@ -3533,6 +4769,12 @@
             "state" : "translated",
             "value" : "Calories"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalórie"
+          }
         }
       }
     },
@@ -3549,6 +4791,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Carbohydrates"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sacharidy"
           }
         }
       }
@@ -3567,6 +4815,12 @@
             "state" : "translated",
             "value" : "Fat"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuky"
+          }
         }
       }
     },
@@ -3583,6 +4837,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fibre"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vláknina"
           }
         }
       }
@@ -3601,6 +4861,12 @@
             "state" : "translated",
             "value" : "Protein"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bielkoviny"
+          }
         }
       }
     },
@@ -3617,6 +4883,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "By time"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podľa času"
           }
         }
       }
@@ -3635,6 +4907,12 @@
             "state" : "translated",
             "value" : "Nutrition"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Výživa"
+          }
         }
       }
     },
@@ -3648,6 +4926,12 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 g"
+          }
+        },
+        "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 g"
@@ -3669,6 +4953,12 @@
             "state" : "translated",
             "value" : "100 g"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 g"
+          }
         }
       }
     },
@@ -3686,6 +4976,12 @@
             "state" : "translated",
             "value" : "100 ml"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "100 ml"
+          }
         }
       }
     },
@@ -3699,6 +4995,12 @@
           }
         },
         "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 ml"
+          }
+        },
+        "sk" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 ml"
@@ -3726,6 +5028,12 @@
             "state" : "translated",
             "value" : "Approve"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schváliť"
+          }
         }
       }
     },
@@ -3742,6 +5050,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reject"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamietnuť"
           }
         }
       }
@@ -3760,6 +5074,12 @@
             "state" : "translated",
             "value" : "Resolved"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vyriešené"
+          }
         }
       }
     },
@@ -3776,6 +5096,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložiť"
           }
         }
       }
@@ -3794,6 +5120,12 @@
             "state" : "translated",
             "value" : "Barcode"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Čiarový kód"
+          }
         }
       }
     },
@@ -3810,6 +5142,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Edit catalogue item"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Úprava položky"
           }
         }
       }
@@ -3828,6 +5166,12 @@
             "state" : "translated",
             "value" : "An item with this code is already in the catalogue"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Položka s týmto kódom už v katalógu je"
+          }
         }
       }
     },
@@ -3844,6 +5188,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This submission was already resolved by another maintainer"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Túto žiadosť už vybavil iný správca"
           }
         }
       }
@@ -3862,6 +5212,12 @@
             "state" : "translated",
             "value" : "The submission changed since you opened it — review it again"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Používateľ žiadosť medzitým upravil, skontrolujte ju znova"
+          }
         }
       }
     },
@@ -3878,6 +5234,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This item changed since you loaded it — search again to see the latest version"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Položka sa medzitým zmenila, načítajte ju znova"
           }
         }
       }
@@ -3896,6 +5258,12 @@
             "state" : "translated",
             "value" : "Enter a reason for the rejection"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uveďte dôvod zamietnutia"
+          }
         }
       }
     },
@@ -3912,6 +5280,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This barcode is already in the catalogue"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tento čiarový kód už v katalógu je"
           }
         }
       }
@@ -3930,6 +5304,12 @@
             "state" : "translated",
             "value" : "Nothing to review"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žiadne položky na schválenie"
+          }
         }
       }
     },
@@ -3946,6 +5326,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pending review"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na schválenie"
           }
         }
       }
@@ -3964,6 +5350,12 @@
             "state" : "translated",
             "value" : "Reason for rejection"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dôvod zamietnutia"
+          }
         }
       }
     },
@@ -3980,6 +5372,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reported %lld×"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld× nahlásené"
           }
         }
       }
@@ -3998,6 +5396,12 @@
             "state" : "translated",
             "value" : "No reports"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žiadne nahlásenia"
+          }
         }
       }
     },
@@ -4014,6 +5418,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reports"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nahlásenia"
           }
         }
       }
@@ -4032,6 +5442,12 @@
             "state" : "translated",
             "value" : "Moderation"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moderácia"
+          }
         }
       }
     },
@@ -4048,6 +5464,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No similar items in the catalogue"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Žiadne podobné položky v katalógu"
           }
         }
       }
@@ -4066,6 +5488,12 @@
             "state" : "translated",
             "value" : "Similar catalogue items"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podobné položky v katalógu"
+          }
         }
       }
     },
@@ -4082,6 +5510,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete meal"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmazať jedlo"
           }
         }
       }
@@ -4100,6 +5534,12 @@
             "state" : "translated",
             "value" : "Edit meal"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upraviť jedlo"
+          }
         }
       }
     },
@@ -4116,6 +5556,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložiť"
           }
         }
       }
@@ -4134,6 +5580,12 @@
             "state" : "translated",
             "value" : "Create this meal?"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vytvoriť toto jedlo?"
+          }
         }
       }
     },
@@ -4150,6 +5602,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete this meal?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmazať toto jedlo?"
           }
         }
       }
@@ -4168,6 +5626,12 @@
             "state" : "translated",
             "value" : "Save changes?"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložiť zmeny?"
+          }
         }
       }
     },
@@ -4184,6 +5648,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not delete the meal"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedlo sa nepodarilo zmazať"
           }
         }
       }
@@ -4202,6 +5672,12 @@
             "state" : "translated",
             "value" : "Could not save the meal"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedlo sa nepodarilo uložiť"
+          }
         }
       }
     },
@@ -4218,6 +5694,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Homemade tortilla"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domáca tortilla"
           }
         }
       }
@@ -4236,6 +5718,12 @@
             "state" : "translated",
             "value" : "Meal name"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Názov jedla"
+          }
         }
       }
     },
@@ -4252,6 +5740,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add food … try %@"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pridaj potravinu … napríklad %@"
           }
         }
       }
@@ -4270,6 +5764,12 @@
             "state" : "translated",
             "value" : "Food catalogue"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Katalóg potravín"
+          }
         }
       }
     },
@@ -4286,6 +5786,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ingredients"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potraviny"
           }
         }
       }
@@ -4304,6 +5810,12 @@
             "state" : "translated",
             "value" : "Edit meal"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upraviť vlastné jedlo"
+          }
         }
       }
     },
@@ -4320,6 +5832,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New meal"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zostav vlastné jedlo"
           }
         }
       }
@@ -4338,6 +5856,12 @@
             "state" : "translated",
             "value" : "Save"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložiť"
+          }
         }
       }
     },
@@ -4354,6 +5878,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You have not yet recorded any personal portion for this food item."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatiaľ nemáte evidovanú žiadnu vlastnú porciu pre danú potravinu alebo jedlo."
           }
         }
       }
@@ -4372,6 +5902,12 @@
             "state" : "translated",
             "value" : "Could not delete the portion"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porciu sa nepodarilo zmazať"
+          }
         }
       }
     },
@@ -4388,6 +5924,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not save the portion"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porciu sa nepodarilo uložiť"
           }
         }
       }
@@ -4406,6 +5948,12 @@
             "state" : "translated",
             "value" : "My portions"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moje porcie"
+          }
         }
       }
     },
@@ -4422,6 +5970,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Create"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vytvoriť"
           }
         }
       }
@@ -4440,6 +5994,12 @@
             "state" : "translated",
             "value" : "Edit"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upraviť"
+          }
         }
       }
     },
@@ -4456,6 +6016,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Done"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hotovo"
           }
         }
       }
@@ -4474,6 +6040,12 @@
             "state" : "translated",
             "value" : "Feedback"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spätná väzba"
+          }
         }
       }
     },
@@ -4490,6 +6062,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Support development"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podporiť vývoj"
           }
         }
       }
@@ -4508,6 +6086,12 @@
             "state" : "translated",
             "value" : "From"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Od"
+          }
         }
       }
     },
@@ -4524,6 +6108,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "To"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do"
           }
         }
       }
@@ -4542,6 +6132,12 @@
             "state" : "translated",
             "value" : "An error occurred while deleting"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pri mazaní nastala chyba"
+          }
         }
       }
     },
@@ -4558,6 +6154,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Meal name must be unique"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Názov jedla musí byť jedinečný"
           }
         }
       }
@@ -4576,6 +6178,12 @@
             "state" : "translated",
             "value" : "Minimum meal duration is 30 minutes"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minimálna dĺžka jedla je 30 minút"
+          }
         }
       }
     },
@@ -4592,6 +6200,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enter a meal name"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadaj názov jedla"
           }
         }
       }
@@ -4610,6 +6224,12 @@
             "state" : "translated",
             "value" : "You should eat at least once a day 🍳😉"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aspoň raz denne by si sa mal/a najesť 🍳😉"
+          }
         }
       }
     },
@@ -4626,6 +6246,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The entered time overlaps with another meal category"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadaný čas sa prekrýva s inou kategóriou jedla"
           }
         }
       }
@@ -4644,6 +6270,12 @@
             "state" : "translated",
             "value" : "An unexpected error occurred"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastala neočakávaná chyba"
+          }
         }
       }
     },
@@ -4660,6 +6292,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copy address"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopírovať adresu"
           }
         }
       }
@@ -4678,6 +6316,12 @@
             "state" : "translated",
             "value" : "No mail app is set up on this device. Please write to us at %@."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "V zariadení nie je nastavená žiadna poštová aplikácia. Napíšte nám, prosím, na adresu %@."
+          }
         }
       }
     },
@@ -4694,6 +6338,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Couldn't open Mail"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poštu sa nepodarilo otvoriť"
           }
         }
       }
@@ -4712,6 +6362,12 @@
             "state" : "translated",
             "value" : "What about second breakfast … 🧐?"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jedny raňajky snáď, ale čo druhé … 🧐?"
+          }
         }
       }
     },
@@ -4728,6 +6384,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Settings"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavenia"
           }
         }
       }
@@ -4746,6 +6408,12 @@
             "state" : "translated",
             "value" : "Meal layout"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozloženie jedál"
+          }
         }
       }
     },
@@ -4762,6 +6430,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Other"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatné"
           }
         }
       }
@@ -4780,6 +6454,12 @@
             "state" : "translated",
             "value" : "The app is free and ad-free"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikácia je zadarmo a bez reklám"
+          }
         }
       }
     },
@@ -4796,6 +6476,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tips could not be loaded right now. Please try again later."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Príspevky sa teraz nedajú načítať. Skús to, prosím, neskôr."
           }
         }
       }
@@ -4814,6 +6500,12 @@
             "state" : "translated",
             "value" : "The payment failed. You have not been charged."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Platba sa nepodarila. Nič ti nebolo stiahnuté."
+          }
         }
       }
     },
@@ -4830,6 +6522,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The app is free and ad-free. If it helps you, you can voluntarily chip in towards running and developing it. Nothing is unlocked by it."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aplikácia je zadarmo a bez reklám. Ak ti pomáha, môžeš dobrovoľne prispieť na jej prevádzku a ďalší vývoj. Nič sa tým neodomkne."
           }
         }
       }
@@ -4848,6 +6546,12 @@
             "state" : "translated",
             "value" : "The payment is pending. It will complete once the store confirms it."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Platba čaká na schválenie. Dokončí sa, hneď ako ju obchod potvrdí."
+          }
         }
       }
     },
@@ -4864,6 +6568,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Grandma cooked"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stará mama navarila"
           }
         }
       }
@@ -4882,6 +6592,12 @@
             "state" : "translated",
             "value" : "A slightly bigger lunch"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trošku väčší obedík"
+          }
         }
       }
     },
@@ -4898,6 +6614,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A snack"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desiata"
           }
         }
       }
@@ -4916,6 +6638,12 @@
             "state" : "translated",
             "value" : "Enjoy your meal!"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dobrú chuť!"
+          }
         }
       }
     },
@@ -4932,6 +6660,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Grandma has arrived to fatten me up. Apparently I look skinny again! 😊 Thank you."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stará mama prišla na vykŕmenie. Vraj zasa vyzerám nejako schudnutý! 😊 Ďakujem."
           }
         }
       }
@@ -4950,6 +6684,12 @@
             "state" : "translated",
             "value" : "Wow, that's shaping up to be a proper lunch. Breakfast was just coffee! 😊 Thank you."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ty jo, toto už bude na pekný obed. Na raňajky bola len káva! 😊 Ďakujem."
+          }
         }
       }
     },
@@ -4966,6 +6706,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This one's going towards a sandwich! Even a programmer gets hungry and can't live on coffee alone! 😊 Thank you."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To bude na obložený chlebík! Aj programátor je človek hladný a nemôže žiť len z kávy! 😊 Ďakujem."
           }
         }
       }
@@ -4984,6 +6730,12 @@
             "state" : "translated",
             "value" : "Update"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualizovať"
+          }
         }
       }
     },
@@ -5001,6 +6753,12 @@
             "state" : "translated",
             "value" : "This version of the app is no longer supported. Please install the update from the store to continue."
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Táto verzia aplikácie už nie je podporovaná. Ak chceš pokračovať, nainštaluj si, prosím, aktualizáciu z obchodu."
+          }
         }
       }
     },
@@ -5017,6 +6775,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Update required"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je potrebná aktualizácia"
           }
         }
       }

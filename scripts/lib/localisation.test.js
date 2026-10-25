@@ -4,14 +4,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { generateAndroidStrings, generateXcstrings } = require('./localisation');
 
-function entry(cs, en = cs) {
-  return { cs, en };
+function entry(cs, en = cs, sk = cs) {
+  return { cs, en, sk };
 }
 
-test('android_writesCzechAndEnglishFilesFromTheSameKeys', () => {
-  const { cs, en } = generateAndroidStrings({ common_ok: entry('Dobrá', 'OK') });
+test('android_writesCzechEnglishAndSlovakFilesFromTheSameKeys', () => {
+  const { cs, en, sk } = generateAndroidStrings({ common_ok: entry('Dobrá', 'OK', 'Dobre') });
   assert.match(cs, /<string name="common_ok">Dobrá<\/string>/);
   assert.match(en, /<string name="common_ok">OK<\/string>/);
+  assert.match(sk, /<string name="common_ok">Dobre<\/string>/);
 });
 
 test('android_sortsKeysSoDiffsStayStable', () => {
@@ -56,6 +57,10 @@ test('source_throwsWhenAKeyHasNoEnglishText', () => {
   assert.throws(() => generateXcstrings({ common_yes: { cs: 'Ano' } }), /no "en" text/);
 });
 
+test('source_throwsWhenAKeyHasNoSlovakText', () => {
+  assert.throws(() => generateAndroidStrings({ common_yes: { cs: 'Ano', en: 'Yes' } }), /no "sk" text/);
+});
+
 test('source_throwsOnAnEmptyText', () => {
   assert.throws(() => generateAndroidStrings({ common_yes: entry('') }), /no "cs" text/);
 });
@@ -78,7 +83,7 @@ test('android_throwsOnAnUnsupportedSpecifier', () => {
 });
 
 test('xcstrings_usesXcodesLayoutSoOpeningTheFileInXcodeDoesNotReformatIt', () => {
-  const output = generateXcstrings({ common_ok: entry('Dobrá', 'OK') });
+  const output = generateXcstrings({ common_ok: entry('Dobrá', 'OK', 'Dobre') });
   assert.equal(
     output,
     [
@@ -98,6 +103,12 @@ test('xcstrings_usesXcodesLayoutSoOpeningTheFileInXcodeDoesNotReformatIt', () =>
       '          "stringUnit" : {',
       '            "state" : "translated",',
       '            "value" : "OK"',
+      '          }',
+      '        },',
+      '        "sk" : {',
+      '          "stringUnit" : {',
+      '            "state" : "translated",',
+      '            "value" : "Dobre"',
       '          }',
       '        }',
       '      }',
@@ -138,11 +149,11 @@ test('xcstrings_keepsFormatSpecifiersAsWrittenInTheSource', () => {
   assert.equal(output.strings.moderation_reports_count.localizations.cs.stringUnit.value, '%lld× nahlášeno');
 });
 
-test('realSource_generatesEveryKeyInBothFormats', () => {
+test('realSource_generatesEveryKeyInAllFormats', () => {
   const source = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'localisation', 'strings.json'), 'utf8'));
   const keys = Object.keys(source);
   const catalogue = JSON.parse(generateXcstrings(source));
-  const { cs, en } = generateAndroidStrings(source);
+  const { cs, en, sk } = generateAndroidStrings(source);
   assert.deepEqual(Object.keys(catalogue.strings).sort(), [...keys].sort());
   for (const key of ['common_ok', 'dashboard_empty_title', 'defaultMeals_breakfast']) {
     assert.ok(keys.includes(key));
@@ -150,5 +161,6 @@ test('realSource_generatesEveryKeyInBothFormats', () => {
   for (const key of keys) {
     assert.ok(cs.includes(`name="${key}"`), `${key} missing from Czech strings.xml`);
     assert.ok(en.includes(`name="${key}"`), `${key} missing from English strings.xml`);
+    assert.ok(sk.includes(`name="${key}"`), `${key} missing from Slovak strings.xml`);
   }
 });

@@ -1,6 +1,6 @@
 const KEY_PATTERN = /^[a-z][A-Za-z0-9_]*$/;
 const SPECIFIER = /%(?:(\d+)\$)?(@|lld|ld|d|(?:\.\d+)?f)|%%/g;
-const LANGUAGES = ['cs', 'en'];
+const LANGUAGES = ['cs', 'en', 'sk'];
 
 function validateSource(source) {
   const keys = Object.keys(source).sort();

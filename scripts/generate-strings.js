@@ -17,6 +17,7 @@ const outputs = {
   [xcstrings]: generateXcstrings(strings, existingXcstrings),
   [path.join(res, 'values-cs', 'strings.xml')]: android.cs,
   [path.join(res, 'values', 'strings.xml')]: android.en,
+  [path.join(res, 'values-sk', 'strings.xml')]: android.sk,
 };
 
 const stale = [];
@@ -24,7 +25,10 @@ for (const [file, content] of Object.entries(outputs)) {
   const current = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
   if (current === content) continue;
   stale.push(path.relative(root, file));
-  if (!isCheck) fs.writeFileSync(file, content);
+  if (!isCheck) {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, content);
+  }
 }
 
 if (isCheck && stale.length > 0) {
