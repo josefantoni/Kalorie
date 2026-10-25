@@ -9,6 +9,7 @@ import antoni.kalorie.core.networking.FirestoreDataProvider
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCase
 import antoni.kalorie.core.usecases.FoodExportReportFactory
 import antoni.kalorie.core.usecases.GenerateFoodExportUseCase
+import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.ContextStringProvider
 import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import java.io.File
@@ -26,7 +27,7 @@ class ExportConfigurator {
                 generateFoodExport = GenerateFoodExportUseCase(
                     fetchFoodsConsumedInRange = FetchFoodsConsumedInRangeUseCase(FirestoreDataProvider(), AuthProvider()),
                     reportFactory = FoodExportReportFactory(strings = ContextStringProvider(context)),
-                    directory = File(context.cacheDir, "exports"),
+                    directory = File(context.cacheDir, Constants.CacheFolder.EXPORTS),
                 ),
             )
         }

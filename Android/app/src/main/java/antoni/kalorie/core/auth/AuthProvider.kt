@@ -1,5 +1,6 @@
 package antoni.kalorie.core.auth
 
+import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.CancellationException
@@ -74,12 +75,8 @@ class AuthProvider(
     }
 
     private fun kind(providerId: String): AuthProviderKind? = when (providerId) {
-        APPLE_PROVIDER_ID -> AuthProviderKind.APPLE
+        Constants.Auth.APPLE_PROVIDER_ID -> AuthProviderKind.APPLE
         GoogleAuthProvider.PROVIDER_ID -> AuthProviderKind.GOOGLE
         else -> null
-    }
-
-    private companion object {
-        const val APPLE_PROVIDER_ID = "apple.com"
     }
 }

@@ -28,10 +28,10 @@ class SearchFoodItemsUseCase(
         val searchQuery = searchQuery(query)
         val foldedQuery = searchQuery.folded
         val foldedLastWord = searchQuery.lastWord
-        val byFoldedName = async { loadByPrefix("cz_name_folded", foldedQuery) }
-        val byFoldedOriginalName = async { loadByPrefix("eng_name_folded", foldedQuery) }
-        val byCzNameToken = async { loadByToken("cz_name_search_terms", foldedLastWord) }
-        val byEngNameToken = async { loadByToken("eng_name_search_terms", foldedLastWord) }
+        val byFoldedName = async { loadByPrefix(Constants.Firestore.Field.CZ_NAME_FOLDED, foldedQuery) }
+        val byFoldedOriginalName = async { loadByPrefix(Constants.Firestore.Field.ENG_NAME_FOLDED, foldedQuery) }
+        val byCzNameToken = async { loadByToken(Constants.Firestore.Field.CZ_NAME_SEARCH_TERMS, foldedLastWord) }
+        val byEngNameToken = async { loadByToken(Constants.Firestore.Field.ENG_NAME_SEARCH_TERMS, foldedLastWord) }
         val seen = mutableSetOf<String>()
         listOf(byFoldedName, byFoldedOriginalName, byCzNameToken, byEngNameToken)
             .flatMap { it.await() }

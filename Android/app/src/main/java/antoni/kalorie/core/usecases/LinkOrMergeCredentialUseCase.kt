@@ -2,6 +2,7 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.auth.AuthCommandProviderProtocol
 import antoni.kalorie.core.auth.AuthProviderProtocol
+import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import kotlinx.coroutines.CancellationException
@@ -43,15 +44,10 @@ class LinkOrMergeCredentialUseCase(
             throw error
         } catch (error: Exception) {
             val errorCode = (error as? FirebaseAuthUserCollisionException)?.errorCode
-            if (errorCode == EMAIL_ALREADY_IN_USE) throw LinkOrMergeCredentialError.AccountExistsWithAnotherProvider
-            if (anonymousUserId == null || errorCode != CREDENTIAL_ALREADY_IN_USE) throw error
+            if (errorCode == Constants.Auth.ErrorCode.EMAIL_ALREADY_IN_USE) throw LinkOrMergeCredentialError.AccountExistsWithAnotherProvider
+            if (anonymousUserId == null || errorCode != Constants.Auth.ErrorCode.CREDENTIAL_ALREADY_IN_USE) throw error
             val credential = mergeCredential(error) ?: throw error
             migrateAnonymousData.migrate(anonymousUserId, credential)
         }
-    }
-
-    private companion object {
-        const val EMAIL_ALREADY_IN_USE = "ERROR_EMAIL_ALREADY_IN_USE"
-        const val CREDENTIAL_ALREADY_IN_USE = "ERROR_CREDENTIAL_ALREADY_IN_USE"
     }
 }

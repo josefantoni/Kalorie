@@ -212,7 +212,7 @@ class AccountViewModel(
         _linkedProviderKinds.value = authProvider.linkedProviderKinds
     }
 
-    private fun isUserCancellation(error: Throwable): Boolean = error is GetCredentialCancellationException || (error is FirebaseAuthWebException && error.errorCode == WEB_CONTEXT_CANCELED)
+    private fun isUserCancellation(error: Throwable): Boolean = error is GetCredentialCancellationException || (error is FirebaseAuthWebException && error.errorCode == Constants.Auth.ErrorCode.WEB_CONTEXT_CANCELED)
 
     private suspend fun performDelete() {
         _state.value = State.DELETING_ACCOUNT
@@ -231,9 +231,5 @@ class AccountViewModel(
                 alertItem.value = AlertItem(titleRes = R.string.account_error_deleteFailed)
             }
         }
-    }
-
-    private companion object {
-        const val WEB_CONTEXT_CANCELED = "ERROR_WEB_CONTEXT_CANCELED"
     }
 }

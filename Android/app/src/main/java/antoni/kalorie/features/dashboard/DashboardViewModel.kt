@@ -431,9 +431,9 @@ class DashboardViewModel(
         _activeDaysInMonth.value = computeActiveDays(month)
     }
 
-    private fun monthCacheKey(date: Instant): String = date.formatCacheKey("yyyy-MM")
+    private fun monthCacheKey(date: Instant): String = date.formatCacheKey(Constants.DateFormat.MONTH_CACHE_KEY)
 
-    private fun dayCacheKey(date: Instant): String = date.formatCacheKey("yyyy-MM-dd")
+    private fun dayCacheKey(date: Instant): String = date.formatCacheKey(Constants.DateFormat.DAY_CACHE_KEY)
 
     private fun populateCache(foods: List<FoodConsumedDomain>, month: Instant) {
         val key = monthCacheKey(month)

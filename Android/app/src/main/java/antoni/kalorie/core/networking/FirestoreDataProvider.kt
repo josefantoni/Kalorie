@@ -273,17 +273,17 @@ class FirestoreDataProvider(
             val document = firestore.collection(inCollection).document(documentId)
             try {
                 document.update(
-                    FieldPath.of("entries", entryId, "item"),
+                    FieldPath.of(Constants.Firestore.FoodFrequency.ENTRIES, entryId, Constants.Firestore.FoodFrequency.ITEM),
                     itemData,
-                    FieldPath.of("entries", entryId, "last_logged_at"),
+                    FieldPath.of(Constants.Firestore.FoodFrequency.ENTRIES, entryId, Constants.Firestore.FoodFrequency.LAST_LOGGED_AT),
                     lastLoggedAt,
-                    FieldPath.of("entries", entryId, "count"),
+                    FieldPath.of(Constants.Firestore.FoodFrequency.ENTRIES, entryId, Constants.Firestore.FoodFrequency.COUNT),
                     FieldValue.increment(1),
                 ).await()
             } catch (error: FirebaseFirestoreException) {
                 if (error.code != FirebaseFirestoreException.Code.NOT_FOUND) throw error
                 document.set(
-                    mapOf("entries" to mapOf(entryId to mapOf("item" to itemData, "last_logged_at" to lastLoggedAt, "count" to 1L))),
+                    mapOf(Constants.Firestore.FoodFrequency.ENTRIES to mapOf(entryId to mapOf(Constants.Firestore.FoodFrequency.ITEM to itemData, Constants.Firestore.FoodFrequency.LAST_LOGGED_AT to lastLoggedAt, Constants.Firestore.FoodFrequency.COUNT to 1L))),
                     SetOptions.merge(),
                 ).await()
             }
@@ -293,9 +293,9 @@ class FirestoreDataProvider(
     override suspend fun deleteEntriesAsync(ids: List<String>, documentId: String, inCollection: String) {
         if (ids.isEmpty()) return
         performFirestoreCall {
-            val rest = ids.drop(1).flatMap { listOf(FieldPath.of("entries", it), FieldValue.delete()) }.toTypedArray()
+            val rest = ids.drop(1).flatMap { listOf(FieldPath.of(Constants.Firestore.FoodFrequency.ENTRIES, it), FieldValue.delete()) }.toTypedArray()
             firestore.collection(inCollection).document(documentId)
-                .update(FieldPath.of("entries", ids.first()), FieldValue.delete(), *rest)
+                .update(FieldPath.of(Constants.Firestore.FoodFrequency.ENTRIES, ids.first()), FieldValue.delete(), *rest)
                 .await()
         }
     }

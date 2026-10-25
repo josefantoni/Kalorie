@@ -4,6 +4,7 @@ import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FoodConsumedDTO
 import antoni.kalorie.core.networking.FoodItemPersonalPortionsDTO
 import antoni.kalorie.core.networking.MyCreatedMealDTO
+import antoni.kalorie.core.utils.Constants
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -27,13 +28,13 @@ class PendingMergeSnapshotStore(directory: File) : PendingMergeSnapshotStoreProt
 
     // MARK: - Properties
 
-    private val file = File(directory, "pending-merge.json")
+    private val file = File(directory, Constants.Auth.PENDING_MERGE_SNAPSHOT_FILE_NAME)
     private val json = Json { ignoreUnknownKeys = true }
 
     // MARK: - Functions
 
     override fun save(snapshot: PendingMergeSnapshot) {
-        val temporaryFile = File(file.parentFile, "pending-merge.json.tmp")
+        val temporaryFile = File(file.parentFile, "${Constants.Auth.PENDING_MERGE_SNAPSHOT_FILE_NAME}.tmp")
         temporaryFile.writeText(json.encodeToString(PendingMergeSnapshot.serializer(), snapshot))
         if (!temporaryFile.renameTo(file)) {
             file.delete()

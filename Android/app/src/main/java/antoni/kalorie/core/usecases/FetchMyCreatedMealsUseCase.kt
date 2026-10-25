@@ -23,7 +23,7 @@ class FetchMyCreatedMealsUseCase(
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
         val dtos: List<MyCreatedMealDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.myCreatedMeals(userId),
-            orderBy = "updated_at",
+            orderBy = Constants.Firestore.Field.UPDATED_AT,
             descending = true,
             limit = 50,
         )

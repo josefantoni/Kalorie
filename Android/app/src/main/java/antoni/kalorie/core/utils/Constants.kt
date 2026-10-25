@@ -14,6 +14,16 @@ object Constants {
         const val PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=antoni.kalorie"
     }
 
+    object DateFormat {
+        const val MONTH_CACHE_KEY = "yyyy-MM"
+        const val DAY_CACHE_KEY = "yyyy-MM-dd"
+    }
+
+    object CacheFolder {
+        const val EXPORTS = "exports"
+        const val PHOTOS = "photos"
+    }
+
     object LogCategory {
         const val FIRESTORE = "firestore"
         const val AUTH = "auth"
@@ -44,10 +54,25 @@ object Constants {
     object Auth {
         const val RECENT_LOGIN_THRESHOLD_SECONDS = 4 * 60L
         const val MAINTAINER_CLAIM_CACHE_TTL_SECONDS = 5 * 60L
+        const val APPLE_PROVIDER_ID = "apple.com"
+        const val PENDING_MERGE_SNAPSHOT_FILE_NAME = "pending-merge.json"
+        const val MAINTAINER_CLAIM = "maintainer"
+        const val SIGN_IN_SPOTLIGHT_PREFERENCES = "signInSpotlight"
+        const val SIGN_IN_SPOTLIGHT_LAST_SHOWN_AT_KEY = "signInSpotlightLastShownAt"
+
+        object ErrorCode {
+            const val USER_MISMATCH = "ERROR_USER_MISMATCH"
+            const val PROVIDER_ALREADY_LINKED = "ERROR_PROVIDER_ALREADY_LINKED"
+            const val CREDENTIAL_ALREADY_IN_USE = "ERROR_CREDENTIAL_ALREADY_IN_USE"
+            const val EMAIL_ALREADY_IN_USE = "ERROR_EMAIL_ALREADY_IN_USE"
+            const val WEB_CONTEXT_CANCELED = "ERROR_WEB_CONTEXT_CANCELED"
+        }
     }
 
     object OpenFoodFacts {
         const val HOST = "world.openfoodfacts.org"
+        const val SEARCH_PAGE_SIZE = 20
+        const val PRODUCT_FIELDS = "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url"
         const val REQUEST_TIMEOUT_MILLIS = 10_000
         const val MAX_ATTEMPTS = 3
         val RETRY_DELAY = 500.milliseconds
@@ -83,6 +108,28 @@ object Constants {
         const val REPORT_REASON_MAX_LENGTH = 500
         const val REPORTS_PAGE_LIMIT = 50
         const val FOOD_FREQUENCY_DOCUMENT_ID = "foodFrequency"
+
+        object Field {
+            const val CZ_NAME_FOLDED = "cz_name_folded"
+            const val ENG_NAME_FOLDED = "eng_name_folded"
+            const val CZ_NAME_SEARCH_TERMS = "cz_name_search_terms"
+            const val ENG_NAME_SEARCH_TERMS = "eng_name_search_terms"
+            const val SUBMITTED_BY = "submitted_by"
+            const val SUBMITTED_AT = "submitted_at"
+            const val REPORTED_BY = "reported_by"
+            const val REPORTED_AT = "reported_at"
+            const val FAVOURITED_AT = "favourited_at"
+            const val UPDATED_AT = "updated_at"
+            const val STATUS = "status"
+            const val DATE = "date"
+        }
+
+        object FoodFrequency {
+            const val ENTRIES = "entries"
+            const val ITEM = "item"
+            const val LAST_LOGGED_AT = "last_logged_at"
+            const val COUNT = "count"
+        }
 
         fun mealTypes(userId: String): String = "users/$userId/mealTypes"
         fun foodConsumed(userId: String): String = "users/$userId/foodConsumed"

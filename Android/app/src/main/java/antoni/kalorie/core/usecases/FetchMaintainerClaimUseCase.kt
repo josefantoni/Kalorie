@@ -39,7 +39,7 @@ class FetchMaintainerClaimUseCase(
         val user = auth.currentUser ?: throw AuthError.NotAuthenticated
         cache.freshValue(user.uid, Instant.now(), Constants.Auth.MAINTAINER_CLAIM_CACHE_TTL_SECONDS)?.let { return it }
         val result = user.getIdToken(cache.entry != null).await()
-        val isMaintainer = result.claims["maintainer"] as? Boolean ?: false
+        val isMaintainer = result.claims[Constants.Auth.MAINTAINER_CLAIM] as? Boolean ?: false
         cache.entry = MaintainerClaimCache.Entry(value = isMaintainer, cachedAt = Instant.now(), userId = user.uid)
         return isMaintainer
     }

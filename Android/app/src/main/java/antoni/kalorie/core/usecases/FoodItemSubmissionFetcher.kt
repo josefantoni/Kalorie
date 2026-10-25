@@ -15,7 +15,7 @@ object FoodItemSubmissionFetcher {
             from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS,
             field = field,
             isEqualTo = isEqualTo,
-            orderBy = "submitted_at",
+            orderBy = Constants.Firestore.Field.SUBMITTED_AT,
             descending = true,
         )
         return dtos.map { it.asDomain() }

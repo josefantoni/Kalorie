@@ -31,7 +31,7 @@ class FetchFoodByBarcodeExternallyUseCase(
         if (barcode.isEmpty()) return null
         val encodedBarcode = URLEncoder.encode(barcode, "UTF-8").replace("+", "%20")
         val request = HttpRequest(
-            url = "https://${Constants.OpenFoodFacts.HOST}/api/v2/product/$encodedBarcode?fields=$FIELDS",
+            url = "https://${Constants.OpenFoodFacts.HOST}/api/v2/product/$encodedBarcode?fields=${Constants.OpenFoodFacts.PRODUCT_FIELDS}",
             userAgent = Constants.OpenFoodFacts.USER_AGENT,
             timeoutMillis = Constants.OpenFoodFacts.REQUEST_TIMEOUT_MILLIS,
         )
@@ -44,7 +44,6 @@ class FetchFoodByBarcodeExternallyUseCase(
     }
 
     private companion object {
-        const val FIELDS = "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url"
         val json = Json { ignoreUnknownKeys = true }
     }
 }

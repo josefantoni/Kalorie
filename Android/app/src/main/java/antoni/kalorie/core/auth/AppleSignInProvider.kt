@@ -1,6 +1,7 @@
 package antoni.kalorie.core.auth
 
 import android.app.Activity
+import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.OAuthCredential
@@ -43,15 +44,11 @@ class AppleSignInProvider(
 
     private fun presentingActivity(): Activity = currentActivityProvider.activity ?: throw AppleSignInError.NoPresentingActivity
 
-    private fun makeProvider() = OAuthProvider.newBuilder(APPLE_PROVIDER_ID).setScopes(listOf("email", "name")).build()
+    private fun makeProvider() = OAuthProvider.newBuilder(Constants.Auth.APPLE_PROVIDER_ID).setScopes(listOf("email", "name")).build()
 
     private fun AuthResult.toAppleAuthResult() = AppleAuthResult(
         displayName = user?.displayName,
         email = user?.email,
         accessToken = (credential as? OAuthCredential)?.accessToken,
     )
-
-    private companion object {
-        const val APPLE_PROVIDER_ID = "apple.com"
-    }
 }
