@@ -135,9 +135,9 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
 
         let submissions: [FoodItemSubmissionDTO] = try await dataProvider.loadAsync(
             from: Constants.Firestore.foodItemSubmissions,
-            where: "submitted_by",
+            where: Constants.Firestore.Field.submittedBy,
             isEqualTo: userId,
-            orderBy: "submitted_at",
+            orderBy: Constants.Firestore.Field.submittedAt,
             descending: true
         )
         for dto in submissions {
@@ -153,9 +153,9 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
 
         let reports: [FoodItemReportDTO] = try await dataProvider.loadAsync(
             from: Constants.Firestore.foodItemReports,
-            where: "reported_by",
+            where: Constants.Firestore.Field.reportedBy,
             isEqualTo: userId,
-            orderBy: "reported_at",
+            orderBy: Constants.Firestore.Field.reportedAt,
             descending: true
         )
         for dto in reports {

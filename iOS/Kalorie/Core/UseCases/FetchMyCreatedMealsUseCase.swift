@@ -31,7 +31,7 @@ struct FetchMyCreatedMealsUseCase: FetchMyCreatedMealsUseCaseProtocol {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let dtos: [MyCreatedMealDTO] = try await dataProvider.loadAsync(
             from: Constants.Firestore.myCreatedMeals(userId: userId),
-            orderBy: "updated_at",
+            orderBy: Constants.Firestore.Field.updatedAt,
             descending: true,
             limit: 50
         )

@@ -31,7 +31,7 @@ struct FetchFoodItemReportsUseCase: FetchFoodItemReportsUseCaseProtocol {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
         let dtos: [FoodItemReportDTO] = try await dataProvider.loadAsync(
             from: Constants.Firestore.foodItemReports,
-            orderBy: "reported_at",
+            orderBy: Constants.Firestore.Field.reportedAt,
             descending: true,
             limit: Constants.Firestore.reportsPageLimit
         )

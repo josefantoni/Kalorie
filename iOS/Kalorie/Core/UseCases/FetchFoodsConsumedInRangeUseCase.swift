@@ -35,7 +35,7 @@ struct FetchFoodsConsumedInRangeUseCase: FetchFoodsConsumedInRangeUseCaseProtoco
         let end = calendar.date(byAdding: .day, value: 1, to: endDay) ?? endDay.addingTimeInterval(Constants.Time.secondsPerDay)
         let dtos: [FoodConsumedDTO] = try await dataProvider.loadAsync(
             from: Constants.Firestore.foodConsumed(userId: userId),
-            where: "date",
+            where: Constants.Firestore.Field.date,
             isGreaterThanOrEqualTo: start.timeIntervalSince1970,
             isLessThan: end.timeIntervalSince1970
         )

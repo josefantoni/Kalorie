@@ -12,16 +12,16 @@ enum Log {
 
     // MARK: - Functions
 
-    static func warning(_ error: Error, category: String = "app") {
+    static func warning(_ error: Error, category: String = Constants.LogCategory.defaultCategory) {
         logger(category).warning("\(String(describing: error), privacy: .public)")
     }
 
-    static func error(_ error: Error, category: String = "app") {
+    static func error(_ error: Error, category: String = Constants.LogCategory.defaultCategory) {
         logger(category).error("\(String(describing: error), privacy: .public)")
         Crashlytics.crashlytics().record(error: error)
     }
 
     static func logger(_ category: String) -> Logger {
-        Logger(subsystem: "antoni.Kalorie", category: category)
+        Logger(subsystem: Constants.LogCategory.subsystem, category: category)
     }
 }

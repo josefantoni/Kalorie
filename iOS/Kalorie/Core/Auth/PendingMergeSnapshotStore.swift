@@ -55,7 +55,7 @@ struct PendingMergeSnapshotStore: PendingMergeSnapshotStoreProtocol {
 
     private var fileURL: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("pending-merge.json")
+            .appendingPathComponent(Constants.Auth.pendingMergeSnapshotFileName)
     }
 
     // MARK: - Functions
