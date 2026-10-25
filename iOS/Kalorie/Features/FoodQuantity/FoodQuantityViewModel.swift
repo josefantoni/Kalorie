@@ -261,7 +261,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         guard !filledDrafts.isEmpty else { return }
         var newPortions: [FoodPortionDomain] = []
         for draft in filledDrafts {
-            let grams = Double(draft.gramsText.replacingOccurrences(of: ",", with: ".")) ?? 0
+            let grams = draft.gramsText.decimalInputValue ?? 0
             if let error = FoodPortionValidation.validate(name: draft.name, grams: grams) {
                 alertItem = AlertItem(title: error.alertTitle)
                 return

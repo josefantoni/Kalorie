@@ -11,12 +11,12 @@ enum FixtureLoader {
 
     // MARK: - Functions
 
-    static func load<T: Decodable>(_ name: String, filePath: StaticString = #filePath) throws -> T {
+    static func load<T: Decodable>(_ name: String, directory: String = "fixtures", filePath: StaticString = #filePath) throws -> T {
         let repositoryRoot = URL(fileURLWithPath: "\(filePath)")
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-        let url = repositoryRoot.appendingPathComponent("fixtures/\(name).json")
+        let url = repositoryRoot.appendingPathComponent("\(directory)/\(name).json")
         return try JSONDecoder().decode(T.self, from: Data(contentsOf: url))
     }
 }

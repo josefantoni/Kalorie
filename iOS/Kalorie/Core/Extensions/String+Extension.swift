@@ -20,4 +20,12 @@ extension String {
     func searchTerms() -> [String] {
         SearchTermsKt.searchTerms(input: self)
     }
+
+    func sanitizedDecimalInput() -> String {
+        DecimalInputKt.sanitizeDecimalInput(input: self)
+    }
+
+    var decimalInputValue: Double? {
+        DecimalInputKt.parseDecimalInput(input: self)?.doubleValue
+    }
 }
