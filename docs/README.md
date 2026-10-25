@@ -215,6 +215,7 @@ understanding why.
 | [0024](design/0024-move-entry-between-meals-by-drag.md) | Moving a logged entry to another meal by dragging it | Implemented | Cross-platform, iOS, Android |
 | [0025](design/0025-linking-a-second-sign-in-provider.md) | Linking a second sign-in provider to one account | Approved | Cross-platform, iOS, Android |
 | [0026](design/0026-minimum-supported-version.md) | Minimum supported version | Approved | Backend, Cross-platform, iOS, Android |
+| [0027](design/0027-slovak-localisation.md) | Slovak localisation | Proposed | Cross-platform |
 
 ### Decision records
 
