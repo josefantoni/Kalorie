@@ -15,8 +15,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import antoni.kalorie.R
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.displayName
@@ -49,7 +51,7 @@ fun FoodConsumedView(foodConsumed: FoodConsumedDomain, modifier: Modifier = Modi
             )
         }
         Text(
-            "${foodConsumed.calories} kcal",
+            "${foodConsumed.calories} ${stringResource(R.string.common_unit_kcal)}",
             style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"),
             softWrap = false,
         )

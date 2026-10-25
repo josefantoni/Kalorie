@@ -182,7 +182,7 @@ fun FoodItemFormFields(
         }
         val grams = stringResource(R.string.common_unit_grams)
         SectionCardDivider()
-        FormDoubleRow(stringResource(R.string.addFood_field_energyKJ), "kJ", formInput.energyKJ, isHighlighted(FoodItemFormField.ENERGY_KJ)) {
+        FormDoubleRow(stringResource(R.string.addFood_field_energyKJ), stringResource(R.string.common_unit_kilojoules), formInput.energyKJ, isHighlighted(FoodItemFormField.ENERGY_KJ)) {
             edit(FoodItemFormField.ENERGY_KJ) { copy(energyKJ = it) }
         }
         SectionCardDivider()
@@ -190,7 +190,7 @@ fun FoodItemFormFields(
             title = stringResource(
                 if (formInput.measure == FoodMeasure.GRAMS) R.string.addFood_field_caloriesPer100g else R.string.addFood_field_caloriesPer100ml,
             ),
-            unit = "kcal",
+            unit = stringResource(R.string.common_unit_kcal),
             value = formInput.caloriesPerHundredGrams,
             isHighlighted = isHighlighted(FoodItemFormField.CALORIES),
         ) { edit(FoodItemFormField.CALORIES) { copy(caloriesPerHundredGrams = it) } }

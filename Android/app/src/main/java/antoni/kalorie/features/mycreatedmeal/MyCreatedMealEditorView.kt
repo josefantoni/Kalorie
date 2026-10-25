@@ -328,6 +328,6 @@ private fun IngredientRow(
                     hadFocus = focusState.isFocused
                 },
         )
-        Text(text = "g", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp))
+        Text(text = stringResource(draft.item.measure.unitSymbolRes), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 4.dp))
     }
 }
