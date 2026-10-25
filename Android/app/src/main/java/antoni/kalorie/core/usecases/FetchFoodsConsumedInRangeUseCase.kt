@@ -28,7 +28,7 @@ class FetchFoodsConsumedInRangeUseCase(
         val end = to.atZone(zone).toLocalDate().plusDays(1).atStartOfDay(zone)
         val dtos: List<FoodConsumedDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.foodConsumed(userId),
-            field = "date",
+            field = Constants.Firestore.Field.DATE,
             isGreaterThanOrEqualTo = start.toEpochSecond().toDouble(),
             isLessThan = end.toEpochSecond().toDouble(),
         )

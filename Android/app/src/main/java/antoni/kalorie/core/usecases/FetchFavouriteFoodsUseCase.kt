@@ -23,7 +23,7 @@ class FetchFavouriteFoodsUseCase(
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
         val dtos: List<FavouriteFoodDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.favouriteFoods(userId),
-            orderBy = "favourited_at",
+            orderBy = Constants.Firestore.Field.FAVOURITED_AT,
             descending = true,
             limit = 50,
         )

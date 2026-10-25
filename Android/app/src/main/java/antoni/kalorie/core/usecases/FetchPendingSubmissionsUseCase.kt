@@ -5,6 +5,7 @@ import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
+import antoni.kalorie.core.utils.Constants
 
 interface FetchPendingSubmissionsUseCaseProtocol {
     suspend operator fun invoke(): List<FoodItemSubmissionDomain>
@@ -20,7 +21,7 @@ class FetchPendingSubmissionsUseCase(
     override suspend fun invoke(): List<FoodItemSubmissionDomain> {
         if (authProvider.userId == null) throw AuthError.NotAuthenticated
         return FoodItemSubmissionFetcher.fetch(
-            field = "status",
+            field = Constants.Firestore.Field.STATUS,
             isEqualTo = FoodItemSubmissionStatus.PENDING.wireValue,
             dataProvider = dataProvider,
         )

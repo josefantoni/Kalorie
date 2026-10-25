@@ -28,7 +28,7 @@ class FetchFoodsConsumedForMonthUseCase(
         val startOfNextMonth = startOfMonth.plusMonths(1)
         val dtos: List<FoodConsumedDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.foodConsumed(userId),
-            field = "date",
+            field = Constants.Firestore.Field.DATE,
             isGreaterThanOrEqualTo = startOfMonth.toEpochSecond().toDouble(),
             isLessThan = startOfNextMonth.toEpochSecond().toDouble(),
         )

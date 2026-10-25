@@ -6,6 +6,7 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.GoogleSignInProviderProtocol
+import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.FirebaseAuthException
 import kotlinx.coroutines.CancellationException
 
@@ -36,7 +37,7 @@ class ReauthenticateUseCase(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            if ((error as? FirebaseAuthException)?.errorCode == USER_MISMATCH) throw ReauthenticateError.WrongAccount
+            if ((error as? FirebaseAuthException)?.errorCode == Constants.Auth.ErrorCode.USER_MISMATCH) throw ReauthenticateError.WrongAccount
             throw error
         }
     }
@@ -46,9 +47,5 @@ class ReauthenticateUseCase(
         val sessionKind = authProvider.currentSessionProviderKind()
         if (sessionKind != null && sessionKind in linkedKinds) return sessionKind
         return linkedKinds.singleOrNull() ?: throw AuthError.NotAuthenticated
-    }
-
-    private companion object {
-        const val USER_MISMATCH = "ERROR_USER_MISMATCH"
     }
 }

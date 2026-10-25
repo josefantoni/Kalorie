@@ -4,6 +4,7 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
+import antoni.kalorie.core.utils.Constants
 
 interface FetchMySubmissionsUseCaseProtocol {
     suspend operator fun invoke(): List<FoodItemSubmissionDomain>
@@ -18,6 +19,6 @@ class FetchMySubmissionsUseCase(
 
     override suspend fun invoke(): List<FoodItemSubmissionDomain> {
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
-        return FoodItemSubmissionFetcher.fetch(field = "submitted_by", isEqualTo = userId, dataProvider = dataProvider)
+        return FoodItemSubmissionFetcher.fetch(field = Constants.Firestore.Field.SUBMITTED_BY, isEqualTo = userId, dataProvider = dataProvider)
     }
 }

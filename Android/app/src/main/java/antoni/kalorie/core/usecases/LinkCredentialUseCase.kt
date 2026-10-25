@@ -4,6 +4,7 @@ import antoni.kalorie.core.auth.AuthCommandProviderProtocol
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreProtocol
+import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -43,17 +44,11 @@ class LinkCredentialUseCase(
         } catch (error: Exception) {
             val errorCode = (error as? FirebaseAuthException)?.errorCode
             when {
-                errorCode == PROVIDER_ALREADY_LINKED -> throw LinkCredentialError.AlreadyLinked
-                error is FirebaseAuthUserCollisionException && errorCode == CREDENTIAL_ALREADY_IN_USE -> throw LinkCredentialError.CredentialBelongsToAnotherAccount
-                error is FirebaseAuthUserCollisionException && errorCode == EMAIL_ALREADY_IN_USE -> throw LinkCredentialError.EmailBelongsToAnotherAccount
+                errorCode == Constants.Auth.ErrorCode.PROVIDER_ALREADY_LINKED -> throw LinkCredentialError.AlreadyLinked
+                error is FirebaseAuthUserCollisionException && errorCode == Constants.Auth.ErrorCode.CREDENTIAL_ALREADY_IN_USE -> throw LinkCredentialError.CredentialBelongsToAnotherAccount
+                error is FirebaseAuthUserCollisionException && errorCode == Constants.Auth.ErrorCode.EMAIL_ALREADY_IN_USE -> throw LinkCredentialError.EmailBelongsToAnotherAccount
                 else -> throw error
             }
         }
-    }
-
-    private companion object {
-        const val PROVIDER_ALREADY_LINKED = "ERROR_PROVIDER_ALREADY_LINKED"
-        const val CREDENTIAL_ALREADY_IN_USE = "ERROR_CREDENTIAL_ALREADY_IN_USE"
-        const val EMAIL_ALREADY_IN_USE = "ERROR_EMAIL_ALREADY_IN_USE"
     }
 }

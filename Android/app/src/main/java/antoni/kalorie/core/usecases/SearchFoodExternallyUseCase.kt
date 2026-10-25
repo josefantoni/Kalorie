@@ -30,7 +30,7 @@ class SearchFoodExternallyUseCase(
     override suspend fun invoke(query: String): List<FoodItemDomain> {
         val url = "https://${Constants.OpenFoodFacts.HOST}/cgi/search.pl" +
             "?search_terms=${URLEncoder.encode(query, "UTF-8").replace("+", "%20")}" +
-            "&json=1&page_size=20&fields=$FIELDS"
+            "&json=1&page_size=${Constants.OpenFoodFacts.SEARCH_PAGE_SIZE}&fields=${Constants.OpenFoodFacts.PRODUCT_FIELDS}"
         val request = HttpRequest(
             url = url,
             userAgent = Constants.OpenFoodFacts.USER_AGENT,
@@ -43,7 +43,6 @@ class SearchFoodExternallyUseCase(
     }
 
     private companion object {
-        const val FIELDS = "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url"
         val json = Json { ignoreUnknownKeys = true }
     }
 }

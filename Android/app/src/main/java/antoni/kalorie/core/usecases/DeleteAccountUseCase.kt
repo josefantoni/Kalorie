@@ -83,7 +83,7 @@ class DeleteAccountUseCase(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            if ((error as? FirebaseAuthException)?.errorCode == USER_MISMATCH) throw ReauthenticateError.WrongAccount
+            if ((error as? FirebaseAuthException)?.errorCode == Constants.Auth.ErrorCode.USER_MISMATCH) throw ReauthenticateError.WrongAccount
             throw error
         }
         if (accessToken == null) Log.error(DeleteAccountError.MissingAppleAccessToken, Constants.LogCategory.ACCOUNT)
@@ -104,9 +104,9 @@ class DeleteAccountUseCase(
         dataProvider.deleteAsync(id = Constants.Firestore.FOOD_FREQUENCY_DOCUMENT_ID, from = Constants.Firestore.stats(userId))
         val submissions: List<FoodItemSubmissionDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS,
-            field = "submitted_by",
+            field = Constants.Firestore.Field.SUBMITTED_BY,
             isEqualTo = userId,
-            orderBy = "submitted_at",
+            orderBy = Constants.Firestore.Field.SUBMITTED_AT,
             descending = true,
         )
         submissions.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS) }
@@ -115,9 +115,9 @@ class DeleteAccountUseCase(
         storageProvider.listAsync("${Constants.Storage.SUBMISSION_PHOTOS_FOLDER}/$userId").forEach { storageProvider.deleteAsync(it) }
         val reports: List<FoodItemReportDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.FOOD_ITEM_REPORTS,
-            field = "reported_by",
+            field = Constants.Firestore.Field.REPORTED_BY,
             isEqualTo = userId,
-            orderBy = "reported_at",
+            orderBy = Constants.Firestore.Field.REPORTED_AT,
             descending = true,
         )
         reports.forEach {
@@ -130,9 +130,5 @@ class DeleteAccountUseCase(
         } catch (error: Exception) {
             Log.error(error, Constants.LogCategory.ACCOUNT)
         }
-    }
-
-    private companion object {
-        const val USER_MISMATCH = "ERROR_USER_MISMATCH"
     }
 }

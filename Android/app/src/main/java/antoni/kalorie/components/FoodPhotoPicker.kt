@@ -251,6 +251,6 @@ private fun SheetAction(text: String, onClick: () -> Unit) {
 }
 
 private fun newCameraFile(context: Context): File {
-    val directory = File(context.cacheDir, "photos").apply { mkdirs() }
+    val directory = File(context.cacheDir, Constants.CacheFolder.PHOTOS).apply { mkdirs() }
     return File(directory, "${UUID.randomUUID()}.jpg")
 }
