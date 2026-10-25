@@ -194,6 +194,7 @@ struct FoodQuantityView: View {
                         Text(Self.label(for: option, measure: viewModel.item.measure)).tag(option)
                     }
                 }
+                .pickerStyle(.inline)
                 if viewModel.isPersonalPortionsAvailable {
                     Divider()
                     Button(L10n.FoodQuantity.buttonMyPortions) {
