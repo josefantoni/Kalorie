@@ -294,7 +294,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     }
 
     private static func parsedGrams(_ text: String) -> Double {
-        Double(text.replacingOccurrences(of: ",", with: ".")) ?? 0
+        text.decimalInputValue ?? 0
     }
 
     private static func parsedPortions(_ drafts: [FoodPortionDraft]) -> [FoodPortionDomain] {

@@ -91,7 +91,7 @@ extension FoodItemFormInput {
 
     static func parsedPortions(_ drafts: [FoodPortionDraft]) -> [FoodPortionDomain] {
         drafts.compactMap { draft in
-            let grams = Double(draft.gramsText.replacingOccurrences(of: ",", with: ".")) ?? 0
+            let grams = draft.gramsText.decimalInputValue ?? 0
             guard grams >= 1 else { return nil }
             return FoodPortionDomain(name: draft.name, grams: grams)
         }

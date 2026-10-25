@@ -34,15 +34,7 @@ struct PortionInputRow<FocusValue: Hashable>: View {
                     .multilineTextAlignment(.trailing)
                     .frame(width: 50)
                     .onChange(of: gramsText) { _, text in
-                        var seenSeparator = false
-                        let sanitized = String(text.filter { char in
-                            if char == "." || char == "," {
-                                if seenSeparator { return false }
-                                seenSeparator = true
-                                return true
-                            }
-                            return char.isASCII && char.isNumber
-                        })
+                        let sanitized = text.sanitizedDecimalInput()
                         if sanitized != text {
                             gramsText = sanitized
                         }

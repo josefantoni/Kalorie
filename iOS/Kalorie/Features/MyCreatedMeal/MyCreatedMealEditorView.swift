@@ -164,15 +164,7 @@ struct MyCreatedMealEditorView: View {
                 .frame(width: 50)
                 .focused($focusedIngredientId, equals: draft.wrappedValue.id)
                 .onChange(of: draft.gramsText.wrappedValue) { _, text in
-                    var seenSeparator = false
-                    let sanitized = String(text.filter { char in
-                        if char == "." || char == "," {
-                            if seenSeparator { return false }
-                            seenSeparator = true
-                            return true
-                        }
-                        return char.isNumber
-                    })
+                    let sanitized = text.sanitizedDecimalInput()
                     if sanitized != text {
                         draft.gramsText.wrappedValue = sanitized
                     }

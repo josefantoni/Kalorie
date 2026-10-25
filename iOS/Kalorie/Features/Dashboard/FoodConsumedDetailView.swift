@@ -57,18 +57,9 @@ struct FoodConsumedDetailView: View {
                             .frame(width: 80)
                             .focused($isWeightFocused)
                             .onChange(of: weightText) { _, text in
-                                var seenSeparator = false
-                                let sanitized = String(text.filter { char in
-                                    if char == "." || char == "," {
-                                        if seenSeparator { return false }
-                                        seenSeparator = true
-                                        return true
-                                    }
-                                    return char.isNumber
-                                })
+                                let sanitized = text.sanitizedDecimalInput()
                                 if sanitized != text { weightText = sanitized }
-                                let normalized = sanitized.replacingOccurrences(of: ",", with: ".")
-                                if let value = Double(normalized) { viewModel.weight = value }
+                                if let value = sanitized.decimalInputValue { viewModel.weight = value }
                             }
                         Text(viewModel.food.measure.unitSymbol)
                     }

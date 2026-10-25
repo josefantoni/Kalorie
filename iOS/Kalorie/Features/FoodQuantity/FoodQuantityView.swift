@@ -171,20 +171,11 @@ struct FoodQuantityView: View {
                 .frame(width: 60)
                 .focused($isQuantityFocused)
                 .onChange(of: quantityText) { _, text in
-                    var seenSeparator = false
-                    let sanitized = String(text.filter { char in
-                        if char == "." || char == "," {
-                            if seenSeparator { return false }
-                            seenSeparator = true
-                            return true
-                        }
-                        return char.isASCII && char.isNumber
-                    })
+                    let sanitized = text.sanitizedDecimalInput()
                     if sanitized != text {
                         quantityText = sanitized
                     }
-                    let normalized = sanitized.replacingOccurrences(of: ",", with: ".")
-                    viewModel.quantity = Double(normalized) ?? 0
+                    viewModel.quantity = sanitized.decimalInputValue ?? 0
                 }
             Text(verbatim: "×")
                 .foregroundStyle(.secondary)
@@ -214,7 +205,7 @@ struct FoodQuantityView: View {
                 quantityText = viewModel.quantity.formattedTrimmed()
             }
             .onChange(of: viewModel.quantity) { _, quantity in
-                let typedQuantity = Double(quantityText.replacingOccurrences(of: ",", with: ".")) ?? 0
+                let typedQuantity = quantityText.decimalInputValue ?? 0
                 if typedQuantity != quantity {
                     quantityText = quantity.formattedTrimmed()
                 }
