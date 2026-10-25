@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -48,6 +49,28 @@ class TextKitFixtureTest {
             val input = case.jsonObject.getValue("input").jsonPrimitive.content
             val expected = case.jsonObject.getValue("expected").jsonArray.strings()
             assertEquals(expected, searchTerms(input), input)
+        }
+    }
+
+    @Test
+    fun sanitizeDecimalInput_matchesSharedFixture() {
+        val cases = fixture.getValue("decimalInputSanitize").jsonArray
+        assertTrue(cases.isNotEmpty())
+        for (case in cases) {
+            val input = case.jsonObject.getValue("input").jsonPrimitive.content
+            val expected = case.jsonObject.getValue("expected").jsonPrimitive.content
+            assertEquals(expected, sanitizeDecimalInput(input), input)
+        }
+    }
+
+    @Test
+    fun parseDecimalInput_matchesSharedFixture() {
+        val cases = fixture.getValue("decimalInputParse").jsonArray
+        assertTrue(cases.isNotEmpty())
+        for (case in cases) {
+            val input = case.jsonObject.getValue("input").jsonPrimitive.content
+            val expected = case.jsonObject.getValue("expected").jsonPrimitive.doubleOrNull
+            assertEquals(expected, parseDecimalInput(input), input)
         }
     }
 
