@@ -10,6 +10,12 @@
             "state" : "new",
             "value" : "Kalorie"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie"
+          }
         }
       }
     },
@@ -20,6 +26,12 @@
         "cs" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "Kalorie"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "Kalorie"
           }
         }
@@ -38,6 +50,12 @@
             "state" : "translated",
             "value" : "Kalorie consumed food entry"
           }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Záznam zjedenej potraviny v Kalorie"
+          }
         }
       }
     },
@@ -54,6 +72,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Please allow camera access to scan food barcodes and nutrition labels and to take product photos"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Povoľ, prosím, využitie kamery na skenovanie čiarových kódov a nutričných tabuliek potravín a na fotky produktov"
           }
         }
       }
