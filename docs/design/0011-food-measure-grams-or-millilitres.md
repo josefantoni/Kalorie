@@ -48,8 +48,8 @@ explicit and removes the error it causes (see *Why this does not contradict desi
   (`weight: 100`, `:69`). OFF's per-serving/per-volume metadata is not reliable enough to key off.
 - **Created meals and their ingredients.** A `MyCreatedMealDomain` is always grams
   (`asFoodItem()` passes the default). An ingredient added from a millilitre item stores its amount
-  in `grams` numerically equal to the ml entered, and the meal editor keeps its literal `"g"`
-  (`MyCreatedMealEditorView.swift:173`). Accepted: the density-weighted mean in `MacroKit` is
+  in `grams` numerically equal to the ml entered, and the meal editor labels the amount with the
+  ingredient's own measure symbol (`MyCreatedMealEditorView.swift:172`). Accepted: the density-weighted mean in `MacroKit` is
   unit-blind, and a meal mixing 200 ml milk with 50 g oats is off only by the milk's density.
 - **Changing the Foundation Models extractor** (`NutritionLabelModelExtractorProtocol.swift`). It
   keeps its "per 100 g" guides; the deterministic parser alone decides the measure.
