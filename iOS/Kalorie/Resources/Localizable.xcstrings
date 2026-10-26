@@ -4,19 +4,6 @@
     "%@" : {
 
     },
-    "%@ kcal" : {
-
-    },
-    "%@ kcal / 100 %@" : {
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ kcal / 100 %2$@"
-          }
-        }
-      }
-    },
     "account_alert_deleteConfirmMessage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5007,12 +4994,6 @@
           }
         }
       }
-    },
-    "g" : {
-
-    },
-    "kcal" : {
-
     },
     "moderation_button_approve" : {
       "extractionState" : "manual",
