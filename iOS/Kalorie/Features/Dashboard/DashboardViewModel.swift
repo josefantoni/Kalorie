@@ -167,7 +167,11 @@ final class DashboardViewModel: ObservableObject {
 
     var isWeightCircleVisible: Bool { hasLoadedSettings && appSettings.showBodyWeight }
 
-    var canLogWeight: Bool { BodyWeightDayKey.make(from: selectedDay) <= BodyWeightDayKey.make(from: now()) }
+    var canLogWeight: Bool {
+        let selectedKey = BodyWeightDayKey.make(from: selectedDay)
+        let todayKey = BodyWeightDayKey.make(from: now())
+        return selectedKey == todayKey || (selectedKey < todayKey && hasWeightForSelectedDay)
+    }
 
     var hasWeightForSelectedDay: Bool { recentWeights.first?.dayKey == BodyWeightDayKey.make(from: selectedDay) }
 

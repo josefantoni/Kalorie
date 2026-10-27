@@ -989,6 +989,33 @@ final class DashboardViewModelTests: XCTestCase {
         XCTAssertEqual(fetch.callCount, 2)
     }
 
+    func test_weightBadge_today_isAvailableWhetherOrNotAWeightIsLogged() async {
+        let sut = makeSUT()
+        await sut.onAppear()
+        XCTAssertTrue(sut.canLogWeight)
+    }
+
+    func test_weightBadge_pastDayWithoutEntry_isNotAvailable_soAMissedDayCannotBeBackfilled() async {
+        let sut = makeSUT()
+        await sut.onAppear()
+        await sut.onDaySelected(Date.now.addingTimeInterval(-3 * 86_400))
+        XCTAssertFalse(sut.canLogWeight)
+        sut.onWeightBadgeTapped()
+        XCTAssertFalse(sut.isWeightPopoverVisible)
+    }
+
+    func test_weightBadge_pastDayWithEntry_staysAvailableToEditThatEntry() async {
+        let day = Date.now.addingTimeInterval(-3 * 86_400)
+        let entry = BodyWeightDomain(dayKey: BodyWeightDayKey.make(from: day), kilograms: 80)
+        let sut = makeSUT(fetchBodyWeights: FetchBodyWeightsUseCaseFake(stubbedWeights: [entry]))
+        await sut.onAppear()
+        await sut.onDaySelected(day)
+        XCTAssertTrue(sut.canLogWeight)
+        sut.onWeightBadgeTapped()
+        XCTAssertTrue(sut.isWeightPopoverVisible)
+        XCTAssertEqual(sut.weightPickerKilograms, 80)
+    }
+
     func test_weightBadge_futureDay_isNotAvailableAndDoesNotOpenPicker() async {
         let sut = makeSUT()
         await sut.onAppear()
