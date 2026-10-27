@@ -24,6 +24,9 @@ struct DashboardConfigurator {
                 deleteFoodConsumed: DeleteFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 copyFoodsConsumed: CopyFoodsConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 assignFoodMealType: AssignFoodMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchBodyWeights: FetchBodyWeightsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchAppSettings: FetchAppSettingsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                saveBodyWeight: SaveBodyWeightUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 authProvider: authProvider,
                 signInSpotlightStore: SignInSpotlightStore()
             ),

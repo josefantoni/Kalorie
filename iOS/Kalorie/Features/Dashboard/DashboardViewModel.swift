@@ -87,12 +87,20 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var showCopyCheckmark = false
     @Published private(set) var activeDaysInMonth: Set<Int> = []
     @Published private(set) var moveFeedbackTrigger = 0
+    @Published private(set) var recentWeights: [BodyWeightDomain] = []
+    @Published private(set) var appSettings = AppSettingsDomain.defaults
+    @Published private(set) var hasLoadedSettings = false
+    @Published var isWeightPopoverVisible = false
+    @Published var weightPickerKilograms = Constants.BodyWeight.defaultKilograms
+    @Published private(set) var isSavingWeight = false
+    @Published private(set) var showWeightCheckmark = false
 
     private var activeDaysMonth = Date.now
     private var isViewingToday = true
     private var hasCompletedInitialLoad = false
     private var monthCache: [String: [FoodConsumedDomain]] = [:]
     private var cachedMonthKeys: Set<String> = []
+    private var weightCache: [String: [BodyWeightDomain]] = [:]
     private var foodPendingDeletion: FoodConsumedDomain?
     private var dayChangeObserver: NSObjectProtocol?
 
@@ -104,6 +112,9 @@ final class DashboardViewModel: ObservableObject {
     private let deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
     private let copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol
     private let assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol
+    private let fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol
+    private let fetchAppSettings: any FetchAppSettingsUseCaseProtocol
+    private let saveBodyWeight: any SaveBodyWeightUseCaseProtocol
     private let authProvider: any AuthProviderProtocol
     private let signInSpotlightStore: any SignInSpotlightStoreProtocol
     private let now: () -> Date
@@ -119,6 +130,9 @@ final class DashboardViewModel: ObservableObject {
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol,
         copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol,
         assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol,
+        fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol,
+        fetchAppSettings: any FetchAppSettingsUseCaseProtocol,
+        saveBodyWeight: any SaveBodyWeightUseCaseProtocol,
         authProvider: any AuthProviderProtocol,
         signInSpotlightStore: any SignInSpotlightStoreProtocol,
         now: @escaping () -> Date = { Date.now }
@@ -134,6 +148,9 @@ final class DashboardViewModel: ObservableObject {
         self.deleteFoodConsumed = deleteFoodConsumed
         self.copyFoodsConsumed = copyFoodsConsumed
         self.assignFoodMealType = assignFoodMealType
+        self.fetchBodyWeights = fetchBodyWeights
+        self.fetchAppSettings = fetchAppSettings
+        self.saveBodyWeight = saveBodyWeight
         observeDayChange()
     }
 
@@ -146,6 +163,12 @@ final class DashboardViewModel: ObservableObject {
     // MARK: - Functions
 
     var dailyMacros: DailyMacros { DailyMacros(foods: foodsConsumed) }
+
+    var isWeightCircleVisible: Bool { hasLoadedSettings && appSettings.showBodyWeight }
+
+    var canLogWeight: Bool { BodyWeightDayKey.make(from: selectedDay) <= BodyWeightDayKey.make(from: now()) }
+
+    var hasWeightForSelectedDay: Bool { recentWeights.first?.dayKey == BodyWeightDayKey.make(from: selectedDay) }
 
     var groupedFoods: [(mealType: MealTypeDomain?, foods: [FoodConsumedDomain])] {
         var foodsByMealTypeId: [String: [FoodConsumedDomain]] = [:]
@@ -182,6 +205,8 @@ final class DashboardViewModel: ObservableObject {
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
             showActiveDays(for: selectedDay)
+            await refreshSettings()
+            await loadWeights(for: selectedDay)
             state = .loaded
             showSignInSpotlightIfNeeded()
         } catch {
@@ -202,6 +227,9 @@ final class DashboardViewModel: ObservableObject {
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
             showActiveDays(for: selectedDay)
+            weightCache = [:]
+            await refreshSettings()
+            await loadWeights(for: selectedDay)
             showSignInSpotlightIfNeeded()
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
@@ -217,6 +245,8 @@ final class DashboardViewModel: ObservableObject {
             try await refreshMealTypes()
             try await reloadDay(selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
+            await refreshSettings()
+            await loadWeights(for: selectedDay, forceReload: true)
             showSignInSpotlightIfNeeded()
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
@@ -352,6 +382,7 @@ final class DashboardViewModel: ObservableObject {
     func onDayChanged(_ date: Date) async {
         isViewingToday = Calendar.current.isDate(date, inSameDayAs: Date.now)
         await loadFoods(for: date)
+        await loadWeights(for: date)
     }
 
     @MainActor
@@ -360,6 +391,48 @@ final class DashboardViewModel: ObservableObject {
         selectedDay = date
         showCalendarSheet = false
         await loadFoods(for: date)
+        await loadWeights(for: date)
+    }
+
+    func onWeightBadgeTapped() {
+        guard canLogWeight else { return }
+        let initial = recentWeights.first?.kilograms ?? Constants.BodyWeight.defaultKilograms
+        weightPickerKilograms = initial
+        isWeightPopoverVisible = true
+    }
+
+    @MainActor
+    func onWeightConfirmed() async {
+        guard
+            !isSavingWeight,
+            !showWeightCheckmark
+        else { return }
+        isSavingWeight = true
+        do {
+            try await saveBodyWeight(kilograms: weightPickerKilograms, for: selectedDay)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
+            alertItem = AlertItem(title: L10n.Dashboard.errorWeightSaveFailed)
+            isSavingWeight = false
+            return
+        }
+        isSavingWeight = false
+        showWeightCheckmark = true
+        await onWeightsChanged()
+        try? await Task.sleep(for: .seconds(1))
+        isWeightPopoverVisible = false
+        showWeightCheckmark = false
+    }
+
+    @MainActor
+    func onWeightsChanged() async {
+        weightCache = [:]
+        await loadWeights(for: selectedDay)
+    }
+
+    func onAppSettingsChanged(_ settings: AppSettingsDomain) {
+        appSettings = settings
+        hasLoadedSettings = true
     }
 
     @MainActor
@@ -385,6 +458,38 @@ final class DashboardViewModel: ObservableObject {
 
     // MARK: - Private
 
+    @MainActor
+    private func refreshSettings() async {
+        do {
+            appSettings = try await fetchAppSettings()
+            hasLoadedSettings = true
+        } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
+            hasLoadedSettings = true
+        }
+    }
+
+    @MainActor
+    private func loadWeights(for date: Date, forceReload: Bool = false) async {
+        let key = BodyWeightDayKey.make(from: date)
+        if
+            !forceReload,
+            let cached = weightCache[key]
+        {
+            recentWeights = cached
+            return
+        }
+        do {
+            let weights = try await fetchBodyWeights(upTo: date)
+            weightCache[key] = weights
+            if BodyWeightDayKey.make(from: selectedDay) == key {
+                recentWeights = weights
+            }
+        } catch {
+            Log.error(error, category: Constants.LogCategory.dashboard)
+        }
+    }
+
     private static let signInSpotlightInterval: TimeInterval = 7 * 24 * 60 * 60
 
     private var isAnyPresentationActive: Bool {
@@ -396,6 +501,7 @@ final class DashboardViewModel: ObservableObject {
             || isDeleteConfirmationVisible
             || copyPopoverIndex != nil
             || macroPopoverIndex != nil
+            || isWeightPopoverVisible
     }
 
     private func showSignInSpotlightIfNeeded() {

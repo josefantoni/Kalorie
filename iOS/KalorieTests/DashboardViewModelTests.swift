@@ -954,6 +954,71 @@ final class DashboardViewModelTests: XCTestCase {
         }
     }
 
+    // MARK: - Body weight
+
+    func test_weightCircle_isHiddenUntilSettingsLoaded_thenShownByDefault() async {
+        let sut = makeSUT()
+        XCTAssertFalse(sut.isWeightCircleVisible)
+        await sut.onAppear()
+        XCTAssertTrue(sut.isWeightCircleVisible)
+    }
+
+    func test_weightCircle_isHiddenWhenSettingsTurnItOff() async {
+        let settings = AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .kg)
+        let sut = makeSUT(fetchAppSettings: FetchAppSettingsUseCaseFake(stubbedSettings: settings))
+        await sut.onAppear()
+        XCTAssertFalse(sut.isWeightCircleVisible)
+    }
+
+    func test_weights_cachedPerDay_secondVisitDoesNotReload() async {
+        let fetch = CountingFetchBodyWeights()
+        let sut = makeSUT(fetchBodyWeights: fetch)
+        await sut.onAppear()
+        let yesterday = Date.now.addingTimeInterval(-86_400)
+        await sut.onDaySelected(yesterday)
+        await sut.onDaySelected(Date.now)
+        await sut.onDaySelected(yesterday)
+        XCTAssertEqual(fetch.callCount, 2)
+    }
+
+    func test_weights_afterWrite_cacheIsClearedAndSelectedDayReloaded() async {
+        let fetch = CountingFetchBodyWeights()
+        let sut = makeSUT(fetchBodyWeights: fetch)
+        await sut.onAppear()
+        await sut.onWeightsChanged()
+        XCTAssertEqual(fetch.callCount, 2)
+    }
+
+    func test_weightBadge_futureDay_isNotAvailableAndDoesNotOpenPicker() async {
+        let sut = makeSUT()
+        await sut.onAppear()
+        await sut.onDaySelected(Date.now.addingTimeInterval(3 * 86_400))
+        XCTAssertFalse(sut.canLogWeight)
+        sut.onWeightBadgeTapped()
+        XCTAssertFalse(sut.isWeightPopoverVisible)
+    }
+
+    func test_weightPicker_initialValue_isWeightValidOnDayElseDefault() async {
+        let withWeight = makeSUT(fetchBodyWeights: FetchBodyWeightsUseCaseFake(stubbedWeights: [BodyWeightDomain(dayKey: "2026-10-01", kilograms: 81.3)]))
+        await withWeight.onAppear()
+        withWeight.onWeightBadgeTapped()
+        XCTAssertEqual(withWeight.weightPickerKilograms, 81.3)
+
+        let empty = makeSUT()
+        await empty.onAppear()
+        empty.onWeightBadgeTapped()
+        XCTAssertEqual(empty.weightPickerKilograms, 70)
+    }
+
+    func test_weightSave_failure_keepsPickerOpenAndAlerts() async {
+        let sut = makeSUT(saveBodyWeight: SaveBodyWeightUseCaseFake(shouldThrow: true))
+        await sut.onAppear()
+        sut.onWeightBadgeTapped()
+        await sut.onWeightConfirmed()
+        XCTAssertTrue(sut.isWeightPopoverVisible)
+        XCTAssertNotNil(sut.alertItem)
+    }
+
     private func waitUntil(timeout: TimeInterval = 2, _ condition: () -> Bool) async {
         let deadline = Date().addingTimeInterval(timeout)
         while !condition() && Date() < deadline {
@@ -970,6 +1035,9 @@ final class DashboardViewModelTests: XCTestCase {
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
         copyFoodsConsumed: any CopyFoodsConsumedUseCaseProtocol = CopyFoodsConsumedUseCaseFake(),
         assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol = AssignFoodMealTypeUseCaseFake(),
+        fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol = FetchBodyWeightsUseCaseFake(),
+        fetchAppSettings: any FetchAppSettingsUseCaseProtocol = FetchAppSettingsUseCaseFake(),
+        saveBodyWeight: any SaveBodyWeightUseCaseProtocol = SaveBodyWeightUseCaseFake(),
         authProvider: any AuthProviderProtocol = AuthProviderFake(),
         signInSpotlightStore: any SignInSpotlightStoreProtocol = SignInSpotlightStoreFake(),
         now: @escaping () -> Date = { Date.now }
@@ -983,6 +1051,9 @@ final class DashboardViewModelTests: XCTestCase {
             deleteFoodConsumed: deleteFoodConsumed,
             copyFoodsConsumed: copyFoodsConsumed,
             assignFoodMealType: assignFoodMealType,
+            fetchBodyWeights: fetchBodyWeights,
+            fetchAppSettings: fetchAppSettings,
+            saveBodyWeight: saveBodyWeight,
             authProvider: authProvider,
             signInSpotlightStore: signInSpotlightStore,
             now: now
@@ -1055,4 +1126,20 @@ private final class MutableFetchFoodsConsumedInRangeStub: FetchFoodsConsumedInRa
     func callAsFunction(from: Date, to: Date) async throws -> [FoodConsumedDomain] {
         stubbedFoods
     }
+}
+
+private final class CountingFetchBodyWeights: FetchBodyWeightsUseCaseProtocol {
+
+    // MARK: - Properties
+
+    private(set) var callCount = 0
+
+    // MARK: - Functions
+
+    func callAsFunction(upTo day: Date) async throws -> [BodyWeightDomain] {
+        callCount += 1
+        return []
+    }
+
+    func callAsFunction() async throws -> [BodyWeightDomain] { [] }
 }

@@ -103,6 +103,15 @@ enum L10n {
         static var errorDeleteFailed: String { String(localized: "dashboard_error_deleteFailed") }
         static var errorCopyFailed: String { String(localized: "dashboard_error_copyFailed") }
         static var errorMoveFailed: String { String(localized: "dashboard_error_moveFailed") }
+        static var errorWeightSaveFailed: String { String(localized: "dashboard_error_weightSaveFailed") }
+        static func weightA11yValue(_ value: String) -> String {
+            String(format: String(localized: "dashboard_weight_a11yValue"), value)
+        }
+        static var weightA11yEmpty: String { String(localized: "dashboard_weight_a11yEmpty") }
+        static var weightBadgeLog: String { String(localized: "dashboard_weight_badgeLog") }
+        static var weightBadgeEdit: String { String(localized: "dashboard_weight_badgeEdit") }
+        static var weightPickerWhole: String { String(localized: "dashboard_weight_pickerWhole") }
+        static var weightPickerTenths: String { String(localized: "dashboard_weight_pickerTenths") }
     }
 
     enum AddFood {
