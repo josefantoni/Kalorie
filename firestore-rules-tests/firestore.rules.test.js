@@ -98,6 +98,26 @@ describe('users/{userId}', () => {
     await assertSucceeds(getDoc(doc(db, 'users/alice/foodConsumed/x')));
   });
 
+  it('lets a user read and write their own body weights and settings', async () => {
+    const db = user('alice');
+    await assertSucceeds(setDoc(doc(db, 'users/alice/bodyWeights/2026-10-27'), { id: '2026-10-27', weight_kg: 78.4 }));
+    await assertSucceeds(getDoc(doc(db, 'users/alice/bodyWeights/2026-10-27')));
+    await assertSucceeds(setDoc(doc(db, 'users/alice/settings/app'), { show_body_weight: false }, { merge: true }));
+    await assertSucceeds(getDoc(doc(db, 'users/alice/settings/app')));
+  });
+
+  it("denies another user's body weights and settings", async () => {
+    await seed(async (db) => {
+      await setDoc(doc(db, 'users/alice/bodyWeights/2026-10-27'), { id: '2026-10-27', weight_kg: 78.4 });
+      await setDoc(doc(db, 'users/alice/settings/app'), { show_body_weight: true });
+    });
+    await assertFails(getDoc(doc(user('bob'), 'users/alice/bodyWeights/2026-10-27')));
+    await assertFails(setDoc(doc(user('bob'), 'users/alice/bodyWeights/2026-10-28'), { id: '2026-10-28', weight_kg: 70 }));
+    await assertFails(getDoc(doc(user('bob'), 'users/alice/settings/app')));
+    await assertFails(setDoc(doc(user('bob'), 'users/alice/settings/app'), { show_body_weight: false }));
+    await assertFails(getDoc(doc(maintainer(), 'users/alice/bodyWeights/2026-10-27')));
+  });
+
   it('lets an anonymous-auth user use their own uid', async () => {
     const db = env.authenticatedContext('anon-1', { firebase: { sign_in_provider: 'anonymous' } }).firestore();
     await assertSucceeds(setDoc(doc(db, 'users/anon-1/mealTypes/m'), { a: 1 }));
