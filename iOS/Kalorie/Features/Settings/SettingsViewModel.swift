@@ -23,6 +23,8 @@ final class SettingsViewModel: ObservableObject {
     @Published var isFeedbackMailUnavailableAlertPresented = false
     @Published private(set) var isMaintainer = false
     @Published var alertItem: AlertItem?
+    @Published private(set) var appSettings: AppSettingsDomain
+    let hasLoadedAppSettings: Bool
 
     var feedbackURL: URL? {
         var components = URLComponents()
@@ -32,7 +34,11 @@ final class SettingsViewModel: ObservableObject {
         return components.url
     }
 
+    private var persistedAppSettings: AppSettingsDomain
+    private var lastSave: Task<Void, Never>?
     private let onMealTypesChanged: () -> Void
+    private let onAppSettingsChanged: (AppSettingsDomain) -> Void
+    private let saveAppSettings: any SaveAppSettingsUseCaseProtocol
     private let createMealType: any CreateMealTypeUseCaseProtocol
     private let deleteMealType: any DeleteMealTypeUseCaseProtocol
     private let updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol
@@ -42,14 +48,23 @@ final class SettingsViewModel: ObservableObject {
 
     init(
         mealTypes: [MealTypeDomain],
+        appSettings: AppSettingsDomain,
         onMealTypesChanged: @escaping () -> Void = {},
+        onAppSettingsChanged: @escaping (AppSettingsDomain) -> Void = { _ in },
+        saveAppSettings: any SaveAppSettingsUseCaseProtocol,
         createMealType: any CreateMealTypeUseCaseProtocol,
         deleteMealType: any DeleteMealTypeUseCaseProtocol,
         updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol,
-        fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol
+        fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol,
+        hasLoadedAppSettings: Bool = true
     ) {
         self.mealTypes = mealTypes
+        self.appSettings = appSettings
+        self.persistedAppSettings = appSettings
+        self.hasLoadedAppSettings = hasLoadedAppSettings
         self.onMealTypesChanged = onMealTypesChanged
+        self.onAppSettingsChanged = onAppSettingsChanged
+        self.saveAppSettings = saveAppSettings
         self.createMealType = createMealType
         self.deleteMealType = deleteMealType
         self.updateMealTypeTimes = updateMealTypeTimes
@@ -64,6 +79,47 @@ final class SettingsViewModel: ObservableObject {
             isMaintainer = try await fetchMaintainerClaim()
         } catch {
             Log.warning(error, category: Constants.LogCategory.settings)
+        }
+    }
+
+    @MainActor
+    func onShowBodyWeightChanged(_ isShown: Bool) async {
+        var updated = appSettings
+        updated.showBodyWeight = isShown
+        await apply(updated)
+    }
+
+    @MainActor
+    func onBodyWeightUnitChanged(_ unit: BodyWeightUnit) async {
+        var updated = appSettings
+        updated.bodyWeightUnit = unit
+        await apply(updated)
+    }
+
+    @MainActor
+    private func apply(_ updated: AppSettingsDomain) async {
+        guard updated != appSettings else { return }
+        appSettings = updated
+        let previousSave = lastSave
+        let save = Task { @MainActor in
+            await previousSave?.value
+            await persist(updated)
+        }
+        lastSave = save
+        await save.value
+    }
+
+    @MainActor
+    private func persist(_ updated: AppSettingsDomain) async {
+        do {
+            try await saveAppSettings(updated)
+            persistedAppSettings = updated
+            onAppSettingsChanged(updated)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.settings)
+            guard appSettings == updated else { return }
+            appSettings = persistedAppSettings
+            alertItem = AlertItem(title: L10n.Settings.errorSaveFailed)
         }
     }
 

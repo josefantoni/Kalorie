@@ -15,7 +15,13 @@ struct SettingsConfigurator {
 
     // MARK: - Functions
 
-    func createView(mealTypes: [MealTypeDomain], onMealTypesChanged: @escaping () -> Void = {}) -> SettingsView {
+    func createView(
+        mealTypes: [MealTypeDomain],
+        appSettings: AppSettingsDomain = .defaults,
+        hasLoadedAppSettings: Bool = true,
+        onMealTypesChanged: @escaping () -> Void = {},
+        onAppSettingsChanged: @escaping (AppSettingsDomain) -> Void = { _ in }
+    ) -> SettingsView {
         let dataProvider = FirestoreDataProvider()
         let authProvider = AuthProvider()
         return SettingsView(
@@ -24,11 +30,15 @@ struct SettingsConfigurator {
             ),
             viewModel: SettingsViewModel(
                 mealTypes: mealTypes,
+                appSettings: appSettings,
                 onMealTypesChanged: onMealTypesChanged,
+                onAppSettingsChanged: onAppSettingsChanged,
+                saveAppSettings: SaveAppSettingsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 createMealType: CreateMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteMealType: DeleteMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 updateMealTypeTimes: UpdateMealTypeTimesUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                fetchMaintainerClaim: FetchMaintainerClaimUseCase(cache: maintainerClaimCache)
+                fetchMaintainerClaim: FetchMaintainerClaimUseCase(cache: maintainerClaimCache),
+                hasLoadedAppSettings: hasLoadedAppSettings
             )
         )
     }

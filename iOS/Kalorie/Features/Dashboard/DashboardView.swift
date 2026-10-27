@@ -114,9 +114,13 @@ struct DashboardView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showSettings) {
-                router.makeSettingsView(mealTypes: viewModel.mealTypes) {
-                    Task { await viewModel.onMealTypesChanged() }
-                }
+                router.makeSettingsView(
+                    mealTypes: viewModel.mealTypes,
+                    appSettings: viewModel.appSettings,
+                    hasLoadedAppSettings: viewModel.hasLoadedSettings,
+                    onMealTypesChanged: { Task { await viewModel.onMealTypesChanged() } },
+                    onAppSettingsChanged: { viewModel.onAppSettingsChanged($0) }
+                )
                 .dynamicTypeLimit()
             }
             .sheet(isPresented: $viewModel.showAddFoodSheet, onDismiss: viewModel.onAddFoodSheetDismissed) {
