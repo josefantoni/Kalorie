@@ -68,7 +68,15 @@ The app works with three kinds of data. The distinction matters for the items be
   shared KMP module next to `MacroKit`; `users/{userId}` is currently written only by the Apple sign-in
   use case and uses camelCase; health data is a new category, so `backend/hosting/privacy.html`, App
   Privacy (App Store Connect), Data safety (Play), the Firestore rules and account deletion all need
-  updating; the spotlight needs a second, independent "last shown" state.
+  updating; the spotlight needs a second, independent "last shown" state. Unresolved: the planned
+  body-weight tracking keeps a dated weight history, so a separate BMR weight field would be a second,
+  diverging source of the user's weight; reconcile the two before designing this.
+- **Dashboard read cost** — not urgent. Firestore bills per document read, and the dominant cost is the
+  whole-month `foodConsumed` load on cold launch and pull to refresh
+  ([ADR 0015](docs/adr/0015-dashboard-caches-a-month-and-derives-the-day.md)): ~300 documents per load at
+  ~10 entries a day. A rough estimate for 300 active users (2 cold launches, 5 foregrounds, 10 day switches
+  each per day) is ~225,000 reads a day, about 80 % of them month loads, i.e. a few USD a month above the
+  free tier. Revisit if the user count grows by orders of magnitude.
 
 ## Android readiness
 
