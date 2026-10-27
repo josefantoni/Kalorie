@@ -17,6 +17,8 @@ struct GenerateFoodExportUseCase: GenerateFoodExportUseCaseProtocol {
     // MARK: - Properties
 
     private let fetchFoodsConsumedInRange: any FetchFoodsConsumedInRangeUseCaseProtocol
+    private let fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol
+    private let fetchAppSettings: any FetchAppSettingsUseCaseProtocol
     private let reportFactory: FoodExportReportFactory
     private let directory: URL
 
@@ -24,10 +26,14 @@ struct GenerateFoodExportUseCase: GenerateFoodExportUseCaseProtocol {
 
     init(
         fetchFoodsConsumedInRange: any FetchFoodsConsumedInRangeUseCaseProtocol,
+        fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol,
+        fetchAppSettings: any FetchAppSettingsUseCaseProtocol,
         reportFactory: FoodExportReportFactory = FoodExportReportFactory(),
         directory: URL = FileManager.default.temporaryDirectory
     ) {
         self.fetchFoodsConsumedInRange = fetchFoodsConsumedInRange
+        self.fetchBodyWeights = fetchBodyWeights
+        self.fetchAppSettings = fetchAppSettings
         self.reportFactory = reportFactory
         self.directory = directory
     }
@@ -35,8 +41,18 @@ struct GenerateFoodExportUseCase: GenerateFoodExportUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction(from: Date, to: Date, format: FoodExportFormat, mealTypes: [MealTypeDomain]) async throws -> URL {
-        let foods = try await fetchFoodsConsumedInRange(from: from, to: to)
-        let report = reportFactory.makeReport(foods: foods, mealTypes: mealTypes, from: from, to: to)
+        async let foodsRead = fetchFoodsConsumedInRange(from: from, to: to)
+        async let weightsRead = fetchBodyWeights(from: from, to: to)
+        let (foods, weights) = try await (foodsRead, weightsRead)
+        let unit = weights.isEmpty ? BodyWeightUnit.kg : try await fetchAppSettings().bodyWeightUnit
+        let report = reportFactory.makeReport(
+            foods: foods,
+            mealTypes: mealTypes,
+            from: from,
+            to: to,
+            weights: weights,
+            weightUnit: unit
+        )
         let data: Data
         switch format {
         case .pdf: data = NSDataBridgeKt.renderPdfData(report: report)

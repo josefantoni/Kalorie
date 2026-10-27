@@ -1141,5 +1141,7 @@ private final class CountingFetchBodyWeights: FetchBodyWeightsUseCaseProtocol {
         return []
     }
 
+    func callAsFunction(from: Date, to: Date) async throws -> [BodyWeightDomain] { [] }
+
     func callAsFunction() async throws -> [BodyWeightDomain] { [] }
 }

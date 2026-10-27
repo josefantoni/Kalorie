@@ -12,14 +12,18 @@ struct ExportConfigurator {
     // MARK: - Functions
 
     func createView(mealTypes: [MealTypeDomain]) -> ExportView {
-        ExportView(
+        let dataProvider = FirestoreDataProvider()
+        let authProvider = AuthProvider()
+        return ExportView(
             viewModel: ExportViewModel(
                 mealTypes: mealTypes,
                 generateFoodExport: GenerateFoodExportUseCase(
                     fetchFoodsConsumedInRange: FetchFoodsConsumedInRangeUseCase(
-                        dataProvider: FirestoreDataProvider(),
-                        authProvider: AuthProvider()
-                    )
+                        dataProvider: dataProvider,
+                        authProvider: authProvider
+                    ),
+                    fetchBodyWeights: FetchBodyWeightsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                    fetchAppSettings: FetchAppSettingsUseCase(dataProvider: dataProvider, authProvider: authProvider)
                 )
             )
         )

@@ -58,15 +58,32 @@ final class GenerateFoodExportUseCaseTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
     }
 
+    func test_export_whenWeightsCannotBeRead_failsLoudInsteadOfSilentlyDroppingThem() async throws {
+        let (sut, _) = try makeSUT(weights: FetchBodyWeightsUseCaseFake(shouldThrow: true))
+
+        do {
+            _ = try await sut(from: Date(), to: Date(), format: .xlsx, mealTypes: [])
+            XCTFail("Expected the weight read to propagate")
+        } catch {
+            XCTAssertTrue(error is URLError)
+        }
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
-        fetch: FetchFoodsConsumedInRangeUseCaseFake = FetchFoodsConsumedInRangeUseCaseFake()
+        fetch: FetchFoodsConsumedInRangeUseCaseFake = FetchFoodsConsumedInRangeUseCaseFake(),
+        weights: FetchBodyWeightsUseCaseFake = FetchBodyWeightsUseCaseFake()
     ) throws -> (sut: GenerateFoodExportUseCase, directory: URL) {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
-        return (GenerateFoodExportUseCase(fetchFoodsConsumedInRange: fetch, directory: directory), directory)
+        return (GenerateFoodExportUseCase(
+            fetchFoodsConsumedInRange: fetch,
+            fetchBodyWeights: weights,
+            fetchAppSettings: FetchAppSettingsUseCaseFake(),
+            directory: directory
+        ), directory)
     }
 
     private func makeDate(day: Int) throws -> Date {

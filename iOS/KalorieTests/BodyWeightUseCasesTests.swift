@@ -70,6 +70,20 @@ final class BodyWeightUseCasesTests: XCTestCase {
         }
     }
 
+    // MARK: - Export range
+
+    func test_fetchForRange_oneQueryUpToLastDay_limitCoversTheDaysPlusTheLastEarlierEntry() async throws {
+        let dataProvider = BodyWeightDataProviderFake()
+        let sut = FetchBodyWeightsUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake(userId: "user-1"))
+        let from = try XCTUnwrap(BodyWeightDayKey.date(from: "2026-09-01"))
+        let to = try XCTUnwrap(BodyWeightDayKey.date(from: "2026-09-10"))
+
+        _ = try await sut(from: from, to: to)
+
+        XCTAssertEqual(dataProvider.queriedUpperBound, "2026-09-10")
+        XCTAssertEqual(dataProvider.queriedLimit, 11, "10 days plus one entry before the interval, so the first days still know their weight")
+    }
+
     // MARK: - Settings
 
     func test_settings_absentDocument_readsAsDefaults() async throws {
@@ -118,6 +132,8 @@ private final class BodyWeightDataProviderFake: FirestoreDataProviderProtocol {
     var setWeightKg: Double?
     var mergedId: String?
     var mergedCollection: String?
+    var queriedUpperBound: String?
+    var queriedLimit: Int?
 
     // MARK: - Functions
 
@@ -139,6 +155,12 @@ private final class BodyWeightDataProviderFake: FirestoreDataProviderProtocol {
         setId = id
         setCollection = collection
         setWeightKg = (item as? BodyWeightDTO)?.weightKg
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isLessThanOrEqualTo value: String, orderByDescending limit: Int) async throws -> [T] {
+        queriedUpperBound = value
+        queriedLimit = limit
+        return []
     }
 
     func mergeAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {

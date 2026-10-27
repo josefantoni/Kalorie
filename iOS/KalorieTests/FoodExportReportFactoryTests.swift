@@ -80,6 +80,38 @@ final class FoodExportReportFactoryTests: XCTestCase {
         XCTAssertEqual(report.days[0].total?.fiber, 3)
     }
 
+    func test_makeReport_withoutWeights_leavesDayLabelsUntouched() throws {
+        let sut = makeSUT()
+        let from = try makeDate(day: 1)
+        let to = try makeDate(day: 2)
+        let plain = sut.makeReport(foods: [], mealTypes: [], from: from, to: to)
+        let withEmptyWeights = sut.makeReport(foods: [], mealTypes: [], from: from, to: to, weights: [], weightUnit: .lb)
+
+        XCTAssertEqual(plain.days.map(\.label), withEmptyWeights.days.map(\.label), "a user without weights must get an export identical to before the feature")
+    }
+
+    func test_makeReport_everyDayShowsTheWeightValidOnIt_andDaysBeforeTheFirstEntryShowNone() throws {
+        let weights = [
+            BodyWeightDomain(dayKey: "2026-09-02", kilograms: 80),
+            BodyWeightDomain(dayKey: "2026-09-04", kilograms: 79)
+        ]
+        let report = makeSUT().makeReport(foods: [], mealTypes: [], from: try makeDate(day: 1), to: try makeDate(day: 5), weights: weights)
+        let labels = report.days.map(\.label)
+
+        XCTAssertFalse(labels[0].contains("kg"))
+        XCTAssertTrue(labels[1].hasSuffix(BodyWeightUnit.kg.formatted(kilograms: 80)))
+        XCTAssertTrue(labels[2].hasSuffix(BodyWeightUnit.kg.formatted(kilograms: 80)), "a day without an entry carries the last earlier one")
+        XCTAssertTrue(labels[3].hasSuffix(BodyWeightUnit.kg.formatted(kilograms: 79)))
+        XCTAssertTrue(labels[4].hasSuffix(BodyWeightUnit.kg.formatted(kilograms: 79)))
+    }
+
+    func test_makeReport_weightIsFormattedInTheChosenUnit() throws {
+        let weights = [BodyWeightDomain(dayKey: "2026-09-01", kilograms: 80)]
+        let report = makeSUT().makeReport(foods: [], mealTypes: [], from: try makeDate(day: 1), to: try makeDate(day: 1), weights: weights, weightUnit: .lb)
+
+        XCTAssertTrue(report.days[0].label.hasSuffix(BodyWeightUnit.lb.formatted(kilograms: 80)))
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> FoodExportReportFactory {
