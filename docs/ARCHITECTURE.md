@@ -88,6 +88,8 @@ users/{userId}/favouriteFoods/{barcode}    explicitly favourited catalogue items
 users/{userId}/myCreatedMeals/{uuid}       user-composed meals
 users/{userId}/foodItemPortions/{barcode}  personal gram-shortcut portions
 users/{userId}/stats/foodFrequency         one document, per-food log counts (design 0020)
+users/{userId}/bodyWeights/{yyyy-MM-dd}    one entry per calendar day, keyed by the day (design 0028)
+users/{userId}/settings/app                one document, app-wide user settings (design 0028)
 users/{userId}/mergedAnonymousAccounts/{uid}  marker: the anonymous account {uid} was merged into this user (§ 6.2)
 foodItemSubmissions/{uuid}                 shared, a user's pending/rejected catalogue submission
 foodItemReports/{barcode}_{userId}         shared, a report that a catalogue entry looks wrong
@@ -125,6 +127,11 @@ Document IDs are meaningful, not random:
 - `foodConsumed`, `myCreatedMeals`, `mealTypes` and `foodItemSubmissions` are keyed by a
   client-generated `UUID().uuidString` — see [ADR 0021](adr/0021-meal-type-ids-are-uuids.md) for
   `mealTypes`, which used a client-assigned integer until this record.
+- `bodyWeights` is keyed by the **day key** `yyyy-MM-dd`, so "one weight per day" holds by
+  construction: a second write for a day replaces the first. The key is built from the Gregorian
+  calendar in the device's current time zone with a POSIX locale, never from `Calendar.current`'s
+  own calendar; `fixtures/body-weight-day-key-cases.json` pins it for both clients. The zero-padded
+  format sorts as dates, which the `id <= dayKey` query relies on. See [design 0028](design/0028-body-weight-tracking.md).
 - `foodItemReports` is keyed by `{barcode}_{userId}`, the one collection keyed by neither a UUID
   nor the barcode alone — see [design 0012](design/0012-report-incorrect-catalogue-data.md) for why
   a composed, deterministic id is the opposite choice from `foodItemSubmissions`' UUID.
@@ -291,6 +298,14 @@ expects. There is no `approved` status: approving is `ApproveSubmissionUseCase` 
 entries still awaiting a maintainer. See [design 0009](design/0009-catalogue-moderation.md) and
 § 7 for the full flow.
 
+**`bodyWeights`** (`BodyWeightDTO`) — `id` (the day key, equal to the document id) and `weight_kg`,
+kilograms stored unrounded whatever unit the user sees. Range 30.0–300.0 kg, enforced by
+`SaveBodyWeightUseCase`, not by the rules. **`settings/app`** (`AppSettingsDTO`) — `show_body_weight`
+(bool, default `true`) and `body_weight_unit` (`"kg"` / `"lb"`, default `"kg"`, an unknown value reads
+as `"kg"`). Every field is optional on read and an absent document means the defaults, so a setting
+added later never breaks an older client. It lives in its own document, not on `users/{userId}`,
+because the sign-in use cases `setAsync` that profile and would erase it (§ 1.2).
+
 **`foodItemReports`** (`FoodItemReportDTO`) — a user's flag that a `.catalogue` item's data looks
 wrong, keyed by `{barcode}_{userId}` rather than a UUID: a second report from the same user on the
 same item replaces the first, which is what bounds one user to one open report per item without
@@ -319,8 +334,12 @@ builder:
 | `loadAsync(id:from:)` | `document(id).getDocument()` — one document by key, returns `T?` |
 | `loadFromServerAsync(id:from:)` | same, `source: .server` — one document, bypasses the offline cache |
 | `loadAsync(from:orderBy:descending:limit:)` | ordered page |
+| `loadAsync(from:where:isLessThanOrEqualTo:orderByDescending:limit:)` | `id <= value`, newest first, `limit` — filter and order on the same field, so the automatic index serves it (body weights) |
+| `loadAsync(from:where:isGreaterThan:orderByAscending:)` | `id > value`, oldest first, `limit` — the same shape in the other direction (body weights after the selected day) |
+| `loadAsync(from:where:isGreaterThanOrEqualTo:isLessThanOrEqualTo:)` | `id >= lower AND id <= upper`, newest first, no limit — one calendar year of body weights for the history screen. Not in the protocol extension's reach: a double that is asked for it throws |
 | `saveAsync(_:to:)` | `addDocument` — Firestore-generated ID |
 | `setAsync(_:id:in:)` | `document(id).setData` — full overwrite |
+| `mergeAsync(_:id:in:)` | `document(id).setData(_, merge: true)` — used only for `settings/app`, so a client never erases a field it does not know |
 | `batchSetAsync(_:in:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) items |
 | `deleteAsync(id:from:)` | `document(id).delete()` |
 
@@ -344,7 +363,8 @@ Consequences worth knowing before adding a method:
   splits into several sequential `WriteBatch` commits; if one chunk fails, earlier chunks have
   already landed and later ones never run. `MigrateAnonymousDataUseCase` is safe under this
   because every id is a client-generated UUID, so re-running the migrate/resume path after a
-  partial failure just re-writes the same documents. `SetupDefaultMealsUseCase` and
+  partial failure just re-writes the same documents (`bodyWeights` are the exception, keyed by day
+  rather than a UUID — § 6.2 explains how that merge stays safe to re-run). `SetupDefaultMealsUseCase` and
   `UpdateMealTypeTimesUseCase` call `batchSetAsync` with the user's `mealTypes`, which today
   never approaches 500 — if that ever changes, the same partial-write risk applies to them
   without the retry path migration has.
@@ -1058,8 +1078,56 @@ changing the day carry over a sensible time of day:
 | Entry deleted | `onDeleteConfirmed` | reload `selectedDay` only |
 | Meal copied | `onCopyConfirmed` | reload `copyTargetDay` only, if its month is cached |
 | Settings sheet changed the meal types | `onMealTypesChanged` | meal types only |
+| Settings sheet changed a body-weight setting | `onAppSettingsChanged` | applies the new settings, no read |
+| Weight logged from the badge, returning from the weight history with changes | `onWeightsChanged` | clear `weightCache`, reload the selected day's weights |
 | Day changed / picked | `onDayChanged` / `onDaySelected` | cache hit, or load that month |
 | Calendar month paged | `onCalendarMonthChanged` | cache hit, or load that month |
+
+A failed weight load is only logged, and only a successful load is cached. What stays on screen depends
+on what the failed load was for: with no window shown for the day yet (cold launch, another day) or
+after this client's own write or delete, whose result the shown window predates, the circle is empty
+and the badge unavailable until the next foreground, pull to refresh or day change; after a foreground
+or pull to refresh the window already shown for that day is kept, since nothing known has outdated it.
+
+The weight history screen only reviews and deletes entries; a weight is created or changed solely
+through the Dashboard badge.
+
+Body weight rides on the same triggers ([design 0028](design/0028-body-weight-tracking.md)):
+`onAppear`, `onForeground` and `onRefresh` also read `settings/app` (1 read) and the selected day's
+weights (up to three entries on or before the day plus up to two after it: two queries, at most 5
+reads, and only the first query on today), and a day change reads them only on a `weightCache` miss.
+The cache is keyed by the selected day, not the month, and any write clears all of it, because
+writing day D changes the window of every day around it. Until the first settings read completes the
+circle is not rendered, so it never appears and then vanishes for a user who turned it off on
+another device.
+A settings read that started before the user changed a setting is discarded when it returns, so it
+cannot overwrite the newer value (`DashboardViewModel.settingsChangeCount`).
+
+The weight circle is rendered inside `MacroSummaryView`, which the Dashboard shows only when the selected
+day has food entries, so on an empty day there is no circle, badge or route to the weight history.
+
+The weight state is guarded by five rules:
+
+- **A window is shown only for its own day.** `shownWeightsKey` is the day key the shown window was
+  loaded for. Picking another day clears the circle until that day's window arrives, and a cached window
+  of another day is never drawn.
+- **`canLogWeight` gates the badge.** It needs `shownWeightsKey` to equal the selected day, and then
+  allows today or any earlier day (`selectedKey <= todayKey`). A future day, a loading day and a day whose load failed all have no badge, so a picker is never seeded
+  from the default over a real entry. The picker starts at the weight valid on the day, else
+  `Constants.BodyWeight.defaultKilograms`.
+- **A failed load is logged, not cached.** The next foreground, pull to refresh or day change retries.
+- **A load that a write or refresh overtook is discarded** (`weightCacheGeneration`, bumped by every
+  `invalidateWeightCache`). Weights also load when the meal types or the month fail at launch.
+- **A failed save keeps the picker open** and shows `errorWeightSaveFailed`; nothing else changes.
+
+`SaveBodyWeightUseCase` checks, in this order, that a user is signed in (`AuthError.notAuthenticated`),
+that the value is within 30.0–300.0 kg (`BodyWeightError.outOfRange`) and that the day key is not after
+today's (`BodyWeightError.futureDay`); on any failure it writes nothing. The day key is built in the
+device's current time zone, which `BodyWeightDayKey` shares with the fixture both clients run.
+
+On the weight history screen, paging forward stops at the current period (`canPageForward`) and
+changing the range (Week / Month / Year) returns to the current period. A failed delete keeps the entry
+and shows an alert. The Dashboard is told on `onDisappear`, and only if the screen deleted something.
 
 `onRefresh` and `onForeground` guard against a cold-launch race with `hasCompletedInitialLoad`:
 both are no-ops until `onAppear`'s initial load has completed, so the month is never fetched twice
@@ -1145,17 +1213,24 @@ whole, top to bottom, and it is identical on both clients:
 1. **Meal layout** — create, reorder, delete and retime meal types (§ 3.4). The section header
    carries the *Edit* / *Done* button. While the list is in edit mode everything below is hidden
    and the sheet cannot be dismissed.
-2. **Other** — a row per action, all styled alike (title, trailing chevron):
+2. **Body weight** — *Show weight on overview* (toggle) and *Weight unit* (kg / lb segmented, shown
+   even while the circle is off because it also sets the unit of the history screen and the export).
+   A change is written through `mergeAsync`, reverts with an alert on failure and is passed to the
+   Dashboard by callback. Hidden in edit mode like everything below the meal layout. The section is
+   rendered, and the view model accepts a change, only when the Dashboard has read `settings/app`
+   successfully (`hasLoadedAppSettings`): every write sends both fields, so a change made over the
+   defaults of a failed read would overwrite the stored unit or switch.
+3. **Other** — a row per action, all styled alike (title, trailing chevron):
    - *Export* — pushes `ExportView` through `isExportPushed` (§ 8).
    - *Feedback* — opens a `mailto:` to the support address with the subject *Zpětná vazba* /
      *Feedback*, or an alert with a copyable address when no mail app handles it
      ([design 0018](design/0018-feedback-by-mail.md)). It needs no account, so it is
      available to anonymous users.
-3. **Support** — *Support development*, a row of its own styled differently from the *Other* rows
+4. **Support** — *Support development*, a row of its own styled differently from the *Other* rows
    (icon, subtitle). It pushes `SupportView` with three consumable tips bought through the store's
    billing ([design 0023](design/0023-support-development-tips.md)); it needs no account. The row is
    rendered only while `Constants.Tips.isEnabled` is `true`, which it is not yet.
-4. **Moderation** — *Pending review* and *Reports*, rendered only for a maintainer (§ 7.3).
+5. **Moderation** — *Pending review* and *Reports*, rendered only for a maintainer (§ 7.3).
 
 The account screen is a separate sheet reached from the Dashboard's account icon (§ 6.3); it holds
 identity only, and new general-purpose rows belong here rather than there.
@@ -1692,8 +1767,8 @@ outcomes, all from [ADR 0006](adr/0006-google-sign-in-identity-collisions.md):
 The migrate path is `MigrateAnonymousDataUseCase`, one type with two methods rather than a single
 `callAsFunction` — see [ADR 0004](adr/0004-migrate-usecase-exposes-two-methods.md) for why the
 convention is deviated from here. `migrate(fromAnonymousUserId:credential:)` is the live path: it
-loads `foodConsumed`, `favouriteFoods`, `myCreatedMeals` and `foodItemPortions` for the anonymous
-user concurrently via `async let`, writes the result to disk as a `PendingMergeSnapshot` *before* calling
+loads `foodConsumed`, `favouriteFoods`, `myCreatedMeals`, `foodItemPortions`, `bodyWeights` and
+`settings/app` for the anonymous user concurrently via `async let`, writes the result to disk as a `PendingMergeSnapshot` *before* calling
 `authCommandProvider.signIn(with:)`, then replays the snapshot under the new UID and deletes it.
 The disk write has to come first: the moment `signIn` succeeds, owner-only security rules mean the
 client can no longer read the anonymous account's data, so anything not already captured is
@@ -1703,6 +1778,14 @@ every document keeps its original id through `batchSetAsync`, so resuming after 
 rather than duplicates (§ 1.5 covers `batchSetAsync`'s own chunking behaviour, which this use case
 is explicitly designed to tolerate). Meal types are never merged — their historical ids collided
 across accounts — so the signed-in account's own layout always wins.
+
+Body weights follow the same "the account wins" rule, but their ids are day keys, which collide, so
+a blind replay would overwrite the account's own weight. `writeAndCleanup` therefore reads the target
+account's `bodyWeights` first and writes only the anonymous days it does not have; `settings/app` is
+written only if the account has none. A resumed replay skips what already landed, so it stays
+idempotent without extra state. `PendingMergeSnapshot` gained `bodyWeights` and `appSettings` and
+must decode a snapshot written before them as empty / `nil` (`decodeIfPresent`): an undecodable
+snapshot stays on disk forever (below), so a strict decode would strand that user's merge for good.
 
 `resumeIfNeeded()` is the crash-recovery path, called once per launch from
 `AuthStateObserver.resumePendingMergeOnce` and guarded by `hasAttemptedPendingMergeResume`: without
@@ -1761,7 +1844,7 @@ itself throwing `requiresRecentLogin`. That second path still exists as a fallba
 where the session goes stale between the check and the call, and is distinguished by
 `dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
 Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods`,
-`myCreatedMeals`, `foodItemPortions`, the `stats/foodFrequency` document, the user's own `foodItemSubmissions` and `foodItemReports` documents and the
+`myCreatedMeals`, `foodItemPortions`, `bodyWeights`, the `settings/app` and `stats/foodFrequency` documents, the user's own `foodItemSubmissions` and `foodItemReports` documents and the
 `submissionPhotos/{uid}/` folder, document by document. The `mergedAnonymousAccounts` markers are deliberately kept: they carry no personal data and let
 the cleanup script still find the abandoned anonymous accounts after the target account is gone. The `users` profile document goes last — the profile delete
 alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
@@ -2038,7 +2121,14 @@ The user opens the Settings sheet from the Dashboard, taps the *Export* row unde
 section (below the meal layout), picks a from/to date and PDF or Excel, and gets a file in the system
 share sheet. Both formats show the
 same hierarchy: day → meal (with its window) → foods, a subtotal after each meal and a total after
-each day. Every day of the interval appears; a day without entries shows a "no entries" row, and an
+each day. When the user has logged body weights, each day label also carries the weight valid on it
+(its own entry, else the last earlier one, formatted in the chosen unit), e.g. `Po 27. 10. 2026 · 78,4 kg`;
+days before the first entry show none and a user with no weights gets an export identical to before.
+One query up to the last day with `limit = days + 1` fetches the interval and the entry before it.
+If the weights cannot be read the export fails rather than silently leaving them out; only an
+unreadable unit setting degrades, to kilograms. The unit is read once, and only when at least one
+weight was loaded.
+`ExportKit` is unchanged. Every day of the interval appears; a day without entries shows a "no entries" row, and an
 interval without any entries still yields a file.
 
 ```

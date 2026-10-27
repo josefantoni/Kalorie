@@ -25,12 +25,14 @@ Read with: `ARCHITECTURE.md` § 1.2–1.6, § 3.5–3.9, § 6.2–6.3, § 8;
 
 ## Goals
 
-- At most one weight per calendar day, **logged only on the day itself** (the badge on today) and
-  stored in kilograms without rounding. A missed day cannot be filled in later; an existing entry of
-  an earlier day can still be edited or deleted.
-- The Dashboard shows the weight valid on the selected day and the last three entries up to it, for
-  one query of at most three document reads.
-- A history screen to review, edit and delete entries.
+- At most one weight per calendar day, logged through the badge on today or on any earlier day (a
+  missed day can be filled in later, but a future day cannot) and stored in kilograms without
+  rounding. An existing entry is edited through the badge on its day, or deleted from the history
+  (see *Decisions made during implementation*).
+- The Dashboard shows the weight valid on the selected day, the two entries before it and the two
+  after it, for two queries of at most five document reads (one query and three reads on today,
+  where nothing can come later).
+- A history screen to review and delete entries.
 - A circle visibility switch and a kg / lb unit, stored in Firestore so they follow the account.
 - Anonymous data survives sign-in; the account's own data always wins a conflict.
 - The calorie pie does not move, whether the circle is shown or hidden.
@@ -118,9 +120,14 @@ loadAsync(from:where:isLessThanOrEqualTo:orderByDescending limit:)
 
 Filter and order on the **same** field (`id`), so the automatic single-field index serves it and no
 composite index is needed. Both clients' providers gain it. A second new method, `mergeAsync`, is
-above. `loadAsync(from:)` (whole collection) already exists and serves the history screen.
+above. A third, `id >= first AND id <= last` (no limit), serves the history screen one calendar
+year at a time.
 
 ### Dashboard circle
+
+**Only with food.** The circle sits in the pie's slot, so it is rendered only on a selected day that has
+food entries; on an empty day the Dashboard shows its empty state and there is no circle, badge or way
+into the history (see *Decisions made during implementation*).
 
 **Layout.** The pie stays exactly where it is (160 pt, centred in `MacroSummaryView`). The circle
 lives in a fixed-width trailing slot that is always laid out, and is merely empty when the circle is
@@ -132,13 +139,14 @@ with ≥ 6 pt clearance to the pie on Android's narrowest case. The number uses 
 (`minimumScaleFactor` / auto-size text) so `172,8 lb` fits at large Dynamic Type / font scale; the
 circle itself does not grow.
 
-**Content** — from the three entries with `id ≤ dayKey(selectedDay)`, newest first:
+**Content** — from up to three entries with `id ≤ dayKey(selectedDay)` (newest first; the first is
+the weight valid on the day) and up to two entries with `id > dayKey(selectedDay)` (oldest first):
 
-| Entries | Circle |
+| Entries valid on or before the day | Circle |
 |---|---|
-| 0 | blurred placeholder (no number, no line) |
-| 1 | number only |
-| 2–3 | number + polyline through the actual points |
+| 0 | blurred placeholder (no number, no line), even if later entries exist |
+| 1, and none later | number only |
+| otherwise | number + polyline through the actual points, including the later ones |
 
 - The number is the newest entry: the weight *valid* on the selected day (that day's entry, or the
   last earlier one). `78,4 kg` / `172,8 lb`, decimal separator from the locale, one decimal.
@@ -156,12 +164,10 @@ circle itself does not grow.
 **Badge** on the circle's bottom-trailing edge:
 
 - `plus` when the selected day has no entry (newest `id` ≠ selected day key), `pencil` when it has.
-- **Rendered only on today, or on an earlier day that already has an entry** (to edit it). Not
-  rendered on a future day and not on an earlier day without an entry, so a day that was missed
-  cannot be back-filled (owner decision 2026-10-27). With `dayKey(selectedDay) = d`, `today =
-  dayKey(now)`: shown iff `d == today || (d < today && entry exists for d)`. This UI condition is
-  the whole guard; the history screen cannot add a day and the Firestore rules do not validate
-  dates. Rendered in the blurred state too, otherwise the first value could never be entered.
+- **Rendered on today and on any earlier day**, so a missed day can be back-filled (owner decision
+  2026-10-28, reversing 2026-10-27). Not rendered on a future day. With `dayKey(selectedDay) = d`,
+  `today = dayKey(now)`: shown iff `d <= today`. This UI condition is the whole guard; the history
+  screen cannot add a day and the Firestore rules do not validate dates. Rendered in the blurred state too, otherwise the first value could never be entered.
 - Visual 24 pt, **hit area 44 × 44 pt / 48 × 48 dp**, a separate control layered above the circle so
   a tap on it does not also trigger the circle's push. The hit area may extend outside the circle
   into the trailing margin but MUST NOT overlap the pie.
@@ -176,7 +182,7 @@ circle itself does not grow.
 - **Initial value:** that day's entry → else the weight valid on that day → else **70 kg**
   (154.3 lb in lb mode, i.e. 70 kg converted and rounded).
 - Writes `setAsync({id, weight_kg}, id: dayKey, in: bodyWeights)` for **the selected day**, which by
-  the rule above is today or an earlier day that already has an entry. Confirm is disabled while writing. On failure the
+  the rule above is today or an earlier day. Confirm is disabled while writing. On failure the
   box stays open and `alertItem` reports it.
 
 **Accessibility.** Circle and badge are two separate elements. Circle: "Weight 78.4 kg, show
@@ -186,7 +192,13 @@ history" (blurred: "Weight, no entries, show history"). Badge: "Log weight" / "E
 
 ### Loading and the weight cache
 
-One query per load: `id ≤ dayKey(selectedDay)`, descending, limit 3 — **at most three reads**.
+Two queries per load, run concurrently — **at most five reads**:
+
+- `id ≤ dayKey(selectedDay)`, descending, limit 3: the weight valid on the day and the two before it.
+- `id > dayKey(selectedDay)`, ascending, limit 2: the two entries after it. Skipped when the selected
+  day is today or later, because a future weight cannot be written, so it would only cost a read.
+
+Both filter and order on the same field (`id`), so the automatic index serves them.
 
 - `weightCache: [dayKey: [BodyWeight]]` in `DashboardViewModel`, alongside `monthCache`, keyed by
   the selected day (not the month — the window is per day).
@@ -202,12 +214,18 @@ One query per load: `id ≤ dayKey(selectedDay)`, descending, limit 3 — **at m
 | Returning from history with changes | clear `weightCache`, reload the selected day |
 | Settings sheet changed a setting | apply the new settings; no read |
 
-- **A write clears the whole cache, not one key.** Writing day D changes the "last three" of every
-  later day already cached. Clearing is simpler than computing which keys are affected and costs at
-  most three reads per later visit.
+- **A write clears the whole cache, not one key.** Writing day D changes the window of every day
+  around it already cached. Clearing is simpler than computing which keys are affected and costs at
+  most five reads per later visit.
+- **A failed load is not cached and not retried on its own.** The circle stays empty and the badge
+  unavailable (a real entry must not be overwritten with the default), nothing is shown to the user
+  and the error is only logged, as for the settings read. The next foreground, pull to refresh or
+  day change loads the window again, because only a successful load fills `weightCache`. A failed
+  reload after this client's own write or delete also clears the window already shown, since it is
+  known to predate the change; a failed foreground or pull-to-refresh reload keeps it.
 - Staleness for days other than the selected one after a write on another device is the same
   trade-off ADR 0041 already accepts for food.
-- **Cost.** One query is ~10 % of a Dashboard foreground's reads; at 300 users it is in the order of
+- **Cost.** The two queries are ~15 % of a Dashboard foreground's reads on a past day, ~10 % on today; at 300 users it is in the order of
   tens of cents a month. Denormalising the last weights into a summary document was rejected: it saves
   cents and adds a second copy that can diverge.
 
@@ -219,8 +237,12 @@ One query per load: `id ≤ dayKey(selectedDay)`, descending, limit 3 — **at m
   off on another device. It appears together with the rest of the day's data, like the food list.
 - On a reload (foreground, pull to refresh) the current value is kept until the new one arrives; it
   is never reset to the default in between.
-- A failed settings read keeps the last known value, or the defaults on cold launch; it does not
-  block the Dashboard or raise an alert (the food load already reports connectivity).
+- A failed settings read keeps the last known value; on cold launch the circle stays hidden until a
+  read succeeds (foreground or pull to refresh), so a user who turned it off never sees it come back.
+  It does not block the Dashboard or raise an alert (the food load already reports connectivity).
+- **A read never overwrites a newer change.** A read that started before the user changed a setting
+  is discarded when it returns, so a foreground or pull-to-refresh read that is still in flight cannot
+  bring the old unit back over the one just saved from the Settings sheet.
 - No local (UserDefaults / DataStore) mirror: it would add a second source of truth for one read's
   worth of latency, and the rule above already prevents the flicker.
 
@@ -232,6 +254,12 @@ like everything below the meal layout:
 - *Weight unit* — segmented `kg | lb`, shown even when the circle is off (it also applies to the
   history screen and the export).
 
+- **Only after a successful read.** The section is not rendered, and the view model ignores a change,
+  while the Dashboard has no successful `settings/app` read (cold launch with a failed read, until a
+  foreground or pull to refresh succeeds). Each write sends every known field, so a change made over
+  the defaults would overwrite the stored unit or switch. The state is taken when the sheet opens; a
+  read that completes while it is open shows the section the next time.
+
 A change writes the whole settings object through `mergeAsync`. On failure the control reverts and
 `alertItem` reports it. The Dashboard is told through a callback (like `onMealTypesChanged`) and
 applies the value it already knows without a read.
@@ -240,24 +268,33 @@ applies the value it already knows without a read.
 
 Pushed from the circle on the Dashboard's `NavigationStack`.
 
-- **Load:** the whole `bodyWeights` collection, once per appearance (`loadAsync(from:)`). One entry
-  per day caps it at 365 documents a year; at one open a week this is negligible and far below a
-  single month load. Chart and list both derive from this one array. Revisit only if a user ever has
-  several years of daily entries *and* opens the screen often.
+- **Load:** the current calendar year of `bodyWeights`, once per appearance — one range query on
+  `id`, at most 366 documents. Paging back to a period that starts in an earlier year reads that
+  year, once, and prepends it; a year already loaded is never read again. Opening the screen
+  therefore costs one year however long the history is, and a user who never pages back never pays
+  for older years. Chart and list both derive from the loaded array, so the list shows the years
+  loaded so far. Switching range or paging within loaded years reads nothing. A failed read of an
+  earlier year alerts and is retried by the next page or range change.
 - **Chart** — line segments between the real points, same neutral colour and 2 kg minimum Y span as
   the circle, x by date. A segmented range switcher **Week / Month / Year**, default **Month**, on
   both clients. A horizontal swipe (and previous / next arrows) pages to the previous or next
   period; scrolling day by day through years of history is too slow without the switcher.
   Switching range or paging reads nothing — it only changes which part of the already loaded array
   is drawn.
+  The Y axis lists the entries' own values (one decimal, in the selected unit) at their height,
+  not the bounds of the padded range. Labels are placed greedily, highest, lowest, newest, oldest
+  and then the rest, and a label closer than 14 pt to one already placed is dropped, so a month or
+  a year shows the extremes and as many others as fit.
+  A faint horizontal guide line runs through the plot at each labelled value, lighter than the
+  baseline so the two are not confused.
 - **Drawing — custom `Canvas` on both clients**, for the circle's mini graph and for this chart, the
   way `MacroDonutView` already draws the macro pie on both (SwiftUI `Canvas` / Compose `Canvas`).
   No chart library: Swift Charts has no Android counterpart, so it would split the two clients'
   behaviour, and Android would need a new dependency. Paging by period instead of free scrolling
   keeps the hand-drawn chart simple: one period's points, its axis labels, nothing to virtualise.
 - **List** — only days with an entry, newest first, `date — 78,4 kg`. No empty rows.
-- **Edit** — tap a row opens the same picker box anchored to that row; it can change the value,
-  never the day.
+- **No editing** on this screen (see *Decisions made during implementation*).
+  A row is not tappable. An entry is changed through the Dashboard badge on its day.
 - **Delete** — the existing trailing swipe (`RevealingSwipeToDeleteRow`) with the same confirmation
   alert as a food entry (§ 3.7); no primary delete button.
 - **No adding** on this screen. A new day is logged only through the badge, and only for today.
@@ -318,6 +355,9 @@ Implementation:
 - Weights needed are those with `id ≤ dayKey(to)`. Load them with **two queries**: the range
   `[dayKey(from), dayKey(to)]` and the existing-shape "latest before `from`" (the new provider query,
   `id < dayKey(from)` expressed as `≤` the previous day, limit 1). At most interval-length + 1 reads.
+- **A failed weight read fails the export.** An export without the weights it should carry looks
+  complete and is not, so the error is surfaced instead of dropping them silently. Only the unit
+  setting degrades: if `settings/app` cannot be read the weights are still exported, in kilograms.
 - The weight is formatted on the platform side (unit, decimal separator, as for every other export
   string) and **appended to the day label**: `Po 27. 10. 2026 · 78,4 kg`. ExportKit does not change;
   PDF and xlsx stay identical; a user without weights gets byte-identical output.
@@ -369,6 +409,44 @@ declaration covers; verify the *Health* box (not only *Fitness*) is ticked. No n
 today" with the same query the circle uses and stores no weight of its own. Nothing here blocks it.
 The conflict is already noted in `TODO.md`; it should be updated to point to this document.
 
+## Decisions made during implementation
+
+Settled while building and reviewing the feature, before it shipped, so they are recorded here
+instead of in ADRs. Both clients follow them.
+
+**History reviews and deletes; only the Dashboard badge edits.** An edit popover on the history rows
+duplicated the picker, the save/checkmark/dismiss flow and an error alert, for a path the badge already
+covers (open the day, tap the badge). Cost: correcting an old entry takes one more step.
+
+**The weight circle exists only where the pie does.** It lives in `MacroSummaryView`, which the
+Dashboard shows only on a day with food entries. On a day without food there is no circle, badge or way
+into the history, even on today. Accepted: a user who weighs in before the first meal cannot log the
+weight until a food entry exists. Existing entries stay in the history, export and merge. If this
+proves to be a problem, give the circle a slot on an empty day too.
+
+**The Dashboard never shows, or offers to overwrite, a window that is not current.** The badge opens a
+picker seeded from the window on screen and saving writes a whole entry, so a window of another day, or
+one that never loaded, would overwrite a real entry with the wrong number or the default.
+
+1. A window is shown only for the day it was loaded for (`shownWeightsKey`); selecting another day
+   clears the circle until that day's window arrives.
+2. The badge needs a window shown for the selected day: today or earlier, never a future day, never
+   while loading or after a failed load.
+3. A failed load is logged, not cached or surfaced. A failed reload after this client's own write or
+   delete clears the shown window (it predates the change); a failed foreground or pull-to-refresh
+   reload keeps it.
+4. A load overtaken by a write or refresh is discarded (cache generation); a settings read that started
+   before a setting change is dropped (`settingsChangeCount`).
+5. Weights load even when meal types or the month fail at launch.
+
+Cost: an empty circle while a load runs or until the next trigger after a failure.
+
+**Export: a failed weight read fails the export; an unreadable unit does not.** A file missing the
+weights it should carry looks complete and is indistinguishable from days with no entry. If only the
+unit fails to read, the export succeeds in kilograms and the failure is logged. The unit is read once,
+and only when at least one weight was loaded, so a user without weights gets an export identical to one
+made before the feature.
+
 ## Alternatives considered
 
 - **Random UUID ids + a `date` field.** Needs a read before every write to find that day's entry,
@@ -408,7 +486,7 @@ The conflict is already noted in `TODO.md`; it should be updated to point to thi
 - [ ] `SettingsDTO` / domain with defaults — iOS + Android
 - [ ] Use cases: fetch weights up to a day, fetch all weights, save weight, delete weight, fetch / save settings
 - [ ] Dashboard: circle slot, circle, badge, picker box, `weightCache`, triggers
-- [ ] History screen: chart + range switcher, list, edit, swipe delete, empty state
+- [ ] History screen: chart + range switcher, list, swipe delete, empty state
 - [ ] Settings sheet: new section
 - [ ] `MigrateAnonymousDataUseCase` + `PendingMergeSnapshot` (backward-compatible decode)
 - [ ] `DeleteAccountUseCase`
