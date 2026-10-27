@@ -91,6 +91,7 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var appSettings = AppSettingsDomain.defaults
     @Published private(set) var hasLoadedSettings = false
     @Published var isWeightPopoverVisible = false
+    @Published var isWeightHistoryPushed = false
     @Published var weightPickerKilograms = Constants.BodyWeight.defaultKilograms
     @Published private(set) var isSavingWeight = false
     @Published private(set) var showWeightCheckmark = false
