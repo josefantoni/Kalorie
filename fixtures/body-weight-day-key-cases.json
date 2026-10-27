@@ -1,0 +1,64 @@
+{
+  "cases": [
+    {
+      "name": "last second of the day in Prague stays on that day",
+      "instant": "2026-10-27T23:59:59+01:00",
+      "timeZone": "Europe/Prague",
+      "expectedKey": "2026-10-27"
+    },
+    {
+      "name": "first second of the next day in Prague moves to the next key",
+      "instant": "2026-10-28T00:00:00+01:00",
+      "timeZone": "Europe/Prague",
+      "expectedKey": "2026-10-28"
+    },
+    {
+      "name": "the same instant is Oct 28 in Prague",
+      "instant": "2026-10-27T23:30:00Z",
+      "timeZone": "Europe/Prague",
+      "expectedKey": "2026-10-28"
+    },
+    {
+      "name": "the same instant is still Oct 27 in New York",
+      "instant": "2026-10-27T23:30:00Z",
+      "timeZone": "America/New_York",
+      "expectedKey": "2026-10-27"
+    },
+    {
+      "name": "the same instant is Oct 28 in Auckland",
+      "instant": "2026-10-27T23:30:00Z",
+      "timeZone": "Pacific/Auckland",
+      "expectedKey": "2026-10-28"
+    },
+    {
+      "name": "new year arrives first in Prague",
+      "instant": "2026-12-31T23:30:00Z",
+      "timeZone": "Europe/Prague",
+      "expectedKey": "2027-01-01"
+    },
+    {
+      "name": "new year has not arrived yet in New York",
+      "instant": "2026-12-31T23:30:00Z",
+      "timeZone": "America/New_York",
+      "expectedKey": "2026-12-31"
+    },
+    {
+      "name": "leap day",
+      "instant": "2028-02-29T12:00:00Z",
+      "timeZone": "Europe/Prague",
+      "expectedKey": "2028-02-29"
+    },
+    {
+      "name": "the spring DST switch day is one ordinary day",
+      "instant": "2026-03-29T01:30:00Z",
+      "timeZone": "Europe/Prague",
+      "expectedKey": "2026-03-29"
+    },
+    {
+      "name": "month and day are zero padded so keys sort as dates",
+      "instant": "2026-01-05T10:00:00Z",
+      "timeZone": "Europe/Prague",
+      "expectedKey": "2026-01-05"
+    }
+  ]
+}

@@ -26,6 +26,15 @@ final class BodyWeightUseCasesTests: XCTestCase {
         )
     }
 
+    func test_dayKey_matchesSharedFixtureCases() throws {
+        let fixture: DayKeyFixture = try FixtureLoader.load("body-weight-day-key-cases")
+        for dayKeyCase in fixture.cases {
+            let instant = try XCTUnwrap(ISO8601DateFormatter().date(from: dayKeyCase.instant), dayKeyCase.name)
+            let timeZone = try XCTUnwrap(TimeZone(identifier: dayKeyCase.timeZone), dayKeyCase.name)
+            XCTAssertEqual(BodyWeightDayKey.make(from: instant, timeZone: timeZone), dayKeyCase.expectedKey, dayKeyCase.name)
+        }
+    }
+
     // MARK: - Save
 
     func test_save_writesToDayKeyDocumentInUserCollection() async throws {
@@ -167,4 +176,15 @@ private final class BodyWeightDataProviderFake: FirestoreDataProviderProtocol {
         mergedId = id
         mergedCollection = collection
     }
+}
+
+private struct DayKeyFixture: Decodable {
+    let cases: [DayKeyCase]
+}
+
+private struct DayKeyCase: Decodable {
+    let name: String
+    let instant: String
+    let timeZone: String
+    let expectedKey: String
 }
