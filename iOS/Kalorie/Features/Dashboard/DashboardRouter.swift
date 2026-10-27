@@ -35,8 +35,20 @@ struct DashboardRouter {
 
     // MARK: - Functions
 
-    func makeSettingsView(mealTypes: [MealTypeDomain], onMealTypesChanged: @escaping () -> Void = {}) -> SettingsView {
-        settingsConfigurator.createView(mealTypes: mealTypes, onMealTypesChanged: onMealTypesChanged)
+    func makeSettingsView(
+        mealTypes: [MealTypeDomain],
+        appSettings: AppSettingsDomain,
+        hasLoadedAppSettings: Bool,
+        onMealTypesChanged: @escaping () -> Void = {},
+        onAppSettingsChanged: @escaping (AppSettingsDomain) -> Void = { _ in }
+    ) -> SettingsView {
+        settingsConfigurator.createView(
+            mealTypes: mealTypes,
+            appSettings: appSettings,
+            hasLoadedAppSettings: hasLoadedAppSettings,
+            onMealTypesChanged: onMealTypesChanged,
+            onAppSettingsChanged: onAppSettingsChanged
+        )
     }
 
     func makeAddFoodSheetView(

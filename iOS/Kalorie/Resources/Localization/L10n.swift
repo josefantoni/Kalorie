@@ -323,6 +323,10 @@ enum L10n {
         static var navigationTitle: String { String(localized: "settings_navigationTitle") }
         static var sectionMealLayout: String { String(localized: "settings_section_mealLayout") }
         static var sectionOther: String { String(localized: "settings_section_other") }
+        static var sectionBodyWeight: String { String(localized: "settings_section_bodyWeight") }
+        static var bodyWeightShow: String { String(localized: "settings_bodyWeight_show") }
+        static var bodyWeightUnit: String { String(localized: "settings_bodyWeight_unit") }
+        static var errorSaveFailed: String { String(localized: "settings_error_saveFailed") }
         static var fieldNewMealTitle: String { String(localized: "settings_field_newMeal_placeholder") }
         static var datePickerFrom: String { String(localized: "settings_datePicker_from") }
         static var datePickerTo: String { String(localized: "settings_datePicker_to") }

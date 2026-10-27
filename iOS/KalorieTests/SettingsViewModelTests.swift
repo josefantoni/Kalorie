@@ -178,6 +178,71 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(components.queryItems?.first { $0.name == "subject" }?.value, L10n.Settings.buttonFeedback)
     }
 
+    // MARK: - Body weight settings
+
+    func test_toggleBodyWeight_savesAndNotifiesDashboard() async {
+        var notified: AppSettingsDomain?
+        let sut = makeSUT { notified = $0 }
+        await sut.onShowBodyWeightChanged(false)
+        XCTAssertFalse(sut.appSettings.showBodyWeight)
+        XCTAssertEqual(notified?.showBodyWeight, false)
+    }
+
+    func test_changeUnit_keepsOtherSettingsAndNotifies() async {
+        var notified: AppSettingsDomain?
+        let sut = makeSUT(appSettings: AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .kg)) { notified = $0 }
+        await sut.onBodyWeightUnitChanged(.lb)
+        XCTAssertEqual(notified, AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .lb))
+    }
+
+    func test_saveFailure_revertsControlAndAlerts_withoutNotifying() async {
+        var notifyCount = 0
+        let sut = makeSUT(saveAppSettings: SaveAppSettingsUseCaseFake(shouldThrow: true)) { _ in notifyCount += 1 }
+        await sut.onBodyWeightUnitChanged(.lb)
+        XCTAssertEqual(sut.appSettings.bodyWeightUnit, .kg)
+        XCTAssertNotNil(sut.alertItem)
+        XCTAssertEqual(notifyCount, 0)
+    }
+
+    func test_overlappingChanges_areSavedInOrder_andALaterSaveCarriesAnEarlierFailedChange() async {
+        let save = GatedSaveAppSettings()
+        var notified: [AppSettingsDomain] = []
+        let sut = makeSUT(saveAppSettings: save) { notified.append($0) }
+        let first = Task { await sut.onShowBodyWeightChanged(false) }
+        while save.startedCount == 0 { await Task.yield() }
+        let second = Task { await sut.onBodyWeightUnitChanged(.lb) }
+        try? await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(save.startedCount, 1, "the second write must wait for the first, or their order on the server is undefined")
+        save.releaseFirstWithFailure()
+        await first.value
+        await second.value
+        let expected = AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .lb)
+        XCTAssertEqual(save.savedSettings.last, expected)
+        XCTAssertEqual(sut.appSettings, expected)
+        XCTAssertEqual(notified, [expected])
+        XCTAssertNil(sut.alertItem)
+    }
+
+    func test_overlappingChanges_whenTheLastSaveFails_revertsToWhatIsStored() async {
+        let save = GatedSaveAppSettings(failsSecondCall: true)
+        let sut = makeSUT(saveAppSettings: save)
+        let first = Task { await sut.onShowBodyWeightChanged(false) }
+        while save.startedCount == 0 { await Task.yield() }
+        let second = Task { await sut.onBodyWeightUnitChanged(.lb) }
+        save.releaseFirstWithSuccess()
+        await first.value
+        await second.value
+        XCTAssertEqual(sut.appSettings, AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .kg))
+        XCTAssertNotNil(sut.alertItem)
+    }
+
+    func test_unchangedValue_doesNotWrite() async {
+        var notifyCount = 0
+        let sut = makeSUT { _ in notifyCount += 1 }
+        await sut.onBodyWeightUnitChanged(.kg)
+        XCTAssertEqual(notifyCount, 0)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
@@ -185,10 +250,16 @@ final class SettingsViewModelTests: XCTestCase {
         createMealType: any CreateMealTypeUseCaseProtocol = CreateMealTypeUseCaseFake(),
         deleteMealType: any DeleteMealTypeUseCaseProtocol = DeleteMealTypeUseCaseFake(),
         updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol = UpdateMealTypeTimesUseCaseFake(),
-        fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake()
+        fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake(),
+        appSettings: AppSettingsDomain = .defaults,
+        saveAppSettings: any SaveAppSettingsUseCaseProtocol = SaveAppSettingsUseCaseFake(),
+        onAppSettingsChanged: @escaping (AppSettingsDomain) -> Void = { _ in }
     ) -> SettingsViewModel {
         SettingsViewModel(
             mealTypes: mealTypes,
+            appSettings: appSettings,
+            onAppSettingsChanged: onAppSettingsChanged,
+            saveAppSettings: saveAppSettings,
             createMealType: createMealType,
             deleteMealType: deleteMealType,
             updateMealTypeTimes: updateMealTypeTimes,
@@ -198,5 +269,55 @@ final class SettingsViewModelTests: XCTestCase {
 
     private func makeMealType(id: Int, name: String, hour: Int, endHour: Int) -> MealTypeDomain {
         MealTypeDomain(id: "\(id)", name: name, startMinutes: hour * 60, endMinutes: endHour * 60)
+    }
+}
+
+private final class GatedSaveAppSettings: SaveAppSettingsUseCaseProtocol, @unchecked Sendable {
+
+    // MARK: - Properties
+
+    private let lock = NSLock()
+    private let failsSecondCall: Bool
+    private var continuation: CheckedContinuation<Bool, Never>?
+    private var started = 0
+    private var saved: [AppSettingsDomain] = []
+
+    var startedCount: Int { lock.withLock { started } }
+    var savedSettings: [AppSettingsDomain] { lock.withLock { saved } }
+
+    // MARK: - Init
+
+    init(failsSecondCall: Bool = false) {
+        self.failsSecondCall = failsSecondCall
+    }
+
+    // MARK: - Functions
+
+    func callAsFunction(_ settings: AppSettingsDomain) async throws {
+        let isFirst = lock.withLock { started == 0 }
+        if isFirst {
+            let succeeds = await withCheckedContinuation { continuation in
+                lock.withLock {
+                    self.continuation = continuation
+                    started += 1
+                }
+            }
+            lock.withLock { saved.append(settings) }
+            if !succeeds { throw URLError(.unknown) }
+            return
+        }
+        lock.withLock {
+            started += 1
+            saved.append(settings)
+        }
+        if failsSecondCall { throw URLError(.unknown) }
+    }
+
+    func releaseFirstWithFailure() {
+        lock.withLock { continuation }?.resume(returning: false)
+    }
+
+    func releaseFirstWithSuccess() {
+        lock.withLock { continuation }?.resume(returning: true)
     }
 }

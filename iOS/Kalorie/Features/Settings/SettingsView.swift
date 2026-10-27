@@ -84,6 +84,31 @@ struct SettingsView: View {
                     }
 
                     if editMode == .inactive {
+                        if viewModel.hasLoadedAppSettings {
+                            Section(header: Text(L10n.Settings.sectionBodyWeight)) {
+                                Toggle(
+                                    L10n.Settings.bodyWeightShow,
+                                    isOn: Binding(
+                                        get: { viewModel.appSettings.showBodyWeight },
+                                        set: { isShown in Task { await viewModel.onShowBodyWeightChanged(isShown) } }
+                                    )
+                                )
+                                .tint(.accentColor)
+                                Picker(
+                                    L10n.Settings.bodyWeightUnit,
+                                    selection: Binding(
+                                        get: { viewModel.appSettings.bodyWeightUnit },
+                                        set: { unit in Task { await viewModel.onBodyWeightUnitChanged(unit) } }
+                                    )
+                                ) {
+                                    ForEach(BodyWeightUnit.allCases, id: \.self) { unit in
+                                        Text(unit.symbol).tag(unit)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
+                        }
+
                         Section(header: Text(L10n.Settings.sectionOther)) {
                             Button {
                                 viewModel.isExportPushed = true
