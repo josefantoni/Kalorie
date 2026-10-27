@@ -153,6 +153,8 @@ private final class HistorySpy: FetchBodyWeightsUseCaseProtocol, SaveBodyWeightU
 
     func callAsFunction(upTo day: Date) async throws -> [BodyWeightDomain] { weights }
 
+    func callAsFunction(from: Date, to: Date) async throws -> [BodyWeightDomain] { weights }
+
     func callAsFunction(kilograms: Double, for day: Date) async throws {
         savedKilograms.append(kilograms)
         savedDayKeys.append(BodyWeightDayKey.make(from: day))

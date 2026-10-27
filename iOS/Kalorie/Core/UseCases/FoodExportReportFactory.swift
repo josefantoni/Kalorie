@@ -26,7 +26,9 @@ struct FoodExportReportFactory {
         foods: [FoodConsumedDomain],
         mealTypes: [MealTypeDomain],
         from: Date,
-        to: Date
+        to: Date,
+        weights: [BodyWeightDomain] = [],
+        weightUnit: BodyWeightUnit = .kg
     ) -> ExportKit.Report {
         let firstDay = calendar.startOfDay(for: from)
         let lastDay = calendar.startOfDay(for: to)
@@ -41,8 +43,14 @@ struct FoodExportReportFactory {
         }
         let dayIndexes = Dictionary(uniqueKeysWithValues: dayStarts.enumerated().map { ($1, $0) })
 
+        let newestFirstWeights = weights.sorted { $0.dayKey > $1.dayKey }
         let days = dayStarts.enumerated().map { index, start in
-            ExportDayInput(index: Int32(index), label: start.formatted(.dateTime.weekday(.wide).day().month(.wide).year()))
+            let dayLabel = start.formatted(.dateTime.weekday(.wide).day().month(.wide).year())
+            let dayKey = BodyWeightDayKey.make(from: start)
+            guard let weight = newestFirstWeights.first(where: { $0.dayKey <= dayKey }) else {
+                return ExportDayInput(index: Int32(index), label: dayLabel)
+            }
+            return ExportDayInput(index: Int32(index), label: "\(dayLabel) · \(weightUnit.formatted(kilograms: weight.kilograms))")
         }
         let sections = mealTypes.map { mealType in
             ExportSectionInput(
