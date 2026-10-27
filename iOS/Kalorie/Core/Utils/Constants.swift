@@ -110,6 +110,8 @@ enum Constants {
         static let reportsPageLimit = 50
         static let reportReasonMaxLength = 500
         static let foodFrequencyDocumentId = "foodFrequency"
+        static let appSettingsDocumentId = "app"
+        static let bodyWeightRecentLimit = 3
 
         enum Field {
             static let czNameFolded = "cz_name_folded"
@@ -124,6 +126,7 @@ enum Constants {
             static let updatedAt = "updated_at"
             static let status = "status"
             static let date = "date"
+            static let id = "id"
         }
 
         enum FoodFrequency {
@@ -138,6 +141,8 @@ enum Constants {
         static func myCreatedMeals(userId: String) -> String { "users/\(userId)/myCreatedMeals" }
         static func foodItemPortions(userId: String) -> String { "users/\(userId)/foodItemPortions" }
         static func stats(userId: String) -> String { "users/\(userId)/stats" }
+        static func bodyWeights(userId: String) -> String { "users/\(userId)/bodyWeights" }
+        static func settings(userId: String) -> String { "users/\(userId)/settings" }
         static func mergedAnonymousAccounts(userId: String) -> String { "users/\(userId)/mergedAnonymousAccounts" }
     }
 }
