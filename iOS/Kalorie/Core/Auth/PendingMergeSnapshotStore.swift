@@ -16,6 +16,8 @@ struct PendingMergeSnapshot: Codable {
     let favouriteFoods: [FavouriteFoodDTO]
     let myCreatedMeals: [MyCreatedMealDTO]
     let foodItemPortions: [FoodItemPersonalPortionsDTO]
+    let bodyWeights: [BodyWeightDTO]
+    let appSettings: AppSettingsDTO?
 
     // MARK: - Init
 
@@ -24,13 +26,17 @@ struct PendingMergeSnapshot: Codable {
         foodConsumed: [FoodConsumedDTO],
         favouriteFoods: [FavouriteFoodDTO],
         myCreatedMeals: [MyCreatedMealDTO],
-        foodItemPortions: [FoodItemPersonalPortionsDTO] = []
+        foodItemPortions: [FoodItemPersonalPortionsDTO] = [],
+        bodyWeights: [BodyWeightDTO] = [],
+        appSettings: AppSettingsDTO? = nil
     ) {
         self.sourceAnonymousUserId = sourceAnonymousUserId
         self.foodConsumed = foodConsumed
         self.favouriteFoods = favouriteFoods
         self.myCreatedMeals = myCreatedMeals
         self.foodItemPortions = foodItemPortions
+        self.bodyWeights = bodyWeights
+        self.appSettings = appSettings
     }
 
     init(from decoder: Decoder) throws {
@@ -40,6 +46,8 @@ struct PendingMergeSnapshot: Codable {
         favouriteFoods = try container.decodeIfPresent([FavouriteFoodDTO].self, forKey: .favouriteFoods) ?? []
         myCreatedMeals = try container.decodeIfPresent([MyCreatedMealDTO].self, forKey: .myCreatedMeals) ?? []
         foodItemPortions = try container.decodeIfPresent([FoodItemPersonalPortionsDTO].self, forKey: .foodItemPortions) ?? []
+        bodyWeights = try container.decodeIfPresent([BodyWeightDTO].self, forKey: .bodyWeights) ?? []
+        appSettings = try container.decodeIfPresent(AppSettingsDTO.self, forKey: .appSettings)
     }
 }
 

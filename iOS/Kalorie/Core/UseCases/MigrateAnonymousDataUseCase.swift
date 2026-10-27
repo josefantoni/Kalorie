@@ -43,12 +43,19 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
         async let favouriteFoods: [FavouriteFoodDTO] = dataProvider.loadAsync(from: Constants.Firestore.favouriteFoods(userId: sourceUserId))
         async let myCreatedMeals: [MyCreatedMealDTO] = dataProvider.loadAsync(from: Constants.Firestore.myCreatedMeals(userId: sourceUserId))
         async let foodItemPortions: [FoodItemPersonalPortionsDTO] = dataProvider.loadAsync(from: Constants.Firestore.foodItemPortions(userId: sourceUserId))
+        async let bodyWeights: [BodyWeightDTO] = dataProvider.loadAsync(from: Constants.Firestore.bodyWeights(userId: sourceUserId))
+        async let appSettings: AppSettingsDTO? = dataProvider.loadAsync(
+            id: Constants.Firestore.appSettingsDocumentId,
+            from: Constants.Firestore.settings(userId: sourceUserId)
+        )
         let snapshot = PendingMergeSnapshot(
             sourceAnonymousUserId: sourceUserId,
             foodConsumed: try await foodConsumed,
             favouriteFoods: try await favouriteFoods,
             myCreatedMeals: try await myCreatedMeals,
-            foodItemPortions: try await foodItemPortions
+            foodItemPortions: try await foodItemPortions,
+            bodyWeights: try await bodyWeights,
+            appSettings: try await appSettings
         )
         try snapshotStore.save(snapshot)
 
@@ -80,12 +87,36 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
         try await dataProvider.batchSetAsync(meals, in: Constants.Firestore.myCreatedMeals(userId: userId))
         let portions = snapshot.foodItemPortions.map { (item: $0, id: $0.id) }
         try await dataProvider.batchSetAsync(portions, in: Constants.Firestore.foodItemPortions(userId: userId))
+        try await writeBodyWeights(from: snapshot, userId: userId)
+        try await writeAppSettings(from: snapshot, userId: userId)
         try await dataProvider.setAsync(
             MergedAnonymousAccountDTO(id: snapshot.sourceAnonymousUserId),
             id: snapshot.sourceAnonymousUserId,
             in: Constants.Firestore.mergedAnonymousAccounts(userId: userId)
         )
         try snapshotStore.delete()
+    }
+
+    private func writeBodyWeights(from snapshot: PendingMergeSnapshot, userId: String) async throws {
+        guard !snapshot.bodyWeights.isEmpty else { return }
+        let collection = Constants.Firestore.bodyWeights(userId: userId)
+        let accountWeights: [BodyWeightDTO] = try await dataProvider.loadAsync(from: collection)
+        let accountDays = Set(accountWeights.map(\.id))
+        let missing = snapshot.bodyWeights
+            .filter { !accountDays.contains($0.id) }
+            .map { (item: $0, id: $0.id) }
+        try await dataProvider.batchSetAsync(missing, in: collection)
+    }
+
+    private func writeAppSettings(from snapshot: PendingMergeSnapshot, userId: String) async throws {
+        guard let anonymousSettings = snapshot.appSettings else { return }
+        let collection = Constants.Firestore.settings(userId: userId)
+        let accountSettings: AppSettingsDTO? = try await dataProvider.loadAsync(
+            id: Constants.Firestore.appSettingsDocumentId,
+            from: collection
+        )
+        guard accountSettings == nil else { return }
+        try await dataProvider.setAsync(anonymousSettings, id: Constants.Firestore.appSettingsDocumentId, in: collection)
     }
 }
 
