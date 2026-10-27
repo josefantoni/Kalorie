@@ -114,6 +114,20 @@ enum L10n {
         static var weightPickerTenths: String { String(localized: "dashboard_weight_pickerTenths") }
     }
 
+    enum WeightHistory {
+        static var title: String { String(localized: "weightHistory_title") }
+        static var rangeWeek: String { String(localized: "weightHistory_range_week") }
+        static var rangeMonth: String { String(localized: "weightHistory_range_month") }
+        static var rangeYear: String { String(localized: "weightHistory_range_year") }
+        static var confirmDelete: String { String(localized: "weightHistory_confirm_delete") }
+        static var errorLoadFailed: String { String(localized: "weightHistory_error_loadFailed") }
+        static var errorDeleteFailed: String { String(localized: "weightHistory_error_deleteFailed") }
+        static var emptyTitle: String { String(localized: "weightHistory_empty_title") }
+        static var emptyMessage: String { String(localized: "weightHistory_empty_message") }
+        static var previousPeriod: String { String(localized: "weightHistory_previousPeriod") }
+        static var nextPeriod: String { String(localized: "weightHistory_nextPeriod") }
+    }
+
     enum AddFood {
         static func searchPlaceholder(example: String) -> String {
             String(format: String(localized: "addFood_search_placeholder"), example)

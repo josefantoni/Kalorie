@@ -58,6 +58,11 @@ struct DashboardView: View {
                     Task { await viewModel.onFoodConsumedUpdated() }
                 }
             }
+            .navigationDestination(isPresented: $viewModel.isWeightHistoryPushed) {
+                router.makeBodyWeightHistoryView(unit: viewModel.appSettings.bodyWeightUnit) {
+                    Task { await viewModel.onWeightsChanged() }
+                }
+            }
             .overlay {
                 if viewModel.foodsConsumed.isEmpty && !viewModel.state.isLoading {
                     emptyStateView
@@ -250,9 +255,13 @@ struct DashboardView: View {
     }
 
     private func weightCircle(unit: BodyWeightUnit) -> some View {
-        WeightCircleView(weights: viewModel.recentWeights, unit: unit)
-            .accessibilityElement()
-            .accessibilityLabel(weightAccessibilityLabel(unit: unit))
+        Button {
+            viewModel.isWeightHistoryPushed = true
+        } label: {
+            WeightCircleView(weights: viewModel.recentWeights, unit: unit)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(weightAccessibilityLabel(unit: unit))
             .overlay(alignment: .topTrailing) {
                 if viewModel.canLogWeight {
                     weightBadge(unit: unit)
@@ -525,7 +534,8 @@ struct DashboardView: View {
             settingsConfigurator: SettingsConfigurator(),
             addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
             foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
-            accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: MergeStatusReportingFake())
+            accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: MergeStatusReportingFake()),
+            bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator(dataProvider: dataProvider, authProvider: authProvider)
         )
     )
 }

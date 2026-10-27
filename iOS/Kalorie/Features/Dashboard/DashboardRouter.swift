@@ -15,6 +15,7 @@ struct DashboardRouter {
     private let addFoodSheetConfigurator: AddFoodSheetConfigurator
     private let foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator
     private let accountConfigurator: AccountConfigurator
+    private let bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator
 
     // MARK: - Init
 
@@ -22,12 +23,14 @@ struct DashboardRouter {
         settingsConfigurator: SettingsConfigurator,
         addFoodSheetConfigurator: AddFoodSheetConfigurator,
         foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator,
-        accountConfigurator: AccountConfigurator
+        accountConfigurator: AccountConfigurator,
+        bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator
     ) {
         self.settingsConfigurator = settingsConfigurator
         self.addFoodSheetConfigurator = addFoodSheetConfigurator
         self.foodConsumedDetailConfigurator = foodConsumedDetailConfigurator
         self.accountConfigurator = accountConfigurator
+        self.bodyWeightHistoryConfigurator = bodyWeightHistoryConfigurator
     }
 
     // MARK: - Functions
@@ -60,5 +63,9 @@ struct DashboardRouter {
 
     func makeAccountView() -> AccountView {
         accountConfigurator.createView()
+    }
+
+    func makeBodyWeightHistoryView(unit: BodyWeightUnit, onChanged: @escaping () -> Void) -> BodyWeightHistoryView {
+        bodyWeightHistoryConfigurator.createView(unit: unit, onChanged: onChanged)
     }
 }

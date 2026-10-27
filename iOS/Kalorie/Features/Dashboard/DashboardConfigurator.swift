@@ -34,7 +34,8 @@ struct DashboardConfigurator {
                 settingsConfigurator: SettingsConfigurator(),
                 addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
                 foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
-                accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: mergeStatusReporting)
+                accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: mergeStatusReporting),
+                bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator(dataProvider: dataProvider, authProvider: authProvider)
             )
         )
     }
