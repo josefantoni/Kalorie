@@ -58,6 +58,33 @@ final class PendingMergeSnapshotStoreTests: XCTestCase {
         XCTAssertEqual(try sut.load()?.sourceAnonymousUserId, "second")
     }
 
+    func test_load_snapshotWrittenBeforeBodyWeights_stillDecodes_soAPendingMergeCanFinish() throws {
+        let legacy = """
+        {"sourceAnonymousUserId":"anon-1","foodConsumed":[],"favouriteFoods":[],"myCreatedMeals":[],"foodItemPortions":[]}
+        """
+        let decoded = try JSONDecoder().decode(PendingMergeSnapshot.self, from: Data(legacy.utf8))
+        XCTAssertEqual(decoded.sourceAnonymousUserId, "anon-1")
+        XCTAssertTrue(decoded.bodyWeights.isEmpty)
+        XCTAssertNil(decoded.appSettings)
+    }
+
+    func test_saveAndLoad_roundTripsBodyWeightsAndSettings() throws {
+        let sut = makeSUT()
+        addTeardownBlock { try? sut.delete() }
+        let snapshot = PendingMergeSnapshot(
+            sourceAnonymousUserId: "anon-1",
+            foodConsumed: [],
+            favouriteFoods: [],
+            myCreatedMeals: [],
+            bodyWeights: [BodyWeightDTO(weight: BodyWeightDomain(dayKey: "2026-10-27", kilograms: 78.44))],
+            appSettings: AppSettingsDTO(settings: AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .lb))
+        )
+        try sut.save(snapshot)
+        let loaded = try sut.load()
+        XCTAssertEqual(loaded?.bodyWeights.map(\.weightKg), [78.44])
+        XCTAssertEqual(loaded?.appSettings?.asDomain().bodyWeightUnit, .lb)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> PendingMergeSnapshotStore {

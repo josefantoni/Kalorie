@@ -124,7 +124,64 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
         XCTAssertEqual(snapshotStore.deleteCallCount, 1)
     }
 
+    func test_migrate_bodyWeights_accountWinsEveryDayBothHave_andAnonymousOnlyDaysAreAdded() async throws {
+        let (sut, dataProvider, _, _) = makeSUT()
+        dataProvider.stubbedSourceBodyWeights = [makeWeight("2026-10-01", 80), makeWeight("2026-10-02", 81)]
+        dataProvider.stubbedTargetBodyWeights = [makeWeight("2026-10-02", 70)]
+
+        try await sut.migrate(fromAnonymousUserId: "anon-1", credential: makeCredential())
+
+        XCTAssertEqual(dataProvider.batchSavedBodyWeightIds, ["2026-10-01"], "a blind write would overwrite the account's own weight for 2026-10-02")
+    }
+
+    func test_migrate_bodyWeights_resumeAfterPartialFailure_equalsFullRun() async throws {
+        let (sut, dataProvider, _, snapshotStore) = makeSUT()
+        snapshotStore.stubbedSnapshot = PendingMergeSnapshot(
+            sourceAnonymousUserId: "anon-1",
+            foodConsumed: [],
+            favouriteFoods: [],
+            myCreatedMeals: [],
+            bodyWeights: [makeWeight("2026-10-01", 80), makeWeight("2026-10-02", 81)]
+        )
+        dataProvider.stubbedTargetBodyWeights = [makeWeight("2026-10-01", 80)]
+
+        try await sut.resumeIfNeeded()
+
+        XCTAssertEqual(dataProvider.batchSavedBodyWeightIds, ["2026-10-02"])
+    }
+
+    func test_migrate_settings_writtenOnlyWhenAccountHasNone() async throws {
+        let (sut, dataProvider, _, _) = makeSUT()
+        dataProvider.stubbedSourceSettings = AppSettingsDTO(settings: AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .lb))
+
+        try await sut.migrate(fromAnonymousUserId: "anon-1", credential: makeCredential())
+
+        XCTAssertTrue(dataProvider.setSavedIds.contains { $0.collection == "users/target-1/settings" && $0.id == "app" })
+    }
+
+    func test_migrate_settings_accountSettingsAreNeverOverwritten() async throws {
+        let (sut, dataProvider, _, _) = makeSUT()
+        dataProvider.stubbedSourceSettings = AppSettingsDTO(settings: AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .lb))
+        dataProvider.stubbedTargetSettings = AppSettingsDTO(settings: .defaults)
+
+        try await sut.migrate(fromAnonymousUserId: "anon-1", credential: makeCredential())
+
+        XCTAssertFalse(dataProvider.setSavedIds.contains { $0.collection == "users/target-1/settings" })
+    }
+
+    func test_migrate_withoutBodyWeights_readsNothingFromTheAccount() async throws {
+        let (sut, dataProvider, _, _) = makeSUT()
+
+        try await sut.migrate(fromAnonymousUserId: "anon-1", credential: makeCredential())
+
+        XCTAssertFalse(dataProvider.loadedCollections.contains("users/target-1/bodyWeights"))
+    }
+
     // MARK: - Helpers
+
+    private func makeWeight(_ key: String, _ kilograms: Double) -> BodyWeightDTO {
+        BodyWeightDTO(weight: BodyWeightDomain(dayKey: key, kilograms: kilograms))
+    }
 
     private func makeSUT(
         currentUserId: String? = "target-1"
@@ -249,10 +306,26 @@ private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProto
     private(set) var batchSavedMyCreatedMealIds: [String] = []
     private(set) var batchSavedFoodItemPortionIds: [String] = []
     private(set) var setSavedIds: [(collection: String, id: String)] = []
+    var stubbedSourceBodyWeights: [BodyWeightDTO] = []
+    var stubbedTargetBodyWeights: [BodyWeightDTO] = []
+    var stubbedSourceSettings: AppSettingsDTO?
+    var stubbedTargetSettings: AppSettingsDTO?
+    private(set) var batchSavedBodyWeightIds: [String] = []
+    private let lock = NSLock()
+    private var recordedLoadedCollections: [String] = []
+
+    var loadedCollections: [String] {
+        lock.withLock { recordedLoadedCollections }
+    }
 
     // MARK: - Functions
 
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T] {
+        lock.withLock { recordedLoadedCollections.append(collection) }
+        if collection.contains("bodyWeights") {
+            let weights = collection.contains("anon-1") ? stubbedSourceBodyWeights : stubbedTargetBodyWeights
+            return weights.compactMap { $0 as? T }
+        }
         if collection.contains("favouriteFoods") {
             return stubbedFavouriteFoods.compactMap { $0 as? T }
         }
@@ -271,7 +344,10 @@ private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProto
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
+    func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? {
+        guard collection.contains("settings") else { return nil }
+        return (collection.contains("anon-1") ? stubbedSourceSettings : stubbedTargetSettings) as? T
+    }
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
@@ -280,7 +356,9 @@ private final class MigrateAnonymousDataProviderFake: FirestoreDataProviderProto
     }
 
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {
-        if collection.contains("favouriteFoods") {
+        if collection.contains("bodyWeights") {
+            batchSavedBodyWeightIds = items.map(\.id)
+        } else if collection.contains("favouriteFoods") {
             batchSavedFavouriteFoodIds = items.map(\.id)
         } else if collection.contains("myCreatedMeals") {
             batchSavedMyCreatedMealIds = items.map(\.id)
