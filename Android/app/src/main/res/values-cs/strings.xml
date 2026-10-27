@@ -301,4 +301,15 @@
     <string name="updateRequired_button">Aktualizovat</string>
     <string name="updateRequired_message">Tato verze aplikace už není podporovaná. Pro pokračování si prosím nainstaluj aktualizaci z obchodu.</string>
     <string name="updateRequired_title">Je potřeba aktualizace</string>
+    <string name="weightHistory_confirm_delete">Smazat tento záznam váhy?</string>
+    <string name="weightHistory_empty_message">Váhu zapíšete tlačítkem + u kruhu vedle grafu kalorií na přehledu.</string>
+    <string name="weightHistory_empty_title">Zatím žádné záznamy váhy</string>
+    <string name="weightHistory_error_deleteFailed">Záznam se nepodařilo smazat</string>
+    <string name="weightHistory_error_loadFailed">Historii váhy se nepodařilo načíst</string>
+    <string name="weightHistory_nextPeriod">Další období</string>
+    <string name="weightHistory_previousPeriod">Předchozí období</string>
+    <string name="weightHistory_range_month">Měsíc</string>
+    <string name="weightHistory_range_week">Týden</string>
+    <string name="weightHistory_range_year">Rok</string>
+    <string name="weightHistory_title">Tělesná váha</string>
 </resources>

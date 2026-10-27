@@ -301,4 +301,15 @@
     <string name="updateRequired_button">Update</string>
     <string name="updateRequired_message">This version of the app is no longer supported. Please install the update from the store to continue.</string>
     <string name="updateRequired_title">Update required</string>
+    <string name="weightHistory_confirm_delete">Delete this weight entry?</string>
+    <string name="weightHistory_empty_message">Log your weight with the + button on the circle next to the calorie chart on the overview.</string>
+    <string name="weightHistory_empty_title">No weight entries yet</string>
+    <string name="weightHistory_error_deleteFailed">Could not delete the entry</string>
+    <string name="weightHistory_error_loadFailed">Could not load the weight history</string>
+    <string name="weightHistory_nextPeriod">Next period</string>
+    <string name="weightHistory_previousPeriod">Previous period</string>
+    <string name="weightHistory_range_month">Month</string>
+    <string name="weightHistory_range_week">Week</string>
+    <string name="weightHistory_range_year">Year</string>
+    <string name="weightHistory_title">Body weight</string>
 </resources>

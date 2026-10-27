@@ -1503,5 +1503,60 @@
     "cs": "Desetiny",
     "en": "Tenths",
     "sk": "Desatiny"
+  },
+  "weightHistory_title": {
+    "cs": "Tělesná váha",
+    "en": "Body weight",
+    "sk": "Telesná hmotnosť"
+  },
+  "weightHistory_range_week": {
+    "cs": "Týden",
+    "en": "Week",
+    "sk": "Týždeň"
+  },
+  "weightHistory_range_month": {
+    "cs": "Měsíc",
+    "en": "Month",
+    "sk": "Mesiac"
+  },
+  "weightHistory_range_year": {
+    "cs": "Rok",
+    "en": "Year",
+    "sk": "Rok"
+  },
+  "weightHistory_confirm_delete": {
+    "cs": "Smazat tento záznam váhy?",
+    "en": "Delete this weight entry?",
+    "sk": "Zmazať tento záznam hmotnosti?"
+  },
+  "weightHistory_error_loadFailed": {
+    "cs": "Historii váhy se nepodařilo načíst",
+    "en": "Could not load the weight history",
+    "sk": "Históriu hmotnosti sa nepodarilo načítať"
+  },
+  "weightHistory_error_deleteFailed": {
+    "cs": "Záznam se nepodařilo smazat",
+    "en": "Could not delete the entry",
+    "sk": "Záznam sa nepodarilo zmazať"
+  },
+  "weightHistory_empty_title": {
+    "cs": "Zatím žádné záznamy váhy",
+    "en": "No weight entries yet",
+    "sk": "Zatiaľ žiadne záznamy hmotnosti"
+  },
+  "weightHistory_empty_message": {
+    "cs": "Váhu zapíšete tlačítkem + u kruhu vedle grafu kalorií na přehledu.",
+    "en": "Log your weight with the + button on the circle next to the calorie chart on the overview.",
+    "sk": "Hmotnosť zapíšete tlačidlom + pri kruhu vedľa grafu kalórií na prehľade."
+  },
+  "weightHistory_previousPeriod": {
+    "cs": "Předchozí období",
+    "en": "Previous period",
+    "sk": "Predchádzajúce obdobie"
+  },
+  "weightHistory_nextPeriod": {
+    "cs": "Další období",
+    "en": "Next period",
+    "sk": "Nasledujúce obdobie"
   }
 }
