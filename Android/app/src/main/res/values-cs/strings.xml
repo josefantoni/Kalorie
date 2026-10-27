@@ -141,10 +141,17 @@
     <string name="dashboard_error_copyFailed">Jídlo se nepodařilo zkopírovat.</string>
     <string name="dashboard_error_deleteFailed">Potravinu se nepodařilo smazat</string>
     <string name="dashboard_error_moveFailed">Potravinu se nepodařilo přesunout</string>
+    <string name="dashboard_error_weightSaveFailed">Váhu se nepodařilo uložit</string>
     <string name="dashboard_section_unassignedFoods">Ostatní nezařazená jídla</string>
     <string name="dashboard_signInSpotlight_actionSignIn">Přihlásit se</string>
     <string name="dashboard_signInSpotlight_message">Po přihlášení zůstane tvůj deník zachovaný, i když telefon ztratíš nebo vyměníš, a najdeš ho i na jiném zařízení.</string>
     <string name="dashboard_signInSpotlight_title">Ochraň svůj deník</string>
+    <string name="dashboard_weight_a11yEmpty">Váha, žádné záznamy, zobrazit historii</string>
+    <string name="dashboard_weight_a11yValue">Váha %1$s, zobrazit historii</string>
+    <string name="dashboard_weight_badgeEdit">Upravit váhu</string>
+    <string name="dashboard_weight_badgeLog">Zapsat váhu</string>
+    <string name="dashboard_weight_pickerTenths">Desetiny</string>
+    <string name="dashboard_weight_pickerWhole">Celá část</string>
     <string name="defaultMeals_breakfast">Snídaně</string>
     <string name="defaultMeals_dinner">Večeře</string>
     <string name="defaultMeals_lunch">Oběd</string>

@@ -141,10 +141,17 @@
     <string name="dashboard_error_copyFailed">Couldn\'t copy the food.</string>
     <string name="dashboard_error_deleteFailed">Could not delete the food</string>
     <string name="dashboard_error_moveFailed">Could not move the food</string>
+    <string name="dashboard_error_weightSaveFailed">Could not save the weight</string>
     <string name="dashboard_section_unassignedFoods">Other unassigned foods</string>
     <string name="dashboard_signInSpotlight_actionSignIn">Sign in</string>
     <string name="dashboard_signInSpotlight_message">Once you sign in, your diary survives losing or replacing your phone, and you can open it on another device.</string>
     <string name="dashboard_signInSpotlight_title">Keep your diary safe</string>
+    <string name="dashboard_weight_a11yEmpty">Weight, no entries, show history</string>
+    <string name="dashboard_weight_a11yValue">Weight %1$s, show history</string>
+    <string name="dashboard_weight_badgeEdit">Edit weight</string>
+    <string name="dashboard_weight_badgeLog">Log weight</string>
+    <string name="dashboard_weight_pickerTenths">Tenths</string>
+    <string name="dashboard_weight_pickerWhole">Whole part</string>
     <string name="defaultMeals_breakfast">Breakfast</string>
     <string name="defaultMeals_dinner">Dinner</string>
     <string name="defaultMeals_lunch">Lunch</string>
