@@ -1468,5 +1468,40 @@
     "cs": "Je potřeba aktualizace",
     "en": "Update required",
     "sk": "Je potrebná aktualizácia"
+  },
+  "dashboard_error_weightSaveFailed": {
+    "cs": "Váhu se nepodařilo uložit",
+    "en": "Could not save the weight",
+    "sk": "Váhu sa nepodarilo uložiť"
+  },
+  "dashboard_weight_a11yValue": {
+    "cs": "Váha %@, zobrazit historii",
+    "en": "Weight %@, show history",
+    "sk": "Hmotnosť %@, zobraziť históriu"
+  },
+  "dashboard_weight_a11yEmpty": {
+    "cs": "Váha, žádné záznamy, zobrazit historii",
+    "en": "Weight, no entries, show history",
+    "sk": "Hmotnosť, žiadne záznamy, zobraziť históriu"
+  },
+  "dashboard_weight_badgeLog": {
+    "cs": "Zapsat váhu",
+    "en": "Log weight",
+    "sk": "Zapísať hmotnosť"
+  },
+  "dashboard_weight_badgeEdit": {
+    "cs": "Upravit váhu",
+    "en": "Edit weight",
+    "sk": "Upraviť hmotnosť"
+  },
+  "dashboard_weight_pickerWhole": {
+    "cs": "Celá část",
+    "en": "Whole part",
+    "sk": "Celá časť"
+  },
+  "dashboard_weight_pickerTenths": {
+    "cs": "Desetiny",
+    "en": "Tenths",
+    "sk": "Desatiny"
   }
 }
