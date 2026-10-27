@@ -47,6 +47,21 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertTrue(log.entries.dropLast().contains("deletePortions:12345678"), "Firestore does not cascade — personal portions are user data and must not survive account deletion as orphans")
     }
 
+    func test_callAsFunction_deletesBodyWeightsAndSettingsAsPrivacyObligation_beforeTheProfile() async throws {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedBodyWeights = [BodyWeightDTO(weight: BodyWeightDomain(dayKey: "2026-10-27", kilograms: 78.4))]
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
+
+        try await sut()
+
+        let entries = log.entries
+        XCTAssertTrue(entries.contains("deleteBodyWeight:2026-10-27"), "body weight is health data — Firestore does not cascade, so it must be wiped explicitly")
+        XCTAssertTrue(entries.contains("deleteSettings:app"))
+        let profileIndex = entries.firstIndex { $0.hasPrefix("deleteUser:") } ?? entries.count
+        XCTAssertLessThan(entries.firstIndex(of: "deleteBodyWeight:2026-10-27") ?? .max, profileIndex)
+    }
+
     func test_callAsFunction_keepsTheMergedAnonymousAccountMarkersSoTheCleanupScriptCanStillFindTheAbandonedAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
@@ -580,6 +595,7 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     var stubbedMyCreatedMeals: [MyCreatedMealDTO] = []
     var stubbedFoodItemPortions: [FoodItemPersonalPortionsDTO] = []
     var stubbedMergedAnonymousAccounts: [MergedAnonymousAccountDTO] = []
+    var stubbedBodyWeights: [BodyWeightDTO] = []
     var stubbedSubmissions: [FoodItemSubmissionDTO] = []
     var stubbedReports: [FoodItemReportDTO] = []
     private(set) var deletedIds: [String] = []
@@ -595,6 +611,9 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T] {
         if collection.hasSuffix("mealTypes") {
             return stubbedMealTypes.compactMap { $0 as? T }
+        }
+        if collection.hasSuffix("bodyWeights") {
+            return stubbedBodyWeights.compactMap { $0 as? T }
         }
         if collection.hasSuffix("favouriteFoods") {
             return stubbedFavouriteFoods.compactMap { $0 as? T }
@@ -643,6 +662,10 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
             log.record("deleteMergedAnonymousAccount:\(id)")
         } else if collection.hasSuffix("foodConsumed") {
             log.record("deleteFood:\(id)")
+        } else if collection.hasSuffix("bodyWeights") {
+            log.record("deleteBodyWeight:\(id)")
+        } else if collection.hasSuffix("settings") {
+            log.record("deleteSettings:\(id)")
         } else if collection.hasSuffix("stats") {
             log.record("deleteStats:\(id)")
         } else if collection == Constants.Firestore.foodItemSubmissions {

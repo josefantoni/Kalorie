@@ -102,6 +102,17 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         return result.authorizationCode
     }
 
+    private func wipeBodyWeightData(userId: String) async throws {
+        let bodyWeights: [BodyWeightDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.bodyWeights(userId: userId))
+        for dto in bodyWeights {
+            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.bodyWeights(userId: userId))
+        }
+        try await dataProvider.deleteAsync(
+            id: Constants.Firestore.appSettingsDocumentId,
+            from: Constants.Firestore.settings(userId: userId)
+        )
+    }
+
     private func wipeFirestoreData(userId: String) async throws {
         let mealTypes: [MealTypeDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.mealTypes(userId: userId))
         for dto in mealTypes {
@@ -127,6 +138,8 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         for dto in foodItemPortions {
             try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.foodItemPortions(userId: userId))
         }
+
+        try await wipeBodyWeightData(userId: userId)
 
         try await dataProvider.deleteAsync(
             id: Constants.Firestore.foodFrequencyDocumentId,
