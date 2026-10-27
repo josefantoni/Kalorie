@@ -265,6 +265,8 @@
     <string name="myPortions_error_deleteFailed">Porciu sa nepodarilo zmazať</string>
     <string name="myPortions_error_saveFailed">Porciu sa nepodarilo uložiť</string>
     <string name="myPortions_title">Moje porcie</string>
+    <string name="settings_bodyWeight_show">Zobraziť hmotnosť na prehľade</string>
+    <string name="settings_bodyWeight_unit">Jednotka hmotnosti</string>
     <string name="settings_button_create">Vytvoriť</string>
     <string name="settings_button_edit">Upraviť</string>
     <string name="settings_button_editDone">Hotovo</string>
@@ -277,6 +279,7 @@
     <string name="settings_error_durationTooShort">Minimálna dĺžka jedla je 30 minút</string>
     <string name="settings_error_emptyName">Zadaj názov jedla</string>
     <string name="settings_error_lastMealType">Aspoň raz denne by si sa mal/a najesť 🍳😉</string>
+    <string name="settings_error_saveFailed">Nastavenie sa nepodarilo uložiť</string>
     <string name="settings_error_timeConflict">Zadaný čas sa prekrýva s inou kategóriou jedla</string>
     <string name="settings_error_unexpected">Nastala neočakávaná chyba</string>
     <string name="settings_feedback_noMail_copy">Kopírovať adresu</string>
@@ -284,6 +287,7 @@
     <string name="settings_feedback_noMail_title">Poštu sa nepodarilo otvoriť</string>
     <string name="settings_field_newMeal_placeholder">Jedny raňajky snáď, ale čo druhé … 🧐?</string>
     <string name="settings_navigationTitle">Nastavenia</string>
+    <string name="settings_section_bodyWeight">Telesná hmotnosť</string>
     <string name="settings_section_mealLayout">Rozloženie jedál</string>
     <string name="settings_section_other">Ostatné</string>
     <string name="settings_support_subtitle">Aplikácia je zadarmo a bez reklám</string>

@@ -6099,6 +6099,52 @@
         }
       }
     },
+    "settings_bodyWeight_show" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobrazit váhu na přehledu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show weight on overview"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zobraziť hmotnosť na prehľade"
+          }
+        }
+      }
+    },
+    "settings_bodyWeight_unit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jednotka váhy"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight unit"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jednotka hmotnosti"
+          }
+        }
+      }
+    },
     "settings_button_create" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6375,6 +6421,29 @@
         }
       }
     },
+    "settings_error_saveFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavení se nepodařilo uložit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save the setting"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavenie sa nepodarilo uložiť"
+          }
+        }
+      }
+    },
     "settings_error_timeConflict" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6532,6 +6601,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nastavenia"
+          }
+        }
+      }
+    },
+    "settings_section_bodyWeight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tělesná váha"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Body weight"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Telesná hmotnosť"
           }
         }
       }

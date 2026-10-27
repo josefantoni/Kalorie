@@ -265,6 +265,8 @@
     <string name="myPortions_error_deleteFailed">Could not delete the portion</string>
     <string name="myPortions_error_saveFailed">Could not save the portion</string>
     <string name="myPortions_title">My portions</string>
+    <string name="settings_bodyWeight_show">Show weight on overview</string>
+    <string name="settings_bodyWeight_unit">Weight unit</string>
     <string name="settings_button_create">Create</string>
     <string name="settings_button_edit">Edit</string>
     <string name="settings_button_editDone">Done</string>
@@ -277,6 +279,7 @@
     <string name="settings_error_durationTooShort">Minimum meal duration is 30 minutes</string>
     <string name="settings_error_emptyName">Enter a meal name</string>
     <string name="settings_error_lastMealType">You should eat at least once a day 🍳😉</string>
+    <string name="settings_error_saveFailed">Could not save the setting</string>
     <string name="settings_error_timeConflict">The entered time overlaps with another meal category</string>
     <string name="settings_error_unexpected">An unexpected error occurred</string>
     <string name="settings_feedback_noMail_copy">Copy address</string>
@@ -284,6 +287,7 @@
     <string name="settings_feedback_noMail_title">Couldn\'t open Mail</string>
     <string name="settings_field_newMeal_placeholder">What about second breakfast … 🧐?</string>
     <string name="settings_navigationTitle">Settings</string>
+    <string name="settings_section_bodyWeight">Body weight</string>
     <string name="settings_section_mealLayout">Meal layout</string>
     <string name="settings_section_other">Other</string>
     <string name="settings_support_subtitle">The app is free and ad-free</string>
