@@ -34,7 +34,9 @@ struct DashboardView: View {
             ScrollView {
                 LazyVStack(spacing: 30) {
                     if !viewModel.foodsConsumed.isEmpty {
-                        MacroSummaryView(macros: viewModel.dailyMacros)
+                        MacroSummaryView(macros: viewModel.dailyMacros) {
+                            weightAccessory
+                        }
                     }
 
                     ForEach(Array(viewModel.groupedFoods.enumerated()), id: \.element.mealType?.id) { index, group in
@@ -241,6 +243,86 @@ struct DashboardView: View {
         }
     }
 
+    @ViewBuilder private var weightAccessory: some View {
+        if viewModel.isWeightCircleVisible {
+            weightCircle(unit: viewModel.appSettings.bodyWeightUnit)
+        }
+    }
+
+    private func weightCircle(unit: BodyWeightUnit) -> some View {
+        WeightCircleView(weights: viewModel.recentWeights, unit: unit)
+            .accessibilityElement()
+            .accessibilityLabel(weightAccessibilityLabel(unit: unit))
+            .overlay(alignment: .topTrailing) {
+                if viewModel.canLogWeight {
+                    weightBadge(unit: unit)
+                }
+            }
+    }
+
+    private func weightAccessibilityLabel(unit: BodyWeightUnit) -> String {
+        guard let latest = viewModel.recentWeights.first else { return L10n.Dashboard.weightA11yEmpty }
+        return L10n.Dashboard.weightA11yValue(unit.formatted(kilograms: latest.kilograms))
+    }
+
+    private var weightBadgeImageName: String {
+        viewModel.hasWeightForSelectedDay ? BaseImageName.pencil.rawValue : BaseImageName.plus.rawValue
+    }
+
+    private func weightBadge(unit: BodyWeightUnit) -> some View {
+        Button {
+            viewModel.onWeightBadgeTapped()
+        } label: {
+            Image(systemName: weightBadgeImageName)
+                .font(.caption.bold())
+                .foregroundStyle(.white)
+                .frame(width: 24, height: 24)
+                .background(Color.accentColor, in: Circle())
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .offset(x: 14, y: -14)
+        .accessibilityLabel(viewModel.hasWeightForSelectedDay ? L10n.Dashboard.weightBadgeEdit : L10n.Dashboard.weightBadgeLog)
+        .popover(isPresented: $viewModel.isWeightPopoverVisible) {
+            weightPopover(unit: unit)
+        }
+    }
+
+    private func weightPopover(unit: BodyWeightUnit) -> some View {
+        VStack(spacing: 12) {
+            WeightPickerView(kilograms: $viewModel.weightPickerKilograms, unit: unit)
+            weightConfirmButton
+        }
+        .padding()
+        .frame(width: 280)
+        .interactiveDismissDisabled(viewModel.isSavingWeight || viewModel.showWeightCheckmark)
+        .dynamicTypeLimit()
+        .presentationCompactAdaptation(.popover)
+    }
+
+    private var weightConfirmButton: some View {
+        Button {
+            Task { await viewModel.onWeightConfirmed() }
+        } label: {
+            weightConfirmLabel
+        }
+        .buttonStyle(.glassProminent)
+        .tint(viewModel.showWeightCheckmark ? Color.success : Color.accentColor)
+        .animation(.spring(duration: 0.4), value: viewModel.showWeightCheckmark)
+        .disabled(viewModel.isSavingWeight || viewModel.showWeightCheckmark)
+    }
+
+    @ViewBuilder private var weightConfirmLabel: some View {
+        if viewModel.showWeightCheckmark {
+            Image(systemName: BaseImageName.checkmark.rawValue)
+                .transition(.scale.combined(with: .opacity))
+        } else {
+            Text(L10n.Common.buttonDone)
+                .transition(.opacity)
+        }
+    }
+
     private func sectionHeaderButtons(index: Int, group: (mealType: MealTypeDomain?, foods: [FoodConsumedDomain])) -> some View {
         HStack(spacing: 4) {
             Button {
@@ -428,6 +510,9 @@ struct DashboardView: View {
         deleteFoodConsumed: DeleteFoodConsumedUseCaseFake(),
         copyFoodsConsumed: CopyFoodsConsumedUseCaseFake(),
         assignFoodMealType: AssignFoodMealTypeUseCaseFake(),
+        fetchBodyWeights: FetchBodyWeightsUseCaseFake(),
+        fetchAppSettings: FetchAppSettingsUseCaseFake(),
+        saveBodyWeight: SaveBodyWeightUseCaseFake(),
         authProvider: AuthProviderFake(),
         signInSpotlightStore: SignInSpotlightStoreFake()
     )

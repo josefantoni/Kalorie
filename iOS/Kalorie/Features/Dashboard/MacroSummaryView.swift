@@ -7,11 +7,27 @@
 
 import SwiftUI
 
-struct MacroSummaryView: View {
+struct MacroSummaryView<Accessory: View>: View {
 
     // MARK: - Properties
 
     let macros: DailyMacros
+    let accessory: Accessory
+
+    private let donutSize: CGFloat = 160
+    private let accessoryTrailingPadding: CGFloat = 20
+    private let maxAccessoryGap: CGFloat = 40
+
+    private var maxOverlayWidth: CGFloat {
+        donutSize + 2 * (maxAccessoryGap + WeightCircleView.size) + accessoryTrailingPadding
+    }
+
+    // MARK: - Init
+
+    init(macros: DailyMacros, @ViewBuilder accessory: () -> Accessory) {
+        self.macros = macros
+        self.accessory = accessory()
+    }
 
     // MARK: - Body
 
@@ -22,8 +38,16 @@ struct MacroSummaryView: View {
                 carbs: macros.carbs,
                 fat: macros.fat,
                 calories: macros.calories,
-                size: 160
+                size: donutSize
             )
+            .frame(maxWidth: .infinity)
+            .overlay {
+                accessory
+                    .frame(width: WeightCircleView.size, height: WeightCircleView.size)
+                    .padding(.top, donutSize * 20 / 30 - WeightCircleView.size / 2)
+                    .padding(.trailing, accessoryTrailingPadding)
+                    .frame(maxWidth: maxOverlayWidth, maxHeight: .infinity, alignment: .topTrailing)
+            }
 
             HStack {
                 Spacer()
@@ -104,6 +128,16 @@ struct MacroSummaryView: View {
             fiber: 18,
             salt: 3.2
         )
-    )
+    ) {
+        WeightCircleView(
+            weights: [
+                BodyWeightDomain(dayKey: "2026-10-27", kilograms: 78.4),
+                BodyWeightDomain(dayKey: "2026-10-20", kilograms: 79.1),
+                BodyWeightDomain(dayKey: "2026-10-13", kilograms: 79.0)
+            ],
+            laterWeights: [BodyWeightDomain(dayKey: "2026-10-28", kilograms: 77.9)],
+            unit: .kg
+        )
+    }
 }
 #endif

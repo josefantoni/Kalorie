@@ -98,6 +98,10 @@ enum Constants {
         static let frequencyEntryLimit = 300
     }
 
+    enum BodyWeight {
+        static let defaultKilograms = 70.0
+    }
+
     enum Firestore {
         static let foodItems = "foodItems"
         static let foodItemSubmissions = "foodItemSubmissions"

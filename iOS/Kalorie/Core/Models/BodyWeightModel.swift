@@ -63,3 +63,28 @@ enum BodyWeightDayKey {
         return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
     }
 }
+
+extension BodyWeightUnit {
+
+    // MARK: - Properties
+
+    var symbol: String { rawValue }
+
+    var rangeInTenths: ClosedRange<Int> {
+        switch self {
+        case .kg: 300...3000
+        case .lb: 663...6612
+        }
+    }
+
+    // MARK: - Functions
+
+    func formatted(kilograms: Double) -> String {
+        let value = display(kilograms: kilograms)
+        return "\(value.formatted(.number.precision(.fractionLength(1)))) \(symbol)"
+    }
+
+    func tenths(kilograms: Double) -> Int {
+        min(max(Int((display(kilograms: kilograms) * 10).rounded()), rangeInTenths.lowerBound), rangeInTenths.upperBound)
+    }
+}
