@@ -1558,5 +1558,25 @@
     "cs": "Další období",
     "en": "Next period",
     "sk": "Nasledujúce obdobie"
+  },
+  "settings_section_bodyWeight": {
+    "cs": "Tělesná váha",
+    "en": "Body weight",
+    "sk": "Telesná hmotnosť"
+  },
+  "settings_bodyWeight_show": {
+    "cs": "Zobrazit váhu na přehledu",
+    "en": "Show weight on overview",
+    "sk": "Zobraziť hmotnosť na prehľade"
+  },
+  "settings_bodyWeight_unit": {
+    "cs": "Jednotka váhy",
+    "en": "Weight unit",
+    "sk": "Jednotka hmotnosti"
+  },
+  "settings_error_saveFailed": {
+    "cs": "Nastavení se nepodařilo uložit",
+    "en": "Could not save the setting",
+    "sk": "Nastavenie sa nepodarilo uložiť"
   }
 }

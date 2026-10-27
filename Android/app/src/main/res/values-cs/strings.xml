@@ -265,6 +265,8 @@
     <string name="myPortions_error_deleteFailed">Porci se nepodařilo smazat</string>
     <string name="myPortions_error_saveFailed">Porci se nepodařilo uložit</string>
     <string name="myPortions_title">Moje porce</string>
+    <string name="settings_bodyWeight_show">Zobrazit váhu na přehledu</string>
+    <string name="settings_bodyWeight_unit">Jednotka váhy</string>
     <string name="settings_button_create">Vytvořit</string>
     <string name="settings_button_edit">Upravit</string>
     <string name="settings_button_editDone">Hotovo</string>
@@ -277,6 +279,7 @@
     <string name="settings_error_durationTooShort">Minimální délka jídla je 30 minut</string>
     <string name="settings_error_emptyName">Zadej jméno jídla</string>
     <string name="settings_error_lastMealType">Alespoň jednou denně by se chtělo najíst 🍳😉</string>
+    <string name="settings_error_saveFailed">Nastavení se nepodařilo uložit</string>
     <string name="settings_error_timeConflict">Zadaný čas se překrývá s jinou kategorií jídla</string>
     <string name="settings_error_unexpected">Nastala nečekaná chyba</string>
     <string name="settings_feedback_noMail_copy">Kopírovat adresu</string>
@@ -284,6 +287,7 @@
     <string name="settings_feedback_noMail_title">Poštu se nepodařilo otevřít</string>
     <string name="settings_field_newMeal_placeholder">Jedna snad, ale co druhá snídaně … 🧐?</string>
     <string name="settings_navigationTitle">Nastavení</string>
+    <string name="settings_section_bodyWeight">Tělesná váha</string>
     <string name="settings_section_mealLayout">Rozvržení jídel</string>
     <string name="settings_section_other">Ostatní</string>
     <string name="settings_support_subtitle">Aplikace je zdarma a bez reklam</string>
