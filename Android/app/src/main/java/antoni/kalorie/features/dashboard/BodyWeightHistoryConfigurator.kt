@@ -1,6 +1,8 @@
 package antoni.kalorie.features.dashboard
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.BodyWeightUnit
@@ -17,12 +19,13 @@ class BodyWeightHistoryConfigurator(
 
     @Composable
     fun createView(unit: BodyWeightUnit, onBack: () -> Unit, onChanged: () -> Unit) {
+        val currentOnChanged by rememberUpdatedState(onChanged)
         val viewModel = viewModel {
             BodyWeightHistoryViewModel(
                 unit = unit,
                 fetchBodyWeights = FetchBodyWeightsUseCase(dataProvider, authProvider),
                 deleteBodyWeight = DeleteBodyWeightUseCase(dataProvider, authProvider),
-                onChanged = onChanged,
+                onChanged = { currentOnChanged() },
             )
         }
         BodyWeightHistoryView(viewModel = viewModel, onBack = onBack)

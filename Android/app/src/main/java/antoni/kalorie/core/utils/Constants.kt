@@ -1,6 +1,7 @@
 package antoni.kalorie.core.utils
 
 import antoni.kalorie.BuildConfig
+import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
 object Constants {
@@ -100,6 +101,7 @@ object Constants {
         const val DEFAULT_KILOGRAMS = 70.0
         const val KILOGRAMS_PER_POUND = 0.45359237
         const val FIRST_YEAR = 2026
+        val FIRST_DAY_KEY = "%04d-01-01".format(Locale.ROOT, FIRST_YEAR)
     }
 
     object Firestore {

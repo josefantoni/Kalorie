@@ -93,14 +93,19 @@ class BodyWeightHistoryViewModel(
         try {
             setWeights(fetchBodyWeights.inYear(currentYear))
             oldestLoadedYear = currentYear
+            _state.value = LoadingState.loaded
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
             Log.error(error, Constants.LogCategory.DASHBOARD)
-            alertItem.value = AlertItem(titleRes = R.string.weightHistory_error_loadFailed)
+            _state.value = LoadingState.Error(error)
         }
-        _state.value = LoadingState.loaded
         loadEarlierYearsIfNeeded()
+    }
+
+    suspend fun onRetryTapped() {
+        _state.value = LoadingState.Loading
+        onAppear()
     }
 
     suspend fun loadEarlierYearsIfNeeded() {

@@ -19,10 +19,12 @@ import antoni.kalorie.core.utils.minutesSinceMidnight
 import antoni.kalorie.core.utils.withAddedMinutes
 import antoni.kalorie.core.utils.zoned
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.time.Instant
 
 class SettingsViewModel(
@@ -82,7 +84,7 @@ class SettingsViewModel(
     private suspend fun apply(updated: AppSettingsDomain) {
         if (!hasLoadedAppSettings || updated == _appSettings.value) return
         _appSettings.value = updated
-        saveMutex.withLock { persist(updated) }
+        withContext(NonCancellable) { saveMutex.withLock { persist(updated) } }
     }
 
     private suspend fun persist(updated: AppSettingsDomain) {

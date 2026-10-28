@@ -70,6 +70,7 @@ class DashboardConfigurator {
                 settingsConfigurator = SettingsConfigurator(dataProvider, authProvider),
                 addFoodSheetConfigurator = AddFoodSheetConfigurator(dataProvider, authProvider),
                 foodConsumedDetailConfigurator = FoodConsumedDetailConfigurator(dataProvider, authProvider),
+                bodyWeightHistoryConfigurator = BodyWeightHistoryConfigurator(dataProvider, authProvider),
             )
         }
         val scope = rememberCoroutineScope()
@@ -88,6 +89,14 @@ class DashboardConfigurator {
                 when (destination) {
                     is DashboardDestination.Dashboard -> NavEntry(destination) {
                         DashboardView(viewModel = viewModel, router = router)
+                    }
+                    is DashboardDestination.BodyWeightHistory -> NavEntry(destination) {
+                        val appSettings by viewModel.appSettings.collectAsState()
+                        router.makeBodyWeightHistoryView(
+                            unit = appSettings.bodyWeightUnit,
+                            onBack = { viewModel.backStack.removeLastOrNull() },
+                            onChanged = { scope.launch { viewModel.onWeightsChanged() } },
+                        )
                     }
                     is DashboardDestination.FoodConsumedDetail -> NavEntry(destination) {
                         router.makeFoodConsumedDetailView(

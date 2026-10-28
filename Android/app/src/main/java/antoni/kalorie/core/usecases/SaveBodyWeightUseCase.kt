@@ -14,6 +14,7 @@ import java.time.Instant
 sealed class BodyWeightError : Exception() {
     data object OutOfRange : BodyWeightError()
     data object FutureDay : BodyWeightError()
+    data object BeforeFirstYear : BodyWeightError()
 }
 
 interface SaveBodyWeightUseCaseProtocol {
@@ -33,6 +34,7 @@ class SaveBodyWeightUseCase(
         if (kilograms !in BodyWeightUnit.MIN_KILOGRAMS..BodyWeightUnit.MAX_KILOGRAMS) throw BodyWeightError.OutOfRange
         val dayKey = BodyWeightDayKey.make(day)
         if (dayKey > BodyWeightDayKey.make(now())) throw BodyWeightError.FutureDay
+        if (dayKey < Constants.BodyWeight.FIRST_DAY_KEY) throw BodyWeightError.BeforeFirstYear
         dataProvider.setAsync(
             BodyWeightDTO(BodyWeightDomain(dayKey = dayKey, kilograms = kilograms)),
             id = dayKey,

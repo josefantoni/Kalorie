@@ -2,6 +2,7 @@ package antoni.kalorie.features.dashboard
 
 import androidx.compose.runtime.Composable
 import antoni.kalorie.core.models.AppSettingsDomain
+import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.features.account.AccountConfigurator
@@ -14,6 +15,7 @@ class DashboardRouter(
     private val settingsConfigurator: SettingsConfigurator,
     private val addFoodSheetConfigurator: AddFoodSheetConfigurator,
     private val foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator,
+    private val bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator,
 ) {
 
     // MARK: - Functions
@@ -55,5 +57,10 @@ class DashboardRouter(
         onFoodUpdated: () -> Unit = {},
     ) {
         foodConsumedDetailConfigurator.createView(food = food, mealTypes = mealTypes, onBack = onBack, onFoodUpdated = onFoodUpdated)
+    }
+
+    @Composable
+    fun makeBodyWeightHistoryView(unit: BodyWeightUnit, onBack: () -> Unit, onChanged: () -> Unit) {
+        bodyWeightHistoryConfigurator.createView(unit = unit, onBack = onBack, onChanged = onChanged)
     }
 }

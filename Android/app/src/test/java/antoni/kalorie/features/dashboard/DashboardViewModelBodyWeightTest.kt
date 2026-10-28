@@ -196,6 +196,16 @@ class DashboardViewModelBodyWeightTest {
     }
 
     @Test
+    fun weightBadge_dayBeforeFirstYear_isNotAvailableAndDoesNotOpenPicker() = runTest {
+        val sut = makeSUT()
+        sut.onAppear()
+        sut.onDaySelected(Instant.ofEpochSecond(1_766_000_000))
+        assertFalse(sut.canLogWeight)
+        sut.onWeightBadgeTapped()
+        assertFalse(sut.isWeightPopoverVisible.value)
+    }
+
+    @Test
     fun weightPicker_initialValue_isWeightValidOnDayElseDefault() = runTest {
         val withWeight = makeSUT(
             fetchBodyWeights = FetchBodyWeightsUseCaseFake(stubbedWeights = listOf(BodyWeightDomain(dayKey = "2026-10-01", kilograms = 81.3))),
@@ -218,6 +228,19 @@ class DashboardViewModelBodyWeightTest {
         sut.onWeightConfirmed()
         assertTrue(sut.isWeightPopoverVisible.value)
         assertNotNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun weightSave_keepsTheCheckmarkUntilThePickerIsOpenedAgain_soTheClosingPopoverDoesNotFlashBackToDone() = runTest {
+        val sut = makeSUT()
+        sut.onAppear()
+        sut.onWeightBadgeTapped()
+        sut.onWeightConfirmed()
+        assertFalse(sut.isWeightPopoverVisible.value)
+        assertTrue(sut.showWeightCheckmark.value)
+        sut.onWeightBadgeTapped()
+        assertFalse(sut.showWeightCheckmark.value)
+        assertTrue(sut.isWeightPopoverVisible.value)
     }
 
     @Test
