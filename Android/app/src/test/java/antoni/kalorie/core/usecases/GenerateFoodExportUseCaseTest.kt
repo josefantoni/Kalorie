@@ -1,6 +1,8 @@
 package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.auth.AuthError
+import antoni.kalorie.core.models.AppSettingsDomain
+import antoni.kalorie.core.models.BodyWeightDomain
 import antoni.kalorie.core.models.FoodExportFormat
 import antoni.kalorie.core.utils.StringProviderFake
 import kotlinx.coroutines.test.runTest
@@ -65,14 +67,67 @@ class GenerateFoodExportUseCaseTest {
         assertEquals(listOf("Kalorie_2026-09-03_2026-09-04.xlsx"), directory.listFiles().orEmpty().map { it.name })
     }
 
+    @Test
+    fun generate_whenWeightsCannotBeRead_failsLoudInsteadOfSilentlyDroppingThem() = runTest {
+        val (sut, _) = makeSUT(weights = FetchBodyWeightsUseCaseFake(shouldThrow = true))
+
+        try {
+            sut(from = Instant.now(), to = Instant.now(), format = FoodExportFormat.XLSX, mealTypes = emptyList())
+            fail("Expected the weight read to propagate")
+        } catch (_: RuntimeException) {
+        }
+    }
+
+    @Test
+    fun generate_whenSettingsCannotBeRead_stillProducesAFileInKilograms() = runTest {
+        val weights = FetchBodyWeightsUseCaseFake(stubbedWeights = listOf(BodyWeightDomain(dayKey = "2026-09-01", kilograms = 78.4)))
+        val (sut, _) = makeSUT(weights = weights, settings = FetchAppSettingsUseCaseFake(shouldThrow = true))
+
+        val file = sut(from = makeDate(1), to = makeDate(3), format = FoodExportFormat.XLSX, mealTypes = emptyList())
+
+        assertTrue(file.exists())
+    }
+
+    @Test
+    fun generate_withoutAnyWeight_doesNotReadTheSettings() = runTest {
+        val settings = CountingFetchAppSettings()
+        val (sut, _) = makeSUT(settings = settings)
+
+        sut(from = makeDate(1), to = makeDate(3), format = FoodExportFormat.XLSX, mealTypes = emptyList())
+
+        assertEquals("the unit is only needed to format a weight, so a user without weights must not pay for the read", 0, settings.callCount)
+    }
+
+    @Test
+    fun generate_withAWeight_readsTheSettingsOnce() = runTest {
+        val weights = FetchBodyWeightsUseCaseFake(stubbedWeights = listOf(BodyWeightDomain(dayKey = "2026-09-01", kilograms = 78.4)))
+        val settings = CountingFetchAppSettings()
+        val (sut, _) = makeSUT(weights = weights, settings = settings)
+
+        sut(from = makeDate(1), to = makeDate(3), format = FoodExportFormat.XLSX, mealTypes = emptyList())
+
+        assertEquals(1, settings.callCount)
+    }
+
     // MARK: - Helpers
+
+    private class CountingFetchAppSettings : FetchAppSettingsUseCaseProtocol {
+        var callCount = 0
+
+        override suspend fun invoke(): AppSettingsDomain {
+            callCount += 1
+            return AppSettingsDomain.defaults
+        }
+    }
 
     private fun makeSUT(
         fetch: FetchFoodsConsumedInRangeUseCaseFake = FetchFoodsConsumedInRangeUseCaseFake(),
+        weights: FetchBodyWeightsUseCaseFake = FetchBodyWeightsUseCaseFake(),
+        settings: FetchAppSettingsUseCaseProtocol = FetchAppSettingsUseCaseFake(),
     ): Pair<GenerateFoodExportUseCase, File> {
         val directory = File(temporaryFolder.newFolder(), "exports")
         val factory = FoodExportReportFactory(strings = StringProviderFake(), zone = ZONE, locale = Locale.ENGLISH)
-        return GenerateFoodExportUseCase(fetch, factory, directory, ZONE) to directory
+        return GenerateFoodExportUseCase(fetch, weights, settings, factory, directory, ZONE) to directory
     }
 
     private fun makeDate(day: Int): Instant = ZonedDateTime.of(2026, 9, day, 12, 0, 0, 0, ZONE).toInstant()

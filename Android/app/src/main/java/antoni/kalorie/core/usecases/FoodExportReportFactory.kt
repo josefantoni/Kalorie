@@ -2,6 +2,9 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.R
 import antoni.kalorie.core.extensions.formatted
+import antoni.kalorie.core.models.BodyWeightDayKey
+import antoni.kalorie.core.models.BodyWeightDomain
+import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.displayName
@@ -29,13 +32,26 @@ class FoodExportReportFactory(
 
     // MARK: - Functions
 
-    fun makeReport(foods: List<FoodConsumedDomain>, mealTypes: List<MealTypeDomain>, from: Instant, to: Instant): Report {
+    fun makeReport(
+        foods: List<FoodConsumedDomain>,
+        mealTypes: List<MealTypeDomain>,
+        from: Instant,
+        to: Instant,
+        weights: List<BodyWeightDomain> = emptyList(),
+        weightUnit: BodyWeightUnit = BodyWeightUnit.KG,
+    ): Report {
         val firstDay = from.atZone(zone).toLocalDate()
         val lastDay = to.atZone(zone).toLocalDate()
         val dayStarts = generateSequence(firstDay) { it.plusDays(1) }.takeWhile { !it.isAfter(lastDay) }.toList()
         val dayIndexes = dayStarts.withIndex().associate { it.value to it.index }
         val dayFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)
-        val days = dayStarts.mapIndexed { index, start -> ExportDayInput(index = index, label = start.format(dayFormatter)) }
+        val newestFirstWeights = weights.sortedByDescending { it.dayKey }
+        val days = dayStarts.mapIndexed { index, start ->
+            val dayLabel = start.format(dayFormatter)
+            val dayKey = BodyWeightDayKey.make(start.atStartOfDay(zone).toInstant(), zone)
+            val weight = newestFirstWeights.firstOrNull { it.dayKey <= dayKey }
+            ExportDayInput(index = index, label = if (weight == null) dayLabel else "$dayLabel · ${weightUnit.formatted(weight.kilograms)}")
+        }
         val sections = mealTypes.map { mealType ->
             ExportSectionInput(id = mealType.id, header = "${mealType.name} ${windowLabel(mealType)}", sortKey = mealType.startMinutes)
         }
