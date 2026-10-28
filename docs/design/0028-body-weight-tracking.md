@@ -277,7 +277,9 @@ Pushed from the circle on the Dashboard's `NavigationStack`.
   therefore costs one year however long the history is, and a user who never pages back never pays
   for older years. Chart and list both derive from the loaded array, so the list shows the years
   loaded so far. Switching range or paging within loaded years reads nothing. A failed read of an
-  earlier year alerts and is retried by the next page or range change.
+  earlier year alerts and is retried by the next page or range change. A failed read of the current
+  year shows an error card with a *Retry* button (`auth_button_retry`) in place of the list and the
+  empty state, so a user with entries is never told they have none.
 - **No history before 2026.** The feature ships in 2026 and the badge refuses days before it, so
   paging back stops at 1 January 2026 (`Constants.BodyWeight.firstYear`, `canPageBack`): a period that
   starts there has no previous one, and no year earlier than 2026 is ever read.
