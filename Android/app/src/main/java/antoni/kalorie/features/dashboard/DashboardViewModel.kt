@@ -6,6 +6,10 @@ import androidx.lifecycle.viewModelScope
 import antoni.kalorie.BuildConfig
 import antoni.kalorie.R
 import antoni.kalorie.core.auth.AuthProviderProtocol
+import antoni.kalorie.core.models.AppSettingsDomain
+import antoni.kalorie.core.models.BodyWeightDayKey
+import antoni.kalorie.core.models.BodyWeightDomain
+import antoni.kalorie.core.models.BodyWeightWindow
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.mealType
@@ -14,9 +18,12 @@ import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseProtocol
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCaseProtocol
 import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchAppSettingsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchBodyWeightsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.SaveBodyWeightUseCaseProtocol
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
@@ -29,6 +36,8 @@ import antoni.kalorie.core.utils.zoned
 import antoni.kalorie.macrokit.Macros
 import antoni.kalorie.macrokit.total
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -83,6 +92,7 @@ data class FoodGroup(
 )
 
 private const val COPY_CHECKMARK_MILLIS = 1000L
+private const val WEIGHT_CHECKMARK_MILLIS = 1000L
 private val SIGN_IN_SPOTLIGHT_INTERVAL = Duration.ofDays(7)
 
 class DashboardViewModel(
@@ -94,6 +104,9 @@ class DashboardViewModel(
     private val deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol,
     private val copyFoodsConsumed: CopyFoodsConsumedUseCaseProtocol,
     private val assignFoodMealType: AssignFoodMealTypeUseCaseProtocol,
+    private val fetchBodyWeights: FetchBodyWeightsUseCaseProtocol,
+    private val fetchAppSettings: FetchAppSettingsUseCaseProtocol,
+    private val saveBodyWeight: SaveBodyWeightUseCaseProtocol,
     private val authProvider: AuthProviderProtocol,
     private val signInSpotlightStore: SignInSpotlightStoreProtocol,
     private val now: () -> Instant = { Instant.now() },
@@ -127,6 +140,22 @@ class DashboardViewModel(
     val activeDaysInMonth: StateFlow<Set<Int>> = _activeDaysInMonth
     private val _moveFeedbackTrigger = MutableStateFlow(0)
     val moveFeedbackTrigger: StateFlow<Int> = _moveFeedbackTrigger
+    private val _recentWeights = MutableStateFlow<List<BodyWeightDomain>>(emptyList())
+    val recentWeights: StateFlow<List<BodyWeightDomain>> = _recentWeights
+    private val _laterWeights = MutableStateFlow<List<BodyWeightDomain>>(emptyList())
+    val laterWeights: StateFlow<List<BodyWeightDomain>> = _laterWeights
+    private val _shownWeightsKey = MutableStateFlow<String?>(null)
+    val shownWeightsKey: StateFlow<String?> = _shownWeightsKey
+    private val _appSettings = MutableStateFlow(AppSettingsDomain.defaults)
+    val appSettings: StateFlow<AppSettingsDomain> = _appSettings
+    private val _hasLoadedSettings = MutableStateFlow(false)
+    val hasLoadedSettings: StateFlow<Boolean> = _hasLoadedSettings
+    val isWeightPopoverVisible = MutableStateFlow(false)
+    val weightPickerKilograms = MutableStateFlow(Constants.BodyWeight.DEFAULT_KILOGRAMS)
+    private val _isSavingWeight = MutableStateFlow(false)
+    val isSavingWeight: StateFlow<Boolean> = _isSavingWeight
+    private val _showWeightCheckmark = MutableStateFlow(false)
+    val showWeightCheckmark: StateFlow<Boolean> = _showWeightCheckmark
 
     private var activeDaysMonth = Instant.now()
     private var isViewingToday = true
@@ -134,6 +163,24 @@ class DashboardViewModel(
     private var monthCache = mutableMapOf<String, List<FoodConsumedDomain>>()
     private val cachedMonthKeys = mutableSetOf<String>()
     private var foodPendingDeletion: FoodConsumedDomain? = null
+    private var weightCache = mutableMapOf<String, BodyWeightWindow>()
+    private var weightCacheGeneration = 0
+    private var weightPickerDay: Instant? = null
+    private var settingsChangeCount = 0
+
+    val isWeightCircleVisible: Boolean
+        get() = _hasLoadedSettings.value && _appSettings.value.showBodyWeight
+
+    val canLogWeight: Boolean
+        get() {
+            val selectedKey = BodyWeightDayKey.make(selectedDay.value)
+            val todayKey = BodyWeightDayKey.make(now())
+            if (_shownWeightsKey.value != selectedKey) return false
+            return selectedKey <= todayKey
+        }
+
+    val hasWeightForSelectedDay: Boolean
+        get() = _recentWeights.value.firstOrNull()?.dayKey == BodyWeightDayKey.make(selectedDay.value)
 
     val dailyMacros: DailyMacros
         get() = DailyMacros(foodsConsumed.value)
@@ -169,12 +216,18 @@ class DashboardViewModel(
         selectedDay.value = Instant.now()
         isViewingToday = true
         _state.value = LoadingState.Loading
-        perform {
-            refreshMealTypes()
-            loadMonth(selectedDay.value)
-            foodsConsumed.value = foodsFromCache(selectedDay.value)
-            showActiveDays(selectedDay.value)
-            showSignInSpotlightIfNeeded()
+        coroutineScope {
+            val settings = async { refreshSettings() }
+            val weights = async { loadWeights(selectedDay.value) }
+            perform {
+                refreshMealTypes()
+                loadMonth(selectedDay.value)
+                foodsConsumed.value = foodsFromCache(selectedDay.value)
+                showActiveDays(selectedDay.value)
+                settings.await()
+                weights.await()
+                showSignInSpotlightIfNeeded()
+            }
         }
         _state.value = LoadingState.loaded
         hasCompletedInitialLoad = true
@@ -182,25 +235,38 @@ class DashboardViewModel(
 
     suspend fun onRefresh() {
         if (!hasCompletedInitialLoad) return
-        perform {
-            advanceSelectedDayIfNeeded()
-            refreshMealTypes()
-            invalidateCache(selectedDay.value)
-            loadMonth(selectedDay.value)
-            foodsConsumed.value = foodsFromCache(selectedDay.value)
-            showActiveDays(selectedDay.value)
-            showSignInSpotlightIfNeeded()
+        advanceSelectedDayIfNeeded()
+        invalidateWeightCache()
+        coroutineScope {
+            val settings = async { refreshSettings() }
+            val weights = async { loadWeights(selectedDay.value) }
+            perform {
+                refreshMealTypes()
+                invalidateCache(selectedDay.value)
+                loadMonth(selectedDay.value)
+                foodsConsumed.value = foodsFromCache(selectedDay.value)
+                showActiveDays(selectedDay.value)
+                settings.await()
+                weights.await()
+                showSignInSpotlightIfNeeded()
+            }
         }
     }
 
     suspend fun onForeground() {
         if (!hasCompletedInitialLoad) return
-        perform {
-            advanceSelectedDayIfNeeded()
-            refreshMealTypes()
-            reloadDay(selectedDay.value)
-            foodsConsumed.value = foodsFromCache(selectedDay.value)
-            showSignInSpotlightIfNeeded()
+        advanceSelectedDayIfNeeded()
+        coroutineScope {
+            val settings = async { refreshSettings() }
+            val weights = async { loadWeights(selectedDay.value, forceReload = true) }
+            perform {
+                refreshMealTypes()
+                reloadDay(selectedDay.value)
+                foodsConsumed.value = foodsFromCache(selectedDay.value)
+                settings.await()
+                weights.await()
+                showSignInSpotlightIfNeeded()
+            }
         }
     }
 
@@ -305,14 +371,67 @@ class DashboardViewModel(
 
     suspend fun onDayChanged(date: Instant) {
         isViewingToday = date.isSameDay(Instant.now())
-        loadFoods(date)
+        coroutineScope {
+            val weights = async { loadWeights(date) }
+            loadFoods(date)
+            weights.await()
+        }
     }
 
     suspend fun onDaySelected(date: Instant) {
         isViewingToday = date.isSameDay(Instant.now())
         selectedDay.value = date
         showCalendarSheet.value = false
-        loadFoods(date)
+        coroutineScope {
+            val weights = async { loadWeights(date) }
+            loadFoods(date)
+            weights.await()
+        }
+    }
+
+    fun onWeightBadgeTapped() {
+        if (!canLogWeight) return
+        weightPickerKilograms.value = _recentWeights.value.firstOrNull()?.kilograms ?: Constants.BodyWeight.DEFAULT_KILOGRAMS
+        weightPickerDay = selectedDay.value
+        isWeightPopoverVisible.value = true
+    }
+
+    suspend fun onWeightConfirmed() {
+        if (_isSavingWeight.value || _showWeightCheckmark.value) return
+        _isSavingWeight.value = true
+        try {
+            saveBodyWeight(weightPickerKilograms.value, weightPickerDay ?: selectedDay.value)
+        } catch (error: CancellationException) {
+            _isSavingWeight.value = false
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.DASHBOARD)
+            alertItem.value = AlertItem(titleRes = R.string.dashboard_error_weightSaveFailed)
+            _isSavingWeight.value = false
+            return
+        }
+        _isSavingWeight.value = false
+        _showWeightCheckmark.value = true
+        try {
+            onWeightsChanged()
+            delay(WEIGHT_CHECKMARK_MILLIS)
+        } finally {
+            isWeightPopoverVisible.value = false
+            _showWeightCheckmark.value = false
+        }
+    }
+
+    suspend fun onWeightsChanged() {
+        invalidateWeightCache()
+        val key = BodyWeightDayKey.make(selectedDay.value)
+        val isLoaded = reloadWeights(selectedDay.value)
+        if (!isLoaded && _shownWeightsKey.value == key) clearShownWeights()
+    }
+
+    fun onAppSettingsChanged(settings: AppSettingsDomain) {
+        settingsChangeCount += 1
+        _appSettings.value = settings
+        _hasLoadedSettings.value = true
     }
 
     suspend fun onCalendarMonthChanged(month: Instant) {
@@ -341,7 +460,8 @@ class DashboardViewModel(
             alertItem.value != null ||
             isDeleteConfirmationVisible.value ||
             copyPopoverIndex.value != null ||
-            macroPopoverIndex.value != null
+            macroPopoverIndex.value != null ||
+            isWeightPopoverVisible.value
 
     private fun showSignInSpotlightIfNeeded() {
         if (!authProvider.isAnonymous || monthCache.values.none { it.isNotEmpty() } || _isSignInSpotlightVisible.value || isAnyPresentationActive) return
@@ -380,6 +500,73 @@ class DashboardViewModel(
                 foodsConsumed.value = foodsFromCache(selectedDay.value)
             }
         }
+    }
+
+    private suspend fun refreshSettings() {
+        val changeCountBeforeRead = settingsChangeCount
+        try {
+            val settings = fetchAppSettings()
+            if (changeCountBeforeRead != settingsChangeCount) return
+            _appSettings.value = settings
+            _hasLoadedSettings.value = true
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.DASHBOARD)
+        }
+    }
+
+    private suspend fun loadWeights(date: Instant, forceReload: Boolean = false) {
+        reloadWeights(date, forceReload)
+    }
+
+    private suspend fun reloadWeights(date: Instant, forceReload: Boolean = false): Boolean {
+        val key = BodyWeightDayKey.make(date)
+        val cached = weightCache[key]
+        if (!forceReload && cached != null) {
+            if (BodyWeightDayKey.make(selectedDay.value) == key) show(cached, key)
+            return true
+        }
+        if (_shownWeightsKey.value != key && BodyWeightDayKey.make(selectedDay.value) == key) clearShownWeights()
+        val generation = weightCacheGeneration
+        return try {
+            val window = coroutineScope {
+                val earlier = async { fetchBodyWeights.upTo(date) }
+                val later = async { loadLaterWeights(date) }
+                BodyWeightWindow(earlier = earlier.await(), later = later.await())
+            }
+            if (generation != weightCacheGeneration) return true
+            weightCache[key] = window
+            if (BodyWeightDayKey.make(selectedDay.value) == key) show(window, key)
+            true
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.DASHBOARD)
+            false
+        }
+    }
+
+    private fun invalidateWeightCache() {
+        weightCache = mutableMapOf()
+        weightCacheGeneration += 1
+    }
+
+    private suspend fun loadLaterWeights(date: Instant): List<BodyWeightDomain> {
+        if (BodyWeightDayKey.make(date) >= BodyWeightDayKey.make(now())) return emptyList()
+        return fetchBodyWeights.after(date)
+    }
+
+    private fun clearShownWeights() {
+        _shownWeightsKey.value = null
+        _recentWeights.value = emptyList()
+        _laterWeights.value = emptyList()
+    }
+
+    private fun show(window: BodyWeightWindow, key: String) {
+        _shownWeightsKey.value = key
+        _recentWeights.value = window.earlier
+        _laterWeights.value = window.later
     }
 
     private suspend fun refreshMealTypes() {

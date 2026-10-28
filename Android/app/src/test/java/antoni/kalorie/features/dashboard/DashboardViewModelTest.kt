@@ -15,12 +15,15 @@ import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseFake
 import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchAppSettingsUseCaseFake
+import antoni.kalorie.core.usecases.FetchBodyWeightsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
+import antoni.kalorie.core.usecases.SaveBodyWeightUseCaseFake
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseFake
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
@@ -1146,6 +1149,9 @@ class DashboardViewModelTest {
         deleteFoodConsumed = deleteFoodConsumed,
         copyFoodsConsumed = copyFoodsConsumed,
         assignFoodMealType = assignFoodMealType,
+        fetchBodyWeights = FetchBodyWeightsUseCaseFake(),
+        fetchAppSettings = FetchAppSettingsUseCaseFake(),
+        saveBodyWeight = SaveBodyWeightUseCaseFake(),
         authProvider = authProvider,
         signInSpotlightStore = signInSpotlightStore,
         now = { now },
