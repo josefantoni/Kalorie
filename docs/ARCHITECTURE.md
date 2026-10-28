@@ -299,8 +299,9 @@ entries still awaiting a maintainer. See [design 0009](design/0009-catalogue-mod
 § 7 for the full flow.
 
 **`bodyWeights`** (`BodyWeightDTO`) — `id` (the day key, equal to the document id) and `weight_kg`,
-kilograms stored unrounded whatever unit the user sees. Range 30.0–300.0 kg, enforced by
-`SaveBodyWeightUseCase`, not by the rules. **`settings/app`** (`AppSettingsDTO`) — `show_body_weight`
+kilograms stored unrounded whatever unit the user sees. Range 30.0–300.0 kg, and a day from
+1 January 2026 (`Constants.BodyWeight.firstDayKey`) up to today, enforced by
+`SaveBodyWeightUseCase`, not by the rules. No earlier day is written because the history screen never reads one, so such an entry could be neither seen nor deleted. **`settings/app`** (`AppSettingsDTO`) — `show_body_weight`
 (bool, default `true`) and `body_weight_unit` (`"kg"` / `"lb"`, default `"kg"`, an unknown value reads
 as `"kg"`). Every field is optional on read and an absent document means the defaults, so a setting
 added later never breaks an older client. It lives in its own document, not on `users/{userId}`,
@@ -342,6 +343,7 @@ builder:
 | `mergeAsync(_:id:in:)` | `document(id).setData(_, merge: true)` — used only for `settings/app`, so a client never erases a field it does not know |
 | `batchSetAsync(_:in:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) items |
 | `deleteAsync(id:from:)` | `document(id).delete()` |
+| `batchDeleteAsync(ids:from:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) ids — used only to wipe `bodyWeights` on account deletion, where a daily entry makes the collection grow without bound |
 
 Consequences worth knowing before adding a method:
 
@@ -1112,7 +1114,7 @@ The weight state is guarded by five rules:
   loaded for. Picking another day clears the circle until that day's window arrives, and a cached window
   of another day is never drawn.
 - **`canLogWeight` gates the badge.** It needs `shownWeightsKey` to equal the selected day, and then
-  allows today or any earlier day (`selectedKey <= todayKey`). A future day, a loading day and a day whose load failed all have no badge, so a picker is never seeded
+  allows `Constants.BodyWeight.firstDayKey` (1 January 2026) up to today (`firstDayKey <= selectedKey <= todayKey`). A future day, a loading day and a day whose load failed all have no badge, so a picker is never seeded
   from the default over a real entry. The picker starts at the weight valid on the day, else
   `Constants.BodyWeight.defaultKilograms`.
 - **A failed load is logged, not cached.** The next foreground, pull to refresh or day change retries.
@@ -1122,11 +1124,11 @@ The weight state is guarded by five rules:
 
 `SaveBodyWeightUseCase` checks, in this order, that a user is signed in (`AuthError.notAuthenticated`),
 that the value is within 30.0–300.0 kg (`BodyWeightError.outOfRange`) and that the day key is not after
-today's (`BodyWeightError.futureDay`); on any failure it writes nothing. The day key is built in the
+today's (`BodyWeightError.futureDay`) and not before 1 January 2026 (`BodyWeightError.beforeFirstYear`); on any failure it writes nothing. The day key is built in the
 device's current time zone, which `BodyWeightDayKey` shares with the fixture both clients run.
 
-On the weight history screen, paging forward stops at the current period (`canPageForward`) and
-changing the range (Week / Month / Year) returns to the current period. A failed delete keeps the entry
+On the weight history screen, paging forward stops at the current period (`canPageForward`), paging back at 1 January 2026
+(`canPageBack`, `Constants.BodyWeight.firstYear`) and changing the range (Week / Month / Year) returns to the current period. A failed delete keeps the entry
 and shows an alert. The Dashboard is told on `onDisappear`, and only if the screen deleted something.
 
 `onRefresh` and `onForeground` guard against a cold-launch race with `hasCompletedInitialLoad`:
