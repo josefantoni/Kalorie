@@ -275,6 +275,9 @@ Pushed from the circle on the Dashboard's `NavigationStack`.
   for older years. Chart and list both derive from the loaded array, so the list shows the years
   loaded so far. Switching range or paging within loaded years reads nothing. A failed read of an
   earlier year alerts and is retried by the next page or range change.
+- **No history before 2026.** The feature ships in 2026 and weights are logged only as they happen, so
+  paging back stops at 1 January 2026 (`Constants.BodyWeight.firstYear`, `canPageBack`): a period that
+  starts there has no previous one, and no year earlier than 2026 is ever read.
 - **Chart** — line segments between the real points, same neutral colour and 2 kg minimum Y span as
   the circle, x by date. A segmented range switcher **Week / Month / Year**, default **Month**, on
   both clients. A horizontal swipe (and previous / next arrows) pages to the previous or next
@@ -337,8 +340,9 @@ people or carelessly; that is the user's doing and the app does not try to resol
 
 ### Account deletion
 
-`DeleteAccountUseCase` on both clients deletes every `bodyWeights` document and `settings/app`,
-document by document like the other collections, before the profile document. No composite index is
+`DeleteAccountUseCase` on both clients deletes every `bodyWeights` document with one `batchDeleteAsync` (a daily entry makes the collection
+grow without bound, so a round trip per day would be hundreds after a few years) and then `settings/app`,
+before the profile document. No composite index is
 involved. The web deletion page ([design 0015](0015-account-deletion-web-page.md)) is unaffected if
 it defers to the same wipe; check this when implementing.
 
@@ -352,9 +356,10 @@ Design 0014 / § 8. Rules:
 
 Implementation:
 
-- Weights needed are those with `id ≤ dayKey(to)`. Load them with **two queries**: the range
-  `[dayKey(from), dayKey(to)]` and the existing-shape "latest before `from`" (the new provider query,
-  `id < dayKey(from)` expressed as `≤` the previous day, limit 1). At most interval-length + 1 reads.
+- Weights needed are those with `id ≤ dayKey(to)`. Load them with **one query**: `id ≤ dayKey(to)`,
+  newest first, `limit = days in the interval + 1`. At most one entry exists per day, so the interval's
+  own entries take at most `days` of the limit and the last one is the latest entry before `from`.
+  At most interval-length + 1 reads.
 - **A failed weight read fails the export.** An export without the weights it should carry looks
   complete and is not, so the error is surfaced instead of dropping them silently. Only the unit
   setting degrades: if `settings/app` cannot be read the weights are still exported, in kilograms.
@@ -490,7 +495,7 @@ made before the feature.
 - [ ] Settings sheet: new section
 - [ ] `MigrateAnonymousDataUseCase` + `PendingMergeSnapshot` (backward-compatible decode)
 - [ ] `DeleteAccountUseCase`
-- [ ] Export: weight in day label, two queries
+- [ ] Export: weight in day label, one query
 - [ ] Strings CZ / EN (/ SK)
 - [ ] `firestore-rules-tests`: owner-only coverage of both paths
 - [ ] `privacy.html`; Play Data safety and App Privacy re-confirmed (manual, owner)

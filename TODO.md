@@ -82,13 +82,13 @@ The app works with three kinds of data. The distinction matters for the items be
 
   1. **Provider** — `core/networking/FirestoreDataProvider.kt` gets the three query shapes iOS added in
      `FirestoreDataProvider.swift`: `id <= key` ordered descending with a limit, `id > key` ordered ascending with
-     a limit, and `mergeAsync` (`SetOptions.merge()`). Unlike iOS there are no protocol-extension defaults, so
+     a limit, `mergeAsync` (`SetOptions.merge()`) and `batchDeleteAsync(ids, collection)` (one `WriteBatch` per 500 ids). Unlike iOS there are no protocol-extension defaults, so
      `FirestoreDataProviderFake` in `app/src/test/.../networking/` and any other implementer must get the new
      methods (grep implementers first). `Constants.Firestore` gets `appSettingsDocumentId = "app"`,
      `bodyWeightRecentLimit = 3`, `bodyWeightLaterLimit = 2`, `Field.id`, `bodyWeights(userId)`, `settings(userId)`
      and `BodyWeight.defaultKilograms = 70.0`.
   2. **Models and DTOs** — port `BodyWeightModel.swift` (`BodyWeightUnit` kg/lb with `display`, `kilograms(from)`,
-     `rangeInTenths` 300..3000 / 663..6612, `formatted`, `tenths`; `BodyWeightDomain`; `BodyWeightWindow` with
+     `rangeInTenths` 300..3000 / 662..6613, `formatted`, `tenths`; `BodyWeightDomain`; `BodyWeightWindow` with
      `earlier` newest-first, `later` oldest-first, `chronological`; `AppSettingsDomain.defaults`;
      `BodyWeightDayKey.make(from, timeZone)` / `date(from)` at noon), `BodyWeightDTO.swift`, `AppSettingsDTO.swift`.
      Day key is Gregorian, device time zone, POSIX `yyyy-MM-dd` (use `java.time` with `Locale.ROOT` and
@@ -103,7 +103,7 @@ The app works with three kinds of data. The distinction matters for the items be
   4. **Account paths** — `MigrateAnonymousDataUseCase.kt`: replay reads the target account first and the account wins
      per day; settings are written only if the account has none. `PendingMergeSnapshotStore.kt`: snapshot gains
      `bodyWeights` and `appSettings` and must still decode a legacy snapshot without them (`decodeIfPresent` →
-     defaults in kotlinx.serialization). `DeleteAccountUseCase.kt`: wipe `bodyWeights` and `settings` (iOS extracted
+     defaults in kotlinx.serialization). `DeleteAccountUseCase.kt`: wipe `bodyWeights` (one `batchDeleteAsync`) and `settings` (iOS extracted
      `wipeBodyWeightData(userId)`). Port the matching test changes, including the legacy-snapshot test. The
      migrate fake is hit concurrently, so make it thread-safe.
   5. **Export** — `GenerateFoodExportUseCase.kt` now requires `fetchBodyWeights` and `fetchAppSettings` (update its
@@ -129,8 +129,9 @@ The app works with three kinds of data. The distinction matters for the items be
      to pin it. With no entry on or before the selected day the circle shows the blurred placeholder even when
      later entries exist. The circle lives inside `MacroSummaryView`, so it is shown only on days with food
      (maintainer decided to keep that).
-  7. **History screen** — `BodyWeightHistoryViewModel/View/ChartView/Configurator`: Week/Month/Year range, paging,
-     swipe-to-delete rows, edit popover, `onChanged` fired when the screen disappears so the Dashboard reloads.
+  7. **History screen** — `BodyWeightHistoryViewModel/View/ChartView/Configurator`: Week/Month/Year range, paging
+     (back to `Constants.BodyWeight.firstYear` = 2026 and no further), swipe-to-delete rows, no editing
+     (design 0028, *Decisions made during implementation*), `onChanged` fired when the screen disappears so the Dashboard reloads.
      On Android add the trailing chevron only where the exception in `Android/CLAUDE.md` says. Port
      `BodyWeightHistoryViewModelTests`.
   8. **Settings** — section "Body weight" with a switch (`show_body_weight`) and a kg/lb segmented control, hidden in
@@ -150,6 +151,13 @@ The app works with three kinds of data. The distinction matters for the items be
   ~10 entries a day. A rough estimate for 300 active users (2 cold launches, 5 foregrounds, 10 day switches
   each per day) is ~225,000 reads a day, about 80 % of them month loads, i.e. a few USD a month above the
   free tier. Revisit if the user count grows by orders of magnitude.
+- **Account deletion: batch the per-document deletes** — `DeleteAccountUseCase` deletes `mealTypes`,
+  `foodConsumed`, `favouriteFoods`, `myCreatedMeals`, `foodItemPortions` and the user's submissions one
+  document per round trip; only `bodyWeights` uses `batchDeleteAsync` (one `WriteBatch` per 500 ids).
+  `foodConsumed` grows fastest (~10 entries a day), so a long-time user waits for thousands of sequential
+  deletes and a timeout leaves the account half wiped. Move the loops to `batchDeleteAsync`, iOS and
+  Android together (Scope: Cross-platform), keeping the order the tests pin (profile document last) and
+  the existing delete tests as the spec. One `[REFACTOR]` commit per platform.
 
 ## Android readiness
 
