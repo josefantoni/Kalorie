@@ -168,6 +168,9 @@ class DashboardViewModel(
     private var weightPickerDay: Instant? = null
     private var settingsChangeCount = 0
 
+    val isWeightHistoryPushed: Boolean
+        get() = backStack.any { it == DashboardDestination.BodyWeightHistory }
+
     val isWeightCircleVisible: Boolean
         get() = _hasLoadedSettings.value && _appSettings.value.showBodyWeight
 
@@ -176,7 +179,7 @@ class DashboardViewModel(
             val selectedKey = BodyWeightDayKey.make(selectedDay.value)
             val todayKey = BodyWeightDayKey.make(now())
             if (_shownWeightsKey.value != selectedKey) return false
-            return selectedKey <= todayKey
+            return selectedKey in Constants.BodyWeight.FIRST_DAY_KEY..todayKey
         }
 
     val hasWeightForSelectedDay: Boolean
@@ -393,6 +396,7 @@ class DashboardViewModel(
         if (!canLogWeight) return
         weightPickerKilograms.value = _recentWeights.value.firstOrNull()?.kilograms ?: Constants.BodyWeight.DEFAULT_KILOGRAMS
         weightPickerDay = selectedDay.value
+        _showWeightCheckmark.value = false
         isWeightPopoverVisible.value = true
     }
 
@@ -417,7 +421,6 @@ class DashboardViewModel(
             delay(WEIGHT_CHECKMARK_MILLIS)
         } finally {
             isWeightPopoverVisible.value = false
-            _showWeightCheckmark.value = false
         }
     }
 
@@ -426,6 +429,10 @@ class DashboardViewModel(
         val key = BodyWeightDayKey.make(selectedDay.value)
         val isLoaded = reloadWeights(selectedDay.value)
         if (!isLoaded && _shownWeightsKey.value == key) clearShownWeights()
+    }
+
+    fun onWeightCircleTapped() {
+        if (!isWeightHistoryPushed) backStack.add(DashboardDestination.BodyWeightHistory)
     }
 
     fun onAppSettingsChanged(settings: AppSettingsDomain) {
@@ -461,7 +468,8 @@ class DashboardViewModel(
             isDeleteConfirmationVisible.value ||
             copyPopoverIndex.value != null ||
             macroPopoverIndex.value != null ||
-            isWeightPopoverVisible.value
+            isWeightPopoverVisible.value ||
+            isWeightHistoryPushed
 
     private fun showSignInSpotlightIfNeeded() {
         if (!authProvider.isAnonymous || monthCache.values.none { it.isNotEmpty() } || _isSignInSpotlightVisible.value || isAnyPresentationActive) return

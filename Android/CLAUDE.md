@@ -81,9 +81,10 @@ text is not white.
 
 ## Badge button
 
-A round accent button with a white icon is `BadgeButton` (`components/BadgeButton.kt`): a 36 dp
-`FilledIconButton` with a 20 dp icon, with `icon`, `enabled` and `contentDescription` parameters. It
-mirrors the iOS component of the same name. Never call `FilledIconButton` or
+A round accent button with a white icon is `BadgeButton` (`components/BadgeButton.kt`): by default a
+36 dp `FilledIconButton` with a 20 dp icon, with `icon`, `enabled`, `contentDescription` and `size`
+parameters (the icon scales with `size`; only the weight badge on the Dashboard passes a smaller one).
+It mirrors the iOS component of the same name. Never call `FilledIconButton` or
 `Icons.Outlined.AddCircle` directly for this.
 
 - **Add a row** (new portion, new meal in the settings layout) is `BadgeButton(icon = Icons.Filled.Add, …)`.

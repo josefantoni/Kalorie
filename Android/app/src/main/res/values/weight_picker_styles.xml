@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="WeightPickerTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:numberPickerStyle">@style/WeightPickerStyle</item>
+    </style>
+
+    <style name="WeightPickerStyle" parent="@android:style/Widget.Material.Light.NumberPicker">
+        <item name="*android:selectionDivider">@drawable/weight_picker_divider</item>
+    </style>
+</resources>

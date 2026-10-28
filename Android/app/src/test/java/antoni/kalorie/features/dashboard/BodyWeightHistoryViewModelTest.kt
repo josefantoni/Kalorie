@@ -5,6 +5,7 @@ import antoni.kalorie.core.models.BodyWeightDomain
 import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.usecases.DeleteBodyWeightUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchBodyWeightsUseCaseProtocol
+import antoni.kalorie.core.utils.LoadingState
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -100,6 +101,19 @@ class BodyWeightHistoryViewModelTest {
         spy.failingYears = emptySet()
         sut.loadEarlierYearsIfNeeded()
         assertEquals(listOf("2027-01-10", "2026-12-20"), sut.weights.value.map { it.dayKey })
+    }
+
+    @Test
+    fun failedFirstRead_showsErrorStateInsteadOfEmptyState_andRetryLoads() = runTest {
+        val (sut, spy) = makeSUT(weights = listOf(weight("2026-10-20", 79.0)), now = date("2026-10-27"))
+        spy.failingYears = setOf(2026)
+        sut.onAppear()
+        assertTrue(sut.state.value is LoadingState.Error)
+        assertTrue(sut.weights.value.isEmpty())
+        spy.failingYears = emptySet()
+        sut.onRetryTapped()
+        assertTrue(sut.state.value is LoadingState.Loaded)
+        assertEquals(listOf("2026-10-20"), sut.weights.value.map { it.dayKey })
     }
 
     @Test

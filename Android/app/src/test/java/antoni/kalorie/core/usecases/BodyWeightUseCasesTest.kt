@@ -36,6 +36,14 @@ class BodyWeightUseCasesTest {
     }
 
     @Test
+    fun save_beforeFirstYear_throwsAndWritesNothing() = runTest {
+        val (sut, dataProvider) = makeSaveSUT()
+        val error = runCatching { sut(70.0, Instant.ofEpochSecond(1_766_000_000)) }.exceptionOrNull()
+        assertEquals(BodyWeightError.BeforeFirstYear, error)
+        assertNull(dataProvider.setSavedId)
+    }
+
+    @Test
     fun save_outOfRange_throwsAndWritesNothing() = runTest {
         val (sut, dataProvider) = makeSaveSUT()
         val error = runCatching { sut(29.9, Instant.now()) }.exceptionOrNull()

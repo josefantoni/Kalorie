@@ -271,7 +271,11 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                             contentPadding = PaddingValues(bottom = FAB_CLEARANCE),
                         ) {
                             if (foodsConsumed.isNotEmpty()) {
-                                item { MacroSummaryView(macros = dailyMacros) }
+                                item {
+                                    MacroSummaryView(macros = dailyMacros) {
+                                        WeightAccessoryView(viewModel = viewModel)
+                                    }
+                                }
                             }
                             groupedFoods.forEachIndexed { index, group ->
                                 val sectionKey = group.mealType?.id ?: UNASSIGNED_SECTION_KEY

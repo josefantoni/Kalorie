@@ -1,5 +1,6 @@
 package antoni.kalorie.features.dashboard
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +56,7 @@ import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.core.models.BodyWeightDayKey
 import antoni.kalorie.core.models.BodyWeightDomain
+import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.isLoading
 import kotlinx.coroutines.launch
 import java.time.ZoneId
@@ -75,9 +77,14 @@ fun BodyWeightHistoryView(viewModel: BodyWeightHistoryViewModel, onBack: () -> U
     val scope = rememberCoroutineScope()
     var openSwipeRowId by remember { mutableStateOf<String?>(null) }
     val currentViewModel by rememberUpdatedState(viewModel)
+    val activity = LocalActivity.current
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
-    DisposableEffect(Unit) { onDispose { currentViewModel.onDisappear() } }
+    DisposableEffect(Unit) {
+        onDispose {
+            if (activity?.isChangingConfigurations != true) currentViewModel.onDisappear()
+        }
+    }
 
     // MARK: - Body
 
@@ -96,6 +103,7 @@ fun BodyWeightHistoryView(viewModel: BodyWeightHistoryViewModel, onBack: () -> U
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {
                 state.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp))
+                state is LoadingState.Error -> LoadFailedState(onRetry = { scope.launch { viewModel.onRetryTapped() } })
                 weights.isEmpty() -> EmptyState()
                 else -> LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
                     item { ChartSection(viewModel) }
@@ -259,6 +267,24 @@ private fun WeightRow(
         ) {
             Text(text = dateText)
             Text(text = viewModel.unit.formatted(weight.kilograms), fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun LoadFailedState(onRetry: () -> Unit) {
+    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.weightHistory_error_loadFailed),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+            )
+            TextButton(onClick = onRetry) { Text(stringResource(R.string.auth_button_retry)) }
         }
     }
 }
