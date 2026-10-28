@@ -13,7 +13,7 @@ enum BodyWeightUnit: String, Codable, CaseIterable {
 
     // MARK: - Properties
 
-    static let poundsPerKilogram = 1 / 0.45359237
+    static let poundsPerKilogram = 1 / Constants.BodyWeight.kilogramsPerPound
     static let minKilograms = 30.0
     static let maxKilograms = 300.0
 
@@ -29,7 +29,7 @@ enum BodyWeightUnit: String, Codable, CaseIterable {
     func kilograms(from value: Double) -> Double {
         switch self {
         case .kg: value
-        case .lb: value * 0.45359237
+        case .lb: value * Constants.BodyWeight.kilogramsPerPound
         }
     }
 }
@@ -40,6 +40,18 @@ struct BodyWeightDomain: Equatable {
 
     let dayKey: String
     let kilograms: Double
+}
+
+struct BodyWeightWindow: Equatable {
+
+    // MARK: - Properties
+
+    let earlier: [BodyWeightDomain]
+    let later: [BodyWeightDomain]
+
+    static let empty = BodyWeightWindow(earlier: [], later: [])
+
+    var chronological: [BodyWeightDomain] { earlier.reversed() + later }
 }
 
 struct AppSettingsDomain: Equatable {
@@ -63,6 +75,12 @@ enum BodyWeightDayKey {
         return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
     }
 
+    static func year(of date: Date, timeZone: TimeZone = .current) -> Int {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        return calendar.component(.year, from: date)
+    }
+
     static func date(from key: String, timeZone: TimeZone = .current) -> Date? {
         let parts = key.split(separator: "-").compactMap { Int($0) }
         guard parts.count == 3 else { return nil }
@@ -81,7 +99,7 @@ extension BodyWeightUnit {
     var rangeInTenths: ClosedRange<Int> {
         switch self {
         case .kg: 300...3000
-        case .lb: 663...6612
+        case .lb: 662...6613
         }
     }
 

@@ -98,7 +98,10 @@ final class SettingsViewModel: ObservableObject {
 
     @MainActor
     private func apply(_ updated: AppSettingsDomain) async {
-        guard updated != appSettings else { return }
+        guard
+            hasLoadedAppSettings,
+            updated != appSettings
+        else { return }
         appSettings = updated
         let previousSave = lastSave
         let save = Task { @MainActor in

@@ -12,16 +12,17 @@ struct WeightCircleView: View {
     // MARK: - Properties
 
     let weights: [BodyWeightDomain]
+    let laterWeights: [BodyWeightDomain]
     let unit: BodyWeightUnit
 
     static let size: CGFloat = 72
 
     private var points: [Double] {
-        weights.reversed().map { unit.display(kilograms: $0.kilograms) }
+        BodyWeightWindow(earlier: weights, later: laterWeights).chronological.map { unit.display(kilograms: $0.kilograms) }
     }
 
     private var sparkline: some View {
-        let shape = WeightSparkline(points: points, minimumSpan: unit.display(kilograms: 2) - unit.display(kilograms: 0))
+        let shape = WeightSparkline(points: points, centerIndex: weights.count - 1, minimumSpan: unit.display(kilograms: 2) - unit.display(kilograms: 0))
         return shape
             .stroke(Color.secondary, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
             .overlay {
@@ -65,6 +66,7 @@ struct WeightSparkline: Shape {
     // MARK: - Properties
 
     let points: [Double]
+    let centerIndex: Int
     let minimumSpan: Double
 
     // MARK: - Functions
@@ -72,15 +74,17 @@ struct WeightSparkline: Shape {
     func positions(in rect: CGRect) -> [CGPoint] {
         guard
             points.count >= 2,
-            let latest = points.last
+            points.indices.contains(centerIndex)
         else { return [] }
-        let deviation = points.map { abs($0 - latest) }.max() ?? 0
+        let center = points[centerIndex]
+        let deviation = points.map { abs($0 - center) }.max() ?? 0
         let halfSpan = max(deviation, minimumSpan / 2)
-        let step = rect.width / 2 / CGFloat(points.count - 1)
+        let rightCount = points.count - 1 - centerIndex
+        let step = rect.width / 2 / CGFloat(max(centerIndex, rightCount, 1))
         return points.enumerated().map { index, value in
             CGPoint(
-                x: rect.midX - step * CGFloat(points.count - 1 - index),
-                y: rect.midY - rect.height / 2 * CGFloat((value - latest) / halfSpan)
+                x: rect.midX + step * CGFloat(index - centerIndex),
+                y: rect.midY - rect.height / 2 * CGFloat((value - center) / halfSpan)
             )
         }
     }
@@ -103,14 +107,15 @@ struct WeightSparkline: Shape {
 
 #Preview {
     HStack {
-        WeightCircleView(weights: [], unit: .kg)
-        WeightCircleView(weights: [BodyWeightDomain(dayKey: "2026-10-27", kilograms: 78.4)], unit: .kg)
+        WeightCircleView(weights: [], laterWeights: [], unit: .kg)
+        WeightCircleView(weights: [BodyWeightDomain(dayKey: "2026-10-27", kilograms: 78.4)], laterWeights: [], unit: .kg)
         WeightCircleView(
             weights: [
                 BodyWeightDomain(dayKey: "2026-10-27", kilograms: 78.4),
                 BodyWeightDomain(dayKey: "2026-10-20", kilograms: 79.1),
                 BodyWeightDomain(dayKey: "2026-10-13", kilograms: 79.0)
             ],
+            laterWeights: [BodyWeightDomain(dayKey: "2026-10-28", kilograms: 77.9)],
             unit: .lb
         )
     }

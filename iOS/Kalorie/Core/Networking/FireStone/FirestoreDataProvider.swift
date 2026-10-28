@@ -27,13 +27,22 @@ protocol FirestoreDataProviderProtocol {
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T?
     func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T]
     func loadAsync<T: Decodable>(from collection: String, where field: String, isLessThanOrEqualTo value: String, orderByDescending limit: Int) async throws -> [T]
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThan value: String, orderByAscending limit: Int) async throws -> [T]
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: String, isLessThanOrEqualTo upperBound: String) async throws -> [T]
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws
     func mergeAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws
     func deleteAsync(id: String, from collection: String) async throws
+    func batchDeleteAsync(ids: [String], from collection: String) async throws
     func incrementEntryAsync<T: Encodable>(_ item: T, entryId: String, lastLoggedAt: TimeInterval, documentId: String, in collection: String) async throws
     func deleteEntriesAsync(ids: [String], documentId: String, in collection: String) async throws
+}
+
+extension FirestoreDataProviderProtocol {
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: String, isLessThanOrEqualTo upperBound: String) async throws -> [T] {
+        throw FirestoreDataProviderError.unsupported
+    }
 }
 
 // A naive per-id fallback, so every existing FirestoreDataProviderProtocol conformer (test fakes
@@ -57,7 +66,15 @@ extension FirestoreDataProviderProtocol {
         throw FirestoreDataProviderError.unsupported
     }
 
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThan value: String, orderByAscending limit: Int) async throws -> [T] {
+        throw FirestoreDataProviderError.unsupported
+    }
+
     func mergeAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func batchDeleteAsync(ids: [String], from collection: String) async throws {
         throw FirestoreDataProviderError.unsupported
     }
 
@@ -286,6 +303,44 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
         }
     }
 
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: String, isLessThanOrEqualTo upperBound: String) async throws -> [T] {
+        log("🚀 GET \(collection) WHERE \(field) >= \(lowerBound) AND \(field) <= \(upperBound) ORDER BY \(field) DESC")
+        do {
+            let snapshot = try await Firestore.firestore()
+                .collection(collection)
+                .whereField(field, isGreaterThanOrEqualTo: lowerBound)
+                .whereField(field, isLessThanOrEqualTo: upperBound)
+                .order(by: field, descending: true)
+                .getDocuments()
+            snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
+            let result: [T] = try snapshot.documents.compactMap { try $0.data(as: T.self) }
+            log("✅ GET \(collection) → \(result.count) items")
+            return result
+        } catch {
+            logFailure("❌ GET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThan value: String, orderByAscending limit: Int) async throws -> [T] {
+        log("🚀 GET \(collection) WHERE \(field) > \(value) ORDER BY \(field) ASC LIMIT \(limit)")
+        do {
+            let snapshot = try await Firestore.firestore()
+                .collection(collection)
+                .whereField(field, isGreaterThan: value)
+                .order(by: field, descending: false)
+                .limit(to: limit)
+                .getDocuments()
+            snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
+            let result: [T] = try snapshot.documents.compactMap { try $0.data(as: T.self) }
+            log("✅ GET \(collection) → \(result.count) items")
+            return result
+        } catch {
+            logFailure("❌ GET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
     func mergeAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
         do {
             let data = try Firestore.Encoder().encode(item)
@@ -338,6 +393,25 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             }
         } catch {
             logFailure("❌ BATCH SET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func batchDeleteAsync(ids: [String], from collection: String) async throws {
+        do {
+            let db = Firestore.firestore()
+            for chunkStart in stride(from: 0, to: ids.count, by: Constants.Firestore.batchWriteLimit) {
+                let chunk = ids[chunkStart..<min(chunkStart + Constants.Firestore.batchWriteLimit, ids.count)]
+                let batch = db.batch()
+                for id in chunk {
+                    log("🚀 BATCH DELETE \(id) from \(collection)")
+                    batch.deleteDocument(db.collection(collection).document(id))
+                }
+                try await batch.commit()
+                log("✅ BATCH DELETE \(chunk.count) items from \(collection)")
+            }
+        } catch {
+            logFailure("❌ BATCH DELETE \(collection)", error: error)
             throw mapError(error)
         }
     }

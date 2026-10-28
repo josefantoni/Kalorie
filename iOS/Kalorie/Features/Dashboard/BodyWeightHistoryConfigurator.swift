@@ -28,7 +28,6 @@ struct BodyWeightHistoryConfigurator {
             viewModel: BodyWeightHistoryViewModel(
                 unit: unit,
                 fetchBodyWeights: FetchBodyWeightsUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                saveBodyWeight: SaveBodyWeightUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteBodyWeight: DeleteBodyWeightUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 onChanged: onChanged
             )

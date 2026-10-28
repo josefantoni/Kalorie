@@ -69,11 +69,40 @@ final class GenerateFoodExportUseCaseTests: XCTestCase {
         }
     }
 
+    func test_export_whenSettingsCannotBeRead_stillProducesAFileInKilograms() async throws {
+        let weights = FetchBodyWeightsUseCaseFake(stubbedWeights: [BodyWeightDomain(dayKey: "2026-09-01", kilograms: 78.4)])
+        let (sut, _) = try makeSUT(weights: weights, settings: FetchAppSettingsUseCaseFake(shouldThrow: true))
+
+        let url = try await sut(from: try makeDate(day: 1), to: try makeDate(day: 3), format: .xlsx, mealTypes: [])
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
+    }
+
+    func test_export_withoutAnyWeight_doesNotReadTheSettings() async throws {
+        let settings = CountingFetchAppSettings()
+        let (sut, _) = try makeSUT(settings: settings)
+
+        _ = try await sut(from: try makeDate(day: 1), to: try makeDate(day: 3), format: .xlsx, mealTypes: [])
+
+        XCTAssertEqual(settings.callCount, 0, "the unit is only needed to format a weight, so a user without weights must not pay for the read")
+    }
+
+    func test_export_withAWeight_readsTheSettingsOnce() async throws {
+        let weights = FetchBodyWeightsUseCaseFake(stubbedWeights: [BodyWeightDomain(dayKey: "2026-09-01", kilograms: 78.4)])
+        let settings = CountingFetchAppSettings()
+        let (sut, _) = try makeSUT(weights: weights, settings: settings)
+
+        _ = try await sut(from: try makeDate(day: 1), to: try makeDate(day: 3), format: .xlsx, mealTypes: [])
+
+        XCTAssertEqual(settings.callCount, 1)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
         fetch: FetchFoodsConsumedInRangeUseCaseFake = FetchFoodsConsumedInRangeUseCaseFake(),
-        weights: FetchBodyWeightsUseCaseFake = FetchBodyWeightsUseCaseFake()
+        weights: FetchBodyWeightsUseCaseFake = FetchBodyWeightsUseCaseFake(),
+        settings: any FetchAppSettingsUseCaseProtocol = FetchAppSettingsUseCaseFake()
     ) throws -> (sut: GenerateFoodExportUseCase, directory: URL) {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -81,12 +110,26 @@ final class GenerateFoodExportUseCaseTests: XCTestCase {
         return (GenerateFoodExportUseCase(
             fetchFoodsConsumedInRange: fetch,
             fetchBodyWeights: weights,
-            fetchAppSettings: FetchAppSettingsUseCaseFake(),
+            fetchAppSettings: settings,
             directory: directory
         ), directory)
     }
 
     private func makeDate(day: Int) throws -> Date {
         try XCTUnwrap(Calendar.current.date(from: DateComponents(year: 2026, month: 9, day: day, hour: 12)))
+    }
+}
+
+private final class CountingFetchAppSettings: FetchAppSettingsUseCaseProtocol {
+
+    // MARK: - Properties
+
+    private(set) var callCount = 0
+
+    // MARK: - Functions
+
+    func callAsFunction() async throws -> AppSettingsDomain {
+        callCount += 1
+        return .defaults
     }
 }

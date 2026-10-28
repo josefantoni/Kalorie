@@ -44,20 +44,17 @@ final class BodyWeightHistoryViewModel: ObservableObject {
     @Published var range = BodyWeightRange.month {
         didSet { periodOffset = 0 }
     }
+    @Published private(set) var isLoadingEarlierYear = false
     @Published var alertItem: AlertItem?
     @Published var isDeleteConfirmationVisible = false
-    @Published var editingDayKey: String?
-    @Published var editingKilograms = Constants.BodyWeight.defaultKilograms
-    @Published private(set) var isSaving = false
-    @Published private(set) var showCheckmark = false
 
     let unit: BodyWeightUnit
 
     private var pendingDeletion: BodyWeightDomain?
     private var hasChanges = false
+    private var oldestLoadedYear: Int?
 
     private let fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol
-    private let saveBodyWeight: any SaveBodyWeightUseCaseProtocol
     private let deleteBodyWeight: any DeleteBodyWeightUseCaseProtocol
     private let now: () -> Date
     private let onChanged: () -> Void
@@ -67,14 +64,12 @@ final class BodyWeightHistoryViewModel: ObservableObject {
     init(
         unit: BodyWeightUnit,
         fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol,
-        saveBodyWeight: any SaveBodyWeightUseCaseProtocol,
         deleteBodyWeight: any DeleteBodyWeightUseCaseProtocol,
         now: @escaping () -> Date = { Date.now },
         onChanged: @escaping () -> Void
     ) {
         self.unit = unit
         self.fetchBodyWeights = fetchBodyWeights
-        self.saveBodyWeight = saveBodyWeight
         self.deleteBodyWeight = deleteBodyWeight
         self.now = now
         self.onChanged = onChanged
@@ -85,15 +80,48 @@ final class BodyWeightHistoryViewModel: ObservableObject {
 
     var canPageForward: Bool { periodOffset < 0 }
 
+    var canPageBack: Bool {
+        BodyWeightDayKey.make(from: period.start) > String(format: "%04d-01-01", Constants.BodyWeight.firstYear)
+    }
+
     @MainActor
     func onAppear() async {
+        let currentYear = BodyWeightDayKey.year(of: now())
         do {
-            weights = try await fetchBodyWeights()
+            weights = try await fetchBodyWeights(inYear: currentYear)
+            oldestLoadedYear = currentYear
             state = .loaded(())
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
-            alertItem = AlertItem(title: L10n.WeightHistory.errorLoadFailed)
-            state = .loaded(())
+            state = .error(error)
+        }
+        await loadEarlierYearsIfNeeded()
+    }
+
+    @MainActor
+    func onRetryTapped() async {
+        state = .loading
+        await onAppear()
+    }
+
+    @MainActor
+    func loadEarlierYearsIfNeeded() async {
+        guard !isLoadingEarlierYear else { return }
+        isLoadingEarlierYear = true
+        defer { isLoadingEarlierYear = false }
+        while
+            let oldest = oldestLoadedYear,
+            oldest > max(BodyWeightDayKey.year(of: period.start), Constants.BodyWeight.firstYear)
+        {
+            do {
+                let earlier = try await fetchBodyWeights(inYear: oldest - 1)
+                weights = (weights + earlier).sorted { $0.dayKey > $1.dayKey }
+                oldestLoadedYear = oldest - 1
+            } catch {
+                Log.error(error, category: Constants.LogCategory.dashboard)
+                alertItem = AlertItem(title: L10n.WeightHistory.errorLoadFailed)
+                return
+            }
         }
     }
 
@@ -103,46 +131,16 @@ final class BodyWeightHistoryViewModel: ObservableObject {
         onChanged()
     }
 
-    func onPreviousPeriod() {
+    @MainActor
+    func onPreviousPeriod() async {
+        guard canPageBack else { return }
         periodOffset -= 1
+        await loadEarlierYearsIfNeeded()
     }
 
     func onNextPeriod() {
         guard canPageForward else { return }
         periodOffset += 1
-    }
-
-    func onEditRequested(_ weight: BodyWeightDomain) {
-        editingKilograms = weight.kilograms
-        editingDayKey = weight.dayKey
-    }
-
-    @MainActor
-    func onEditConfirmed() async {
-        guard
-            !isSaving,
-            !showCheckmark,
-            let dayKey = editingDayKey,
-            let day = BodyWeightDayKey.date(from: dayKey)
-        else { return }
-        isSaving = true
-        do {
-            try await saveBodyWeight(kilograms: editingKilograms, for: day)
-        } catch {
-            Log.error(error, category: Constants.LogCategory.dashboard)
-            alertItem = AlertItem(title: L10n.Dashboard.errorWeightSaveFailed)
-            isSaving = false
-            return
-        }
-        isSaving = false
-        hasChanges = true
-        showCheckmark = true
-        weights = weights.map {
-            $0.dayKey == dayKey ? BodyWeightDomain(dayKey: dayKey, kilograms: editingKilograms) : $0
-        }
-        try? await Task.sleep(for: .seconds(1))
-        editingDayKey = nil
-        showCheckmark = false
     }
 
     func onDeleteRequested(_ weight: BodyWeightDomain) {

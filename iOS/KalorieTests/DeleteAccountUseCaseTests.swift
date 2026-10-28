@@ -50,16 +50,20 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_deletesBodyWeightsAndSettingsAsPrivacyObligation_beforeTheProfile() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedBodyWeights = [BodyWeightDTO(weight: BodyWeightDomain(dayKey: "2026-10-27", kilograms: 78.4))]
+        dataProvider.stubbedBodyWeights = [
+            BodyWeightDTO(weight: BodyWeightDomain(dayKey: "2026-10-27", kilograms: 78.4)),
+            BodyWeightDTO(weight: BodyWeightDomain(dayKey: "2026-10-26", kilograms: 78.9))
+        ]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
 
         let entries = log.entries
-        XCTAssertTrue(entries.contains("deleteBodyWeight:2026-10-27"), "body weight is health data — Firestore does not cascade, so it must be wiped explicitly")
+        XCTAssertTrue(entries.contains("batchDelete:bodyWeights:2026-10-27,2026-10-26"), "Firestore does not cascade, so body weights are wiped explicitly, in one batch")
+        XCTAssertFalse(entries.contains { $0.hasPrefix("deleteBodyWeight:") })
         XCTAssertTrue(entries.contains("deleteSettings:app"))
         let profileIndex = entries.firstIndex { $0.hasPrefix("deleteUser:") } ?? entries.count
-        XCTAssertLessThan(entries.firstIndex(of: "deleteBodyWeight:2026-10-27") ?? .max, profileIndex)
+        XCTAssertLessThan(entries.firstIndex(of: "batchDelete:bodyWeights:2026-10-27,2026-10-26") ?? .max, profileIndex)
     }
 
     func test_callAsFunction_keepsTheMergedAnonymousAccountMarkersSoTheCleanupScriptCanStillFindTheAbandonedAccount() async throws {
@@ -647,6 +651,10 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
+
+    func batchDeleteAsync(ids: [String], from collection: String) async throws {
+        log.record("batchDelete:\(collection.split(separator: "/").last ?? ""):\(ids.joined(separator: ","))")
+    }
 
     func deleteAsync(id: String, from collection: String) async throws {
         deletedIds.append(id)
