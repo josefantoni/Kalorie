@@ -6,6 +6,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProvider
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProvider
+import antoni.kalorie.core.usecases.FetchAppSettingsUseCase
+import antoni.kalorie.core.usecases.FetchBodyWeightsUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCase
 import antoni.kalorie.core.usecases.FoodExportReportFactory
 import antoni.kalorie.core.usecases.GenerateFoodExportUseCase
@@ -21,11 +23,15 @@ class ExportConfigurator {
     @Composable
     fun createView(mealTypes: List<MealTypeDomain>, onBack: () -> Unit) {
         val context = LocalContext.current.applicationContext
+        val dataProvider = FirestoreDataProvider()
+        val authProvider = AuthProvider()
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ExportViewModel(
                 mealTypes = mealTypes,
                 generateFoodExport = GenerateFoodExportUseCase(
-                    fetchFoodsConsumedInRange = FetchFoodsConsumedInRangeUseCase(FirestoreDataProvider(), AuthProvider()),
+                    fetchFoodsConsumedInRange = FetchFoodsConsumedInRangeUseCase(dataProvider, authProvider),
+                    fetchBodyWeights = FetchBodyWeightsUseCase(dataProvider, authProvider),
+                    fetchAppSettings = FetchAppSettingsUseCase(dataProvider, authProvider),
                     reportFactory = FoodExportReportFactory(strings = ContextStringProvider(context)),
                     directory = File(context.cacheDir, Constants.CacheFolder.EXPORTS),
                 ),

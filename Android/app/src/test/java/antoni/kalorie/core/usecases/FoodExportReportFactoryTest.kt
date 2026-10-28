@@ -2,6 +2,8 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.FixtureLoader
 import antoni.kalorie.R
+import antoni.kalorie.core.models.BodyWeightDomain
+import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.MealTypeDomain
@@ -12,6 +14,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -131,6 +134,50 @@ class FoodExportReportFactoryTest {
             }
             assertEquals(name, expectedIndexes, actualIndexes)
         }
+    }
+
+    @Test
+    fun makeReport_withoutWeights_leavesDayLabelsUntouched() {
+        val sut = makeSUT()
+        val plain = sut.makeReport(foods = emptyList(), mealTypes = emptyList(), from = makeDate(day = 1), to = makeDate(day = 2))
+        val withEmptyWeights = sut.makeReport(
+            foods = emptyList(),
+            mealTypes = emptyList(),
+            from = makeDate(day = 1),
+            to = makeDate(day = 2),
+            weights = emptyList(),
+            weightUnit = BodyWeightUnit.LB,
+        )
+
+        assertEquals("a user without weights must get an export identical to before the feature", plain.days.map { it.label }, withEmptyWeights.days.map { it.label })
+    }
+
+    @Test
+    fun makeReport_everyDayShowsTheWeightValidOnIt_andDaysBeforeTheFirstEntryShowNone() {
+        val weights = listOf(BodyWeightDomain("2026-09-02", 80.0), BodyWeightDomain("2026-09-04", 79.0))
+        val report = makeSUT().makeReport(foods = emptyList(), mealTypes = emptyList(), from = makeDate(day = 1), to = makeDate(day = 5), weights = weights)
+        val labels = report.days.map { it.label }
+
+        assertFalse(labels[0].contains("kg"))
+        assertTrue(labels[1].endsWith(BodyWeightUnit.KG.formatted(80.0)))
+        assertTrue("a day without an entry carries the last earlier one", labels[2].endsWith(BodyWeightUnit.KG.formatted(80.0)))
+        assertTrue(labels[3].endsWith(BodyWeightUnit.KG.formatted(79.0)))
+        assertTrue(labels[4].endsWith(BodyWeightUnit.KG.formatted(79.0)))
+    }
+
+    @Test
+    fun makeReport_weightIsFormattedInTheChosenUnit() {
+        val weights = listOf(BodyWeightDomain("2026-09-01", 80.0))
+        val report = makeSUT().makeReport(
+            foods = emptyList(),
+            mealTypes = emptyList(),
+            from = makeDate(day = 1),
+            to = makeDate(day = 1),
+            weights = weights,
+            weightUnit = BodyWeightUnit.LB,
+        )
+
+        assertTrue(report.days[0].label.endsWith(BodyWeightUnit.LB.formatted(80.0)))
     }
 
     // MARK: - Helpers
