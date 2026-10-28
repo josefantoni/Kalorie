@@ -25,8 +25,8 @@ Read with: `ARCHITECTURE.md` § 1.2–1.6, § 3.5–3.9, § 6.2–6.3, § 8;
 
 ## Goals
 
-- At most one weight per calendar day, logged through the badge on today or on any earlier day (a
-  missed day can be filled in later, but a future day cannot) and stored in kilograms without
+- At most one weight per calendar day, logged through the badge on today or on any earlier day from 1 January 2026 (a
+  missed day can be filled in later, but a future day and a day before 2026 cannot) and stored in kilograms without
   rounding. An existing entry is edited through the badge on its day, or deleted from the history
   (see *Decisions made during implementation*).
 - The Dashboard shows the weight valid on the selected day, the two entries before it and the two
@@ -166,8 +166,11 @@ the weight valid on the day) and up to two entries with `id > dayKey(selectedDay
 - `plus` when the selected day has no entry (newest `id` ≠ selected day key), `pencil` when it has.
 - **Rendered on today and on any earlier day**, so a missed day can be back-filled (owner decision
   2026-10-28, reversing 2026-10-27). Not rendered on a future day. With `dayKey(selectedDay) = d`,
-  `today = dayKey(now)`: shown iff `d <= today`. This UI condition is the whole guard; the history
-  screen cannot add a day and the Firestore rules do not validate dates. Rendered in the blurred state too, otherwise the first value could never be entered.
+  `today = dayKey(now)`: shown iff `Constants.BodyWeight.firstDayKey <= d <= today`. The lower bound is
+  the first day the history screen can show (see *History screen*), so an entry the user could neither
+  see nor delete there is never written. `SaveBodyWeightUseCase` repeats both bounds
+  (`futureDay`, `beforeFirstYear`); the history screen cannot add a day and the Firestore rules do not
+  validate dates. Rendered in the blurred state too, otherwise the first value could never be entered.
 - Visual 24 pt, **hit area 44 × 44 pt / 48 × 48 dp**, a separate control layered above the circle so
   a tap on it does not also trigger the circle's push. The hit area may extend outside the circle
   into the trailing margin but MUST NOT overlap the pie.
@@ -275,7 +278,7 @@ Pushed from the circle on the Dashboard's `NavigationStack`.
   for older years. Chart and list both derive from the loaded array, so the list shows the years
   loaded so far. Switching range or paging within loaded years reads nothing. A failed read of an
   earlier year alerts and is retried by the next page or range change.
-- **No history before 2026.** The feature ships in 2026 and weights are logged only as they happen, so
+- **No history before 2026.** The feature ships in 2026 and the badge refuses days before it, so
   paging back stops at 1 January 2026 (`Constants.BodyWeight.firstYear`, `canPageBack`): a period that
   starts there has no previous one, and no year earlier than 2026 is ever read.
 - **Chart** — line segments between the real points, same neutral colour and 2 kg minimum Y span as
