@@ -7,6 +7,7 @@ import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreProtocol
 import antoni.kalorie.core.models.FoodItemReportDomain
+import antoni.kalorie.core.networking.BodyWeightDTO
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.FoodConsumedDTO
@@ -90,6 +91,12 @@ class DeleteAccountUseCase(
         return accessToken
     }
 
+    private suspend fun wipeBodyWeightData(userId: String) {
+        val bodyWeights: List<BodyWeightDTO> = dataProvider.loadAsync(from = Constants.Firestore.bodyWeights(userId))
+        dataProvider.batchDeleteAsync(ids = bodyWeights.map { it.id }, from = Constants.Firestore.bodyWeights(userId))
+        dataProvider.deleteAsync(id = Constants.Firestore.APP_SETTINGS_DOCUMENT_ID, from = Constants.Firestore.settings(userId))
+    }
+
     private suspend fun wipeFirestoreData(userId: String) {
         val mealTypes: List<MealTypeDTO> = dataProvider.loadAsync(from = Constants.Firestore.mealTypes(userId))
         mealTypes.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.mealTypes(userId)) }
@@ -101,6 +108,7 @@ class DeleteAccountUseCase(
         myCreatedMeals.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.myCreatedMeals(userId)) }
         val foodItemPortions: List<FoodItemPersonalPortionsDTO> = dataProvider.loadAsync(from = Constants.Firestore.foodItemPortions(userId))
         foodItemPortions.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.foodItemPortions(userId)) }
+        wipeBodyWeightData(userId)
         dataProvider.deleteAsync(id = Constants.Firestore.FOOD_FREQUENCY_DOCUMENT_ID, from = Constants.Firestore.stats(userId))
         val submissions: List<FoodItemSubmissionDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS,

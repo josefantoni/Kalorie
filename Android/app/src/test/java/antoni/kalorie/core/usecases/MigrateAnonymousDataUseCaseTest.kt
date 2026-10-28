@@ -4,12 +4,17 @@ import antoni.kalorie.core.auth.AuthCommandProviderFake
 import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.auth.PendingMergeSnapshot
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreFake
+import antoni.kalorie.core.models.AppSettingsDomain
+import antoni.kalorie.core.models.BodyWeightDomain
+import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodNutritionValues
 import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
+import antoni.kalorie.core.networking.AppSettingsDTO
+import antoni.kalorie.core.networking.BodyWeightDTO
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodConsumedDTO
@@ -21,7 +26,9 @@ import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 
@@ -171,7 +178,78 @@ class MigrateAnonymousDataUseCaseTest {
         assertEquals(1, sut.snapshotStore.deleteCallCount)
     }
 
+    @Test
+    fun migrate_bodyWeights_accountWinsEveryDayBothHave_andAnonymousOnlyDaysAreAdded() = runTest {
+        val sut = makeSUT()
+        sut.dataProvider.stubbedDocumentsByCollection = mapOf(
+            Constants.Firestore.bodyWeights("anon-1") to listOf(makeWeight("2026-10-01", 80.0), makeWeight("2026-10-02", 81.0)),
+            Constants.Firestore.bodyWeights("target-1") to listOf(makeWeight("2026-10-02", 70.0)),
+        )
+
+        sut.useCase.migrate("anon-1", makeCredential())
+
+        assertEquals(
+            "a blind write would overwrite the account's own weight for 2026-10-02",
+            listOf("2026-10-01"),
+            sut.dataProvider.batchSavedItemsByCollection[Constants.Firestore.bodyWeights("target-1")]?.map { it.second },
+        )
+    }
+
+    @Test
+    fun migrate_bodyWeights_resumeAfterPartialFailure_equalsFullRun() = runTest {
+        val sut = makeSUT()
+        sut.snapshotStore.stubbedSnapshot = PendingMergeSnapshot(
+            sourceAnonymousUserId = "anon-1",
+            foodConsumed = emptyList(),
+            bodyWeights = listOf(makeWeight("2026-10-01", 80.0), makeWeight("2026-10-02", 81.0)),
+        )
+        sut.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.bodyWeights("target-1") to listOf(makeWeight("2026-10-01", 80.0)))
+
+        sut.useCase.resumeIfNeeded()
+
+        assertEquals(
+            listOf("2026-10-02"),
+            sut.dataProvider.batchSavedItemsByCollection[Constants.Firestore.bodyWeights("target-1")]?.map { it.second },
+        )
+    }
+
+    @Test
+    fun migrate_settings_writtenOnlyWhenAccountHasNone() = runTest {
+        val sut = makeSUT()
+        sut.dataProvider.stubbedDocumentByCollection = mapOf(
+            Constants.Firestore.settings("anon-1") to AppSettingsDTO(AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.LB)),
+        )
+
+        sut.useCase.migrate("anon-1", makeCredential())
+
+        assertTrue(sut.dataProvider.setSavedPairs.contains(Constants.Firestore.settings("target-1") to "app"))
+    }
+
+    @Test
+    fun migrate_settings_accountSettingsAreNeverOverwritten() = runTest {
+        val sut = makeSUT()
+        sut.dataProvider.stubbedDocumentByCollection = mapOf(
+            Constants.Firestore.settings("anon-1") to AppSettingsDTO(AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.LB)),
+            Constants.Firestore.settings("target-1") to AppSettingsDTO(AppSettingsDomain.defaults),
+        )
+
+        sut.useCase.migrate("anon-1", makeCredential())
+
+        assertFalse(sut.dataProvider.setSavedPairs.any { it.first == Constants.Firestore.settings("target-1") })
+    }
+
+    @Test
+    fun migrate_withoutBodyWeights_readsNothingFromTheAccount() = runTest {
+        val sut = makeSUT()
+
+        sut.useCase.migrate("anon-1", makeCredential())
+
+        assertFalse(sut.dataProvider.loadedCollections.contains(Constants.Firestore.bodyWeights("target-1")))
+    }
+
     // MARK: - Helpers
+
+    private fun makeWeight(key: String, kilograms: Double) = BodyWeightDTO(BodyWeightDomain(dayKey = key, kilograms = kilograms))
 
     private class Fixture(
         val useCase: MigrateAnonymousDataUseCase,
