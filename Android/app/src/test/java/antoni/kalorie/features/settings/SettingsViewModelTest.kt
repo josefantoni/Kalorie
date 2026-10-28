@@ -1,5 +1,7 @@
 package antoni.kalorie.features.settings
 
+import antoni.kalorie.core.models.AppSettingsDomain
+import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.usecases.CreateMealTypeUseCaseFake
 import antoni.kalorie.core.usecases.CreateMealTypeUseCaseProtocol
@@ -7,9 +9,14 @@ import antoni.kalorie.core.usecases.DeleteMealTypeUseCaseFake
 import antoni.kalorie.core.usecases.DeleteMealTypeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseFake
 import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseProtocol
+import antoni.kalorie.core.usecases.SaveAppSettingsUseCaseFake
+import antoni.kalorie.core.usecases.SaveAppSettingsUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCaseProtocol
 import antoni.kalorie.core.utils.minutesSinceMidnight
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -208,6 +215,88 @@ class SettingsViewModelTest {
         assertFalse(sut.isMaintainer.value)
     }
 
+    // MARK: - Body weight settings
+
+    @Test
+    fun toggleBodyWeight_savesAndNotifiesDashboard() = runTest {
+        var notified: AppSettingsDomain? = null
+        val sut = makeSUT(onAppSettingsChanged = { notified = it })
+        sut.onShowBodyWeightChanged(false)
+        assertFalse(sut.appSettings.value.showBodyWeight)
+        assertEquals(false, notified?.showBodyWeight)
+    }
+
+    @Test
+    fun changeUnit_keepsOtherSettingsAndNotifies() = runTest {
+        var notified: AppSettingsDomain? = null
+        val sut = makeSUT(appSettings = AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.KG), onAppSettingsChanged = { notified = it })
+        sut.onBodyWeightUnitChanged(BodyWeightUnit.LB)
+        assertEquals(AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.LB), notified)
+    }
+
+    @Test
+    fun saveFailure_revertsControlAndAlerts_withoutNotifying() = runTest {
+        var notifyCount = 0
+        val sut = makeSUT(saveAppSettings = SaveAppSettingsUseCaseFake(shouldThrow = true), onAppSettingsChanged = { notifyCount += 1 })
+        sut.onBodyWeightUnitChanged(BodyWeightUnit.LB)
+        assertEquals(BodyWeightUnit.KG, sut.appSettings.value.bodyWeightUnit)
+        assertNotNull(sut.alertItem.value)
+        assertEquals(0, notifyCount)
+    }
+
+    @Test
+    fun overlappingChanges_areSavedInOrder_andALaterSaveCarriesAnEarlierFailedChange() = runTest {
+        val save = GatedSaveAppSettings()
+        val notified = mutableListOf<AppSettingsDomain>()
+        val sut = makeSUT(saveAppSettings = save, onAppSettingsChanged = { notified += it })
+        val first = launch { sut.onShowBodyWeightChanged(false) }
+        runCurrent()
+        val second = launch { sut.onBodyWeightUnitChanged(BodyWeightUnit.LB) }
+        runCurrent()
+        assertEquals("the second write must wait for the first, or their order on the server is undefined", 1, save.startedCount)
+        save.firstResult.complete(false)
+        first.join()
+        second.join()
+        val expected = AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.LB)
+        assertEquals(expected, save.savedSettings.last())
+        assertEquals(expected, sut.appSettings.value)
+        assertEquals(listOf(expected), notified)
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun overlappingChanges_whenTheLastSaveFails_revertsToWhatIsStored() = runTest {
+        val save = GatedSaveAppSettings(failsSecondCall = true)
+        val sut = makeSUT(saveAppSettings = save)
+        val first = launch { sut.onShowBodyWeightChanged(false) }
+        runCurrent()
+        val second = launch { sut.onBodyWeightUnitChanged(BodyWeightUnit.LB) }
+        runCurrent()
+        save.firstResult.complete(true)
+        first.join()
+        second.join()
+        assertEquals(AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.KG), sut.appSettings.value)
+        assertNotNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun unchangedValue_doesNotWrite() = runTest {
+        var notifyCount = 0
+        val sut = makeSUT(onAppSettingsChanged = { notifyCount += 1 })
+        sut.onBodyWeightUnitChanged(BodyWeightUnit.KG)
+        assertEquals(0, notifyCount)
+    }
+
+    @Test
+    fun changeBeforeSettingsWereLoaded_isIgnored_soStoredValuesAreNotOverwrittenByDefaults() = runTest {
+        var notifyCount = 0
+        val sut = makeSUT(hasLoadedAppSettings = false, onAppSettingsChanged = { notifyCount += 1 })
+        sut.onBodyWeightUnitChanged(BodyWeightUnit.LB)
+        sut.onShowBodyWeightChanged(false)
+        assertEquals(AppSettingsDomain.defaults, sut.appSettings.value)
+        assertEquals(0, notifyCount)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
@@ -216,13 +305,40 @@ class SettingsViewModelTest {
         deleteMealType: DeleteMealTypeUseCaseProtocol = DeleteMealTypeUseCaseFake(),
         updateMealTypeTimes: UpdateMealTypeTimesUseCaseProtocol = UpdateMealTypeTimesUseCaseFake(),
         fetchMaintainerClaim: FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake(),
+        appSettings: AppSettingsDomain = AppSettingsDomain.defaults,
+        hasLoadedAppSettings: Boolean = true,
+        saveAppSettings: SaveAppSettingsUseCaseProtocol = SaveAppSettingsUseCaseFake(),
+        onAppSettingsChanged: (AppSettingsDomain) -> Unit = {},
     ): SettingsViewModel = SettingsViewModel(
         mealTypes = mealTypes,
+        appSettings = appSettings,
+        onAppSettingsChanged = onAppSettingsChanged,
+        saveAppSettings = saveAppSettings,
         createMealType = createMealType,
         deleteMealType = deleteMealType,
         updateMealTypeTimes = updateMealTypeTimes,
         fetchMaintainerClaim = fetchMaintainerClaim,
+        hasLoadedAppSettings = hasLoadedAppSettings,
     )
 
     private fun makeMealType(id: Int, name: String, hour: Int, endHour: Int): MealTypeDomain = MealTypeDomain(id = "$id", name = name, startMinutes = hour * 60, endMinutes = endHour * 60)
+}
+
+private class GatedSaveAppSettings(private val failsSecondCall: Boolean = false) : SaveAppSettingsUseCaseProtocol {
+    val firstResult = CompletableDeferred<Boolean>()
+    val savedSettings = mutableListOf<AppSettingsDomain>()
+    var startedCount = 0
+        private set
+
+    override suspend fun invoke(settings: AppSettingsDomain) {
+        startedCount += 1
+        if (startedCount == 1) {
+            val succeeds = firstResult.await()
+            savedSettings += settings
+            if (!succeeds) throw RuntimeException("unknown")
+            return
+        }
+        savedSettings += settings
+        if (failsSecondCall) throw RuntimeException("unknown")
+    }
 }

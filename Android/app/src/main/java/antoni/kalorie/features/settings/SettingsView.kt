@@ -37,7 +37,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -81,11 +85,14 @@ import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.components.popTransitionSpec
 import antoni.kalorie.components.predictivePopTransitionSpec
 import antoni.kalorie.components.pushTransitionSpec
 import antoni.kalorie.components.sheetScrollGuard
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
+import antoni.kalorie.core.models.AppSettingsDomain
+import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.minutesSinceMidnight
@@ -202,6 +209,41 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
 
 // MARK: - Functions
 
+@Composable
+private fun BodyWeightSettingsRows(
+    appSettings: AppSettingsDomain,
+    onShowChanged: (Boolean) -> Unit,
+    onUnitChanged: (BodyWeightUnit) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = stringResource(R.string.settings_bodyWeight_show), modifier = Modifier.weight(1f))
+        Switch(checked = appSettings.showBodyWeight, onCheckedChange = onShowChanged)
+    }
+    SectionCardDivider()
+    Row(
+        modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = stringResource(R.string.settings_bodyWeight_unit), modifier = Modifier.weight(1f))
+        SingleChoiceSegmentedButtonRow {
+            BodyWeightUnit.entries.forEachIndexed { index, unit ->
+                SegmentedButton(
+                    selected = appSettings.bodyWeightUnit == unit,
+                    onClick = { onUnitChanged(unit) },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = BodyWeightUnit.entries.size),
+                    colors = appSegmentedButtonColors(),
+                    icon = {},
+                ) {
+                    Text(unit.symbol, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsContent(
@@ -217,6 +259,7 @@ private fun SettingsContent(
     val mealTypes by viewModel.mealTypes.collectAsState()
     val isAddFormVisible by viewModel.isAddFormVisible.collectAsState()
     val isMaintainer by viewModel.isMaintainer.collectAsState()
+    val appSettings by viewModel.appSettings.collectAsState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
@@ -313,6 +356,25 @@ private fun SettingsContent(
                                 )
                             }
                         } else {
+                            if (viewModel.hasLoadedAppSettings) {
+                                item {
+                                    Text(
+                                        text = stringResource(R.string.settings_section_bodyWeight),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
+                                    )
+                                }
+                                item {
+                                    SectionCard {
+                                        BodyWeightSettingsRows(
+                                            appSettings = appSettings,
+                                            onShowChanged = { isShown -> scope.launch { viewModel.onShowBodyWeightChanged(isShown) } },
+                                            onUnitChanged = { unit -> scope.launch { viewModel.onBodyWeightUnitChanged(unit) } },
+                                        )
+                                    }
+                                }
+                            }
                             item {
                                 Text(
                                     text = stringResource(R.string.settings_section_other),

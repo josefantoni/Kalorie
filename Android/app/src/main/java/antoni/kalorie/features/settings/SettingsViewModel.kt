@@ -3,10 +3,13 @@ package antoni.kalorie.features.settings
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
+import antoni.kalorie.core.models.AppSettingsDomain
+import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.usecases.CreateMealTypeUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteMealTypeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseProtocol
+import antoni.kalorie.core.usecases.SaveAppSettingsUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
@@ -18,15 +21,21 @@ import antoni.kalorie.core.utils.zoned
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.Instant
 
 class SettingsViewModel(
     mealTypes: List<MealTypeDomain>,
+    appSettings: AppSettingsDomain,
     private val onMealTypesChanged: () -> Unit = {},
+    private val onAppSettingsChanged: (AppSettingsDomain) -> Unit = {},
+    private val saveAppSettings: SaveAppSettingsUseCaseProtocol,
     private val createMealType: CreateMealTypeUseCaseProtocol,
     private val deleteMealType: DeleteMealTypeUseCaseProtocol,
     private val updateMealTypeTimes: UpdateMealTypeTimesUseCaseProtocol,
     private val fetchMaintainerClaim: FetchMaintainerClaimUseCaseProtocol,
+    val hasLoadedAppSettings: Boolean = true,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -44,6 +53,11 @@ class SettingsViewModel(
     private val _isMaintainer = MutableStateFlow(false)
     val isMaintainer: StateFlow<Boolean> = _isMaintainer
     val alertItem = MutableStateFlow<AlertItem?>(null)
+    private val _appSettings = MutableStateFlow(appSettings)
+    val appSettings: StateFlow<AppSettingsDomain> = _appSettings
+
+    private var persistedAppSettings = appSettings
+    private val saveMutex = Mutex()
 
     // MARK: - Functions
 
@@ -54,6 +68,35 @@ class SettingsViewModel(
             throw error
         } catch (error: Exception) {
             Log.warning(error, Constants.LogCategory.SETTINGS)
+        }
+    }
+
+    suspend fun onShowBodyWeightChanged(isShown: Boolean) {
+        apply(_appSettings.value.copy(showBodyWeight = isShown))
+    }
+
+    suspend fun onBodyWeightUnitChanged(unit: BodyWeightUnit) {
+        apply(_appSettings.value.copy(bodyWeightUnit = unit))
+    }
+
+    private suspend fun apply(updated: AppSettingsDomain) {
+        if (!hasLoadedAppSettings || updated == _appSettings.value) return
+        _appSettings.value = updated
+        saveMutex.withLock { persist(updated) }
+    }
+
+    private suspend fun persist(updated: AppSettingsDomain) {
+        try {
+            saveAppSettings(updated)
+            persistedAppSettings = updated
+            onAppSettingsChanged(updated)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.error(error, Constants.LogCategory.SETTINGS)
+            if (_appSettings.value != updated) return
+            _appSettings.value = persistedAppSettings
+            alertItem.value = AlertItem(titleRes = R.string.settings_error_saveFailed)
         }
     }
 

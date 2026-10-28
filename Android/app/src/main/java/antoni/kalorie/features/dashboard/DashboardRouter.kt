@@ -1,6 +1,7 @@
 package antoni.kalorie.features.dashboard
 
 import androidx.compose.runtime.Composable
+import antoni.kalorie.core.models.AppSettingsDomain
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.features.account.AccountConfigurator
@@ -23,8 +24,22 @@ class DashboardRouter(
     }
 
     @Composable
-    fun makeSettingsView(mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onMealTypesChanged: () -> Unit = {}) {
-        settingsConfigurator.createView(mealTypes = mealTypes, onDismiss = onDismiss, onMealTypesChanged = onMealTypesChanged)
+    fun makeSettingsView(
+        mealTypes: List<MealTypeDomain>,
+        appSettings: AppSettingsDomain,
+        hasLoadedAppSettings: Boolean,
+        onDismiss: () -> Unit,
+        onMealTypesChanged: () -> Unit = {},
+        onAppSettingsChanged: (AppSettingsDomain) -> Unit = {},
+    ) {
+        settingsConfigurator.createView(
+            mealTypes = mealTypes,
+            onDismiss = onDismiss,
+            appSettings = appSettings,
+            hasLoadedAppSettings = hasLoadedAppSettings,
+            onMealTypesChanged = onMealTypesChanged,
+            onAppSettingsChanged = onAppSettingsChanged,
+        )
     }
 
     @Composable

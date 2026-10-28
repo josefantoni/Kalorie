@@ -441,8 +441,11 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     if (showSettings) {
         router.makeSettingsView(
             mealTypes = mealTypes,
+            appSettings = viewModel.appSettings.value,
+            hasLoadedAppSettings = viewModel.hasLoadedSettings.value,
             onDismiss = { viewModel.showSettings.value = false },
             onMealTypesChanged = { scope.launch { viewModel.onMealTypesChanged() } },
+            onAppSettingsChanged = viewModel::onAppSettingsChanged,
         )
     }
 
