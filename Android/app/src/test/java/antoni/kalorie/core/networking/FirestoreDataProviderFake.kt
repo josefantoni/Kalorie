@@ -15,6 +15,12 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var deletionCollectionOrder: List<String> = emptyList()
     var stubbedServerDocuments: List<Any> = emptyList()
     var stubbedRangeDocuments: (Double, Double) -> List<Any> = { _, _ -> emptyList() }
+    var stubbedLessThanOrEqualDocuments: (String, Int) -> List<Any> = { _, _ -> emptyList() }
+    var stubbedGreaterThanDocuments: (String, Int) -> List<Any> = { _, _ -> emptyList() }
+    var stubbedRangeByKeyDocuments: (String, String) -> List<Any> = { _, _ -> emptyList() }
+    val lessThanOrEqualQueries: MutableList<Triple<String, String, Int>> = java.util.Collections.synchronizedList(mutableListOf())
+    val greaterThanQueries: MutableList<Triple<String, String, Int>> = java.util.Collections.synchronizedList(mutableListOf())
+    val rangeQueries: MutableList<Triple<String, String, String>> = java.util.Collections.synchronizedList(mutableListOf())
     var stubbedByPrefixField: Map<String, List<Any>> = emptyMap()
     var stubbedByArrayContainsField: Map<String, List<Any>> = emptyMap()
     val arrayContainsValuesByField = ConcurrentHashMap<String, String>()
@@ -30,6 +36,12 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var stubbedSetError: Exception? = null
     var stubbedDeleteError: Exception? = null
     var stubbedBatchError: Exception? = null
+    var stubbedMergeError: Exception? = null
+    var stubbedBatchDeleteError: Exception? = null
+    var mergedCollection: String? = null
+    var mergedId: String? = null
+    var mergedItem: Any? = null
+    var batchDeletedIdsByCollection: Map<String, List<String>> = emptyMap()
     private var serverReadCount = 0
     var stubbedByField: List<Any> = emptyList()
     var stubbedByFieldByCollection: Map<String, List<Any>> = emptyMap()
@@ -135,6 +147,42 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         serializer: KSerializer<T>,
     ): List<T> = stubbedRangeDocuments(isGreaterThanOrEqualTo, isLessThan) as List<T>
 
+    override suspend fun <T> loadLessThanOrEqualAsync(
+        from: String,
+        field: String,
+        value: String,
+        limit: Int,
+        serializer: KSerializer<T>,
+    ): List<T> {
+        stubbedError?.let { throw it }
+        lessThanOrEqualQueries.add(Triple(from, value, limit))
+        return stubbedLessThanOrEqualDocuments(value, limit) as List<T>
+    }
+
+    override suspend fun <T> loadGreaterThanAsync(
+        from: String,
+        field: String,
+        value: String,
+        limit: Int,
+        serializer: KSerializer<T>,
+    ): List<T> {
+        stubbedError?.let { throw it }
+        greaterThanQueries.add(Triple(from, value, limit))
+        return stubbedGreaterThanDocuments(value, limit) as List<T>
+    }
+
+    override suspend fun <T> loadRangeAsync(
+        from: String,
+        field: String,
+        lowerBound: String,
+        upperBound: String,
+        serializer: KSerializer<T>,
+    ): List<T> {
+        stubbedError?.let { throw it }
+        rangeQueries.add(Triple(from, lowerBound, upperBound))
+        return stubbedRangeByKeyDocuments(lowerBound, upperBound) as List<T>
+    }
+
     override suspend fun <T> loadHasPrefixAsync(
         from: String,
         field: String,
@@ -165,6 +213,13 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         setSavedCollection = inCollection
     }
 
+    override suspend fun <T> mergeAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
+        stubbedMergeError?.let { throw it }
+        mergedItem = item
+        mergedId = id
+        mergedCollection = inCollection
+    }
+
     override suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>) {
         stubbedBatchError?.let { throw it }
         batchSavedItems = items
@@ -178,6 +233,12 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         deletedId = id
         deletedFromCollection = from
         deletedIdsByCollection = deletedIdsByCollection + (from to (deletedIdsByCollection[from].orEmpty() + id))
+        deletionCollectionOrder = deletionCollectionOrder + from
+    }
+
+    override suspend fun batchDeleteAsync(ids: List<String>, from: String) {
+        stubbedBatchDeleteError?.let { throw it }
+        batchDeletedIdsByCollection = batchDeletedIdsByCollection + (from to (batchDeletedIdsByCollection[from].orEmpty() + ids))
         deletionCollectionOrder = deletionCollectionOrder + from
     }
 
