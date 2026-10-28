@@ -5,6 +5,8 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.PendingMergeSnapshot
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreProtocol
+import antoni.kalorie.core.networking.AppSettingsDTO
+import antoni.kalorie.core.networking.BodyWeightDTO
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.FoodConsumedDTO
@@ -41,12 +43,21 @@ class MigrateAnonymousDataUseCase(
             val foodItemPortions = async {
                 dataProvider.loadAsync<FoodItemPersonalPortionsDTO>(from = Constants.Firestore.foodItemPortions(sourceUserId))
             }
+            val bodyWeights = async { dataProvider.loadAsync<BodyWeightDTO>(from = Constants.Firestore.bodyWeights(sourceUserId)) }
+            val appSettings = async {
+                dataProvider.loadAsync<AppSettingsDTO>(
+                    id = Constants.Firestore.APP_SETTINGS_DOCUMENT_ID,
+                    from = Constants.Firestore.settings(sourceUserId),
+                )
+            }
             PendingMergeSnapshot(
                 sourceAnonymousUserId = sourceUserId,
                 foodConsumed = foodConsumed.await(),
                 favouriteFoods = favouriteFoods.await(),
                 myCreatedMeals = myCreatedMeals.await(),
                 foodItemPortions = foodItemPortions.await(),
+                bodyWeights = bodyWeights.await(),
+                appSettings = appSettings.await(),
             )
         }
         snapshotStore.save(snapshot)
@@ -72,11 +83,29 @@ class MigrateAnonymousDataUseCase(
         dataProvider.batchSetAsync(snapshot.favouriteFoods.map { it to it.id }, inCollection = Constants.Firestore.favouriteFoods(userId))
         dataProvider.batchSetAsync(snapshot.myCreatedMeals.map { it to it.id }, inCollection = Constants.Firestore.myCreatedMeals(userId))
         dataProvider.batchSetAsync(snapshot.foodItemPortions.map { it to it.id }, inCollection = Constants.Firestore.foodItemPortions(userId))
+        writeBodyWeights(snapshot, userId)
+        writeAppSettings(snapshot, userId)
         dataProvider.setAsync(
             MergedAnonymousAccountDTO(id = snapshot.sourceAnonymousUserId),
             id = snapshot.sourceAnonymousUserId,
             inCollection = Constants.Firestore.mergedAnonymousAccounts(userId),
         )
         snapshotStore.delete()
+    }
+
+    private suspend fun writeBodyWeights(snapshot: PendingMergeSnapshot, userId: String) {
+        if (snapshot.bodyWeights.isEmpty()) return
+        val collection = Constants.Firestore.bodyWeights(userId)
+        val accountDays = dataProvider.loadAsync<BodyWeightDTO>(from = collection).map { it.id }.toSet()
+        val missing = snapshot.bodyWeights.filter { it.id !in accountDays }.map { it to it.id }
+        dataProvider.batchSetAsync(missing, inCollection = collection)
+    }
+
+    private suspend fun writeAppSettings(snapshot: PendingMergeSnapshot, userId: String) {
+        val anonymousSettings = snapshot.appSettings ?: return
+        val collection = Constants.Firestore.settings(userId)
+        val accountSettings = dataProvider.loadAsync<AppSettingsDTO>(id = Constants.Firestore.APP_SETTINGS_DOCUMENT_ID, from = collection)
+        if (accountSettings != null) return
+        dataProvider.setAsync(anonymousSettings, id = Constants.Firestore.APP_SETTINGS_DOCUMENT_ID, inCollection = collection)
     }
 }

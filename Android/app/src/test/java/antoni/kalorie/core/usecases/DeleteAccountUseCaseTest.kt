@@ -8,6 +8,7 @@ import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.auth.PendingMergeSnapshot
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreFake
+import antoni.kalorie.core.models.BodyWeightDomain
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
@@ -15,6 +16,7 @@ import antoni.kalorie.core.models.FoodNutritionValues
 import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
+import antoni.kalorie.core.networking.BodyWeightDTO
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodConsumedDTO
@@ -77,6 +79,29 @@ class DeleteAccountUseCaseTest {
         fixture.sut()
 
         assertEquals(emptyList<String>(), fixture.deleted(Constants.Firestore.mergedAnonymousAccounts(USER_ID)))
+    }
+
+    @Test
+    fun invoke_deletesBodyWeightsAndSettingsAsPrivacyObligation_beforeTheProfile() = runTest {
+        val fixture = makeSUT()
+        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(
+            Constants.Firestore.bodyWeights(USER_ID) to listOf(
+                BodyWeightDTO(BodyWeightDomain(dayKey = "2026-10-27", kilograms = 78.4)),
+                BodyWeightDTO(BodyWeightDomain(dayKey = "2026-10-26", kilograms = 78.9)),
+            ),
+        )
+
+        fixture.sut()
+
+        assertEquals(
+            "body weight is health data — Firestore does not cascade, so it is wiped in one batch rather than a round trip per day",
+            listOf("2026-10-27", "2026-10-26"),
+            fixture.dataProvider.batchDeletedIdsByCollection[Constants.Firestore.bodyWeights(USER_ID)],
+        )
+        assertNull(fixture.dataProvider.deletedIdsByCollection[Constants.Firestore.bodyWeights(USER_ID)])
+        assertEquals(listOf("app"), fixture.deleted(Constants.Firestore.settings(USER_ID)))
+        val order = fixture.dataProvider.deletionCollectionOrder
+        assertTrue(order.indexOf(Constants.Firestore.settings(USER_ID)) < order.indexOf(Constants.Firestore.USERS))
     }
 
     @Test
@@ -194,7 +219,12 @@ class DeleteAccountUseCaseTest {
         assertEquals(listOf(USER_ID), fixture.deleted(Constants.Firestore.USERS))
         assertEquals(
             "a failure part-way must leave the profile in place so the account is not half-erased",
-            listOf(Constants.Firestore.foodConsumed(USER_ID), Constants.Firestore.stats(USER_ID), Constants.Firestore.USERS),
+            listOf(
+                Constants.Firestore.foodConsumed(USER_ID),
+                Constants.Firestore.settings(USER_ID),
+                Constants.Firestore.stats(USER_ID),
+                Constants.Firestore.USERS,
+            ),
             fixture.dataProvider.deletionCollectionOrder,
         )
     }

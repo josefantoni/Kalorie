@@ -1,9 +1,15 @@
 package antoni.kalorie.core.auth
 
+import antoni.kalorie.core.models.AppSettingsDomain
+import antoni.kalorie.core.models.BodyWeightDomain
+import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.networking.AppSettingsDTO
+import antoni.kalorie.core.networking.BodyWeightDTO
 import antoni.kalorie.core.networking.FoodConsumedDTO
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -67,6 +73,36 @@ class PendingMergeSnapshotStoreTest {
         assertEquals(emptyList<Any>(), loaded?.favouriteFoods)
         assertEquals(emptyList<Any>(), loaded?.myCreatedMeals)
         assertEquals(emptyList<Any>(), loaded?.foodItemPortions)
+    }
+
+    @Test
+    fun load_snapshotWrittenBeforeBodyWeights_stillDecodes_soAPendingMergeCanFinish() {
+        val directory = temporaryFolder.newFolder()
+        java.io.File(directory, "pending-merge.json").writeText(
+            """{"sourceAnonymousUserId":"anon-1","foodConsumed":[],"favouriteFoods":[],"myCreatedMeals":[],"foodItemPortions":[]}""",
+        )
+
+        val loaded = checkNotNull(PendingMergeSnapshotStore(directory).load())
+
+        assertEquals("anon-1", loaded.sourceAnonymousUserId)
+        assertTrue(loaded.bodyWeights.isEmpty())
+        assertNull(loaded.appSettings)
+    }
+
+    @Test
+    fun saveAndLoad_roundTripsBodyWeightsAndSettings() {
+        val sut = makeSUT()
+        sut.save(
+            makeSnapshot(sourceUserId = "anon-1", foodIds = emptyList()).copy(
+                bodyWeights = listOf(BodyWeightDTO(BodyWeightDomain(dayKey = "2026-10-27", kilograms = 78.44))),
+                appSettings = AppSettingsDTO(AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.LB)),
+            ),
+        )
+
+        val loaded = sut.load()
+
+        assertEquals(listOf(78.44), loaded?.bodyWeights?.map { it.weightKg })
+        assertEquals(BodyWeightUnit.LB, loaded?.appSettings?.asDomain()?.bodyWeightUnit)
     }
 
     // MARK: - Helpers

@@ -64,6 +64,8 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var setSavedCollection: String? = null
     var setSavedId: String? = null
     var setSavedItem: Any? = null
+    val setSavedPairs: MutableList<Pair<String, String>> = java.util.Collections.synchronizedList(mutableListOf())
+    val loadedCollections: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
     var deletedFromCollection: String? = null
     var deletedId: String? = null
     var stubbedIncrementError: Exception? = null
@@ -79,6 +81,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
 
     override suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T> {
         stubbedError?.let { throw it }
+        loadedCollections.add(from)
         return (stubbedDocumentsByCollection[from] ?: stubbedDocuments) as List<T>
     }
 
@@ -211,6 +214,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         setSavedItem = item
         setSavedId = id
         setSavedCollection = inCollection
+        setSavedPairs.add(inCollection to id)
     }
 
     override suspend fun <T> mergeAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
@@ -239,7 +243,6 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     override suspend fun batchDeleteAsync(ids: List<String>, from: String) {
         stubbedBatchDeleteError?.let { throw it }
         batchDeletedIdsByCollection = batchDeletedIdsByCollection + (from to (batchDeletedIdsByCollection[from].orEmpty() + ids))
-        deletionCollectionOrder = deletionCollectionOrder + from
     }
 
     override suspend fun <T> incrementEntryAsync(
