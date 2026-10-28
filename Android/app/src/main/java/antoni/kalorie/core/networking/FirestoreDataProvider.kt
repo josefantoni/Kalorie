@@ -42,9 +42,14 @@ interface FirestoreDataProviderProtocol {
     ): List<T>
     suspend fun <T> loadHasPrefixAsync(from: String, field: String, hasPrefix: String, limit: Int, serializer: KSerializer<T>): List<T>
     suspend fun <T> loadArrayContainsAsync(from: String, field: String, arrayContains: String, limit: Int, serializer: KSerializer<T>): List<T>
+    suspend fun <T> loadLessThanOrEqualAsync(from: String, field: String, value: String, limit: Int, serializer: KSerializer<T>): List<T>
+    suspend fun <T> loadGreaterThanAsync(from: String, field: String, value: String, limit: Int, serializer: KSerializer<T>): List<T>
+    suspend fun <T> loadRangeAsync(from: String, field: String, lowerBound: String, upperBound: String, serializer: KSerializer<T>): List<T>
     suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>)
+    suspend fun <T> mergeAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>)
     suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>)
     suspend fun deleteAsync(id: String, from: String)
+    suspend fun batchDeleteAsync(ids: List<String>, from: String)
     suspend fun <T> incrementEntryAsync(
         item: T,
         entryId: String,
@@ -105,11 +110,38 @@ suspend inline fun <reified T> FirestoreDataProviderProtocol.loadArrayContainsAs
     limit: Int,
 ): List<T> = loadArrayContainsAsync(from, field, arrayContains, limit, serializer<T>())
 
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadLessThanOrEqualAsync(
+    from: String,
+    field: String,
+    value: String,
+    limit: Int,
+): List<T> = loadLessThanOrEqualAsync(from, field, value, limit, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadGreaterThanAsync(
+    from: String,
+    field: String,
+    value: String,
+    limit: Int,
+): List<T> = loadGreaterThanAsync(from, field, value, limit, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.loadRangeAsync(
+    from: String,
+    field: String,
+    lowerBound: String,
+    upperBound: String,
+): List<T> = loadRangeAsync(from, field, lowerBound, upperBound, serializer<T>())
+
 suspend inline fun <reified T> FirestoreDataProviderProtocol.setAsync(
     item: T,
     id: String,
     inCollection: String,
 ): Unit = setAsync(item, id, inCollection, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.mergeAsync(
+    item: T,
+    id: String,
+    inCollection: String,
+): Unit = mergeAsync(item, id, inCollection, serializer<T>())
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.batchSetAsync(
     items: List<Pair<T, String>>,
@@ -203,6 +235,57 @@ class FirestoreDataProvider(
         snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
     }
 
+    override suspend fun <T> loadLessThanOrEqualAsync(
+        from: String,
+        field: String,
+        value: String,
+        limit: Int,
+        serializer: KSerializer<T>,
+    ): List<T> = performFirestoreCall {
+        val snapshot = firestore
+            .collection(from)
+            .whereLessThanOrEqualTo(field, value)
+            .orderBy(field, Query.Direction.DESCENDING)
+            .limit(limit.toLong())
+            .get()
+            .await()
+        snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+    }
+
+    override suspend fun <T> loadGreaterThanAsync(
+        from: String,
+        field: String,
+        value: String,
+        limit: Int,
+        serializer: KSerializer<T>,
+    ): List<T> = performFirestoreCall {
+        val snapshot = firestore
+            .collection(from)
+            .whereGreaterThan(field, value)
+            .orderBy(field, Query.Direction.ASCENDING)
+            .limit(limit.toLong())
+            .get()
+            .await()
+        snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+    }
+
+    override suspend fun <T> loadRangeAsync(
+        from: String,
+        field: String,
+        lowerBound: String,
+        upperBound: String,
+        serializer: KSerializer<T>,
+    ): List<T> = performFirestoreCall {
+        val snapshot = firestore
+            .collection(from)
+            .whereGreaterThanOrEqualTo(field, lowerBound)
+            .whereLessThanOrEqualTo(field, upperBound)
+            .orderBy(field, Query.Direction.DESCENDING)
+            .get()
+            .await()
+        snapshot.documents.map { FirestoreDataMapper.decode(it.data.orEmpty(), serializer) }
+    }
+
     override suspend fun <T> loadHasPrefixAsync(
         from: String,
         field: String,
@@ -242,6 +325,12 @@ class FirestoreDataProvider(
         }
     }
 
+    override suspend fun <T> mergeAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
+        performFirestoreCall {
+            firestore.collection(inCollection).document(id).set(FirestoreDataMapper.encode(item, serializer), SetOptions.merge()).await()
+        }
+    }
+
     override suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>) {
         performFirestoreCall {
             for (chunk in items.chunked(Constants.Firestore.BATCH_WRITE_LIMIT)) {
@@ -257,6 +346,18 @@ class FirestoreDataProvider(
     override suspend fun deleteAsync(id: String, from: String) {
         performFirestoreCall {
             firestore.collection(from).document(id).delete().await()
+        }
+    }
+
+    override suspend fun batchDeleteAsync(ids: List<String>, from: String) {
+        performFirestoreCall {
+            for (chunk in ids.chunked(Constants.Firestore.BATCH_WRITE_LIMIT)) {
+                val batch = firestore.batch()
+                for (id in chunk) {
+                    batch.delete(firestore.collection(from).document(id))
+                }
+                batch.commit().await()
+            }
         }
     }
 

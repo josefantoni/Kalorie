@@ -96,6 +96,12 @@ object Constants {
         const val FREQUENCY_ENTRY_LIMIT = 300
     }
 
+    object BodyWeight {
+        const val DEFAULT_KILOGRAMS = 70.0
+        const val KILOGRAMS_PER_POUND = 0.45359237
+        const val FIRST_YEAR = 2026
+    }
+
     object Firestore {
         const val BATCH_WRITE_LIMIT = 500
         const val IN_QUERY_LIMIT = 30
@@ -108,6 +114,9 @@ object Constants {
         const val REPORT_REASON_MAX_LENGTH = 500
         const val REPORTS_PAGE_LIMIT = 50
         const val FOOD_FREQUENCY_DOCUMENT_ID = "foodFrequency"
+        const val APP_SETTINGS_DOCUMENT_ID = "app"
+        const val BODY_WEIGHT_RECENT_LIMIT = 3
+        const val BODY_WEIGHT_LATER_LIMIT = 2
 
         object Field {
             const val CZ_NAME_FOLDED = "cz_name_folded"
@@ -122,6 +131,7 @@ object Constants {
             const val UPDATED_AT = "updated_at"
             const val STATUS = "status"
             const val DATE = "date"
+            const val ID = "id"
         }
 
         object FoodFrequency {
@@ -136,6 +146,8 @@ object Constants {
         fun favouriteFoods(userId: String): String = "users/$userId/favouriteFoods"
         fun foodItemPortions(userId: String): String = "users/$userId/foodItemPortions"
         fun myCreatedMeals(userId: String): String = "users/$userId/myCreatedMeals"
+        fun bodyWeights(userId: String): String = "users/$userId/bodyWeights"
+        fun settings(userId: String): String = "users/$userId/settings"
         fun stats(userId: String): String = "users/$userId/stats"
         fun mergedAnonymousAccounts(userId: String): String = "users/$userId/mergedAnonymousAccounts"
     }
