@@ -44,7 +44,7 @@ struct GenerateFoodExportUseCase: GenerateFoodExportUseCaseProtocol {
         async let foodsRead = fetchFoodsConsumedInRange(from: from, to: to)
         async let weightsRead = fetchBodyWeights(from: from, to: to)
         let (foods, weights) = try await (foodsRead, weightsRead)
-        let unit = weights.isEmpty ? BodyWeightUnit.kg : try await fetchAppSettings().bodyWeightUnit
+        let unit = weights.isEmpty ? .kg : await readWeightUnit()
         let report = reportFactory.makeReport(
             foods: foods,
             mealTypes: mealTypes,
@@ -64,6 +64,15 @@ struct GenerateFoodExportUseCase: GenerateFoodExportUseCaseProtocol {
     }
 
     // MARK: - Private
+
+    private func readWeightUnit() async -> BodyWeightUnit {
+        do {
+            return try await fetchAppSettings().bodyWeightUnit
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.export)
+            return .kg
+        }
+    }
 
     private func isoDay(_ date: Date) -> String {
         date.formatted(Date.ISO8601FormatStyle(timeZone: .current).year().month().day())

@@ -892,7 +892,9 @@ final class DashboardViewModelTests: XCTestCase {
             ("alert", { $0.alertItem = AlertItem(title: "Error") }),
             ("delete confirmation", { $0.isDeleteConfirmationVisible = true }),
             ("copy popover", { $0.copyPopoverIndex = 0 }),
-            ("macro popover", { $0.macroPopoverIndex = 0 })
+            ("macro popover", { $0.macroPopoverIndex = 0 }),
+            ("weight popover", { $0.isWeightPopoverVisible = true }),
+            ("weight history", { $0.isWeightHistoryPushed = true })
         ]
         for presentation in presentations {
             let store = SignInSpotlightStoreFake()
@@ -952,98 +954,6 @@ final class DashboardViewModelTests: XCTestCase {
         ) {
             now
         }
-    }
-
-    // MARK: - Body weight
-
-    func test_weightCircle_isHiddenUntilSettingsLoaded_thenShownByDefault() async {
-        let sut = makeSUT()
-        XCTAssertFalse(sut.isWeightCircleVisible)
-        await sut.onAppear()
-        XCTAssertTrue(sut.isWeightCircleVisible)
-    }
-
-    func test_weightCircle_isHiddenWhenSettingsTurnItOff() async {
-        let settings = AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .kg)
-        let sut = makeSUT(fetchAppSettings: FetchAppSettingsUseCaseFake(stubbedSettings: settings))
-        await sut.onAppear()
-        XCTAssertFalse(sut.isWeightCircleVisible)
-    }
-
-    func test_weights_cachedPerDay_secondVisitDoesNotReload() async {
-        let fetch = CountingFetchBodyWeights()
-        let sut = makeSUT(fetchBodyWeights: fetch)
-        await sut.onAppear()
-        let yesterday = Date.now.addingTimeInterval(-86_400)
-        await sut.onDaySelected(yesterday)
-        await sut.onDaySelected(Date.now)
-        await sut.onDaySelected(yesterday)
-        XCTAssertEqual(fetch.callCount, 2)
-    }
-
-    func test_weights_afterWrite_cacheIsClearedAndSelectedDayReloaded() async {
-        let fetch = CountingFetchBodyWeights()
-        let sut = makeSUT(fetchBodyWeights: fetch)
-        await sut.onAppear()
-        await sut.onWeightsChanged()
-        XCTAssertEqual(fetch.callCount, 2)
-    }
-
-    func test_weightBadge_today_isAvailableWhetherOrNotAWeightIsLogged() async {
-        let sut = makeSUT()
-        await sut.onAppear()
-        XCTAssertTrue(sut.canLogWeight)
-    }
-
-    func test_weightBadge_pastDayWithoutEntry_isNotAvailable_soAMissedDayCannotBeBackfilled() async {
-        let sut = makeSUT()
-        await sut.onAppear()
-        await sut.onDaySelected(Date.now.addingTimeInterval(-3 * 86_400))
-        XCTAssertFalse(sut.canLogWeight)
-        sut.onWeightBadgeTapped()
-        XCTAssertFalse(sut.isWeightPopoverVisible)
-    }
-
-    func test_weightBadge_pastDayWithEntry_staysAvailableToEditThatEntry() async {
-        let day = Date.now.addingTimeInterval(-3 * 86_400)
-        let entry = BodyWeightDomain(dayKey: BodyWeightDayKey.make(from: day), kilograms: 80)
-        let sut = makeSUT(fetchBodyWeights: FetchBodyWeightsUseCaseFake(stubbedWeights: [entry]))
-        await sut.onAppear()
-        await sut.onDaySelected(day)
-        XCTAssertTrue(sut.canLogWeight)
-        sut.onWeightBadgeTapped()
-        XCTAssertTrue(sut.isWeightPopoverVisible)
-        XCTAssertEqual(sut.weightPickerKilograms, 80)
-    }
-
-    func test_weightBadge_futureDay_isNotAvailableAndDoesNotOpenPicker() async {
-        let sut = makeSUT()
-        await sut.onAppear()
-        await sut.onDaySelected(Date.now.addingTimeInterval(3 * 86_400))
-        XCTAssertFalse(sut.canLogWeight)
-        sut.onWeightBadgeTapped()
-        XCTAssertFalse(sut.isWeightPopoverVisible)
-    }
-
-    func test_weightPicker_initialValue_isWeightValidOnDayElseDefault() async {
-        let withWeight = makeSUT(fetchBodyWeights: FetchBodyWeightsUseCaseFake(stubbedWeights: [BodyWeightDomain(dayKey: "2026-10-01", kilograms: 81.3)]))
-        await withWeight.onAppear()
-        withWeight.onWeightBadgeTapped()
-        XCTAssertEqual(withWeight.weightPickerKilograms, 81.3)
-
-        let empty = makeSUT()
-        await empty.onAppear()
-        empty.onWeightBadgeTapped()
-        XCTAssertEqual(empty.weightPickerKilograms, 70)
-    }
-
-    func test_weightSave_failure_keepsPickerOpenAndAlerts() async {
-        let sut = makeSUT(saveBodyWeight: SaveBodyWeightUseCaseFake(shouldThrow: true))
-        await sut.onAppear()
-        sut.onWeightBadgeTapped()
-        await sut.onWeightConfirmed()
-        XCTAssertTrue(sut.isWeightPopoverVisible)
-        XCTAssertNotNil(sut.alertItem)
     }
 
     private func waitUntil(timeout: TimeInterval = 2, _ condition: () -> Bool) async {
@@ -1153,22 +1063,4 @@ private final class MutableFetchFoodsConsumedInRangeStub: FetchFoodsConsumedInRa
     func callAsFunction(from: Date, to: Date) async throws -> [FoodConsumedDomain] {
         stubbedFoods
     }
-}
-
-private final class CountingFetchBodyWeights: FetchBodyWeightsUseCaseProtocol {
-
-    // MARK: - Properties
-
-    private(set) var callCount = 0
-
-    // MARK: - Functions
-
-    func callAsFunction(upTo day: Date) async throws -> [BodyWeightDomain] {
-        callCount += 1
-        return []
-    }
-
-    func callAsFunction(from: Date, to: Date) async throws -> [BodyWeightDomain] { [] }
-
-    func callAsFunction() async throws -> [BodyWeightDomain] { [] }
 }

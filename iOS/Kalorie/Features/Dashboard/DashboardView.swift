@@ -13,6 +13,8 @@ struct DashboardView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: DashboardViewModel
+    private static let weightConfirmWidth: CGFloat = 120
+    private static let weightConfirmHeight: CGFloat = 28
     @State private var pulseAnimation = false
     @State private var accountButtonFrame: CGRect = .zero
     @State private var targetedMealTypeId: String?
@@ -262,15 +264,15 @@ struct DashboardView: View {
         Button {
             viewModel.isWeightHistoryPushed = true
         } label: {
-            WeightCircleView(weights: viewModel.recentWeights, unit: unit)
+            WeightCircleView(weights: viewModel.recentWeights, laterWeights: viewModel.laterWeights, unit: unit)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(weightAccessibilityLabel(unit: unit))
-            .overlay(alignment: .topTrailing) {
-                if viewModel.canLogWeight {
-                    weightBadge(unit: unit)
-                }
+        .overlay(alignment: .bottomTrailing) {
+            if viewModel.canLogWeight {
+                weightBadge(unit: unit)
             }
+        }
     }
 
     private func weightAccessibilityLabel(unit: BodyWeightUnit) -> String {
@@ -278,25 +280,19 @@ struct DashboardView: View {
         return L10n.Dashboard.weightA11yValue(unit.formatted(kilograms: latest.kilograms))
     }
 
-    private var weightBadgeImageName: String {
-        viewModel.hasWeightForSelectedDay ? BaseImageName.pencil.rawValue : BaseImageName.plus.rawValue
+    private var weightBadgeImageName: BaseImageName {
+        viewModel.hasWeightForSelectedDay ? .pencil : .plus
     }
 
     private func weightBadge(unit: BodyWeightUnit) -> some View {
-        Button {
+        BadgeButton(
+            imageName: weightBadgeImageName,
+            size: 28,
+            accessibilityLabel: viewModel.hasWeightForSelectedDay ? L10n.Dashboard.weightBadgeEdit : L10n.Dashboard.weightBadgeLog
+        ) {
             viewModel.onWeightBadgeTapped()
-        } label: {
-            Image(systemName: weightBadgeImageName)
-                .font(.caption.bold())
-                .foregroundStyle(.white)
-                .frame(width: 24, height: 24)
-                .background(Color.accentColor, in: Circle())
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .offset(x: 14, y: -14)
-        .accessibilityLabel(viewModel.hasWeightForSelectedDay ? L10n.Dashboard.weightBadgeEdit : L10n.Dashboard.weightBadgeLog)
+        .offset(x: 4, y: 4)
         .popover(isPresented: $viewModel.isWeightPopoverVisible) {
             weightPopover(unit: unit)
         }
@@ -321,19 +317,22 @@ struct DashboardView: View {
             weightConfirmLabel
         }
         .buttonStyle(.glassProminent)
+        .buttonBorderShape(.capsule)
         .tint(viewModel.showWeightCheckmark ? Color.success : Color.accentColor)
-        .animation(.spring(duration: 0.4), value: viewModel.showWeightCheckmark)
-        .disabled(viewModel.isSavingWeight || viewModel.showWeightCheckmark)
+        .animation(.spring(duration: 0.4, bounce: 0.3), value: viewModel.showWeightCheckmark)
+        .disabled(viewModel.isSavingWeight)
     }
 
-    @ViewBuilder private var weightConfirmLabel: some View {
-        if viewModel.showWeightCheckmark {
-            Image(systemName: BaseImageName.checkmark.rawValue)
-                .transition(.scale.combined(with: .opacity))
-        } else {
+    private var weightConfirmLabel: some View {
+        ZStack {
             Text(L10n.Common.buttonDone)
-                .transition(.opacity)
+                .opacity(viewModel.showWeightCheckmark ? 0 : 1)
+                .scaleEffect(viewModel.showWeightCheckmark ? 0.6 : 1)
+            Image(systemName: BaseImageName.checkmark.rawValue)
+                .opacity(viewModel.showWeightCheckmark ? 1 : 0)
+                .scaleEffect(viewModel.showWeightCheckmark ? 1 : 0.6)
         }
+        .frame(width: viewModel.showWeightCheckmark ? Self.weightConfirmHeight : Self.weightConfirmWidth, height: Self.weightConfirmHeight)
     }
 
     private func sectionHeaderButtons(index: Int, group: (mealType: MealTypeDomain?, foods: [FoodConsumedDomain])) -> some View {

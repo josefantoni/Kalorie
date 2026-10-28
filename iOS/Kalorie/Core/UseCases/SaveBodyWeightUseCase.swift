@@ -10,6 +10,7 @@ import Foundation
 enum BodyWeightError: Error, Equatable {
     case outOfRange
     case futureDay
+    case beforeFirstYear
 }
 
 protocol SaveBodyWeightUseCaseProtocol {
@@ -45,6 +46,7 @@ struct SaveBodyWeightUseCase: SaveBodyWeightUseCaseProtocol {
         }
         let dayKey = BodyWeightDayKey.make(from: day)
         guard dayKey <= BodyWeightDayKey.make(from: now()) else { throw BodyWeightError.futureDay }
+        guard dayKey >= Constants.BodyWeight.firstDayKey else { throw BodyWeightError.beforeFirstYear }
         try await dataProvider.setAsync(
             BodyWeightDTO(weight: BodyWeightDomain(dayKey: dayKey, kilograms: kilograms)),
             id: dayKey,

@@ -9,8 +9,9 @@ import Foundation
 
 protocol FetchBodyWeightsUseCaseProtocol {
     func callAsFunction(upTo day: Date) async throws -> [BodyWeightDomain]
+    func callAsFunction(after day: Date) async throws -> [BodyWeightDomain]
     func callAsFunction(from: Date, to: Date) async throws -> [BodyWeightDomain]
-    func callAsFunction() async throws -> [BodyWeightDomain]
+    func callAsFunction(inYear year: Int) async throws -> [BodyWeightDomain]
 }
 
 struct FetchBodyWeightsUseCase: FetchBodyWeightsUseCaseProtocol {
@@ -33,18 +34,32 @@ struct FetchBodyWeightsUseCase: FetchBodyWeightsUseCaseProtocol {
         try await load(upTo: day, limit: Constants.Firestore.bodyWeightRecentLimit)
     }
 
+    func callAsFunction(after day: Date) async throws -> [BodyWeightDomain] {
+        guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
+        let weights: [BodyWeightDTO] = try await dataProvider.loadAsync(
+            from: Constants.Firestore.bodyWeights(userId: userId),
+            where: Constants.Firestore.Field.id,
+            isGreaterThan: BodyWeightDayKey.make(from: day),
+            orderByAscending: Constants.Firestore.bodyWeightLaterLimit
+        )
+        return weights.map { $0.asDomain() }
+    }
+
     func callAsFunction(from: Date, to: Date) async throws -> [BodyWeightDomain] {
         let calendar = Calendar.current
         let dayCount = (calendar.dateComponents([.day], from: calendar.startOfDay(for: from), to: calendar.startOfDay(for: to)).day ?? 0) + 1
         return try await load(upTo: to, limit: dayCount + 1)
     }
 
-    func callAsFunction() async throws -> [BodyWeightDomain] {
+    func callAsFunction(inYear year: Int) async throws -> [BodyWeightDomain] {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let weights: [BodyWeightDTO] = try await dataProvider.loadAsync(
-            from: Constants.Firestore.bodyWeights(userId: userId)
+            from: Constants.Firestore.bodyWeights(userId: userId),
+            where: Constants.Firestore.Field.id,
+            isGreaterThanOrEqualTo: String(format: "%04d-01-01", year),
+            isLessThanOrEqualTo: String(format: "%04d-12-31", year)
         )
-        return weights.map { $0.asDomain() }.sorted { $0.dayKey > $1.dayKey }
+        return weights.map { $0.asDomain() }
     }
 
     // MARK: - Private
@@ -67,6 +82,7 @@ struct FetchBodyWeightsUseCaseFake: FetchBodyWeightsUseCaseProtocol {
     // MARK: - Properties
 
     var stubbedWeights: [BodyWeightDomain] = []
+    var stubbedLaterWeights: [BodyWeightDomain] = []
     var shouldThrow = false
 
     // MARK: - Functions
@@ -76,14 +92,19 @@ struct FetchBodyWeightsUseCaseFake: FetchBodyWeightsUseCaseProtocol {
         return stubbedWeights
     }
 
+    func callAsFunction(after day: Date) async throws -> [BodyWeightDomain] {
+        if shouldThrow { throw URLError(.unknown) }
+        return stubbedLaterWeights
+    }
+
     func callAsFunction(from: Date, to: Date) async throws -> [BodyWeightDomain] {
         if shouldThrow { throw URLError(.unknown) }
         return stubbedWeights
     }
 
-    func callAsFunction() async throws -> [BodyWeightDomain] {
+    func callAsFunction(inYear year: Int) async throws -> [BodyWeightDomain] {
         if shouldThrow { throw URLError(.unknown) }
-        return stubbedWeights
+        return stubbedWeights.filter { $0.dayKey.hasPrefix(String(format: "%04d-", year)) }
     }
 }
 #endif

@@ -100,6 +100,9 @@ enum Constants {
 
     enum BodyWeight {
         static let defaultKilograms = 70.0
+        static let kilogramsPerPound = 0.45359237
+        static let firstYear = 2026
+        static let firstDayKey = String(format: "%04d-01-01", firstYear)
     }
 
     enum Firestore {
@@ -116,6 +119,7 @@ enum Constants {
         static let foodFrequencyDocumentId = "foodFrequency"
         static let appSettingsDocumentId = "app"
         static let bodyWeightRecentLimit = 3
+        static let bodyWeightLaterLimit = 2
 
         enum Field {
             static let czNameFolded = "cz_name_folded"

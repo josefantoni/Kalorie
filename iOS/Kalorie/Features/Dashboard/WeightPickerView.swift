@@ -16,6 +16,14 @@ struct WeightPickerView: View {
 
     private var tenths: Int { unit.tenths(kilograms: kilograms) }
 
+    private var selectableTenthDigits: ClosedRange<Int> {
+        let range = unit.rangeInTenths
+        let whole = tenths / 10
+        let lowest = whole == range.lowerBound / 10 ? range.lowerBound % 10 : 0
+        let highest = whole == range.upperBound / 10 ? range.upperBound % 10 : 9
+        return lowest...highest
+    }
+
     // MARK: - Body
 
     var body: some View {
@@ -32,7 +40,7 @@ struct WeightPickerView: View {
                 .font(.title2.bold())
 
             Picker(L10n.Dashboard.weightPickerTenths, selection: tenthBinding) {
-                ForEach(0...9, id: \.self) { value in
+                ForEach(selectableTenthDigits, id: \.self) { value in
                     Text("\(value)").tag(value)
                 }
             }

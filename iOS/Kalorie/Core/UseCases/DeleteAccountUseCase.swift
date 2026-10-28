@@ -104,9 +104,10 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
 
     private func wipeBodyWeightData(userId: String) async throws {
         let bodyWeights: [BodyWeightDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.bodyWeights(userId: userId))
-        for dto in bodyWeights {
-            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.bodyWeights(userId: userId))
-        }
+        try await dataProvider.batchDeleteAsync(
+            ids: bodyWeights.map(\.id),
+            from: Constants.Firestore.bodyWeights(userId: userId)
+        )
         try await dataProvider.deleteAsync(
             id: Constants.Firestore.appSettingsDocumentId,
             from: Constants.Firestore.settings(userId: userId)

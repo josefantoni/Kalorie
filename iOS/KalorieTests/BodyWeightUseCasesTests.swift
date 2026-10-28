@@ -18,6 +18,12 @@ final class BodyWeightUseCasesTests: XCTestCase {
         XCTAssertEqual(key, "2026-10-14")
     }
 
+    func test_year_isGregorianAndFollowsTimeZone() {
+        let newYearInPrague = Date(timeIntervalSince1970: 1_798_759_800)
+        XCTAssertEqual(BodyWeightDayKey.year(of: newYearInPrague, timeZone: TimeZone(identifier: "Europe/Prague") ?? .gmt), 2027)
+        XCTAssertEqual(BodyWeightDayKey.year(of: newYearInPrague, timeZone: TimeZone(identifier: "America/Los_Angeles") ?? .gmt), 2026)
+    }
+
     func test_dayKey_followsTimeZone() {
         let date = Date(timeIntervalSince1970: 1_792_015_800)
         XCTAssertNotEqual(
@@ -53,6 +59,17 @@ final class BodyWeightUseCasesTests: XCTestCase {
             XCTFail("Expected futureDay")
         } catch {
             XCTAssertEqual(error as? BodyWeightError, .futureDay)
+        }
+        XCTAssertNil(dataProvider.setId)
+    }
+
+    func test_save_beforeFirstYear_throwsAndWritesNothing() async {
+        let (sut, dataProvider) = makeSaveSUT()
+        do {
+            try await sut(kilograms: 70, for: Date(timeIntervalSince1970: 1_766_000_000))
+            XCTFail("Expected beforeFirstYear")
+        } catch {
+            XCTAssertEqual(error as? BodyWeightError, .beforeFirstYear)
         }
         XCTAssertNil(dataProvider.setId)
     }
@@ -93,6 +110,27 @@ final class BodyWeightUseCasesTests: XCTestCase {
         XCTAssertEqual(dataProvider.queriedLimit, 11, "10 days plus one entry before the interval, so the first days still know their weight")
     }
 
+    func test_fetchAfter_queriesNewerDaysOldestFirstWithTheLaterLimit() async throws {
+        let dataProvider = BodyWeightDataProviderFake()
+        let sut = FetchBodyWeightsUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake(userId: "user-1"))
+        let day = try XCTUnwrap(BodyWeightDayKey.date(from: "2026-09-10"))
+
+        _ = try await sut(after: day)
+
+        XCTAssertEqual(dataProvider.queriedLowerBound, "2026-09-10")
+        XCTAssertEqual(dataProvider.queriedAscendingLimit, 2)
+    }
+
+    func test_fetchInYear_readsOnlyThatCalendarYear_soNoOtherYearIsBilled() async throws {
+        let dataProvider = BodyWeightDataProviderFake()
+        let sut = FetchBodyWeightsUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake(userId: "user-1"))
+
+        _ = try await sut(inYear: 2025)
+
+        XCTAssertEqual(dataProvider.queriedRange?.lower, "2025-01-01")
+        XCTAssertEqual(dataProvider.queriedRange?.upper, "2025-12-31")
+    }
+
     // MARK: - Settings
 
     func test_settings_absentDocument_readsAsDefaults() async throws {
@@ -123,6 +161,16 @@ final class BodyWeightUseCasesTests: XCTestCase {
         XCTAssertEqual(BodyWeightUnit.lb.display(kilograms: kilograms), 180, accuracy: 1e-9)
     }
 
+    func test_unit_poundPickerRangeIsTheWidestOneThatStaysInsideTheKilogramRange() {
+        let range = BodyWeightUnit.lb.rangeInTenths
+        let kilograms = { (tenths: Int) in BodyWeightUnit.lb.kilograms(from: Double(tenths) / 10) }
+
+        XCTAssertGreaterThanOrEqual(kilograms(range.lowerBound), BodyWeightUnit.minKilograms)
+        XCTAssertLessThanOrEqual(kilograms(range.upperBound), BodyWeightUnit.maxKilograms)
+        XCTAssertLessThan(kilograms(range.lowerBound - 1), BodyWeightUnit.minKilograms)
+        XCTAssertGreaterThan(kilograms(range.upperBound + 1), BodyWeightUnit.maxKilograms)
+    }
+
     // MARK: - Helpers
 
     private func makeSaveSUT(userId: String? = "user-1") -> (sut: SaveBodyWeightUseCase, dataProvider: BodyWeightDataProviderFake) {
@@ -143,6 +191,9 @@ private final class BodyWeightDataProviderFake: FirestoreDataProviderProtocol {
     var mergedCollection: String?
     var queriedUpperBound: String?
     var queriedLimit: Int?
+    var queriedLowerBound: String?
+    var queriedAscendingLimit: Int?
+    var queriedRange: (lower: String, upper: String)?
 
     // MARK: - Functions
 
@@ -169,6 +220,17 @@ private final class BodyWeightDataProviderFake: FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String, where field: String, isLessThanOrEqualTo value: String, orderByDescending limit: Int) async throws -> [T] {
         queriedUpperBound = value
         queriedLimit = limit
+        return []
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThan value: String, orderByAscending limit: Int) async throws -> [T] {
+        queriedLowerBound = value
+        queriedAscendingLimit = limit
+        return []
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: String, isLessThanOrEqualTo upperBound: String) async throws -> [T] {
+        queriedRange = (lowerBound, upperBound)
         return []
     }
 

@@ -243,6 +243,15 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(notifyCount, 0)
     }
 
+    func test_changeBeforeSettingsWereLoaded_isIgnored_soStoredValuesAreNotOverwrittenByDefaults() async {
+        var notifyCount = 0
+        let sut = makeSUT(hasLoadedAppSettings: false) { _ in notifyCount += 1 }
+        await sut.onBodyWeightUnitChanged(.lb)
+        await sut.onShowBodyWeightChanged(false)
+        XCTAssertEqual(sut.appSettings, .defaults)
+        XCTAssertEqual(notifyCount, 0)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
@@ -252,6 +261,7 @@ final class SettingsViewModelTests: XCTestCase {
         updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol = UpdateMealTypeTimesUseCaseFake(),
         fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake(),
         appSettings: AppSettingsDomain = .defaults,
+        hasLoadedAppSettings: Bool = true,
         saveAppSettings: any SaveAppSettingsUseCaseProtocol = SaveAppSettingsUseCaseFake(),
         onAppSettingsChanged: @escaping (AppSettingsDomain) -> Void = { _ in }
     ) -> SettingsViewModel {
@@ -263,7 +273,8 @@ final class SettingsViewModelTests: XCTestCase {
             createMealType: createMealType,
             deleteMealType: deleteMealType,
             updateMealTypeTimes: updateMealTypeTimes,
-            fetchMaintainerClaim: fetchMaintainerClaim
+            fetchMaintainerClaim: fetchMaintainerClaim,
+            hasLoadedAppSettings: hasLoadedAppSettings
         )
     }
 

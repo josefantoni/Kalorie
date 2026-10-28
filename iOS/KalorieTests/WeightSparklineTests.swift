@@ -13,13 +13,13 @@ final class WeightSparklineTests: XCTestCase {
     // MARK: - Tests
 
     func test_newestWeight_isTheCentreOfTheGraph() {
-        let positions = WeightSparkline(points: [79.0, 79.4, 78.4], minimumSpan: 2).positions(in: rect)
+        let positions = WeightSparkline(points: [79.0, 79.4, 78.4], centerIndex: 2, minimumSpan: 2).positions(in: rect)
 
         XCTAssertEqual(positions.last, CGPoint(x: rect.midX, y: rect.midY), "the weight valid on the selected day is the dot in the middle")
     }
 
     func test_olderWeights_extendToTheLeftInOrder_oldestAtTheEdge() {
-        let positions = WeightSparkline(points: [79.0, 79.4, 78.4], minimumSpan: 2).positions(in: rect)
+        let positions = WeightSparkline(points: [79.0, 79.4, 78.4], centerIndex: 2, minimumSpan: 2).positions(in: rect)
 
         XCTAssertEqual(positions.first?.x, rect.minX)
         XCTAssertEqual(positions.map(\.x), positions.map(\.x).sorted())
@@ -27,20 +27,35 @@ final class WeightSparklineTests: XCTestCase {
     }
 
     func test_smallWobble_isNotDrawnAsACliff_becauseOfTheMinimumSpan() {
-        let positions = WeightSparkline(points: [78.6, 78.4], minimumSpan: 2).positions(in: rect)
+        let positions = WeightSparkline(points: [78.6, 78.4], centerIndex: 1, minimumSpan: 2).positions(in: rect)
 
         let drop = abs((positions.first?.y ?? 0) - rect.midY)
         XCTAssertLessThan(drop, rect.height / 2 * 0.25, "0.2 kg on a 2 kg minimum span must stay a gentle slope")
     }
 
     func test_higherEarlierWeight_isDrawnAboveTheDot() {
-        let positions = WeightSparkline(points: [80.0, 78.4], minimumSpan: 2).positions(in: rect)
+        let positions = WeightSparkline(points: [80.0, 78.4], centerIndex: 1, minimumSpan: 2).positions(in: rect)
 
         XCTAssertLessThan(positions[0].y, positions[1].y)
     }
 
+    func test_laterWeights_extendToTheRightOfTheDot() {
+        let positions = WeightSparkline(points: [79.0, 78.4, 77.9, 77.5], centerIndex: 1, minimumSpan: 2).positions(in: rect)
+
+        XCTAssertEqual(positions[1], CGPoint(x: rect.midX, y: rect.midY))
+        XCTAssertTrue(positions[2].x > rect.midX && positions[3].x > positions[2].x, "entries after the selected day belong on the right")
+        XCTAssertLessThanOrEqual(positions.last?.x ?? .infinity, rect.maxX)
+    }
+
+    func test_onlyLaterWeights_dotStaysCentredAndLineRunsRight() {
+        let positions = WeightSparkline(points: [78.4, 77.9], centerIndex: 0, minimumSpan: 2).positions(in: rect)
+
+        XCTAssertEqual(positions[0], CGPoint(x: rect.midX, y: rect.midY))
+        XCTAssertEqual(positions[1].x, rect.maxX)
+    }
+
     func test_singleWeight_drawsNothing() {
-        XCTAssertTrue(WeightSparkline(points: [78.4], minimumSpan: 2).positions(in: rect).isEmpty)
+        XCTAssertTrue(WeightSparkline(points: [78.4], centerIndex: 0, minimumSpan: 2).positions(in: rect).isEmpty)
     }
 
     // MARK: - Helpers

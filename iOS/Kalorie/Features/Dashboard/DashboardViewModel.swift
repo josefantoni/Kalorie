@@ -88,6 +88,9 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var activeDaysInMonth: Set<Int> = []
     @Published private(set) var moveFeedbackTrigger = 0
     @Published private(set) var recentWeights: [BodyWeightDomain] = []
+    @Published private(set) var laterWeights: [BodyWeightDomain] = []
+    private var shownWeightsKey: String?
+    private var settingsChangeCount = 0
     @Published private(set) var appSettings = AppSettingsDomain.defaults
     @Published private(set) var hasLoadedSettings = false
     @Published var isWeightPopoverVisible = false
@@ -101,7 +104,9 @@ final class DashboardViewModel: ObservableObject {
     private var hasCompletedInitialLoad = false
     private var monthCache: [String: [FoodConsumedDomain]] = [:]
     private var cachedMonthKeys: Set<String> = []
-    private var weightCache: [String: [BodyWeightDomain]] = [:]
+    private var weightCache: [String: BodyWeightWindow] = [:]
+    private var weightCacheGeneration = 0
+    private var weightPickerDay: Date?
     private var foodPendingDeletion: FoodConsumedDomain?
     private var dayChangeObserver: NSObjectProtocol?
 
@@ -170,7 +175,8 @@ final class DashboardViewModel: ObservableObject {
     var canLogWeight: Bool {
         let selectedKey = BodyWeightDayKey.make(from: selectedDay)
         let todayKey = BodyWeightDayKey.make(from: now())
-        return selectedKey == todayKey || (selectedKey < todayKey && hasWeightForSelectedDay)
+        guard shownWeightsKey == selectedKey else { return false }
+        return selectedKey >= Constants.BodyWeight.firstDayKey && selectedKey <= todayKey
     }
 
     var hasWeightForSelectedDay: Bool { recentWeights.first?.dayKey == BodyWeightDayKey.make(from: selectedDay) }
@@ -205,16 +211,20 @@ final class DashboardViewModel: ObservableObject {
         selectedDay = Date.now
         isViewingToday = true
         state = .loading
+        async let settings: Void = refreshSettings()
+        async let weights: Void = loadWeights(for: selectedDay)
         do {
             try await refreshMealTypes()
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
             showActiveDays(for: selectedDay)
-            await refreshSettings()
-            await loadWeights(for: selectedDay)
+            await settings
+            await weights
             state = .loaded
             showSignInSpotlightIfNeeded()
         } catch {
+            await settings
+            await weights
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = unknownErrorAlertItem(for: error)
             state = .loaded
@@ -225,18 +235,22 @@ final class DashboardViewModel: ObservableObject {
     @MainActor
     func onRefresh() async {
         guard hasCompletedInitialLoad else { return }
+        advanceSelectedDayIfNeeded()
+        invalidateWeightCache()
+        async let settings: Void = refreshSettings()
+        async let weights: Void = loadWeights(for: selectedDay)
         do {
-            advanceSelectedDayIfNeeded()
             try await refreshMealTypes()
             invalidateCache(for: selectedDay)
             try await loadMonth(for: selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
             showActiveDays(for: selectedDay)
-            weightCache = [:]
-            await refreshSettings()
-            await loadWeights(for: selectedDay)
+            await settings
+            await weights
             showSignInSpotlightIfNeeded()
         } catch {
+            await settings
+            await weights
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = unknownErrorAlertItem(for: error)
         }
@@ -245,15 +259,19 @@ final class DashboardViewModel: ObservableObject {
     @MainActor
     func onForeground() async {
         guard hasCompletedInitialLoad else { return }
+        advanceSelectedDayIfNeeded()
+        async let settings: Void = refreshSettings()
+        async let weights: Void = loadWeights(for: selectedDay, forceReload: true)
         do {
-            advanceSelectedDayIfNeeded()
             try await refreshMealTypes()
             try await reloadDay(selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
-            await refreshSettings()
-            await loadWeights(for: selectedDay, forceReload: true)
+            await settings
+            await weights
             showSignInSpotlightIfNeeded()
         } catch {
+            await settings
+            await weights
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = unknownErrorAlertItem(for: error)
         }
@@ -386,8 +404,9 @@ final class DashboardViewModel: ObservableObject {
     @MainActor
     func onDayChanged(_ date: Date) async {
         isViewingToday = Calendar.current.isDate(date, inSameDayAs: Date.now)
+        async let weights: Void = loadWeights(for: date)
         await loadFoods(for: date)
-        await loadWeights(for: date)
+        await weights
     }
 
     @MainActor
@@ -395,14 +414,17 @@ final class DashboardViewModel: ObservableObject {
         isViewingToday = Calendar.current.isDate(date, inSameDayAs: Date.now)
         selectedDay = date
         showCalendarSheet = false
+        async let weights: Void = loadWeights(for: date)
         await loadFoods(for: date)
-        await loadWeights(for: date)
+        await weights
     }
 
     func onWeightBadgeTapped() {
         guard canLogWeight else { return }
         let initial = recentWeights.first?.kilograms ?? Constants.BodyWeight.defaultKilograms
         weightPickerKilograms = initial
+        weightPickerDay = selectedDay
+        showWeightCheckmark = false
         isWeightPopoverVisible = true
     }
 
@@ -414,7 +436,7 @@ final class DashboardViewModel: ObservableObject {
         else { return }
         isSavingWeight = true
         do {
-            try await saveBodyWeight(kilograms: weightPickerKilograms, for: selectedDay)
+            try await saveBodyWeight(kilograms: weightPickerKilograms, for: weightPickerDay ?? selectedDay)
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Dashboard.errorWeightSaveFailed)
@@ -426,16 +448,23 @@ final class DashboardViewModel: ObservableObject {
         await onWeightsChanged()
         try? await Task.sleep(for: .seconds(1))
         isWeightPopoverVisible = false
-        showWeightCheckmark = false
     }
 
     @MainActor
     func onWeightsChanged() async {
-        weightCache = [:]
-        await loadWeights(for: selectedDay)
+        invalidateWeightCache()
+        let key = BodyWeightDayKey.make(from: selectedDay)
+        let isLoaded = await reloadWeights(for: selectedDay)
+        if
+            !isLoaded,
+            shownWeightsKey == key
+        {
+            clearShownWeights()
+        }
     }
 
     func onAppSettingsChanged(_ settings: AppSettingsDomain) {
+        settingsChangeCount += 1
         appSettings = settings
         hasLoadedSettings = true
     }
@@ -465,34 +494,80 @@ final class DashboardViewModel: ObservableObject {
 
     @MainActor
     private func refreshSettings() async {
+        let changeCountBeforeRead = settingsChangeCount
         do {
-            appSettings = try await fetchAppSettings()
+            let settings = try await fetchAppSettings()
+            guard changeCountBeforeRead == settingsChangeCount else { return }
+            appSettings = settings
             hasLoadedSettings = true
         } catch {
+            guard !Task.isCancelled else { return }
             Log.error(error, category: Constants.LogCategory.dashboard)
-            hasLoadedSettings = true
         }
     }
 
     @MainActor
     private func loadWeights(for date: Date, forceReload: Bool = false) async {
+        _ = await reloadWeights(for: date, forceReload: forceReload)
+    }
+
+    @MainActor
+    private func reloadWeights(for date: Date, forceReload: Bool = false) async -> Bool {
         let key = BodyWeightDayKey.make(from: date)
         if
             !forceReload,
             let cached = weightCache[key]
         {
-            recentWeights = cached
-            return
-        }
-        do {
-            let weights = try await fetchBodyWeights(upTo: date)
-            weightCache[key] = weights
             if BodyWeightDayKey.make(from: selectedDay) == key {
-                recentWeights = weights
+                show(cached, for: key)
             }
-        } catch {
-            Log.error(error, category: Constants.LogCategory.dashboard)
+            return true
         }
+        if
+            shownWeightsKey != key,
+            BodyWeightDayKey.make(from: selectedDay) == key
+        {
+            clearShownWeights()
+        }
+        let generation = weightCacheGeneration
+        do {
+            async let earlier = fetchBodyWeights(upTo: date)
+            async let later = loadLaterWeights(after: date)
+            let window = BodyWeightWindow(earlier: try await earlier, later: try await later)
+            guard generation == weightCacheGeneration else { return true }
+            weightCache[key] = window
+            if BodyWeightDayKey.make(from: selectedDay) == key {
+                show(window, for: key)
+            }
+            return true
+        } catch {
+            if !Task.isCancelled {
+                Log.error(error, category: Constants.LogCategory.dashboard)
+            }
+            return false
+        }
+    }
+
+    private func invalidateWeightCache() {
+        weightCache = [:]
+        weightCacheGeneration += 1
+    }
+
+    private func loadLaterWeights(after date: Date) async throws -> [BodyWeightDomain] {
+        guard BodyWeightDayKey.make(from: date) < BodyWeightDayKey.make(from: now()) else { return [] }
+        return try await fetchBodyWeights(after: date)
+    }
+
+    private func clearShownWeights() {
+        shownWeightsKey = nil
+        recentWeights = []
+        laterWeights = []
+    }
+
+    private func show(_ window: BodyWeightWindow, for key: String) {
+        shownWeightsKey = key
+        recentWeights = window.earlier
+        laterWeights = window.later
     }
 
     private static let signInSpotlightInterval: TimeInterval = 7 * 24 * 60 * 60
@@ -507,6 +582,7 @@ final class DashboardViewModel: ObservableObject {
             || copyPopoverIndex != nil
             || macroPopoverIndex != nil
             || isWeightPopoverVisible
+            || isWeightHistoryPushed
     }
 
     private func showSignInSpotlightIfNeeded() {
