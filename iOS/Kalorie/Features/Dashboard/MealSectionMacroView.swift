@@ -11,6 +11,8 @@ struct MealSectionMacroView: View {
 
     // MARK: - Properties
 
+    private static let donutSize: CGFloat = 120
+
     let name: String
     let foods: [FoodConsumedDomain]
 
@@ -26,7 +28,7 @@ struct MealSectionMacroView: View {
                 .foregroundStyle(Color(.label))
             Divider()
 
-            MacroDonutView(protein: macros.protein, carbs: macros.carbs, fat: macros.fat, calories: macros.calories, size: 120)
+            MacroDonutView(protein: macros.protein, carbs: macros.carbs, fat: macros.fat, calories: macros.calories, size: Self.donutSize)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 4)
 
