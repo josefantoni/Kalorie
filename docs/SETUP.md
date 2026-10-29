@@ -163,6 +163,27 @@ by design.
 Apple sign-in on Android needs no Gradle or `google-services.json` change: it runs through Firebase's
 web OAuth flow, using the Services ID and key from § Apple Developer portal and § Firebase Console.
 
+### Regenerating the baseline profile
+
+`Android/app/src/release/generated/baselineProfiles/baseline-prof.txt` is committed and `assembleRelease`
+only packages it, so CI never regenerates it. It goes stale as the UI changes (new screens, renamed or
+moved classes); regenerate it before a release that follows a larger UI change.
+
+```
+cd Android && ANDROID_SERIAL=<serial> ./gradlew :app:generateBaselineProfile
+```
+
+- Use an **API 36 emulator with a Google APIs image**. benchmark 1.5.0 cannot parse the `pm dump-profiles`
+  output on an API 37 emulator and hangs for minutes; on the MediaTek test phone the run walks the whole
+  flow and then fails with "save profile broadcast was not received".
+- It takes about 8 minutes (the library repeats the flow until the profile is stable), so run it in the
+  background. A physical device needs the display on and unlocked for the whole run.
+- Gradle reports `BUILD SUCCESSFUL` even when the instrumentation crashed. Success is a non-empty
+  `baseline-prof.txt` and `adb -s <serial> logcat -d | grep TestRunner` ending in `0 failed`.
+- The generator uninstalls the app afterwards, local data included; sign in again after a
+  `:app:installRelease`.
+- The plugin and the `benchmark-macro-junit4` library must stay on the same version.
+
 Not covered because it is undecided: how the maintainer claim (§ Maintainer claim) is set for an
 Android session — it is per-UID, so an account already claimed on iOS carries over once the same
 Apple/Google account signs in.
