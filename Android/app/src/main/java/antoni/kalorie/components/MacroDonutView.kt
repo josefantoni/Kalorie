@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
+import java.text.NumberFormat
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -72,6 +73,7 @@ private fun DrawScope.drawDonut(textMeasurer: TextMeasurer, protein: Double, car
     val arcTopLeft = Offset(center.x - midRadius, center.y - midRadius)
     val arcSize = Size(midRadius * 2, midRadius * 2)
     val total = protein + carbs + fat
+    val percentFormat = NumberFormat.getPercentInstance()
 
     if (total <= 0) {
         drawArc(Color.Gray.copy(alpha = 0.2f), 0f, 360f, false, arcTopLeft, arcSize, style = ringStyle)
@@ -88,7 +90,7 @@ private fun DrawScope.drawDonut(textMeasurer: TextMeasurer, protein: Double, car
         if (percent >= MIN_LABELLED_PERCENT) {
             val midAngle = Math.toRadians((startAngle + sweep / 2).toDouble())
             val label = textMeasurer.measure(
-                "$percent%",
+                percentFormat.format(percent / 100.0),
                 TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White),
             )
             val labelSize: IntSize = label.size
