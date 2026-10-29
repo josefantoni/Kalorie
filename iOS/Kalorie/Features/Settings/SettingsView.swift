@@ -154,7 +154,7 @@ struct SettingsView: View {
                                         Image(systemName: BaseImageName.heartFill.rawValue)
                                             .font(.body.weight(.semibold))
                                             .foregroundStyle(.white)
-                                            .frame(width: 36, height: 36)
+                                            .frame(width: Self.supportIconSize, height: Self.supportIconSize)
                                             .background(Circle().fill(Color.favourite))
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(L10n.Settings.buttonSupport)
@@ -282,6 +282,7 @@ struct SettingsView: View {
     }
 
     private static var newMealRowHeight: CGFloat { 56 }
+    private static var supportIconSize: CGFloat { 36 }
 
 }
 

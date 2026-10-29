@@ -11,6 +11,9 @@ struct AccountView: View {
 
     // MARK: - Properties
 
+    private static let linkedBadgeSize: CGFloat = 18
+    private static let linkedBadgeSymbolSize: CGFloat = 10
+
     @StateObject var viewModel: AccountViewModel
     @Environment(\.openURL) private var openURL
 
@@ -227,9 +230,9 @@ private extension AccountView {
                 .overlay(alignment: .bottomTrailing) {
                     if isLinked {
                         Image(systemName: BaseImageName.checkmark.rawValue)
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.system(size: Self.linkedBadgeSymbolSize, weight: .bold))
                             .foregroundStyle(.white)
-                            .frame(width: 18, height: 18)
+                            .frame(width: Self.linkedBadgeSize, height: Self.linkedBadgeSize)
                             .background(Circle().fill(Color.success))
                             .overlay(Circle().strokeBorder(Color(uiColor: .secondarySystemGroupedBackground), lineWidth: 2))
                             .offset(x: 6, y: 6)
