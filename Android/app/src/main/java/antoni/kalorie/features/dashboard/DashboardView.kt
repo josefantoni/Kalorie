@@ -150,6 +150,8 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val showCalendarSheet by viewModel.showCalendarSheet.collectAsState()
     val showSettings by viewModel.showSettings.collectAsState()
     val showAccountSheet by viewModel.showAccountSheet.collectAsState()
+    val appSettings by viewModel.appSettings.collectAsState()
+    val hasLoadedSettings by viewModel.hasLoadedSettings.collectAsState()
     val showAddFoodSheet by viewModel.showAddFoodSheet.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val isDeleteConfirmationVisible by viewModel.isDeleteConfirmationVisible.collectAsState()
@@ -445,8 +447,8 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     if (showSettings) {
         router.makeSettingsView(
             mealTypes = mealTypes,
-            appSettings = viewModel.appSettings.value,
-            hasLoadedAppSettings = viewModel.hasLoadedSettings.value,
+            appSettings = appSettings,
+            hasLoadedAppSettings = hasLoadedSettings,
             onDismiss = { viewModel.showSettings.value = false },
             onMealTypesChanged = { scope.launch { viewModel.onMealTypesChanged() } },
             onAppSettingsChanged = viewModel::onAppSettingsChanged,

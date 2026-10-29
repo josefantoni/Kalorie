@@ -118,9 +118,4 @@ private fun NumberPicker.applyTextColor(color: Int) {
     for (index in 0 until childCount) {
         (getChildAt(index) as? EditText)?.setTextColor(color)
     }
-    runCatching {
-        val paint = NumberPicker::class.java.getDeclaredField("mSelectorWheelPaint").apply { isAccessible = true }.get(this) as android.graphics.Paint
-        paint.color = color
-        invalidate()
-    }
 }
