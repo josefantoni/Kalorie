@@ -33,7 +33,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opravdu smazat účet?"
+            "value" : "Opravdu chceš smazat účet?"
           }
         },
         "en" : {
@@ -45,7 +45,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Naozaj zmazať účet?"
+            "value" : "Naozaj chceš zmazať účet?"
           }
         }
       }
@@ -125,7 +125,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opravdu se odhlásit?"
+            "value" : "Chceš se odhlásit?"
           }
         },
         "en" : {
@@ -137,7 +137,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Naozaj sa odhlásiť?"
+            "value" : "Chceš sa odhlásiť?"
           }
         }
       }
@@ -976,7 +976,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "K jídlu nemáte přiřazený čárový kód. Opravdu chcete pokračovat?"
+            "value" : "K jídlu nemáš přiřazený čárový kód. Opravdu chceš pokračovat?"
           }
         },
         "en" : {
@@ -988,7 +988,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "K jedlu nemáte priradený čiarový kód. Naozaj chcete pokračovať?"
+            "value" : "K jedlu nemáš priradený čiarový kód. Naozaj chceš pokračovať?"
           }
         }
       }
@@ -999,7 +999,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zrušit tuto položku ke schválení? Přijdeš tím i o důvod zamítnutí."
+            "value" : "Chceš zrušit tuto položku ke schválení? Přijdeš tím i o důvod zamítnutí."
           }
         },
         "en" : {
@@ -1011,7 +1011,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zrušiť túto položku na schválenie? Prídeš tým aj o dôvod zamietnutia."
+            "value" : "Chceš zrušiť túto položku na schválenie? Prídeš tým aj o dôvod zamietnutia."
           }
         }
       }
@@ -2908,7 +2908,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Smazat tento záznam jídla?"
+            "value" : "Chceš smazat tento záznam jídla?"
           }
         },
         "en" : {
@@ -2920,7 +2920,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zmazať tento záznam jedla?"
+            "value" : "Chceš zmazať tento záznam jedla?"
           }
         }
       }
@@ -5714,7 +5714,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vytvořit toto jídlo?"
+            "value" : "Chceš vytvořit toto jídlo?"
           }
         },
         "en" : {
@@ -5726,7 +5726,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vytvoriť toto jedlo?"
+            "value" : "Chceš vytvoriť toto jedlo?"
           }
         }
       }
@@ -5737,7 +5737,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Smazat toto jídlo?"
+            "value" : "Chceš smazat toto jídlo?"
           }
         },
         "en" : {
@@ -5749,7 +5749,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zmazať toto jedlo?"
+            "value" : "Chceš zmazať toto jedlo?"
           }
         }
       }
@@ -5760,7 +5760,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uložit změny?"
+            "value" : "Chceš uložit tyto změny?"
           }
         },
         "en" : {
@@ -5772,7 +5772,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uložiť zmeny?"
+            "value" : "Chceš uložiť tieto zmeny?"
           }
         }
       }
@@ -7025,7 +7025,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Smazat tento záznam váhy?"
+            "value" : "Chceš smazat tento záznam váhy?"
           }
         },
         "en" : {
@@ -7037,7 +7037,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zmazať tento záznam hmotnosti?"
+            "value" : "Chceš zmazať tento záznam hmotnosti?"
           }
         }
       }
