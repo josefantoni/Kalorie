@@ -34,6 +34,7 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 - Favourites and your own composed meals, searchable and loggable like any other food
 - Customisable meal windows with drag-to-reorder; entries can be moved between meals, and a logged meal can be copied to another window or day
 - Millilitre foods next to gram foods
+- Body weight: one entry per day, shown next to the calorie pie on the Dashboard, with a history screen; kg or lb, and the circle can be hidden in Settings
 - Report incorrect catalogue data, send feedback by mail from Settings
 - A hint on alcoholic drinks that their nutrition values are less reliable
 - Export logged food to PDF or Excel
