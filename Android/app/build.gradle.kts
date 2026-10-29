@@ -5,6 +5,7 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("org.jlleitschuh.gradle.ktlint")
+    id("androidx.baselineprofile")
 }
 
 android {
@@ -63,6 +64,8 @@ android {
 }
 
 dependencies {
+    baselineProfile(project(":baselineprofile"))
+    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
     implementation("kalorie:MacroKit")
     implementation("kalorie:MealKit")
     implementation("kalorie:TextKit")

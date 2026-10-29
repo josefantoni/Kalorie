@@ -40,3 +40,4 @@ includeBuild("../ExportKit") {
 }
 
 include(":app")
+include(":baselineprofile")
