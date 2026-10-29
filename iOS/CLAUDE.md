@@ -262,7 +262,7 @@ The deployment target is iOS 26 — use Liquid Glass without `@available` condit
 - No `.buttonStyle(.glassProminent)` on the FAB — it adds its own inner padding and the circle grows
 - To centre, omit `HStack { Spacer(); ... }` — `safeAreaInset` centres content by default
 - To align bottom-right: `HStack { Spacer(); Button; ... }` with `.padding(.trailing, 20)`
-- Never use `BaseImage` at a large size (`.extraLarge` = 60 pt) in a toolbar
+- Never use `BaseImage` at a large size (`Constants.ImageSize.extraLarge` = 60 pt) in a toolbar
 
 **Text buttons** — a full-width primary action (Export, Create, Delete) is `PrimaryButton` (`Components/PrimaryButton.swift`): `PrimaryButton(title, style: .primary | .destructive) { … }`. It is a 56 pt Liquid Glass capsule, bold white text, tinted with the accent (`.primary`) or `Color.error` (`.destructive`). Never rebuild it with `.glassProminent`, `.controlSize(.large)` or a hand-made `.background(...)` at the call site. A secondary action stays `.buttonStyle(.glass)`; `borderedProminent` is not used for new buttons. Android has the same component and styles ([Android/CLAUDE.md](../Android/CLAUDE.md)).
 

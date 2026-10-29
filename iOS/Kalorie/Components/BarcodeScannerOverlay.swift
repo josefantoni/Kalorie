@@ -25,7 +25,7 @@ struct BarcodeScannerOverlay: View {
             VStack {
                 HStack {
                     Spacer()
-                    BaseButton(style: .plain, imageName: .close, imageSize: .medium, imageWeight: .regular) {
+                    BaseButton(style: .plain, imageName: .close, imageSize: Constants.ImageSize.medium, imageWeight: .regular) {
                         onClose()
                     }
                     .foregroundStyle(.white)
