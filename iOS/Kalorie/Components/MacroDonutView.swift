@@ -78,7 +78,7 @@ struct MacroDonutView: View {
                 )
                 context.draw(
                     Text(Double(pct) / 100, format: .percent.precision(.fractionLength(0)))
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: (outerRadius - innerRadius) / 3, weight: .bold))
                         .foregroundStyle(.white),
                     at: textCenter
                 )
