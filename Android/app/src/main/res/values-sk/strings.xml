@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="account_alert_deleteConfirmMessage">Túto akciu nie je možné vrátiť späť. Všetky tvoje dáta budú natrvalo zmazané.</string>
-    <string name="account_alert_deleteConfirmTitle">Naozaj zmazať účet?</string>
+    <string name="account_alert_deleteConfirmTitle">Naozaj chceš zmazať účet?</string>
     <string name="account_alert_linkSuccessApple">Teraz sa môžeš prihlasovať aj cez Apple ID</string>
     <string name="account_alert_linkSuccessGoogle">Teraz sa môžeš prihlasovať aj cez Google</string>
     <string name="account_alert_reauthenticateTitle">Vyžaduje sa prihlásenie</string>
-    <string name="account_alert_signOutConfirmTitle">Naozaj sa odhlásiť?</string>
+    <string name="account_alert_signOutConfirmTitle">Chceš sa odhlásiť?</string>
     <string name="account_anonymous_description">Nie si prihlásený/á. Dáta sú viazané na toto zariadenie — pri jeho výmene o ne môžeš prísť.</string>
     <string name="account_button_deleteAccount">Zmazať účet</string>
     <string name="account_button_linkWithApple">Prepojiť s Apple ID</string>
@@ -42,8 +42,8 @@
     <string name="addFood_button_openSettings">Otvoriť Nastavenia</string>
     <string name="addFood_button_scanNutritionLabel">Odfotiť nutričnú tabuľku</string>
     <string name="addFood_camera_permissionAlert">Povoľ v nastaveniach fotoaparát, bez neho nevieme skenovať čiarový kód. 🙁</string>
-    <string name="addFood_confirm_missingBarcode">K jedlu nemáte priradený čiarový kód. Naozaj chcete pokračovať?</string>
-    <string name="addFood_confirm_withdrawSubmission">Zrušiť túto položku na schválenie? Prídeš tým aj o dôvod zamietnutia.</string>
+    <string name="addFood_confirm_missingBarcode">K jedlu nemáš priradený čiarový kód. Naozaj chceš pokračovať?</string>
+    <string name="addFood_confirm_withdrawSubmission">Chceš zrušiť túto položku na schválenie? Prídeš tým aj o dôvod zamietnutia.</string>
     <string name="addFood_error_barcodeNotFound">Potravina s týmto čiarovým kódom sa nenašla</string>
     <string name="addFood_error_favouriteFailed">Obľúbenú položku sa nepodarilo uložiť</string>
     <string name="addFood_error_invalidAlcoholByVolume">Neplatný obsah alkoholu</string>
@@ -126,7 +126,7 @@
     <string name="common_unit_millilitres">ml</string>
     <string name="dashboard_button_copy">Kopírovať jedlo</string>
     <string name="dashboard_button_settings">nastavenia</string>
-    <string name="dashboard_confirm_deleteFood">Zmazať tento záznam jedla?</string>
+    <string name="dashboard_confirm_deleteFood">Chceš zmazať tento záznam jedla?</string>
     <string name="dashboard_copy_button">Kopírovať</string>
     <string name="dashboard_copy_day">Deň</string>
     <string name="dashboard_copy_meal">Jedlo</string>
@@ -248,9 +248,9 @@
     <string name="myCreatedMeal_button_delete">Zmazať jedlo</string>
     <string name="myCreatedMeal_button_edit">Upraviť jedlo</string>
     <string name="myCreatedMeal_button_save">Uložiť</string>
-    <string name="myCreatedMeal_confirm_create">Vytvoriť toto jedlo?</string>
-    <string name="myCreatedMeal_confirm_delete">Zmazať toto jedlo?</string>
-    <string name="myCreatedMeal_confirm_update">Uložiť zmeny?</string>
+    <string name="myCreatedMeal_confirm_create">Chceš vytvoriť toto jedlo?</string>
+    <string name="myCreatedMeal_confirm_delete">Chceš zmazať toto jedlo?</string>
+    <string name="myCreatedMeal_confirm_update">Chceš uložiť tieto zmeny?</string>
     <string name="myCreatedMeal_error_deleteFailed">Jedlo sa nepodarilo zmazať</string>
     <string name="myCreatedMeal_error_saveFailed">Jedlo sa nepodarilo uložiť</string>
     <string name="myCreatedMeal_field_name_placeholder">Domáca tortilla</string>
@@ -305,7 +305,7 @@
     <string name="updateRequired_button">Aktualizovať</string>
     <string name="updateRequired_message">Táto verzia aplikácie už nie je podporovaná. Ak chceš pokračovať, nainštaluj si, prosím, aktualizáciu z obchodu.</string>
     <string name="updateRequired_title">Je potrebná aktualizácia</string>
-    <string name="weightHistory_confirm_delete">Zmazať tento záznam hmotnosti?</string>
+    <string name="weightHistory_confirm_delete">Chceš zmazať tento záznam hmotnosti?</string>
     <string name="weightHistory_empty_message">Hmotnosť zapíšete tlačidlom + pri kruhu vedľa grafu kalórií na prehľade.</string>
     <string name="weightHistory_empty_title">Zatiaľ žiadne záznamy hmotnosti</string>
     <string name="weightHistory_error_deleteFailed">Záznam sa nepodarilo zmazať</string>
