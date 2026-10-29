@@ -349,7 +349,7 @@ struct AddFoodSheetView: View {
 
     private var promptIcon: some View {
         Image(systemName: BaseImageName.camera.rawValue)
-            .font(.system(size: .extraLarge))
+            .font(.system(size: Constants.ImageSize.extraLarge))
             .foregroundStyle(.secondary)
     }
 

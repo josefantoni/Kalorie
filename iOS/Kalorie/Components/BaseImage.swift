@@ -20,7 +20,7 @@ struct BaseImage: View {
 
     init(
         imageName: BaseImageName,
-        imageSize: CGFloat = .basic,
+        imageSize: CGFloat = Constants.ImageSize.basic,
         imageWeight: Font.Weight = .thin
     ) {
         self.imageName = imageName
@@ -41,6 +41,6 @@ struct BaseImage: View {
 // MARK: - Preview
 
 #Preview {
-    BaseImage(imageName: .plusCircle, imageSize: .extraLarge)
+    BaseImage(imageName: .plusCircle, imageSize: Constants.ImageSize.extraLarge)
 }
 #endif

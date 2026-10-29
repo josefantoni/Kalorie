@@ -98,6 +98,12 @@ enum Constants {
         static let frequencyEntryLimit = 300
     }
 
+    enum ImageSize {
+        static let basic: CGFloat = 20
+        static let medium: CGFloat = 30
+        static let extraLarge: CGFloat = 60
+    }
+
     enum BodyWeight {
         static let defaultKilograms = 70.0
         static let kilogramsPerPound = 0.45359237

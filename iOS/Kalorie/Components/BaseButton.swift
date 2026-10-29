@@ -27,7 +27,7 @@ struct BaseButton: View {
     init(
         style: BaseButtonStyle,
         imageName: BaseImageName,
-        imageSize: CGFloat = .basic,
+        imageSize: CGFloat = Constants.ImageSize.basic,
         imageWeight: Font.Weight = .thin,
         action: @escaping () -> Void
     ) {
