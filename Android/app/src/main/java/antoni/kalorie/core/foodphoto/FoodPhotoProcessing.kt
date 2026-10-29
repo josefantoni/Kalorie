@@ -3,6 +3,7 @@ package antoni.kalorie.core.foodphoto
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -36,7 +37,7 @@ object FoodPhotoProcessing {
             true,
         )
         val target = min(side, MAX_SIDE)
-        val scaled = if (target == side) square else Bitmap.createScaledBitmap(square, target, target, true)
+        val scaled = if (target == side) square else square.scale(target, target)
         val output = ByteArrayOutputStream()
         if (!scaled.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, output)) throw FoodPhotoProcessingError.EncodingFailed
         return output.toByteArray()
