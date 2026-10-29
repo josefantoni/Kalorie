@@ -5,9 +5,9 @@
     "sk": "Túto akciu nie je možné vrátiť späť. Všetky tvoje dáta budú natrvalo zmazané."
   },
   "account_alert_deleteConfirmTitle": {
-    "cs": "Opravdu smazat účet?",
+    "cs": "Opravdu chceš smazat účet?",
     "en": "Delete account?",
-    "sk": "Naozaj zmazať účet?"
+    "sk": "Naozaj chceš zmazať účet?"
   },
   "account_alert_linkSuccessApple": {
     "cs": "Nyní se můžeš přihlašovat i přes Apple ID",
@@ -40,9 +40,9 @@
     "sk": "Vyžaduje sa prihlásenie"
   },
   "account_alert_signOutConfirmTitle": {
-    "cs": "Opravdu se odhlásit?",
+    "cs": "Chceš se odhlásit?",
     "en": "Sign out?",
-    "sk": "Naozaj sa odhlásiť?"
+    "sk": "Chceš sa odhlásiť?"
   },
   "account_anonymous_description": {
     "cs": "Nejsi přihlášen/a. Data jsou vázaná na toto zařízení — při jeho výměně o ně můžeš přijít.",
@@ -210,14 +210,14 @@
     "sk": "Povoľ v nastaveniach fotoaparát, bez neho nevieme skenovať čiarový kód. 🙁"
   },
   "addFood_confirm_missingBarcode": {
-    "cs": "K jídlu nemáte přiřazený čárový kód. Opravdu chcete pokračovat?",
+    "cs": "K jídlu nemáš přiřazený čárový kód. Opravdu chceš pokračovat?",
     "en": "This food has no barcode assigned. Do you really want to continue?",
-    "sk": "K jedlu nemáte priradený čiarový kód. Naozaj chcete pokračovať?"
+    "sk": "K jedlu nemáš priradený čiarový kód. Naozaj chceš pokračovať?"
   },
   "addFood_confirm_withdrawSubmission": {
-    "cs": "Zrušit tuto položku ke schválení? Přijdeš tím i o důvod zamítnutí.",
+    "cs": "Chceš zrušit tuto položku ke schválení? Přijdeš tím i o důvod zamítnutí.",
     "en": "Withdraw this submission? You will also lose the rejection reason.",
-    "sk": "Zrušiť túto položku na schválenie? Prídeš tým aj o dôvod zamietnutia."
+    "sk": "Chceš zrušiť túto položku na schválenie? Prídeš tým aj o dôvod zamietnutia."
   },
   "addFood_error_barcodeNotFound": {
     "cs": "Potravina s tímto čárovým kódem nebyla nalezena",
@@ -630,9 +630,9 @@
     "sk": "nastavenia"
   },
   "dashboard_confirm_deleteFood": {
-    "cs": "Smazat tento záznam jídla?",
+    "cs": "Chceš smazat tento záznam jídla?",
     "en": "Delete this food entry?",
-    "sk": "Zmazať tento záznam jedla?"
+    "sk": "Chceš zmazať tento záznam jedla?"
   },
   "dashboard_copy_button": {
     "cs": "Kopírovat",
@@ -1205,19 +1205,19 @@
     "sk": "Uložiť"
   },
   "myCreatedMeal_confirm_create": {
-    "cs": "Vytvořit toto jídlo?",
+    "cs": "Chceš vytvořit toto jídlo?",
     "en": "Create this meal?",
-    "sk": "Vytvoriť toto jedlo?"
+    "sk": "Chceš vytvoriť toto jedlo?"
   },
   "myCreatedMeal_confirm_delete": {
-    "cs": "Smazat toto jídlo?",
+    "cs": "Chceš smazat toto jídlo?",
     "en": "Delete this meal?",
-    "sk": "Zmazať toto jedlo?"
+    "sk": "Chceš zmazať toto jedlo?"
   },
   "myCreatedMeal_confirm_update": {
-    "cs": "Uložit změny?",
+    "cs": "Chceš uložit tyto změny?",
     "en": "Save changes?",
-    "sk": "Uložiť zmeny?"
+    "sk": "Chceš uložiť tieto zmeny?"
   },
   "myCreatedMeal_error_deleteFailed": {
     "cs": "Jídlo se nepodařilo smazat",
@@ -1525,9 +1525,9 @@
     "sk": "Rok"
   },
   "weightHistory_confirm_delete": {
-    "cs": "Smazat tento záznam váhy?",
+    "cs": "Chceš smazat tento záznam váhy?",
     "en": "Delete this weight entry?",
-    "sk": "Zmazať tento záznam hmotnosti?"
+    "sk": "Chceš zmazať tento záznam hmotnosti?"
   },
   "weightHistory_error_loadFailed": {
     "cs": "Historii váhy se nepodařilo načíst",
