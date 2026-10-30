@@ -44,6 +44,8 @@
     <string name="addFood_camera_permissionAlert">Please enable camera access in settings to scan barcodes. 🙁</string>
     <string name="addFood_confirm_missingBarcode">This food has no barcode assigned. Do you really want to continue?</string>
     <string name="addFood_confirm_withdrawSubmission">Withdraw this submission? You will also lose the rejection reason.</string>
+    <string name="addFood_contributionHint_hide">Hide</string>
+    <string name="addFood_contributionHint_message">Can\'t find a food? Add it. People like you help us make our catalogue better.</string>
     <string name="addFood_error_barcodeNotFound">No food found for this barcode</string>
     <string name="addFood_error_favouriteFailed">Could not save favourite</string>
     <string name="addFood_error_invalidAlcoholByVolume">Invalid alcohol by volume</string>

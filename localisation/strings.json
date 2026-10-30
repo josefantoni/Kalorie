@@ -464,6 +464,16 @@
     "en": "Online results",
     "sk": "Online výsledky"
   },
+  "addFood_contributionHint_message": {
+    "cs": "Chybí ti potravina? Přidej ji. Lidé jako ty nám pomáhají zkvalitňovat náš katalog.",
+    "en": "Can't find a food? Add it. People like you help us make our catalogue better.",
+    "sk": "Chýba ti potravina? Pridaj ju. Ľudia ako ty nám pomáhajú zlepšovať náš katalóg."
+  },
+  "addFood_contributionHint_hide": {
+    "cs": "Skrýt",
+    "en": "Hide",
+    "sk": "Skryť"
+  },
   "addFood_section_favourites": {
     "cs": "Oblíbené",
     "en": "Favourites",
