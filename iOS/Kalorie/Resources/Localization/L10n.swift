@@ -148,6 +148,8 @@ enum L10n {
         static var sectionSearchResults: String { String(localized: "addFood_section_searchResults") }
         static var sectionExternalResults: String { String(localized: "addFood_section_externalResults") }
         static var sectionFavourites: String { String(localized: "addFood_section_favourites") }
+        static var contributionHintMessage: String { String(localized: "addFood_contributionHint_message") }
+        static var contributionHintHide: String { String(localized: "addFood_contributionHint_hide") }
         static var sectionMyCreatedMeals: String { String(localized: "addFood_section_myCreatedMeals") }
         static var fieldBarcodeTitle: String { String(localized: "addFood_field_barcode_title") }
         static var fieldNameTitle: String { String(localized: "addFood_field_name_title") }
