@@ -46,6 +46,15 @@ final class FetchFoodByBarcodeExternallyUseCaseTests: XCTestCase {
         XCTAssertNil(result)
     }
 
+    func test_fetchByBarcode_with404AndProductNotFoundBody_returnsNil() async throws {
+        let sut = makeSUT()
+        URLProtocolStub.stubbedResponseQueue = [(try makeResponse(statusCode: 404), makeBarcodeResponseData(status: 0))]
+
+        let item = try await sut(barcode: "8595688402625")
+
+        XCTAssertNil(item, "OpenFoodFacts answers 404 for an unknown barcode; it must not surface as a load failure")
+    }
+
     func test_fetchByBarcode_setsUserAgentHeader() async throws {
         let sut = makeSUT()
         URLProtocolStub.stubbedResponseQueue = [(try makeResponse(statusCode: 200), makeBarcodeResponseData(status: 1))]
