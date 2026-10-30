@@ -36,6 +36,8 @@ class FetchFoodByBarcodeExternallyUseCase(
             timeoutMillis = Constants.OpenFoodFacts.REQUEST_TIMEOUT_MILLIS,
         )
         val response = OpenFoodFactsTransientRequest.data(request, session, retryDelay)
+        // A well-formed barcode OpenFoodFacts does not know comes back as 404 with {"status":0}, not as 200.
+        if (response.statusCode == 404 && runCatching { json.decodeFromString<OpenFoodFactsBarcodeResponseDTO>(response.body) }.getOrNull()?.status == 0) return null
         if (response.statusCode !in 200..299) throw FetchFoodByBarcodeExternallyError.ServerError(response.statusCode)
         val decoded = json.decodeFromString<OpenFoodFactsBarcodeResponseDTO>(response.body)
         val product = decoded.product
