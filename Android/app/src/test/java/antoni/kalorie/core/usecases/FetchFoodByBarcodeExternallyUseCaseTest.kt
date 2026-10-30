@@ -49,6 +49,16 @@ class FetchFoodByBarcodeExternallyUseCaseTest {
     }
 
     @Test
+    fun fetchByBarcode_with404AndProductNotFoundBody_returnsNil() = runTest {
+        val (sut, session) = makeSUT()
+        session.stubbedResults = listOf(Result.success(HttpResponse(makeBarcodeResponseBody(status = 0), 404)))
+
+        val result = sut("8595688402625")
+
+        assertNull(result)
+    }
+
+    @Test
     fun fetchByBarcode_setsUserAgentHeader() = runTest {
         val (sut, session) = makeSUT()
         session.stubbedResults = listOf(Result.success(HttpResponse(makeBarcodeResponseBody(status = 1), 200)))
