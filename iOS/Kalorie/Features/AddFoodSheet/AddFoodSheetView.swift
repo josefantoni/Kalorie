@@ -200,6 +200,19 @@ struct AddFoodSheetView: View {
                 )
                 .listRowInsets(.vertical, 0)
             }
+            if viewModel.searchText.isEmpty && viewModel.isContributionHintVisible {
+                Section {
+                    HintCard(
+                        message: L10n.AddFood.contributionHintMessage,
+                        actionTitle: L10n.AddFood.contributionHintHide,
+                        onTap: { viewModel.onContributionHintTapped() },
+                        onAction: { viewModel.onContributionHintHidden() }
+                    )
+                    .listRowInsets(EdgeInsets())
+                }
+                .listRowBackground(Color.clear)
+                .listSectionSpacing(.custom(16))
+            }
             if viewModel.searchText.isEmpty && !viewModel.favouriteFoods.isEmpty {
                 Section(header: Text(L10n.AddFood.sectionFavourites)) {
                     ForEach(viewModel.favouriteFoods, id: \.id) { item in
@@ -437,7 +450,8 @@ struct AddFoodSheetView: View {
             fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseFake(),
             deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseFake(),
             modelExtractor: NutritionLabelModelExtractorFake(),
-            cameraAuthorizationProvider: CameraAuthorizationProviderFake()
+            cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
+            contributionHintStore: ContributionHintStoreFake()
         ),
         makeFoodQuantityView: { item, isFavourite, meal, onSaved, onFavouriteChanged, onMealUpdated in
             FoodQuantityView(

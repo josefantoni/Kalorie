@@ -22,6 +22,11 @@ enum Constants {
         static let maintainerClaim = "maintainer"
     }
 
+    enum AddFood {
+        static let contributionHintHiddenAtKey = "contributionHintHiddenAt"
+        static let contributionHintHideCountKey = "contributionHintHideCount"
+    }
+
     enum OpenFoodFacts {
         static let host = "world.openfoodfacts.org"
         static let baseURL = URL(string: "https://\(host)")

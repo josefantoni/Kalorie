@@ -856,6 +856,90 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(sut.myCreatedMeals.map(\.id), ["new-meal"], "a meal just composed must be loggable without reopening the sheet")
     }
 
+    @MainActor
+    func test_init_whenNeverHidden_showsContributionHint() {
+        let sut = makeSUT(contributionHintStore: ContributionHintStoreFake(hiddenAt: nil))
+
+        XCTAssertTrue(sut.isContributionHintVisible, "a user who never hid the card must be told they can add a food")
+    }
+
+    @MainActor
+    func test_init_whenHiddenOnceLessThanThreeDaysAgo_hidesContributionHint() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-(3 * 24 * 60 * 60 - 60 * 60)), hideCount: 1)
+        let sut = makeSUT(contributionHintStore: store, now: now)
+
+        XCTAssertFalse(sut.isContributionHintVisible, "a card hidden 2 days 23 h ago must stay hidden, or Hide would be pointless")
+    }
+
+    @MainActor
+    func test_init_whenHiddenOnceThreeDaysAgo_showsContributionHint() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-3 * 24 * 60 * 60), hideCount: 1)
+        let sut = makeSUT(contributionHintStore: store, now: now)
+
+        XCTAssertTrue(sut.isContributionHintVisible, "the first reminder comes back after 3 days, and the boundary is inclusive")
+    }
+
+    @MainActor
+    func test_init_whenHiddenTwiceFourDaysAgo_hidesContributionHint() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-4 * 24 * 60 * 60), hideCount: 2)
+        let sut = makeSUT(contributionHintStore: store, now: now)
+
+        XCTAssertFalse(sut.isContributionHintVisible, "each dismissal must push the next reminder further out: the second one waits 5 days")
+    }
+
+    @MainActor
+    func test_init_whenHiddenTwiceFiveDaysAgo_showsContributionHint() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-5 * 24 * 60 * 60), hideCount: 2)
+        let sut = makeSUT(contributionHintStore: store, now: now)
+
+        XCTAssertTrue(sut.isContributionHintVisible)
+    }
+
+    @MainActor
+    func test_init_whenHiddenManyTimes_capsTheIntervalAtThirtyDays() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let almost = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-29 * 24 * 60 * 60), hideCount: 12)
+        let enough = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-30 * 24 * 60 * 60), hideCount: 12)
+
+        XCTAssertFalse(makeSUT(contributionHintStore: almost, now: now).isContributionHintVisible)
+        XCTAssertTrue(makeSUT(contributionHintStore: enough, now: now).isContributionHintVisible, "a monthly reminder is the intended floor, so the wait never grows past 30 days")
+    }
+
+    @MainActor
+    func test_init_whenHiddenBeforeTheCountWasStored_treatsItAsTheFirstHide() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-3 * 24 * 60 * 60), hideCount: 0)
+        let sut = makeSUT(contributionHintStore: store, now: now)
+
+        XCTAssertTrue(sut.isContributionHintVisible, "a timestamp without a count must not crash or wait longer than the first interval")
+    }
+
+    @MainActor
+    func test_onContributionHintHidden_storesNowAndCountsTheHide() {
+        let store = ContributionHintStoreFake(hideCount: 2)
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let sut = makeSUT(contributionHintStore: store, now: now)
+
+        sut.onContributionHintHidden()
+
+        XCTAssertFalse(sut.isContributionHintVisible)
+        XCTAssertEqual(store.hiddenAt, now, "the timestamp is what makes the card return")
+        XCTAssertEqual(store.hideCount, 3, "the count is what stretches the wait to the next Fibonacci step")
+    }
+
+    @MainActor
+    func test_onContributionHintTapped_switchesToNewItemMode() {
+        let sut = makeSUT()
+
+        sut.onContributionHintTapped()
+
+        XCTAssertEqual(sut.mode, .newItem, "tapping the card must do exactly what the New item segment does")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
@@ -874,6 +958,8 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         fetchFoodFrequency: any FetchFoodFrequencyUseCaseProtocol = FetchFoodFrequencyUseCaseFake(),
         modelExtractor: any NutritionLabelModelExtractorProtocol = NutritionLabelModelExtractorFake(),
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake(),
+        contributionHintStore: any ContributionHintStoreProtocol = ContributionHintStoreFake(),
+        now: Date = Date(timeIntervalSince1970: 1_800_000_000),
         isScannerVisible: Bool = false
     ) -> AddFoodSheetViewModel {
         AddFoodSheetViewModel(
@@ -892,6 +978,8 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             deleteMyCreatedMeal: deleteMyCreatedMeal,
             modelExtractor: modelExtractor,
             cameraAuthorizationProvider: cameraAuthorizationProvider,
+            contributionHintStore: contributionHintStore,
+            now: { now },
             isScannerVisible: isScannerVisible
         )
     }
