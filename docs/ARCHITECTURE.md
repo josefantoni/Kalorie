@@ -742,6 +742,9 @@ same products and receive the same fields:
 - **Barcode:** `GET /api/v2/product/<barcode>?fields=<fields>`, the barcode percent-encoded as a
   path segment; an empty barcode returns "not found" without a request. The response is used only
   when `status == 1` **and** `product` is present — any other `status` is "not found", not an error.
+  A well-formed barcode OpenFoodFacts does not know is answered with **HTTP 404** and the body
+  `{"status":0,"status_verbose":"product not found"}`, not with 200; a 404 whose body decodes with
+  `status == 0` is "not found" too. Any other non-2xx is `.serverError`, below.
 - **`fields`**, identical on both calls: `code,product_name,product_name_cs,product_name_en,nutriments`.
   Anything outside that list is never requested, so a field a mapping starts to need must be added
   here on both calls.
@@ -763,7 +766,7 @@ Each request carries a `User-Agent` (`Constants.OpenFoodFacts.userAgent`, `Kalor
 version>`) and a `Constants.OpenFoodFacts.requestTimeout` of 10 s rather than the default
 60 — OpenFoodFacts' terms require an identifying client and rate-limit anonymous ones harder, and
 a hanging request must not block the search spinner for a minute. The HTTP status is checked
-before decoding: a non-2xx response throws `.serverError(statusCode:)` instead of falling into
+before decoding: a non-2xx response (bar the 404 "product not found" above) throws `.serverError(statusCode:)` instead of falling into
 `JSONDecoder` and surfacing as a generic decode failure indistinguishable from "no such product"
 — finding **A2-5**, fixed. A 429 or 5xx is now retried, through the shared
 `OpenFoodFactsTransientRequest.data(for:session:retryDelay:)`, up to
