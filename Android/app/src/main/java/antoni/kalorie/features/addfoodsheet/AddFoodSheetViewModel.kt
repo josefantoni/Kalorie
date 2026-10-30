@@ -41,12 +41,16 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Duration
+import java.time.Instant
 
 enum class AddFoodSheetMode(@StringRes val titleRes: Int) {
     SEARCH(R.string.addFood_mode_search),
     NEW_ITEM(R.string.addFood_mode_newItem),
     CREATE_MEAL(R.string.addFood_mode_createMeal),
 }
+
+private val CONTRIBUTION_HINT_HIDE_DAYS = listOf(3L, 5L, 8L, 13L, 21L, 30L)
 
 class AddFoodSheetViewModel(
     private val searchFoodItems: SearchFoodItemsUseCaseProtocol,
@@ -62,6 +66,8 @@ class AddFoodSheetViewModel(
     private val fetchFoodFrequency: FetchFoodFrequencyUseCaseProtocol,
     private val fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol,
     private val deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol,
+    private val contributionHintStore: ContributionHintStoreProtocol,
+    private val now: () -> Instant = { Instant.now() },
     private val onFoodSaved: () -> Unit = {},
     isScannerVisible: Boolean = false,
 ) : ViewModel(),
@@ -98,6 +104,8 @@ class AddFoodSheetViewModel(
     val rejectionReasonBeingEdited: StateFlow<String?> = _rejectionReasonBeingEdited
     val isSubmissionDeleteConfirmationVisible = MutableStateFlow(false)
     val isMissingBarcodeConfirmationVisible = MutableStateFlow(false)
+    private val _isContributionHintVisible = MutableStateFlow(contributionHintStore.hiddenAt.let { it == null || Duration.between(it, now()) >= Duration.ofDays(CONTRIBUTION_HINT_HIDE_DAYS[minOf(maxOf(contributionHintStore.hideCount, 1), CONTRIBUTION_HINT_HIDE_DAYS.size) - 1]) })
+    val isContributionHintVisible: StateFlow<Boolean> = _isContributionHintVisible
     val isBarcodeRescanVisible = MutableStateFlow(false)
     val rescannedBarcode = MutableStateFlow("")
     private var editingSubmissionId: String? = null
@@ -144,6 +152,16 @@ class AddFoodSheetViewModel(
         }
 
     // MARK: - Functions
+
+    fun onContributionHintHidden() {
+        contributionHintStore.hiddenAt = now()
+        contributionHintStore.hideCount += 1
+        _isContributionHintVisible.value = false
+    }
+
+    fun onContributionHintTapped() {
+        onModeSelected(AddFoodSheetMode.NEW_ITEM)
+    }
 
     fun onScannerButtonTapped() {
         _mode.value = AddFoodSheetMode.SEARCH

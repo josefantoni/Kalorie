@@ -52,6 +52,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 
+private const val DAY = 24 * 60 * 60L
+
 class AddFoodSheetViewModelTest {
 
     @Test
@@ -1181,6 +1183,7 @@ class AddFoodSheetViewModelTest {
             fetchFoodFrequency = FetchFoodFrequencyUseCaseFake(),
             fetchMyCreatedMeals = FetchMyCreatedMealsUseCaseFake(),
             deleteMyCreatedMeal = DeleteMyCreatedMealUseCaseFake(),
+            contributionHintStore = ContributionHintStoreFake(),
             onFoodSaved = { onFoodSavedCalled = true },
         )
 
@@ -1188,6 +1191,90 @@ class AddFoodSheetViewModelTest {
 
         assertTrue(onFoodSavedCalled)
         assertTrue(sut.shouldDismiss.value)
+    }
+
+    @Test
+    fun init_whenNeverHidden_showsContributionHint() {
+        val sut = makeSUT(contributionHintStore = ContributionHintStoreFake(hiddenAt = null))
+
+        assertTrue("a user who never hid the card must be told they can add a food", sut.isContributionHintVisible.value)
+    }
+
+    @Test
+    fun init_whenHiddenOnceLessThanThreeDaysAgo_hidesContributionHint() {
+        val now = Instant.ofEpochSecond(1_800_000_000)
+        val store = ContributionHintStoreFake(hiddenAt = now.minusSeconds(3 * DAY - 60 * 60), hideCount = 1)
+        val sut = makeSUT(contributionHintStore = store, now = now)
+
+        assertFalse("a card hidden 2 days 23 h ago must stay hidden, or Hide would be pointless", sut.isContributionHintVisible.value)
+    }
+
+    @Test
+    fun init_whenHiddenOnceThreeDaysAgo_showsContributionHint() {
+        val now = Instant.ofEpochSecond(1_800_000_000)
+        val store = ContributionHintStoreFake(hiddenAt = now.minusSeconds(3 * DAY), hideCount = 1)
+        val sut = makeSUT(contributionHintStore = store, now = now)
+
+        assertTrue("the first reminder comes back after 3 days, and the boundary is inclusive", sut.isContributionHintVisible.value)
+    }
+
+    @Test
+    fun init_whenHiddenTwiceFourDaysAgo_hidesContributionHint() {
+        val now = Instant.ofEpochSecond(1_800_000_000)
+        val store = ContributionHintStoreFake(hiddenAt = now.minusSeconds(4 * DAY), hideCount = 2)
+        val sut = makeSUT(contributionHintStore = store, now = now)
+
+        assertFalse("each dismissal must push the next reminder further out: the second one waits 5 days", sut.isContributionHintVisible.value)
+    }
+
+    @Test
+    fun init_whenHiddenTwiceFiveDaysAgo_showsContributionHint() {
+        val now = Instant.ofEpochSecond(1_800_000_000)
+        val store = ContributionHintStoreFake(hiddenAt = now.minusSeconds(5 * DAY), hideCount = 2)
+        val sut = makeSUT(contributionHintStore = store, now = now)
+
+        assertTrue(sut.isContributionHintVisible.value)
+    }
+
+    @Test
+    fun init_whenHiddenManyTimes_capsTheIntervalAtThirtyDays() {
+        val now = Instant.ofEpochSecond(1_800_000_000)
+        val almost = ContributionHintStoreFake(hiddenAt = now.minusSeconds(29 * DAY), hideCount = 12)
+        val enough = ContributionHintStoreFake(hiddenAt = now.minusSeconds(30 * DAY), hideCount = 12)
+
+        assertFalse(makeSUT(contributionHintStore = almost, now = now).isContributionHintVisible.value)
+        assertTrue("a monthly reminder is the intended floor, so the wait never grows past 30 days", makeSUT(contributionHintStore = enough, now = now).isContributionHintVisible.value)
+    }
+
+    @Test
+    fun init_whenHiddenBeforeTheCountWasStored_treatsItAsTheFirstHide() {
+        val now = Instant.ofEpochSecond(1_800_000_000)
+        val store = ContributionHintStoreFake(hiddenAt = now.minusSeconds(3 * DAY), hideCount = 0)
+        val sut = makeSUT(contributionHintStore = store, now = now)
+
+        assertTrue("a timestamp without a count must not crash or wait longer than the first interval", sut.isContributionHintVisible.value)
+    }
+
+    @Test
+    fun onContributionHintHidden_storesNowAndCountsTheHide() {
+        val store = ContributionHintStoreFake(hideCount = 2)
+        val now = Instant.ofEpochSecond(1_800_000_000)
+        val sut = makeSUT(contributionHintStore = store, now = now)
+
+        sut.onContributionHintHidden()
+
+        assertFalse(sut.isContributionHintVisible.value)
+        assertEquals("the timestamp is what makes the card return", now, store.hiddenAt)
+        assertEquals("the count is what stretches the wait to the next Fibonacci step", 3, store.hideCount)
+    }
+
+    @Test
+    fun onContributionHintTapped_switchesToNewItemMode() {
+        val sut = makeSUT()
+
+        sut.onContributionHintTapped()
+
+        assertEquals("tapping the card must do exactly what the New item segment does", AddFoodSheetMode.NEW_ITEM, sut.mode.value)
     }
 
     // MARK: - Helpers
@@ -1206,6 +1293,8 @@ class AddFoodSheetViewModelTest {
         fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol = FetchMyCreatedMealsUseCaseFake(),
         deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol = DeleteMyCreatedMealUseCaseFake(),
         fetchFoodFrequency: FetchFoodFrequencyUseCaseProtocol = FetchFoodFrequencyUseCaseFake(),
+        contributionHintStore: ContributionHintStoreProtocol = ContributionHintStoreFake(),
+        now: Instant = Instant.ofEpochSecond(1_800_000_000),
         isScannerVisible: Boolean = false,
     ): AddFoodSheetViewModel = AddFoodSheetViewModel(
         searchFoodItems = searchFoodItems,
@@ -1221,6 +1310,8 @@ class AddFoodSheetViewModelTest {
         fetchFoodFrequency = fetchFoodFrequency,
         fetchMyCreatedMeals = fetchMyCreatedMeals,
         deleteMyCreatedMeal = deleteMyCreatedMeal,
+        contributionHintStore = contributionHintStore,
+        now = { now },
         isScannerVisible = isScannerVisible,
     )
 

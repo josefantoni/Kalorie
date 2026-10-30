@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import antoni.kalorie.components.tintedSurfaceColor
 import antoni.kalorie.core.extensions.scaledWithText
 import antoni.kalorie.core.utils.formatDateStyle
 import antoni.kalorie.core.utils.isSameDay
@@ -69,6 +70,7 @@ fun DayPickerView(
                 )
             },
         shape = RoundedCornerShape(16.dp),
+        color = tintedSurfaceColor(),
         tonalElevation = 3.dp,
         shadowElevation = 2.dp,
     ) {

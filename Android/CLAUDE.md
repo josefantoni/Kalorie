@@ -18,6 +18,12 @@ tell at rest that the row is clickable. Every row that pushes a screen or opens 
 trailing `Icons.AutoMirrored.Filled.KeyboardArrowRight` in `onSurfaceVariant`, even though the
 Swift code has no icon there. Check iOS for `NavigationLink`, not just for `chevron`.
 
+**Exception: tinted surfaces.** iOS draws the Dashboard's day strip as Liquid Glass, which Android does not
+have. Android's day strip and the contribution hint card use `tintedSurfaceColor()`
+(`components/TintedSurfaceColor.kt`) instead: Material's tonal surface in dark mode and the primary colour at
+20 % over white in light mode, so they read as faintly green. This is a deliberate difference, not a bug
+([design 0029](../docs/design/0029-catalogue-contribution-hint.md)).
+
 Before porting behaviour, read the `Cross-platform` and `Backend` records for that area. The
 *Read first:* line of each section in `docs/ARCHITECTURE.md` lists them. They are requirements
 here. `iOS`-scoped records are only precedent.

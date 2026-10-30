@@ -70,6 +70,12 @@ object Constants {
         }
     }
 
+    object AddFood {
+        const val CONTRIBUTION_HINT_PREFERENCES = "contributionHint"
+        const val CONTRIBUTION_HINT_HIDDEN_AT_KEY = "contributionHintHiddenAt"
+        const val CONTRIBUTION_HINT_HIDE_COUNT_KEY = "contributionHintHideCount"
+    }
+
     object OpenFoodFacts {
         const val HOST = "world.openfoodfacts.org"
         const val SEARCH_PAGE_SIZE = 20

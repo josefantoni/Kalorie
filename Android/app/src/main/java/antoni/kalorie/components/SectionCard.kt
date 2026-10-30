@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 val SectionRowMinHeight = 56.dp
@@ -18,11 +19,16 @@ val SectionRowMinHeight = 56.dp
 // MARK: - Body
 
 @Composable
-fun SectionCard(modifier: Modifier = Modifier, border: BorderStroke? = null, content: @Composable ColumnScope.() -> Unit) {
+fun SectionCard(
+    modifier: Modifier = Modifier,
+    border: BorderStroke? = null,
+    color: Color = MaterialTheme.colorScheme.surfaceContainer,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Surface(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        color = color,
         border = border,
     ) {
         Column(content = content)

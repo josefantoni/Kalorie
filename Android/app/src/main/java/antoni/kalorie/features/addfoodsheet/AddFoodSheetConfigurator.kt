@@ -55,6 +55,7 @@ class AddFoodSheetConfigurator(
     fun createView(date: Instant, mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onFoodSaved: () -> Unit = {}) {
         val context = LocalContext.current.applicationContext
         val stringProvider = remember { ContextStringProvider(context) }
+        val contributionHintStore = remember { ContributionHintStore(context) }
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             val storageProvider = StorageDataProvider()
             val uploadFoodPhoto = UploadFoodPhotoUseCase(storageProvider)
@@ -73,6 +74,7 @@ class AddFoodSheetConfigurator(
                 fetchFoodFrequency = FetchFoodFrequencyUseCase(dataProvider, authProvider),
                 fetchMyCreatedMeals = FetchMyCreatedMealsUseCase(dataProvider, authProvider),
                 deleteMyCreatedMeal = DeleteMyCreatedMealUseCase(dataProvider, authProvider),
+                contributionHintStore = contributionHintStore,
                 onFoodSaved = onFoodSaved,
             )
         }
