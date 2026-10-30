@@ -243,6 +243,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
 
     private var editingSubmissionId: String?
     private var isNutritionLabelCameraReviewPending = false
+    private var pendingScannerAlert: AlertItem?
     private var lastSearchedQuery: String?
     private var submissionPendingDeletion: FoodItemSubmissionDomain?
     private var mealPendingDeletion: MyCreatedMealDomain?
@@ -491,12 +492,22 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
             return
         } catch {
             Log.error(error, category: Constants.LogCategory.addFoodSheet)
-            isScannerVisible = false
-            alertItem = AlertItem(title: L10n.AddFood.errorLoadFailed)
+            dismissScanner(thenAlert: AlertItem(title: L10n.AddFood.errorLoadFailed))
             return
         }
+        dismissScanner(thenAlert: AlertItem(title: L10n.AddFood.errorBarcodeNotFound))
+    }
+
+    func onScannerDismissed() {
+        guard let alert = pendingScannerAlert else { return }
+        pendingScannerAlert = nil
+        alertItem = alert
+    }
+
+    // SwiftUI drops an alert presented while the scanner cover is still dismissing, so it waits for onScannerDismissed.
+    private func dismissScanner(thenAlert alert: AlertItem) {
+        pendingScannerAlert = alert
         isScannerVisible = false
-        alertItem = AlertItem(title: L10n.AddFood.errorBarcodeNotFound)
     }
 
     @MainActor
