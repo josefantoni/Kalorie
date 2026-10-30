@@ -44,6 +44,8 @@
     <string name="addFood_camera_permissionAlert">Povoľ v nastaveniach fotoaparát, bez neho nevieme skenovať čiarový kód. 🙁</string>
     <string name="addFood_confirm_missingBarcode">K jedlu nemáš priradený čiarový kód. Naozaj chceš pokračovať?</string>
     <string name="addFood_confirm_withdrawSubmission">Chceš zrušiť túto položku na schválenie? Prídeš tým aj o dôvod zamietnutia.</string>
+    <string name="addFood_contributionHint_hide">Skryť</string>
+    <string name="addFood_contributionHint_message">Chýba ti potravina? Pridaj ju. Ľudia ako ty nám pomáhajú zlepšovať náš katalóg.</string>
     <string name="addFood_error_barcodeNotFound">Potravina s týmto čiarovým kódom sa nenašla</string>
     <string name="addFood_error_favouriteFailed">Obľúbenú položku sa nepodarilo uložiť</string>
     <string name="addFood_error_invalidAlcoholByVolume">Neplatný obsah alkoholu</string>
