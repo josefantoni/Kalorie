@@ -584,6 +584,8 @@ list, and why an OpenFoodFacts item outside the catalogue is accepted),
 [design 0006](design/0006-own-daily-meals.md) (a created meal appearing in the same search),
 [design 0009](design/0009-catalogue-moderation.md) (the author's own pending/rejected submissions
 as a fourth such list — see § 7),
+[design 0029](design/0029-catalogue-contribution-hint.md) (the dismissible card inviting users to
+add a food they did not find — proposed),
 [ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) (which rules live
 in KMP and which are pinned by `fixtures/` — query derivation, the OpenFoodFacts mapping and food
 validation are here).
@@ -608,6 +610,12 @@ A fifth path exists that is not a search at all: the *add a new food* form, reac
 carrot button in the sheet's toolbar. It is the only writer to `foodItems`
 (`CreateFoodItemUseCase`), and its `scannedCode` field is typed by hand — the scanner does not
 populate it.
+
+[Design 0029](design/0029-catalogue-contribution-hint.md) (proposed) adds a second way into that
+form: with an empty search field, a card between the search field and *Favourites* invites the
+user to add a food they did not find, and tapping it switches to the *New item* segment. Its
+*Hide* button hides it for a growing time (3, 5, 8, 13, 21, then 30 days), stored per device (`ContributionHintStore`, the sign-in
+spotlight's pattern), never in Firestore.
 
 ### 2.2 Local search
 
