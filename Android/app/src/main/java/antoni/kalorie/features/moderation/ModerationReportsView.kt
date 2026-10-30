@@ -81,7 +81,7 @@ fun ModerationReportsView(
                 }
                 is ModerationReportsDestination.CatalogueEditor -> NavEntry(destination) {
                     makeCatalogueEditorView(destination.barcode, destination.reports) {
-                        viewModel.backStack.removeLastOrNull()
+                        viewModel.backStack.remove(destination)
                     }
                 }
             }

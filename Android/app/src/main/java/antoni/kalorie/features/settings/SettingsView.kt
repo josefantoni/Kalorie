@@ -151,16 +151,16 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                         )
                     }
                     is SettingsDestination.Export -> NavEntry(destination) {
-                        router.makeExportView(mealTypes = mealTypes, onBack = { viewModel.backStack.removeLastOrNull() })
+                        router.makeExportView(mealTypes = mealTypes, onBack = { viewModel.backStack.remove(destination) })
                     }
                     is SettingsDestination.Support -> NavEntry(destination) {
-                        router.makeSupportView(onBack = { viewModel.backStack.removeLastOrNull() })
+                        router.makeSupportView(onBack = { viewModel.backStack.remove(destination) })
                     }
                     is SettingsDestination.ModerationQueue -> NavEntry(destination) {
-                        router.makeModerationQueueView { viewModel.backStack.removeLastOrNull() }
+                        router.makeModerationQueueView { viewModel.backStack.remove(destination) }
                     }
                     is SettingsDestination.ModerationReports -> NavEntry(destination) {
-                        router.makeModerationReportsView { viewModel.backStack.removeLastOrNull() }
+                        router.makeModerationReportsView { viewModel.backStack.remove(destination) }
                     }
                 }
             },

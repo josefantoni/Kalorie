@@ -94,7 +94,7 @@ class DashboardConfigurator {
                         val appSettings by viewModel.appSettings.collectAsState()
                         router.makeBodyWeightHistoryView(
                             unit = appSettings.bodyWeightUnit,
-                            onBack = { viewModel.backStack.removeLastOrNull() },
+                            onBack = { viewModel.backStack.remove(destination) },
                             onChanged = { scope.launch { viewModel.onWeightsChanged() } },
                         )
                     }
@@ -102,7 +102,7 @@ class DashboardConfigurator {
                         router.makeFoodConsumedDetailView(
                             food = destination.food,
                             mealTypes = mealTypes,
-                            onBack = { viewModel.backStack.removeLastOrNull() },
+                            onBack = { viewModel.backStack.remove(destination) },
                             onFoodUpdated = { scope.launch { viewModel.onFoodConsumedUpdated() } },
                         )
                     }
