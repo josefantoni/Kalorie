@@ -59,6 +59,7 @@ import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
+import antoni.kalorie.components.HintCard
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
@@ -68,6 +69,7 @@ import antoni.kalorie.components.predictivePopTransitionSpec
 import antoni.kalorie.components.pushTransitionSpec
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.components.sheetScrollGuard
+import antoni.kalorie.components.tintedSurfaceColor
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
@@ -245,6 +247,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
     // MARK: - Properties
 
     val searchText by viewModel.searchText.collectAsState()
+    val isContributionHintVisible by viewModel.isContributionHintVisible.collectAsState()
     val localFoodItems by viewModel.localFoodItems.collectAsState()
     val favouriteFoods by viewModel.favouriteFoods.collectAsState()
     val favouriteIds by viewModel.favouriteIds.collectAsState()
@@ -312,6 +315,18 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                                 BadgeButton(icon = BarcodeIcon, onClick = scannerAccess.open, contentDescription = null)
                             },
                             modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+                if (searchText.isEmpty() && isContributionHintVisible) {
+                    item {
+                        HintCard(
+                            message = stringResource(R.string.addFood_contributionHint_message),
+                            actionTitle = stringResource(R.string.addFood_contributionHint_hide),
+                            onClick = viewModel::onContributionHintTapped,
+                            onAction = viewModel::onContributionHintHidden,
+                            modifier = Modifier.padding(top = 7.dp),
+                            color = tintedSurfaceColor(),
                         )
                     }
                 }
