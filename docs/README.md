@@ -216,6 +216,8 @@ understanding why.
 | [0025](design/0025-linking-a-second-sign-in-provider.md) | Linking a second sign-in provider to one account | Approved | Cross-platform, iOS, Android |
 | [0026](design/0026-minimum-supported-version.md) | Minimum supported version | Approved | Backend, Cross-platform, iOS, Android |
 | [0027](design/0027-slovak-localisation.md) | Slovak localisation | Proposed | Cross-platform |
+| [0028](design/0028-body-weight-tracking.md) | Body weight tracking | Proposed | Cross-platform |
+| [0029](design/0029-catalogue-contribution-hint.md) | Catalogue contribution hint | Draft | Cross-platform, iOS, Android |
 
 ### Decision records
 
