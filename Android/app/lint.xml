@@ -4,4 +4,8 @@
     <issue id="ComposableNaming" severity="ignore" />
     <!-- strings.xml is generated from localisation/strings.json, which is shared with iOS, so keys only iOS uses stay -->
     <issue id="UnusedResources" severity="ignore" />
+    <!-- localeConfig powers the per-app language setting on Android 13+; older versions ignore it -->
+    <issue id="UnusedAttribute">
+        <ignore path="src/main/AndroidManifest.xml" />
+    </issue>
 </lint>
