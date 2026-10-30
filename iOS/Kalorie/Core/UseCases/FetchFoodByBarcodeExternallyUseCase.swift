@@ -49,6 +49,14 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
         var request = URLRequest(url: url, timeoutInterval: Constants.OpenFoodFacts.requestTimeout)
         request.setValue(Constants.OpenFoodFacts.userAgent, forHTTPHeaderField: "User-Agent")
         let (data, statusCode) = try await OpenFoodFactsTransientRequest.data(for: request, session: session, retryDelay: retryDelay)
+        // A well-formed barcode OpenFoodFacts does not know comes back as 404 with {"status":0}, not as 200.
+        if
+            statusCode == 404,
+            let notFound = try? JSONDecoder().decode(OpenFoodFactsBarcodeResponseDTO.self, from: data),
+            notFound.status == 0
+        {
+            return nil
+        }
         guard (200...299).contains(statusCode) else {
             throw FetchFoodByBarcodeExternallyError.serverError(statusCode: statusCode)
         }
