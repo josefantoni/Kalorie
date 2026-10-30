@@ -117,10 +117,10 @@ fun FoodQuantityView(viewModel: FoodQuantityViewModel, onBack: () -> Unit, mealA
                     )
                 }
                 is FoodQuantityDestination.PortionsManager -> NavEntry(destination) {
-                    FoodPortionsManagerView(viewModel = viewModel, onBack = { viewModel.backStack.removeLastOrNull() })
+                    FoodPortionsManagerView(viewModel = viewModel, onBack = { viewModel.backStack.remove(destination) })
                 }
                 is FoodQuantityDestination.MealEditor -> NavEntry(destination) {
-                    mealActions?.makeEditorView { viewModel.backStack.removeLastOrNull() }
+                    mealActions?.makeEditorView { viewModel.backStack.remove(destination) }
                 }
             }
         },

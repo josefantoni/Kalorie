@@ -88,11 +88,11 @@ fun ModerationQueueView(
                     makeReviewView(
                         submission,
                         { scope.launch { viewModel.onSubmissionResolved(submission.id) } },
-                        { viewModel.backStack.removeLastOrNull() },
+                        { viewModel.backStack.remove(destination) },
                     )
                 }
                 is ModerationQueueDestination.CatalogueEditor -> NavEntry(destination) {
-                    makeCatalogueEditorView(null) { viewModel.backStack.removeLastOrNull() }
+                    makeCatalogueEditorView(null) { viewModel.backStack.remove(destination) }
                 }
             }
         },
