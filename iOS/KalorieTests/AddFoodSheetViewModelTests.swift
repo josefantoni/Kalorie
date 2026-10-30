@@ -182,6 +182,8 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         let sut = makeSUT()
         sut.lastScannedBarcode = "8594004428464"
         await sut.onBarcodeScanned()
+        XCTAssertNil(sut.alertItem, "an alert shown while the scanner cover is dismissing is dropped by SwiftUI")
+        sut.onScannerDismissed()
         XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorBarcodeNotFound)
     }
 
@@ -223,6 +225,8 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         let sut = makeSUT(fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(shouldThrow: true))
         sut.lastScannedBarcode = "8594004428464"
         await sut.onBarcodeScanned()
+        XCTAssertNil(sut.alertItem)
+        sut.onScannerDismissed()
         XCTAssertEqual(sut.alertItem?.title, L10n.AddFood.errorLoadFailed)
     }
 

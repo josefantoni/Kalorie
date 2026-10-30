@@ -66,14 +66,20 @@ struct AddFoodSheetView: View {
             .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .loader(viewModel.state.isLoading)
-            .fullScreenCover(isPresented: $viewModel.isScannerVisible) {
-                BarcodeScannerOverlay(
-                    scannedCode: $viewModel.lastScannedBarcode,
-                    isSearching: viewModel.isBarcodeSearchLoading
-                ) {
-                    viewModel.isScannerVisible = false
+            .fullScreenCover(
+                isPresented: $viewModel.isScannerVisible,
+                onDismiss: {
+                    viewModel.onScannerDismissed()
+                },
+                content: {
+                    BarcodeScannerOverlay(
+                        scannedCode: $viewModel.lastScannedBarcode,
+                        isSearching: viewModel.isBarcodeSearchLoading
+                    ) {
+                        viewModel.isScannerVisible = false
+                    }
                 }
-            }
+            )
             .fullScreenCover(isPresented: $viewModel.isNutritionLabelCameraVisible, onDismiss: {
                 viewModel.onNutritionLabelCameraDismissed()
             }) {
