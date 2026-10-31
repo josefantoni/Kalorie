@@ -49,10 +49,22 @@ class SearchFoodExternallyUseCaseTest {
 
         assertEquals(
             "https://world.openfoodfacts.org/cgi/search.pl?search_terms=b%C3%ADl%C3%BD%20jogurt&json=1&page_size=20" +
-                "&fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url",
+                "&fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit",
             session.lastRequest?.url,
         )
         assertEquals(10_000, session.lastRequest?.timeoutMillis)
+    }
+
+    @Test
+    fun search_requestsTheServingQuantityFields() = runTest {
+        val (sut, session) = makeSUT()
+        session.stubbedResults = listOf(Result.success(HttpResponse(makeSearchResponseBody(), 200)))
+
+        sut("mleko")
+
+        val fields = session.lastRequest?.url.orEmpty().substringAfter("fields=").substringBefore('&').split(',')
+        assertTrue(fields.toString(), "serving_quantity" in fields)
+        assertTrue(fields.toString(), "serving_quantity_unit" in fields)
     }
 
     @Test

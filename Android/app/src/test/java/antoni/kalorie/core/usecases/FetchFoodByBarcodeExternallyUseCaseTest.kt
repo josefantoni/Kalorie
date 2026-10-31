@@ -6,6 +6,7 @@ import antoni.kalorie.core.utils.Constants
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.IOException
@@ -76,7 +77,7 @@ class FetchFoodByBarcodeExternallyUseCaseTest {
         sut("1234567890123")
 
         assertEquals(
-            "https://world.openfoodfacts.org/api/v2/product/1234567890123?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url",
+            "https://world.openfoodfacts.org/api/v2/product/1234567890123?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit",
             session.lastRequest?.url,
         )
         assertEquals(10_000, session.lastRequest?.timeoutMillis)
@@ -90,9 +91,21 @@ class FetchFoodByBarcodeExternallyUseCaseTest {
         sut("12 3/4")
 
         assertEquals(
-            "https://world.openfoodfacts.org/api/v2/product/12%203%2F4?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url",
+            "https://world.openfoodfacts.org/api/v2/product/12%203%2F4?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit",
             session.lastRequest?.url,
         )
+    }
+
+    @Test
+    fun fetchByBarcode_requestsTheServingQuantityFields() = runTest {
+        val (sut, session) = makeSUT()
+        session.stubbedResults = listOf(Result.success(HttpResponse(makeBarcodeResponseBody(status = 1), 200)))
+
+        sut("1234567890123")
+
+        val fields = session.lastRequest?.url.orEmpty().substringAfter("fields=").substringBefore('&').split(',')
+        assertTrue(fields.toString(), "serving_quantity" in fields)
+        assertTrue(fields.toString(), "serving_quantity_unit" in fields)
     }
 
     @Test
