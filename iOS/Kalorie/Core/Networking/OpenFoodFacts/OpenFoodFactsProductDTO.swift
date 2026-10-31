@@ -33,11 +33,15 @@ struct OpenFoodFactsProductDTO: Decodable {
     let productName: String?
     let nutriments: OpenFoodFactsNutrimentsDTO?
     let imageFrontUrl: String?
+    let servingQuantity: LenientServingQuantity?
+    let servingQuantityUnit: LenientString?
 
     // MARK: - Coding keys
 
     enum CodingKeys: String, CodingKey {
         case code
+        case servingQuantity = "serving_quantity"
+        case servingQuantityUnit = "serving_quantity_unit"
         case imageFrontUrl = "image_front_url"
         case productNameCs = "product_name_cs"
         case productNameEn = "product_name_en"
@@ -62,6 +66,8 @@ struct OpenFoodFactsProductDTO: Decodable {
         let carbohydrate = nutriments.carbohydrates100g ?? 0
         let protein = nutriments.proteins100g ?? 0
         let rawOriginalName = firstNonEmpty(productNameEn, productName) ?? rawName
+        let unit = servingQuantityUnit?.value?.lowercased()
+        let validServing = validServingQuantity(unit: unit)
         return FoodItemDomain(
             id: code,
             kind: .external,
@@ -79,14 +85,77 @@ struct OpenFoodFactsProductDTO: Decodable {
             fiber: nutriments.fiber100g ?? 0,
             protein: protein,
             salt: nutriments.salt100g ?? 0,
+            portions: servingPortions(validServing: validServing),
+            measure: validServing != nil && unit == Constants.OpenFoodFacts.millilitresUnit ? .millilitres : .grams,
             photoURL: imageFrontUrl.flatMap(URL.init(string:))
         )
+    }
+
+    private func servingPortions(validServing: Double?) -> [FoodPortionDomain] {
+        guard
+            let validServing,
+            validServing != Constants.OpenFoodFacts.perHundredAmount
+        else { return [] }
+        return [FoodPortionDomain(name: Constants.OpenFoodFacts.servingPortionName, grams: validServing)]
+    }
+
+    private func validServingQuantity(unit: String?) -> Double? {
+        guard
+            unit == Constants.OpenFoodFacts.gramsUnit || unit == Constants.OpenFoodFacts.millilitresUnit,
+            let servingQuantity = servingQuantity?.value,
+            (servingQuantity * 10).isFinite
+        else { return nil }
+        let rounded = (servingQuantity * 10).rounded() / 10
+        guard
+            FoodPortionValidation.validate(name: Constants.OpenFoodFacts.servingPortionName, grams: rounded) == nil,
+            rounded <= Constants.OpenFoodFacts.maxServingQuantity
+        else { return nil }
+        return rounded
     }
 
     private func firstNonEmpty(_ names: String?...) -> String? {
         names
             .compactMap { $0 }
             .first { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+}
+
+extension OpenFoodFactsProductDTO {
+
+    struct LenientString: Decodable {
+
+        // MARK: - Properties
+
+        let value: String?
+
+        // MARK: - Init
+
+        init(from decoder: Decoder) throws {
+            value = try? decoder.singleValueContainer().decode(String.self)
+        }
+    }
+
+    struct LenientServingQuantity: Decodable {
+
+        // MARK: - Properties
+
+        let value: Double?
+
+        // MARK: - Init
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if let number = try? container.decode(Double.self) {
+                value = number
+            } else if let text = try? container.decode(String.self) {
+                let trimmed = text.trimmingCharacters(in: Constants.OpenFoodFacts.servingQuantityWhitespace)
+                value = trimmed.wholeMatch(of: Self.plainDecimal) != nil ? Double(trimmed) : nil
+            } else {
+                value = nil
+            }
+        }
+
+        private static let plainDecimal = #/[0-9]+(\.[0-9]+)?/#
     }
 }
 

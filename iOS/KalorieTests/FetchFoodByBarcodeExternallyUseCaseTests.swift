@@ -64,6 +64,20 @@ final class FetchFoodByBarcodeExternallyUseCaseTests: XCTestCase {
         XCTAssertEqual(URLProtocolStub.lastRequest?.value(forHTTPHeaderField: "User-Agent"), Constants.OpenFoodFacts.userAgent)
     }
 
+    func test_fetchByBarcode_requestsTheServingQuantityFields() async throws {
+        let sut = makeSUT()
+        URLProtocolStub.stubbedResponseQueue = [(try makeResponse(statusCode: 200), makeBarcodeResponseData(status: 1))]
+
+        _ = try await sut(barcode: "1234567890123")
+
+        let fields = URLProtocolStub.lastRequest?.url
+            .flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }?
+            .queryItems?.first { $0.name == "fields" }?.value?
+            .split(separator: ",").map(String.init) ?? []
+        XCTAssertTrue(fields.contains("serving_quantity"), "\(fields)")
+        XCTAssertTrue(fields.contains("serving_quantity_unit"), "\(fields)")
+    }
+
     func test_fetchByBarcode_withNonSuccessStatusCode_throwsServerErrorInsteadOfLookingLikeNotFound() async throws {
         let sut = makeSUT()
         let response = try makeResponse(statusCode: 500)

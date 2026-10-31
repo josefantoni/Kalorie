@@ -38,6 +38,20 @@ final class SearchFoodExternallyUseCaseTests: XCTestCase {
         XCTAssertEqual(URLProtocolStub.lastRequest?.value(forHTTPHeaderField: "User-Agent"), Constants.OpenFoodFacts.userAgent)
     }
 
+    func test_search_requestsTheServingQuantityFields() async throws {
+        let sut = makeSUT()
+        URLProtocolStub.stubbedResponseQueue = [(try makeResponse(statusCode: 200), makeSearchResponseData())]
+
+        _ = try await sut(query: "mleko")
+
+        let fields = URLProtocolStub.lastRequest?.url
+            .flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }?
+            .queryItems?.first { $0.name == "fields" }?.value?
+            .split(separator: ",").map(String.init) ?? []
+        XCTAssertTrue(fields.contains("serving_quantity"), "\(fields)")
+        XCTAssertTrue(fields.contains("serving_quantity_unit"), "\(fields)")
+    }
+
     func test_search_withNonSuccessStatusCode_throwsServerErrorInsteadOfDecodeFailure() async throws {
         let sut = makeSUT()
         let response = try makeResponse(statusCode: 429)
