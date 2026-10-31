@@ -3,7 +3,7 @@
     {
       "name": "complete product",
       "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "missing nutriments",
@@ -38,57 +38,262 @@
     {
       "name": "empty Czech name falls through to the English one",
       "product": {"code": "8593807012345", "product_name_cs": "", "product_name_en": "Cottage cheese", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Cottage cheese", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Cottage cheese", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "whitespace-only Czech name falls through to the English one",
       "product": {"code": "8593807012345", "product_name_cs": "      ", "product_name_en": "Cottage cheese", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Cottage cheese", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Cottage cheese", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "empty English name falls back to the Czech one",
       "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "HTML entities are decoded in both names",
       "product": {"code": "8593807012345", "product_name_cs": "Ben &amp; Jerry&#39;s &quot;Mix&quot;", "product_name_en": "Ben &amp; Jerry&#39;s", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Ben & Jerry's \"Mix\"", "engName": "Ben & Jerry's", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Ben & Jerry's \"Mix\"", "engName": "Ben & Jerry's", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "absent Czech name falls back to the English one",
       "product": {"code": "8593807012345", "product_name_en": "Yogurt", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Yogurt", "engName": "Yogurt", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Yogurt", "engName": "Yogurt", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "product_name is the last fallback for both names",
       "product": {"code": "8593807012345", "product_name": "Generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Generic", "engName": "Generic", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Generic", "engName": "Generic", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "Czech name only: the original name is the Czech one",
       "product": {"code": "8593807012345", "product_name_cs": "Rohlík", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Rohlík", "engName": "Rohlík", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Rohlík", "engName": "Rohlík", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "absent kJ is derived from the macros",
       "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": 80, "fat_100g": 10, "saturated-fat_100g": 4, "carbohydrates_100g": 20, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 5, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 795, "caloriesPerHundredGrams": 80, "fat": 10, "fatSaturated": 4, "fatUnsaturatedFattyAcids": 6, "carbohydrate": 20, "carbohydratePureSugar": 3, "fiber": 0, "protein": 5, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 795, "caloriesPerHundredGrams": 80, "fat": 10, "fatSaturated": 4, "fatUnsaturatedFattyAcids": 6, "carbohydrate": 20, "carbohydratePureSugar": 3, "fiber": 0, "protein": 5, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "saturated fat greater than fat leaves no unsaturated fat",
       "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 2, "saturated-fat_100g": 5, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 2, "fatSaturated": 5, "fatUnsaturatedFattyAcids": 0, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 2, "fatSaturated": 5, "fatUnsaturatedFattyAcids": 0, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     },
     {
       "name": "absent sugars, fibre, salt and saturated fat default to zero",
       "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "carbohydrates_100g": 4, "proteins_100g": 13}},
-      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0, "fatUnsaturatedFattyAcids": 0.5, "carbohydrate": 4, "carbohydratePureSugar": 0, "fiber": 0, "protein": 13, "salt": 0}
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0, "fatUnsaturatedFattyAcids": 0.5, "carbohydrate": 4, "carbohydratePureSugar": 0, "fiber": 0, "protein": 13, "salt": 0, "portions": [], "measure": "grams"}
     },
     {
       "name": "a 12-digit code is carried over as the id",
       "product": {"code": "123456789012", "product_name_cs": "Tvaroh", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}},
-      "expected": {"id": "123456789012", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1}
+      "expected": {"id": "123456789012", "czName": "Tvaroh", "engName": "Tvaroh", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "serving_quantity as a number in grams",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 47, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 47}], "measure": "grams"}
+    },
+    {
+      "name": "serving_quantity as a numeric string",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "30", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 30}], "measure": "grams"}
+    },
+    {
+      "name": "serving_quantity is rounded to one decimal",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 16.666, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 16.7}], "measure": "grams"}
+    },
+    {
+      "name": "serving_quantity in millilitres sets the measure",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 330, "serving_quantity_unit": "ml"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 330}], "measure": "millilitres"}
+    },
+    {
+      "name": "a 100 ml serving gives no portion but keeps the measure",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 100, "serving_quantity_unit": "ml"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "millilitres"}
+    },
+    {
+      "name": "a 100 g serving gives no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 100, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving below 1 g gives no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 0.5, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving rounding up to 1 g is kept",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 0.96, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 1}], "measure": "grams"}
+    },
+    {
+      "name": "the serving unit is case-insensitive",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 30, "serving_quantity_unit": "G"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 30}], "measure": "grams"}
+    },
+    {
+      "name": "an unsupported serving unit gives no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 30, "serving_quantity_unit": "oz"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving without a unit gives no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 30},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a non-numeric serving_quantity gives no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "abc", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a null serving_quantity gives no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": null, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving unit without a quantity does not change the measure",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity_unit": "ml"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a non-string serving unit is treated as absent",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 30, "serving_quantity_unit": 5},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving_quantity that overflows when scaled builds no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 1e308, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving_quantity above the upper bound builds no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 5000.1, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving_quantity at the upper bound is accepted",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 5000, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 5000}], "measure": "grams"}
+    },
+    {
+      "name": "a numeric string padded with whitespace is accepted",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": " 30 ", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 30}], "measure": "grams"}
+    },
+    {
+      "name": "a numeric string with a float suffix is rejected",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "30f", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a hexadecimal string is rejected",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "0x10", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a boolean serving_quantity is treated as absent",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": true, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "an object serving_quantity is treated as absent",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": {"value": 30}, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a garbage serving_quantity in ml does not set the measure",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "abc", "serving_quantity_unit": "ml"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving_quantity below 1 in ml does not set the measure",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 0.5, "serving_quantity_unit": "ml"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving_quantity above the upper bound in ml does not set the measure",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 5000.1, "serving_quantity_unit": "ml"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving_quantity rounding up to 100 gives no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 99.96, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a serving_quantity rounding down to the upper bound is accepted",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 5000.04, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 5000}], "measure": "grams"}
+    },
+    {
+      "name": "a negative serving_quantity gives no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": -5, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a negative zero serving_quantity gives no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": -0, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "an exponent number serving_quantity is a number",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 1e1, "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 10}], "measure": "grams"}
+    },
+    {
+      "name": "an exponent string serving_quantity is rejected",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "1e1", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a string with a leading decimal point is rejected",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": ".5", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a string with a trailing decimal point is rejected",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "5.", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a string with a decimal comma is rejected",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "16,7", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a string with a sign is rejected",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "+30", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "a string with a trailing newline is accepted after trimming",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "30\n", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 30}], "measure": "grams"}
+    },
+    {
+      "name": "a string with 400 digits overflows and builds no portion",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "serving_quantity string with a surrounding tab and line break",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "\t30\r\n", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 30}], "measure": "grams"}
+    },
+    {
+      "name": "serving_quantity string ending in NEL (U+0085) is not a number",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "30\u0085", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
+    },
+    {
+      "name": "serving_quantity string ending in a control character (U+001F) is not a number",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "30\u001f", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [], "measure": "grams"}
     }
   ]
 }

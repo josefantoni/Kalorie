@@ -46,6 +46,10 @@ class OpenFoodFactsProductDTOTest {
             assertEquals(name, fields.double("fiber"), item.fiber ?: Double.NaN, ACCURACY)
             assertEquals(name, fields.double("protein"), item.protein, ACCURACY)
             assertEquals(name, fields.double("salt"), item.salt, ACCURACY)
+            assertEquals(name, fields.getValue("measure").jsonPrimitive.content, item.measure.rawValue)
+            val expectedPortions = fields.getValue("portions").jsonArray.map { it.jsonObject }
+            assertEquals(name, expectedPortions.map { it.getValue("name").jsonPrimitive.content }, item.portions.map { it.name })
+            assertEquals(name, expectedPortions.map { it.double("grams") }, item.portions.map { it.grams })
         }
     }
 
