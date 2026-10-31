@@ -37,8 +37,6 @@ enum Constants {
         static let servingPortionName = "1 porce"
         static let gramsUnit = "g"
         static let millilitresUnit = "ml"
-        static let servingQuantityWhitespace = CharacterSet(charactersIn: " \t\n\r")
-        static let maxServingQuantity = 5000.0
         static let perHundredAmount = 100.0
         static let productFields = "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
         static var userAgent: String {

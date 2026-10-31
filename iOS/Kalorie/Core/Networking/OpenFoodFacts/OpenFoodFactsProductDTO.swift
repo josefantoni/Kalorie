@@ -7,6 +7,7 @@
 
 import Foundation
 import MacroKit
+import TextKit
 
 struct OpenFoodFactsResponseDTO: Decodable {
 
@@ -66,7 +67,7 @@ struct OpenFoodFactsProductDTO: Decodable {
         let carbohydrate = nutriments.carbohydrates100g ?? 0
         let protein = nutriments.proteins100g ?? 0
         let rawOriginalName = firstNonEmpty(productNameEn, productName) ?? rawName
-        let unit = servingQuantityUnit?.value?.trimmingCharacters(in: Constants.OpenFoodFacts.servingQuantityWhitespace).lowercased()
+        let unit = ServingQuantityKt.servingQuantityUnit(raw: servingQuantityUnit?.value)
         let validServing = validServingQuantity(unit: unit)
         return FoodItemDomain(
             id: code,
@@ -103,14 +104,9 @@ struct OpenFoodFactsProductDTO: Decodable {
         guard
             unit == Constants.OpenFoodFacts.gramsUnit || unit == Constants.OpenFoodFacts.millilitresUnit,
             let servingQuantity = servingQuantity?.value,
-            (servingQuantity * 10).isFinite
+            FoodPortionValidation.validate(name: Constants.OpenFoodFacts.servingPortionName, grams: servingQuantity) == nil
         else { return nil }
-        let rounded = (servingQuantity * 10).rounded() / 10
-        guard
-            FoodPortionValidation.validate(name: Constants.OpenFoodFacts.servingPortionName, grams: rounded) == nil,
-            rounded <= Constants.OpenFoodFacts.maxServingQuantity
-        else { return nil }
-        return rounded
+        return servingQuantity
     }
 
     private func firstNonEmpty(_ names: String?...) -> String? {
@@ -145,17 +141,10 @@ extension OpenFoodFactsProductDTO {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.singleValueContainer()
-            if let number = try? container.decode(Double.self) {
-                value = number
-            } else if let text = try? container.decode(String.self) {
-                let trimmed = text.trimmingCharacters(in: Constants.OpenFoodFacts.servingQuantityWhitespace)
-                value = trimmed.wholeMatch(of: Self.plainDecimal) != nil ? Double(trimmed) : nil
-            } else {
-                value = nil
-            }
+            let number = try? container.decode(Double.self)
+            let text = number == nil ? try? container.decode(String.self) : nil
+            value = ServingQuantityKt.servingQuantity(number: number.map { KotlinDouble(value: $0) }, text: text)?.doubleValue
         }
-
-        private static let plainDecimal = #/[0-9]+(\.[0-9]+)?/#
     }
 }
 

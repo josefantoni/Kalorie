@@ -82,9 +82,7 @@ object Constants {
         const val SERVING_PORTION_NAME = "1 porce"
         const val GRAMS_UNIT = "g"
         const val MILLILITRES_UNIT = "ml"
-        const val MAX_SERVING_QUANTITY = 5000.0
         const val PER_HUNDRED_AMOUNT = 100.0
-        const val SERVING_QUANTITY_WHITESPACE = " \t\n\r"
         const val PRODUCT_FIELDS = "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
         const val REQUEST_TIMEOUT_MILLIS = 10_000
         const val MAX_ATTEMPTS = 3

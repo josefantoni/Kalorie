@@ -106,6 +106,11 @@
       "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 16.7}], "measure": "grams"}
     },
     {
+      "name": "serving_quantity is rounds a half up (tie)",
+      "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": "1.25", "serving_quantity_unit": "g"},
+      "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 1.3}], "measure": "grams"}
+    },
+    {
       "name": "serving_quantity in millilitres sets the measure",
       "product": {"code": "8593807012345", "product_name_cs": "Tvaroh", "product_name_en": "Cottage cheese", "product_name": "Cottage generic", "nutriments": {"energy-kcal_100g": 80, "energy_100g": 335, "fat_100g": 0.5, "saturated-fat_100g": 0.3, "carbohydrates_100g": 4, "sugars_100g": 3, "fiber_100g": 0, "proteins_100g": 13, "salt_100g": 0.1}, "serving_quantity": 330, "serving_quantity_unit": "ml"},
       "expected": {"id": "8593807012345", "czName": "Tvaroh", "engName": "Cottage cheese", "weight": 100, "energyKJ": 335, "caloriesPerHundredGrams": 80, "fat": 0.5, "fatSaturated": 0.3, "fatUnsaturatedFattyAcids": 0.2, "carbohydrate": 4, "carbohydratePureSugar": 3, "fiber": 0, "protein": 13, "salt": 0.1, "portions": [{"name": "1 porce", "grams": 330}], "measure": "millilitres"}
