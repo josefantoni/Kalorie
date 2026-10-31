@@ -16,7 +16,13 @@ struct FoodPortionDomain: Hashable {
     let grams: Double
 
     var displayName: String {
-        PortionNamesKt.localizedPortionName(name: name, czech: Locale.isCzechOrSlovak)
+        displayName(languageCode: Locale.currentLanguageCode)
+    }
+
+    // MARK: - Functions
+
+    func displayName(languageCode: String) -> String {
+        PortionNamesKt.localizedPortionName(name: name, languageCode: languageCode)
     }
 }
 

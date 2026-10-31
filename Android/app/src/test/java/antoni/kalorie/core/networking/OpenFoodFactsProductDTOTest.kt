@@ -1,6 +1,8 @@
 package antoni.kalorie.core.networking
 
 import antoni.kalorie.FixtureLoader
+import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.textkit.localizedPortionName
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -60,6 +62,13 @@ class OpenFoodFactsProductDTOTest {
             """{"code":"1","product_name":"Jogurt","image_front_url":"https://images.off/1.jpg","nutriments":{"energy-kcal_100g":60}}""",
         )
         assertEquals("https://images.off/1.jpg", dto.asDomain()?.photoUrl)
+    }
+
+    @Test
+    fun servingPortionName_isAKnownPortionNameInEveryLanguage() {
+        assertEquals("1 porce", localizedPortionName(Constants.OpenFoodFacts.SERVING_PORTION_NAME, "cs"))
+        assertEquals("1 porcia", localizedPortionName(Constants.OpenFoodFacts.SERVING_PORTION_NAME, "sk"))
+        assertEquals("1 serving", localizedPortionName(Constants.OpenFoodFacts.SERVING_PORTION_NAME, "en"))
     }
 
     // MARK: - Helpers
