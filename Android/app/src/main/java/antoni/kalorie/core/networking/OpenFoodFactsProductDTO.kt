@@ -53,7 +53,7 @@ data class OpenFoodFactsProductDTO(
         val carbohydrate = nutriments.carbohydrates100g ?: 0.0
         val protein = nutriments.proteins100g ?: 0.0
         val rawOriginalName = firstNonEmpty(productNameEn, productName) ?: rawName
-        val unit = (servingQuantityUnit as? JsonPrimitive)?.takeIf { it.isString }?.content?.lowercase()
+        val unit = (servingQuantityUnit as? JsonPrimitive)?.takeIf { it.isString }?.content?.trim { it in Constants.OpenFoodFacts.SERVING_QUANTITY_WHITESPACE }?.lowercase()
         val validServing = validServingQuantity(unit)
         return FoodItemDomain(
             id = code,

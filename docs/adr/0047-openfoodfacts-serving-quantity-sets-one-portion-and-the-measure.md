@@ -42,7 +42,8 @@ An external product carries **at most one portion**, built from `serving_quantit
    are ignored and no other character is; the parse lives in TextKit `servingQuantity` /
    `servingQuantityUnit`, so both clients trim the same set; `30f`,
    `0x10` and `1e3` are not numbers here).
-   Anything else decodes as absent. `serving_quantity_unit` is an optional string.
+   Anything else decodes as absent. `serving_quantity_unit` is an optional string, trimmed of the
+   same set before it is compared.
 3. **Validity.** The portion is offered only when all of these hold; otherwise
    `portions` is `[]`:
    - the value is a finite number, rounded to one decimal place (`16.666` → `16.7`);
