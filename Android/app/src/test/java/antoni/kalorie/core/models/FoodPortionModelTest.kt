@@ -28,15 +28,15 @@ class FoodPortionModelTest {
     }
 
     @Test
-    fun displayName_inSlovak_showsTheCzechPortionName() {
+    fun displayName_inSlovak_showsTheSlovakPortionNameNotTheCzechOne() {
         Locale.setDefault(Locale.forLanguageTag("sk"))
 
-        assertEquals("1 lžíce", FoodPortionDomain(name = "tbsp", grams = 15.0).displayName)
+        assertEquals("1 lyžica", FoodPortionDomain(name = "tbsp", grams = 15.0).displayName)
     }
 
     @Test
-    fun displayName_inEnglish_showsTheEnglishPortionName() {
-        Locale.setDefault(Locale.ENGLISH)
+    fun displayName_inAnotherLanguage_showsTheEnglishPortionName() {
+        Locale.setDefault(Locale.GERMAN)
 
         assertEquals("1 tbsp", FoodPortionDomain(name = "1 lžíce", grams = 15.0).displayName)
     }

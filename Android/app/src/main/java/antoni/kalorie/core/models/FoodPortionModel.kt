@@ -10,7 +10,7 @@ data class FoodPortionDomain(
 )
 
 val FoodPortionDomain.displayName: String
-    get() = localizedPortionName(name, czech = isCzechOrSlovakLocale)
+    get() = localizedPortionName(name, languageCode = currentLanguageCode)
 
 sealed class FoodPortionError : Exception() {
     data object InvalidName : FoodPortionError()

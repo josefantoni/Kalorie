@@ -7,8 +7,11 @@ interface BilingualNamed {
     val engName: String
 }
 
+val currentLanguageCode: String
+    get() = Locale.getDefault().language
+
 val isCzechOrSlovakLocale: Boolean
-    get() = Locale.getDefault().language in listOf("cs", "sk")
+    get() = currentLanguageCode in listOf("cs", "sk")
 
 val BilingualNamed.displayName: String
     get() {

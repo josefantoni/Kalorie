@@ -13,9 +13,12 @@ protocol BilingualNamed {
 }
 
 extension Locale {
+    static var currentLanguageCode: String {
+        Locale.current.language.languageCode?.identifier ?? ""
+    }
+
     static var isCzechOrSlovak: Bool {
-        let langCode = Locale.current.language.languageCode?.identifier ?? ""
-        return ["cs", "sk"].contains(langCode)
+        ["cs", "sk"].contains(currentLanguageCode)
     }
 }
 

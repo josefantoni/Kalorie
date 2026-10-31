@@ -5,6 +5,7 @@
 //  Created by Josef Antoni on 24.09.2026.
 //
 
+import TextKit
 import XCTest
 @testable import Kalorie
 
@@ -53,6 +54,14 @@ final class OpenFoodFactsProductDTOTests: XCTestCase {
 
     func test_asDomain_whenImageFrontUrlIsAbsent_photoURLIsNil() throws {
         XCTAssertNil(try decodeItem(imageFrontUrl: nil)?.photoURL)
+    }
+
+    func test_servingPortionName_isAKnownPortionNameInEveryLanguage() {
+        let name = Constants.OpenFoodFacts.servingPortionName
+
+        XCTAssertEqual(PortionNamesKt.localizedPortionName(name: name, languageCode: "cs"), "1 porce")
+        XCTAssertEqual(PortionNamesKt.localizedPortionName(name: name, languageCode: "sk"), "1 porcia")
+        XCTAssertEqual(PortionNamesKt.localizedPortionName(name: name, languageCode: "en"), "1 serving")
     }
 
     // MARK: - Helpers

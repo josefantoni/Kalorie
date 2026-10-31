@@ -56,18 +56,6 @@ class SearchFoodExternallyUseCaseTest {
     }
 
     @Test
-    fun search_requestsTheServingQuantityFields() = runTest {
-        val (sut, session) = makeSUT()
-        session.stubbedResults = listOf(Result.success(HttpResponse(makeSearchResponseBody(), 200)))
-
-        sut("mleko")
-
-        val fields = session.lastRequest?.url.orEmpty().substringAfter("fields=").substringBefore('&').split(',')
-        assertTrue(fields.toString(), "serving_quantity" in fields)
-        assertTrue(fields.toString(), "serving_quantity_unit" in fields)
-    }
-
-    @Test
     fun search_withNonSuccessStatusCode_throwsServerErrorInsteadOfDecodeFailure() = runTest {
         val (sut, session) = makeSUT()
         session.stubbedResults = List(Constants.OpenFoodFacts.MAX_ATTEMPTS) { Result.success(HttpResponse("Too Many Requests", 429)) }

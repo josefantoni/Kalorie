@@ -1,6 +1,6 @@
 package antoni.kalorie.textkit
 
-private val diacriticFoldMap = mapOf(
+internal val diacriticFoldMap = mapOf(
     'á' to 'a', 'Á' to 'A',
     'č' to 'c', 'Č' to 'C',
     'ď' to 'd', 'Ď' to 'D',
