@@ -268,3 +268,5 @@ understanding why.
 | [0043](adr/0043-portion-names-are-localized-and-normalized-at-render-time.md) | Portion names are localized and normalized at render time | Accepted | Cross-platform |
 | [0044](adr/0044-external-favourites-are-upgraded-when-the-food-enters-the-catalogue.md) | An `external` food is upgraded to its catalogue version when it appears in `foodItems` | Accepted | Backend, Cross-platform |
 | [0045](adr/0045-signed-in-users-may-link-the-other-provider.md) | A signed-in user may link the other provider; existing named accounts are never merged | Accepted | Cross-platform |
+| [0046](adr/0046-search-words-are-trimmed-of-edge-punctuation.md) | Search words are trimmed of edge punctuation, not split on it | Accepted | Cross-platform |
+| [0047](adr/0047-openfoodfacts-serving-quantity-sets-one-portion-and-the-measure.md) | OpenFoodFacts `serving_quantity` sets one portion and the measure | Accepted | Cross-platform |

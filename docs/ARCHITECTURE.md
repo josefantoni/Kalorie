@@ -279,7 +279,7 @@ what lets a saved meal appear in search and be logged like any catalogue food.
 **`foodItemPortions`** (`FoodItemPersonalPortionsDTO`) — one document per catalogue item a user
 has added a personal portion to, keyed by that item's barcode; `id` plus a `portions` array, the
 same `FoodPortionDomain` shape again. Private, `.catalogue`-only (OpenFoodFacts items have no
-reliable package size to key a shortcut off — [design 0008](design/0008-food-portions.md)),
+reliable package size to key a shortcut off — [design 0008](design/0008-food-portions.md); the single portion an external item does get comes from `serving_quantity`, see [ADR 0047](adr/0047-openfoodfacts-serving-quantity-sets-one-portion-and-the-measure.md)),
 fetched and saved whole by `FetchFoodItemPersonalPortionsUseCase` /
 `SaveFoodItemPersonalPortionsUseCase` — the caller does the add/remove and writes the full list
 back with `setAsync`, there is no partial-update path.
@@ -588,7 +588,9 @@ as a fourth such list — see § 7),
 add a food they did not find — proposed),
 [ADR 0039](adr/0039-swift-only-rules-move-into-kmp-or-share-golden-vectors.md) (which rules live
 in KMP and which are pinned by `fixtures/` — query derivation, the OpenFoodFacts mapping and food
-validation are here).
+validation are here),
+[ADR 0047](adr/0047-openfoodfacts-serving-quantity-sets-one-portion-and-the-measure.md) (the one portion and the measure an OpenFoodFacts item gets from
+`serving_quantity`).
 
 ### 2.1 The four ways a food is found
 
@@ -745,7 +747,7 @@ same products and receive the same fields:
   A well-formed barcode OpenFoodFacts does not know is answered with **HTTP 404** and the body
   `{"status":0,"status_verbose":"product not found"}`, not with 200; a 404 whose body decodes with
   `status == 0` is "not found" too. Any other non-2xx is `.serverError`, below.
-- **`fields`**, identical on both calls: `code,product_name,product_name_cs,product_name_en,nutriments`.
+- **`fields`**, identical on both calls: `code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit`.
   Anything outside that list is never requested, so a field a mapping starts to need must be added
   here on both calls.
 - **Headers:** `User-Agent` only (below); no API key.
@@ -793,6 +795,13 @@ Mapping OpenFoodFacts → `FoodItemDomain` has a fixed shape:
 - **Every other nutrient defaults to `0`** when absent, and unsaturated fat is *derived* as
   `max(0, fat - saturatedFat)` — OpenFoodFacts does not publish it.
 - `weight` is always `100`, because an external product carries no package weight.
+- `portions` holds at most one `1 porce` entry, taken from `serving_quantity` (a JSON number, or a
+  string of digits with an optional `.` fraction; anything else counts as missing), rounded to one
+  decimal. The parse lives in TextKit `servingQuantity`. It is dropped when the value is missing, below `1`, above `5000`, exactly `100`, or when
+  `serving_quantity_unit` is not `g` or `ml` ([ADR 0047](adr/0047-openfoodfacts-serving-quantity-sets-one-portion-and-the-measure.md)).
+- `measure` is millilitres when `serving_quantity_unit` is `ml` and `serving_quantity` is valid
+  (`1` to `5000` after rounding, `100` included), grams otherwise
+  ([ADR 0047](adr/0047-openfoodfacts-serving-quantity-sets-one-portion-and-the-measure.md)).
 - `energy_100g` (kJ) falls back to `MacroKit.energyKJFromMacros`, per
   [ADR 0007](adr/0007-derive-missing-energy-kj-from-macros.md).
 
@@ -1266,7 +1275,9 @@ order and its preselected unit are one decision, and the two ways reselecting a 
 programmatically goes wrong), [design 0011](design/0011-food-measure-grams-or-millilitres.md)
 (why every amount of the food itself, but not a nutrient amount, follows the item's measure),
 [ADR 0031](adr/0031-meal-type-pin-resolved-by-the-caller-not-the-save-use-case.md) (the meal-type
-picker on this screen, and why resolving its default moved out of `SaveFoodConsumedUseCase`).
+picker on this screen, and why resolving its default moved out of `SaveFoodConsumedUseCase`),
+[ADR 0047](adr/0047-openfoodfacts-serving-quantity-sets-one-portion-and-the-measure.md) (why an OpenFoodFacts item can arrive with one portion and in
+millilitres, so the picker preselects that portion and the measure).
 
 ### 4.1 The path a food takes
 
