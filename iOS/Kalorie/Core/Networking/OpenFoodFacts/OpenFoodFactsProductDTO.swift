@@ -66,7 +66,7 @@ struct OpenFoodFactsProductDTO: Decodable {
         let carbohydrate = nutriments.carbohydrates100g ?? 0
         let protein = nutriments.proteins100g ?? 0
         let rawOriginalName = firstNonEmpty(productNameEn, productName) ?? rawName
-        let unit = servingQuantityUnit?.value?.lowercased()
+        let unit = servingQuantityUnit?.value?.trimmingCharacters(in: Constants.OpenFoodFacts.servingQuantityWhitespace).lowercased()
         let validServing = validServingQuantity(unit: unit)
         return FoodItemDomain(
             id: code,
