@@ -38,18 +38,18 @@ final class SearchFoodExternallyUseCaseTests: XCTestCase {
         XCTAssertEqual(URLProtocolStub.lastRequest?.value(forHTTPHeaderField: "User-Agent"), Constants.OpenFoodFacts.userAgent)
     }
 
-    func test_search_requestsTheServingQuantityFields() async throws {
+    func test_search_requestsTheDocumentedHostPathParametersAndTimeout() async throws {
         let sut = makeSUT()
         URLProtocolStub.stubbedResponseQueue = [(try makeResponse(statusCode: 200), makeSearchResponseData())]
 
-        _ = try await sut(query: "mleko")
+        _ = try await sut(query: "bílý jogurt")
 
-        let fields = URLProtocolStub.lastRequest?.url
-            .flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }?
-            .queryItems?.first { $0.name == "fields" }?.value?
-            .split(separator: ",").map(String.init) ?? []
-        XCTAssertTrue(fields.contains("serving_quantity"), "\(fields)")
-        XCTAssertTrue(fields.contains("serving_quantity_unit"), "\(fields)")
+        XCTAssertEqual(
+            URLProtocolStub.lastRequest?.url?.absoluteString,
+            "https://world.openfoodfacts.org/cgi/search.pl?search_terms=b%C3%ADl%C3%BD%20jogurt&json=1&page_size=20" +
+                "&fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
+        )
+        XCTAssertEqual(URLProtocolStub.lastRequest?.timeoutInterval, 10)
     }
 
     func test_search_withNonSuccessStatusCode_throwsServerErrorInsteadOfDecodeFailure() async throws {
@@ -67,6 +67,21 @@ final class SearchFoodExternallyUseCaseTests: XCTestCase {
             XCTFail("Expected SearchFoodExternallyError.serverError, got \(error)")
         }
         XCTAssertEqual(URLProtocolStub.requestCount, Constants.OpenFoodFacts.maxAttempts)
+    }
+
+    func test_search_withNotFoundStatusCode_throwsServerErrorWithoutRetrying() async throws {
+        let sut = makeSUT()
+        URLProtocolStub.stubbedResponseQueue = [(try makeResponse(statusCode: 404), Data("Not Found".utf8))]
+
+        do {
+            _ = try await sut(query: "mleko")
+            XCTFail("Expected SearchFoodExternallyError.serverError to be thrown")
+        } catch SearchFoodExternallyError.serverError(let statusCode) {
+            XCTAssertEqual(statusCode, 404)
+        } catch {
+            XCTFail("Expected SearchFoodExternallyError.serverError, got \(error)")
+        }
+        XCTAssertEqual(URLProtocolStub.requestCount, 1, "only 429 and 5xx are plausibly transient")
     }
 
     func test_search_withTransientServerErrorThenSuccess_retriesAndReturnsMappedItems() async throws {

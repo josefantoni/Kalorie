@@ -20,6 +20,10 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
 
     // MARK: - Properties
 
+    private static let pathSegmentAllowed = CharacterSet(
+        charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-*_"
+    )
+
     private let session: URLSession
     private let retryDelay: Duration
 
@@ -34,7 +38,7 @@ struct FetchFoodByBarcodeExternallyUseCase: FetchFoodByBarcodeExternallyUseCaseP
 
     func callAsFunction(barcode: String) async throws -> FoodItemDomain? {
         guard !barcode.isEmpty else { return nil }
-        guard let encodedBarcode = barcode.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
+        guard let encodedBarcode = barcode.addingPercentEncoding(withAllowedCharacters: Self.pathSegmentAllowed)
         else { throw FetchFoodByBarcodeExternallyError.invalidURL }
         var components = URLComponents()
         components.scheme = "https"

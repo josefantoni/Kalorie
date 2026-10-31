@@ -12,12 +12,10 @@ final class FoodPortionDomainTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_displayName_usesTheLanguageCodeOfTheResolvedLocaleWithoutRegion() {
+    func test_displayName_usesTheCurrentLanguageCode() {
         let portion = FoodPortionDomain(name: "tbsp", grams: 15)
-        let languageCode = Locale.current.language.languageCode?.identifier ?? ""
 
-        XCTAssertEqual(portion.displayName, portion.displayName(languageCode: languageCode))
-        XCTAssertEqual(Locale.currentLanguageCode, languageCode)
+        XCTAssertEqual(portion.displayName, portion.displayName(languageCode: Locale.currentLanguageCode))
     }
 
     func test_displayName_inSlovak_showsTheSlovakPortionNameNotTheCzechOne() {
@@ -36,5 +34,11 @@ final class FoodPortionDomainTests: XCTestCase {
         let portion = FoodPortionDomain(name: "1 lžíce", grams: 15)
 
         XCTAssertEqual(portion.displayName(languageCode: "de"), "1 tbsp")
+    }
+
+    func test_displayName_withAnUnknownName_keepsTheNameCapitalised() {
+        let portion = FoodPortionDomain(name: "hrnek", grams: 40)
+
+        XCTAssertEqual(portion.displayName(languageCode: "en"), "Hrnek")
     }
 }

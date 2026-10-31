@@ -64,18 +64,29 @@ final class FetchFoodByBarcodeExternallyUseCaseTests: XCTestCase {
         XCTAssertEqual(URLProtocolStub.lastRequest?.value(forHTTPHeaderField: "User-Agent"), Constants.OpenFoodFacts.userAgent)
     }
 
-    func test_fetchByBarcode_requestsTheServingQuantityFields() async throws {
+    func test_fetchByBarcode_requestsTheDocumentedHostPathParametersAndTimeout() async throws {
         let sut = makeSUT()
         URLProtocolStub.stubbedResponseQueue = [(try makeResponse(statusCode: 200), makeBarcodeResponseData(status: 1))]
 
         _ = try await sut(barcode: "1234567890123")
 
-        let fields = URLProtocolStub.lastRequest?.url
-            .flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }?
-            .queryItems?.first { $0.name == "fields" }?.value?
-            .split(separator: ",").map(String.init) ?? []
-        XCTAssertTrue(fields.contains("serving_quantity"), "\(fields)")
-        XCTAssertTrue(fields.contains("serving_quantity_unit"), "\(fields)")
+        XCTAssertEqual(
+            URLProtocolStub.lastRequest?.url?.absoluteString,
+            "https://world.openfoodfacts.org/api/v2/product/1234567890123?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
+        )
+        XCTAssertEqual(URLProtocolStub.lastRequest?.timeoutInterval, 10)
+    }
+
+    func test_fetchByBarcode_percentEncodesTheBarcodeAsAPathSegment() async throws {
+        let sut = makeSUT()
+        URLProtocolStub.stubbedResponseQueue = [(try makeResponse(statusCode: 200), makeBarcodeResponseData(status: 0))]
+
+        _ = try await sut(barcode: "12 3/4")
+
+        XCTAssertEqual(
+            URLProtocolStub.lastRequest?.url?.absoluteString,
+            "https://world.openfoodfacts.org/api/v2/product/12%203%2F4?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
+        )
     }
 
     func test_fetchByBarcode_withNonSuccessStatusCode_throwsServerErrorInsteadOfLookingLikeNotFound() async throws {
