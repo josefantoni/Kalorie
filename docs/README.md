@@ -270,3 +270,4 @@ understanding why.
 | [0045](adr/0045-signed-in-users-may-link-the-other-provider.md) | A signed-in user may link the other provider; existing named accounts are never merged | Accepted | Cross-platform |
 | [0046](adr/0046-search-words-are-trimmed-of-edge-punctuation.md) | Search words are trimmed of edge punctuation, not split on it | Accepted | Cross-platform |
 | [0047](adr/0047-openfoodfacts-serving-quantity-sets-one-portion-and-the-measure.md) | OpenFoodFacts `serving_quantity` sets one portion and the measure | Accepted | Cross-platform |
+| [0048](adr/0048-portion-names-have-slovak-forms.md) | Portion names have Slovak forms and follow the app's resolved language | Accepted | Cross-platform |
