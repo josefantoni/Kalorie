@@ -38,6 +38,12 @@ final class OpenFoodFactsProductDTOTests: XCTestCase {
             XCTAssertEqual(item.fiber ?? .nan, expected.fiber, accuracy: 1e-9, mappingCase.name)
             XCTAssertEqual(item.protein, expected.protein, accuracy: 1e-9, mappingCase.name)
             XCTAssertEqual(item.salt, expected.salt, accuracy: 1e-9, mappingCase.name)
+            XCTAssertEqual(item.measure.rawValue, expected.measure, mappingCase.name)
+            XCTAssertEqual(item.portions.map(\.name), expected.portions.map(\.name), mappingCase.name)
+            XCTAssertEqual(item.portions.count, expected.portions.count, mappingCase.name)
+            for (portion, expectedPortion) in zip(item.portions, expected.portions) {
+                XCTAssertEqual(portion.grams, expectedPortion.grams, accuracy: 1e-9, mappingCase.name)
+            }
         }
     }
 
@@ -87,5 +93,12 @@ final class OpenFoodFactsProductDTOTests: XCTestCase {
         let fiber: Double
         let protein: Double
         let salt: Double
+        let portions: [ExpectedPortion]
+        let measure: String
+    }
+
+    private struct ExpectedPortion: Decodable {
+        let name: String
+        let grams: Double
     }
 }
