@@ -13,32 +13,27 @@ The app works with three kinds of data. The distinction matters for the items be
 
 ## Planned features
 
-- **Minimum supported version — release** — implemented on both clients per
-  [design 0026](docs/design/0026-minimum-supported-version.md), not released yet. Before the release
-  deploy `backend/firestore.rules` (`firebase deploy --only firestore:rules`; the `config` read is public)
-  and create the `config/app` document in the console with no fields. Then release both clients together
-  with the App Check install, whose enforcement it makes safe.
 - **Firebase App Check — enforcement** — installed on both clients and registered in the Firebase Console
   (App Attest on iOS, Play Integrity on Android, Cloud project linked in Play Console, debug tokens for the
   maintainer's simulator and device), nothing enforced yet. Storage and Firestore rules only check who
   writes, not what writes, so until enforcement anyone with an account can upload files from a script and
   the Blaze bill is ours.
 
-  **Blocked on [design 0026](docs/design/0026-minimum-supported-version.md) (minimum supported version).**
-  Every build without the gate can never be told to update, so only the gate makes enforcement safe for
-  gated users. Remaining, in this order:
+  **Waiting for the Android release with the [design 0026](docs/design/0026-minimum-supported-version.md)
+  gate (minimum supported version) to reach production.** iOS 1.0.3 has the gate, Android is still in
+  closed testing. Every build without the gate can never be told to update, so only the gate makes
+  enforcement safe for gated users. Remaining, in this order:
 
-  1. Release both clients with the gate (see above; the App Check install is already in the code).
-  2. Once that release is live on both stores, raise `config/app.min_version_ios` / `min_version_android`
-     to it (design 0026 runbook).
-  3. Watch Console → App Check → Storage and Firestore until the unverified share is only pre-gate
+  1. Once the gated release is live on both stores, raise `config/app.min_version_ios` /
+     `min_version_android` to it (design 0026 runbook).
+  2. Watch Console → App Check → Storage and Firestore until the unverified share is only pre-gate
      releases and noise; those can never be updated by force and are locked out by enforcement.
-  4. Check the Mac availability in App Store Connect first: `DCAppAttestService.isSupported` is unreliable
+  3. Check the Mac availability in App Store Connect first: `DCAppAttestService.isSupported` is unreliable
      for an iPhone app on an Apple-silicon Mac (not verified), so those users may lose Storage and later
      Firestore. Turn Mac availability off or accept it.
-  5. Enforce Storage; after a quiet week, enforce Firestore. Unenforcing in the console is the rollback and
+  4. Enforce Storage; after a quiet week, enforce Firestore. Unenforcing in the console is the rollback and
      takes effect within minutes. Leave Authentication unenforced.
-  6. Verify by hand: a TestFlight / Play Internal build shows up as verified in the metrics; a debug build
+  5. Verify by hand: a TestFlight / Play Internal build shows up as verified in the metrics; a debug build
      with an unregistered token gets `permission-denied` on a photo upload once Storage is enforced.
 
   Every new simulator, emulator or debug device needs its debug token registered (the debug provider prints
