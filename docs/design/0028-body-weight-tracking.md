@@ -287,6 +287,9 @@ Pushed from the circle on the Dashboard's `NavigationStack`.
   the circle, x by date. A segmented range switcher **Week / Month / Year**, default **Month**, on
   both clients. A horizontal swipe (and previous / next arrows) pages to the previous or next
   period; scrolling day by day through years of history is too slow without the switcher.
+  The screen opens on the period that contains the Dashboard's selected day (not on the current one),
+  and switching range keeps that day in view; paging forward stops at the current period. Opening from
+  a day in an earlier year therefore reads that year once, as paging back to it would.
   Switching range or paging reads nothing — it only changes which part of the already loaded array
   is drawn.
   The Y axis lists the entries' own values (one decimal, in the selected unit) at their height,
