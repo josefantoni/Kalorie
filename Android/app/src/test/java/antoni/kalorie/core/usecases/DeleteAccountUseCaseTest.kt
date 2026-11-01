@@ -8,30 +8,13 @@ import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.auth.PendingMergeSnapshot
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreFake
-import antoni.kalorie.core.models.BodyWeightDomain
-import antoni.kalorie.core.models.FoodItemDomain
-import antoni.kalorie.core.models.FoodItemKind
-import antoni.kalorie.core.models.FoodItemSubmissionStatus
-import antoni.kalorie.core.models.FoodNutritionValues
-import antoni.kalorie.core.models.FoodPortionDomain
-import antoni.kalorie.core.models.MyCreatedMealDomain
-import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
-import antoni.kalorie.core.networking.BodyWeightDTO
-import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
-import antoni.kalorie.core.networking.FoodConsumedDTO
-import antoni.kalorie.core.networking.FoodItemPersonalPortionsDTO
-import antoni.kalorie.core.networking.FoodItemReportDTO
-import antoni.kalorie.core.networking.FoodItemSubmissionDTO
-import antoni.kalorie.core.networking.FoodPortionDTO
-import antoni.kalorie.core.networking.MealTypeDTO
-import antoni.kalorie.core.networking.MergedAnonymousAccountDTO
-import antoni.kalorie.core.networking.MyCreatedMealDTO
 import antoni.kalorie.core.networking.StorageDataProviderFake
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -48,7 +31,7 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_deletesFavouriteFoodsAsPrivacyObligation() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.favouriteFoods(USER_ID) to listOf(makeFavourite("fav1")))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.favouriteFoods(USER_ID) to listOf("fav1"))
 
         fixture.sut()
 
@@ -62,7 +45,7 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_deletesMyCreatedMealsAsPrivacyObligation() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.myCreatedMeals(USER_ID) to listOf(makeMeal("meal1")))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.myCreatedMeals(USER_ID) to listOf("meal1"))
 
         fixture.sut()
 
@@ -72,8 +55,8 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_keepsTheMergedAnonymousAccountMarkersSoTheCleanupScriptCanStillFindTheAbandonedAccount() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(
-            Constants.Firestore.mergedAnonymousAccounts(USER_ID) to listOf(MergedAnonymousAccountDTO(id = "anon-1")),
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(
+            Constants.Firestore.mergedAnonymousAccounts(USER_ID) to listOf("anon-1"),
         )
 
         fixture.sut()
@@ -84,11 +67,8 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_deletesBodyWeightsAndSettingsAsPrivacyObligation_beforeTheProfile() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(
-            Constants.Firestore.bodyWeights(USER_ID) to listOf(
-                BodyWeightDTO(BodyWeightDomain(dayKey = "2026-10-27", kilograms = 78.4)),
-                BodyWeightDTO(BodyWeightDomain(dayKey = "2026-10-26", kilograms = 78.9)),
-            ),
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(
+            Constants.Firestore.bodyWeights(USER_ID) to listOf("2026-10-27", "2026-10-26"),
         )
 
         fixture.sut()
@@ -107,11 +87,7 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_deletesFoodItemPortionsAsPrivacyObligation() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(
-            Constants.Firestore.foodItemPortions(USER_ID) to listOf(
-                FoodItemPersonalPortionsDTO(id = "12345678", portions = listOf(FoodPortionDTO(FoodPortionDomain(name = "1 balení", grams = 33.0)))),
-            ),
-        )
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.foodItemPortions(USER_ID) to listOf("12345678"))
 
         fixture.sut()
 
@@ -121,7 +97,7 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_deletesOwnSubmissionsAsPrivacyObligation() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedByFieldByCollection = mapOf(Constants.Firestore.FOOD_ITEM_SUBMISSIONS to listOf(makeSubmission("sub1")))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.FOOD_ITEM_SUBMISSIONS to listOf("sub1"))
 
         fixture.sut()
 
@@ -166,11 +142,7 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_deletesOwnReportsAsPrivacyObligation() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedByFieldByCollection = mapOf(
-            Constants.Firestore.FOOD_ITEM_REPORTS to listOf(
-                FoodItemReportDTO(barcode = "12345678", reportedBy = USER_ID, reason = "wrong calories", reportedAt = Instant.now()),
-            ),
-        )
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.FOOD_ITEM_REPORTS to listOf("12345678_$USER_ID"))
 
         fixture.sut()
 
@@ -179,6 +151,22 @@ class DeleteAccountUseCaseTest {
             listOf("12345678_$USER_ID"),
             fixture.deleted(Constants.Firestore.FOOD_ITEM_REPORTS),
         )
+    }
+
+    @Test
+    fun invoke_whenADocumentDoesNotMatchItsDTO_stillDeletesItAndTheAccount() = runTest {
+        val fixture = makeSUT()
+        fixture.dataProvider.stubbedDecodingError = SerializationException("stubbed")
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf("broken"))
+
+        fixture.sut()
+
+        assertEquals(
+            "a document that no longer decodes is still the user's data and must not block the wipe",
+            listOf("broken"),
+            fixture.deletedBeforeAccountDeletion[Constants.Firestore.foodConsumed(USER_ID)],
+        )
+        assertEquals(1, fixture.authCommandProvider.deleteCallCount)
     }
 
     @Test
@@ -197,9 +185,9 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_deletesFirestoreDataBeforeDeletingAuthAccount() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(
-            Constants.Firestore.mealTypes(USER_ID) to listOf(MealTypeDTO(id = "0", name = "Snídaně", startMinutes = 0, endMinutes = 60)),
-            Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")),
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(
+            Constants.Firestore.mealTypes(USER_ID) to listOf("0"),
+            Constants.Firestore.foodConsumed(USER_ID) to listOf("f1"),
         )
 
         fixture.sut()
@@ -212,7 +200,7 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_deletesTheUserProfileDocumentLast() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf("f1"))
 
         fixture.sut()
 
@@ -243,7 +231,7 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_whenAuthenticationIsStale_throwsBeforeDeletingAnyData() = runTest {
         val fixture = makeSUT(authProvider = AuthProviderFake(userId = USER_ID, authenticationDate = Instant.now().minusSeconds(10 * 60)))
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf("f1"))
         fixture.snapshotStore.stubbedSnapshot = makeSnapshot()
 
         try {
@@ -253,7 +241,7 @@ class DeleteAccountUseCaseTest {
             assertNotNull("a rejected attempt must leave everything intact so the user can simply retry", fixture.snapshotStore.stubbedSnapshot)
             assertTrue(
                 "a stale session must be rejected before any data is deleted, otherwise the account survives but its history does not",
-                fixture.dataProvider.deletedIdsByCollection.isEmpty(),
+                fixture.dataProvider.allDeletedIdsByCollection.isEmpty(),
             )
             assertFalse("nothing was deleted yet, so a retry must not skip the wipe", error.dataAlreadyDeleted)
         }
@@ -275,13 +263,11 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_whenSkipDataWipeIsTrue_doesNotReReadAlreadyWipedCollections() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(
-            Constants.Firestore.mealTypes(USER_ID) to listOf(MealTypeDTO(id = "0", name = "Snídaně", startMinutes = 0, endMinutes = 60)),
-        )
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.mealTypes(USER_ID) to listOf("0"))
 
         fixture.sut(skipDataWipe = true)
 
-        assertTrue("a retry that already wiped the data must not re-read and re-delete it", fixture.dataProvider.deletedIdsByCollection.isEmpty())
+        assertTrue("a retry that already wiped the data must not re-read and re-delete it", fixture.dataProvider.allDeletedIdsByCollection.isEmpty())
         assertEquals(1, fixture.authCommandProvider.deleteCallCount)
     }
 
@@ -314,7 +300,7 @@ class DeleteAccountUseCaseTest {
     @Test
     fun invoke_whenSnapshotDeleteFails_deletesNothingElse() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf("f1"))
         fixture.snapshotStore.deleteError = IllegalStateException("disk")
 
         try {
@@ -323,7 +309,7 @@ class DeleteAccountUseCaseTest {
         } catch (_: IllegalStateException) {
             assertTrue(
                 "the account must survive intact when the snapshot cannot be cleared, so the user can retry",
-                fixture.dataProvider.deletedIdsByCollection.isEmpty(),
+                fixture.dataProvider.allDeletedIdsByCollection.isEmpty(),
             )
             assertEquals(0, fixture.authCommandProvider.deleteCallCount)
         }
@@ -387,7 +373,7 @@ class DeleteAccountUseCaseTest {
             authProvider = AuthProviderFake(userId = USER_ID, linkedProviderKinds = setOf(AuthProviderKind.APPLE)),
             appleSignInProvider = AppleSignInProviderFake(reauthenticateError = RuntimeException("cancelled")),
         )
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf("f1"))
 
         try {
             fixture.sut()
@@ -395,7 +381,7 @@ class DeleteAccountUseCaseTest {
         } catch (_: RuntimeException) {
         }
 
-        assertTrue("cancelling the Apple prompt must leave the account and its data intact so the user can retry", fixture.dataProvider.deletedIdsByCollection.isEmpty())
+        assertTrue("cancelling the Apple prompt must leave the account and its data intact so the user can retry", fixture.dataProvider.allDeletedIdsByCollection.isEmpty())
         assertEquals(0, fixture.authCommandProvider.deleteCallCount)
     }
 
@@ -422,7 +408,7 @@ class DeleteAccountUseCaseTest {
             authProvider = AuthProviderFake(userId = USER_ID, linkedProviderKinds = setOf(AuthProviderKind.APPLE)),
             appleSignInProvider = AppleSignInProviderFake(reauthenticateError = FirebaseAuthException("ERROR_USER_MISMATCH", "mismatch")),
         )
-        fixture.dataProvider.stubbedDocumentsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf(makeFood("f1")))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.foodConsumed(USER_ID) to listOf("f1"))
 
         try {
             fixture.sut()
@@ -430,7 +416,7 @@ class DeleteAccountUseCaseTest {
         } catch (_: ReauthenticateError.WrongAccount) {
         }
 
-        assertTrue("an access token of another Apple identity would revoke the wrong grant, so nothing may be revoked or deleted", fixture.dataProvider.deletedIdsByCollection.isEmpty())
+        assertTrue("an access token of another Apple identity would revoke the wrong grant, so nothing may be revoked or deleted", fixture.dataProvider.allDeletedIdsByCollection.isEmpty())
         assertTrue(fixture.authCommandProvider.revokedAccessTokens.isEmpty())
         assertEquals(0, fixture.authCommandProvider.deleteCallCount)
     }
@@ -446,7 +432,7 @@ class DeleteAccountUseCaseTest {
         val deletedBeforeAccountDeletion: Map<String, List<String>>
             get() = snapshots.firstOrNull().orEmpty()
 
-        fun deleted(collection: String): List<String> = dataProvider.deletedIdsByCollection[collection].orEmpty()
+        fun deleted(collection: String): List<String> = dataProvider.allDeletedIdsByCollection[collection].orEmpty()
     }
 
     private fun makeSUT(
@@ -457,7 +443,7 @@ class DeleteAccountUseCaseTest {
         val dataProvider = FirestoreDataProviderFake()
         val snapshots = mutableListOf<Map<String, List<String>>>()
         val authCommandProvider = AuthCommandProviderFake()
-        authCommandProvider.onDelete = { snapshots += dataProvider.deletedIdsByCollection }
+        authCommandProvider.onDelete = { snapshots += dataProvider.allDeletedIdsByCollection }
         val snapshotStore = PendingMergeSnapshotStoreFake()
         val sut = DeleteAccountUseCase(
             dataProvider = dataProvider,
@@ -471,84 +457,6 @@ class DeleteAccountUseCaseTest {
     }
 
     private fun makeSnapshot() = PendingMergeSnapshot(sourceAnonymousUserId = "anon-1", foodConsumed = emptyList())
-
-    private fun makeFood(id: String) = FoodConsumedDTO(
-        id = id,
-        foodItemId = id,
-        foodItemKind = FoodItemKind.CATALOGUE,
-        czName = "Test",
-        engName = "Test",
-        weight = 100.0,
-        date = Instant.now().epochSecond.toDouble(),
-        calories = 100,
-        protein = 1.0,
-        carbohydrate = 1.0,
-        carbohydrateSugar = 1.0,
-        fat = 1.0,
-        fatUnsaturated = 1.0,
-        fiber = 1.0,
-        salt = 1.0,
-    )
-
-    private fun makeItem(id: String) = FoodItemDomain(
-        id = id,
-        kind = FoodItemKind.CATALOGUE,
-        czName = "Test",
-        engName = "Test",
-        weight = 100.0,
-        date = Instant.now(),
-        energyKJ = 400.0,
-        caloriesPerHundredGrams = 100.0,
-        fat = 1.0,
-        fatSaturated = 1.0,
-        fatUnsaturatedFattyAcids = 1.0,
-        carbohydrate = 1.0,
-        carbohydratePureSugar = 1.0,
-        fiber = 1.0,
-        protein = 1.0,
-        salt = 1.0,
-    )
-
-    private fun makeFavourite(id: String) = FavouriteFoodDTO(item = makeItem(id), favouritedAt = Instant.now())
-
-    private fun makeSubmission(id: String) = FoodItemSubmissionDTO(
-        id = id,
-        barcode = "12345678",
-        submittedBy = USER_ID,
-        status = FoodItemSubmissionStatus.PENDING,
-        submittedAt = Instant.now(),
-        rejectReason = null,
-        item = makeItem("12345678"),
-    )
-
-    private fun makeMeal(id: String) = MyCreatedMealDTO(
-        MyCreatedMealDomain(
-            id = id,
-            name = "Test",
-            ingredients = listOf(
-                MyCreatedMealIngredientDomain(
-                    foodItemId = "12345",
-                    czName = "Test",
-                    engName = "Test",
-                    grams = 50.0,
-                    nutrition = FoodNutritionValues(
-                        energyKJ = 400.0,
-                        caloriesPerHundredGrams = 100.0,
-                        fat = 1.0,
-                        fatSaturated = 1.0,
-                        fatUnsaturatedFattyAcids = 1.0,
-                        carbohydrate = 1.0,
-                        carbohydratePureSugar = 1.0,
-                        fiber = 1.0,
-                        protein = 1.0,
-                        salt = 1.0,
-                    ),
-                ),
-            ),
-            createdAt = Instant.now(),
-            updatedAt = Instant.now(),
-        ),
-    )
 
     private companion object {
         const val USER_ID = "test-user-id"
