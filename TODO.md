@@ -70,16 +70,14 @@ The app works with three kinds of data. The distinction matters for the items be
 - **Dashboard read cost** — not urgent. Firestore bills per document read, and the dominant cost is the
   whole-month `foodConsumed` load on cold launch and pull to refresh
   ([ADR 0015](docs/adr/0015-dashboard-caches-a-month-and-derives-the-day.md)): ~300 documents per load at
-  ~10 entries a day. A rough estimate for 300 active users (2 cold launches, 5 foregrounds, 10 day switches
-  each per day) is ~225,000 reads a day, about 80 % of them month loads, i.e. a few USD a month above the
-  free tier. Revisit if the user count grows by orders of magnitude.
-- **Account deletion: batch the per-document deletes** — `DeleteAccountUseCase` deletes `mealTypes`,
-  `foodConsumed`, `favouriteFoods`, `myCreatedMeals`, `foodItemPortions` and the user's submissions one
-  document per round trip; only `bodyWeights` uses `batchDeleteAsync` (one `WriteBatch` per 500 ids).
-  `foodConsumed` grows fastest (~10 entries a day), so a long-time user waits for thousands of sequential
-  deletes and a timeout leaves the account half wiped. Move the loops to `batchDeleteAsync`, iOS and
-  Android together (Scope: Cross-platform), keeping the order the tests pin (profile document last) and
-  the existing delete tests as the spec. One `[REFACTOR]` commit per platform.
+  ~10 entries a day. Foreground returns, saves, deletes and copies already reload one day only
+  ([ADR 0041](docs/adr/0041-dashboard-reloads-only-the-affected-day-after-a-write-or-foreground.md)). A rough
+  estimate for 300 active users (2 cold launches a day) is ~180,000 month-load reads a day, i.e. about
+  1.5–2 USD a month above the free tier. Revisit if the user count grows by orders of magnitude. The
+  cheapest cut then is loading only the selected day on cold launch and the month lazily (about −75 % of
+  reads, but the calendar dots arrive late); a per-month `activeDays` document would give the dots for
+  1 read but must be kept in sync on every write. A snapshot listener does not help (resume tokens last
+  ~30 minutes).
 
 ## Android readiness
 
