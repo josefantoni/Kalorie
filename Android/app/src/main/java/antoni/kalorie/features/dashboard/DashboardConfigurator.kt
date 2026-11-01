@@ -92,8 +92,10 @@ class DashboardConfigurator {
                     }
                     is DashboardDestination.BodyWeightHistory -> NavEntry(destination) {
                         val appSettings by viewModel.appSettings.collectAsState()
+                        val selectedDay by viewModel.selectedDay.collectAsState()
                         router.makeBodyWeightHistoryView(
                             unit = appSettings.bodyWeightUnit,
+                            selectedDay = selectedDay,
                             onBack = { viewModel.backStack.remove(destination) },
                             onChanged = { scope.launch { viewModel.onWeightsChanged() } },
                         )

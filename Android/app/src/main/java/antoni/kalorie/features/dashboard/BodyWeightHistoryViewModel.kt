@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
@@ -43,6 +44,7 @@ data class BodyWeightPeriod(
 
 class BodyWeightHistoryViewModel(
     val unit: BodyWeightUnit,
+    private val selectedDay: Instant,
     private val fetchBodyWeights: FetchBodyWeightsUseCaseProtocol,
     private val deleteBodyWeight: DeleteBodyWeightUseCaseProtocol,
     private val now: () -> Instant = { Instant.now() },
@@ -83,6 +85,7 @@ class BodyWeightHistoryViewModel(
     // MARK: - Init
 
     init {
+        _periodOffset.value = offsetOfSelectedDay(_range.value)
         refreshChart()
     }
 
@@ -140,7 +143,7 @@ class BodyWeightHistoryViewModel(
 
     fun onRangeChanged(range: BodyWeightRange) {
         _range.value = range
-        _periodOffset.value = 0
+        _periodOffset.value = offsetOfSelectedDay(range)
         refreshChart()
     }
 
@@ -182,6 +185,23 @@ class BodyWeightHistoryViewModel(
     private fun setWeights(weights: List<BodyWeightDomain>) {
         _weights.value = weights
         refreshChart()
+    }
+
+    private fun offsetOfSelectedDay(range: BodyWeightRange): Int {
+        val today = now().atZone(zone).toLocalDate()
+        val selected = selectedDay.atZone(zone).toLocalDate()
+        val periods = when (range) {
+            BodyWeightRange.WEEK -> {
+                val firstDayOfWeek = WeekFields.of(locale).firstDayOfWeek
+                ChronoUnit.WEEKS.between(
+                    selected.with(TemporalAdjusters.previousOrSame(firstDayOfWeek)),
+                    today.with(TemporalAdjusters.previousOrSame(firstDayOfWeek)),
+                )
+            }
+            BodyWeightRange.MONTH -> ChronoUnit.MONTHS.between(selected.withDayOfMonth(1), today.withDayOfMonth(1))
+            BodyWeightRange.YEAR -> (today.year - selected.year).toLong()
+        }
+        return -maxOf(periods, 0L).toInt()
     }
 
     private fun refreshChart() {
