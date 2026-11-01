@@ -13,7 +13,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,7 +21,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,6 +36,8 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
+import antoni.kalorie.components.AccentPullToRefreshBox
+import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.popTransitionSpec
@@ -134,7 +134,7 @@ private fun ModerationQueueContent(
             )
         },
     ) { innerPadding ->
-        PullToRefreshBox(
+        AccentPullToRefreshBox(
             isRefreshing = false,
             onRefresh = { scope.launch { viewModel.onRefresh() } },
             modifier = Modifier.fillMaxSize().padding(innerPadding),
@@ -185,7 +185,7 @@ private fun ModerationQueueContent(
             }
             if (state.isLoading) {
                 Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    LoaderIndicator()
                 }
             }
         }

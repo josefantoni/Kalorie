@@ -18,7 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
+import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.RevealingSwipeToDeleteRow
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
@@ -102,7 +102,7 @@ fun BodyWeightHistoryView(viewModel: BodyWeightHistoryViewModel, onBack: () -> U
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {
-                state.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp))
+                state.isLoading -> LoaderIndicator(modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp))
                 state is LoadingState.Error -> LoadFailedState(onRetry = { scope.launch { viewModel.onRetryTapped() } })
                 weights.isEmpty() -> EmptyState()
                 else -> LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
@@ -236,7 +236,7 @@ private fun ChartSection(viewModel: BodyWeightHistoryViewModel) {
                     unit = viewModel.unit,
                     modifier = Modifier.alpha(if (isLoadingEarlierYear) 0.3f else 1f),
                 )
-                if (isLoadingEarlierYear) CircularProgressIndicator()
+                if (isLoadingEarlierYear) LoaderIndicator()
             }
         }
     }

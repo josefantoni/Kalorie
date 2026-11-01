@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -81,6 +80,7 @@ import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.BadgeButton
 import antoni.kalorie.components.FloatingLabelTextField
+import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
@@ -444,7 +444,7 @@ private fun SettingsContent(
 
             if (state.isLoading) {
                 Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    LoaderIndicator()
                 }
             }
         }

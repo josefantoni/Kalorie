@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +32,7 @@ fun BarcodeScannerOverlay(onScannedCode: (String) -> Unit, isSearching: Boolean,
                 modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator()
+                LoaderIndicator()
             }
         }
     }
