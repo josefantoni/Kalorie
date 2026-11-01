@@ -127,6 +127,39 @@ final class BodyWeightHistoryViewModelTests: XCTestCase {
         XCTAssertEqual(sut.periodOffset, -2)
     }
 
+    func test_opensOnThePeriodOfTheSelectedDay_notOnTheCurrentOne() async {
+        let (sut, _) = makeSUT(
+            weights: [weight("2026-11-01", 77), weight("2026-10-28", 78), weight("2026-10-05", 79)],
+            now: date("2026-11-01"),
+            selectedDay: date("2026-10-28")
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.periodOffset, -1)
+        XCTAssertEqual(sut.chartPoints.map(\.kilograms), [79, 78])
+        XCTAssertTrue(sut.canPageForward)
+    }
+
+    func test_selectedDayInAnEarlierYear_readsThatYearOnce() async {
+        let (sut, spy) = makeSUT(
+            weights: [weight("2027-02-01", 77), weight("2026-12-10", 78)],
+            now: date("2027-02-01"),
+            selectedDay: date("2026-12-10")
+        )
+        await sut.onAppear()
+        XCTAssertEqual(spy.requestedYears, [2027, 2026])
+        XCTAssertEqual(sut.chartPoints.map(\.kilograms), [78])
+    }
+
+    func test_changingRange_keepsTheSelectedDayInView() async {
+        let (sut, _) = makeSUT(weights: [], now: date("2026-11-11"), selectedDay: date("2026-10-28"))
+        sut.range = .year
+        XCTAssertEqual(sut.periodOffset, 0)
+        sut.range = .month
+        XCTAssertEqual(sut.periodOffset, -1)
+        sut.range = .week
+        XCTAssertEqual(sut.periodOffset, -2)
+    }
+
     func test_changingRange_resetsPaging() async {
         let (sut, _) = makeSUT(weights: [])
         await sut.onPreviousPeriod()
@@ -177,12 +210,14 @@ final class BodyWeightHistoryViewModelTests: XCTestCase {
     private func makeSUT(
         weights: [BodyWeightDomain],
         now: Date = Date(),
+        selectedDay: Date? = nil,
         deleteShouldThrow: Bool = false,
         onChanged: @escaping () -> Void = {}
     ) -> (sut: BodyWeightHistoryViewModel, spy: HistorySpy) {
         let spy = HistorySpy(weights: weights, deleteShouldThrow: deleteShouldThrow)
         let sut = BodyWeightHistoryViewModel(
             unit: .kg,
+            selectedDay: selectedDay ?? now,
             fetchBodyWeights: spy,
             deleteBodyWeight: spy,
             now: { now },
