@@ -9,6 +9,7 @@ import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.usecases.DeleteBodyWeightUseCase
 import antoni.kalorie.core.usecases.FetchBodyWeightsUseCase
+import java.time.Instant
 
 class BodyWeightHistoryConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,
@@ -18,11 +19,12 @@ class BodyWeightHistoryConfigurator(
     // MARK: - Functions
 
     @Composable
-    fun createView(unit: BodyWeightUnit, onBack: () -> Unit, onChanged: () -> Unit) {
+    fun createView(unit: BodyWeightUnit, selectedDay: Instant, onBack: () -> Unit, onChanged: () -> Unit) {
         val currentOnChanged by rememberUpdatedState(onChanged)
         val viewModel = viewModel {
             BodyWeightHistoryViewModel(
                 unit = unit,
+                selectedDay = selectedDay,
                 fetchBodyWeights = FetchBodyWeightsUseCase(dataProvider, authProvider),
                 deleteBodyWeight = DeleteBodyWeightUseCase(dataProvider, authProvider),
                 onChanged = { currentOnChanged() },

@@ -147,6 +147,42 @@ class BodyWeightHistoryViewModelTest {
     }
 
     @Test
+    fun opensOnThePeriodOfTheSelectedDay_notOnTheCurrentOne() = runTest {
+        val (sut, _) = makeSUT(
+            weights = listOf(weight("2026-11-01", 77.0), weight("2026-10-28", 78.0), weight("2026-10-05", 79.0)),
+            now = date("2026-11-01"),
+            selectedDay = date("2026-10-28"),
+        )
+        sut.onAppear()
+        assertEquals(-1, sut.periodOffset.value)
+        assertEquals(listOf(79.0, 78.0), sut.chartPoints.value.map { it.kilograms })
+        assertTrue(sut.canPageForward)
+    }
+
+    @Test
+    fun selectedDayInAnEarlierYear_readsThatYearOnce() = runTest {
+        val (sut, spy) = makeSUT(
+            weights = listOf(weight("2027-02-01", 77.0), weight("2026-12-10", 78.0)),
+            now = date("2027-02-01"),
+            selectedDay = date("2026-12-10"),
+        )
+        sut.onAppear()
+        assertEquals(listOf(2027, 2026), spy.requestedYears)
+        assertEquals(listOf(78.0), sut.chartPoints.value.map { it.kilograms })
+    }
+
+    @Test
+    fun changingRange_keepsTheSelectedDayInView() = runTest {
+        val (sut, _) = makeSUT(weights = emptyList(), now = date("2026-11-11"), selectedDay = date("2026-10-28"))
+        sut.onRangeChanged(BodyWeightRange.YEAR)
+        assertEquals(0, sut.periodOffset.value)
+        sut.onRangeChanged(BodyWeightRange.MONTH)
+        assertEquals(-1, sut.periodOffset.value)
+        sut.onRangeChanged(BodyWeightRange.WEEK)
+        assertEquals(-2, sut.periodOffset.value)
+    }
+
+    @Test
     fun changingRange_resetsPaging() = runTest {
         val (sut, _) = makeSUT(weights = emptyList())
         sut.onPreviousPeriod()
@@ -196,12 +232,14 @@ class BodyWeightHistoryViewModelTest {
     private fun makeSUT(
         weights: List<BodyWeightDomain>,
         now: Instant = Instant.now(),
+        selectedDay: Instant? = null,
         deleteShouldThrow: Boolean = false,
         onChanged: () -> Unit = {},
     ): Pair<BodyWeightHistoryViewModel, HistorySpy> {
         val spy = HistorySpy(weights, deleteShouldThrow)
         val sut = BodyWeightHistoryViewModel(
             unit = BodyWeightUnit.KG,
+            selectedDay = selectedDay ?: now,
             fetchBodyWeights = spy,
             deleteBodyWeight = spy,
             now = { now },

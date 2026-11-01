@@ -60,7 +60,7 @@ class DashboardRouter(
     }
 
     @Composable
-    fun makeBodyWeightHistoryView(unit: BodyWeightUnit, onBack: () -> Unit, onChanged: () -> Unit) {
-        bodyWeightHistoryConfigurator.createView(unit = unit, onBack = onBack, onChanged = onChanged)
+    fun makeBodyWeightHistoryView(unit: BodyWeightUnit, selectedDay: Instant, onBack: () -> Unit, onChanged: () -> Unit) {
+        bodyWeightHistoryConfigurator.createView(unit = unit, selectedDay = selectedDay, onBack = onBack, onChanged = onChanged)
     }
 }
