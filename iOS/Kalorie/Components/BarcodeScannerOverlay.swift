@@ -35,7 +35,7 @@ struct BarcodeScannerOverlay: View {
             }
 
             if isSearching {
-                ProgressView()
+                LoaderIndicator()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(.ultraThinMaterial)
             }

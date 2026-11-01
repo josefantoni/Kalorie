@@ -113,6 +113,11 @@ enum Constants {
         static let extraLarge: CGFloat = 60
     }
 
+    enum Loader {
+        static let size: CGFloat = 50
+        static let cornerRadius: CGFloat = 12
+    }
+
     enum BodyWeight {
         static let defaultKilograms = 70.0
         static let kilogramsPerPound = 0.45359237
