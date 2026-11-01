@@ -343,7 +343,9 @@ builder:
 | `mergeAsync(_:id:in:)` | `document(id).setData(_, merge: true)` — used only for `settings/app`, so a client never erases a field it does not know |
 | `batchSetAsync(_:in:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) items |
 | `deleteAsync(id:from:)` | `document(id).delete()` |
-| `batchDeleteAsync(ids:from:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) ids — used only to wipe `bodyWeights` on account deletion, where a daily entry makes the collection grow without bound |
+| `loadDocumentIdsAsync(from:)` | every document id of a collection, without decoding the documents — used only by the account-deletion wipe, so a document that no longer matches its DTO cannot block the deletion. Not in the protocol extension's reach: a conformer that does not implement it throws `.unsupported` |
+| `loadDocumentIdsAsync(from:where:isEqualTo:)` | the same for an equality query, no `orderBy` — the wipe's `submitted_by` / `reported_by` queries, served by Firestore's automatic single-field index |
+| `batchDeleteAsync(ids:from:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) ids — used by the account-deletion wipe for every per-user collection, the user's submissions and reports, so a large history is not deleted one round trip per document |
 
 Consequences worth knowing before adding a method:
 
@@ -461,9 +463,13 @@ Consequences worth knowing before adding a method:
 indexing on `foodItems`' numeric fields via `fieldOverrides` — only `cz_name_lowercase`,
 `eng_name_lowercase`, `cz_name_folded`, `eng_name_folded` and `id` are ever queried, so every
 other field would otherwise be indexed in both directions for no reason. It also carries two
-composite indexes for `foodItemSubmissions` and one for `foodItemReports` — every one of them
-exists solely for `DeleteAccountUseCase`'s or a moderation queue's `where` + `orderBy` on two
-different fields, which a single-field index cannot serve.
+composite indexes for `foodItemSubmissions` and one for `foodItemReports`, each for a `where` +
+`orderBy` on two different fields, which a single-field index cannot serve. Both submissions indexes are
+in use today: `status` + `submitted_at` serves the maintainer's pending queue and `submitted_by` +
+`submitted_at` serves the user's own submissions list. The `foodItemReports` index (`reported_by` +
+`reported_at`) is not queried by any current client: it was added for `DeleteAccountUseCase`'s old
+sorted query, which the wipe replaced with an unsorted id query, so only older installed clients still
+need it.
 
 ### 1.7 Wire schema
 
@@ -2116,10 +2122,11 @@ accepted for approval's own two non-transactional writes.
 
 There is no `status` field and no retained "resolved" record — a report is deleted once acted on,
 the same reasoning [design 0009](design/0009-catalogue-moderation.md) gave for not retaining
-approved submissions. `DeleteAccountUseCase.wipeFirestoreData` queries `foodItemReports where
+approved submissions. `DeleteAccountUseCase.wipeFirestoreData` loads the ids of `foodItemReports where
 reported_by == uid` and deletes each, the same privacy obligation `foodItemSubmissions` already
-carries; unlike that query, this one needed its own composite index (§ 1.6), since equality on one
-field plus a sort on another is never covered by Firestore's automatic single-field indexing.
+carries. The composite index on `reported_by` + `reported_at` (§ 1.6) was added for that query's
+`orderBy`; the wipe no longer sorts, so the index only serves older installed clients and can go
+once none of them remain.
 
 See [design 0012](design/0012-report-incorrect-catalogue-data.md) for why this is a signal
 collection rather than a second write path into `foodItems` — routing a correction through
