@@ -2,8 +2,8 @@
 
 Mobile apps for tracking calories and macros. Built because existing apps are bloated with features I don't need.
 
-- **iOS** (`iOS/`) — version 1.0 in closed testing (TestFlight)
-- **Android** (`Android/`) — version 1.0 in closed testing on Google Play; production access needs 12 testers
+- **iOS** (`iOS/`) — [available on the App Store](https://apps.apple.com/cz/app/kalorie/id6823155404?l=cs)
+- **Android** (`Android/`) — version 1.0 almost done with closed testing on Google Play, then production access
 
 <table>
   <tr>
@@ -40,7 +40,9 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 - Export logged food to PDF or Excel
 - Anonymous device identity out of the box, Sign in with Apple or Google to keep data across devices; the other provider can be linked later from the Account screen
 - Delete your account together with all your data, submissions and photos from Settings
-- Czech and English
+- Runs on Mac as an iPad app (Designed for iPad), with the camera features hidden there
+- An outdated build is blocked by an update-required screen until the app is updated
+- Czech, Slovak and English
 
 ## Repository layout
 
@@ -83,7 +85,7 @@ Data is private per user (`users/{userId}/…`) except the shared food catalogue
 
 ## Status
 
-Both apps are in closed testing ahead of the first public release. iOS 1.0 is in external TestFlight testing and goes to App Store review next. On Google Play a new personal developer account has to run the closed test with at least 12 testers opted in for 14 days before it can apply for production access. Open items are tracked in [TODO.md](TODO.md).
+iOS is released on the [App Store](https://apps.apple.com/cz/app/kalorie/id6823155404?l=cs). Android is almost done with closed testing ahead of its first public release: on Google Play a new personal developer account has to run the closed test with at least 12 testers opted in for 14 days before it can apply for production access. Open items are tracked in [TODO.md](TODO.md).
 
 ## License
 
