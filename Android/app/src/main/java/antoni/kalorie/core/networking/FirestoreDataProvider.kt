@@ -50,6 +50,8 @@ interface FirestoreDataProviderProtocol {
     suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>)
     suspend fun deleteAsync(id: String, from: String)
     suspend fun batchDeleteAsync(ids: List<String>, from: String)
+    suspend fun loadDocumentIdsAsync(from: String): List<String>
+    suspend fun loadDocumentIdsAsync(from: String, field: String, isEqualTo: String): List<String>
     suspend fun <T> incrementEntryAsync(
         item: T,
         entryId: String,
@@ -347,6 +349,14 @@ class FirestoreDataProvider(
         performFirestoreCall {
             firestore.collection(from).document(id).delete().await()
         }
+    }
+
+    override suspend fun loadDocumentIdsAsync(from: String): List<String> = performFirestoreCall {
+        firestore.collection(from).get().await().documents.map { it.id }
+    }
+
+    override suspend fun loadDocumentIdsAsync(from: String, field: String, isEqualTo: String): List<String> = performFirestoreCall {
+        firestore.collection(from).whereEqualTo(field, isEqualTo).get().await().documents.map { it.id }
     }
 
     override suspend fun batchDeleteAsync(ids: List<String>, from: String) {

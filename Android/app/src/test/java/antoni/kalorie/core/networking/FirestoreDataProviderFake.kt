@@ -9,10 +9,15 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     // MARK: - Properties
 
     var stubbedDocuments: List<Any> = emptyList()
+    var stubbedDocumentIdsByCollection: Map<String, List<String>> = emptyMap()
+    var stubbedDecodingError: Exception? = null
     var stubbedDocumentsByCollection: Map<String, List<Any>> = emptyMap()
     var batchSavedItemsByCollection: Map<String, List<Pair<Any?, String>>> = emptyMap()
     var deletedIdsByCollection: Map<String, List<String>> = emptyMap()
     var deletionCollectionOrder: List<String> = emptyList()
+    val allDeletedIdsByCollection: Map<String, List<String>>
+        get() = (deletedIdsByCollection.keys + batchDeletedIdsByCollection.keys)
+            .associateWith { deletedIdsByCollection[it].orEmpty() + batchDeletedIdsByCollection[it].orEmpty() }
     var stubbedServerDocuments: List<Any> = emptyList()
     var stubbedRangeDocuments: (Double, Double) -> List<Any> = { _, _ -> emptyList() }
     var stubbedLessThanOrEqualDocuments: (String, Int) -> List<Any> = { _, _ -> emptyList() }
@@ -79,8 +84,24 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
 
     // MARK: - Functions
 
+    override suspend fun loadDocumentIdsAsync(from: String): List<String> {
+        stubbedError?.let { throw it }
+        loadedCollections.add(from)
+        return stubbedDocumentIdsByCollection[from].orEmpty()
+    }
+
+    override suspend fun loadDocumentIdsAsync(from: String, field: String, isEqualTo: String): List<String> {
+        stubbedError?.let { throw it }
+        loadedCollections.add(from)
+        queriedCollection = from
+        queriedField = field
+        queriedValue = isEqualTo
+        return stubbedDocumentIdsByCollection[from].orEmpty()
+    }
+
     override suspend fun <T> loadAsync(from: String, serializer: KSerializer<T>): List<T> {
         stubbedError?.let { throw it }
+        stubbedDecodingError?.let { throw it }
         loadedCollections.add(from)
         return (stubbedDocumentsByCollection[from] ?: stubbedDocuments) as List<T>
     }
@@ -118,6 +139,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         serializer: KSerializer<T>,
     ): List<T> {
         stubbedError?.let { throw it }
+        stubbedDecodingError?.let { throw it }
         queriedCollection = from
         queriedField = field
         queriedValue = isEqualTo
@@ -243,6 +265,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     override suspend fun batchDeleteAsync(ids: List<String>, from: String) {
         stubbedBatchDeleteError?.let { throw it }
         batchDeletedIdsByCollection = batchDeletedIdsByCollection + (from to (batchDeletedIdsByCollection[from].orEmpty() + ids))
+        if (ids.isNotEmpty()) deletionCollectionOrder = deletionCollectionOrder + from
     }
 
     override suspend fun <T> incrementEntryAsync(

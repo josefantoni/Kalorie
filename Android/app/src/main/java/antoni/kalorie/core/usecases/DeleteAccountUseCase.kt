@@ -6,18 +6,8 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreProtocol
-import antoni.kalorie.core.models.FoodItemReportDomain
-import antoni.kalorie.core.networking.BodyWeightDTO
-import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
-import antoni.kalorie.core.networking.FoodConsumedDTO
-import antoni.kalorie.core.networking.FoodItemPersonalPortionsDTO
-import antoni.kalorie.core.networking.FoodItemReportDTO
-import antoni.kalorie.core.networking.FoodItemSubmissionDTO
-import antoni.kalorie.core.networking.MealTypeDTO
-import antoni.kalorie.core.networking.MyCreatedMealDTO
 import antoni.kalorie.core.networking.StorageDataProviderProtocol
-import antoni.kalorie.core.networking.loadAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import com.google.firebase.auth.FirebaseAuthException
@@ -92,45 +82,39 @@ class DeleteAccountUseCase(
     }
 
     private suspend fun wipeBodyWeightData(userId: String) {
-        val bodyWeights: List<BodyWeightDTO> = dataProvider.loadAsync(from = Constants.Firestore.bodyWeights(userId))
-        dataProvider.batchDeleteAsync(ids = bodyWeights.map { it.id }, from = Constants.Firestore.bodyWeights(userId))
+        val bodyWeightIds = dataProvider.loadDocumentIdsAsync(from = Constants.Firestore.bodyWeights(userId))
+        dataProvider.batchDeleteAsync(ids = bodyWeightIds, from = Constants.Firestore.bodyWeights(userId))
         dataProvider.deleteAsync(id = Constants.Firestore.APP_SETTINGS_DOCUMENT_ID, from = Constants.Firestore.settings(userId))
     }
 
     private suspend fun wipeFirestoreData(userId: String) {
-        val mealTypes: List<MealTypeDTO> = dataProvider.loadAsync(from = Constants.Firestore.mealTypes(userId))
-        mealTypes.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.mealTypes(userId)) }
-        val foods: List<FoodConsumedDTO> = dataProvider.loadAsync(from = Constants.Firestore.foodConsumed(userId))
-        foods.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.foodConsumed(userId)) }
-        val favouriteFoods: List<FavouriteFoodDTO> = dataProvider.loadAsync(from = Constants.Firestore.favouriteFoods(userId))
-        favouriteFoods.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.favouriteFoods(userId)) }
-        val myCreatedMeals: List<MyCreatedMealDTO> = dataProvider.loadAsync(from = Constants.Firestore.myCreatedMeals(userId))
-        myCreatedMeals.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.myCreatedMeals(userId)) }
-        val foodItemPortions: List<FoodItemPersonalPortionsDTO> = dataProvider.loadAsync(from = Constants.Firestore.foodItemPortions(userId))
-        foodItemPortions.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.foodItemPortions(userId)) }
+        val mealTypeIds = dataProvider.loadDocumentIdsAsync(from = Constants.Firestore.mealTypes(userId))
+        dataProvider.batchDeleteAsync(ids = mealTypeIds, from = Constants.Firestore.mealTypes(userId))
+        val foodIds = dataProvider.loadDocumentIdsAsync(from = Constants.Firestore.foodConsumed(userId))
+        dataProvider.batchDeleteAsync(ids = foodIds, from = Constants.Firestore.foodConsumed(userId))
+        val favouriteFoodIds = dataProvider.loadDocumentIdsAsync(from = Constants.Firestore.favouriteFoods(userId))
+        dataProvider.batchDeleteAsync(ids = favouriteFoodIds, from = Constants.Firestore.favouriteFoods(userId))
+        val myCreatedMealIds = dataProvider.loadDocumentIdsAsync(from = Constants.Firestore.myCreatedMeals(userId))
+        dataProvider.batchDeleteAsync(ids = myCreatedMealIds, from = Constants.Firestore.myCreatedMeals(userId))
+        val foodItemPortionIds = dataProvider.loadDocumentIdsAsync(from = Constants.Firestore.foodItemPortions(userId))
+        dataProvider.batchDeleteAsync(ids = foodItemPortionIds, from = Constants.Firestore.foodItemPortions(userId))
         wipeBodyWeightData(userId)
         dataProvider.deleteAsync(id = Constants.Firestore.FOOD_FREQUENCY_DOCUMENT_ID, from = Constants.Firestore.stats(userId))
-        val submissions: List<FoodItemSubmissionDTO> = dataProvider.loadAsync(
+        val submissionIds = dataProvider.loadDocumentIdsAsync(
             from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS,
             field = Constants.Firestore.Field.SUBMITTED_BY,
             isEqualTo = userId,
-            orderBy = Constants.Firestore.Field.SUBMITTED_AT,
-            descending = true,
         )
-        submissions.forEach { dataProvider.deleteAsync(id = it.id, from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS) }
+        dataProvider.batchDeleteAsync(ids = submissionIds, from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS)
         // Listing the folder, rather than following the deleted submissions' URLs, also removes
         // orphans left by earlier failed writes. catalogPhotos is shared catalogue content and stays.
         storageProvider.listAsync("${Constants.Storage.SUBMISSION_PHOTOS_FOLDER}/$userId").forEach { storageProvider.deleteAsync(it) }
-        val reports: List<FoodItemReportDTO> = dataProvider.loadAsync(
+        val reportIds = dataProvider.loadDocumentIdsAsync(
             from = Constants.Firestore.FOOD_ITEM_REPORTS,
             field = Constants.Firestore.Field.REPORTED_BY,
             isEqualTo = userId,
-            orderBy = Constants.Firestore.Field.REPORTED_AT,
-            descending = true,
         )
-        reports.forEach {
-            dataProvider.deleteAsync(id = FoodItemReportDomain.id(barcode = it.barcode, userId = userId), from = Constants.Firestore.FOOD_ITEM_REPORTS)
-        }
+        dataProvider.batchDeleteAsync(ids = reportIds, from = Constants.Firestore.FOOD_ITEM_REPORTS)
         try {
             dataProvider.deleteAsync(id = userId, from = Constants.Firestore.USERS)
         } catch (error: CancellationException) {
