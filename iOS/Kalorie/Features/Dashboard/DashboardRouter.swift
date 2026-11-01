@@ -77,7 +77,7 @@ struct DashboardRouter {
         accountConfigurator.createView()
     }
 
-    func makeBodyWeightHistoryView(unit: BodyWeightUnit, onChanged: @escaping () -> Void) -> BodyWeightHistoryView {
-        bodyWeightHistoryConfigurator.createView(unit: unit, onChanged: onChanged)
+    func makeBodyWeightHistoryView(unit: BodyWeightUnit, selectedDay: Date, onChanged: @escaping () -> Void) -> BodyWeightHistoryView {
+        bodyWeightHistoryConfigurator.createView(unit: unit, selectedDay: selectedDay, onChanged: onChanged)
     }
 }

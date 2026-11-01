@@ -42,7 +42,7 @@ final class BodyWeightHistoryViewModel: ObservableObject {
     @Published private(set) var period = DateInterval(start: .distantPast, duration: 0)
     @Published private(set) var chartPoints: [BodyWeightChartPoint] = []
     @Published var range = BodyWeightRange.month {
-        didSet { periodOffset = 0 }
+        didSet { periodOffset = offsetOfSelectedDay(in: range) }
     }
     @Published private(set) var isLoadingEarlierYear = false
     @Published var alertItem: AlertItem?
@@ -56,6 +56,7 @@ final class BodyWeightHistoryViewModel: ObservableObject {
 
     private let fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol
     private let deleteBodyWeight: any DeleteBodyWeightUseCaseProtocol
+    private let selectedDay: Date
     private let now: () -> Date
     private let onChanged: () -> Void
 
@@ -63,16 +64,19 @@ final class BodyWeightHistoryViewModel: ObservableObject {
 
     init(
         unit: BodyWeightUnit,
+        selectedDay: Date,
         fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol,
         deleteBodyWeight: any DeleteBodyWeightUseCaseProtocol,
         now: @escaping () -> Date = { Date.now },
         onChanged: @escaping () -> Void
     ) {
         self.unit = unit
+        self.selectedDay = selectedDay
         self.fetchBodyWeights = fetchBodyWeights
         self.deleteBodyWeight = deleteBodyWeight
         self.now = now
         self.onChanged = onChanged
+        periodOffset = offsetOfSelectedDay(in: range)
         refreshChart()
     }
 
@@ -160,6 +164,16 @@ final class BodyWeightHistoryViewModel: ObservableObject {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.WeightHistory.errorDeleteFailed)
         }
+    }
+
+    private func offsetOfSelectedDay(in range: BodyWeightRange) -> Int {
+        let calendar = Calendar.current
+        guard
+            let current = calendar.dateInterval(of: range.component, for: now()),
+            let selected = calendar.dateInterval(of: range.component, for: selectedDay),
+            let offset = calendar.dateComponents([range.component], from: current.start, to: selected.start).value(for: range.component)
+        else { return 0 }
+        return min(offset, 0)
     }
 
     private func refreshChart() {

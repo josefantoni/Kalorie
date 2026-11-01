@@ -61,7 +61,7 @@ struct DashboardView: View {
                 }
             }
             .navigationDestination(isPresented: $viewModel.isWeightHistoryPushed) {
-                router.makeBodyWeightHistoryView(unit: viewModel.appSettings.bodyWeightUnit) {
+                router.makeBodyWeightHistoryView(unit: viewModel.appSettings.bodyWeightUnit, selectedDay: viewModel.selectedDay) {
                     Task { await viewModel.onWeightsChanged() }
                 }
             }

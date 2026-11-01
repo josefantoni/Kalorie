@@ -23,10 +23,11 @@ struct BodyWeightHistoryConfigurator {
 
     // MARK: - Functions
 
-    func createView(unit: BodyWeightUnit, onChanged: @escaping () -> Void) -> BodyWeightHistoryView {
+    func createView(unit: BodyWeightUnit, selectedDay: Date, onChanged: @escaping () -> Void) -> BodyWeightHistoryView {
         BodyWeightHistoryView(
             viewModel: BodyWeightHistoryViewModel(
                 unit: unit,
+                selectedDay: selectedDay,
                 fetchBodyWeights: FetchBodyWeightsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteBodyWeight: DeleteBodyWeightUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 onChanged: onChanged
