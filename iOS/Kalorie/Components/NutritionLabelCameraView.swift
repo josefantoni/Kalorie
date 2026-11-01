@@ -33,7 +33,7 @@ struct NutritionLabelCameraView: View {
             // the topmost ZStack layer and visually swallowed the close button while isRecognizing
             // was true, leaving no way to even dismiss the camera.
             if isRecognizing {
-                ProgressView()
+                LoaderIndicator()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(.ultraThinMaterial)
             }

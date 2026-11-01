@@ -36,7 +36,7 @@ struct FoodPhotoContent: View {
                         .resizable()
                         .aspectRatio(contentMode: contentMode)
                 case .loading:
-                    ProgressView()
+                    LoaderIndicator()
                 case .failure:
                     Image(systemName: BaseImageName.foodPlaceholder.rawValue)
                         .font(.largeTitle)

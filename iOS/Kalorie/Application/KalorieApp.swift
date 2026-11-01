@@ -34,7 +34,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             memoryCapacity: Constants.Storage.imageCacheMemoryBytes,
             diskCapacity: Constants.Storage.imageCacheDiskBytes
         )
-        UISegmentedControl.appearance().selectedSegmentTintColor = UIColor(named: "AccentColor")
+        UISegmentedControl.appearance().selectedSegmentTintColor = UIColor(resource: .accent)
+        UIRefreshControl.appearance().tintColor = UIColor(resource: .accent)
         UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .selected)
         #if DEBUG
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(false)
@@ -94,7 +95,7 @@ struct KalorieApp: App {
     @ViewBuilder private var authContent: some View {
         switch authState.state {
         case .idle, .loading:
-            ProgressView()
+            LoaderIndicator()
         case .loaded:
             DashboardConfigurator().createView(mergeStatusReporting: authState)
                 // Forces a full rebuild on every auth transition so no view model is reused
@@ -126,7 +127,7 @@ struct KalorieApp: App {
         ZStack {
             Color.black.opacity(0.15).ignoresSafeArea()
             VStack(spacing: 16) {
-                ProgressView()
+                LoaderIndicator()
                 Text(L10n.Auth.mergingMessage)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

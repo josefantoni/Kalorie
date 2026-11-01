@@ -71,7 +71,7 @@ struct MyCreatedMealEditorView: View {
                                 }
                         }
                     } else if viewModel.isExternalSearchLoading {
-                        ProgressView()
+                        LoaderIndicator()
                             .frame(maxWidth: .infinity)
                     } else {
                         ForEach(viewModel.externalSearchResults, id: \.id) { item in

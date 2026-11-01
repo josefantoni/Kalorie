@@ -25,7 +25,8 @@ struct BodyWeightHistoryView: View {
     var body: some View {
         ScrollView {
             if viewModel.state.isLoading {
-                ProgressView()
+                LoaderIndicator()
+                    .frame(maxWidth: .infinity)
                     .padding(.top, 40)
             } else if case .error = viewModel.state {
                 loadFailedState
@@ -102,7 +103,7 @@ struct BodyWeightHistoryView: View {
                 .opacity(viewModel.isLoadingEarlierYear ? 0.3 : 1)
                 .overlay {
                     if viewModel.isLoadingEarlierYear {
-                        ProgressView()
+                        LoaderIndicator()
                     }
                 }
                 .gesture(

@@ -294,7 +294,7 @@ struct AddFoodSheetView: View {
         .contentMargins(.top, 0, for: .scrollContent)
         .overlay {
             if viewModel.isExternalSearchLoading {
-                ProgressView()
+                LoaderIndicator()
             }
         }
     }
