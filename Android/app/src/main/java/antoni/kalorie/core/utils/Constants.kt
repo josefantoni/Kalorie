@@ -1,5 +1,6 @@
 package antoni.kalorie.core.utils
 
+import androidx.compose.ui.unit.dp
 import antoni.kalorie.BuildConfig
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
@@ -105,6 +106,13 @@ object Constants {
     object Search {
         const val MINIMUM_QUERY_LENGTH = 2
         const val FREQUENCY_ENTRY_LIMIT = 300
+    }
+
+    object Loader {
+        val SIZE = 50.dp
+        val CORNER_RADIUS = 12.dp
+        val SPINNER_SIZE = 28.dp
+        val STROKE_WIDTH = 3.dp
     }
 
     object BodyWeight {

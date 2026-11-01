@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
@@ -34,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.BuildConfig
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
+import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.core.auth.AuthCommandProvider
 import antoni.kalorie.core.auth.AuthProvider
 import antoni.kalorie.core.auth.AuthStateObserver
@@ -95,7 +95,7 @@ fun KalorieApp() {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator()
+                LoaderIndicator()
             }
             is LoadingState.Loaded -> Box(modifier = Modifier.fillMaxSize()) {
                 key(userId) {
@@ -110,7 +110,7 @@ fun KalorieApp() {
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            CircularProgressIndicator()
+                            LoaderIndicator()
                             Text(
                                 text = stringResource(R.string.auth_mergingMessage),
                                 style = MaterialTheme.typography.bodyMedium,

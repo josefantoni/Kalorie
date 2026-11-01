@@ -20,7 +20,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,6 +47,7 @@ import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.components.FoodPhotoTransitionHost
+import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SaveToolbarButton
@@ -257,7 +257,7 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                         modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
                         contentAlignment = Alignment.Center,
                     ) {
-                        CircularProgressIndicator()
+                        LoaderIndicator()
                     }
                 }
             }

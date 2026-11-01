@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -45,6 +44,7 @@ import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.components.FoodPortionsSection
+import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
@@ -202,7 +202,7 @@ fun MyCreatedMealEditorView(
                                 }
                             } else if (isExternalSearchLoading) {
                                 Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator()
+                                    LoaderIndicator()
                                 }
                             } else {
                                 externalSearchResults.forEachIndexed { index, item ->
@@ -229,7 +229,7 @@ fun MyCreatedMealEditorView(
             }
             if (state.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    LoaderIndicator()
                 }
             }
         }

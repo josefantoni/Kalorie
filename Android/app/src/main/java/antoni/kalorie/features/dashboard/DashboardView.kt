@@ -51,7 +51,6 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -67,7 +66,6 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.ripple
@@ -115,9 +113,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import antoni.kalorie.BuildConfig
 import antoni.kalorie.R
+import antoni.kalorie.components.AccentPullToRefreshBox
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.CopyIcon
 import antoni.kalorie.components.FoodConsumedView
+import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.RevealingSwipeToDeleteRow
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
@@ -254,7 +254,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
                     )
 
-                    PullToRefreshBox(
+                    AccentPullToRefreshBox(
                         isRefreshing = isRefreshing,
                         onRefresh = {
                             scope.launch {
@@ -398,7 +398,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
                         contentAlignment = Alignment.Center,
                     ) {
-                        CircularProgressIndicator()
+                        LoaderIndicator()
                     }
                 }
             }

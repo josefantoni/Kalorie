@@ -30,7 +30,6 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -62,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
+import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SectionCard
@@ -228,7 +228,7 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                 }
                 if (state != AccountViewModel.State.IDLE) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        LoaderIndicator()
                     }
                 }
             }

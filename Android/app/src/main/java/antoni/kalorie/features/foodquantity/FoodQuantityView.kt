@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +54,7 @@ import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.DropdownRowButton
 import antoni.kalorie.components.FavouriteButton
 import antoni.kalorie.components.FoodPhotoTransitionHost
+import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
@@ -360,7 +360,7 @@ private fun FoodQuantityContent(
                         modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
                         contentAlignment = Alignment.Center,
                     ) {
-                        CircularProgressIndicator()
+                        LoaderIndicator()
                     }
                 }
             }
