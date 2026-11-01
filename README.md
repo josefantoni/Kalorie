@@ -11,8 +11,8 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
     <th align="center">Android (Jetpack Compose)<br>Dark mode</th>
   </tr>
   <tr>
-    <td align="center"><img src="https://github.com/user-attachments/assets/ca5f7fd9-fe1e-4d2f-8d04-8263aa0af80f" width="250" alt="iOS dashboard"></td>
-    <td align="center"><img src="https://github.com/user-attachments/assets/5b15021d-5ff3-4969-a40c-02dd227618af" width="250" alt="Android dashboard"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/df685676-19cb-4e96-9758-39c3a7da07a4" width="250" alt="iOS dashboard"></td>
+    <td align="center"><img src="https://github.com/user-attachments/assets/a1851c07-3682-4a4c-ac58-fe82ed7a9990" width="250" alt="Android dashboard"></td>
   </tr>
   <tr>
     <td align="center"><img src="https://github.com/user-attachments/assets/1b7f3225-b55d-48b2-99a2-37f84901063a" width="250" alt="iOS add food"></td>
