@@ -17,43 +17,40 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_deletesFavouriteFoodsAsPrivacyObligation() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedFavouriteFoods = [makeFavourite(id: "fav1")]
+        dataProvider.stubbedDocumentIds["favouriteFoods"] = ["fav1"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
 
-        XCTAssertTrue(log.entries.dropLast().contains("deleteFavourite:fav1"), "Firestore does not cascade — favourites are user data and must not survive account deletion as orphans")
+        XCTAssertTrue(log.entries.dropLast().contains("batchDelete:favouriteFoods:fav1"), "Firestore does not cascade — favourites are user data and must not survive account deletion as orphans")
     }
 
     func test_callAsFunction_deletesMyCreatedMealsAsPrivacyObligation() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedMyCreatedMeals = [makeMeal(id: "meal1")]
+        dataProvider.stubbedDocumentIds["myCreatedMeals"] = ["meal1"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
 
-        XCTAssertTrue(log.entries.dropLast().contains("deleteMeal:meal1"), "Firestore does not cascade — created meals are user data and must not survive account deletion as orphans")
+        XCTAssertTrue(log.entries.dropLast().contains("batchDelete:myCreatedMeals:meal1"), "Firestore does not cascade — created meals are user data and must not survive account deletion as orphans")
     }
 
     func test_callAsFunction_deletesFoodItemPortionsAsPrivacyObligation() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedFoodItemPortions = [FoodItemPersonalPortionsDTO(id: "12345678", portions: [FoodPortionDTO(portion: FoodPortionDomain(name: "1 balení", grams: 33))])]
+        dataProvider.stubbedDocumentIds["foodItemPortions"] = ["12345678"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
 
-        XCTAssertTrue(log.entries.dropLast().contains("deletePortions:12345678"), "Firestore does not cascade — personal portions are user data and must not survive account deletion as orphans")
+        XCTAssertTrue(log.entries.dropLast().contains("batchDelete:foodItemPortions:12345678"), "Firestore does not cascade — personal portions are user data and must not survive account deletion as orphans")
     }
 
     func test_callAsFunction_deletesBodyWeightsAndSettingsAsPrivacyObligation_beforeTheProfile() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedBodyWeights = [
-            BodyWeightDTO(weight: BodyWeightDomain(dayKey: "2026-10-27", kilograms: 78.4)),
-            BodyWeightDTO(weight: BodyWeightDomain(dayKey: "2026-10-26", kilograms: 78.9))
-        ]
+        dataProvider.stubbedDocumentIds["bodyWeights"] = ["2026-10-27", "2026-10-26"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
@@ -69,7 +66,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_keepsTheMergedAnonymousAccountMarkersSoTheCleanupScriptCanStillFindTheAbandonedAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedMergedAnonymousAccounts = [MergedAnonymousAccountDTO(id: "anon-1")]
+        dataProvider.stubbedDocumentIds["mergedAnonymousAccounts"] = ["anon-1"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
@@ -80,13 +77,13 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_deletesOwnSubmissionsAsPrivacyObligation() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedSubmissions = [makeSubmission(id: "sub1")]
+        dataProvider.stubbedDocumentIds["foodItemSubmissions"] = ["sub1"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
 
         XCTAssertTrue(
-            log.entries.dropLast().contains("deleteSubmission:sub1"),
+            log.entries.dropLast().contains("batchDelete:foodItemSubmissions:sub1"),
             "A pending or rejected submission is the user's own data and must not survive account deletion"
         )
     }
@@ -94,13 +91,13 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_deletesOwnReportsAsPrivacyObligation() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedReports = [FoodItemReportDTO(barcode: "12345678", reportedBy: "test-user-id", reason: "wrong calories", reportedAt: .now)]
+        dataProvider.stubbedDocumentIds["foodItemReports"] = ["12345678_test-user-id"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
 
         XCTAssertTrue(
-            log.entries.dropLast().contains("deleteReport:12345678_test-user-id"),
+            log.entries.dropLast().contains("batchDelete:foodItemReports:12345678_test-user-id"),
             "A report is the user's own data and must not survive account deletion"
         )
     }
@@ -108,30 +105,41 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_deletesFirestoreDataBeforeDeletingAuthAccount() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedMealTypes = [MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60)]
-        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        dataProvider.stubbedDocumentIds["mealTypes"] = ["0"]
+        dataProvider.stubbedDocumentIds["foodConsumed"] = ["f1"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
 
         XCTAssertEqual(log.entries.last, "deleteCurrentUser")
-        XCTAssertTrue(log.entries.dropLast().contains("deleteMealType:0"))
-        XCTAssertTrue(log.entries.dropLast().contains("deleteFood:f1"))
+        XCTAssertTrue(log.entries.dropLast().contains("batchDelete:mealTypes:0"))
+        XCTAssertTrue(log.entries.dropLast().contains("batchDelete:foodConsumed:f1"))
     }
 
     func test_callAsFunction_deletesAllMealTypesAndFoodsById() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedMealTypes = [
-            MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60),
-            MealTypeDTO(id: "1", name: "Oběd", startMinutes: 60, endMinutes: 120)
-        ]
-        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1"), makeFood(id: "f2")]
+        dataProvider.stubbedDocumentIds["mealTypes"] = ["0", "1"]
+        dataProvider.stubbedDocumentIds["foodConsumed"] = ["f1", "f2"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
 
-        XCTAssertTrue(Set(["0", "1", "f1", "f2"]).isSubset(of: Set(dataProvider.deletedIds)))
+        XCTAssertTrue(log.entries.contains("batchDelete:mealTypes:0,1"))
+        XCTAssertTrue(log.entries.contains("batchDelete:foodConsumed:f1,f2"))
+    }
+
+    func test_callAsFunction_whenADocumentDoesNotMatchItsDTO_stillDeletesItAndTheAccount() async throws {
+        let log = OperationLog()
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.shouldFailDecodingDTOs = true
+        dataProvider.stubbedDocumentIds["foodConsumed"] = ["broken"]
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
+
+        try await sut()
+
+        XCTAssertTrue(log.entries.contains("batchDelete:foodConsumed:broken"), "A document that no longer decodes is still the user's data and must not block the wipe")
+        XCTAssertEqual(log.entries.last, "deleteCurrentUser")
     }
 
     func test_callAsFunction_deletesFoodFrequencyDocument() async throws {
@@ -198,8 +206,8 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_whenLastSignInIsStale_throwsBeforeDeletingAnyData() async {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedMealTypes = [MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60)]
-        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        dataProvider.stubbedDocumentIds["mealTypes"] = ["0"]
+        dataProvider.stubbedDocumentIds["foodConsumed"] = ["f1"]
         let snapshotStore = PendingMergeSnapshotStoreFake()
         snapshotStore.stubbedSnapshot = makeSnapshot()
         let sut = DeleteAccountUseCase(
@@ -249,13 +257,12 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_whenSkipDataWipeIsTrue_doesNotReReadAlreadyWipedCollections() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedMealTypes = [MealTypeDTO(id: "0", name: "Snídaně", startMinutes: 0, endMinutes: 60)]
+        dataProvider.stubbedDocumentIds["mealTypes"] = ["0"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut(skipDataWipe: true)
 
-        XCTAssertTrue(dataProvider.deletedIds.isEmpty, "a retry that already wiped the data must not re-read and re-delete it")
-        XCTAssertEqual(log.entries, ["deleteCurrentUser"])
+        XCTAssertEqual(log.entries, ["deleteCurrentUser"], "a retry that already wiped the data must not re-read and re-delete it")
     }
 
     func test_callAsFunction_discardsPendingMergeSnapshot() async throws {
@@ -283,7 +290,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_whenSnapshotDeleteFails_deletesNothingElse() async {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        dataProvider.stubbedDocumentIds["foodConsumed"] = ["f1"]
         let snapshotStore = PendingMergeSnapshotStoreFake()
         snapshotStore.deleteError = URLError(.unknown)
         let sut = makeSUT(dataProvider: dataProvider, log: log, snapshotStore: snapshotStore)
@@ -377,7 +384,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_whenAppleAuthorizationIsCancelled_deletesNothing() async {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        dataProvider.stubbedDocumentIds["foodConsumed"] = ["f1"]
         let sut = makeSUT(
             dataProvider: dataProvider,
             log: log,
@@ -414,7 +421,7 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     func test_callAsFunction_whenAppleIdentityDoesNotMatchTheAccount_deletesAndRevokesNothing() async {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedFoodConsumed = [makeFood(id: "f1")]
+        dataProvider.stubbedDocumentIds["foodConsumed"] = ["f1"]
         let authCommandProvider = DeleteAccountAuthCommandProviderFake(log: log)
         authCommandProvider.reauthenticateError = NSError(domain: AuthErrorDomain, code: AuthErrorCode.userMismatch.rawValue)
         let sut = makeSUT(
@@ -471,116 +478,6 @@ final class DeleteAccountUseCaseTests: XCTestCase {
     private func makeSnapshot() -> PendingMergeSnapshot {
         PendingMergeSnapshot(sourceAnonymousUserId: "anon-1", foodConsumed: [], favouriteFoods: [], myCreatedMeals: [])
     }
-
-    private func makeFood(id: String) -> FoodConsumedDTO {
-        FoodConsumedDTO(
-            id: id,
-            foodItemId: id,
-            foodItemKind: .catalogue,
-            czName: "Test",
-            engName: "Test",
-            weight: 100,
-            date: Date().timeIntervalSince1970,
-            calories: 100,
-            caloriesPerHundredGrams: nil,
-            energyKJ: nil,
-            protein: 1,
-            carbohydrate: 1,
-            carbohydrateSugar: 1,
-            fat: 1,
-            fatSaturated: nil,
-            fatUnsaturated: 1,
-            fiber: 1,
-            salt: 1,
-            mealTypeId: nil,
-            measureUnit: nil,
-            alcoholByVolume: nil
-        )
-    }
-
-    private func makeFavourite(id: String) -> FavouriteFoodDTO {
-        FavouriteFoodDTO(
-            item: FoodItemDomain(
-                id: id,
-                kind: .catalogue,
-                czName: "Test",
-                engName: "Test",
-                weight: 100,
-                date: .now,
-                energyKJ: 400,
-                caloriesPerHundredGrams: 100,
-                fat: 1,
-                fatSaturated: 1,
-                fatUnsaturatedFattyAcids: 1,
-                carbohydrate: 1,
-                carbohydratePureSugar: 1,
-                fiber: 1,
-                protein: 1,
-                salt: 1
-            ),
-            favouritedAt: .now
-        )
-    }
-
-    private func makeSubmission(id: String) -> FoodItemSubmissionDTO {
-        FoodItemSubmissionDTO(
-            id: id,
-            barcode: "12345678",
-            submittedBy: "test-user-id",
-            status: .pending,
-            submittedAt: .now,
-            rejectReason: nil,
-            item: FoodItemDomain(
-                id: "12345678",
-                kind: .catalogue,
-                czName: "Test",
-                engName: "Test",
-                weight: 100,
-                date: .now,
-                energyKJ: 400,
-                caloriesPerHundredGrams: 100,
-                fat: 1,
-                fatSaturated: 1,
-                fatUnsaturatedFattyAcids: 1,
-                carbohydrate: 1,
-                carbohydratePureSugar: 1,
-                fiber: 1,
-                protein: 1,
-                salt: 1
-            )
-        )
-    }
-
-    private func makeMeal(id: String) -> MyCreatedMealDTO {
-        MyCreatedMealDTO(
-            meal: MyCreatedMealDomain(
-                id: id,
-                name: "Test",
-                ingredients: [
-                    MyCreatedMealIngredientDomain(
-                        foodItemId: "12345",
-                        czName: "Test",
-                        engName: "Test",
-                        grams: 50,
-                        nutrition: FoodNutritionValues(
-                            energyKJ: 400,
-                            caloriesPerHundredGrams: 100,
-                            fat: 1,
-                            fatSaturated: 1,
-                            fatUnsaturatedFattyAcids: 1,
-                            carbohydrate: 1,
-                            carbohydratePureSugar: 1,
-                            fiber: 1,
-                            protein: 1,
-                            salt: 1
-                        )
-                    )
-                ],
-                createdAt: .now,
-                updatedAt: .now
-            )
-        )
-    }
 }
 
 private final class OperationLog {
@@ -593,16 +490,8 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     // MARK: - Properties
 
     private let log: OperationLog
-    var stubbedMealTypes: [MealTypeDTO] = []
-    var stubbedFoodConsumed: [FoodConsumedDTO] = []
-    var stubbedFavouriteFoods: [FavouriteFoodDTO] = []
-    var stubbedMyCreatedMeals: [MyCreatedMealDTO] = []
-    var stubbedFoodItemPortions: [FoodItemPersonalPortionsDTO] = []
-    var stubbedMergedAnonymousAccounts: [MergedAnonymousAccountDTO] = []
-    var stubbedBodyWeights: [BodyWeightDTO] = []
-    var stubbedSubmissions: [FoodItemSubmissionDTO] = []
-    var stubbedReports: [FoodItemReportDTO] = []
-    private(set) var deletedIds: [String] = []
+    var stubbedDocumentIds: [String: [String]] = [:]
+    var shouldFailDecodingDTOs = false
 
     // MARK: - Init
 
@@ -613,25 +502,16 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     // MARK: - Functions
 
     func loadAsync<T: Decodable>(from collection: String) async throws -> [T] {
-        if collection.hasSuffix("mealTypes") {
-            return stubbedMealTypes.compactMap { $0 as? T }
-        }
-        if collection.hasSuffix("bodyWeights") {
-            return stubbedBodyWeights.compactMap { $0 as? T }
-        }
-        if collection.hasSuffix("favouriteFoods") {
-            return stubbedFavouriteFoods.compactMap { $0 as? T }
-        }
-        if collection.hasSuffix("myCreatedMeals") {
-            return stubbedMyCreatedMeals.compactMap { $0 as? T }
-        }
-        if collection.hasSuffix("foodItemPortions") {
-            return stubbedFoodItemPortions.compactMap { $0 as? T }
-        }
-        if collection.hasSuffix("mergedAnonymousAccounts") {
-            return stubbedMergedAnonymousAccounts.compactMap { $0 as? T }
-        }
-        return stubbedFoodConsumed.compactMap { $0 as? T }
+        if shouldFailDecodingDTOs { throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "stubbed")) }
+        return []
+    }
+
+    func loadDocumentIdsAsync(from collection: String) async throws -> [String] {
+        stubbedDocumentIds[String(collection.split(separator: "/").last ?? "")] ?? []
+    }
+
+    func loadDocumentIdsAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> [String] {
+        stubbedDocumentIds[String(collection.split(separator: "/").last ?? "")] ?? []
     }
 
     func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
@@ -640,10 +520,8 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] {
-        if collection == Constants.Firestore.foodItemReports {
-            return stubbedReports.compactMap { $0 as? T }
-        }
-        return stubbedSubmissions.compactMap { $0 as? T }
+        if shouldFailDecodingDTOs { throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "stubbed")) }
+        return []
     }
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
@@ -657,7 +535,6 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     }
 
     func deleteAsync(id: String, from collection: String) async throws {
-        deletedIds.append(id)
         if collection.hasSuffix("mealTypes") {
             log.record("deleteMealType:\(id)")
         } else if collection.hasSuffix("favouriteFoods") {

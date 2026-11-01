@@ -103,9 +103,9 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
     }
 
     private func wipeBodyWeightData(userId: String) async throws {
-        let bodyWeights: [BodyWeightDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.bodyWeights(userId: userId))
+        let bodyWeightIds = try await dataProvider.loadDocumentIdsAsync(from: Constants.Firestore.bodyWeights(userId: userId))
         try await dataProvider.batchDeleteAsync(
-            ids: bodyWeights.map(\.id),
+            ids: bodyWeightIds,
             from: Constants.Firestore.bodyWeights(userId: userId)
         )
         try await dataProvider.deleteAsync(
@@ -115,30 +115,20 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
     }
 
     private func wipeFirestoreData(userId: String) async throws {
-        let mealTypes: [MealTypeDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.mealTypes(userId: userId))
-        for dto in mealTypes {
-            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.mealTypes(userId: userId))
-        }
+        let mealTypesIds = try await dataProvider.loadDocumentIdsAsync(from: Constants.Firestore.mealTypes(userId: userId))
+        try await dataProvider.batchDeleteAsync(ids: mealTypesIds, from: Constants.Firestore.mealTypes(userId: userId))
 
-        let foods: [FoodConsumedDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.foodConsumed(userId: userId))
-        for dto in foods {
-            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.foodConsumed(userId: userId))
-        }
+        let foodsIds = try await dataProvider.loadDocumentIdsAsync(from: Constants.Firestore.foodConsumed(userId: userId))
+        try await dataProvider.batchDeleteAsync(ids: foodsIds, from: Constants.Firestore.foodConsumed(userId: userId))
 
-        let favouriteFoods: [FavouriteFoodDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.favouriteFoods(userId: userId))
-        for dto in favouriteFoods {
-            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.favouriteFoods(userId: userId))
-        }
+        let favouriteFoodsIds = try await dataProvider.loadDocumentIdsAsync(from: Constants.Firestore.favouriteFoods(userId: userId))
+        try await dataProvider.batchDeleteAsync(ids: favouriteFoodsIds, from: Constants.Firestore.favouriteFoods(userId: userId))
 
-        let myCreatedMeals: [MyCreatedMealDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.myCreatedMeals(userId: userId))
-        for dto in myCreatedMeals {
-            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.myCreatedMeals(userId: userId))
-        }
+        let myCreatedMealsIds = try await dataProvider.loadDocumentIdsAsync(from: Constants.Firestore.myCreatedMeals(userId: userId))
+        try await dataProvider.batchDeleteAsync(ids: myCreatedMealsIds, from: Constants.Firestore.myCreatedMeals(userId: userId))
 
-        let foodItemPortions: [FoodItemPersonalPortionsDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.foodItemPortions(userId: userId))
-        for dto in foodItemPortions {
-            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.foodItemPortions(userId: userId))
-        }
+        let foodItemPortionsIds = try await dataProvider.loadDocumentIdsAsync(from: Constants.Firestore.foodItemPortions(userId: userId))
+        try await dataProvider.batchDeleteAsync(ids: foodItemPortionsIds, from: Constants.Firestore.foodItemPortions(userId: userId))
 
         try await wipeBodyWeightData(userId: userId)
 
@@ -147,16 +137,12 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
             from: Constants.Firestore.stats(userId: userId)
         )
 
-        let submissions: [FoodItemSubmissionDTO] = try await dataProvider.loadAsync(
+        let submissionIds = try await dataProvider.loadDocumentIdsAsync(
             from: Constants.Firestore.foodItemSubmissions,
             where: Constants.Firestore.Field.submittedBy,
-            isEqualTo: userId,
-            orderBy: Constants.Firestore.Field.submittedAt,
-            descending: true
+            isEqualTo: userId
         )
-        for dto in submissions {
-            try await dataProvider.deleteAsync(id: dto.id, from: Constants.Firestore.foodItemSubmissions)
-        }
+        try await dataProvider.batchDeleteAsync(ids: submissionIds, from: Constants.Firestore.foodItemSubmissions)
 
         // Listing the folder, rather than following the deleted submissions' URLs, also removes
         // orphans left by earlier failed writes. catalogPhotos is shared catalogue content and stays.
@@ -165,19 +151,12 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
             try await storageProvider.deleteAsync(url: url)
         }
 
-        let reports: [FoodItemReportDTO] = try await dataProvider.loadAsync(
+        let reportIds = try await dataProvider.loadDocumentIdsAsync(
             from: Constants.Firestore.foodItemReports,
             where: Constants.Firestore.Field.reportedBy,
-            isEqualTo: userId,
-            orderBy: Constants.Firestore.Field.reportedAt,
-            descending: true
+            isEqualTo: userId
         )
-        for dto in reports {
-            try await dataProvider.deleteAsync(
-                id: FoodItemReportDomain.id(barcode: dto.barcode, userId: userId),
-                from: Constants.Firestore.foodItemReports
-            )
-        }
+        try await dataProvider.batchDeleteAsync(ids: reportIds, from: Constants.Firestore.foodItemReports)
 
         do {
             try await dataProvider.deleteAsync(id: userId, from: Constants.Firestore.users)

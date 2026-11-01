@@ -35,6 +35,8 @@ protocol FirestoreDataProviderProtocol {
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws
     func deleteAsync(id: String, from collection: String) async throws
     func batchDeleteAsync(ids: [String], from collection: String) async throws
+    func loadDocumentIdsAsync(from collection: String) async throws -> [String]
+    func loadDocumentIdsAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> [String]
     func incrementEntryAsync<T: Encodable>(_ item: T, entryId: String, lastLoggedAt: TimeInterval, documentId: String, in collection: String) async throws
     func deleteEntriesAsync(ids: [String], documentId: String, in collection: String) async throws
 }
@@ -75,6 +77,14 @@ extension FirestoreDataProviderProtocol {
     }
 
     func batchDeleteAsync(ids: [String], from collection: String) async throws {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func loadDocumentIdsAsync(from collection: String) async throws -> [String] {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func loadDocumentIdsAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> [String] {
         throw FirestoreDataProviderError.unsupported
     }
 
@@ -393,6 +403,35 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             }
         } catch {
             logFailure("❌ BATCH SET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func loadDocumentIdsAsync(from collection: String) async throws -> [String] {
+        log("🚀 GET IDS \(collection)")
+        do {
+            let snapshot = try await Firestore.firestore().collection(collection).getDocuments()
+            let ids = snapshot.documents.map(\.documentID)
+            log("✅ GET IDS \(collection) → \(ids.count) ids")
+            return ids
+        } catch {
+            logFailure("❌ GET IDS \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func loadDocumentIdsAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> [String] {
+        log("🚀 GET IDS \(collection) WHERE \(field) == '\(value)'")
+        do {
+            let snapshot = try await Firestore.firestore()
+                .collection(collection)
+                .whereField(field, isEqualTo: value)
+                .getDocuments()
+            let ids = snapshot.documents.map(\.documentID)
+            log("✅ GET IDS \(collection) WHERE \(field) == '\(value)' → \(ids.count) ids")
+            return ids
+        } catch {
+            logFailure("❌ GET IDS \(collection)", error: error)
             throw mapError(error)
         }
     }
