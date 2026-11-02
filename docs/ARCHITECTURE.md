@@ -1619,6 +1619,11 @@ supported; the first string that needs one has to extend the generator. In `scri
 generate-strings` writes the files and `npm run check-strings` fails when any of them is stale — CI
 runs the latter.
 
+**Tone of the copy:** Czech (`cs`) and Slovak (`sk`) address the user informally (*tykání* / *tykanie*) everywhere —
+"Chceš smazat…?", "Zkus to znovu", "Nesnědl/a" — never formally (*vykání*). Gender-neutral forms are written
+with a slash ("přihlášen/a", "zjedol/a"). English uses "you" and needs no distinction. A new or edited string
+follows this in both languages.
+
 One thing about the app is Czech-first in a way neither catalogue covers:
 
 - `BilingualNamed.displayName` picks `czName` when the device language is `cs` or `sk` (`engName` when `czName` is empty, [ADR 0042](adr/0042-search-matches-the-displayed-name-only.md)), and
