@@ -13,13 +13,23 @@ struct DashboardView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: DashboardViewModel
+    private static let addFoodFirstRestSeconds = 12
+    private static let addFoodRepeatRestSeconds = 20
+    private static let addFoodPulseInterval = 4
+    private static let addFoodPulseDuration: Double = 0.35
+    private static let addFoodResizeDuration: Double = 0.4
+    private static let addFoodAnimationDuration: Double = 8.4
     private static let weightConfirmWidth: CGFloat = 120
     private static let weightConfirmHeight: CGFloat = 28
-    @State private var pulseAnimation = false
     @State private var accountButtonFrame: CGRect = .zero
     @State private var targetedMealTypeId: String?
     @State private var openSwipeRowId: String?
+    @State private var isAddFoodExpanded = false
+    @State private var isAddFoodAnimationPlaying = false
+    @State private var isAddFoodPulsed = false
+    @State private var isDashboardVisible = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let router: DashboardRouter
 
     // MARK: - Init
@@ -81,17 +91,11 @@ struct DashboardView: View {
                 .padding(.top, 8)
             }
             .safeAreaInset(edge: .bottom) {
-                if !viewModel.foodsConsumed.isEmpty {
-                    Button {
+                if !viewModel.foodsConsumed.isEmpty || isEmptyStateVisible {
+                    AddFoodButton(isExpanded: isAddFoodExpanded, isAnimationPlaying: isAddFoodAnimationPlaying) {
                         viewModel.showAddFoodSheet.toggle()
-                    } label: {
-                        Image(systemName: BaseImageName.plus.rawValue)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                            .padding(20)
                     }
-                    .glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)
+                    .scaleEffect(isAddFoodPulsed ? 1.2 : 1)
                     .padding(.bottom, 8)
                 }
             }
@@ -160,6 +164,11 @@ struct DashboardView: View {
             .task {
                 await viewModel.onAppear()
             }
+            .task(id: isAddFoodSequenceActive) {
+                await runAddFoodSequence()
+            }
+            .onAppear { isDashboardVisible = true }
+            .onDisappear { isDashboardVisible = false }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     Task { await viewModel.onForeground() }
@@ -399,8 +408,62 @@ struct DashboardView: View {
         }
     }
 
+    private var isEmptyStateVisible: Bool {
+        viewModel.foodsConsumed.isEmpty && !viewModel.state.isLoading
+    }
+
+    private var isPresentingAnotherScreen: Bool {
+        viewModel.showSettings
+            || viewModel.showAddFoodSheet
+            || viewModel.showCalendarSheet
+            || viewModel.showAccountSheet
+            || viewModel.isWeightHistoryPushed
+            || viewModel.isWeightPopoverVisible
+            || viewModel.isDeleteConfirmationVisible
+            || viewModel.alertItem != nil
+            || viewModel.isSignInSpotlightVisible
+    }
+
+    private var isAddFoodSequenceActive: Bool {
+        isEmptyStateVisible
+            && isDashboardVisible
+            && scenePhase == .active
+            && !isPresentingAnotherScreen
+            && !reduceMotion
+    }
+
+    private func runAddFoodSequence() async {
+        isAddFoodAnimationPlaying = false
+        isAddFoodPulsed = false
+        withAnimation(.easeInOut(duration: Self.addFoodResizeDuration)) { isAddFoodExpanded = false }
+        guard isAddFoodSequenceActive else { return }
+        var restSeconds = Self.addFoodFirstRestSeconds
+        while !Task.isCancelled {
+            for _ in 0..<(restSeconds / Self.addFoodPulseInterval) {
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeInOut(duration: Self.addFoodPulseDuration)) { isAddFoodPulsed = true }
+                try? await Task.sleep(for: .seconds(Self.addFoodPulseDuration))
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeInOut(duration: Self.addFoodPulseDuration)) { isAddFoodPulsed = false }
+                try? await Task.sleep(for: .seconds(Double(Self.addFoodPulseInterval) - 2 * Self.addFoodPulseDuration))
+            }
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: Self.addFoodResizeDuration)) { isAddFoodExpanded = true }
+            try? await Task.sleep(for: .seconds(Self.addFoodResizeDuration))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.3)) { isAddFoodAnimationPlaying = true }
+            try? await Task.sleep(for: .seconds(Self.addFoodAnimationDuration))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.3)) { isAddFoodAnimationPlaying = false }
+            withAnimation(.easeInOut(duration: Self.addFoodResizeDuration)) { isAddFoodExpanded = false }
+            try? await Task.sleep(for: .seconds(Self.addFoodResizeDuration))
+            restSeconds = Self.addFoodRepeatRestSeconds
+        }
+    }
+
     private var emptyStateView: some View {
         let kind = selectedDayKind
+        let showsWeight = kind == .today && viewModel.isWeightCircleVisible
         return VStack(spacing: 25) {
             Label {
                 Text(kind == .today ? L10n.Dashboard.emptyTitle : kind == .past ? L10n.Dashboard.emptyTitlePast : L10n.Dashboard.emptyTitleFuture)
@@ -410,25 +473,22 @@ struct DashboardView: View {
             .font(.title2)
             .multilineTextAlignment(.center)
 
-            Text(kind == .today ? L10n.Dashboard.emptyDescription : kind == .past ? L10n.Dashboard.emptyDescriptionPast : L10n.Dashboard.emptyDescriptionFuture)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.bottom)
-
-            Button(L10n.Dashboard.emptyAddFood) {
-                viewModel.showAddFoodSheet.toggle()
-            }
-            .buttonStyle(.glassProminent)
-            .scaleEffect(pulseAnimation ? 1.2 : 1.0)
-            .animation(.easeInOut(duration: 0.7), value: pulseAnimation)
-        }
-        .task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(3))
-                pulseAnimation = true
-                try? await Task.sleep(for: .seconds(0.7))
-                pulseAnimation = false
+            VStack(spacing: 16) {
+                VStack(spacing: 8) {
+                    Text(kind == .today ? L10n.Dashboard.emptyDescription : kind == .past ? L10n.Dashboard.emptyDescriptionPast : L10n.Dashboard.emptyDescriptionFuture)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    if showsWeight {
+                        Text(L10n.Dashboard.emptyWeigh)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                if showsWeight {
+                    weightAccessory
+                        .frame(width: WeightCircleView.size, height: WeightCircleView.size)
+                }
             }
         }
     }
