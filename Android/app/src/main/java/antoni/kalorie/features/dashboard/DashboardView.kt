@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -40,21 +41,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -111,9 +108,14 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import antoni.kalorie.BuildConfig
 import antoni.kalorie.R
+import antoni.kalorie.components.ADD_FOOD_BUTTON_EXPANDED_SIZE
+import antoni.kalorie.components.ADD_FOOD_BUTTON_RESIZE_MILLIS
 import antoni.kalorie.components.AccentPullToRefreshBox
+import antoni.kalorie.components.AddFoodButton
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.CopyIcon
 import antoni.kalorie.components.FoodConsumedView
@@ -130,6 +132,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.Instant
 import kotlin.math.ceil
+
+private fun areAnimationsEnabled(context: Context): Boolean = Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
 
 private enum class SelectedDayKind {
     PAST,
@@ -175,6 +179,25 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val haptic = LocalHapticFeedback.current
     val moveFeedbackTrigger by viewModel.moveFeedbackTrigger.collectAsState()
     val currentFoodsConsumed by rememberUpdatedState(foodsConsumed)
+    val isWeightPopoverVisible by viewModel.isWeightPopoverVisible.collectAsState()
+    val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+    var isAddFoodExpanded by remember { mutableStateOf(false) }
+    var isAddFoodAnimationPlaying by remember { mutableStateOf(false) }
+    val addFoodPulseScale = remember { Animatable(1f) }
+    val isEmptyStateVisible = foodsConsumed.isEmpty() && !state.isLoading
+    val isPresentingAnotherScreen = showSettings ||
+        showAddFoodSheet ||
+        showCalendarSheet ||
+        showAccountSheet ||
+        alertItem != null ||
+        isDeleteConfirmationVisible ||
+        isWeightPopoverVisible ||
+        viewModel.isWeightHistoryPushed ||
+        isSignInSpotlightVisible
+    val isAddFoodSequenceActive = isEmptyStateVisible &&
+        lifecycleState.isAtLeast(Lifecycle.State.RESUMED) &&
+        !isPresentingAnotherScreen &&
+        areAnimationsEnabled(LocalContext.current)
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
     LaunchedEffect(listState.isScrollInProgress) {
@@ -191,6 +214,28 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     LaunchedEffect(moveFeedbackTrigger) {
         if (moveFeedbackTrigger != initialMoveFeedbackTrigger) haptic.performHapticFeedback(HapticFeedbackType.Confirm)
     }
+    LaunchedEffect(isAddFoodSequenceActive) {
+        isAddFoodAnimationPlaying = false
+        isAddFoodExpanded = false
+        addFoodPulseScale.snapTo(1f)
+        if (!isAddFoodSequenceActive) return@LaunchedEffect
+        var restMillis = ADD_FOOD_FIRST_REST_MILLIS
+        while (true) {
+            repeat((restMillis / ADD_FOOD_PULSE_INTERVAL_MILLIS).toInt()) {
+                addFoodPulseScale.animateTo(PULSE_SCALE, tween(PULSE_DURATION_MILLIS, easing = FastOutSlowInEasing))
+                addFoodPulseScale.animateTo(1f, tween(PULSE_DURATION_MILLIS, easing = FastOutSlowInEasing))
+                delay((ADD_FOOD_PULSE_INTERVAL_MILLIS - 2 * PULSE_DURATION_MILLIS).toLong())
+            }
+            isAddFoodExpanded = true
+            delay(ADD_FOOD_BUTTON_RESIZE_MILLIS.toLong())
+            isAddFoodAnimationPlaying = true
+            delay(ADD_FOOD_ANIMATION_MILLIS)
+            isAddFoodAnimationPlaying = false
+            isAddFoodExpanded = false
+            delay(ADD_FOOD_BUTTON_RESIZE_MILLIS.toLong())
+            restMillis = ADD_FOOD_REPEAT_REST_MILLIS
+        }
+    }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { scope.launch { viewModel.onForeground() } }
     DayChangeEffect { scope.launch { viewModel.onForeground() } }
 
@@ -200,8 +245,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
         Scaffold(
             floatingActionButtonPosition = FabPosition.Center,
             floatingActionButton = {
-                if (foodsConsumed.isNotEmpty()) {
-                    FloatingActionButton(
+                if (foodsConsumed.isNotEmpty() || isEmptyStateVisible) {
+                    AddFoodButton(
+                        isExpanded = isAddFoodExpanded,
+                        isAnimationPlaying = isAddFoodAnimationPlaying,
                         onClick = {
                             if (fabLongPressFired) {
                                 fabLongPressFired = false
@@ -210,12 +257,11 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                             }
                         },
                         interactionSource = fabInteractionSource,
-                        shape = CircleShape,
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ) {
-                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.dashboard_empty_addFood))
-                    }
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = addFoodPulseScale.value
+                            scaleY = addFoodPulseScale.value
+                        },
+                    )
                 }
             },
             topBar = {
@@ -383,12 +429,16 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                             modifier = Modifier.align(Alignment.BottomCenter),
                         )
 
-                        if (foodsConsumed.isEmpty() && !state.isLoading) {
+                        if (isEmptyStateVisible) {
                             EmptyStateView(
                                 selectedDay = selectedDay,
-                                onAddFood = { viewModel.showAddFoodSheet.value = !viewModel.showAddFoodSheet.value },
-                                modifier = Modifier.align(Alignment.Center),
-                            )
+                                showsWeight = hasLoadedSettings && appSettings.showBodyWeight,
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .padding(bottom = ADD_FOOD_BUTTON_EXPANDED_SIZE + 16.dp),
+                            ) {
+                                WeightAccessoryView(viewModel = viewModel)
+                            }
                         }
                     }
                 }
@@ -683,8 +733,11 @@ private fun DragAutoscrollEdge(listState: LazyListState, direction: Float, modif
             .dragAndDropTarget(shouldStartDragAndDrop = ::isDraggedFood, target = target),
     )
 }
-private const val PULSE_INTERVAL_MILLIS = 3000L
-private const val PULSE_DURATION_MILLIS = 700
+private const val ADD_FOOD_PULSE_INTERVAL_MILLIS = 4000
+private const val ADD_FOOD_FIRST_REST_MILLIS = 12000
+private const val ADD_FOOD_REPEAT_REST_MILLIS = 20000
+private const val ADD_FOOD_ANIMATION_MILLIS = 8400L
+private const val PULSE_DURATION_MILLIS = 350
 private const val PULSE_SCALE = 1.2f
 private const val SPOTLIGHT_FADE_MILLIS = 250
 private const val FAB_LONG_PRESS_MILLIS = 600L
@@ -706,7 +759,12 @@ private fun Modifier.widthOfWidestLine(text: String, style: TextStyle): Modifier
 }
 
 @Composable
-private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier: Modifier = Modifier) {
+private fun EmptyStateView(
+    selectedDay: Instant,
+    showsWeight: Boolean,
+    modifier: Modifier = Modifier,
+    weightAccessory: @Composable () -> Unit,
+) {
     val now = Instant.now()
     val kind = when {
         selectedDay.isSameDay(now) -> SelectedDayKind.TODAY
@@ -724,15 +782,7 @@ private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier
         SelectedDayKind.FUTURE -> R.string.dashboard_empty_description_future
     }
 
-    val pulseScale = remember { Animatable(1f) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(PULSE_INTERVAL_MILLIS)
-            pulseScale.animateTo(PULSE_SCALE, tween(PULSE_DURATION_MILLIS, easing = FastOutSlowInEasing))
-            launch { pulseScale.animateTo(1f, tween(PULSE_DURATION_MILLIS, easing = FastOutSlowInEasing)) }
-        }
-    }
+    val showsWeightHint = kind == SelectedDayKind.TODAY && showsWeight
 
     Column(
         modifier = modifier.padding(horizontal = 24.dp),
@@ -751,20 +801,26 @@ private fun EmptyStateView(selectedDay: Instant, onAddFood: () -> Unit, modifier
             )
             Spacer(Modifier.width(24.dp))
         }
-        Text(
-            text = stringResource(descriptionRes),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        Button(
-            onClick = onAddFood,
-            modifier = Modifier.graphicsLayer {
-                scaleX = pulseScale.value
-                scaleY = pulseScale.value
-            },
-        ) {
-            Text(stringResource(R.string.dashboard_empty_addFood))
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(descriptionRes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                if (showsWeightHint) {
+                    Text(
+                        text = stringResource(R.string.dashboard_empty_weigh),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+            if (showsWeightHint) {
+                weightAccessory()
+            }
         }
     }
 }
