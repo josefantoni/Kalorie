@@ -140,6 +140,7 @@
     <string name="dashboard_empty_title">No food records</string>
     <string name="dashboard_empty_title_future">Planning meals for the future?</string>
     <string name="dashboard_empty_title_past">No food eaten.</string>
+    <string name="dashboard_empty_weigh">Or log today\'s weight.</string>
     <string name="dashboard_error_copyFailed">Couldn\'t copy the food.</string>
     <string name="dashboard_error_deleteFailed">Could not delete the food</string>
     <string name="dashboard_error_moveFailed">Could not move the food</string>

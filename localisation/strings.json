@@ -190,7 +190,7 @@
     "sk": "Pridať potravinu ručne"
   },
   "addFood_button_addManually": {
-    "cs": "Nebo přidejte položku ručně",
+    "cs": "Nebo přidej položku ručně",
     "en": "Or add the item manually",
     "sk": "Alebo pridaj položku ručne"
   },
@@ -390,7 +390,7 @@
     "sk": "Naskenovať čiarový kód"
   },
   "addFood_nutritionLabel_cameraIdleHint": {
-    "cs": "Namiřte kameru na nutriční tabulku",
+    "cs": "Namiř kameru na nutriční tabulku",
     "en": "Point the camera at the nutrition table",
     "sk": "Namier kameru na nutričnú tabuľku"
   },
@@ -405,9 +405,9 @@
     "sk": "Na fotke sa nepodarilo nájsť nutričnú tabuľku. Odfoť tabuľku na zadnej strane obalu."
   },
   "addFood_nutritionLabel_promptBody": {
-    "cs": "Vyfoťte nutriční tabulku na obalu, pak zkontrolujte hodnoty.",
+    "cs": "Vyfoť nutriční tabulku na obalu, pak zkontroluj hodnoty.",
     "en": "Photograph the nutrition table on the packaging, then check the values.",
-    "sk": "Odfoťte nutričnú tabuľku na obale, potom skontrolujte hodnoty."
+    "sk": "Odfoť nutričnú tabuľku na obale, potom skontroluj hodnoty."
   },
   "addFood_nutritionLabel_unsupportedMessage": {
     "cs": "Toto zařízení neumí skenovat nutriční tabulku.",
@@ -670,9 +670,9 @@
     "sk": "Pridať jedlo"
   },
   "dashboard_empty_description": {
-    "cs": "Ještě jste dnes nic nesnědli, přidejme nějaké jídlo.",
+    "cs": "Ještě jsi dnes nic nesnědl/a, přidejme nějaké jídlo.",
     "en": "You haven't eaten anything today, let's add some food.",
-    "sk": "Ešte ste dnes nič nezjedli, pridajme nejaké jedlo."
+    "sk": "Ešte si dnes nič nezjedol/a, pridajme nejaké jedlo."
   },
   "dashboard_empty_description_future": {
     "cs": "Záznamy teprve vzniknou — ale klidně jim dnes pomož.",
@@ -683,6 +683,11 @@
     "cs": "Zpátky do minulosti přidáním jídla! 🚀",
     "en": "Go back and add some food! 🚀",
     "sk": "Späť do minulosti pridaním jedla! 🚀"
+  },
+  "dashboard_empty_weigh": {
+    "cs": "Nebo zapiš dnešní váhu.",
+    "en": "Or log today's weight.",
+    "sk": "Alebo zapíš dnešnú váhu."
   },
   "dashboard_empty_title": {
     "cs": "Žádné záznamy jídel",
@@ -895,9 +900,9 @@
     "sk": "Podľa času"
   },
   "foodItemReport_alert_placeholder": {
-    "cs": "Popište, co je u položky špatně",
+    "cs": "Popiš, co je u položky špatně",
     "en": "Describe what's incorrect about this item",
-    "sk": "Opíšte, čo je pri položke zle"
+    "sk": "Opíš, čo je pri položke zle"
   },
   "foodItemReport_alert_title": {
     "cs": "Co je špatně?",
@@ -920,14 +925,14 @@
     "sk": "Odoslať"
   },
   "foodItemReport_error_reasonRequired": {
-    "cs": "Napište prosím, co je špatně",
+    "cs": "Napiš prosím, co je špatně",
     "en": "Please describe what's wrong",
-    "sk": "Napíšte, prosím, čo je zle"
+    "sk": "Napíš, prosím, čo je zle"
   },
   "foodItemReport_error_reasonTooLong": {
-    "cs": "Zkraťte popis na 500 znaků",
+    "cs": "Zkrať popis na 500 znaků",
     "en": "Keep the description under 500 characters",
-    "sk": "Skráťte opis na 500 znakov"
+    "sk": "Skráť opis na 500 znakov"
   },
   "foodPhoto_accessibility_enlarge": {
     "cs": "Zvětšit fotku",
@@ -955,14 +960,14 @@
     "sk": "Odfotiť"
   },
   "foodPhoto_error_required": {
-    "cs": "Přidejte fotku produktu",
+    "cs": "Přidej fotku produktu",
     "en": "Add a product photo",
-    "sk": "Pridajte fotku produktu"
+    "sk": "Pridaj fotku produktu"
   },
   "foodPhoto_error_uploadFailed": {
-    "cs": "Fotku se nepodařilo nahrát. Zkuste to znovu.",
+    "cs": "Fotku se nepodařilo nahrát. Zkus to znovu.",
     "en": "The photo could not be uploaded. Try again.",
-    "sk": "Fotku sa nepodarilo nahrať. Skúste to znova."
+    "sk": "Fotku sa nepodarilo nahrať. Skús to znova."
   },
   "foodPhoto_title": {
     "cs": "Fotka produktu",
@@ -975,19 +980,19 @@
     "sk": "Pridať porciu"
   },
   "foodPortion_error_invalidGrams": {
-    "cs": "Zadejte gramáž větší než 0",
+    "cs": "Zadej gramáž větší než 0",
     "en": "Enter a weight greater than 0",
-    "sk": "Zadajte gramáž väčšiu ako 0"
+    "sk": "Zadaj gramáž väčšiu ako 0"
   },
   "foodPortion_error_invalidName": {
-    "cs": "Zadejte název porce",
+    "cs": "Zadej název porce",
     "en": "Enter a portion name",
-    "sk": "Zadajte názov porcie"
+    "sk": "Zadaj názov porcie"
   },
   "foodPortion_error_tooMany": {
-    "cs": "Můžete přidat nejvýš 20 porcí",
+    "cs": "Můžeš přidat nejvýš 20 porcí",
     "en": "You can add at most 20 portions",
-    "sk": "Môžete pridať najviac 20 porcií"
+    "sk": "Môžeš pridať najviac 20 porcií"
   },
   "foodPortion_field_namePlaceholder": {
     "cs": "Název (např. 1 balení)",
@@ -1135,19 +1140,19 @@
     "sk": "Túto žiadosť už vybavil iný správca"
   },
   "moderation_error_changedSinceReview": {
-    "cs": "Uživatel žádost mezitím upravil, zkontrolujte ji znovu",
+    "cs": "Uživatel žádost mezitím upravil, zkontroluj ji znovu",
     "en": "The submission changed since you opened it — review it again",
-    "sk": "Používateľ žiadosť medzitým upravil, skontrolujte ju znova"
+    "sk": "Používateľ žiadosť medzitým upravil, skontroluj ju znova"
   },
   "moderation_error_itemChangedSinceLoad": {
-    "cs": "Položka byla mezitím změněna, načtěte ji znovu",
+    "cs": "Položka byla mezitím změněna, načti ji znovu",
     "en": "This item changed since you loaded it — search again to see the latest version",
-    "sk": "Položka sa medzitým zmenila, načítajte ju znova"
+    "sk": "Položka sa medzitým zmenila, načítaj ju znova"
   },
   "moderation_error_reasonRequired": {
-    "cs": "Uveďte důvod zamítnutí",
+    "cs": "Uveď důvod zamítnutí",
     "en": "Enter a reason for the rejection",
-    "sk": "Uveďte dôvod zamietnutia"
+    "sk": "Uveď dôvod zamietnutia"
   },
   "moderation_queue_collision": {
     "cs": "Tento čárový kód už v katalogu je",
@@ -1280,9 +1285,9 @@
     "sk": "Uložiť"
   },
   "myPortions_empty": {
-    "cs": "Zatím nemáte evidovanou žádnou vlastní porci pro danou potravinu nebo jídlo.",
+    "cs": "Zatím nemáš evidovanou žádnou vlastní porci pro danou potravinu nebo jídlo.",
     "en": "You have not yet recorded any personal portion for this food item.",
-    "sk": "Zatiaľ nemáte evidovanú žiadnu vlastnú porciu pre danú potravinu alebo jedlo."
+    "sk": "Zatiaľ nemáš evidovanú žiadnu vlastnú porciu pre danú potravinu alebo jedlo."
   },
   "myPortions_error_deleteFailed": {
     "cs": "Porci se nepodařilo smazat",
@@ -1380,9 +1385,9 @@
     "sk": "Kopírovať adresu"
   },
   "settings_feedback_noMail_message": {
-    "cs": "V zařízení není nastavená žádná poštovní aplikace. Napište nám prosím na adresu %@.",
+    "cs": "V zařízení není nastavená žádná poštovní aplikace. Napiš nám prosím na adresu %@.",
     "en": "No mail app is set up on this device. Please write to us at %@.",
-    "sk": "V zariadení nie je nastavená žiadna poštová aplikácia. Napíšte nám, prosím, na adresu %@."
+    "sk": "V zariadení nie je nastavená žiadna poštová aplikácia. Napíš nám, prosím, na adresu %@."
   },
   "settings_feedback_noMail_title": {
     "cs": "Poštu se nepodařilo otevřít",
@@ -1555,9 +1560,9 @@
     "sk": "Zatiaľ žiadne záznamy hmotnosti"
   },
   "weightHistory_empty_message": {
-    "cs": "Váhu zapíšete tlačítkem + u kruhu vedle grafu kalorií na přehledu.",
+    "cs": "Váhu zapíšeš tlačítkem + u kruhu vedle grafu kalorií na přehledu.",
     "en": "Log your weight with the + button on the circle next to the calorie chart on the overview.",
-    "sk": "Hmotnosť zapíšete tlačidlom + pri kruhu vedľa grafu kalórií na prehľade."
+    "sk": "Hmotnosť zapíšeš tlačidlom + pri kruhu vedľa grafu kalórií na prehľade."
   },
   "weightHistory_previousPeriod": {
     "cs": "Předchozí období",
