@@ -139,3 +139,7 @@ It mirrors the iOS component of the same name. Never call `FilledIconButton` or
   unit tests.
 - **Never start or click through the Android emulator** to check a change. The user tests on a
   device by hand, as with the iOS Simulator.
+
+## App Check debug tokens
+
+App Check is enforced on Storage and Firestore. Debug builds use the debug provider, so every new emulator or debug device must have its debug token registered under Firebase Console → App Check → app menu → Manage debug tokens. The provider prints the token on first launch (logcat). An unregistered build gets `permission-denied`. A token is a credential, do not commit it.
