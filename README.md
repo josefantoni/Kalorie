@@ -3,7 +3,7 @@
 Mobile apps for tracking calories and macros. Built because existing apps are bloated with features I don't need.
 
 - **iOS** (`iOS/`) — [available on the App Store](https://apps.apple.com/cz/app/kalorie/id6823155404?l=cs)
-- **Android** (`Android/`) — version 1.0 almost done with closed testing on Google Play, then production access
+- **Android** (`Android/`) — [available on Google Play](https://play.google.com/store/apps/details?id=antoni.kalorie)
 
 <table>
   <tr>
@@ -85,7 +85,7 @@ Data is private per user (`users/{userId}/…`) except the shared food catalogue
 
 ## Status
 
-iOS is released on the [App Store](https://apps.apple.com/cz/app/kalorie/id6823155404?l=cs). Android is almost done with closed testing ahead of its first public release: on Google Play a new personal developer account has to run the closed test with at least 12 testers opted in for 14 days before it can apply for production access. Open items are tracked in [TODO.md](TODO.md).
+iOS is released on the [App Store](https://apps.apple.com/cz/app/kalorie/id6823155404?l=cs) and Android on [Google Play](https://play.google.com/store/apps/details?id=antoni.kalorie). Open items are tracked in [TODO.md](TODO.md).
 
 ## License
 

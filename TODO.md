@@ -8,10 +8,9 @@
   writes, not what writes, so until enforcement anyone with an account can upload files from a script and
   the Blaze bill is ours.
 
-  **Waiting for the Android release with the [design 0026](docs/design/0026-minimum-supported-version.md)
-  gate (minimum supported version) to reach production.** iOS 1.0.3 has the gate, Android is still in
-  closed testing. Every build without the gate can never be told to update, so only the gate makes
-  enforcement safe for gated users. Remaining, in this order:
+  **The [design 0026](docs/design/0026-minimum-supported-version.md) gate (minimum supported version) is
+  now in production on both stores** (iOS 1.0.3, Android 1.0). Every build without the gate can never be
+  told to update, so only the gate makes enforcement safe for gated users. Remaining, in this order:
 
   1. Once the gated release is live on both stores, raise `config/app.min_version_ios` /
      `min_version_android` to it (design 0026 runbook).
@@ -37,10 +36,6 @@
   names, Czech + English descriptions), switch the App Store Connect DSA status from *not a trader* to *trader* (an address, phone and email are then published on the product page) and make the Play listing consistent, then set `Constants.Tips.isEnabled` / `IS_ENABLED` to `true` on both platforms and restore the tips paragraph in
   `backend/hosting/privacy.html` (Apple / Google process the payment, the app receives no card or purchase
   data) and test a real purchase from Internal testing with a license tester.
-- **First Play release needs a closed test** — a personal developer account created after Nov 2023
-  gets production access only after a closed test with at least 12 testers opted in for 14 days in a
-  row. The closed test is running with more than 12 testers; the 14 days have to pass before production
-  access can be requested. It is also the cheapest way to find out whether anyone uses the app.
 - **Basal metabolic rate (opt-in)** — not designed yet; write a design doc first (Scope: Cross-platform).
   Decisions taken so far: the app offers to estimate the user's BMR (sex, age, height, weight) and the
   dashboard then shows the day's kcal total against it. The offer is never automatic: it reuses the
