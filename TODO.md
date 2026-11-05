@@ -2,31 +2,6 @@
 
 ## Planned features
 
-- **Firebase App Check — enforcement** — installed on both clients and registered in the Firebase Console
-  (App Attest on iOS, Play Integrity on Android, Cloud project linked in Play Console, debug tokens for the
-  maintainer's simulator and device), nothing enforced yet. Storage and Firestore rules only check who
-  writes, not what writes, so until enforcement anyone with an account can upload files from a script and
-  the Blaze bill is ours.
-
-  **The [design 0026](docs/design/0026-minimum-supported-version.md) gate (minimum supported version) is
-  now in production on both stores** (iOS 1.0.3, Android 1.0). Every build without the gate can never be
-  told to update, so only the gate makes enforcement safe for gated users. Remaining, in this order:
-
-  1. Once the gated release is live on both stores, raise `config/app.min_version_ios` /
-     `min_version_android` to it (design 0026 runbook).
-  2. Watch Console → App Check → Storage and Firestore until the unverified share is only pre-gate
-     releases and noise; those can never be updated by force and are locked out by enforcement.
-  3. Check the Mac availability in App Store Connect first: `DCAppAttestService.isSupported` is unreliable
-     for an iPhone app on an Apple-silicon Mac (not verified), so those users may lose Storage and later
-     Firestore. Turn Mac availability off or accept it.
-  4. Enforce Storage; after a quiet week, enforce Firestore. Unenforcing in the console is the rollback and
-     takes effect within minutes. Leave Authentication unenforced.
-  5. Verify by hand: a TestFlight / Play Internal build shows up as verified in the metrics; a debug build
-     with an unregistered token gets `permission-denied` on a photo upload once Storage is enforced.
-
-  Every new simulator, emulator or debug device needs its debug token registered (the debug provider prints
-  it on first launch: Xcode console / logcat) under Firebase Console → App Check → app menu → Manage debug
-  tokens. A token is a credential, do not put it in the shared `Kalorie.xcscheme`.
 - **Support development (tips)** — designed in [design 0023](docs/design/0023-support-development-tips.md) and
   implemented on both platforms and switched off by `Constants.Tips.isEnabled`, so the apps ship without
   tips. Blocked on the owner's trade licence being suspended: income from the stores
