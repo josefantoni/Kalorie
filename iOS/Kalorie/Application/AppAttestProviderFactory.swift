@@ -14,11 +14,8 @@ final class AppAttestProviderFactory: NSObject, AppCheckProviderFactory {
     // MARK: - Functions
 
     func createProvider(with app: FirebaseApp) -> (any AppCheckProvider)? {
-        // App Attest does not issue tokens to an iPhone app running on a Mac, so App Check enforcement would lock it out.
-        if
-            ProcessInfo.processInfo.isiOSAppOnMac
-            || !DCAppAttestService.shared.isSupported
-        {
+        // Without App Attest support the device would get no token and App Check enforcement would lock it out.
+        if !DCAppAttestService.shared.isSupported {
             return DeviceCheckProvider(app: app)
         }
         return AppAttestProvider(app: app)
