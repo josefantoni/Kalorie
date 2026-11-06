@@ -55,7 +55,7 @@ struct AddFoodSheetConfigurator {
                 deleteMyCreatedMeal: DeleteMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 modelExtractor: FoundationModelExtractor(),
                 cameraAuthorizationProvider: CameraAuthorizationProvider(),
-                contributionHintStore: ContributionHintStore(),
+                contributionHintStore: HintVisibilityStore(hiddenAtKey: Constants.AddFood.contributionHintHiddenAtKey, hideCountKey: Constants.AddFood.contributionHintHideCountKey),
                 onFoodSaved: onFoodSaved,
                 isScannerVisible: withBarcodeScan
             ),

@@ -35,6 +35,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     @Published var alertItem: AlertItem?
     @Published var isSaveConfirmationVisible = false
     @Published private(set) var shouldDismiss = false
+    @Published private(set) var isHintVisible: Bool
     let searchPlaceholder: String
 
     private let existingMeal: MyCreatedMealDomain?
@@ -48,6 +49,8 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     private let fetchFoodItemsByIds: any FetchFoodItemsByIdsUseCaseProtocol
     private let createMyCreatedMeal: any CreateMyCreatedMealUseCaseProtocol
     private let updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol
+    private let hintStore: any HintVisibilityStoreProtocol
+    private let now: () -> Date
     private let onSaved: () -> Void
     private let dismissesOnSave: Bool
 
@@ -80,11 +83,16 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
         fetchFoodItemsByIds: any FetchFoodItemsByIdsUseCaseProtocol,
         createMyCreatedMeal: any CreateMyCreatedMealUseCaseProtocol,
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol,
+        hintStore: any HintVisibilityStoreProtocol,
         existingMeal: MyCreatedMealDomain? = nil,
+        now: @escaping () -> Date = { .now },
         onSaved: @escaping () -> Void = {},
         dismissesOnSave: Bool = true
     ) {
         self.existingMeal = existingMeal
+        self.hintStore = hintStore
+        self.now = now
+        self.isHintVisible = existingMeal == nil && hintStore.isHintVisible(now: now())
         self.searchFoodItems = searchFoodItems
         self.searchFoodExternally = searchFoodExternally
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
@@ -126,6 +134,12 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
     }
 
     // MARK: - Functions
+
+    func onHintHidden() {
+        hintStore.hiddenAt = now()
+        hintStore.hideCount += 1
+        isHintVisible = false
+    }
 
     @MainActor
     func onAppear() async {

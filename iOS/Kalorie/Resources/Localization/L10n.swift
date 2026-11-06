@@ -268,6 +268,7 @@ enum L10n {
     enum MyCreatedMeal {
         static var titleNew: String { String(localized: "myCreatedMeal_title_new") }
         static var titleEdit: String { String(localized: "myCreatedMeal_title_edit") }
+        static var hintMessage: String { String(localized: "myCreatedMeal_hint_message") }
         static var fieldNameTitle: String { String(localized: "myCreatedMeal_field_name_title") }
         static var fieldNamePlaceholder: String { String(localized: "myCreatedMeal_field_name_placeholder") }
         static var sectionIngredients: String { String(localized: "myCreatedMeal_section_ingredients") }

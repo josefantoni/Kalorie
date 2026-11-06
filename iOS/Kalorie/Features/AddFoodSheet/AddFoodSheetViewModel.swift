@@ -236,10 +236,9 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
     private let deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol
     private let modelExtractor: any NutritionLabelModelExtractorProtocol
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
-    private let contributionHintStore: any ContributionHintStoreProtocol
+    private let contributionHintStore: any HintVisibilityStoreProtocol
     private let now: () -> Date
     private let onFoodSaved: () -> Void
-    private static let contributionHintHideDays = [3, 5, 8, 13, 21, 30]
 
     private var editingSubmissionId: String?
     private var isNutritionLabelCameraReviewPending = false
@@ -312,7 +311,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         deleteMyCreatedMeal: any DeleteMyCreatedMealUseCaseProtocol,
         modelExtractor: any NutritionLabelModelExtractorProtocol,
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
-        contributionHintStore: any ContributionHintStoreProtocol,
+        contributionHintStore: any HintVisibilityStoreProtocol,
         now: @escaping () -> Date = { Date.now },
         onFoodSaved: @escaping () -> Void = {},
         isScannerVisible: Bool = false
@@ -337,13 +336,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         self.contributionHintStore = contributionHintStore
         self.now = now
         self.onFoodSaved = onFoodSaved
-        if let hiddenAt = contributionHintStore.hiddenAt {
-            let steps = Self.contributionHintHideDays
-            let days = steps[min(max(contributionHintStore.hideCount, 1), steps.count) - 1]
-            self.isContributionHintVisible = now().timeIntervalSince(hiddenAt) >= TimeInterval(days) * 24 * 60 * 60
-        } else {
-            self.isContributionHintVisible = true
-        }
+        self.isContributionHintVisible = contributionHintStore.isHintVisible(now: now())
         let example = L10n.AddFood.searchExamples.randomElement() ?? ""
         self.searchPlaceholder = L10n.AddFood.searchPlaceholder(example: example)
     }

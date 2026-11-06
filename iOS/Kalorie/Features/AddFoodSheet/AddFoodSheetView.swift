@@ -457,7 +457,7 @@ struct AddFoodSheetView: View {
             deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseFake(),
             modelExtractor: NutritionLabelModelExtractorFake(),
             cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
-            contributionHintStore: ContributionHintStoreFake()
+            contributionHintStore: HintVisibilityStoreFake()
         ),
         makeFoodQuantityView: { item, isFavourite, meal, onSaved, onFavouriteChanged, onMealUpdated in
             FoodQuantityView(
@@ -497,6 +497,7 @@ struct AddFoodSheetView: View {
                     fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(),
                     createMyCreatedMeal: CreateMyCreatedMealUseCaseFake(),
                     updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
+                    hintStore: HintVisibilityStoreFake(),
                     onSaved: onSaved
                 )
             )
@@ -511,6 +512,7 @@ struct AddFoodSheetView: View {
                 fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(),
                 createMyCreatedMeal: CreateMyCreatedMealUseCaseFake(),
                 updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
+                hintStore: HintVisibilityStoreFake(),
                 onSaved: onSaved
             )
         )
