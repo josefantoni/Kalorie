@@ -10,6 +10,36 @@ import XCTest
 
 final class MyCreatedMealEditorViewModelTests: XCTestCase {
 
+    func test_init_whenCreatingAndHintNeverHidden_showsHint() {
+        let sut = makeSUT()
+        XCTAssertTrue(sut.isHintVisible, "a user building a first meal has to be told what the screen is for")
+    }
+
+    func test_init_whenEditing_hidesHint() {
+        let existingMeal = MyCreatedMealDomain(id: "1", name: "Kaše", ingredients: [makeIngredientDomain()], createdAt: .now, updatedAt: .now)
+        let sut = makeSUT(existingMeal: existingMeal)
+        XCTAssertFalse(sut.isHintVisible, "someone editing a meal already knows what meals are for")
+    }
+
+    func test_init_whenHiddenOnceLessThanThreeDaysAgo_hidesHint() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let store = HintVisibilityStoreFake(hiddenAt: now.addingTimeInterval(-2 * 24 * 60 * 60), hideCount: 1)
+        let sut = makeSUT(hintStore: store, now: now)
+        XCTAssertFalse(sut.isHintVisible, "Hide must stick for the first interval")
+    }
+
+    func test_onHintHidden_storesNowAndCountsTheHide() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let store = HintVisibilityStoreFake(hideCount: 1)
+        let sut = makeSUT(hintStore: store, now: now)
+
+        sut.onHintHidden()
+
+        XCTAssertFalse(sut.isHintVisible)
+        XCTAssertEqual(store.hiddenAt, now)
+        XCTAssertEqual(store.hideCount, 2, "the count stretches the wait before the hint returns")
+    }
+
     func test_canSave_withNoIngredients_isFalse() {
         let sut = makeSUT()
         XCTAssertFalse(sut.canSave)
@@ -366,7 +396,9 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         fetchFoodItemsByIds: any FetchFoodItemsByIdsUseCaseProtocol = FetchFoodItemsByIdsUseCaseFake(),
         createMyCreatedMeal: any CreateMyCreatedMealUseCaseProtocol = CreateMyCreatedMealUseCaseFake(),
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
+        hintStore: any HintVisibilityStoreProtocol = HintVisibilityStoreFake(),
         existingMeal: MyCreatedMealDomain? = nil,
+        now: Date = .now,
         onSaved: @escaping () -> Void = {},
         dismissesOnSave: Bool = true
     ) -> MyCreatedMealEditorViewModel {
@@ -378,7 +410,9 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
             fetchFoodItemsByIds: fetchFoodItemsByIds,
             createMyCreatedMeal: createMyCreatedMeal,
             updateMyCreatedMeal: updateMyCreatedMeal,
+            hintStore: hintStore,
             existingMeal: existingMeal,
+            now: { now },
             onSaved: onSaved,
             dismissesOnSave: dismissesOnSave
         )

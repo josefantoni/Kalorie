@@ -862,7 +862,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
 
     @MainActor
     func test_init_whenNeverHidden_showsContributionHint() {
-        let sut = makeSUT(contributionHintStore: ContributionHintStoreFake(hiddenAt: nil))
+        let sut = makeSUT(contributionHintStore: HintVisibilityStoreFake(hiddenAt: nil))
 
         XCTAssertTrue(sut.isContributionHintVisible, "a user who never hid the card must be told they can add a food")
     }
@@ -870,7 +870,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     @MainActor
     func test_init_whenHiddenOnceLessThanThreeDaysAgo_hidesContributionHint() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
-        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-(3 * 24 * 60 * 60 - 60 * 60)), hideCount: 1)
+        let store = HintVisibilityStoreFake(hiddenAt: now.addingTimeInterval(-(3 * 24 * 60 * 60 - 60 * 60)), hideCount: 1)
         let sut = makeSUT(contributionHintStore: store, now: now)
 
         XCTAssertFalse(sut.isContributionHintVisible, "a card hidden 2 days 23 h ago must stay hidden, or Hide would be pointless")
@@ -879,7 +879,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     @MainActor
     func test_init_whenHiddenOnceThreeDaysAgo_showsContributionHint() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
-        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-3 * 24 * 60 * 60), hideCount: 1)
+        let store = HintVisibilityStoreFake(hiddenAt: now.addingTimeInterval(-3 * 24 * 60 * 60), hideCount: 1)
         let sut = makeSUT(contributionHintStore: store, now: now)
 
         XCTAssertTrue(sut.isContributionHintVisible, "the first reminder comes back after 3 days, and the boundary is inclusive")
@@ -888,7 +888,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     @MainActor
     func test_init_whenHiddenTwiceFourDaysAgo_hidesContributionHint() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
-        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-4 * 24 * 60 * 60), hideCount: 2)
+        let store = HintVisibilityStoreFake(hiddenAt: now.addingTimeInterval(-4 * 24 * 60 * 60), hideCount: 2)
         let sut = makeSUT(contributionHintStore: store, now: now)
 
         XCTAssertFalse(sut.isContributionHintVisible, "each dismissal must push the next reminder further out: the second one waits 5 days")
@@ -897,7 +897,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     @MainActor
     func test_init_whenHiddenTwiceFiveDaysAgo_showsContributionHint() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
-        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-5 * 24 * 60 * 60), hideCount: 2)
+        let store = HintVisibilityStoreFake(hiddenAt: now.addingTimeInterval(-5 * 24 * 60 * 60), hideCount: 2)
         let sut = makeSUT(contributionHintStore: store, now: now)
 
         XCTAssertTrue(sut.isContributionHintVisible)
@@ -906,8 +906,8 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     @MainActor
     func test_init_whenHiddenManyTimes_capsTheIntervalAtThirtyDays() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
-        let almost = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-29 * 24 * 60 * 60), hideCount: 12)
-        let enough = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-30 * 24 * 60 * 60), hideCount: 12)
+        let almost = HintVisibilityStoreFake(hiddenAt: now.addingTimeInterval(-29 * 24 * 60 * 60), hideCount: 12)
+        let enough = HintVisibilityStoreFake(hiddenAt: now.addingTimeInterval(-30 * 24 * 60 * 60), hideCount: 12)
 
         XCTAssertFalse(makeSUT(contributionHintStore: almost, now: now).isContributionHintVisible)
         XCTAssertTrue(makeSUT(contributionHintStore: enough, now: now).isContributionHintVisible, "a monthly reminder is the intended floor, so the wait never grows past 30 days")
@@ -916,7 +916,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
     @MainActor
     func test_init_whenHiddenBeforeTheCountWasStored_treatsItAsTheFirstHide() {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
-        let store = ContributionHintStoreFake(hiddenAt: now.addingTimeInterval(-3 * 24 * 60 * 60), hideCount: 0)
+        let store = HintVisibilityStoreFake(hiddenAt: now.addingTimeInterval(-3 * 24 * 60 * 60), hideCount: 0)
         let sut = makeSUT(contributionHintStore: store, now: now)
 
         XCTAssertTrue(sut.isContributionHintVisible, "a timestamp without a count must not crash or wait longer than the first interval")
@@ -924,7 +924,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
 
     @MainActor
     func test_onContributionHintHidden_storesNowAndCountsTheHide() {
-        let store = ContributionHintStoreFake(hideCount: 2)
+        let store = HintVisibilityStoreFake(hideCount: 2)
         let now = Date(timeIntervalSince1970: 1_800_000_000)
         let sut = makeSUT(contributionHintStore: store, now: now)
 
@@ -962,7 +962,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         fetchFoodFrequency: any FetchFoodFrequencyUseCaseProtocol = FetchFoodFrequencyUseCaseFake(),
         modelExtractor: any NutritionLabelModelExtractorProtocol = NutritionLabelModelExtractorFake(),
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake(),
-        contributionHintStore: any ContributionHintStoreProtocol = ContributionHintStoreFake(),
+        contributionHintStore: any HintVisibilityStoreProtocol = HintVisibilityStoreFake(),
         now: Date = Date(timeIntervalSince1970: 1_800_000_000),
         isScannerVisible: Bool = false
     ) -> AddFoodSheetViewModel {

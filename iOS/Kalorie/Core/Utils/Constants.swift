@@ -27,6 +27,11 @@ enum Constants {
         static let contributionHintHideCountKey = "contributionHintHideCount"
     }
 
+    enum MyCreatedMeal {
+        static let hintHiddenAtKey = "myCreatedMealHintHiddenAt"
+        static let hintHideCountKey = "myCreatedMealHintHideCount"
+    }
+
     enum OpenFoodFacts {
         static let host = "world.openfoodfacts.org"
         static let baseURL = URL(string: "https://\(host)")

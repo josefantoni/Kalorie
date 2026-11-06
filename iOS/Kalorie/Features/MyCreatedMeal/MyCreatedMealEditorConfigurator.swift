@@ -37,6 +37,10 @@ struct MyCreatedMealEditorConfigurator {
                 fetchFoodItemsByIds: FetchFoodItemsByIdsUseCase(dataProvider: dataProvider),
                 createMyCreatedMeal: CreateMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 updateMyCreatedMeal: UpdateMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                hintStore: HintVisibilityStore(
+                    hiddenAtKey: Constants.MyCreatedMeal.hintHiddenAtKey,
+                    hideCountKey: Constants.MyCreatedMeal.hintHideCountKey
+                ),
                 existingMeal: existingMeal,
                 onSaved: onSaved,
                 dismissesOnSave: dismissesOnSave

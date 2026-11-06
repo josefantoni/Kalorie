@@ -26,6 +26,19 @@ struct MyCreatedMealEditorView: View {
 
     var body: some View {
         List {
+            if viewModel.isHintVisible {
+                Section {
+                    HintCard(
+                        message: L10n.MyCreatedMeal.hintMessage,
+                        actionTitle: L10n.AddFood.contributionHintHide,
+                        onTap: {},
+                        onAction: { viewModel.onHintHidden() }
+                    )
+                    .listRowInsets(EdgeInsets())
+                }
+                .listRowBackground(Color.clear)
+                .listSectionSpacing(.custom(16))
+            }
             Section {
                 FloatingLabelTextField(
                     title: L10n.MyCreatedMeal.fieldNameTitle,
@@ -188,7 +201,8 @@ struct MyCreatedMealEditorView: View {
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
                 fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(),
                 createMyCreatedMeal: CreateMyCreatedMealUseCaseFake(),
-                updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake()
+                updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
+                hintStore: HintVisibilityStoreFake()
             )
         )
     }
