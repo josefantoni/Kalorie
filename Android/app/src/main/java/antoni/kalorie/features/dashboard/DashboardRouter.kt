@@ -7,18 +7,30 @@ import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.features.account.AccountConfigurator
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
+import antoni.kalorie.features.notifications.NotificationBellViewModel
+import antoni.kalorie.features.notifications.NotificationsConfigurator
 import antoni.kalorie.features.settings.SettingsConfigurator
 import java.time.Instant
 
 class DashboardRouter(
+    private val userId: String?,
     private val accountConfigurator: AccountConfigurator,
     private val settingsConfigurator: SettingsConfigurator,
     private val addFoodSheetConfigurator: AddFoodSheetConfigurator,
     private val foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator,
     private val bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator,
+    private val notificationsConfigurator: NotificationsConfigurator,
 ) {
 
     // MARK: - Functions
+
+    @Composable
+    fun makeNotificationBellViewModel(): NotificationBellViewModel = notificationsConfigurator.createBellViewModel(userId)
+
+    @Composable
+    fun makeNotificationsView(onDismiss: () -> Unit) {
+        notificationsConfigurator.createView(onDismiss = onDismiss)
+    }
 
     @Composable
     fun makeAccountView(onDismiss: () -> Unit) {

@@ -5,6 +5,8 @@ import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.PhotoSuggestionDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.StorageDataProviderProtocol
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 interface RejectPhotoSuggestionUseCaseProtocol {
     suspend operator fun invoke(suggestion: PhotoSuggestionDomain)
@@ -24,6 +26,8 @@ class RejectPhotoSuggestionUseCase(
 
     override suspend fun invoke(suggestion: PhotoSuggestionDomain) {
         if (authProvider.userId == null) throw AuthError.NotAuthenticated
-        remover.remove(itemId = suggestion.itemId, userId = suggestion.suggestedBy)
+        withContext(NonCancellable) {
+            remover.remove(itemId = suggestion.itemId, userId = suggestion.suggestedBy)
+        }
     }
 }

@@ -9,6 +9,8 @@ import antoni.kalorie.core.networking.StorageDataProviderProtocol
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 sealed class ApprovePhotoSuggestionError : Exception() {
     data object ItemMissing : ApprovePhotoSuggestionError()
@@ -41,8 +43,10 @@ class ApprovePhotoSuggestionUseCase(
         // The suggestion folder is private to its author, so the catalogue gets its own copy under
         // catalogPhotos (UpdateFoodItemUseCase uploads it) rather than a link into photoSuggestions.
         val photoData = downloadFoodPhoto(suggestion.photoUrl)
-        updateFoodItem(item, item, FoodItemFormPhoto.Local(photoData), validate = false)
-        removeAllSuggestions(suggestion.itemId)
+        withContext(NonCancellable) {
+            updateFoodItem(item, item, FoodItemFormPhoto.Local(photoData), validate = false)
+            removeAllSuggestions(suggestion.itemId)
+        }
     }
 
     // MARK: - Private

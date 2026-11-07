@@ -6,7 +6,9 @@ import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.usecases.FetchMyPhotoSuggestionUseCaseProtocol
 import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCaseProtocol
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 
 interface FoodPhotoSuggesting {
     val photoPillState: MutableStateFlow<FoodPhotoPillState>
@@ -45,8 +47,10 @@ interface FoodPhotoSuggesting {
         submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseProtocol,
     ) {
         try {
-            submitPhotoSuggestion(itemId, photo)
-            photoPillState.value = FoodPhotoPillState.AwaitingApproval
+            withContext(NonCancellable) {
+                submitPhotoSuggestion(itemId, photo)
+                photoPillState.value = FoodPhotoPillState.AwaitingApproval
+            }
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {

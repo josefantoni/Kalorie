@@ -2,14 +2,20 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.PhotoSuggestionDomain
 import antoni.kalorie.core.networking.FoodItemDTO
 import antoni.kalorie.core.networking.PhotoSuggestionDataProviderFake
 import antoni.kalorie.core.networking.StorageDataProviderFake
+import antoni.kalorie.core.networking.StorageDataProviderProtocol
 import antoni.kalorie.core.networking.makePhotoSuggestionItem
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.storage.StorageException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -148,6 +154,49 @@ class ApprovePhotoSuggestionUseCaseTest {
         assertTrue("deleting the document would orphan the file with nothing left to retry from", dataProvider.deletedIds.isEmpty())
     }
 
+    @Test
+    fun approve_whenCancelledWhileTheCatalogueWriteIsInFlight_stillRemovesTheSuggestions() = runTest {
+        val dataProvider = PhotoSuggestionDataProviderFake()
+        dataProvider.currentItem = makePhotoSuggestionItem()
+        dataProvider.stubbedSuggestionDocumentIds = listOf("12345678_alice")
+        val storage = StorageDataProviderFake()
+        val sut = ApprovePhotoSuggestionUseCase(
+            dataProvider = dataProvider,
+            authProvider = AuthProviderFake(userId = "maintainer"),
+            storageProvider = storage,
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = FoodItemDTO(makePhotoSuggestionItem()).asDomain()),
+            downloadFoodPhoto = DownloadFoodPhotoUseCase(storage),
+            updateFoodItem = SlowUpdateFoodItemUseCase(),
+        )
+        val suggestion = makeSuggestion(storage)
+
+        val job = launch { sut(suggestion) }
+        yield()
+        job.cancel()
+        advanceUntilIdle()
+
+        assertEquals(
+            "leaving the screen mid-approval must not leave a photo on the item with its suggestions still pending",
+            listOf("12345678_alice"),
+            dataProvider.deletedIds.map { it.first },
+        )
+    }
+
+    @Test
+    fun reject_whenCancelledWhileTheFileDeleteIsInFlight_stillDeletesTheDocument() = runTest {
+        val dataProvider = PhotoSuggestionDataProviderFake()
+        val storage = StorageDataProviderFake()
+        val suggestion = makeSuggestion(storage)
+        val sut = RejectPhotoSuggestionUseCase(dataProvider, AuthProviderFake(userId = "maintainer"), SlowDeleteStorageDataProviderFake(storage))
+
+        val job = launch { sut(suggestion) }
+        yield()
+        job.cancel()
+        advanceUntilIdle()
+
+        assertEquals(listOf("12345678_alice"), dataProvider.deletedIds.map { it.first })
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(currentItem: FoodItemDomain?): Triple<ApprovePhotoSuggestionUseCase, PhotoSuggestionDataProviderFake, StorageDataProviderFake> {
@@ -174,5 +223,20 @@ class ApprovePhotoSuggestionUseCaseTest {
     private suspend fun makeSuggestion(storage: StorageDataProviderFake): PhotoSuggestionDomain {
         val url = storage.uploadAsync(byteArrayOf(7), "photoSuggestions/alice/12345678.jpg", "image/jpeg")
         return PhotoSuggestionDomain(itemId = "12345678", suggestedBy = "alice", photoUrl = url, suggestedAt = Instant.now())
+    }
+}
+
+private class SlowUpdateFoodItemUseCase : UpdateFoodItemUseCaseProtocol {
+    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean) {
+        delay(1_000)
+    }
+}
+
+private class SlowDeleteStorageDataProviderFake(
+    private val base: StorageDataProviderFake,
+) : StorageDataProviderProtocol by base {
+    override suspend fun deleteAtPathAsync(path: String) {
+        delay(1_000)
+        base.deleteAtPathAsync(path)
     }
 }

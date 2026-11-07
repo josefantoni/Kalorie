@@ -5,8 +5,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
+import antoni.kalorie.core.models.PhotoSuggestionDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.StorageDataProvider
+import antoni.kalorie.core.usecases.ApprovePhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.ApproveSubmissionUseCase
 import antoni.kalorie.core.usecases.CreateFoodItemUseCase
 import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCase
@@ -15,6 +17,8 @@ import antoni.kalorie.core.usecases.DownloadFoodPhotoUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCase
 import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCase
+import antoni.kalorie.core.usecases.FetchPhotoSuggestionsUseCase
+import antoni.kalorie.core.usecases.RejectPhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.RejectSubmissionUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCase
@@ -70,10 +74,51 @@ class ModerationConfigurator(
         )
     }
 
-    // MARK: - Private
+    @Composable
+    fun createPhotoSuggestionsView(onDismiss: () -> Unit) {
+        val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
+            ModerationPhotoSuggestionsViewModel(
+                fetchPhotoSuggestions = FetchPhotoSuggestionsUseCase(dataProvider, authProvider),
+                fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
+            )
+        }
+        ModerationPhotoSuggestionsView(
+            viewModel = viewModel,
+            onDismiss = onDismiss,
+            makeReviewView = { suggestion, onResolved, onReviewDismiss ->
+                MakePhotoSuggestionView(suggestion = suggestion, onResolved = onResolved, onDismiss = onReviewDismiss)
+            },
+        )
+    }
 
     @Composable
-    private fun MakeReviewView(submission: FoodItemSubmissionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) {
+    fun MakePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) {
+        val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
+            ModerationPhotoSuggestionViewModel(
+                suggestion = suggestion,
+                fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
+                approvePhotoSuggestion = ApprovePhotoSuggestionUseCase(
+                    dataProvider = dataProvider,
+                    authProvider = authProvider,
+                    storageProvider = storageProvider,
+                    fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
+                    downloadFoodPhoto = DownloadFoodPhotoUseCase(storageProvider),
+                    updateFoodItem = UpdateFoodItemUseCase(
+                        dataProvider,
+                        authProvider,
+                        UploadFoodPhotoUseCase(storageProvider),
+                        DeleteFoodPhotoUseCase(storageProvider),
+                    ),
+                ),
+                rejectPhotoSuggestion = RejectPhotoSuggestionUseCase(dataProvider, authProvider, storageProvider),
+                onResolved = onResolved,
+            )
+        }
+        ModerationPhotoSuggestionView(viewModel = viewModel, onDismiss = onDismiss)
+    }
+
+    @Composable
+    fun MakeReviewView(submission: FoodItemSubmissionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) {
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationReviewViewModel(
                 submission = submission,
@@ -94,7 +139,7 @@ class ModerationConfigurator(
     }
 
     @Composable
-    private fun MakeCatalogueEditorView(
+    fun MakeCatalogueEditorView(
         initialBarcode: String?,
         onDismiss: () -> Unit,
         reports: List<FoodItemReportDomain> = emptyList(),
