@@ -35,7 +35,7 @@ sealed class UpdateFoodItemError : Exception() {
 }
 
 interface UpdateFoodItemUseCaseProtocol {
-    suspend operator fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto)
+    suspend operator fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean = true)
 }
 
 class UpdateFoodItemUseCase(
@@ -49,9 +49,9 @@ class UpdateFoodItemUseCase(
 
     // setAsync replaces the whole document, and foodItems has no submitted_at-like token, so the
     // full document is re-read and compared client-side to catch a concurrent maintainer edit.
-    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) {
+    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean) {
         if (authProvider.userId == null) throw AuthError.NotAuthenticated
-        FoodItemValidation.validate(item)?.let { throw UpdateFoodItemError.from(it) }
+        if (validate) FoodItemValidation.validate(item)?.let { throw UpdateFoodItemError.from(it) }
         val current: FoodItemDTO? = dataProvider.loadAsync(id = item.id, from = Constants.Firestore.FOOD_ITEMS)
         if (current?.asDomain() != previouslyLoaded) throw UpdateFoodItemError.ChangedSinceLoad
         val uploadedUrl = (photo as? FoodItemFormPhoto.Local)?.let {

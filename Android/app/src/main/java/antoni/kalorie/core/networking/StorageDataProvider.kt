@@ -3,6 +3,7 @@ package antoni.kalorie.core.networking
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.StorageMetadata
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
@@ -11,7 +12,33 @@ interface StorageDataProviderProtocol {
     suspend fun uploadAsync(data: ByteArray, path: String, contentType: String): String
     suspend fun downloadAsync(url: String): ByteArray
     suspend fun deleteAsync(url: String)
+    suspend fun deleteAtPathAsync(path: String)
     suspend fun listAsync(prefix: String): List<String>
+}
+
+suspend fun StorageDataProviderProtocol.deleteIgnoringMissing(url: String, category: String) {
+    try {
+        deleteAsync(url)
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        rethrowUnlessMissing(error, category)
+    }
+}
+
+suspend fun StorageDataProviderProtocol.deleteIgnoringMissingAtPath(path: String, category: String) {
+    try {
+        deleteAtPathAsync(path)
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        rethrowUnlessMissing(error, category)
+    }
+}
+
+private fun rethrowUnlessMissing(error: Exception, category: String) {
+    if ((error as? StorageException)?.errorCode != StorageException.ERROR_OBJECT_NOT_FOUND) throw error
+    Log.warning(error, category)
 }
 
 class StorageDataProvider(
@@ -36,6 +63,11 @@ class StorageDataProvider(
 
     override suspend fun deleteAsync(url: String) = logged("DELETE $url") {
         storage.getReferenceFromUrl(url).delete().await()
+        Unit
+    }
+
+    override suspend fun deleteAtPathAsync(path: String) = logged("DELETE $path") {
+        storage.getReference(path).delete().await()
         Unit
     }
 

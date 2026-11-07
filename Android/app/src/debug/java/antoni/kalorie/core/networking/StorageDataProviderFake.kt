@@ -13,6 +13,7 @@ class StorageDataProviderFake : StorageDataProviderProtocol {
     var listError: Exception? = null
     val uploadedPaths: MutableList<String> = mutableListOf()
     val deletedUrls: MutableList<String> = mutableListOf()
+    val deletedPaths: MutableList<String> = mutableListOf()
 
     // MARK: - Functions
 
@@ -33,6 +34,12 @@ class StorageDataProviderFake : StorageDataProviderProtocol {
         deleteError?.let { throw it }
         files.remove(url)
         deletedUrls.add(url)
+    }
+
+    override suspend fun deleteAtPathAsync(path: String) {
+        deleteError?.let { throw it }
+        files.remove("https://storage.fake/${path.replace("/", "%2F")}")
+        deletedPaths.add(path)
     }
 
     override suspend fun listAsync(prefix: String): List<String> {

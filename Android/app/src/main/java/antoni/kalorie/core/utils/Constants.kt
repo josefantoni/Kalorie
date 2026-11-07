@@ -98,6 +98,7 @@ object Constants {
     object Storage {
         const val SUBMISSION_PHOTOS_FOLDER = "submissionPhotos"
         const val CATALOG_PHOTOS_FOLDER = "catalogPhotos"
+        const val PHOTO_SUGGESTIONS_FOLDER = "photoSuggestions"
         const val PHOTO_CONTENT_TYPE = "image/jpeg"
         const val MAX_DOWNLOAD_BYTES = 5L * 1024 * 1024
         const val PHOTO_CACHE_CONTROL = "public, max-age=31536000, immutable"
@@ -128,6 +129,7 @@ object Constants {
         const val USERS = "users"
         const val FOOD_ITEMS = "foodItems"
         const val FOOD_ITEM_REPORTS = "foodItemReports"
+        const val PHOTO_SUGGESTIONS = "photoSuggestions"
         const val CONFIG = "config"
         const val APP_CONFIG_DOCUMENT_ID = "app"
         const val FOOD_ITEM_SUBMISSIONS = "foodItemSubmissions"
@@ -147,6 +149,9 @@ object Constants {
             const val SUBMITTED_AT = "submitted_at"
             const val REPORTED_BY = "reported_by"
             const val REPORTED_AT = "reported_at"
+            const val SUGGESTED_AT = "suggested_at"
+            const val SUGGESTED_BY = "suggested_by"
+            const val ITEM_ID = "item_id"
             const val FAVOURITED_AT = "favourited_at"
             const val UPDATED_AT = "updated_at"
             const val STATUS = "status"

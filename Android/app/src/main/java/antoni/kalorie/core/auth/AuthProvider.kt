@@ -26,6 +26,8 @@ interface AuthProviderProtocol {
     suspend fun currentSessionProviderKind(): AuthProviderKind?
 
     suspend fun currentAuthenticationDate(): Instant?
+
+    suspend fun maintainerClaim(forcingRefresh: Boolean): Boolean
 }
 
 class AuthProvider(
@@ -72,6 +74,12 @@ class AuthProvider(
         } catch (_: Exception) {
             null
         }
+    }
+
+    override suspend fun maintainerClaim(forcingRefresh: Boolean): Boolean {
+        val user = auth.currentUser ?: throw AuthError.NotAuthenticated
+        val result = user.getIdToken(forcingRefresh).await()
+        return result.claims[Constants.Auth.MAINTAINER_CLAIM] as? Boolean ?: false
     }
 
     private fun kind(providerId: String): AuthProviderKind? = when (providerId) {

@@ -27,6 +27,7 @@ import antoni.kalorie.core.usecases.FetchBodyWeightsUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
+import antoni.kalorie.core.usecases.MaintainerClaimCache
 import antoni.kalorie.core.usecases.SaveBodyWeightUseCase
 import antoni.kalorie.core.usecases.SetupDefaultMealsUseCase
 import antoni.kalorie.core.utils.ContextStringProvider
@@ -35,7 +36,7 @@ import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
 import antoni.kalorie.features.settings.SettingsConfigurator
 import kotlinx.coroutines.launch
 
-class DashboardConfigurator {
+class DashboardConfigurator(private val maintainerClaimCache: MaintainerClaimCache) {
 
     // MARK: - Functions
 
@@ -67,7 +68,7 @@ class DashboardConfigurator {
         val router = remember(dataProvider, authProvider, mergeStatusReporting) {
             DashboardRouter(
                 accountConfigurator = AccountConfigurator(dataProvider, authProvider, mergeStatusReporting),
-                settingsConfigurator = SettingsConfigurator(dataProvider, authProvider),
+                settingsConfigurator = SettingsConfigurator(dataProvider, authProvider, maintainerClaimCache),
                 addFoodSheetConfigurator = AddFoodSheetConfigurator(dataProvider, authProvider),
                 foodConsumedDetailConfigurator = FoodConsumedDetailConfigurator(dataProvider, authProvider),
                 bodyWeightHistoryConfigurator = BodyWeightHistoryConfigurator(dataProvider, authProvider),

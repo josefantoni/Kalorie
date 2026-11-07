@@ -10,9 +10,16 @@ data class AuthProviderFake(
     override val linkedProviderKinds: Set<AuthProviderKind> = emptySet(),
     val sessionProviderKind: AuthProviderKind? = null,
     val authenticationDate: Instant? = Instant.now(),
+    val isMaintainer: Boolean = false,
+    val maintainerClaimRequests: MutableList<Boolean> = mutableListOf(),
 ) : AuthProviderProtocol {
 
     override suspend fun currentSessionProviderKind(): AuthProviderKind? = sessionProviderKind
 
     override suspend fun currentAuthenticationDate(): Instant? = authenticationDate
+
+    override suspend fun maintainerClaim(forcingRefresh: Boolean): Boolean {
+        maintainerClaimRequests.add(forcingRefresh)
+        return isMaintainer
+    }
 }

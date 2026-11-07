@@ -18,11 +18,11 @@ import antoni.kalorie.features.moderation.ModerationConfigurator
 class SettingsConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,
     private val authProvider: AuthProviderProtocol,
+    private val maintainerClaimCache: MaintainerClaimCache,
 ) {
 
     // MARK: - Properties
 
-    private val maintainerClaimCache = MaintainerClaimCache()
     private val router = SettingsRouter(moderationConfigurator = ModerationConfigurator(dataProvider, authProvider))
 
     // MARK: - Functions
@@ -46,7 +46,7 @@ class SettingsConfigurator(
                 createMealType = CreateMealTypeUseCase(dataProvider, authProvider),
                 deleteMealType = DeleteMealTypeUseCase(dataProvider, authProvider),
                 updateMealTypeTimes = UpdateMealTypeTimesUseCase(dataProvider, authProvider),
-                fetchMaintainerClaim = FetchMaintainerClaimUseCase(maintainerClaimCache),
+                fetchMaintainerClaim = FetchMaintainerClaimUseCase(authProvider, maintainerClaimCache, forcesRefresh = true),
                 hasLoadedAppSettings = hasLoadedAppSettings,
             )
         }

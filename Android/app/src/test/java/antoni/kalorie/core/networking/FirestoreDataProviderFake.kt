@@ -81,6 +81,8 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var incrementedDocumentId: String? = null
     var incrementedCollection: String? = null
     var deletedEntryIds: List<String> = emptyList()
+    var stubbedCountsByCollection: Map<String, Int> = emptyMap()
+    var stubbedCountError: Exception? = null
 
     // MARK: - Functions
 
@@ -287,5 +289,15 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     override suspend fun deleteEntriesAsync(ids: List<String>, documentId: String, inCollection: String) {
         stubbedDeleteEntriesError?.let { throw it }
         deletedEntryIds = ids
+    }
+
+    override suspend fun countAsync(from: String): Int {
+        stubbedCountError?.let { throw it }
+        return stubbedCountsByCollection[from] ?: 0
+    }
+
+    override suspend fun countAsync(from: String, field: String, isEqualTo: String): Int {
+        stubbedCountError?.let { throw it }
+        return stubbedCountsByCollection[from] ?: 0
     }
 }

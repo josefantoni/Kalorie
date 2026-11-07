@@ -198,7 +198,7 @@ private class UpdateFoodItemUseCaseSpy : UpdateFoodItemUseCaseProtocol {
 
     // MARK: - Functions
 
-    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) {
+    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean) {
         receivedItem = item
     }
 }

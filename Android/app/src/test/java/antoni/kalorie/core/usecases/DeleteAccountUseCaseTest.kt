@@ -13,6 +13,7 @@ import antoni.kalorie.core.networking.StorageDataProviderFake
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
+import com.google.firebase.storage.StorageException
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
@@ -22,6 +23,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import java.io.IOException
 import java.time.Instant
 
 class DeleteAccountUseCaseTest {
@@ -400,6 +402,52 @@ class DeleteAccountUseCaseTest {
 
         assertEquals("the Apple prompt already proves a fresh login, so a stale one must not send the user through a second prompt", 1, fixture.appleSignInProvider.reauthenticateCallCount)
         assertEquals(1, fixture.authCommandProvider.deleteCallCount)
+    }
+
+    @Test
+    fun invoke_deletesPhotoSuggestionFilesAndDocumentsIndependently() = runTest {
+        val storage = StorageDataProviderFake()
+        val own = storage.uploadAsync(byteArrayOf(1), "photoSuggestions/$USER_ID/12345678.jpg", "image/jpeg")
+        val someoneElse = storage.uploadAsync(byteArrayOf(2), "photoSuggestions/other-user/12345678.jpg", "image/jpeg")
+        val fixture = makeSUT(storage = storage)
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.PHOTO_SUGGESTIONS to listOf("99999999_$USER_ID"))
+
+        fixture.sut()
+
+        assertNull(storage.files[own])
+        assertNotNull(storage.files[someoneElse])
+        assertEquals(
+            "a suggestion document is found by suggested_by, so one whose file is already gone is still deleted",
+            listOf("99999999_$USER_ID"),
+            fixture.deleted(Constants.Firestore.PHOTO_SUGGESTIONS),
+        )
+    }
+
+    @Test
+    fun invoke_whenAPhotoFileIsAlreadyGone_stillDeletesTheAccount() = runTest {
+        val storage = StorageDataProviderFake()
+        storage.uploadAsync(byteArrayOf(1), "photoSuggestions/$USER_ID/12345678.jpg", "image/jpeg")
+        storage.deleteError = StorageException.fromExceptionAndHttpCode(null, 404)
+        val fixture = makeSUT(storage = storage)
+
+        fixture.sut()
+
+        assertEquals("a file removed meanwhile by an approval must not block the wipe", 1, fixture.authCommandProvider.deleteCallCount)
+    }
+
+    @Test
+    fun invoke_whenDeletingAPhotoFileFailsForAnotherReason_doesNotDeleteTheAuthUser() = runTest {
+        val storage = StorageDataProviderFake()
+        storage.uploadAsync(byteArrayOf(1), "photoSuggestions/$USER_ID/12345678.jpg", "image/jpeg")
+        storage.deleteError = IOException("offline")
+        val fixture = makeSUT(storage = storage)
+
+        try {
+            fixture.sut()
+        } catch (_: IOException) {
+        }
+
+        assertEquals(0, fixture.authCommandProvider.deleteCallCount)
     }
 
     @Test

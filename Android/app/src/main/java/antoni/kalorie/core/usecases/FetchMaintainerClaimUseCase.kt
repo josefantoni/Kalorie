@@ -1,9 +1,8 @@
 package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.auth.AuthError
+import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.utils.Constants
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.tasks.await
 import java.time.Duration
 import java.time.Instant
 
@@ -29,18 +28,18 @@ class MaintainerClaimCache {
 }
 
 class FetchMaintainerClaimUseCase(
+    private val authProvider: AuthProviderProtocol,
     private val cache: MaintainerClaimCache,
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val forcesRefresh: Boolean,
 ) : FetchMaintainerClaimUseCaseProtocol {
 
     // MARK: - Functions
 
     override suspend fun invoke(): Boolean {
-        val user = auth.currentUser ?: throw AuthError.NotAuthenticated
-        cache.freshValue(user.uid, Instant.now(), Constants.Auth.MAINTAINER_CLAIM_CACHE_TTL_SECONDS)?.let { return it }
-        val result = user.getIdToken(cache.entry != null).await()
-        val isMaintainer = result.claims[Constants.Auth.MAINTAINER_CLAIM] as? Boolean ?: false
-        cache.entry = MaintainerClaimCache.Entry(value = isMaintainer, cachedAt = Instant.now(), userId = user.uid)
+        val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
+        cache.freshValue(userId, Instant.now(), Constants.Auth.MAINTAINER_CLAIM_CACHE_TTL_SECONDS)?.let { return it }
+        val isMaintainer = authProvider.maintainerClaim(forcesRefresh && cache.entry != null)
+        cache.entry = MaintainerClaimCache.Entry(value = isMaintainer, cachedAt = Instant.now(), userId = userId)
         return isMaintainer
     }
 }

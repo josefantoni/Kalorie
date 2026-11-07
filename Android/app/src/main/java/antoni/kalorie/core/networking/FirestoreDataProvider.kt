@@ -2,6 +2,7 @@ package antoni.kalorie.core.networking
 
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -61,6 +62,8 @@ interface FirestoreDataProviderProtocol {
         serializer: KSerializer<T>,
     )
     suspend fun deleteEntriesAsync(ids: List<String>, documentId: String, inCollection: String)
+    suspend fun countAsync(from: String): Int
+    suspend fun countAsync(from: String, field: String, isEqualTo: String): Int
 }
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.loadAsync(from: String): List<T> = loadAsync(from, serializer<T>())
@@ -357,6 +360,14 @@ class FirestoreDataProvider(
 
     override suspend fun loadDocumentIdsAsync(from: String, field: String, isEqualTo: String): List<String> = performFirestoreCall {
         firestore.collection(from).whereEqualTo(field, isEqualTo).get().await().documents.map { it.id }
+    }
+
+    override suspend fun countAsync(from: String): Int = performFirestoreCall {
+        firestore.collection(from).count().get(AggregateSource.SERVER).await().count.toInt()
+    }
+
+    override suspend fun countAsync(from: String, field: String, isEqualTo: String): Int = performFirestoreCall {
+        firestore.collection(from).whereEqualTo(field, isEqualTo).count().get(AggregateSource.SERVER).await().count.toInt()
     }
 
     override suspend fun batchDeleteAsync(ids: List<String>, from: String) {
