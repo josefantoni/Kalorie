@@ -8,6 +8,7 @@ import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
+import antoni.kalorie.core.networking.StorageDataProvider
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCase
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCase
@@ -15,9 +16,11 @@ import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCase
+import antoni.kalorie.core.usecases.FetchMyPhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.IsFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCase
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCase
+import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCase
 import antoni.kalorie.core.utils.ContextStringProvider
 
@@ -51,6 +54,8 @@ class FoodConsumedDetailConfigurator(
                 fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                 fetchMyFoodItemReport = FetchMyFoodItemReportUseCase(dataProvider, authProvider),
                 submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider),
+                fetchMyPhotoSuggestion = FetchMyPhotoSuggestionUseCase(dataProvider, authProvider),
+                submitPhotoSuggestion = SubmitPhotoSuggestionUseCase(dataProvider, authProvider, StorageDataProvider()),
                 deleteFoodConsumed = DeleteFoodConsumedUseCase(dataProvider, authProvider),
                 onFoodUpdated = onFoodUpdated,
             )

@@ -1,5 +1,6 @@
 package antoni.kalorie.features.dashboard
 
+import antoni.kalorie.components.FoodPhotoPillState
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
@@ -20,12 +21,16 @@ import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseFake
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyPhotoSuggestionUseCaseFake
+import antoni.kalorie.core.usecases.FetchMyPhotoSuggestionUseCaseProtocol
 import antoni.kalorie.core.usecases.IsFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.IsFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseFake
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCaseFake
+import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseProtocol
 import kotlinx.coroutines.test.runTest
@@ -372,6 +377,51 @@ class FoodConsumedDetailViewModelTest {
         assertEquals(0, updateCount)
     }
 
+    @Test
+    fun photoPill_beforeAppear_isHidden() {
+        val sut = makeSUT(food = makeFood(kind = FoodItemKind.CATALOGUE))
+
+        assertEquals(FoodPhotoPillState.Hidden, sut.photoPillState.value)
+    }
+
+    @Test
+    fun photoPill_whenTheCatalogueItemHasNoPhoto_isEmptyUnlessISuggestedOne() = runTest {
+        val empty = makeSUT(
+            food = makeFood(kind = FoodItemKind.CATALOGUE),
+            fetchMyPhotoSuggestion = FetchMyPhotoSuggestionUseCaseFake(hasSuggestion = false),
+        )
+        empty.onAppear()
+        assertEquals(FoodPhotoPillState.Empty, empty.photoPillState.value)
+
+        val awaiting = makeSUT(
+            food = makeFood(kind = FoodItemKind.CATALOGUE),
+            fetchMyPhotoSuggestion = FetchMyPhotoSuggestionUseCaseFake(hasSuggestion = true),
+        )
+        awaiting.onAppear()
+        assertEquals(FoodPhotoPillState.AwaitingApproval, awaiting.photoPillState.value)
+    }
+
+    @Test
+    fun photoPill_whenTheCatalogueItemHasAPhoto_isPhoto() = runTest {
+        val sut = makeSUT(
+            food = makeFood(kind = FoodItemKind.CATALOGUE),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeCatalogueItem().copy(photoUrl = "https://example.com/catalogue.jpg")),
+        )
+
+        sut.onAppear()
+
+        assertEquals(FoodPhotoPillState.Photo("https://example.com/catalogue.jpg"), sut.photoPillState.value)
+    }
+
+    @Test
+    fun photoPill_whenTheCatalogueItemNoLongerResolves_isHidden() = runTest {
+        val sut = makeSUT(food = makeFood(kind = FoodItemKind.CATALOGUE), fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = null))
+
+        sut.onAppear()
+
+        assertEquals(FoodPhotoPillState.Hidden, sut.photoPillState.value)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
@@ -387,6 +437,8 @@ class FoodConsumedDetailViewModelTest {
         fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
         submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
+        fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseProtocol = FetchMyPhotoSuggestionUseCaseFake(),
+        submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseProtocol = SubmitPhotoSuggestionUseCaseFake(),
         deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
         onFoodUpdated: () -> Unit = {},
     ): FoodConsumedDetailViewModel = FoodConsumedDetailViewModel(
@@ -402,6 +454,8 @@ class FoodConsumedDetailViewModelTest {
         fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
         fetchMyFoodItemReport = fetchMyFoodItemReport,
         submitFoodItemReport = submitFoodItemReport,
+        fetchMyPhotoSuggestion = fetchMyPhotoSuggestion,
+        submitPhotoSuggestion = submitPhotoSuggestion,
         deleteFoodConsumed = deleteFoodConsumed,
         onFoodUpdated = onFoodUpdated,
     )

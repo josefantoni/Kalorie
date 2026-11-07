@@ -170,8 +170,8 @@ private fun FoodQuantityContent(
     val isFavourite by viewModel.isFavourite.collectAsState()
     val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
     val hasReportedCurrentItem by viewModel.hasReportedCurrentItem.collectAsState()
-    val photoUrl by viewModel.photoUrl.collectAsState()
-    val photoState = rememberFoodPhotoThumbnailState(photoUrl)
+    val photoPillState by viewModel.photoPillState.collectAsState()
+    val photoState = rememberFoodPhotoThumbnailState(photoPillState) { viewModel.onPhotoSent(it) }
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     var quantityText by remember { mutableStateOf(quantity.formattedTrimmed()) }

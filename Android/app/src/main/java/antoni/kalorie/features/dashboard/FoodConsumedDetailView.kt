@@ -83,7 +83,8 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
     val reportReasonText by viewModel.reportReasonText.collectAsState()
     val isFavourite by viewModel.isFavourite.collectAsState()
     val catalogueItem by viewModel.catalogueItem.collectAsState()
-    val photoState = rememberFoodPhotoThumbnailState(catalogueItem?.photoUrl)
+    val photoPillState by viewModel.photoPillState.collectAsState()
+    val photoState = rememberFoodPhotoThumbnailState(photoPillState) { viewModel.onPhotoSent(it) }
     val isTogglingFavourite by viewModel.isTogglingFavourite.collectAsState()
     val isDeleteConfirmationVisible by viewModel.isDeleteConfirmationVisible.collectAsState()
     val isDeleted by viewModel.isDeleted.collectAsState()
