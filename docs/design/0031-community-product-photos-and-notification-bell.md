@@ -1,7 +1,7 @@
 # Design: Community product photos and the notification bell
 
 - **Status:** Draft
-- **Scope:** Backend, Cross-platform, iOS (Android follows later, see *Android*)
+- **Scope:** Backend, Cross-platform, iOS, Android
 - **Date:** 2026-11-07
 
 ## Context and scope
@@ -210,8 +210,8 @@ The dot is a small red circle on the bell's top-right. Any error → no dot, no 
 in the cached ID token, or rules not yet deployed.
 
 **Sheet.** Tapping the bell presents `NotificationsView` in its own `NavigationStack`. It is one
-list of concrete waiting items, newest first, each row with an icon per kind, the item name and a
-kind label:
+list of concrete waiting items, oldest first (a report row dates from its oldest report), each row
+with an icon per kind, the item name and a kind label:
 
 | Row | Pushes |
 |---|---|
@@ -220,7 +220,8 @@ kind label:
 | photo suggestion | `ModerationPhotoSuggestionView` |
 
 Data comes from the existing `FetchPendingSubmissionsUseCase`, `FetchFoodItemReportsUseCase` and
-the new `FetchPhotoSuggestionsUseCase`. Item names for reports and suggestions are resolved with
+the new `FetchPhotoSuggestionsUseCase`, which loads the oldest `reportsPageLimit` (50)
+suggestions by `suggested_at` ascending for both the sheet and the Settings row. Item names for reports and suggestions are resolved with
 `FetchFoodItemByBarcodeUseCase`, as in `ModerationReportsViewModel`. A row disappears when its detail
 resolves it. Empty list → the same empty-state text style as the queue.
 
@@ -311,8 +312,9 @@ state.
 ## Android
 
 The Android client implements the same pill, review, bell and account deletion against the same
-rules later, per [ADR 0038](../adr/0038-android-client-mirrors-the-ios-architecture-natively.md).
-Tracked in `TODO.md`.
+rules, per [ADR 0038](../adr/0038-android-client-mirrors-the-ios-architecture-natively.md). The bell is a
+`BadgedBox` in the Dashboard top bar and the notification list is a bottom sheet; the Settings → *Photo
+suggestions* row and the review screens are pushed with Navigation 3.
 
 ## Outcome
 
