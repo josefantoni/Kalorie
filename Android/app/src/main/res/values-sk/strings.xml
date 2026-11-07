@@ -201,6 +201,9 @@
     <string name="foodPhoto_action_take">Odfotiť</string>
     <string name="foodPhoto_error_required">Pridaj fotku produktu</string>
     <string name="foodPhoto_error_uploadFailed">Fotku sa nepodarilo nahrať. Skús to znova.</string>
+    <string name="foodPhoto_suggestion_add">Pridať fotku</string>
+    <string name="foodPhoto_suggestion_awaiting">Tvoja fotka čaká na schválenie</string>
+    <string name="foodPhoto_suggestion_errorSendFailed">Fotku sa nepodarilo odoslať. Skús to znova.</string>
     <string name="foodPhoto_title">Fotka produktu</string>
     <string name="foodPortion_button_add">Pridať porciu</string>
     <string name="foodPortion_error_invalidGrams">Zadaj gramáž väčšiu ako 0</string>
@@ -238,6 +241,11 @@
     <string name="moderation_error_changedSinceReview">Používateľ žiadosť medzitým upravil, skontroluj ju znova</string>
     <string name="moderation_error_itemChangedSinceLoad">Položka sa medzitým zmenila, načítaj ju znova</string>
     <string name="moderation_error_reasonRequired">Uveď dôvod zamietnutia</string>
+    <string name="moderation_photoSuggestion_alreadyHasPhoto">Produkt už fotku má. Tento návrh je možné iba zamietnuť.</string>
+    <string name="moderation_photoSuggestion_itemMissing">Produkt už v katalógu neexistuje. Tento návrh je možné iba zamietnuť.</string>
+    <string name="moderation_photoSuggestion_title">Návrh fotky</string>
+    <string name="moderation_photos_empty">Žiadne návrhy fotiek na schválenie</string>
+    <string name="moderation_photos_title">Návrhy fotiek</string>
     <string name="moderation_queue_collision">Tento čiarový kód už v katalógu je</string>
     <string name="moderation_queue_empty">Žiadne položky na schválenie</string>
     <string name="moderation_queue_title">Na schválenie</string>
@@ -268,6 +276,12 @@
     <string name="myPortions_error_deleteFailed">Porciu sa nepodarilo zmazať</string>
     <string name="myPortions_error_saveFailed">Porciu sa nepodarilo uložiť</string>
     <string name="myPortions_title">Moje porcie</string>
+    <string name="notifications_bell_accessibility">Oznámenia</string>
+    <string name="notifications_empty">Nič na hlásenie</string>
+    <string name="notifications_kind_photo">Návrh fotky</string>
+    <string name="notifications_kind_report">Nahlásená chyba</string>
+    <string name="notifications_kind_submission">Nový produkt</string>
+    <string name="notifications_title">Oznámenia</string>
     <string name="settings_bodyWeight_show">Zobraziť hmotnosť na prehľade</string>
     <string name="settings_bodyWeight_unit">Jednotka hmotnosti</string>
     <string name="settings_button_create">Vytvoriť</string>
