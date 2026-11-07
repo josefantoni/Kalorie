@@ -8,6 +8,7 @@ import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreProtocol
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.StorageDataProviderProtocol
+import antoni.kalorie.core.networking.deleteIgnoringMissing
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import com.google.firebase.auth.FirebaseAuthException
@@ -108,7 +109,18 @@ class DeleteAccountUseCase(
         dataProvider.batchDeleteAsync(ids = submissionIds, from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS)
         // Listing the folder, rather than following the deleted submissions' URLs, also removes
         // orphans left by earlier failed writes. catalogPhotos is shared catalogue content and stays.
-        storageProvider.listAsync("${Constants.Storage.SUBMISSION_PHOTOS_FOLDER}/$userId").forEach { storageProvider.deleteAsync(it) }
+        storageProvider.listAsync("${Constants.Storage.SUBMISSION_PHOTOS_FOLDER}/$userId").forEach {
+            storageProvider.deleteIgnoringMissing(it, Constants.LogCategory.ACCOUNT)
+        }
+        storageProvider.listAsync("${Constants.Storage.PHOTO_SUGGESTIONS_FOLDER}/$userId").forEach {
+            storageProvider.deleteIgnoringMissing(it, Constants.LogCategory.ACCOUNT)
+        }
+        val suggestionIds = dataProvider.loadDocumentIdsAsync(
+            from = Constants.Firestore.PHOTO_SUGGESTIONS,
+            field = Constants.Firestore.Field.SUGGESTED_BY,
+            isEqualTo = userId,
+        )
+        dataProvider.batchDeleteAsync(ids = suggestionIds, from = Constants.Firestore.PHOTO_SUGGESTIONS)
         val reportIds = dataProvider.loadDocumentIdsAsync(
             from = Constants.Firestore.FOOD_ITEM_REPORTS,
             field = Constants.Firestore.Field.REPORTED_BY,

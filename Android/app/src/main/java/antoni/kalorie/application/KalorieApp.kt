@@ -41,6 +41,7 @@ import antoni.kalorie.core.auth.PendingMergeSnapshotStore
 import antoni.kalorie.core.models.AppVersion
 import antoni.kalorie.core.networking.FirestoreDataProvider
 import antoni.kalorie.core.usecases.FetchMinimumVersionUseCase
+import antoni.kalorie.core.usecases.MaintainerClaimCache
 import antoni.kalorie.core.usecases.MigrateAnonymousDataUseCase
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.features.dashboard.DashboardConfigurator
@@ -72,6 +73,7 @@ fun KalorieApp() {
     }
     val isUpdateRequired by versionGate.isUpdateRequired.collectAsState()
     val scope = rememberCoroutineScope()
+    val maintainerClaimCache = remember { MaintainerClaimCache() }
     val state by authState.state.collectAsState()
     val userId by authState.userId.collectAsState()
     val isMerging by authState.isMerging.collectAsState()
@@ -99,7 +101,7 @@ fun KalorieApp() {
             }
             is LoadingState.Loaded -> Box(modifier = Modifier.fillMaxSize()) {
                 key(userId) {
-                    DashboardConfigurator().createView(userId = userId, mergeStatusReporting = authState)
+                    DashboardConfigurator(maintainerClaimCache).createView(userId = userId, mergeStatusReporting = authState)
                 }
                 if (isMerging) {
                     Box(
