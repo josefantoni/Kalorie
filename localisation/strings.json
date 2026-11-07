@@ -969,6 +969,21 @@
     "en": "The photo could not be uploaded. Try again.",
     "sk": "Fotku sa nepodarilo nahrať. Skús to znova."
   },
+  "foodPhoto_suggestion_add": {
+    "cs": "Přidat fotku",
+    "en": "Add photo",
+    "sk": "Pridať fotku"
+  },
+  "foodPhoto_suggestion_awaiting": {
+    "cs": "Tvoje fotka čeká na schválení",
+    "en": "Your photo is awaiting approval",
+    "sk": "Tvoja fotka čaká na schválenie"
+  },
+  "foodPhoto_suggestion_errorSendFailed": {
+    "cs": "Fotku se nepodařilo odeslat. Zkus to znovu.",
+    "en": "The photo could not be sent. Try again.",
+    "sk": "Fotku sa nepodarilo odoslať. Skús to znova."
+  },
   "foodPhoto_title": {
     "cs": "Fotka produktu",
     "en": "Product photo",
@@ -1154,6 +1169,31 @@
     "en": "Enter a reason for the rejection",
     "sk": "Uveď dôvod zamietnutia"
   },
+  "moderation_photoSuggestion_alreadyHasPhoto": {
+    "cs": "Produkt už fotku má. Tento návrh lze jen zamítnout.",
+    "en": "This product already has a photo. This suggestion can only be rejected.",
+    "sk": "Produkt už fotku má. Tento návrh je možné iba zamietnuť."
+  },
+  "moderation_photoSuggestion_itemMissing": {
+    "cs": "Produkt už v katalogu neexistuje. Návrh lze jen zamítnout.",
+    "en": "This product is no longer in the catalogue. This suggestion can only be rejected.",
+    "sk": "Produkt už v katalógu neexistuje. Tento návrh je možné iba zamietnuť."
+  },
+  "moderation_photoSuggestion_title": {
+    "cs": "Návrh fotky",
+    "en": "Photo suggestion",
+    "sk": "Návrh fotky"
+  },
+  "moderation_photos_empty": {
+    "cs": "Žádné návrhy fotek ke schválení",
+    "en": "No photo suggestions to review",
+    "sk": "Žiadne návrhy fotiek na schválenie"
+  },
+  "moderation_photos_title": {
+    "cs": "Návrhy fotek",
+    "en": "Photo suggestions",
+    "sk": "Návrhy fotiek"
+  },
   "moderation_queue_collision": {
     "cs": "Tento čárový kód už v katalogu je",
     "en": "This barcode is already in the catalogue",
@@ -1303,6 +1343,36 @@
     "cs": "Moje porce",
     "en": "My portions",
     "sk": "Moje porcie"
+  },
+  "notifications_bell_accessibility": {
+    "cs": "Oznámení",
+    "en": "Notifications",
+    "sk": "Oznámenia"
+  },
+  "notifications_empty": {
+    "cs": "Nic k hlášení",
+    "en": "Nothing to report",
+    "sk": "Nič na hlásenie"
+  },
+  "notifications_kind_photo": {
+    "cs": "Návrh fotky",
+    "en": "Photo suggestion",
+    "sk": "Návrh fotky"
+  },
+  "notifications_kind_report": {
+    "cs": "Nahlášená chyba",
+    "en": "Reported error",
+    "sk": "Nahlásená chyba"
+  },
+  "notifications_kind_submission": {
+    "cs": "Nový produkt",
+    "en": "New product",
+    "sk": "Nový produkt"
+  },
+  "notifications_title": {
+    "cs": "Oznámení",
+    "en": "Notifications",
+    "sk": "Oznámenia"
   },
   "settings_button_create": {
     "cs": "Vytvořit",

@@ -201,6 +201,9 @@
     <string name="foodPhoto_action_take">Vyfotit</string>
     <string name="foodPhoto_error_required">Přidej fotku produktu</string>
     <string name="foodPhoto_error_uploadFailed">Fotku se nepodařilo nahrát. Zkus to znovu.</string>
+    <string name="foodPhoto_suggestion_add">Přidat fotku</string>
+    <string name="foodPhoto_suggestion_awaiting">Tvoje fotka čeká na schválení</string>
+    <string name="foodPhoto_suggestion_errorSendFailed">Fotku se nepodařilo odeslat. Zkus to znovu.</string>
     <string name="foodPhoto_title">Fotka produktu</string>
     <string name="foodPortion_button_add">Přidat porci</string>
     <string name="foodPortion_error_invalidGrams">Zadej gramáž větší než 0</string>
@@ -238,6 +241,11 @@
     <string name="moderation_error_changedSinceReview">Uživatel žádost mezitím upravil, zkontroluj ji znovu</string>
     <string name="moderation_error_itemChangedSinceLoad">Položka byla mezitím změněna, načti ji znovu</string>
     <string name="moderation_error_reasonRequired">Uveď důvod zamítnutí</string>
+    <string name="moderation_photoSuggestion_alreadyHasPhoto">Produkt už fotku má. Tento návrh lze jen zamítnout.</string>
+    <string name="moderation_photoSuggestion_itemMissing">Produkt už v katalogu neexistuje. Návrh lze jen zamítnout.</string>
+    <string name="moderation_photoSuggestion_title">Návrh fotky</string>
+    <string name="moderation_photos_empty">Žádné návrhy fotek ke schválení</string>
+    <string name="moderation_photos_title">Návrhy fotek</string>
     <string name="moderation_queue_collision">Tento čárový kód už v katalogu je</string>
     <string name="moderation_queue_empty">Žádné položky ke schválení</string>
     <string name="moderation_queue_title">Ke schválení</string>
@@ -268,6 +276,12 @@
     <string name="myPortions_error_deleteFailed">Porci se nepodařilo smazat</string>
     <string name="myPortions_error_saveFailed">Porci se nepodařilo uložit</string>
     <string name="myPortions_title">Moje porce</string>
+    <string name="notifications_bell_accessibility">Oznámení</string>
+    <string name="notifications_empty">Nic k hlášení</string>
+    <string name="notifications_kind_photo">Návrh fotky</string>
+    <string name="notifications_kind_report">Nahlášená chyba</string>
+    <string name="notifications_kind_submission">Nový produkt</string>
+    <string name="notifications_title">Oznámení</string>
     <string name="settings_bodyWeight_show">Zobrazit váhu na přehledu</string>
     <string name="settings_bodyWeight_unit">Jednotka váhy</string>
     <string name="settings_button_create">Vytvořit</string>

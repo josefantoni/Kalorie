@@ -201,6 +201,9 @@
     <string name="foodPhoto_action_take">Take photo</string>
     <string name="foodPhoto_error_required">Add a product photo</string>
     <string name="foodPhoto_error_uploadFailed">The photo could not be uploaded. Try again.</string>
+    <string name="foodPhoto_suggestion_add">Add photo</string>
+    <string name="foodPhoto_suggestion_awaiting">Your photo is awaiting approval</string>
+    <string name="foodPhoto_suggestion_errorSendFailed">The photo could not be sent. Try again.</string>
     <string name="foodPhoto_title">Product photo</string>
     <string name="foodPortion_button_add">Add portion</string>
     <string name="foodPortion_error_invalidGrams">Enter a weight greater than 0</string>
@@ -238,6 +241,11 @@
     <string name="moderation_error_changedSinceReview">The submission changed since you opened it — review it again</string>
     <string name="moderation_error_itemChangedSinceLoad">This item changed since you loaded it — search again to see the latest version</string>
     <string name="moderation_error_reasonRequired">Enter a reason for the rejection</string>
+    <string name="moderation_photoSuggestion_alreadyHasPhoto">This product already has a photo. This suggestion can only be rejected.</string>
+    <string name="moderation_photoSuggestion_itemMissing">This product is no longer in the catalogue. This suggestion can only be rejected.</string>
+    <string name="moderation_photoSuggestion_title">Photo suggestion</string>
+    <string name="moderation_photos_empty">No photo suggestions to review</string>
+    <string name="moderation_photos_title">Photo suggestions</string>
     <string name="moderation_queue_collision">This barcode is already in the catalogue</string>
     <string name="moderation_queue_empty">Nothing to review</string>
     <string name="moderation_queue_title">Pending review</string>
@@ -268,6 +276,12 @@
     <string name="myPortions_error_deleteFailed">Could not delete the portion</string>
     <string name="myPortions_error_saveFailed">Could not save the portion</string>
     <string name="myPortions_title">My portions</string>
+    <string name="notifications_bell_accessibility">Notifications</string>
+    <string name="notifications_empty">Nothing to report</string>
+    <string name="notifications_kind_photo">Photo suggestion</string>
+    <string name="notifications_kind_report">Reported error</string>
+    <string name="notifications_kind_submission">New product</string>
+    <string name="notifications_title">Notifications</string>
     <string name="settings_bodyWeight_show">Show weight on overview</string>
     <string name="settings_bodyWeight_unit">Weight unit</string>
     <string name="settings_button_create">Create</string>
