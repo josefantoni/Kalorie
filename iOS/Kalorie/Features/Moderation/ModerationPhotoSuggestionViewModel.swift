@@ -22,7 +22,7 @@ final class ModerationPhotoSuggestionViewModel: ObservableObject {
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let approvePhotoSuggestion: any ApprovePhotoSuggestionUseCaseProtocol
     private let rejectPhotoSuggestion: any RejectPhotoSuggestionUseCaseProtocol
-    private let onResolved: () -> Void
+    private let onResolved: (Bool) -> Void
 
     // MARK: - Init
 
@@ -31,7 +31,7 @@ final class ModerationPhotoSuggestionViewModel: ObservableObject {
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         approvePhotoSuggestion: any ApprovePhotoSuggestionUseCaseProtocol,
         rejectPhotoSuggestion: any RejectPhotoSuggestionUseCaseProtocol,
-        onResolved: @escaping () -> Void
+        onResolved: @escaping (Bool) -> Void
     ) {
         self.suggestion = suggestion
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
@@ -61,7 +61,7 @@ final class ModerationPhotoSuggestionViewModel: ObservableObject {
         defer { state = .loaded }
         do {
             try await approvePhotoSuggestion(suggestion)
-            onResolved()
+            onResolved(true)
             shouldDismiss = true
         } catch ApprovePhotoSuggestionError.itemAlreadyHasPhoto {
             blockApproval(L10n.Moderation.photoSuggestionAlreadyHasPhoto)
@@ -79,7 +79,7 @@ final class ModerationPhotoSuggestionViewModel: ObservableObject {
         defer { state = .loaded }
         do {
             try await rejectPhotoSuggestion(suggestion)
-            onResolved()
+            onResolved(false)
             shouldDismiss = true
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)

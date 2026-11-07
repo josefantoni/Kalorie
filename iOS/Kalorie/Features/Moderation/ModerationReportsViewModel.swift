@@ -42,6 +42,7 @@ final class ModerationReportsViewModel: ObservableObject {
 
     @MainActor
     func onAppear() async {
+        guard case .idle = state else { return }
         state = .loading
         defer { state = .loaded }
         await load()

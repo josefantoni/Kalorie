@@ -85,7 +85,7 @@ struct ModerationConfigurator {
         }
     }
 
-    func makePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: @escaping () -> Void) -> ModerationPhotoSuggestionView {
+    func makePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: @escaping (Bool) -> Void) -> ModerationPhotoSuggestionView {
         ModerationPhotoSuggestionView(
             viewModel: ModerationPhotoSuggestionViewModel(
                 suggestion: suggestion,

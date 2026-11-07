@@ -53,6 +53,7 @@ final class NotificationsViewModel: ObservableObject {
 
     @MainActor
     func onAppear() async {
+        guard case .idle = state else { return }
         state = .loading
         defer { state = .loaded }
         await load()
@@ -66,6 +67,18 @@ final class NotificationsViewModel: ObservableObject {
     @MainActor
     func onRowResolved(id: String) {
         rows.removeAll { $0.id == id }
+    }
+
+    @MainActor
+    func onPhotoSuggestionResolved(id: String, isApproved: Bool) {
+        var resolvedItemId: String?
+        if case .photoSuggestion(let suggestion)? = rows.first(where: { $0.id == id })?.kind {
+            resolvedItemId = suggestion.itemId
+        }
+        rows.removeAll { row in
+            guard case .photoSuggestion(let suggestion) = row.kind else { return false }
+            return row.id == id || (isApproved && suggestion.itemId == resolvedItemId)
+        }
     }
 
     @MainActor

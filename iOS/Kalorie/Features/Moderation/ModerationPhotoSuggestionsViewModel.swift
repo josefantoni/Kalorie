@@ -41,6 +41,7 @@ final class ModerationPhotoSuggestionsViewModel: ObservableObject {
 
     @MainActor
     func onAppear() async {
+        guard case .idle = state else { return }
         state = .loading
         defer { state = .loaded }
         await load()
@@ -52,8 +53,9 @@ final class ModerationPhotoSuggestionsViewModel: ObservableObject {
     }
 
     @MainActor
-    func onSuggestionResolved(id: String) {
-        rows.removeAll { $0.id == id }
+    func onSuggestionResolved(id: String, isApproved: Bool) {
+        let itemId = rows.first { $0.id == id }?.suggestion.itemId
+        rows.removeAll { $0.id == id || (isApproved && $0.suggestion.itemId == itemId) }
     }
 
     // MARK: - Private
