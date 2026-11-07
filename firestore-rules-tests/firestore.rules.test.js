@@ -6,7 +6,7 @@ const {
   assertFails,
   assertSucceeds,
 } = require('@firebase/rules-unit-testing');
-const { doc, getDoc, setDoc, deleteDoc } = require('firebase/firestore');
+const { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } = require('firebase/firestore');
 
 const UUID = '3F2504E0-4F89-41D3-9A0C-0305E82C3301';
 const BARCODE = '8593807012345';
@@ -15,6 +15,7 @@ const BUCKET_URL = 'https://firebasestorage.googleapis.com/v0/b/kalorie-bf11c.fi
 const photoUrl = (folder, owner, name = 'a.jpg') =>
   `${BUCKET_URL}${folder}%2F${owner}%2F${name}?alt=media&token=t`;
 const submissionPhoto = (uid) => photoUrl('submissionPhotos', uid);
+const suggestionPhoto = (uid, itemId = BARCODE) => photoUrl('photoSuggestions', uid, `${itemId}.jpg`);
 const catalogPhoto = (itemId) => photoUrl('catalogPhotos', itemId);
 
 let env;
@@ -61,6 +62,16 @@ function report(barcode, uid, overrides = {}) {
     reported_by: uid,
     reason: 'Calories look wrong',
     reported_at: 1_700_000_000,
+    ...overrides,
+  };
+}
+
+function suggestion(itemId, uid, overrides = {}) {
+  return {
+    item_id: itemId,
+    suggested_by: uid,
+    photo_url: suggestionPhoto(uid, itemId),
+    suggested_at: 1_700_000_000,
     ...overrides,
   };
 }
@@ -468,6 +479,114 @@ describe('foodItemReports', () => {
   });
 
   it("lets a user probe their own report id when it does not exist, but not someone else's", async () => {
+    await assertSucceeds(getDoc(doc(user('alice'), path)));
+    await assertFails(getDoc(doc(user('bob'), path)));
+  });
+});
+
+describe('photoSuggestions', () => {
+  const sid = `${BARCODE}_alice`;
+  const path = `photoSuggestions/${sid}`;
+  const seedItem = (id = BARCODE, overrides = {}) =>
+    seed((db) => setDoc(doc(db, `foodItems/${id}`), foodItem(id, overrides)));
+
+  beforeEach(() => seedItem());
+
+  it('lets a user create a suggestion under {itemId}_{uid}', async () => {
+    await assertSucceeds(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice')));
+  });
+
+  it('accepts a UUID-identified item', async () => {
+    await seedItem(UUID);
+    await assertSucceeds(setDoc(doc(user('alice'), `photoSuggestions/${UUID}_alice`), suggestion(UUID, 'alice')));
+  });
+
+  it('denies a document id that does not match item and uid', async () => {
+    await assertFails(setDoc(doc(user('alice'), `photoSuggestions/${BARCODE}_bob`), suggestion(BARCODE, 'alice')));
+    await assertFails(setDoc(doc(user('alice'), 'photoSuggestions/random'), suggestion(BARCODE, 'alice')));
+  });
+
+  it('denies a suggestion carrying a field beyond the four it defines', async () => {
+    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { padding: 'x'.repeat(1000) })));
+  });
+
+  it('denies a suggestion attributed to someone else', async () => {
+    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { suggested_by: 'bob' })));
+  });
+
+  it('denies a photo_url that is not the author\'s own suggestion file for that item', async () => {
+    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { photo_url: suggestionPhoto('bob') })));
+    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { photo_url: submissionPhoto('alice') })));
+    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { photo_url: catalogPhoto(BARCODE) })));
+    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { photo_url: suggestionPhoto('alice', UUID) })));
+  });
+
+  it('denies a photo_url longer than 1024 characters', async () => {
+    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', {
+      photo_url: `${suggestionPhoto('alice')}&${'x'.repeat(1024)}`,
+    })));
+  });
+
+  it('requires suggested_at to be a number', async () => {
+    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { suggested_at: 'now' })));
+  });
+
+  it('denies a suggestion for an item that does not exist', async () => {
+    await assertFails(setDoc(doc(user('alice'), `photoSuggestions/${UUID}_alice`), suggestion(UUID, 'alice')));
+  });
+
+  it('denies a suggestion for an item that already has a photo', async () => {
+    await seedItem(UUID, { photo_url: catalogPhoto(UUID) });
+    await assertFails(setDoc(doc(user('alice'), `photoSuggestions/${UUID}_alice`), suggestion(UUID, 'alice')));
+  });
+
+  it('denies creation while signed out', async () => {
+    await assertFails(setDoc(doc(anonymous(), path), suggestion(BARCODE, 'alice')));
+  });
+
+  describe('once a suggestion is pending', () => {
+    beforeEach(() => seed((db) => setDoc(doc(db, path), suggestion(BARCODE, 'alice'))));
+
+    it('lets the author and a maintainer read it', async () => {
+      await assertSucceeds(getDoc(doc(user('alice'), path)));
+      await assertSucceeds(getDoc(doc(maintainer(), path)));
+    });
+
+    it('denies another user reading it', async () => {
+      await assertFails(getDoc(doc(user('bob'), path)));
+    });
+
+    it('denies any update, even by the author or a maintainer', async () => {
+      await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { suggested_at: 1 })));
+      await assertFails(setDoc(doc(maintainer(), path), suggestion(BARCODE, 'alice', { suggested_at: 1 })));
+    });
+
+    it('lets the author and a maintainer delete it', async () => {
+      await assertSucceeds(deleteDoc(doc(user('alice'), path)));
+      await seed((db) => setDoc(doc(db, path), suggestion(BARCODE, 'alice')));
+      await assertSucceeds(deleteDoc(doc(maintainer(), path)));
+    });
+
+    it('denies another user deleting it', async () => {
+      await assertFails(deleteDoc(doc(user('bob'), path)));
+    });
+
+    it('lets a maintainer list the suggestions of one item', async () => {
+      const q = query(collection(maintainer(), 'photoSuggestions'), where('item_id', '==', BARCODE));
+      await assertSucceeds(getDocs(q));
+    });
+
+    it('denies a regular user listing the collection', async () => {
+      await assertFails(getDocs(collection(user('alice'), 'photoSuggestions')));
+    });
+
+    it('lets the author list their own suggestions for account deletion, but not another user\'s', async () => {
+      await assertSucceeds(getDocs(query(collection(user('alice'), 'photoSuggestions'), where('suggested_by', '==', 'alice'))));
+      await assertFails(getDocs(query(collection(user('alice'), 'photoSuggestions'), where('suggested_by', '==', 'bob'))));
+    });
+  });
+
+  it("lets a user probe their own suggestion id when it does not exist, but not someone else's", async () => {
     await assertSucceeds(getDoc(doc(user('alice'), path)));
     await assertFails(getDoc(doc(user('bob'), path)));
   });

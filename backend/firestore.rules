@@ -118,5 +118,29 @@ service cloud.firestore {
 
       allow delete: if isMaintainer() || resource.data.reported_by == request.auth.uid;
     }
+
+    match /photoSuggestions/{suggestionId} {
+      // resource is null for a suggestion that does not exist yet; without the second branch the client's
+      // "already suggested?" read would be denied instead of returning not-found.
+      allow read: if isMaintainer() ||
+        (resource == null && suggestionId.matches('.*_' + request.auth.uid)) ||
+        (resource != null && resource.data.suggested_by == request.auth.uid);
+
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasOnly(['item_id', 'suggested_by', 'suggested_at', 'photo_url']) &&
+        suggestionId == request.resource.data.item_id + '_' + request.auth.uid &&
+        request.resource.data.suggested_by == request.auth.uid &&
+        validItemId(request.resource.data.item_id) &&
+        request.resource.data.suggested_at is number &&
+        request.resource.data.photo_url is string &&
+        request.resource.data.photo_url.size() <= 1024 &&
+        request.resource.data.photo_url.matches(
+          photoUrlPrefix() + 'photoSuggestions%2F' + request.auth.uid + '%2F' +
+          request.resource.data.item_id + '\\.jpg.*') &&
+        exists(/databases/$(database)/documents/foodItems/$(request.resource.data.item_id)) &&
+        !('photo_url' in get(/databases/$(database)/documents/foodItems/$(request.resource.data.item_id)).data);
+
+      allow delete: if isMaintainer() || resource.data.suggested_by == request.auth.uid;
+    }
   }
 }
