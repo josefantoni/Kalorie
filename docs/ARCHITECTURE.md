@@ -2168,7 +2168,7 @@ existence check and bypassing `CreateFoodItemUseCase`'s, the exact guard
 
 ### 7.7 Community product photos and the notification bell
 
-**Scope:** `Backend`, `Cross-platform`, `iOS` (Android pending, tracked in `TODO.md`). See
+**Scope:** `Backend`, `Cross-platform`, `iOS`, `Android`. See
 [design 0031](design/0031-community-product-photos-and-notification-bell.md).
 
 A `.catalogue` item without `photo_url` shows an empty photo pill in the toolbar of `FoodQuantityView` and
@@ -2194,9 +2194,9 @@ error is rethrown and the document is kept, so the removal can be retried.
 `NotificationBellViewModel` shows a bell in the Dashboard toolbar for a maintainer; its dot is
 `FetchHasPendingNotificationsUseCase` (three `count()` aggregations, any error means no dot). The claim and
 the dot are refreshed together on appear and foreground, the dot alone on dismissal of the bell sheet or of Settings. The sheet (`NotificationsView`) lists waiting submissions, reports
-(grouped per item) and photo suggestions, newest first, and pushes the existing review screens.
-`FetchPhotoSuggestionsUseCase` loads the newest `reportsPageLimit` (50) suggestions. The bell sheet shows
-them newest first, Settings → *Photo suggestions* oldest first.
+(grouped per item) and photo suggestions, oldest first (a report row dates from its oldest report), and
+pushes the existing review screens. `FetchPhotoSuggestionsUseCase` loads the oldest `reportsPageLimit` (50)
+suggestions; the bell sheet and Settings → *Photo suggestions* both show them oldest first.
 
 `FetchMaintainerClaimUseCase` reads the `maintainer` claim through `AuthProviderProtocol.maintainerClaim`
 and caches it in one `MaintainerClaimCache`. `KalorieApp` creates that cache, and the bell and Settings
