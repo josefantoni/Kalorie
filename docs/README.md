@@ -218,6 +218,7 @@ understanding why.
 | [0027](design/0027-slovak-localisation.md) | Slovak localisation | Proposed | Cross-platform |
 | [0028](design/0028-body-weight-tracking.md) | Body weight tracking | Proposed | Cross-platform |
 | [0029](design/0029-catalogue-contribution-hint.md) | Catalogue contribution hint | Draft | Cross-platform, iOS, Android |
+| [0031](design/0031-community-product-photos-and-notification-bell.md) | Community product photos and the notification bell | Draft | Backend, Cross-platform, iOS |
 
 ### Decision records
 
