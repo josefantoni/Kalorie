@@ -50,7 +50,7 @@ import kotlinx.coroutines.launch
 fun ModerationReportsView(
     viewModel: ModerationReportsViewModel,
     onDismiss: () -> Unit,
-    makeCatalogueEditorView: @Composable (barcode: String, reports: List<FoodItemReportDomain>, onDismiss: () -> Unit) -> Unit,
+    makeCatalogueEditorView: @Composable (barcode: String, reports: List<FoodItemReportDomain>, onReportsChanged: (List<FoodItemReportDomain>) -> Unit, onDismiss: () -> Unit) -> Unit,
 ) {
     // MARK: - Properties
 
@@ -80,9 +80,12 @@ fun ModerationReportsView(
                     )
                 }
                 is ModerationReportsDestination.CatalogueEditor -> NavEntry(destination) {
-                    makeCatalogueEditorView(destination.barcode, destination.reports) {
-                        viewModel.backStack.remove(destination)
-                    }
+                    makeCatalogueEditorView(
+                        destination.barcode,
+                        destination.reports,
+                        { remaining -> viewModel.onGroupReportsChanged(destination.barcode, remaining) },
+                        { viewModel.backStack.remove(destination) },
+                    )
                 }
             }
         },
@@ -151,9 +154,6 @@ private fun ModerationReportsContent(
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
-                                    }
-                                    TextButton(onClick = { scope.launch { viewModel.onResolveTapped(group) } }) {
-                                        Text(stringResource(R.string.moderation_button_resolve))
                                     }
                                     Icon(
                                         Icons.AutoMirrored.Filled.KeyboardArrowRight,

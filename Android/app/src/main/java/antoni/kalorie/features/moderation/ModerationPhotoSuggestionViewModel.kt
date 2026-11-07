@@ -22,7 +22,7 @@ class ModerationPhotoSuggestionViewModel(
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
     private val approvePhotoSuggestion: ApprovePhotoSuggestionUseCaseProtocol,
     private val rejectPhotoSuggestion: RejectPhotoSuggestionUseCaseProtocol,
-    private val onResolved: () -> Unit,
+    private val onResolved: (isApproved: Boolean) -> Unit,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -58,7 +58,7 @@ class ModerationPhotoSuggestionViewModel(
         _state.value = LoadingState.Loading
         try {
             approvePhotoSuggestion(suggestion)
-            onResolved()
+            onResolved(true)
             _shouldDismiss.value = true
         } catch (error: CancellationException) {
             throw error
@@ -79,7 +79,7 @@ class ModerationPhotoSuggestionViewModel(
         _state.value = LoadingState.Loading
         try {
             rejectPhotoSuggestion(suggestion)
-            onResolved()
+            onResolved(false)
             _shouldDismiss.value = true
         } catch (error: CancellationException) {
             throw error

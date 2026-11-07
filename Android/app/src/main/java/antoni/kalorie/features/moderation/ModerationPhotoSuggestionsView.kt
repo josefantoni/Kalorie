@@ -49,7 +49,7 @@ import kotlinx.coroutines.launch
 fun ModerationPhotoSuggestionsView(
     viewModel: ModerationPhotoSuggestionsViewModel,
     onDismiss: () -> Unit,
-    makeReviewView: @Composable (suggestion: PhotoSuggestionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) -> Unit,
+    makeReviewView: @Composable (suggestion: PhotoSuggestionDomain, onResolved: (isApproved: Boolean) -> Unit, onDismiss: () -> Unit) -> Unit,
 ) {
     // MARK: - Properties
 
@@ -81,7 +81,7 @@ fun ModerationPhotoSuggestionsView(
                 is ModerationPhotoSuggestionsDestination.Review -> NavEntry(destination) {
                     makeReviewView(
                         destination.suggestion,
-                        { viewModel.onSuggestionResolved(destination.suggestion.id) },
+                        { isApproved -> viewModel.onSuggestionResolved(destination.suggestion.id, isApproved) },
                         { backStack.remove(destination) },
                     )
                 }

@@ -9,7 +9,8 @@ data class UpdateFoodItemUseCaseFake(
 
     // MARK: - Functions
 
-    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean) {
+    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean): FoodItemDomain {
         errorToThrow?.let { throw it }
+        return item
     }
 }

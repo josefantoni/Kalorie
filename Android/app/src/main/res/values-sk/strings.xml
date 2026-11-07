@@ -232,8 +232,8 @@
     <string name="foodQuantity_unit_millilitres">1 ml</string>
     <string name="moderation_button_approve">Schváliť</string>
     <string name="moderation_button_reject">Zamietnuť</string>
-    <string name="moderation_button_resolve">Vyriešené</string>
     <string name="moderation_button_save">Uložiť</string>
+    <string name="moderation_button_saveAndResolve">Uložiť a vyriešiť</string>
     <string name="moderation_editor_searchPlaceholder">Čiarový kód</string>
     <string name="moderation_editor_title">Úprava položky</string>
     <string name="moderation_error_alreadyExists">Položka s týmto kódom už v katalógu je</string>

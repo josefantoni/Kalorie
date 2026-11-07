@@ -1,7 +1,9 @@
 package antoni.kalorie.features.moderation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import antoni.kalorie.KalorieApplication
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
@@ -62,14 +64,13 @@ class ModerationConfigurator(
             ModerationReportsViewModel(
                 fetchFoodItemReports = FetchFoodItemReportsUseCase(dataProvider, authProvider),
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
-                deleteFoodItemReport = DeleteFoodItemReportUseCase(dataProvider, authProvider),
             )
         }
         ModerationReportsView(
             viewModel = viewModel,
             onDismiss = onDismiss,
-            makeCatalogueEditorView = { barcode, reports, onEditorDismiss ->
-                MakeCatalogueEditorView(initialBarcode = barcode, onDismiss = onEditorDismiss, reports = reports)
+            makeCatalogueEditorView = { barcode, reports, onReportsChanged, onEditorDismiss ->
+                MakeCatalogueEditorView(initialBarcode = barcode, onDismiss = onEditorDismiss, reports = reports, onReportsChanged = onReportsChanged)
             },
         )
     }
@@ -92,7 +93,7 @@ class ModerationConfigurator(
     }
 
     @Composable
-    fun MakePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) {
+    fun MakePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: (isApproved: Boolean) -> Unit, onDismiss: () -> Unit) {
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationPhotoSuggestionViewModel(
                 suggestion = suggestion,
@@ -143,14 +144,20 @@ class ModerationConfigurator(
         initialBarcode: String?,
         onDismiss: () -> Unit,
         reports: List<FoodItemReportDomain> = emptyList(),
+        onReportsChanged: (List<FoodItemReportDomain>) -> Unit = {},
     ) {
+        val applicationScope = (LocalContext.current.applicationContext as KalorieApplication).applicationScope
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
                 updateFoodItem = UpdateFoodItemUseCase(dataProvider, authProvider, UploadFoodPhotoUseCase(storageProvider), DeleteFoodPhotoUseCase(storageProvider)),
+                deleteFoodItemReport = DeleteFoodItemReportUseCase(dataProvider, authProvider),
                 initialBarcode = initialBarcode,
+                reports = reports,
+                applicationScope = applicationScope,
+                onReportsChanged = onReportsChanged,
             )
         }
-        ModerationCatalogueEditorView(viewModel = viewModel, onDismiss = onDismiss, reports = reports)
+        ModerationCatalogueEditorView(viewModel = viewModel, onDismiss = onDismiss)
     }
 }

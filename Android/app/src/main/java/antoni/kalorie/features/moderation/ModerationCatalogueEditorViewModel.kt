@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemFormPhoto
+import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
+import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodItemError
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseProtocol
@@ -13,16 +16,24 @@ import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.NutritionLabelPrefilling
+import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.addfoodsheet.FoodItemFormInput
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class ModerationCatalogueEditorViewModel(
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
     private val updateFoodItem: UpdateFoodItemUseCaseProtocol,
+    private val deleteFoodItemReport: DeleteFoodItemReportUseCaseProtocol,
     private val initialBarcode: String? = null,
+    reports: List<FoodItemReportDomain> = emptyList(),
+    private val applicationScope: CoroutineScope,
+    private val onReportsChanged: (List<FoodItemReportDomain>) -> Unit = {},
 ) : ViewModel(),
     NutritionLabelPrefilling {
 
@@ -41,6 +52,10 @@ class ModerationCatalogueEditorViewModel(
     val alertItem = MutableStateFlow<AlertItem?>(null)
     private val _showCheckmark = MutableStateFlow(false)
     val showCheckmark: StateFlow<Boolean> = _showCheckmark
+    private val _reports = MutableStateFlow(reports)
+    val reports: StateFlow<List<FoodItemReportDomain>> = _reports
+    private val _shouldDismiss = MutableStateFlow(false)
+    val shouldDismiss: StateFlow<Boolean> = _shouldDismiss
 
     // MARK: - Functions
 
@@ -85,19 +100,42 @@ class ModerationCatalogueEditorViewModel(
     }
 
     suspend fun onSaveTapped() {
-        val loadedItem = _loadedItem.value ?: return
+        if (_state.value.isLoading) return
+        if (!save()) return
+        _showCheckmark.value = true
+        try {
+            delay(CHECKMARK_DURATION_MILLIS)
+        } finally {
+            _showCheckmark.value = false
+        }
+    }
+
+    suspend fun onSaveAndResolveTapped() {
+        if (_state.value.isLoading) return
+        runInApplicationScope {
+            if (!save()) return@runInApplicationScope
+            resolveReports()
+        }
+    }
+
+    suspend fun onRejectTapped() {
+        if (_state.value.isLoading) return
+        runInApplicationScope { resolveReports() }
+    }
+
+    // MARK: - Private
+
+    private suspend fun save(): Boolean {
+        val loadedItem = _loadedItem.value ?: return false
         _state.value = LoadingState.Loading
         val item = formInput.value.asFoodItemDomain(id = loadedItem.id, date = loadedItem.date)
-        try {
-            updateFoodItem(item, loadedItem, formInput.value.photo)
-            _loadedItem.value = item
-            _state.value = LoadingState.loaded
-            _showCheckmark.value = true
-            try {
-                delay(CHECKMARK_DURATION_MILLIS)
-            } finally {
-                _showCheckmark.value = false
-            }
+        return try {
+            val savedItem = updateFoodItem(item, loadedItem, formInput.value.photo)
+            _loadedItem.value = savedItem
+            formInput.value = formInput.value.copy(
+                photo = savedItem.photoUrl?.let { FoodItemFormPhoto.Remote(it) } ?: FoodItemFormPhoto.None,
+            )
+            true
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
@@ -113,6 +151,37 @@ class ModerationCatalogueEditorViewModel(
                     else -> R.string.common_error_unknown
                 },
             )
+            false
+        } finally {
+            _state.value = LoadingState.loaded
+        }
+    }
+
+    private suspend fun runInApplicationScope(block: suspend () -> Unit) {
+        applicationScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }.join()
+    }
+
+    private suspend fun resolveReports() {
+        _state.value = LoadingState.Loading
+        try {
+            val remainingReports = mutableListOf<FoodItemReportDomain>()
+            for (report in _reports.value) {
+                try {
+                    deleteFoodItemReport(report.barcode, report.reportedBy)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.error(error, Constants.LogCategory.MODERATION)
+                    remainingReports += report
+                }
+            }
+            _reports.value = remainingReports
+            onReportsChanged(remainingReports)
+            if (remainingReports.isNotEmpty()) {
+                alertItem.value = AlertItem(titleRes = R.string.common_error_unknown)
+                return
+            }
+            _shouldDismiss.value = true
         } finally {
             _state.value = LoadingState.loaded
         }
