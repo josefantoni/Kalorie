@@ -227,8 +227,9 @@ class ApprovePhotoSuggestionUseCaseTest {
 }
 
 private class SlowUpdateFoodItemUseCase : UpdateFoodItemUseCaseProtocol {
-    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean) {
+    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean): FoodItemDomain {
         delay(1_000)
+        return item
     }
 }
 

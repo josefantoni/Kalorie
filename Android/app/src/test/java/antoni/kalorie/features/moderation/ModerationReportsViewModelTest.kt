@@ -4,17 +4,13 @@ import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.displayName
-import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCaseFake
-import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCaseProtocol
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 
@@ -94,57 +90,38 @@ class ModerationReportsViewModelTest {
     }
 
     @Test
-    fun onResolveTapped_deletesEveryReportInTheGroupAndRemovesIt() = runTest {
-        val reports = listOf(
-            makeReport(barcode = "111", reportedBy = "user-1"),
-            makeReport(barcode = "111", reportedBy = "user-2"),
-        )
-        val deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
+    fun onGroupReportsChanged_withNoRemainingReports_removesOnlyThatBarcodesGroup() = runTest {
         val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = reports),
-            deleteFoodItemReport = deleteFoodItemReport,
+            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(
+                stubbedReports = listOf(
+                    makeReport(barcode = "111", reportedBy = "user-1"),
+                    makeReport(barcode = "222", reportedBy = "user-2"),
+                ),
+            ),
         )
         sut.onAppear()
-        val group = sut.groups.value.first()
 
-        sut.onResolveTapped(group)
+        sut.onGroupReportsChanged("111", emptyList())
 
-        assertEquals(listOf("user-1", "user-2"), deleteFoodItemReport.deletedReportedBy.sorted())
-        assertTrue(sut.groups.value.isEmpty())
+        assertEquals(listOf("222"), sut.groups.value.map { it.barcode })
     }
 
     @Test
-    fun onResolveTapped_whenSomeDeletesFail_keepsOnlyTheFailedReportsAndShowsAlert() = runTest {
-        val reports = listOf(
-            makeReport(barcode = "111", reportedBy = "user-1"),
-            makeReport(barcode = "111", reportedBy = "user-2"),
-        )
+    fun onGroupReportsChanged_withRemainingReports_keepsTheGroupWithOnlyThose() = runTest {
         val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = reports),
-            deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy(failingReportedBy = setOf("user-2")),
+            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(
+                stubbedReports = listOf(
+                    makeReport(barcode = "111", reportedBy = "user-1"),
+                    makeReport(barcode = "111", reportedBy = "user-2"),
+                    makeReport(barcode = "111", reportedBy = "user-3"),
+                ),
+            ),
         )
         sut.onAppear()
-        val group = sut.groups.value.first()
 
-        sut.onResolveTapped(group)
+        sut.onGroupReportsChanged("111", listOf(makeReport(barcode = "111", reportedBy = "user-3")))
 
-        assertEquals(listOf("user-2"), sut.groups.value.first().reports.map { it.reportedBy })
-        assertNotNull(sut.alertItem.value)
-    }
-
-    @Test
-    fun onResolveTapped_whenEveryDeleteFails_keepsTheGroupAndShowsAlert() = runTest {
-        val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport(barcode = "111", reportedBy = "user-1"))),
-            deleteFoodItemReport = DeleteFoodItemReportUseCaseFake(shouldThrow = true),
-        )
-        sut.onAppear()
-        val group = sut.groups.value.first()
-
-        sut.onResolveTapped(group)
-
-        assertEquals(1, sut.groups.value.first().reports.size)
-        assertNotNull(sut.alertItem.value)
+        assertEquals(listOf("user-3"), sut.groups.value.single().reports.map { it.reportedBy })
     }
 
     // MARK: - Helpers
@@ -152,11 +129,9 @@ class ModerationReportsViewModelTest {
     private fun makeSUT(
         fetchFoodItemReports: FetchFoodItemReportsUseCaseProtocol = FetchFoodItemReportsUseCaseFake(),
         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
-        deleteFoodItemReport: DeleteFoodItemReportUseCaseProtocol = DeleteFoodItemReportUseCaseFake(),
     ): ModerationReportsViewModel = ModerationReportsViewModel(
         fetchFoodItemReports = fetchFoodItemReports,
         fetchFoodItemByBarcode = fetchFoodItemByBarcode,
-        deleteFoodItemReport = deleteFoodItemReport,
     )
 
     private fun makeReport(barcode: String, reportedBy: String): FoodItemReportDomain = FoodItemReportDomain(barcode = barcode, reportedBy = reportedBy, reason = "wrong data", reportedAt = Instant.now())
@@ -179,20 +154,4 @@ class ModerationReportsViewModelTest {
         protein = 13.0,
         salt = 0.1,
     )
-}
-
-private class DeleteFoodItemReportUseCaseSpy(
-    private val failingReportedBy: Set<String> = emptySet(),
-) : DeleteFoodItemReportUseCaseProtocol {
-
-    // MARK: - Properties
-
-    val deletedReportedBy = mutableListOf<String>()
-
-    // MARK: - Functions
-
-    override suspend fun invoke(barcode: String, reportedBy: String) {
-        if (reportedBy in failingReportedBy) throw RuntimeException("delete failed")
-        deletedReportedBy += reportedBy
-    }
 }

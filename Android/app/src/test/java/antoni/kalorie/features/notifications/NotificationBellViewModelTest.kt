@@ -3,7 +3,11 @@ package antoni.kalorie.features.notifications
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.usecases.FetchHasPendingNotificationsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMaintainerClaimUseCaseProtocol
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -47,6 +51,25 @@ class NotificationBellViewModelTest {
         assertFalse(sut.hasPendingNotifications.value)
     }
 
+    @Test
+    fun onAppearAndOnForeground_whileARefreshIsInFlight_readTheClaimAndCountOnlyOnce() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val claim = GatedClaimFake(gate)
+        val pending = FetchHasPendingFake(true)
+        val sut = NotificationBellViewModel(claim, pending)
+
+        val first = launch { sut.onAppear() }
+        yield()
+        val second = launch { sut.onForeground() }
+        yield()
+        gate.complete(Unit)
+        first.join()
+        second.join()
+
+        assertEquals("the entry composition fires both calls; the second must not repeat the claim read", 1, claim.callCount)
+        assertEquals(1, pending.callCount)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(claim: Result<Boolean>, hasPending: Boolean): Triple<NotificationBellViewModel, FetchMaintainerClaimFake, FetchHasPendingFake> {
@@ -61,5 +84,20 @@ private class FetchMaintainerClaimFake(var result: Result<Boolean>) : FetchMaint
 }
 
 private class FetchHasPendingFake(var result: Boolean) : FetchHasPendingNotificationsUseCaseProtocol {
-    override suspend fun invoke(): Boolean = result
+    var callCount = 0
+
+    override suspend fun invoke(): Boolean {
+        callCount += 1
+        return result
+    }
+}
+
+private class GatedClaimFake(private val gate: CompletableDeferred<Unit>) : FetchMaintainerClaimUseCaseProtocol {
+    var callCount = 0
+
+    override suspend fun invoke(): Boolean {
+        callCount += 1
+        gate.await()
+        return true
+    }
 }

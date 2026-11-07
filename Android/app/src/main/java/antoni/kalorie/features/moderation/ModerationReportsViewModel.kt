@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.displayName
-import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
@@ -26,7 +25,6 @@ data class ReportGroup(
 class ModerationReportsViewModel(
     private val fetchFoodItemReports: FetchFoodItemReportsUseCaseProtocol,
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
-    private val deleteFoodItemReport: DeleteFoodItemReportUseCaseProtocol,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -59,26 +57,14 @@ class ModerationReportsViewModel(
         onAppear()
     }
 
-    suspend fun onResolveTapped(group: ReportGroup) {
-        val remainingReports = mutableListOf<FoodItemReportDomain>()
-        for (report in group.reports) {
-            try {
-                deleteFoodItemReport(report.barcode, report.reportedBy)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Exception) {
-                Log.error(error, Constants.LogCategory.MODERATION)
-                remainingReports += report
+    fun onGroupReportsChanged(barcode: String, remaining: List<FoodItemReportDomain>) {
+        _groups.value = _groups.value.mapNotNull { group ->
+            when {
+                group.barcode != barcode -> group
+                remaining.isEmpty() -> null
+                else -> group.copy(reports = remaining)
             }
         }
-        if (remainingReports.isEmpty()) {
-            _groups.value = _groups.value.filterNot { it.barcode == group.barcode }
-            return
-        }
-        _groups.value = _groups.value.map { existing ->
-            if (existing.barcode == group.barcode) existing.copy(reports = remainingReports) else existing
-        }
-        alertItem.value = AlertItem(titleRes = R.string.common_error_unknown)
     }
 
     // MARK: - Private

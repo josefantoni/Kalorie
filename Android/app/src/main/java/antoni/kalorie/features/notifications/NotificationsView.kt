@@ -64,8 +64,8 @@ fun NotificationsView(
     viewModel: NotificationsViewModel,
     onDismiss: () -> Unit,
     makeSubmissionView: @Composable (submission: FoodItemSubmissionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) -> Unit,
-    makeReportView: @Composable (barcode: String, reports: List<FoodItemReportDomain>, onDismiss: () -> Unit) -> Unit,
-    makePhotoSuggestionView: @Composable (suggestion: PhotoSuggestionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) -> Unit,
+    makeReportView: @Composable (barcode: String, reports: List<FoodItemReportDomain>, onReportsChanged: (List<FoodItemReportDomain>) -> Unit, onDismiss: () -> Unit) -> Unit,
+    makePhotoSuggestionView: @Composable (suggestion: PhotoSuggestionDomain, onResolved: (isApproved: Boolean) -> Unit, onDismiss: () -> Unit) -> Unit,
 ) {
     // MARK: - Properties
 
@@ -107,12 +107,17 @@ fun NotificationsView(
                         )
                     }
                     is NotificationsDestination.Report -> NavEntry(destination) {
-                        makeReportView(destination.barcode, destination.reports) { viewModel.backStack.remove(destination) }
+                        makeReportView(
+                            destination.barcode,
+                            destination.reports,
+                            { remaining -> viewModel.onReportRowChanged(destination.rowId, remaining) },
+                            { viewModel.backStack.remove(destination) },
+                        )
                     }
                     is NotificationsDestination.PhotoSuggestion -> NavEntry(destination) {
                         makePhotoSuggestionView(
                             destination.suggestion,
-                            { viewModel.onRowResolved(destination.rowId) },
+                            { isApproved -> viewModel.onPhotoSuggestionResolved(destination.rowId, isApproved) },
                             { viewModel.backStack.remove(destination) },
                         )
                     }
@@ -124,7 +129,7 @@ fun NotificationsView(
 
 private fun NotificationRow.destination(): NotificationsDestination = when (val kind = kind) {
     is NotificationRow.Kind.Submission -> NotificationsDestination.Submission(id, kind.submission)
-    is NotificationRow.Kind.Report -> NotificationsDestination.Report(kind.barcode, kind.reports)
+    is NotificationRow.Kind.Report -> NotificationsDestination.Report(id, kind.barcode, kind.reports)
     is NotificationRow.Kind.PhotoSuggestion -> NotificationsDestination.PhotoSuggestion(id, kind.suggestion)
 }
 
@@ -189,11 +194,7 @@ private fun NotificationsContent(
                         SectionCard {
                             rows.forEachIndexed { index, row ->
                                 key(row.id) {
-                                    NotificationRowView(
-                                        row = row,
-                                        onClick = { onRowTapped(row) },
-                                        onResolveTapped = { scope.launch { viewModel.onResolveReportsTapped(row) } },
-                                    )
+                                    NotificationRowView(row = row, onClick = { onRowTapped(row) })
                                     if (index < rows.lastIndex) SectionCardDivider()
                                 }
                             }
@@ -223,7 +224,7 @@ private fun NotificationsContent(
 }
 
 @Composable
-private fun NotificationRowView(row: NotificationRow, onClick: () -> Unit, onResolveTapped: () -> Unit) {
+private fun NotificationRowView(row: NotificationRow, onClick: () -> Unit) {
     val icon = when (row.kind) {
         is NotificationRow.Kind.Submission -> Icons.Filled.AddCircleOutline
         is NotificationRow.Kind.Report -> Icons.Filled.Edit
@@ -249,9 +250,6 @@ private fun NotificationRowView(row: NotificationRow, onClick: () -> Unit, onRes
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-        if (row.kind is NotificationRow.Kind.Report) {
-            TextButton(onClick = onResolveTapped) { Text(stringResource(R.string.moderation_button_resolve)) }
         }
         Icon(
             Icons.AutoMirrored.Filled.KeyboardArrowRight,

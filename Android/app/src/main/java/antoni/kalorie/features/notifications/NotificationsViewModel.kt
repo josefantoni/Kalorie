@@ -7,7 +7,6 @@ import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.PhotoSuggestionDomain
 import antoni.kalorie.core.models.displayName
-import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCaseProtocol
@@ -41,7 +40,6 @@ class NotificationsViewModel(
     private val fetchFoodItemReports: FetchFoodItemReportsUseCaseProtocol,
     private val fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseProtocol,
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
-    private val deleteFoodItemReport: DeleteFoodItemReportUseCaseProtocol,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -72,23 +70,22 @@ class NotificationsViewModel(
         _rows.value = _rows.value.filterNot { it.id == id }
     }
 
-    suspend fun onResolveReportsTapped(row: NotificationRow) {
-        val kind = row.kind as? NotificationRow.Kind.Report ?: return
-        var hasFailed = false
-        for (report in kind.reports) {
-            try {
-                deleteFoodItemReport(report.barcode, report.reportedBy)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Exception) {
-                Log.error(error, Constants.LogCategory.MODERATION)
-                hasFailed = true
-            }
+    fun onPhotoSuggestionResolved(rowId: String, isApproved: Boolean) {
+        val itemId = (_rows.value.firstOrNull { it.id == rowId }?.kind as? NotificationRow.Kind.PhotoSuggestion)?.suggestion?.itemId
+        _rows.value = _rows.value.filterNot { row ->
+            val suggestion = (row.kind as? NotificationRow.Kind.PhotoSuggestion)?.suggestion
+            row.id == rowId || (isApproved && suggestion != null && suggestion.itemId == itemId)
         }
-        if (hasFailed) {
-            alertItem.value = AlertItem(titleRes = R.string.common_error_unknown)
-        } else {
-            onRowResolved(row.id)
+    }
+
+    fun onReportRowChanged(id: String, remaining: List<FoodItemReportDomain>) {
+        _rows.value = _rows.value.mapNotNull { row ->
+            val kind = row.kind
+            when {
+                row.id != id -> row
+                remaining.isEmpty() || kind !is NotificationRow.Kind.Report -> null
+                else -> row.copy(kind = kind.copy(reports = remaining))
+            }
         }
     }
 
@@ -150,12 +147,12 @@ class NotificationsViewModel(
                 id = "report-$barcode",
                 kind = NotificationRow.Kind.Report(barcode, barcodeReports.sortedByDescending { it.reportedAt }),
                 title = namesById[barcode] ?: barcode,
-                date = barcodeReports.maxOf { it.reportedAt },
+                date = barcodeReports.minOf { it.reportedAt },
             )
         }
         val suggestionRows = suggestions.map {
             NotificationRow("photo-${it.id}", NotificationRow.Kind.PhotoSuggestion(it), namesById[it.itemId] ?: it.itemId, it.suggestedAt)
         }
-        return (submissionRows + reportRows + suggestionRows).sortedByDescending { it.date }
+        return (submissionRows + reportRows + suggestionRows).sortedBy { it.date }
     }
 }

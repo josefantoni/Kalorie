@@ -40,12 +40,13 @@ import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.LoaderIndicator
+import antoni.kalorie.components.PrimaryButton
+import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
-import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.addfoodsheet.NutritionLabelCameraView
@@ -56,7 +57,6 @@ import kotlinx.coroutines.launch
 fun ModerationCatalogueEditorView(
     viewModel: ModerationCatalogueEditorViewModel,
     onDismiss: () -> Unit,
-    reports: List<FoodItemReportDomain> = emptyList(),
 ) {
     // MARK: - Properties
 
@@ -66,6 +66,8 @@ fun ModerationCatalogueEditorView(
     val state by viewModel.state.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val showCheckmark by viewModel.showCheckmark.collectAsState()
+    val reports by viewModel.reports.collectAsState()
+    val shouldDismiss by viewModel.shouldDismiss.collectAsState()
     val recognizedFields by viewModel.recognizedFields.collectAsState()
     val isNutritionLabelCameraVisible by viewModel.isNutritionLabelCameraVisible.collectAsState()
     val nutritionLabelCameraHintRes by viewModel.nutritionLabelCameraHintRes.collectAsState()
@@ -76,6 +78,7 @@ fun ModerationCatalogueEditorView(
     )
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
+    LaunchedEffect(shouldDismiss, alertItem) { if (shouldDismiss && alertItem == null) onDismiss() }
 
     // MARK: - Body
 
@@ -89,12 +92,14 @@ fun ModerationCatalogueEditorView(
                     }
                 },
                 actions = {
-                    SaveToolbarButton(
-                        title = stringResource(R.string.moderation_button_save),
-                        showCheckmark = showCheckmark,
-                        isEnabled = loadedItem != null && !state.isLoading,
-                    ) {
-                        scope.launch { viewModel.onSaveTapped() }
+                    if (!viewModel.isOpenedFromReport) {
+                        SaveToolbarButton(
+                            title = stringResource(R.string.moderation_button_save),
+                            showCheckmark = showCheckmark,
+                            isEnabled = loadedItem != null && !state.isLoading,
+                        ) {
+                            scope.launch { viewModel.onSaveTapped() }
+                        }
                     }
                 },
             )
@@ -145,6 +150,23 @@ fun ModerationCatalogueEditorView(
                         onNutritionLabelScanTapped = if (viewModel.isOpenedFromReport) null else scannerAccess.open,
                         onFieldEdited = viewModel::onFormFieldEdited,
                     )
+                }
+                if (viewModel.isOpenedFromReport) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 8.dp)) {
+                        PrimaryButton(
+                            text = stringResource(R.string.moderation_button_saveAndResolve),
+                            onClick = { scope.launch { viewModel.onSaveAndResolveTapped() } },
+                            enabled = loadedItem != null && !state.isLoading,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        PrimaryButton(
+                            text = stringResource(R.string.moderation_button_reject),
+                            onClick = { scope.launch { viewModel.onRejectTapped() } },
+                            style = PrimaryButtonStyle.DESTRUCTIVE,
+                            enabled = !state.isLoading,
+                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        )
+                    }
                 }
             }
             if (state.isLoading) {

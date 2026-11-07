@@ -21,6 +21,7 @@ class NotificationBellViewModel(
     private val _hasPendingNotifications = MutableStateFlow(false)
     val hasPendingNotifications: StateFlow<Boolean> = _hasPendingNotifications
     val isSheetVisible = MutableStateFlow(false)
+    private var isRefreshing = false
 
     // MARK: - Functions
 
@@ -43,15 +44,21 @@ class NotificationBellViewModel(
     // MARK: - Private
 
     private suspend fun refresh() {
-        _isBellVisible.value = try {
-            fetchMaintainerClaim()
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Log.warning(error, Constants.LogCategory.MODERATION)
-            false
+        if (isRefreshing) return
+        isRefreshing = true
+        try {
+            _isBellVisible.value = try {
+                fetchMaintainerClaim()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.warning(error, Constants.LogCategory.MODERATION)
+                false
+            }
+            refreshDot()
+        } finally {
+            isRefreshing = false
         }
-        refreshDot()
     }
 
     private suspend fun refreshDot() {

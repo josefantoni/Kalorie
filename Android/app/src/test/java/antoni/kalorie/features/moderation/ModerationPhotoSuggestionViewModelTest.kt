@@ -43,7 +43,7 @@ class ModerationPhotoSuggestionViewModelTest {
     private fun makeSUT(
         approve: ApprovePhotoSuggestionUseCaseProtocol,
         reject: RejectPhotoSuggestionUseCaseProtocol,
-        onResolved: () -> Unit,
+        onResolved: (isApproved: Boolean) -> Unit,
     ) = ModerationPhotoSuggestionViewModel(
         suggestion = PhotoSuggestionDomain(
             itemId = "12345678",

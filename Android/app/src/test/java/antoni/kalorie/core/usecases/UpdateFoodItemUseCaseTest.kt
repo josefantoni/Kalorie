@@ -100,6 +100,18 @@ class UpdateFoodItemUseCaseTest {
     }
 
     @Test
+    fun update_withLocalPhoto_returnsTheItemCarryingTheUploadedUrl() = runTest {
+        val (sut, dataProvider, storage) = makeSUT()
+        val item = makeItem()
+        dataProvider.stubbedDocument = FoodItemDTO(item)
+
+        val saved = sut(item, FoodItemDTO(item).asDomain(), FoodItemFormPhoto.Local(byteArrayOf(1, 2)))
+
+        assertEquals(storage.files.keys.first(), saved.photoUrl)
+        assertEquals(saved, FoodItemDTO(saved).asDomain())
+    }
+
+    @Test
     fun update_whenTheWriteFails_keepsThePreviousFileAndDropsTheNewOne() = runTest {
         val (sut, dataProvider, storage) = makeSUT()
         val old = storage.uploadAsync(byteArrayOf(9), "catalogPhotos/12345678/old.jpg", "image/jpeg")

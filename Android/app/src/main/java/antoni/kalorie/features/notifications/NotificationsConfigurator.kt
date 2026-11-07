@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
-import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCase
 import antoni.kalorie.core.usecases.FetchHasPendingNotificationsUseCase
@@ -43,7 +42,6 @@ class NotificationsConfigurator(
                 fetchFoodItemReports = FetchFoodItemReportsUseCase(dataProvider, authProvider),
                 fetchPhotoSuggestions = FetchPhotoSuggestionsUseCase(dataProvider, authProvider),
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
-                deleteFoodItemReport = DeleteFoodItemReportUseCase(dataProvider, authProvider),
             )
         }
         NotificationsView(
@@ -52,8 +50,8 @@ class NotificationsConfigurator(
             makeSubmissionView = { submission, onResolved, onViewDismiss ->
                 moderationConfigurator.MakeReviewView(submission, onResolved, onViewDismiss)
             },
-            makeReportView = { barcode, reports, onViewDismiss ->
-                moderationConfigurator.MakeCatalogueEditorView(initialBarcode = barcode, onDismiss = onViewDismiss, reports = reports)
+            makeReportView = { barcode, reports, onReportsChanged, onViewDismiss ->
+                moderationConfigurator.MakeCatalogueEditorView(initialBarcode = barcode, onDismiss = onViewDismiss, reports = reports, onReportsChanged = onReportsChanged)
             },
             makePhotoSuggestionView = { suggestion, onResolved, onViewDismiss ->
                 moderationConfigurator.MakePhotoSuggestionView(suggestion, onResolved, onViewDismiss)

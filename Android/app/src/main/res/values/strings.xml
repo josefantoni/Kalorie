@@ -232,8 +232,8 @@
     <string name="foodQuantity_unit_millilitres">1 ml</string>
     <string name="moderation_button_approve">Approve</string>
     <string name="moderation_button_reject">Reject</string>
-    <string name="moderation_button_resolve">Resolved</string>
     <string name="moderation_button_save">Save</string>
+    <string name="moderation_button_saveAndResolve">Save and resolve</string>
     <string name="moderation_editor_searchPlaceholder">Barcode</string>
     <string name="moderation_editor_title">Edit catalogue item</string>
     <string name="moderation_error_alreadyExists">An item with this code is already in the catalogue</string>

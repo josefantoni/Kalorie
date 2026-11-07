@@ -51,8 +51,9 @@ class ModerationPhotoSuggestionsViewModel(
         load()
     }
 
-    fun onSuggestionResolved(id: String) {
-        _rows.value = _rows.value.filterNot { it.id == id }
+    fun onSuggestionResolved(id: String, isApproved: Boolean) {
+        val itemId = _rows.value.firstOrNull { it.id == id }?.suggestion?.itemId
+        _rows.value = _rows.value.filterNot { it.id == id || (isApproved && it.suggestion.itemId == itemId) }
     }
 
     // MARK: - Private
