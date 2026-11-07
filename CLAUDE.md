@@ -67,6 +67,24 @@ or "a decision needs to be made here" about it is a mistake — even if the code
 - When a decision in a design doc was already accepted together with a mitigation, the finding is not erased by that,
   but it must acknowledge the mitigation and narrow itself to what actually remains.
 
+## Code review findings
+
+When I hand you the findings of a code review (several at once), triage them in parallel instead of one by one:
+
+- Spawn **one subagent per finding** (`Agent`, `model: "sonnet"`), each with a fresh context. This is standing
+  permission to spawn them; do not ask first. Launch all of them in a single response so they run concurrently.
+- Each subagent gets a self-contained brief: the finding verbatim, the branch and the design doc / ADR it belongs to, and
+  the steps below. It does **not** edit files or commit — it returns a verdict only.
+  1. Verify the finding in the code (LSP, then grep, `Read` last).
+  2. Grep `docs/` for the identifiers involved. A decision already accepted in a design doc or ADR is not a bug; narrow
+     the finding to what remains after the accepted mitigation.
+  3. Classify: real bug / false positive / accepted decision / out of scope.
+  4. For a real bug: a minimal fix proposal and a test that fails without it.
+- Merge the verdicts into one table (finding, classification, reason, proposed fix) and stop there. Fixes are applied
+  only after I have read the table, one commit per platform, and only for real bugs.
+- A fix that would change behaviour an ADR accepted is a decision, not a bug fix — ask me first.
+- Fixes themselves are applied sequentially in the main session, never by parallel subagents, so edits do not collide.
+
 ---
 
 ## Commit Conventions
