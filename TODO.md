@@ -26,10 +26,6 @@
   field to `users/{userId}`. [Design 0028](docs/design/0028-body-weight-tracking.md) makes
   `users/{userId}/bodyWeights` the single source of the user's weight; BMR reads "the weight valid
   today" with the same query the Dashboard circle uses and stores none of its own.
-- **Community product photos and notification bell** — designed in
-  [design 0031](docs/design/0031-community-product-photos-and-notification-bell.md); rules and iOS first.
-  - **Privacy** — new upload path: update `backend/hosting/privacy.html` (every language), re-confirm App
-    Privacy and Data safety. Owner task, before either platform ships the feature.
 - **Propagate catalogue name and photo changes into users' copies** — analysis only, nothing implemented;
   write an ADR (Scope: Backend, partly replaces [ADR 0009](docs/adr/0009-denormalised-nutrition-snapshots.md))
   and a design doc (Scope: Backend) first, then implement.
