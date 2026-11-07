@@ -30,6 +30,11 @@ class SettingsRouter(
     }
 
     @Composable
+    fun makeModerationPhotoSuggestionsView(onDismiss: () -> Unit) {
+        moderationConfigurator.createPhotoSuggestionsView(onDismiss = onDismiss)
+    }
+
+    @Composable
     fun makeModerationReportsView(onDismiss: () -> Unit) {
         moderationConfigurator.createReportsView(onDismiss = onDismiss)
     }

@@ -47,8 +47,11 @@ import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -152,6 +155,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val selectedDay by viewModel.selectedDay.collectAsState()
     val activeDays by viewModel.activeDaysInMonth.collectAsState()
     val showCalendarSheet by viewModel.showCalendarSheet.collectAsState()
+    val notificationBell = router.makeNotificationBellViewModel()
+    val isBellVisible by notificationBell.isBellVisible.collectAsState()
+    val hasPendingNotifications by notificationBell.hasPendingNotifications.collectAsState()
+    val isNotificationsSheetVisible by notificationBell.isSheetVisible.collectAsState()
     val showSettings by viewModel.showSettings.collectAsState()
     val showAccountSheet by viewModel.showAccountSheet.collectAsState()
     val appSettings by viewModel.appSettings.collectAsState()
@@ -189,6 +196,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
         showAddFoodSheet ||
         showCalendarSheet ||
         showAccountSheet ||
+        isNotificationsSheetVisible ||
         alertItem != null ||
         isDeleteConfirmationVisible ||
         isWeightPopoverVisible ||
@@ -236,7 +244,11 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
             restMillis = ADD_FOOD_REPEAT_REST_MILLIS
         }
     }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { scope.launch { viewModel.onForeground() } }
+    LaunchedEffect(Unit) { notificationBell.onAppear() }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        scope.launch { viewModel.onForeground() }
+        scope.launch { notificationBell.onForeground() }
+    }
     DayChangeEffect { scope.launch { viewModel.onForeground() } }
 
     // MARK: - Body
@@ -279,6 +291,16 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         }
                     },
                     actions = {
+                        if (isBellVisible) {
+                            IconButton(onClick = notificationBell::onBellTapped) {
+                                BadgedBox(badge = { if (hasPendingNotifications) Badge(containerColor = AppColors.error) }) {
+                                    Icon(
+                                        Icons.Outlined.Notifications,
+                                        contentDescription = stringResource(R.string.notifications_bell_accessibility),
+                                    )
+                                }
+                            }
+                        }
                         IconButton(onClick = { viewModel.showSettings.value = !viewModel.showSettings.value }) {
                             Icon(
                                 Icons.Outlined.Settings,
@@ -494,12 +516,24 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
         router.makeAccountView(onDismiss = { viewModel.showAccountSheet.value = false })
     }
 
+    if (isNotificationsSheetVisible) {
+        router.makeNotificationsView(
+            onDismiss = {
+                notificationBell.isSheetVisible.value = false
+                scope.launch { notificationBell.onSheetDismissed() }
+            },
+        )
+    }
+
     if (showSettings) {
         router.makeSettingsView(
             mealTypes = mealTypes,
             appSettings = appSettings,
             hasLoadedAppSettings = hasLoadedSettings,
-            onDismiss = { viewModel.showSettings.value = false },
+            onDismiss = {
+                viewModel.showSettings.value = false
+                scope.launch { notificationBell.onSheetDismissed() }
+            },
             onMealTypesChanged = { scope.launch { viewModel.onMealTypesChanged() } },
             onAppSettingsChanged = viewModel::onAppSettingsChanged,
         )

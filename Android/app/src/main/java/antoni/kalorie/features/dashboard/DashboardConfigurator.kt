@@ -33,6 +33,7 @@ import antoni.kalorie.core.usecases.SetupDefaultMealsUseCase
 import antoni.kalorie.core.utils.ContextStringProvider
 import antoni.kalorie.features.account.AccountConfigurator
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
+import antoni.kalorie.features.notifications.NotificationsConfigurator
 import antoni.kalorie.features.settings.SettingsConfigurator
 import kotlinx.coroutines.launch
 
@@ -65,13 +66,15 @@ class DashboardConfigurator(private val maintainerClaimCache: MaintainerClaimCac
                 signInSpotlightStore = signInSpotlightStore,
             )
         }
-        val router = remember(dataProvider, authProvider, mergeStatusReporting) {
+        val router = remember(dataProvider, authProvider, mergeStatusReporting, userId) {
             DashboardRouter(
+                userId = userId,
                 accountConfigurator = AccountConfigurator(dataProvider, authProvider, mergeStatusReporting),
                 settingsConfigurator = SettingsConfigurator(dataProvider, authProvider, maintainerClaimCache),
                 addFoodSheetConfigurator = AddFoodSheetConfigurator(dataProvider, authProvider),
                 foodConsumedDetailConfigurator = FoodConsumedDetailConfigurator(dataProvider, authProvider),
                 bodyWeightHistoryConfigurator = BodyWeightHistoryConfigurator(dataProvider, authProvider),
+                notificationsConfigurator = NotificationsConfigurator(dataProvider, authProvider, maintainerClaimCache),
             )
         }
         val scope = rememberCoroutineScope()

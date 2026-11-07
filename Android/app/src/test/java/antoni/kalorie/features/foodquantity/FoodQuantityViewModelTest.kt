@@ -45,7 +45,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
@@ -530,6 +532,20 @@ class FoodQuantityViewModelTest {
 
         assertEquals(FoodPhotoPillState.AwaitingApproval, sut.photoPillState.value)
         assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onPhotoSent_whenCancelledWhileSending_stillCompletesAndMovesToAwaitingApproval() = runTest {
+        val submit = SlowSubmitPhotoSuggestionUseCase()
+        val sut = makeSUT(item = makeFoodItem(kind = FoodItemKind.CATALOGUE), submitPhotoSuggestion = submit)
+
+        val job = launch { sut.onPhotoSent(byteArrayOf(1)) }
+        yield()
+        job.cancel()
+        advanceUntilIdle()
+
+        assertTrue("leaving the screen must not silently drop a photo the user believes was sent", submit.completed)
+        assertEquals(FoodPhotoPillState.AwaitingApproval, sut.photoPillState.value)
     }
 
     @Test
@@ -1339,5 +1355,14 @@ private class CountingFetchFoodItemByBarcode(
         callCount++
         error?.let { throw it }
         return item
+    }
+}
+
+private class SlowSubmitPhotoSuggestionUseCase : SubmitPhotoSuggestionUseCaseProtocol {
+    var completed = false
+
+    override suspend fun invoke(itemId: String, photo: ByteArray) {
+        delay(1_000)
+        completed = true
     }
 }

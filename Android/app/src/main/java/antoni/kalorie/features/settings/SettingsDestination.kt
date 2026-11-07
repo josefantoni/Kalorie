@@ -6,4 +6,5 @@ sealed interface SettingsDestination {
     data object Support : SettingsDestination
     data object ModerationQueue : SettingsDestination
     data object ModerationReports : SettingsDestination
+    data object ModerationPhotoSuggestions : SettingsDestination
 }

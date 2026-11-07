@@ -169,12 +169,7 @@ private fun FoodPhotoSuggestionPill(onSend: suspend (ByteArray) -> Unit) {
         onDismiss = { isSourceVisible = false },
         onProcessingChange = { isSending = it },
     ) { processed ->
-        isSending = true
-        try {
-            onSend(processed)
-        } finally {
-            isSending = false
-        }
+        onSend(processed)
     }
 }
 

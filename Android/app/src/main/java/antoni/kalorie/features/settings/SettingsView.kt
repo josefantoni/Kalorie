@@ -162,6 +162,9 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
                     is SettingsDestination.ModerationReports -> NavEntry(destination) {
                         router.makeModerationReportsView { viewModel.backStack.remove(destination) }
                     }
+                    is SettingsDestination.ModerationPhotoSuggestions -> NavEntry(destination) {
+                        router.makeModerationPhotoSuggestionsView { viewModel.backStack.remove(destination) }
+                    }
                 }
             },
         )
@@ -433,6 +436,11 @@ private fun SettingsContent(
                                         NavigationRow(
                                             title = stringResource(R.string.moderation_reports_title),
                                             onClick = { viewModel.backStack.add(SettingsDestination.ModerationReports) },
+                                        )
+                                        SectionCardDivider()
+                                        NavigationRow(
+                                            title = stringResource(R.string.moderation_photos_title),
+                                            onClick = { viewModel.backStack.add(SettingsDestination.ModerationPhotoSuggestions) },
                                         )
                                     }
                                 }
