@@ -40,6 +40,8 @@ barcode-keyed `foodItemPortions` collection), [design 0009](design/0009-catalogu
 [design 0012](design/0012-report-incorrect-catalogue-data.md) (`foodItemReports`, keyed by
 `{barcode}_{userId}` rather than a UUID, and why that key shape is the opposite choice from
 `foodItemSubmissions` — see § 7),
+[design 0031](design/0031-community-product-photos-and-notification-bell.md) (`photoSuggestions`, keyed
+by `{itemId}_{userId}`, and the Dashboard bell — see § 7.7),
 [design 0011](design/0011-food-measure-grams-or-millilitres.md) (`measure_unit` on `foodItems`,
 `favouriteFoods` and `foodConsumed`, and why the numbers are never converted between grams and
 millilitres), [design 0019](design/0019-alcoholic-drink-accuracy-hint.md) (`alcohol_by_volume` on
@@ -93,6 +95,7 @@ users/{userId}/settings/app                one document, app-wide user settings 
 users/{userId}/mergedAnonymousAccounts/{uid}  marker: the anonymous account {uid} was merged into this user (§ 6.2)
 foodItemSubmissions/{uuid}                 shared, a user's pending/rejected catalogue submission
 foodItemReports/{barcode}_{userId}         shared, a report that a catalogue entry looks wrong
+photoSuggestions/{itemId}_{userId}         shared, a user's photo suggestion for a photo-less catalogue item
 config/app                                 shared, minimum supported app version per platform (design 0026)
 ```
 
@@ -106,6 +109,7 @@ Firestore; a document only carries the download URL in `photo_url`:
 ```
 submissionPhotos/{uid}/{uuid}.jpg          a user's photo for a pending/rejected submission
 catalogPhotos/{itemId}/{uuid}.jpg          the approved photo of a catalogue item
+photoSuggestions/{uid}/{itemId}.jpg        a user's suggested photo for an existing catalogue item (design 0031)
 ```
 
 Folder names are in `Constants.Storage`. Approving a submission copies the photo from
@@ -445,7 +449,17 @@ Consequences worth knowing before adding a method:
   may only carry a `catalogPhotos%2F…` URL. **The regexes are anchored to the URL without an explicit
   port**: the Firebase iOS SDK returns `…googleapis.com:443/…`, which the rule refuses with a bare
   `permission-denied`, so `StorageDataProvider.uploadAsync` strips the port before the URL is stored.
-- `backend/storage.rules`, deployed via the same `firebase.json`: `submissionPhotos/{uid}/{file}` is
+- `photoSuggestions/{suggestionId}` (design 0031): `read` follows the `foodItemReports` shape (maintainer, the
+  author, and the not-found probe of an id ending in the caller's uid). `create` requires id ==
+  `item_id + '_' + uid`, `suggested_by == uid`, a `photo_url` of at most 1024 characters pointing at the
+  author's own `photoSuggestions/<uid>/<item_id>.jpg`, and a `foodItems` document that exists and has no
+  `photo_url`. `update` is denied; `delete` is the maintainer or the author.
+- `backend/storage.rules`, deployed via the same `firebase.json`: `photoSuggestions/{uid}/{itemId}.jpg` is
+  readable/deletable by its owner or a maintainer, creatable only by the owner for a photo-less existing
+  item (a cross-service `firestore.exists()` / `firestore.get()`, which needs the Storage service agent
+  granted Firestore read access). A create is denied while the `photoSuggestions/{itemId}_{uid}`
+  document exists, even if the file itself is gone, so a pending suggestion's photo can never be
+  overwritten or re-uploaded. `submissionPhotos/{uid}/{file}` is
   readable and deletable by its owner or a maintainer and creatable only by the owner;
   `catalogPhotos/{itemId}/{file}` is readable by any signed-in user and writable/deletable only by a
   maintainer. Every `create` requires `contentType == 'image/jpeg'` and a size under 1 MB. Covered
@@ -552,6 +566,10 @@ ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
 | | `reported_by` | string, the reporter's uid | yes | equal to `request.auth.uid` |
 | | `reason` | string | yes | 1–500 characters |
 | | `reported_at` | number, seconds | yes | number |
+| **`photoSuggestions`** (`PhotoSuggestionDTO`) | `item_id` | string | yes | `validItemId`; with the uid it composes the document id |
+| | `suggested_by` | string, the author's uid | yes | equal to `request.auth.uid` |
+| | `photo_url` | string, download URL | yes | ≤ 1024 characters, the author's own suggestion file for `item_id` |
+| | `suggested_at` | number, seconds | yes | number |
 | **`config/app`** (`AppConfigDTO`) | `min_version_ios` | string, e.g. `1.0.1` | no — absent means no minimum | writes denied; edited in the console |
 | | `min_version_android` | string, e.g. `1.0.1` | no — absent means no minimum | writes denied; edited in the console |
 
@@ -1587,8 +1605,14 @@ with a `LoadingState<Void>.loaded` convenience for the many screens whose succes
 value. Features use `.idle` / `.loading` / `.loaded` and never `.error`; only the auth root uses
 the error case.
 
-`View.loader(_:)` is the shared busy indicator — a `ProgressView` overlay plus
-`allowsHitTesting(!isLoading)`, so a loading screen is inert.
+`View.loader(_:)` is the shared busy indicator — a `LoaderIndicator` overlay plus
+`allowsHitTesting(!isLoading)`, so a loading screen is inert. It is only for the first load of a
+screen: a pull to refresh must not toggle it, because the overlay fights the system refresh control and
+the list does not spring back, so `onRefresh` reloads without touching `state`.
+
+There is one spinner, `AccentProgressView` (`Components/`, a UIKit `UIActivityIndicatorView` in the accent
+colour). `LoaderIndicator` is that spinner on a 50 pt card, and `.loader(_:)` is the card as an overlay.
+A small inline spinner uses `AccentProgressView` directly, never a SwiftUI `ProgressView()`, which is grey.
 
 `Log` (`Core/Utils/Log.swift`) wraps Crashlytics and OSLog behind `Log.error` / `Log.warning`,
 categorised via `Constants.LogCategory`. Most `catch` blocks that don't present an alert still
@@ -1653,6 +1677,7 @@ follows the device locale, including the Czech comma.
   (+ `Helpers/BaseImageName`, an enum of the SF Symbol / asset names in use),
   `BaseDoubleTextField`, `FloatingLabelTextField` (outlined text input with a floating label and an
   optional hint / warning / error message; takes an external `FocusState` binding or owns its own).
+- **Spinner** — `AccentProgressView`, the one busy spinner of the app (§ 5.2).
 - **Domain views** — `FoodItemRow` (a catalogue item plus its favourite heart), `FoodConsumedView`
   (a logged entry: name over weight, calories on the trailing edge), `MacroDonutView`, `FavouriteButton`,
   `DismissToolbarItem`.
@@ -1881,8 +1906,8 @@ itself throwing `requiresRecentLogin`. That second path still exists as a fallba
 where the session goes stale between the check and the call, and is distinguished by
 `dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
 Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods`,
-`myCreatedMeals`, `foodItemPortions`, `bodyWeights`, the `settings/app` and `stats/foodFrequency` documents, the user's own `foodItemSubmissions` and `foodItemReports` documents and the
-`submissionPhotos/{uid}/` folder, document by document. The `mergedAnonymousAccounts` markers are deliberately kept: they carry no personal data and let
+`myCreatedMeals`, `foodItemPortions`, `bodyWeights`, the `settings/app` and `stats/foodFrequency` documents, the user's own `foodItemSubmissions`, `foodItemReports` and `photoSuggestions` documents (found by `submitted_by` / `reported_by` / `suggested_by`) and the
+`submissionPhotos/{uid}/` and `photoSuggestions/{uid}/` folders. The `mergedAnonymousAccounts` markers are deliberately kept: they carry no personal data and let
 the cleanup script still find the abandoned anonymous accounts after the target account is gone. The `users` profile document goes last — the profile delete
 alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
 not the kind of correctness problem an orphaned collection would be.
@@ -1966,7 +1991,9 @@ alerts. On success the sheet shows a one-line confirmation
 
 A submission needs a product photo ([design 0022](design/0022-food-photos.md)). The form holds it as
 `FoodItemFormPhoto` (`none` / `local(Data)` / `remote(URL)`); a picked or captured image is first
-reduced by `FoodPhotoProcessing` (square crop, 1080 px, JPEG 0.7, EXIF dropped). Submit, resubmit,
+reduced by `FoodPhotoProcessing` (square crop, 1080 px, JPEG 0.7, EXIF dropped). Picking the source
+(camera with its permission prompt, or the library), processing and the failure alerts live in one
+`foodPhotoSource` modifier, which `FoodPhotoPicker` and the photo-suggestion pill (§ 7.7) share. Submit, resubmit,
 withdraw and approve all go through `FoodItemSubmissionWriter` and the Upload/DeleteFoodPhoto use
 cases, so the order is always: validate → upload → Firestore write → on failure delete the just
 uploaded object, on success delete the replaced one. A missing photo raises `photoMissing`, a Storage
@@ -2138,6 +2165,47 @@ collection rather than a second write path into `foodItems` — routing a correc
 `foodItemSubmissions` would have meant conditionally lifting `SubmitFoodItemUseCase`'s own
 existence check and bypassing `CreateFoodItemUseCase`'s, the exact guard
 [ADR 0027](adr/0027-catalogue-writes-require-a-maintainer-claim.md) says must not be removed.
+
+### 7.7 Community product photos and the notification bell
+
+**Scope:** `Backend`, `Cross-platform`, `iOS` (Android pending, tracked in `TODO.md`). See
+[design 0031](design/0031-community-product-photos-and-notification-bell.md).
+
+A `.catalogue` item without `photo_url` shows an empty photo pill in the toolbar of `FoodQuantityView` and
+`FoodConsumedDetailView`. The pill state (`FoodPhotoPillState`) is decided only after the catalogue item has
+been fetched (`FoodPhotoSuggesting`), never from a favourite or frequency snapshot, which keeps a stale
+`photo_url`. Tapping it runs the photo pipeline (`FoodPhotoProcessing`) and `SubmitPhotoSuggestionUseCase`,
+which clears the author's own fixed-path file, uploads to `photoSuggestions/{uid}/{itemId}.jpg`, writes
+`photoSuggestions/{itemId}_{uid}` and deletes the file again if that write fails, unless a re-read shows
+that the document was committed anyway. Clearing the path first is needed because Storage denies a
+create while the suggestion document exists (§ 2). A suggestion is pending while its document exists;
+approve and reject both delete it. The pill uses the same photo-source flow as the submission form
+(`foodPhotoSource`, § 7.2).
+
+The maintainer reviews in `ModerationPhotoSuggestionView` (Settings → *Photo suggestions*, or the bell).
+`ApprovePhotoSuggestionUseCase` refuses an item that already has a photo, copies the photo into
+`catalogPhotos` through `UpdateFoodItemUseCase` (the catalogue never links into the private suggestion
+folder) and then removes every user's suggestion for that item (best effort: a failure is logged, and the
+leftover row can only be rejected). Every suggestion removal (approve, reject, `PhotoSuggestionRemover`)
+and account deletion delete files through `StorageDataProviderProtocol.deleteIgnoringMissing`. A file
+that is already gone (`objectNotFound`) is skipped so it cannot keep its document alive. Any other Storage
+error is rethrown and the document is kept, so the removal can be retried.
+
+`NotificationBellViewModel` shows a bell in the Dashboard toolbar for a maintainer; its dot is
+`FetchHasPendingNotificationsUseCase` (three `count()` aggregations, any error means no dot). The claim and
+the dot are refreshed together on appear and foreground, the dot alone on dismissal of the bell sheet or of Settings. The sheet (`NotificationsView`) lists waiting submissions, reports
+(grouped per item) and photo suggestions, newest first, and pushes the existing review screens.
+`FetchPhotoSuggestionsUseCase` loads the newest `reportsPageLimit` (50) suggestions. The bell sheet shows
+them newest first, Settings → *Photo suggestions* oldest first.
+
+`FetchMaintainerClaimUseCase` reads the `maintainer` claim through `AuthProviderProtocol.maintainerClaim`
+and caches it in one `MaintainerClaimCache`. `KalorieApp` creates that cache, and the bell and Settings
+share it, for 5 minutes per uid. Only Settings forces an ID-token refresh once the cache is stale
+(`forcesRefresh: true`), so a newly granted claim shows up there within the cache TTL of the last
+lookup, bell included. The bell runs on every foreground and reads the SDK's cached token instead, so it
+makes no network round trip each time, but its lookup also stamps the shared cache, so a stale `false`
+can be served to Settings for up to 5 minutes. The cost is that a revoked claim can keep the bell visible
+until Firebase refreshes the token itself (about an hour); the rules still deny the reads.
 
 ---
 
