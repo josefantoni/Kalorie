@@ -368,6 +368,84 @@ final class FoodQuantityViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_photoPill_beforeTheCatalogueFetchCompletes_isHiddenNotEmpty() {
+        let sut = makeSUT(item: makeFoodItem(kind: .catalogue))
+        XCTAssertEqual(sut.photoPillState, .hidden, "an empty pill flashing before the fetch would invite a photo for an item that may already have one")
+    }
+
+    @MainActor
+    func test_photoPill_whenTheSnapshotHasNoPhotoButTheCatalogueItemDoes_endsInPhotoNotEmpty() async throws {
+        let photo = try XCTUnwrap(URL(string: "https://example.com/catalogue.jpg"))
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .catalogue),
+            fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseFake(hasSuggestion: false),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeFoodItem(photoURL: photo))
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoPillState, .photo(photo))
+    }
+
+    @MainActor
+    func test_photoPill_whenTheCatalogueItemHasNoPhoto_isEmpty() async {
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .catalogue),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeFoodItem())
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoPillState, .empty)
+    }
+
+    @MainActor
+    func test_photoPill_whenIAlreadySuggestedAPhoto_isAwaitingApproval() async {
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .catalogue),
+            fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseFake(hasSuggestion: true),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeFoodItem())
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoPillState, .awaitingApproval)
+    }
+
+    @MainActor
+    func test_photoPill_whenTheSuggestionReadFails_isHidden() async {
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .catalogue),
+            fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseFake(errorToThrow: URLError(.notConnectedToInternet)),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeFoodItem())
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoPillState, .hidden)
+    }
+
+    @MainActor
+    func test_photoPill_forAnExternalItemWithoutPhoto_neverOffersASuggestion() async {
+        let sut = makeSUT(item: makeFoodItem(kind: .external))
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoPillState, .hidden)
+    }
+
+    @MainActor
+    func test_onPhotoSent_onSuccess_movesToAwaitingApproval() async {
+        let sut = makeSUT(item: makeFoodItem(kind: .catalogue))
+        await sut.onPhotoSent(Data([1]))
+        XCTAssertEqual(sut.photoPillState, .awaitingApproval)
+        XCTAssertNil(sut.alertItem)
+    }
+
+    @MainActor
+    func test_onPhotoSent_onFailure_staysWhereItWasAndAlerts() async {
+        let sut = makeSUT(
+            item: makeFoodItem(kind: .catalogue),
+            submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseFake(errorToThrow: URLError(.timedOut)),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeFoodItem())
+        )
+        await sut.onAppear()
+        await sut.onPhotoSent(Data([1]))
+        XCTAssertEqual(sut.photoPillState, .empty)
+        XCTAssertNotNil(sut.alertItem)
+    }
+
+    @MainActor
     func test_onAppear_calledAgain_doesNotLookUpThePhotoTwice() async throws {
         let photo = try XCTUnwrap(URL(string: "https://example.com/catalogue.jpg"))
         let lookup = CountingFetchFoodItemByBarcodeFake(item: makeFoodItem(photoURL: photo))
@@ -849,6 +927,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
         saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol = SaveFoodItemPersonalPortionsUseCaseFake(),
         fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
+        fetchMyPhotoSuggestion: any FetchMyPhotoSuggestionUseCaseProtocol = FetchMyPhotoSuggestionUseCaseFake(),
+        submitPhotoSuggestion: any SubmitPhotoSuggestionUseCaseProtocol = SubmitPhotoSuggestionUseCaseFake(),
         meal: MyCreatedMealDomain? = nil,
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
@@ -873,6 +953,8 @@ final class FoodQuantityViewModelTests: XCTestCase {
             saveFoodItemPersonalPortions: saveFoodItemPersonalPortions,
             fetchMyFoodItemReport: fetchMyFoodItemReport,
             submitFoodItemReport: submitFoodItemReport,
+            fetchMyPhotoSuggestion: fetchMyPhotoSuggestion,
+            submitPhotoSuggestion: submitPhotoSuggestion,
             meal: meal,
             updateMyCreatedMeal: updateMyCreatedMeal,
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,

@@ -13,6 +13,7 @@ struct DashboardView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: DashboardViewModel
+    @StateObject private var notificationBell: NotificationBellViewModel
     private static let addFoodFirstRestSeconds = 12
     private static let addFoodRepeatRestSeconds = 20
     private static let addFoodPulseInterval = 4
@@ -36,6 +37,7 @@ struct DashboardView: View {
 
     init(viewModel: DashboardViewModel, router: DashboardRouter) {
         self._viewModel = StateObject(wrappedValue: viewModel)
+        self._notificationBell = StateObject(wrappedValue: router.makeNotificationBellViewModel())
         self.router = router
     }
 
@@ -110,6 +112,24 @@ struct DashboardView: View {
                     }
                     .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { accountButtonFrame = $0 }
                 }
+                if notificationBell.isBellVisible {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            notificationBell.onBellTapped()
+                        } label: {
+                            Image(systemName: BaseImageName.bell.rawValue)
+                                .overlay(alignment: .topTrailing) {
+                                    if notificationBell.hasPendingNotifications {
+                                        Circle()
+                                            .fill(Color.error)
+                                            .frame(width: 9, height: 9)
+                                            .offset(x: 3, y: -2)
+                                    }
+                                }
+                        }
+                        .accessibilityLabel(L10n.Notifications.bellAccessibility)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         viewModel.showSettings.toggle()
@@ -119,7 +139,15 @@ struct DashboardView: View {
                     .accessibilityLabel(L10n.Dashboard.buttonSettings)
                 }
             }
+            .sheet(isPresented: $notificationBell.isSheetVisible) {
+                Task { await notificationBell.onSheetDismissed() }
+            } content: {
+                router.makeNotificationsView()
+                    .dynamicTypeLimit()
+            }
             .sheet(isPresented: $viewModel.showSettings) {
+                Task { await notificationBell.onSheetDismissed() }
+            } content: {
                 router.makeSettingsView(
                     mealTypes: viewModel.mealTypes,
                     appSettings: viewModel.appSettings,
@@ -164,6 +192,9 @@ struct DashboardView: View {
             .task {
                 await viewModel.onAppear()
             }
+            .task {
+                await notificationBell.onAppear()
+            }
             .task(id: isAddFoodSequenceActive) {
                 await runAddFoodSequence()
             }
@@ -172,6 +203,7 @@ struct DashboardView: View {
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     Task { await viewModel.onForeground() }
+                    Task { await notificationBell.onForeground() }
                 }
             }
         }
@@ -498,7 +530,7 @@ struct DashboardView: View {
 // MARK: - Preview
 
 #Preview {
-    DashboardConfigurator().createView(mergeStatusReporting: MergeStatusReportingFake())
+    DashboardConfigurator(maintainerClaimCache: MaintainerClaimCache()).createView(mergeStatusReporting: MergeStatusReportingFake())
 }
 
 #Preview {
@@ -598,7 +630,12 @@ struct DashboardView: View {
             addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
             foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
             accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: MergeStatusReportingFake()),
-            bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator(dataProvider: dataProvider, authProvider: authProvider)
+            bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator(dataProvider: dataProvider, authProvider: authProvider),
+            notificationsConfigurator: NotificationsConfigurator(
+                dataProvider: dataProvider,
+                authProvider: authProvider,
+                maintainerClaimCache: MaintainerClaimCache()
+            )
         )
     )
 }

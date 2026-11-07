@@ -26,7 +26,13 @@ enum UpdateFoodItemError: Error {
 }
 
 protocol UpdateFoodItemUseCaseProtocol {
-    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) async throws
+    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Bool) async throws
+}
+
+extension UpdateFoodItemUseCaseProtocol {
+    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) async throws {
+        try await callAsFunction(item, previouslyLoaded: previouslyLoaded, photo: photo, validate: true)
+    }
 }
 
 struct UpdateFoodItemUseCase: UpdateFoodItemUseCaseProtocol {
@@ -60,9 +66,9 @@ struct UpdateFoodItemUseCase: UpdateFoodItemUseCaseProtocol {
     // foodItems has no submitted_at-like field to reuse as a token, so this re-reads and compares
     // the full document instead, client-side only (no firestore.rules enforcement, same trust
     // boundary ADR 0029 already accepted for ApproveSubmissionUseCase's own re-read).
-    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) async throws {
+    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Bool) async throws {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
-        if let validationError = FoodItemValidation.validate(item) {
+        if validate, let validationError = FoodItemValidation.validate(item) {
             throw UpdateFoodItemError(validationError)
         }
         let current: FoodItemDTO? = try await dataProvider.loadAsync(id: item.id, from: Constants.Firestore.foodItems)
@@ -95,7 +101,7 @@ struct UpdateFoodItemUseCaseFake: UpdateFoodItemUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto) async throws {
+    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Bool) async throws {
         if let errorToThrow { throw errorToThrow }
     }
 }

@@ -57,6 +57,7 @@ enum Constants {
     enum Storage {
         static let submissionPhotosFolder = "submissionPhotos"
         static let catalogPhotosFolder = "catalogPhotos"
+        static let photoSuggestionsFolder = "photoSuggestions"
         static let photoContentType = "image/jpeg"
         static let maxDownloadBytes: Int64 = 5 * 1024 * 1024
         static let photoCacheControl = "public, max-age=31536000, immutable"
@@ -134,6 +135,7 @@ enum Constants {
         static let foodItems = "foodItems"
         static let foodItemSubmissions = "foodItemSubmissions"
         static let foodItemReports = "foodItemReports"
+        static let photoSuggestions = "photoSuggestions"
         static let config = "config"
         static let appConfigDocumentId = "app"
         static let users = "users"
@@ -155,6 +157,9 @@ enum Constants {
             static let submittedAt = "submitted_at"
             static let reportedBy = "reported_by"
             static let reportedAt = "reported_at"
+            static let suggestedAt = "suggested_at"
+            static let suggestedBy = "suggested_by"
+            static let itemId = "item_id"
             static let favouritedAt = "favourited_at"
             static let updatedAt = "updated_at"
             static let status = "status"

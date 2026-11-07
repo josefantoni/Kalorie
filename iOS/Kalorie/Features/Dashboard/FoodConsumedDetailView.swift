@@ -128,7 +128,7 @@ struct FoodConsumedDetailView: View {
                 .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxX } action: { nutritionHeaderMaxX = $0 }
             }
         }
-        .foodPhotoThumbnail(url: viewModel.photoURL)
+        .foodPhotoPill(state: viewModel.photoPillState) { data in await viewModel.onPhotoSent(data) }
         .loader(viewModel.state.isLoading)
         .task { await viewModel.onAppear() }
         .keyboardDoneToolbar(isVisible: isWeightFocused)
@@ -226,6 +226,8 @@ struct FoodConsumedDetailView: View {
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
                 fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
                 submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
+                fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseFake(),
+                submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseFake(),
                 deleteFoodConsumed: DeleteFoodConsumedUseCaseFake()
             ) {}
         )

@@ -444,6 +444,7 @@ private final class AuthProviderMutableFake: AuthProviderProtocol {
 
     func currentSessionProviderKind() async -> AuthProviderKind? { nil }
     func currentAuthenticationDate() async -> Date? { .now }
+    func maintainerClaim(forcingRefresh: Bool) async throws -> Bool { false }
 }
 
 private struct SignInUseCaseStub: SignInWithAppleUseCaseProtocol, SignInWithGoogleUseCaseProtocol {

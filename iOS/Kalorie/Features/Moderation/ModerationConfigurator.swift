@@ -36,26 +36,30 @@ struct ModerationConfigurator {
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider)
             ),
             makeReviewView: { [self] submission, onResolved in
-                ModerationReviewView(
-                    viewModel: ModerationReviewViewModel(
-                        submission: submission,
-                        approveSubmission: ApproveSubmissionUseCase(
-                            dataProvider: dataProvider,
-                            authProvider: authProvider,
-                            createFoodItem: CreateFoodItemUseCase(dataProvider: dataProvider),
-                            downloadFoodPhoto: DownloadFoodPhotoUseCase(storageProvider: storageProvider),
-                            uploadFoodPhoto: UploadFoodPhotoUseCase(storageProvider: storageProvider),
-                            deleteFoodPhoto: DeleteFoodPhotoUseCase(storageProvider: storageProvider)
-                        ),
-                        rejectSubmission: RejectSubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                        searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
-                        modelExtractor: FoundationModelExtractor(),
-                        cameraAuthorizationProvider: CameraAuthorizationProvider(),
-                        onResolved: onResolved
-                    )
-                )
+                makeReviewView(submission: submission, onResolved: onResolved)
             },
             makeCatalogueEditorView: { [self] barcode in makeCatalogueEditorView(initialBarcode: barcode) }
+        )
+    }
+
+    func makeReviewView(submission: FoodItemSubmissionDomain, onResolved: @escaping () -> Void) -> ModerationReviewView {
+        ModerationReviewView(
+            viewModel: ModerationReviewViewModel(
+                submission: submission,
+                approveSubmission: ApproveSubmissionUseCase(
+                    dataProvider: dataProvider,
+                    authProvider: authProvider,
+                    createFoodItem: CreateFoodItemUseCase(dataProvider: dataProvider),
+                    downloadFoodPhoto: DownloadFoodPhotoUseCase(storageProvider: storageProvider),
+                    uploadFoodPhoto: UploadFoodPhotoUseCase(storageProvider: storageProvider),
+                    deleteFoodPhoto: DeleteFoodPhotoUseCase(storageProvider: storageProvider)
+                ),
+                rejectSubmission: RejectSubmissionUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                searchFoodItems: SearchFoodItemsUseCase(dataProvider: dataProvider),
+                modelExtractor: FoundationModelExtractor(),
+                cameraAuthorizationProvider: CameraAuthorizationProvider(),
+                onResolved: onResolved
+            )
         )
     }
 
@@ -71,9 +75,48 @@ struct ModerationConfigurator {
         }
     }
 
+    func createPhotoSuggestionsView() -> ModerationPhotoSuggestionsView {
+        ModerationPhotoSuggestionsView(
+            viewModel: ModerationPhotoSuggestionsViewModel(
+                fetchPhotoSuggestions: FetchPhotoSuggestionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider)
+            )
+        ) { [self] suggestion, onResolved in
+            makePhotoSuggestionView(suggestion: suggestion, onResolved: onResolved)
+        }
+    }
+
+    func makePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: @escaping () -> Void) -> ModerationPhotoSuggestionView {
+        ModerationPhotoSuggestionView(
+            viewModel: ModerationPhotoSuggestionViewModel(
+                suggestion: suggestion,
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
+                approvePhotoSuggestion: ApprovePhotoSuggestionUseCase(
+                    dataProvider: dataProvider,
+                    authProvider: authProvider,
+                    storageProvider: storageProvider,
+                    fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
+                    downloadFoodPhoto: DownloadFoodPhotoUseCase(storageProvider: storageProvider),
+                    updateFoodItem: UpdateFoodItemUseCase(
+                        dataProvider: dataProvider,
+                        authProvider: authProvider,
+                        uploadFoodPhoto: UploadFoodPhotoUseCase(storageProvider: storageProvider),
+                        deleteFoodPhoto: DeleteFoodPhotoUseCase(storageProvider: storageProvider)
+                    )
+                ),
+                rejectPhotoSuggestion: RejectPhotoSuggestionUseCase(
+                    dataProvider: dataProvider,
+                    authProvider: authProvider,
+                    storageProvider: storageProvider
+                ),
+                onResolved: onResolved
+            )
+        )
+    }
+
     // MARK: - Private
 
-    private func makeCatalogueEditorView(
+    func makeCatalogueEditorView(
         initialBarcode: String?,
         reports: [FoodItemReportDomain] = []
     ) -> ModerationCatalogueEditorView {

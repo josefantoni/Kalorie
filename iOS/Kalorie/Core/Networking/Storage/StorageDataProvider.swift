@@ -13,7 +13,31 @@ protocol StorageDataProviderProtocol {
     func uploadAsync(data: Data, path: String, contentType: String) async throws -> URL
     func downloadAsync(url: URL) async throws -> Data
     func deleteAsync(url: URL) async throws
+    func deleteAsync(path: String) async throws
     func listAsync(prefix: String) async throws -> [URL]
+}
+
+extension StorageDataProviderProtocol {
+    func deleteIgnoringMissing(url: URL, category: String) async throws {
+        do {
+            try await deleteAsync(url: url)
+        } catch {
+            try Self.rethrowUnlessMissing(error, category: category)
+        }
+    }
+
+    func deleteIgnoringMissing(path: String, category: String) async throws {
+        do {
+            try await deleteAsync(path: path)
+        } catch {
+            try Self.rethrowUnlessMissing(error, category: category)
+        }
+    }
+
+    private static func rethrowUnlessMissing(_ error: Error, category: String) throws {
+        guard error.matches(domain: StorageErrorDomain, code: StorageErrorCode.objectNotFound.rawValue) else { throw error }
+        Log.warning(error, category: category)
+    }
 }
 
 struct StorageDataProvider: StorageDataProviderProtocol {
@@ -60,6 +84,17 @@ struct StorageDataProvider: StorageDataProviderProtocol {
         }
     }
 
+    func deleteAsync(path: String) async throws {
+        log("🚀 DELETE \(path)")
+        do {
+            try await Storage.storage().reference(withPath: path).delete()
+            log("✅ DELETE \(path)")
+        } catch {
+            logFailure("❌ DELETE \(path)", error: error)
+            throw error
+        }
+    }
+
     func listAsync(prefix: String) async throws -> [URL] {
         log("🚀 LIST \(prefix)")
         do {
@@ -89,6 +124,7 @@ final class StorageDataProviderFake: StorageDataProviderProtocol {
     var listError: Error?
     private(set) var uploadedPaths: [String] = []
     private(set) var deletedURLs: [URL] = []
+    private(set) var deletedPaths: [String] = []
 
     // MARK: - Functions
 
@@ -112,6 +148,15 @@ final class StorageDataProviderFake: StorageDataProviderProtocol {
         if let deleteError { throw deleteError }
         files[url] = nil
         deletedURLs.append(url)
+    }
+
+    func deleteAsync(path: String) async throws {
+        if let deleteError { throw deleteError }
+        let encodedPath = path.replacingOccurrences(of: "/", with: "%2F")
+        for url in files.keys where url.absoluteString == "https://storage.fake/\(encodedPath)" {
+            files[url] = nil
+        }
+        deletedPaths.append(path)
     }
 
     func listAsync(prefix: String) async throws -> [URL] {

@@ -22,7 +22,7 @@ enum FoodQuantityUnit: Hashable {
     }
 }
 
-final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItemReporting {
+final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItemReporting, FoodPhotoSuggesting {
 
     // MARK: - Properties
 
@@ -43,7 +43,7 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     @Published var isReportReasonAlertVisible = false
     @Published var reportReasonText = ""
     @Published var isAlcoholHintPopoverVisible = false
-    @Published private(set) var photoURL: URL?
+    @Published var photoPillState: FoodPhotoPillState = .hidden
 
     let item: FoodItemDomain
     private var meal: MyCreatedMealDomain?
@@ -56,6 +56,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
     private let saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol
     private let fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol
     private let submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol
+    private let fetchMyPhotoSuggestion: any FetchMyPhotoSuggestionUseCaseProtocol
+    private let submitPhotoSuggestion: any SubmitPhotoSuggestionUseCaseProtocol
     private let updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
@@ -99,6 +101,10 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         (item.alcoholByVolume ?? 0).formattedPercentage()
     }
 
+    var photoURL: URL? {
+        if case .photo(let url) = photoPillState { url } else { nil }
+    }
+
     var unitOptions: [FoodQuantityUnit] {
         let ownPortions = meal == nil ? item.portions : []
         return personalPortions.map(FoodQuantityUnit.portion) + ownPortions.map(FoodQuantityUnit.portion) + [.grams, .hundredGrams]
@@ -120,6 +126,8 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         saveFoodItemPersonalPortions: any SaveFoodItemPersonalPortionsUseCaseProtocol,
         fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol,
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol,
+        fetchMyPhotoSuggestion: any FetchMyPhotoSuggestionUseCaseProtocol,
+        submitPhotoSuggestion: any SubmitPhotoSuggestionUseCaseProtocol,
         meal: MyCreatedMealDomain?,
         updateMyCreatedMeal: any UpdateMyCreatedMealUseCaseProtocol,
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
@@ -144,11 +152,13 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         self.saveFoodItemPersonalPortions = saveFoodItemPersonalPortions
         self.fetchMyFoodItemReport = fetchMyFoodItemReport
         self.submitFoodItemReport = submitFoodItemReport
+        self.fetchMyPhotoSuggestion = fetchMyPhotoSuggestion
+        self.submitPhotoSuggestion = submitPhotoSuggestion
         self.meal = meal
         self.updateMyCreatedMeal = updateMyCreatedMeal
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
-        self.photoURL = item.photoURL
+        self.photoPillState = item.photoURL.map(FoodPhotoPillState.photo) ?? .hidden
         self.personalPortions = meal?.portions ?? []
         self.onSaved = onSaved
         self.onFavouriteChanged = onFavouriteChanged
@@ -205,9 +215,12 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         do {
             switch item.kind {
             case .catalogue:
-                photoURL = try await fetchFoodItemByBarcode(barcode: item.id)?.photoURL
+                let fetchedItem = try await fetchFoodItemByBarcode(barcode: item.id)
+                await resolveCataloguePhotoPill(fetchedItem: fetchedItem, fetchMyPhotoSuggestion: fetchMyPhotoSuggestion)
             case .external:
-                photoURL = try await fetchFoodByBarcodeExternally(barcode: item.id)?.photoURL
+                if let url = try await fetchFoodByBarcodeExternally(barcode: item.id)?.photoURL {
+                    photoPillState = .photo(url)
+                }
             case .createdMeal:
                 break
             }
@@ -215,6 +228,11 @@ final class FoodQuantityViewModel: ObservableObject, FavouriteToggling, FoodItem
         } catch {
             Log.warning(error, category: Constants.LogCategory.foodQuantity)
         }
+    }
+
+    @MainActor
+    func onPhotoSent(_ photo: Data) async {
+        await onPhotoSent(photo, itemId: item.id, submitPhotoSuggestion: submitPhotoSuggestion)
     }
 
     @MainActor

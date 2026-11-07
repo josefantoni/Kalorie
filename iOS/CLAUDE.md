@@ -271,6 +271,8 @@ The deployment target is iOS 26 — use Liquid Glass without `@available` condit
 - **Add a row** (new portion, new meal in the settings layout) is `BadgeButton(imageName: .plus)`.
 - **A button inside a text field** (barcode scan next to search, the barcode field) is passed as `FloatingLabelTextField(..., trailingButton: BadgeButton(imageName:) { … })`. The field overlays it centred on the title + text block and reserves trailing space for it, so it never adds height — the row stays at the 52 pt of a plain field. Never put the field and a button side by side in an `HStack`.
 
+**Spinner** — there is one spinner, `AccentProgressView()` (`Components/AccentProgressView.swift`, a UIKit indicator in the accent colour). Use it bare for a small spot (a button, a pill, a row), never a SwiftUI `ProgressView()`, which is grey. `LoaderIndicator` is the same spinner on a 50 pt card, and `.loader(_:)` is that card as a full-screen overlay. The white determinate bar over the camera is the one deliberate exception.
+
 **Several `PrimaryButton`s stacked in a `List`** — each in its own `Section` with `.listRowInsets(EdgeInsets())` and `.listRowBackground(Color.clear)` (see `ModerationReviewView.swift`), no extra `.padding` and no non-zero `.listRowInsets` around the button. Any "empty" gap inside the row exposes the Liquid Glass shadow/material on a colour that does not match the List's real background (even a manual `Color(uiColor: .systemGroupedBackground)` on `.listRowBackground` fixes it unreliably) — a visible coloured fringe appears around the button. Handle the gap between buttons with `.listSectionSpacing(.custom(_:))` on the following `Section`, not with padding/insets inside the row.
 
 ## App Check debug tokens

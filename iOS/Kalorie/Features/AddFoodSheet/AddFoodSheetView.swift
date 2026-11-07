@@ -475,6 +475,8 @@ struct AddFoodSheetView: View {
                     saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
                     fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
                     submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
+                    fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseFake(),
+                    submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseFake(),
                     meal: meal,
                     updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
                     fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),

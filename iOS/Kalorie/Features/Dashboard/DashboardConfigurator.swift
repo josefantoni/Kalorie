@@ -9,6 +9,10 @@ import Foundation
 
 struct DashboardConfigurator {
 
+    // MARK: - Properties
+
+    let maintainerClaimCache: MaintainerClaimCache
+
     // MARK: - Functions
 
     func createView(mergeStatusReporting: any MergeStatusReporting) -> DashboardView {
@@ -31,11 +35,16 @@ struct DashboardConfigurator {
                 signInSpotlightStore: SignInSpotlightStore()
             ),
             router: DashboardRouter(
-                settingsConfigurator: SettingsConfigurator(),
+                settingsConfigurator: SettingsConfigurator(maintainerClaimCache: maintainerClaimCache),
                 addFoodSheetConfigurator: AddFoodSheetConfigurator(dataProvider: dataProvider, authProvider: authProvider),
                 foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator(dataProvider: dataProvider, authProvider: authProvider),
                 accountConfigurator: AccountConfigurator(dataProvider: dataProvider, authProvider: authProvider, mergeStatusReporting: mergeStatusReporting),
-                bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator(dataProvider: dataProvider, authProvider: authProvider)
+                bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator(dataProvider: dataProvider, authProvider: authProvider),
+                notificationsConfigurator: NotificationsConfigurator(
+                    dataProvider: dataProvider,
+                    authProvider: authProvider,
+                    maintainerClaimCache: maintainerClaimCache
+                )
             )
         )
     }

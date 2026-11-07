@@ -92,7 +92,7 @@ struct FoodQuantityView: View {
                 onDeleteMealConfirmed?()
             }
         }
-        .foodPhotoThumbnail(url: viewModel.photoURL)
+        .foodPhotoPill(state: viewModel.photoPillState) { data in await viewModel.onPhotoSent(data) }
         .loader(viewModel.state.isLoading)
         .alert(item: $viewModel.alertItem) { item in
             Alert(
@@ -300,6 +300,8 @@ struct FoodQuantityView: View {
                 saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCaseFake(),
                 fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
                 submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
+                fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseFake(),
+                submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseFake(),
                 meal: nil,
                 updateMyCreatedMeal: UpdateMyCreatedMealUseCaseFake(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),

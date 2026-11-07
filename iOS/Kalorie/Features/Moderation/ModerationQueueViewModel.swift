@@ -35,18 +35,12 @@ final class ModerationQueueViewModel: ObservableObject {
     func onAppear() async {
         state = .loading
         defer { state = .loaded }
-        do {
-            submissions = try await fetchPendingSubmissions()
-            await refreshCollisions()
-        } catch {
-            Log.error(error, category: Constants.LogCategory.moderation)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
-        }
+        await load()
     }
 
     @MainActor
     func onRefresh() async {
-        await onAppear()
+        await load()
     }
 
     @MainActor
@@ -61,6 +55,17 @@ final class ModerationQueueViewModel: ObservableObject {
     }
 
     // MARK: - Private
+
+    @MainActor
+    private func load() async {
+        do {
+            submissions = try await fetchPendingSubmissions()
+            await refreshCollisions()
+        } catch {
+            Log.error(error, category: Constants.LogCategory.moderation)
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+        }
+    }
 
     @MainActor
     private func refreshCollisions() async {

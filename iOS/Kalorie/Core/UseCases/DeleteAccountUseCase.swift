@@ -6,6 +6,7 @@
 //
 
 import FirebaseAuth
+import FirebaseStorage
 import Foundation
 
 enum DeleteAccountError: Error {
@@ -148,8 +149,20 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         // orphans left by earlier failed writes. catalogPhotos is shared catalogue content and stays.
         let photoURLs = try await storageProvider.listAsync(prefix: "\(Constants.Storage.submissionPhotosFolder)/\(userId)")
         for url in photoURLs {
-            try await storageProvider.deleteAsync(url: url)
+            try await storageProvider.deleteIgnoringMissing(url: url, category: Constants.LogCategory.account)
         }
+
+        let suggestionURLs = try await storageProvider.listAsync(prefix: "\(Constants.Storage.photoSuggestionsFolder)/\(userId)")
+        for url in suggestionURLs {
+            try await storageProvider.deleteIgnoringMissing(url: url, category: Constants.LogCategory.account)
+        }
+
+        let suggestionIds = try await dataProvider.loadDocumentIdsAsync(
+            from: Constants.Firestore.photoSuggestions,
+            where: Constants.Firestore.Field.suggestedBy,
+            isEqualTo: userId
+        )
+        try await dataProvider.batchDeleteAsync(ids: suggestionIds, from: Constants.Firestore.photoSuggestions)
 
         let reportIds = try await dataProvider.loadDocumentIdsAsync(
             from: Constants.Firestore.foodItemReports,

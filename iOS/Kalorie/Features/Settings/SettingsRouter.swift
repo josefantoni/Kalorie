@@ -44,4 +44,8 @@ struct SettingsRouter {
     func makeModerationReportsView() -> ModerationReportsView {
         moderationConfigurator.createReportsView()
     }
+
+    func makeModerationPhotoSuggestionsView() -> ModerationPhotoSuggestionsView {
+        moderationConfigurator.createPhotoSuggestionsView()
+    }
 }
