@@ -27,18 +27,15 @@ final class ModerationReportsViewModel: ObservableObject {
 
     private let fetchFoodItemReports: any FetchFoodItemReportsUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
-    private let deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol
 
     // MARK: - Init
 
     init(
         fetchFoodItemReports: any FetchFoodItemReportsUseCaseProtocol,
-        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
-        deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol
+        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     ) {
         self.fetchFoodItemReports = fetchFoodItemReports
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
-        self.deleteFoodItemReport = deleteFoodItemReport
     }
 
     // MARK: - Functions
@@ -56,24 +53,14 @@ final class ModerationReportsViewModel: ObservableObject {
     }
 
     @MainActor
-    func onResolveTapped(_ group: ReportGroup) async {
-        var remainingReports: [FoodItemReportDomain] = []
-        for report in group.reports {
-            do {
-                try await deleteFoodItemReport(barcode: report.barcode, reportedBy: report.reportedBy)
-            } catch {
-                Log.error(error, category: Constants.LogCategory.moderation)
-                remainingReports.append(report)
-            }
-        }
-        guard !remainingReports.isEmpty else {
-            groups.removeAll { $0.barcode == group.barcode }
+    func onGroupReportsChanged(barcode: String, remaining: [FoodItemReportDomain]) {
+        guard let index = groups.firstIndex(where: { $0.barcode == barcode }) else { return }
+        guard !remaining.isEmpty else {
+            groups.remove(at: index)
             return
         }
-        if let index = groups.firstIndex(where: { $0.barcode == group.barcode }) {
-            groups[index] = ReportGroup(barcode: group.barcode, itemName: group.itemName, reports: remainingReports)
-        }
-        alertItem = AlertItem(title: L10n.Common.errorUnknown)
+        let group = groups[index]
+        groups[index] = ReportGroup(barcode: barcode, itemName: group.itemName, reports: remaining)
     }
 
     // MARK: - Private

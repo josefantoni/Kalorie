@@ -12,22 +12,21 @@ struct ModerationCatalogueEditorView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: ModerationCatalogueEditorViewModel
-    private let reports: [FoodItemReportDomain]
+    @Environment(\.dismiss) private var dismiss
 
     // MARK: - Init
 
-    init(viewModel: ModerationCatalogueEditorViewModel, reports: [FoodItemReportDomain] = []) {
+    init(viewModel: ModerationCatalogueEditorViewModel) {
         self._viewModel = StateObject(wrappedValue: viewModel)
-        self.reports = reports
     }
 
     // MARK: - Body
 
     var body: some View {
         List {
-            if !reports.isEmpty {
+            if !viewModel.reports.isEmpty {
                 Section(L10n.Moderation.reportsTitle) {
-                    ForEach(reports, id: \.reportedBy) { report in
+                    ForEach(viewModel.reports, id: \.reportedBy) { report in
                         Text(report.reason)
                             .fontWeight(.medium)
                     }
@@ -59,17 +58,23 @@ struct ModerationCatalogueEditorView: View {
                     viewModel.onFormFieldEdited(field)
                 }
             }
+            if viewModel.isOpenedFromReport {
+                saveAndResolveButtonSection
+                rejectButtonSection
+            }
         }
         .navigationTitle(L10n.Moderation.editorTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                SaveToolbarButton(
-                    title: L10n.Moderation.buttonSave,
-                    showCheckmark: viewModel.showCheckmark,
-                    isEnabled: viewModel.loadedItem != nil && !viewModel.state.isLoading
-                ) {
-                    Task { await viewModel.onSaveTapped() }
+            if !viewModel.isOpenedFromReport {
+                ToolbarItem(placement: .topBarTrailing) {
+                    SaveToolbarButton(
+                        title: L10n.Moderation.buttonSave,
+                        showCheckmark: viewModel.showCheckmark,
+                        isEnabled: viewModel.loadedItem != nil && !viewModel.state.isLoading
+                    ) {
+                        Task { await viewModel.onSaveTapped() }
+                    }
                 }
             }
         }
@@ -92,6 +97,36 @@ struct ModerationCatalogueEditorView: View {
                 dismissButton: .default(Text(L10n.Common.ok))
             )
         }
+        .onChange(of: viewModel.shouldDismiss) {
+            if viewModel.shouldDismiss { dismiss() }
+        }
+    }
+
+    // MARK: - Functions
+
+    private var saveAndResolveButtonSection: some View {
+        Section {
+            PrimaryButton(L10n.Moderation.buttonSaveAndResolve) {
+                Task { await viewModel.onSaveAndResolveTapped() }
+            }
+            .disabled(viewModel.loadedItem == nil || viewModel.state.isLoading)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        }
+    }
+
+    private var rejectButtonSection: some View {
+        Section {
+            PrimaryButton(L10n.Moderation.buttonReject, style: .destructive) {
+                Task { await viewModel.onRejectTapped() }
+            }
+            .disabled(viewModel.state.isLoading)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+        }
+        .listSectionSpacing(.custom(8))
     }
 }
 
@@ -104,6 +139,7 @@ struct ModerationCatalogueEditorView: View {
             viewModel: ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                 updateFoodItem: UpdateFoodItemUseCaseFake(),
+                deleteFoodItemReport: DeleteFoodItemReportUseCaseFake(),
                 modelExtractor: NutritionLabelModelExtractorFake(),
                 cameraAuthorizationProvider: CameraAuthorizationProviderFake()
             )

@@ -81,6 +81,15 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
         XCTAssertEqual(storage.files.count, 1)
     }
 
+    func test_update_withLocalPhoto_returnsTheItemExactlyAsStored() async throws {
+        let (sut, dataProvider, storage) = makeSUT()
+        let item = makeItem()
+        dataProvider.currentDocument = FoodItemDTO(item: item)
+        let saved = try await sut(item, previouslyLoaded: FoodItemDTO(item: item).asDomain(), photo: .local(Data([1, 2])))
+        XCTAssertEqual(saved.photoURL, storage.files.keys.first, "the caller needs the uploaded URL to edit the same document again without a changedSinceLoad")
+        XCTAssertEqual(saved, dataProvider.writtenDTO?.asDomain())
+    }
+
     func test_update_whenTheWriteFails_keepsThePreviousFileAndDropsTheNewOne() async throws {
         let (sut, dataProvider, storage) = makeSUT()
         let old = try await storage.uploadAsync(data: Data([9]), path: "catalogPhotos/12345678/old.jpg", contentType: "image/jpeg")
@@ -140,6 +149,7 @@ private final class UpdateFoodItemDataProviderFake: FirestoreDataProviderProtoco
     var writtenId: String?
     var currentDocument: FoodItemDTO?
     var writeError: Error?
+    var writtenDTO: FoodItemDTO?
 
     // MARK: - Functions
 
@@ -159,6 +169,7 @@ private final class UpdateFoodItemDataProviderFake: FirestoreDataProviderProtoco
         didWrite = true
         writtenCollection = collection
         writtenId = id
+        writtenDTO = item as? FoodItemDTO
     }
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
     func deleteAsync(id: String, from collection: String) async throws {}

@@ -34,7 +34,6 @@ final class NotificationsViewModel: ObservableObject {
     private let fetchFoodItemReports: any FetchFoodItemReportsUseCaseProtocol
     private let fetchPhotoSuggestions: any FetchPhotoSuggestionsUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
-    private let deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol
 
     // MARK: - Init
 
@@ -42,14 +41,12 @@ final class NotificationsViewModel: ObservableObject {
         fetchPendingSubmissions: any FetchPendingSubmissionsUseCaseProtocol,
         fetchFoodItemReports: any FetchFoodItemReportsUseCaseProtocol,
         fetchPhotoSuggestions: any FetchPhotoSuggestionsUseCaseProtocol,
-        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
-        deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol
+        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     ) {
         self.fetchPendingSubmissions = fetchPendingSubmissions
         self.fetchFoodItemReports = fetchFoodItemReports
         self.fetchPhotoSuggestions = fetchPhotoSuggestions
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
-        self.deleteFoodItemReport = deleteFoodItemReport
     }
 
     // MARK: - Functions
@@ -72,22 +69,17 @@ final class NotificationsViewModel: ObservableObject {
     }
 
     @MainActor
-    func onResolveReportsTapped(_ row: Row) async {
-        guard case .report(_, let reports) = row.kind else { return }
-        var hasFailed = false
-        for report in reports {
-            do {
-                try await deleteFoodItemReport(barcode: report.barcode, reportedBy: report.reportedBy)
-            } catch {
-                Log.error(error, category: Constants.LogCategory.moderation)
-                hasFailed = true
-            }
+    func onReportRowChanged(id: String, remaining: [FoodItemReportDomain]) {
+        guard let index = rows.firstIndex(where: { $0.id == id }) else { return }
+        guard
+            !remaining.isEmpty,
+            case .report(let barcode, _) = rows[index].kind
+        else {
+            rows.remove(at: index)
+            return
         }
-        if hasFailed {
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
-        } else {
-            onRowResolved(id: row.id)
-        }
+        let row = rows[index]
+        rows[index] = Row(id: row.id, kind: .report(barcode: barcode, reports: remaining), title: row.title, date: row.date)
     }
 
     // MARK: - Private
@@ -147,12 +139,12 @@ final class NotificationsViewModel: ObservableObject {
                 id: "report-\(barcode)",
                 kind: .report(barcode: barcode, reports: reports.sorted { $0.reportedAt > $1.reportedAt }),
                 title: namesById[barcode] ?? barcode,
-                date: reports.map(\.reportedAt).max() ?? .distantPast
+                date: reports.map(\.reportedAt).min() ?? .distantPast
             )
         }
         let suggestionRows = suggestions.map {
             Row(id: "photo-\($0.id)", kind: .photoSuggestion($0), title: namesById[$0.itemId] ?? $0.itemId, date: $0.suggestedAt)
         }
-        return (submissionRows + reportRows + suggestionRows).sorted { $0.date > $1.date }
+        return (submissionRows + reportRows + suggestionRows).sorted { $0.date < $1.date }
     }
 }

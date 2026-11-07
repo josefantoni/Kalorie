@@ -1124,15 +1124,15 @@
     "en": "Reject",
     "sk": "Zamietnuť"
   },
-  "moderation_button_resolve": {
-    "cs": "Vyřešeno",
-    "en": "Resolved",
-    "sk": "Vyriešené"
-  },
   "moderation_button_save": {
     "cs": "Uložit",
     "en": "Save",
     "sk": "Uložiť"
+  },
+  "moderation_button_saveAndResolve": {
+    "cs": "Uložit a vyřešit",
+    "en": "Save and resolve",
+    "sk": "Uložiť a vyriešiť"
   },
   "moderation_editor_searchPlaceholder": {
     "cs": "Čárový kód",

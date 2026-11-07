@@ -104,6 +104,7 @@ struct ModerationQueueView: View {
                     viewModel: ModerationCatalogueEditorViewModel(
                         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                         updateFoodItem: UpdateFoodItemUseCaseFake(),
+                        deleteFoodItemReport: DeleteFoodItemReportUseCaseFake(),
                         modelExtractor: NutritionLabelModelExtractorFake(),
                         cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
                         initialBarcode: barcode

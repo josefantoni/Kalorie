@@ -81,6 +81,52 @@ final class NotificationsViewModelTests: XCTestCase {
         XCTAssertNotNil(sut.alertItem)
     }
 
+    @MainActor
+    func test_onReportRowChanged_withRemainingReports_keepsTheRowWithOnlyThose() async {
+        let sut = makeSUT(
+            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [makeReport(barcode: "111"), makeReport(barcode: "111")])
+        )
+        await sut.onAppear()
+        let remaining = [makeReport(barcode: "111")]
+
+        sut.onReportRowChanged(id: "report-111", remaining: remaining)
+
+        guard case .report(_, let reports) = sut.rows.first?.kind else { return XCTFail("the row must stay") }
+        XCTAssertEqual(reports.count, 1)
+    }
+
+    @MainActor
+    func test_onReportRowChanged_withNoRemainingReports_removesTheRow() async {
+        let sut = makeSUT(
+            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [makeReport(barcode: "111")])
+        )
+        await sut.onAppear()
+
+        sut.onReportRowChanged(id: "report-111", remaining: [])
+
+        XCTAssertTrue(sut.rows.isEmpty)
+    }
+
+    @MainActor
+    func test_onAppear_sortsRowsOldestFirst_andDatesAReportGroupByItsOldestReport() async {
+        let sut = makeSUT(
+            fetchPendingSubmissions: FetchPendingSubmissionsUseCaseFake(stubbedSubmissions: [makeSubmission(id: "s", date: day(2))]),
+            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
+                makeReport(barcode: "111", date: day(5)),
+                makeReport(barcode: "111", date: day(1))
+            ]),
+            fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: [makeSuggestion(itemId: "222", date: day(3))])
+        )
+
+        await sut.onAppear()
+
+        XCTAssertEqual(
+            sut.rows.map(\.id),
+            ["report-111", "submission-s", "photo-222_alice"],
+            "the queue is handled oldest first; a report group counts from its oldest report, so days 1 and 5 sort before a suggestion from day 3"
+        )
+    }
+
     // MARK: - Helpers
 
     @MainActor
@@ -93,21 +139,53 @@ final class NotificationsViewModelTests: XCTestCase {
             fetchPendingSubmissions: fetchPendingSubmissions,
             fetchFoodItemReports: fetchFoodItemReports,
             fetchPhotoSuggestions: fetchPhotoSuggestions,
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
-            deleteFoodItemReport: DeleteFoodItemReportUseCaseFake()
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake()
         )
     }
 
-    private func makeReport(barcode: String) -> FoodItemReportDomain {
-        FoodItemReportDomain(barcode: barcode, reportedBy: "bob", reason: "wrong data", reportedAt: .now)
+    private func day(_ number: Int) -> Date {
+        Date(timeIntervalSince1970: Double(number) * 86_400)
     }
 
-    private func makeSuggestion(itemId: String) -> PhotoSuggestionDomain {
+    private func makeReport(barcode: String, date: Date = .now) -> FoodItemReportDomain {
+        FoodItemReportDomain(barcode: barcode, reportedBy: "bob", reason: "wrong data", reportedAt: date)
+    }
+
+    private func makeSubmission(id: String, date: Date) -> FoodItemSubmissionDomain {
+        FoodItemSubmissionDomain(
+            id: id,
+            barcode: "333",
+            submittedBy: "carol",
+            status: .pending,
+            submittedAt: date,
+            rejectReason: nil,
+            item: FoodItemDomain(
+                id: "333",
+                kind: .catalogue,
+                czName: "Tvaroh",
+                engName: "",
+                weight: 100,
+                date: .now,
+                energyKJ: 100,
+                caloriesPerHundredGrams: 50,
+                fat: 1,
+                fatSaturated: 0,
+                fatUnsaturatedFattyAcids: 1,
+                carbohydrate: 1,
+                carbohydratePureSugar: 1,
+                fiber: 0,
+                protein: 1,
+                salt: 0.1
+            )
+        )
+    }
+
+    private func makeSuggestion(itemId: String, date: Date = .now) -> PhotoSuggestionDomain {
         PhotoSuggestionDomain(
             itemId: itemId,
             suggestedBy: "alice",
             photoURL: URL(fileURLWithPath: "/photo.jpg"),
-            suggestedAt: .now
+            suggestedAt: date
         )
     }
 }

@@ -22,12 +22,16 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
     @Published var isRecognizingNutritionLabel = false
     @Published var isNutritionLabelCameraVisible = false
     @Published var nutritionLabelCameraHint: String?
+    @Published private(set) var reports: [FoodItemReportDomain]
+    @Published private(set) var shouldDismiss = false
 
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let updateFoodItem: any UpdateFoodItemUseCaseProtocol
+    private let deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol
     private let modelExtractor: any NutritionLabelModelExtractorProtocol
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
     private let initialBarcode: String?
+    private let onReportsChanged: ([FoodItemReportDomain]) -> Void
 
     var isOpenedFromReport: Bool { initialBarcode != nil }
 
@@ -36,15 +40,21 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
     init(
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         updateFoodItem: any UpdateFoodItemUseCaseProtocol,
+        deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol,
         modelExtractor: any NutritionLabelModelExtractorProtocol,
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
-        initialBarcode: String? = nil
+        initialBarcode: String? = nil,
+        reports: [FoodItemReportDomain] = [],
+        onReportsChanged: @escaping ([FoodItemReportDomain]) -> Void = { _ in }
     ) {
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.updateFoodItem = updateFoodItem
+        self.deleteFoodItemReport = deleteFoodItemReport
         self.modelExtractor = modelExtractor
         self.cameraAuthorizationProvider = cameraAuthorizationProvider
         self.initialBarcode = initialBarcode
+        self.reports = reports
+        self.onReportsChanged = onReportsChanged
         self.barcodeQuery = initialBarcode ?? ""
     }
 
@@ -92,17 +102,39 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
 
     @MainActor
     func onSaveTapped() async {
-        guard let loadedItem else { return }
+        guard !state.isLoading else { return }
+        guard await save() else { return }
+        showCheckmark = true
+        try? await Task.sleep(for: .seconds(2))
+        showCheckmark = false
+    }
+
+    @MainActor
+    func onSaveAndResolveTapped() async {
+        guard !state.isLoading else { return }
+        guard await save() else { return }
+        await resolveReports()
+    }
+
+    @MainActor
+    func onRejectTapped() async {
+        guard !state.isLoading else { return }
+        await resolveReports()
+    }
+
+    // MARK: - Private
+
+    @MainActor
+    private func save() async -> Bool {
+        guard let loadedItem else { return false }
         state = .loading
         defer { state = .loaded }
         let item = formInput.asFoodItemDomain(id: loadedItem.id, date: loadedItem.date)
         do {
-            try await updateFoodItem(item, previouslyLoaded: loadedItem, photo: formInput.photo)
-            self.loadedItem = item
-            state = .loaded
-            showCheckmark = true
-            try? await Task.sleep(for: .seconds(2))
-            showCheckmark = false
+            let savedItem = try await updateFoodItem(item, previouslyLoaded: loadedItem, photo: formInput.photo)
+            self.loadedItem = savedItem
+            formInput.photo = savedItem.photoURL.map(FoodItemFormPhoto.remote) ?? .none
+            return true
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)
             switch error as? UpdateFoodItemError {
@@ -121,7 +153,30 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
             case nil:
                 alertItem = AlertItem(title: L10n.Common.errorUnknown)
             }
+            return false
         }
+    }
+
+    @MainActor
+    private func resolveReports() async {
+        state = .loading
+        defer { state = .loaded }
+        var remainingReports: [FoodItemReportDomain] = []
+        for report in reports {
+            do {
+                try await deleteFoodItemReport(barcode: report.barcode, reportedBy: report.reportedBy)
+            } catch {
+                Log.error(error, category: Constants.LogCategory.moderation)
+                remainingReports.append(report)
+            }
+        }
+        reports = remainingReports
+        onReportsChanged(remainingReports)
+        guard remainingReports.isEmpty else {
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            return
+        }
+        shouldDismiss = true
     }
 
 }

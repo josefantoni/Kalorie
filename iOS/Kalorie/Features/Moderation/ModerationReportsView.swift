@@ -12,13 +12,13 @@ struct ModerationReportsView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: ModerationReportsViewModel
-    private let makeCatalogueEditorView: (String, [FoodItemReportDomain]) -> ModerationCatalogueEditorView
+    private let makeCatalogueEditorView: (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView
 
     // MARK: - Init
 
     init(
         viewModel: ModerationReportsViewModel,
-        makeCatalogueEditorView: @escaping (String, [FoodItemReportDomain]) -> ModerationCatalogueEditorView
+        makeCatalogueEditorView: @escaping (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeCatalogueEditorView = makeCatalogueEditorView
@@ -35,7 +35,9 @@ struct ModerationReportsView: View {
             }
             ForEach(viewModel.groups) { group in
                 NavigationLink {
-                    makeCatalogueEditorView(group.barcode, group.reports)
+                    makeCatalogueEditorView(group.barcode, group.reports) { remaining in
+                        viewModel.onGroupReportsChanged(barcode: group.barcode, remaining: remaining)
+                    }
                 } label: {
                     VStack(alignment: .leading) {
                         Text(group.itemName ?? group.barcode)
@@ -43,12 +45,6 @@ struct ModerationReportsView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
-                }
-                .swipeActions {
-                    Button(L10n.Moderation.buttonResolve) {
-                        Task { await viewModel.onResolveTapped(group) }
-                    }
-                    .tint(Color.success)
                 }
             }
         }
@@ -74,19 +70,20 @@ struct ModerationReportsView: View {
         ModerationReportsView(
             viewModel: ModerationReportsViewModel(
                 fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(),
-                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
-                deleteFoodItemReport: DeleteFoodItemReportUseCaseFake()
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake()
             )
-        ) { barcode, reports in
+        ) { barcode, reports, onReportsChanged in
             ModerationCatalogueEditorView(
                 viewModel: ModerationCatalogueEditorViewModel(
                     fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                     updateFoodItem: UpdateFoodItemUseCaseFake(),
+                    deleteFoodItemReport: DeleteFoodItemReportUseCaseFake(),
                     modelExtractor: NutritionLabelModelExtractorFake(),
                     cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
-                    initialBarcode: barcode
-                ),
-                reports: reports
+                    initialBarcode: barcode,
+                    reports: reports,
+                    onReportsChanged: onReportsChanged
+                )
             )
         }
     }
