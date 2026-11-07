@@ -27,7 +27,7 @@ service firebase.storage {
 
     match /photoSuggestions/{uid}/{fileName} {
       allow read: if request.auth != null && (request.auth.uid == uid || isMaintainer());
-      allow create: if request.auth != null && request.auth.uid == uid && validJpeg() &&
+      allow create: if request.auth != null && request.auth.uid == uid && resource == null && validJpeg() &&
         validSuggestionFileName(fileName) &&
         firestore.exists(suggestionItemPath(fileName)) &&
         !('photo_url' in firestore.get(suggestionItemPath(fileName)).data) &&
