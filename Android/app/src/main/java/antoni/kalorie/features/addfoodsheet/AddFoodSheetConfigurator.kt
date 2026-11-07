@@ -21,6 +21,7 @@ import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
 import antoni.kalorie.core.usecases.FetchMyCreatedMealsUseCase
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCase
+import antoni.kalorie.core.usecases.FetchMyPhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.FetchMySubmissionsUseCase
 import antoni.kalorie.core.usecases.RecordFoodFrequencyUseCase
 import antoni.kalorie.core.usecases.RefreshFavouriteFoodUseCase
@@ -31,6 +32,7 @@ import antoni.kalorie.core.usecases.SearchFoodExternallyUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCase
 import antoni.kalorie.core.usecases.SubmitFoodItemUseCase
+import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.UpdateMySubmissionUseCase
 import antoni.kalorie.core.usecases.UploadFoodPhotoUseCase
@@ -100,6 +102,8 @@ class AddFoodSheetConfigurator(
                         fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                         fetchMyFoodItemReport = FetchMyFoodItemReportUseCase(dataProvider, authProvider),
                         submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider),
+                        fetchMyPhotoSuggestion = FetchMyPhotoSuggestionUseCase(dataProvider, authProvider),
+                        submitPhotoSuggestion = SubmitPhotoSuggestionUseCase(dataProvider, authProvider, StorageDataProvider()),
                         meal = meal,
                         updateMyCreatedMeal = UpdateMyCreatedMealUseCase(dataProvider, authProvider),
                         onSaved = onSaved,

@@ -3,6 +3,7 @@ package antoni.kalorie.features.foodquantity
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
+import antoni.kalorie.components.FoodPhotoPillState
 import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.extensions.formatted
 import antoni.kalorie.core.models.FoodItemDomain
@@ -21,16 +22,19 @@ import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyPhotoSuggestionUseCaseProtocol
 import antoni.kalorie.core.usecases.RecordFoodFrequencyUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.FavouriteToggling
 import antoni.kalorie.core.utils.FoodItemReporting
+import antoni.kalorie.core.utils.FoodPhotoSuggesting
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
@@ -78,6 +82,8 @@ class FoodQuantityViewModel(
     private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
     private val fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol,
     private val submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol,
+    private val fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseProtocol,
+    private val submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseProtocol,
     private var meal: MyCreatedMealDomain?,
     private val updateMyCreatedMeal: UpdateMyCreatedMealUseCaseProtocol,
     private val onSaved: () -> Unit,
@@ -87,7 +93,8 @@ class FoodQuantityViewModel(
     unit: FoodQuantityUnit = FoodQuantityUnit.HundredGrams,
 ) : ViewModel(),
     FavouriteToggling,
-    FoodItemReporting {
+    FoodItemReporting,
+    FoodPhotoSuggesting {
 
     // MARK: - Properties
 
@@ -111,8 +118,9 @@ class FoodQuantityViewModel(
     val portionDrafts = MutableStateFlow(listOf(FoodPortionDraft.blank))
     private val _showPortionCheckmark = MutableStateFlow(false)
     val showPortionCheckmark: StateFlow<Boolean> = _showPortionCheckmark
-    private val _photoUrl = MutableStateFlow(item.photoUrl)
-    val photoUrl: StateFlow<String?> = _photoUrl
+    override val photoPillState = MutableStateFlow<FoodPhotoPillState>(
+        item.photoUrl?.let { FoodPhotoPillState.Photo(it) } ?: FoodPhotoPillState.Hidden,
+    )
     private var hasLookedUpPhoto = false
     private var hasUserSelectedUnit = false
     private var hasUserSelectedMealType = false
@@ -189,10 +197,12 @@ class FoodQuantityViewModel(
     private suspend fun loadPhoto() {
         if (item.photoUrl != null || hasLookedUpPhoto) return
         try {
-            _photoUrl.value = when (item.kind) {
-                FoodItemKind.CATALOGUE -> fetchFoodItemByBarcode(item.id)?.photoUrl
-                FoodItemKind.EXTERNAL -> fetchFoodByBarcodeExternally(item.id)?.photoUrl
-                FoodItemKind.CREATED_MEAL -> null
+            when (item.kind) {
+                FoodItemKind.CATALOGUE -> resolveCataloguePhotoPill(fetchFoodItemByBarcode(item.id), fetchMyPhotoSuggestion)
+                FoodItemKind.EXTERNAL -> fetchFoodByBarcodeExternally(item.id)?.photoUrl?.let {
+                    photoPillState.value = FoodPhotoPillState.Photo(it)
+                }
+                FoodItemKind.CREATED_MEAL -> Unit
             }
             hasLookedUpPhoto = true
         } catch (error: CancellationException) {
@@ -200,6 +210,10 @@ class FoodQuantityViewModel(
         } catch (error: Exception) {
             Log.warning(error, Constants.LogCategory.FOOD_QUANTITY)
         }
+    }
+
+    suspend fun onPhotoSent(photo: ByteArray) {
+        onPhotoSent(photo, item.id, submitPhotoSuggestion)
     }
 
     suspend fun onReportSubmitted() {

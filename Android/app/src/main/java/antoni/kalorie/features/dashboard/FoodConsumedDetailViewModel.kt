@@ -2,6 +2,7 @@ package antoni.kalorie.features.dashboard
 
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
+import antoni.kalorie.components.FoodPhotoPillState
 import antoni.kalorie.core.extensions.formatted
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemDomain
@@ -16,15 +17,18 @@ import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyPhotoSuggestionUseCaseProtocol
 import antoni.kalorie.core.usecases.IsFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodConsumedError
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.FavouriteToggling
 import antoni.kalorie.core.utils.FoodItemReporting
+import antoni.kalorie.core.utils.FoodPhotoSuggesting
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
@@ -49,11 +53,14 @@ class FoodConsumedDetailViewModel(
     private val fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol,
     private val fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol,
     private val submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol,
+    private val fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseProtocol,
+    private val submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseProtocol,
     private val deleteFoodConsumed: DeleteFoodConsumedUseCaseProtocol,
     private val onFoodUpdated: () -> Unit,
 ) : ViewModel(),
     FavouriteToggling,
-    FoodItemReporting {
+    FoodItemReporting,
+    FoodPhotoSuggesting {
 
     // MARK: - Properties
 
@@ -72,6 +79,7 @@ class FoodConsumedDetailViewModel(
     val isDeleteConfirmationVisible = MutableStateFlow(false)
     private val _isDeleted = MutableStateFlow(false)
     val isDeleted: StateFlow<Boolean> = _isDeleted
+    override val photoPillState = MutableStateFlow<FoodPhotoPillState>(FoodPhotoPillState.Hidden)
     private val _catalogueItem = MutableStateFlow<FoodItemDomain?>(null)
     val catalogueItem: StateFlow<FoodItemDomain?> = _catalogueItem
     private val _mealTypeId = MutableStateFlow(mealTypes.resolvedMealTypeId(food))
@@ -117,9 +125,18 @@ class FoodConsumedDetailViewModel(
         val catalogueItem = async { loadCatalogueItem() }
         isFavourite.value = favourite.await()
         _catalogueItem.value = catalogueItem.await()
+        when (food.foodItemKind) {
+            FoodItemKind.CATALOGUE -> resolveCataloguePhotoPill(_catalogueItem.value, fetchMyPhotoSuggestion)
+            FoodItemKind.EXTERNAL -> photoPillState.value = _catalogueItem.value?.photoUrl?.let { FoodPhotoPillState.Photo(it) } ?: FoodPhotoPillState.Hidden
+            FoodItemKind.CREATED_MEAL -> Unit
+        }
         if (canReportIncorrectData) {
             loadReportState(food.foodItemId, fetchMyFoodItemReport)
         }
+    }
+
+    suspend fun onPhotoSent(photo: ByteArray) {
+        onPhotoSent(photo, food.foodItemId, submitPhotoSuggestion)
     }
 
     suspend fun onReportSubmitted() {

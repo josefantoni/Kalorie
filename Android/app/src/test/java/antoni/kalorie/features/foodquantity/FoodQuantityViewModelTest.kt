@@ -1,6 +1,7 @@
 package antoni.kalorie.features.foodquantity
 
 import antoni.kalorie.R
+import antoni.kalorie.components.FoodPhotoPillState
 import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
@@ -23,6 +24,8 @@ import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseFake
 import antoni.kalorie.core.usecases.FetchMyFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchMyPhotoSuggestionUseCaseFake
+import antoni.kalorie.core.usecases.FetchMyPhotoSuggestionUseCaseProtocol
 import antoni.kalorie.core.usecases.RecordFoodFrequencyUseCaseFake
 import antoni.kalorie.core.usecases.RecordFoodFrequencyUseCaseProtocol
 import antoni.kalorie.core.usecases.RemoveFavouriteFoodUseCaseFake
@@ -33,6 +36,8 @@ import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseFake
 import antoni.kalorie.core.usecases.SaveFoodItemPersonalPortionsUseCaseProtocol
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseFake
 import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCaseProtocol
+import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCaseFake
+import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
 import antoni.kalorie.core.utils.isLoading
@@ -451,16 +456,108 @@ class FoodQuantityViewModelTest {
     }
 
     @Test
+    fun photoPill_beforeTheCatalogueFetchCompletes_isHiddenNotEmpty() {
+        val sut = makeSUT(item = makeFoodItem(kind = FoodItemKind.CATALOGUE))
+
+        assertEquals("an empty pill flashing before the fetch would invite a photo for an item that may already have one", FoodPhotoPillState.Hidden, sut.photoPillState.value)
+    }
+
+    @Test
+    fun photoPill_whenTheSnapshotHasNoPhotoButTheCatalogueItemDoes_endsInPhotoNotEmpty() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
+            fetchMyPhotoSuggestion = FetchMyPhotoSuggestionUseCaseFake(hasSuggestion = false),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeFoodItem(photoUrl = "https://example.com/catalogue.jpg")),
+        )
+
+        sut.onAppear()
+
+        assertEquals(FoodPhotoPillState.Photo("https://example.com/catalogue.jpg"), sut.photoPillState.value)
+    }
+
+    @Test
+    fun photoPill_whenTheCatalogueItemHasNoPhoto_isEmpty() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeFoodItem()),
+        )
+
+        sut.onAppear()
+
+        assertEquals(FoodPhotoPillState.Empty, sut.photoPillState.value)
+    }
+
+    @Test
+    fun photoPill_whenIAlreadySuggestedAPhoto_isAwaitingApproval() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
+            fetchMyPhotoSuggestion = FetchMyPhotoSuggestionUseCaseFake(hasSuggestion = true),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeFoodItem()),
+        )
+
+        sut.onAppear()
+
+        assertEquals(FoodPhotoPillState.AwaitingApproval, sut.photoPillState.value)
+    }
+
+    @Test
+    fun photoPill_whenTheSuggestionReadFails_isHidden() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
+            fetchMyPhotoSuggestion = FetchMyPhotoSuggestionUseCaseFake(errorToThrow = RuntimeException("offline")),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeFoodItem()),
+        )
+
+        sut.onAppear()
+
+        assertEquals(FoodPhotoPillState.Hidden, sut.photoPillState.value)
+    }
+
+    @Test
+    fun photoPill_forAnExternalItemWithoutPhoto_neverOffersASuggestion() = runTest {
+        val sut = makeSUT(item = makeFoodItem(kind = FoodItemKind.EXTERNAL))
+
+        sut.onAppear()
+
+        assertEquals(FoodPhotoPillState.Hidden, sut.photoPillState.value)
+    }
+
+    @Test
+    fun onPhotoSent_onSuccess_movesToAwaitingApproval() = runTest {
+        val sut = makeSUT(item = makeFoodItem(kind = FoodItemKind.CATALOGUE))
+
+        sut.onPhotoSent(byteArrayOf(1))
+
+        assertEquals(FoodPhotoPillState.AwaitingApproval, sut.photoPillState.value)
+        assertNull(sut.alertItem.value)
+    }
+
+    @Test
+    fun onPhotoSent_onFailure_staysWhereItWasAndAlerts() = runTest {
+        val sut = makeSUT(
+            item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
+            submitPhotoSuggestion = SubmitPhotoSuggestionUseCaseFake(errorToThrow = RuntimeException("timed out")),
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeFoodItem()),
+        )
+        sut.onAppear()
+
+        sut.onPhotoSent(byteArrayOf(1))
+
+        assertEquals(FoodPhotoPillState.Empty, sut.photoPillState.value)
+        assertNotNull(sut.alertItem.value)
+    }
+
+    @Test
     fun onAppear_whenTheItemAlreadyHasAPhoto_keepsItWithoutFetching() = runTest {
         val sut = makeSUT(
             item = makeFoodItem(photoUrl = "https://example.com/own.jpg"),
             fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeFoodItem(photoUrl = "https://example.com/other.jpg")),
         )
 
-        assertEquals("a search result already carries its photo, so it must show before any request", "https://example.com/own.jpg", sut.photoUrl.value)
+        assertEquals("a search result already carries its photo, so it must show before any request", FoodPhotoPillState.Photo("https://example.com/own.jpg"), sut.photoPillState.value)
         sut.onAppear()
 
-        assertEquals("https://example.com/own.jpg", sut.photoUrl.value)
+        assertEquals(FoodPhotoPillState.Photo("https://example.com/own.jpg"), sut.photoPillState.value)
     }
 
     @Test
@@ -472,7 +569,7 @@ class FoodQuantityViewModelTest {
 
         sut.onAppear()
 
-        assertEquals("favourites and frequent foods are snapshots that never stored a photo", "https://example.com/catalogue.jpg", sut.photoUrl.value)
+        assertEquals("favourites and frequent foods are snapshots that never stored a photo", FoodPhotoPillState.Photo("https://example.com/catalogue.jpg"), sut.photoPillState.value)
     }
 
     @Test
@@ -484,7 +581,7 @@ class FoodQuantityViewModelTest {
         sut.onAppear()
 
         assertEquals("the screen reappears after every pushed child, which must not cost a read each time", 1, lookup.callCount)
-        assertEquals("https://example.com/catalogue.jpg", sut.photoUrl.value)
+        assertEquals(FoodPhotoPillState.Photo("https://example.com/catalogue.jpg"), sut.photoPillState.value)
     }
 
     @Test
@@ -509,7 +606,7 @@ class FoodQuantityViewModelTest {
 
         sut.onAppear()
 
-        assertEquals("https://images.openfoodfacts.org/front.jpg", sut.photoUrl.value)
+        assertEquals(FoodPhotoPillState.Photo("https://images.openfoodfacts.org/front.jpg"), sut.photoPillState.value)
     }
 
     @Test
@@ -521,7 +618,7 @@ class FoodQuantityViewModelTest {
 
         sut.onAppear()
 
-        assertNull(sut.photoUrl.value)
+        assertEquals(FoodPhotoPillState.Hidden, sut.photoPillState.value)
         assertNull("a missing photo must be invisible, never an alert", sut.alertItem.value)
     }
 
@@ -534,7 +631,7 @@ class FoodQuantityViewModelTest {
 
         sut.onAppear()
 
-        assertNull(sut.photoUrl.value)
+        assertEquals(FoodPhotoPillState.Hidden, sut.photoPillState.value)
     }
 
     @Test
@@ -1118,6 +1215,8 @@ class FoodQuantityViewModelTest {
         fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
         submitFoodItemReport: SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
+        fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseProtocol = FetchMyPhotoSuggestionUseCaseFake(),
+        submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseProtocol = SubmitPhotoSuggestionUseCaseFake(),
         meal: MyCreatedMealDomain? = null,
         updateMyCreatedMeal: UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
         onSaved: () -> Unit = {},
@@ -1142,6 +1241,8 @@ class FoodQuantityViewModelTest {
         fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally,
         fetchMyFoodItemReport = fetchMyFoodItemReport,
         submitFoodItemReport = submitFoodItemReport,
+        fetchMyPhotoSuggestion = fetchMyPhotoSuggestion,
+        submitPhotoSuggestion = submitPhotoSuggestion,
         meal = meal,
         updateMyCreatedMeal = updateMyCreatedMeal,
         onSaved = onSaved,
