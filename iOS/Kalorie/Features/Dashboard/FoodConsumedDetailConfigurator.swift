@@ -38,6 +38,8 @@ struct FoodConsumedDetailConfigurator {
                 fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCase(),
                 fetchMyFoodItemReport: FetchMyFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 submitFoodItemReport: SubmitFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                submitPhotoSuggestion: SubmitPhotoSuggestionUseCase(dataProvider: dataProvider, authProvider: authProvider, storageProvider: StorageDataProvider()),
                 deleteFoodConsumed: DeleteFoodConsumedUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 onFoodUpdated: onFoodUpdated
             )

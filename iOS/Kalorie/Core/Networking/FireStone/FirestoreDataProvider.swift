@@ -39,6 +39,8 @@ protocol FirestoreDataProviderProtocol {
     func loadDocumentIdsAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> [String]
     func incrementEntryAsync<T: Encodable>(_ item: T, entryId: String, lastLoggedAt: TimeInterval, documentId: String, in collection: String) async throws
     func deleteEntriesAsync(ids: [String], documentId: String, in collection: String) async throws
+    func countAsync(from collection: String) async throws -> Int
+    func countAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> Int
 }
 
 extension FirestoreDataProviderProtocol {
@@ -93,6 +95,14 @@ extension FirestoreDataProviderProtocol {
     }
 
     func deleteEntriesAsync(ids: [String], documentId: String, in collection: String) async throws {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func countAsync(from collection: String) async throws -> Int {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func countAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> Int {
         throw FirestoreDataProviderError.unsupported
     }
 }
@@ -432,6 +442,34 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return ids
         } catch {
             logFailure("❌ GET IDS \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func countAsync(from collection: String) async throws -> Int {
+        log("🚀 COUNT \(collection)")
+        do {
+            let snapshot = try await Firestore.firestore().collection(collection).count.getAggregation(source: .server)
+            log("✅ COUNT \(collection) → \(snapshot.count)")
+            return snapshot.count.intValue
+        } catch {
+            logFailure("❌ COUNT \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func countAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> Int {
+        log("🚀 COUNT \(collection) WHERE \(field) == '\(value)'")
+        do {
+            let snapshot = try await Firestore.firestore()
+                .collection(collection)
+                .whereField(field, isEqualTo: value)
+                .count
+                .getAggregation(source: .server)
+            log("✅ COUNT \(collection) WHERE \(field) == '\(value)' → \(snapshot.count)")
+            return snapshot.count.intValue
+        } catch {
+            logFailure("❌ COUNT \(collection)", error: error)
             throw mapError(error)
         }
     }

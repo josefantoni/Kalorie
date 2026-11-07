@@ -30,6 +30,8 @@ enum BaseImageName: String {
     case checkmark = "checkmark"
     case wineglass = "wineglass"
     case cameraFill = "camera.fill"
+    case clock = "clock"
+    case bell = "bell"
     case retakePhoto = "arrow.triangle.2.circlepath.camera"
     case foodPlaceholder = "fork.knife"
     case enlarge = "arrow.up.left.and.arrow.down.right"

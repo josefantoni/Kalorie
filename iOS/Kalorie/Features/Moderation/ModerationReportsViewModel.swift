@@ -47,18 +47,12 @@ final class ModerationReportsViewModel: ObservableObject {
     func onAppear() async {
         state = .loading
         defer { state = .loaded }
-        do {
-            let reports = try await fetchFoodItemReports()
-            groups = await Self.grouped(reports, fetchFoodItemByBarcode: fetchFoodItemByBarcode)
-        } catch {
-            Log.error(error, category: Constants.LogCategory.moderation)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
-        }
+        await load()
     }
 
     @MainActor
     func onRefresh() async {
-        await onAppear()
+        await load()
     }
 
     @MainActor
@@ -83,6 +77,17 @@ final class ModerationReportsViewModel: ObservableObject {
     }
 
     // MARK: - Private
+
+    @MainActor
+    private func load() async {
+        do {
+            let reports = try await fetchFoodItemReports()
+            groups = await Self.grouped(reports, fetchFoodItemByBarcode: fetchFoodItemByBarcode)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.moderation)
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+        }
+    }
 
     private static func grouped(
         _ reports: [FoodItemReportDomain],

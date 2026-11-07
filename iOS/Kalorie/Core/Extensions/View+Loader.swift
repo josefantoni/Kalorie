@@ -12,24 +12,10 @@ struct LoaderIndicator: View {
     // MARK: - Body
 
     var body: some View {
-        LoaderSpinner()
+        AccentProgressView()
             .frame(width: Constants.Loader.size, height: Constants.Loader.size)
             .background(Color(.systemGroupedBackground), in: .rect(cornerRadius: Constants.Loader.cornerRadius))
     }
-}
-
-private struct LoaderSpinner: UIViewRepresentable {
-
-    // MARK: - Functions
-
-    func makeUIView(context: Context) -> UIActivityIndicatorView {
-        let spinner = UIActivityIndicatorView(style: .medium)
-        spinner.color = UIColor(resource: .accent)
-        spinner.startAnimating()
-        return spinner
-    }
-
-    func updateUIView(_ uiView: UIActivityIndicatorView, context: Context) {}
 }
 
 extension View {

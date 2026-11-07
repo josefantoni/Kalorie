@@ -8,6 +8,7 @@
 import AuthenticationServices
 import XCTest
 import FirebaseAuth
+import FirebaseStorage
 @testable import Kalorie
 
 final class DeleteAccountUseCaseTests: XCTestCase {
@@ -44,7 +45,10 @@ final class DeleteAccountUseCaseTests: XCTestCase {
 
         try await sut()
 
-        XCTAssertTrue(log.entries.dropLast().contains("batchDelete:foodItemPortions:12345678"), "Firestore does not cascade — personal portions are user data and must not survive account deletion as orphans")
+        XCTAssertTrue(
+            log.entries.dropLast().contains("batchDelete:foodItemPortions:12345678"),
+            "Firestore does not cascade — personal portions are user data and must not survive account deletion as orphans"
+        )
     }
 
     func test_callAsFunction_deletesBodyWeightsAndSettingsAsPrivacyObligation_beforeTheProfile() async throws {
@@ -169,6 +173,49 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertNil(storage.files[orphan], "orphans from failed writes are not reachable through the deleted submissions, only through the folder")
         XCTAssertNotNil(storage.files[someoneElse])
         XCTAssertNotNil(storage.files[catalogue], "approved items are shared catalogue content and outlive the account")
+    }
+
+    func test_callAsFunction_deletesPhotoSuggestionFilesAndDocumentsIndependently() async throws {
+        let log = OperationLog()
+        let storage = StorageDataProviderFake()
+        let own = try await storage.uploadAsync(data: Data([1]), path: "photoSuggestions/test-user-id/12345678.jpg", contentType: "image/jpeg")
+        let someoneElse = try await storage.uploadAsync(data: Data([2]), path: "photoSuggestions/other-user/12345678.jpg", contentType: "image/jpeg")
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedDocumentIds["photoSuggestions"] = ["99999999_test-user-id"]
+        let sut = makeSUT(dataProvider: dataProvider, log: log, storage: storage)
+
+        try await sut()
+
+        XCTAssertNil(storage.files[own])
+        XCTAssertNotNil(storage.files[someoneElse])
+        XCTAssertTrue(
+            log.entries.dropLast().contains("batchDelete:photoSuggestions:99999999_test-user-id"),
+            "a suggestion document is found by suggested_by, so one whose file is already gone is still deleted and one without a document cannot fail the wipe"
+        )
+    }
+
+    func test_callAsFunction_whenAPhotoFileIsAlreadyGone_stillDeletesTheAccount() async throws {
+        let log = OperationLog()
+        let storage = StorageDataProviderFake()
+        _ = try await storage.uploadAsync(data: Data([1]), path: "photoSuggestions/test-user-id/12345678.jpg", contentType: "image/jpeg")
+        storage.deleteError = NSError(domain: StorageErrorDomain, code: StorageErrorCode.objectNotFound.rawValue)
+        let sut = makeSUT(dataProvider: DeleteAccountDataProviderFake(log: log), log: log, storage: storage)
+
+        try await sut()
+
+        XCTAssertTrue(log.entries.contains("deleteCurrentUser"), "a file removed meanwhile by an approval must not block the wipe")
+    }
+
+    func test_callAsFunction_whenDeletingAPhotoFileFailsForAnotherReason_doesNotDeleteTheAuthUser() async throws {
+        let log = OperationLog()
+        let storage = StorageDataProviderFake()
+        _ = try await storage.uploadAsync(data: Data([1]), path: "photoSuggestions/test-user-id/12345678.jpg", contentType: "image/jpeg")
+        storage.deleteError = URLError(.notConnectedToInternet)
+        let sut = makeSUT(dataProvider: DeleteAccountDataProviderFake(log: log), log: log, storage: storage)
+
+        _ = try? await sut()
+
+        XCTAssertFalse(log.entries.contains("deleteCurrentUser"))
     }
 
     func test_callAsFunction_whenListingPhotosFails_doesNotDeleteTheAuthUser() async throws {

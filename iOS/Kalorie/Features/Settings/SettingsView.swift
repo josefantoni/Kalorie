@@ -187,6 +187,11 @@ struct SettingsView: View {
                                 } label: {
                                     Text(L10n.Moderation.reportsTitle)
                                 }
+                                NavigationLink {
+                                    router.makeModerationPhotoSuggestionsView()
+                                } label: {
+                                    Text(L10n.Moderation.photosTitle)
+                                }
                             }
                         }
                     }

@@ -116,6 +116,8 @@ final class FoodConsumedEditDuplicationTests: XCTestCase {
             fetchFoodByBarcodeExternally: FetchFoodByBarcodeExternallyUseCaseFake(),
             fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(),
             submitFoodItemReport: SubmitFoodItemReportUseCaseFake(),
+            fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseFake(),
+            submitPhotoSuggestion: SubmitPhotoSuggestionUseCaseFake(),
             deleteFoodConsumed: DeleteFoodConsumedUseCaseFake()
         ) {}
     }

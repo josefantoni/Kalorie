@@ -16,6 +16,7 @@ struct DashboardRouter {
     private let foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator
     private let accountConfigurator: AccountConfigurator
     private let bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator
+    private let notificationsConfigurator: NotificationsConfigurator
 
     // MARK: - Init
 
@@ -24,16 +25,26 @@ struct DashboardRouter {
         addFoodSheetConfigurator: AddFoodSheetConfigurator,
         foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator,
         accountConfigurator: AccountConfigurator,
-        bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator
+        bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator,
+        notificationsConfigurator: NotificationsConfigurator
     ) {
         self.settingsConfigurator = settingsConfigurator
         self.addFoodSheetConfigurator = addFoodSheetConfigurator
         self.foodConsumedDetailConfigurator = foodConsumedDetailConfigurator
         self.accountConfigurator = accountConfigurator
         self.bodyWeightHistoryConfigurator = bodyWeightHistoryConfigurator
+        self.notificationsConfigurator = notificationsConfigurator
     }
 
     // MARK: - Functions
+
+    func makeNotificationBellViewModel() -> NotificationBellViewModel {
+        notificationsConfigurator.createBellViewModel()
+    }
+
+    func makeNotificationsView() -> NotificationsView {
+        notificationsConfigurator.createView()
+    }
 
     func makeSettingsView(
         mealTypes: [MealTypeDomain],

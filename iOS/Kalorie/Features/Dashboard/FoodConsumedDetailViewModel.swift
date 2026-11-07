@@ -8,7 +8,7 @@
 import Foundation
 import MacroKit
 
-final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, FoodItemReporting {
+final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, FoodItemReporting, FoodPhotoSuggesting {
 
     // MARK: - Properties
 
@@ -19,6 +19,7 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
     @Published var isFavourite = false
     @Published var isTogglingFavourite = false
     @Published private(set) var catalogueItem: FoodItemDomain?
+    @Published var photoPillState: FoodPhotoPillState = .hidden
     @Published private(set) var mealTypeId: String?
     @Published var hasReportedCurrentItem = false
     @Published var isSubmittingReport = false
@@ -43,10 +44,11 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
     private let fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol
     private let fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol
     private let submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol
+    private let fetchMyPhotoSuggestion: any FetchMyPhotoSuggestionUseCaseProtocol
+    private let submitPhotoSuggestion: any SubmitPhotoSuggestionUseCaseProtocol
     private let deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol
     private let onFoodUpdated: () -> Void
 
-    var photoURL: URL? { catalogueItem?.photoURL }
     var canShowFavouriteButton: Bool { isFavourite || catalogueItem != nil }
     var canToggleFavourite: Bool { !isTogglingFavourite && canShowFavouriteButton }
     var canReportIncorrectData: Bool { food.foodItemKind == .catalogue }
@@ -74,6 +76,8 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol,
         fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol,
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol,
+        fetchMyPhotoSuggestion: any FetchMyPhotoSuggestionUseCaseProtocol,
+        submitPhotoSuggestion: any SubmitPhotoSuggestionUseCaseProtocol,
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol,
         onFoodUpdated: @escaping () -> Void
     ) {
@@ -92,6 +96,8 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
         self.fetchFoodByBarcodeExternally = fetchFoodByBarcodeExternally
         self.fetchMyFoodItemReport = fetchMyFoodItemReport
         self.submitFoodItemReport = submitFoodItemReport
+        self.fetchMyPhotoSuggestion = fetchMyPhotoSuggestion
+        self.submitPhotoSuggestion = submitPhotoSuggestion
         self.deleteFoodConsumed = deleteFoodConsumed
         self.onFoodUpdated = onFoodUpdated
     }
@@ -110,10 +116,23 @@ final class FoodConsumedDetailViewModel: ObservableObject, FavouriteToggling, Fo
     func onAppear() async {
         async let favourite = loadIsFavourite()
         catalogueItem = await loadCatalogueItem()
+        switch food.foodItemKind {
+        case .catalogue:
+            await resolveCataloguePhotoPill(fetchedItem: catalogueItem, fetchMyPhotoSuggestion: fetchMyPhotoSuggestion)
+        case .external:
+            photoPillState = catalogueItem?.photoURL.map(FoodPhotoPillState.photo) ?? .hidden
+        case .createdMeal:
+            break
+        }
         isFavourite = await favourite
         if canReportIncorrectData {
             await loadReportState(barcode: food.foodItemId, fetchMyFoodItemReport: fetchMyFoodItemReport)
         }
+    }
+
+    @MainActor
+    func onPhotoSent(_ photo: Data) async {
+        await onPhotoSent(photo, itemId: food.foodItemId, submitPhotoSuggestion: submitPhotoSuggestion)
     }
 
     @MainActor

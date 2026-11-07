@@ -214,6 +214,11 @@ enum L10n {
         static var queueTitle: String { String(localized: "moderation_queue_title") }
         static var queueEmpty: String { String(localized: "moderation_queue_empty") }
         static var queueCollision: String { String(localized: "moderation_queue_collision") }
+        static var photosTitle: String { String(localized: "moderation_photos_title") }
+        static var photosEmpty: String { String(localized: "moderation_photos_empty") }
+        static var photoSuggestionTitle: String { String(localized: "moderation_photoSuggestion_title") }
+        static var photoSuggestionAlreadyHasPhoto: String { String(localized: "moderation_photoSuggestion_alreadyHasPhoto") }
+        static var photoSuggestionItemMissing: String { String(localized: "moderation_photoSuggestion_itemMissing") }
         static var buttonApprove: String { String(localized: "moderation_button_approve") }
         static var buttonReject: String { String(localized: "moderation_button_reject") }
         static var buttonSave: String { String(localized: "moderation_button_save") }
@@ -286,6 +291,15 @@ enum L10n {
         }
     }
 
+    enum Notifications {
+        static var bellAccessibility: String { String(localized: "notifications_bell_accessibility") }
+        static var title: String { String(localized: "notifications_title") }
+        static var empty: String { String(localized: "notifications_empty") }
+        static var kindSubmission: String { String(localized: "notifications_kind_submission") }
+        static var kindReport: String { String(localized: "notifications_kind_report") }
+        static var kindPhoto: String { String(localized: "notifications_kind_photo") }
+    }
+
     enum FoodPhoto {
         static var title: String { String(localized: "foodPhoto_title") }
         static var actionTake: String { String(localized: "foodPhoto_action_take") }
@@ -295,6 +309,9 @@ enum L10n {
         static var accessibilityRetake: String { String(localized: "foodPhoto_accessibility_retake") }
         static var errorRequired: String { String(localized: "foodPhoto_error_required") }
         static var errorUploadFailed: String { String(localized: "foodPhoto_error_uploadFailed") }
+        static var suggestionAdd: String { String(localized: "foodPhoto_suggestion_add") }
+        static var suggestionAwaiting: String { String(localized: "foodPhoto_suggestion_awaiting") }
+        static var suggestionErrorSendFailed: String { String(localized: "foodPhoto_suggestion_errorSendFailed") }
     }
 
     enum FoodConsumedDetail {

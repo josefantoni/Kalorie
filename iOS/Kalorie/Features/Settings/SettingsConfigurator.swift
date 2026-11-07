@@ -11,7 +11,13 @@ struct SettingsConfigurator {
 
     // MARK: - Properties
 
-    private let maintainerClaimCache = MaintainerClaimCache()
+    private let maintainerClaimCache: MaintainerClaimCache
+
+    // MARK: - Init
+
+    init(maintainerClaimCache: MaintainerClaimCache = MaintainerClaimCache()) {
+        self.maintainerClaimCache = maintainerClaimCache
+    }
 
     // MARK: - Functions
 
@@ -37,7 +43,7 @@ struct SettingsConfigurator {
                 createMealType: CreateMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 deleteMealType: DeleteMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 updateMealTypeTimes: UpdateMealTypeTimesUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                fetchMaintainerClaim: FetchMaintainerClaimUseCase(cache: maintainerClaimCache),
+                fetchMaintainerClaim: FetchMaintainerClaimUseCase(authProvider: authProvider, cache: maintainerClaimCache, forcesRefresh: true),
                 hasLoadedAppSettings: hasLoadedAppSettings
             )
         )

@@ -25,6 +25,7 @@ protocol AuthProviderProtocol {
     var linkedProviderKinds: Set<AuthProviderKind> { get }
     func currentSessionProviderKind() async -> AuthProviderKind?
     func currentAuthenticationDate() async -> Date?
+    func maintainerClaim(forcingRefresh: Bool) async throws -> Bool
 }
 
 struct AuthProvider: AuthProviderProtocol {
@@ -62,6 +63,12 @@ struct AuthProvider: AuthProviderProtocol {
         return try? await user.getIDTokenResult(forcingRefresh: true).authDate
     }
 
+    func maintainerClaim(forcingRefresh: Bool) async throws -> Bool {
+        guard let user = Auth.auth().currentUser else { throw AuthError.notAuthenticated }
+        let result = try await user.getIDTokenResult(forcingRefresh: forcingRefresh)
+        return result.claims[Constants.Auth.maintainerClaim] as? Bool ?? false
+    }
+
     private static func kind(forProviderId providerId: String) -> AuthProviderKind? {
         switch providerId {
         case Constants.Auth.appleProviderId: .apple
@@ -83,6 +90,8 @@ struct AuthProviderFake: AuthProviderProtocol {
     var linkedProviderKinds: Set<AuthProviderKind> = []
     var sessionProviderKind: AuthProviderKind?
     var authenticationDate: Date? = .now
+    var isMaintainer = false
+    let maintainerClaimRequests = MaintainerClaimRequestLog()
 
     // MARK: - Functions
 
@@ -93,5 +102,14 @@ struct AuthProviderFake: AuthProviderProtocol {
     func currentAuthenticationDate() async -> Date? {
         authenticationDate
     }
+
+    func maintainerClaim(forcingRefresh: Bool) async throws -> Bool {
+        maintainerClaimRequests.forcingRefreshValues.append(forcingRefresh)
+        return isMaintainer
+    }
+}
+
+final class MaintainerClaimRequestLog {
+    var forcingRefreshValues: [Bool] = []
 }
 #endif

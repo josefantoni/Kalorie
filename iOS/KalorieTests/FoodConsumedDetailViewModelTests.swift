@@ -28,6 +28,51 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_photoPill_beforeAppear_isHidden() {
+        let sut = makeSUT(food: makeFood(kind: .catalogue))
+        XCTAssertEqual(sut.photoPillState, .hidden)
+    }
+
+    @MainActor
+    func test_photoPill_whenTheCatalogueItemHasNoPhoto_isEmptyUnlessISuggestedOne() async {
+        let item = FoodItemDTO(item: makePhotoSuggestionItem(id: "12345")).asDomain()
+        let empty = makeSUT(
+            food: makeFood(kind: .catalogue),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item),
+            fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseFake(hasSuggestion: false)
+        )
+        await empty.onAppear()
+        XCTAssertEqual(empty.photoPillState, .empty)
+
+        let awaiting = makeSUT(
+            food: makeFood(kind: .catalogue),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item),
+            fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCaseFake(hasSuggestion: true)
+        )
+        await awaiting.onAppear()
+        XCTAssertEqual(awaiting.photoPillState, .awaitingApproval)
+    }
+
+    @MainActor
+    func test_photoPill_whenTheCatalogueItemHasAPhoto_isPhoto() async throws {
+        let photo = try XCTUnwrap(URL(string: "https://example.com/catalogue.jpg"))
+        let item = FoodItemDTO(item: makePhotoSuggestionItem(id: "12345", photoURL: photo)).asDomain()
+        let sut = makeSUT(
+            food: makeFood(kind: .catalogue),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item)
+        )
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoPillState, .photo(photo))
+    }
+
+    @MainActor
+    func test_photoPill_whenTheCatalogueItemNoLongerResolves_isHidden() async {
+        let sut = makeSUT(food: makeFood(kind: .catalogue), fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: nil))
+        await sut.onAppear()
+        XCTAssertEqual(sut.photoPillState, .hidden)
+    }
+
+    @MainActor
     func test_onAppear_whenCatalogueItemNoLongerResolves_disablesAddingButKeepsButtonVisible() async {
         let sut = makeSUT(fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: nil))
 
@@ -342,6 +387,8 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         fetchFoodByBarcodeExternally: any FetchFoodByBarcodeExternallyUseCaseProtocol = FetchFoodByBarcodeExternallyUseCaseFake(),
         fetchMyFoodItemReport: any FetchMyFoodItemReportUseCaseProtocol = FetchMyFoodItemReportUseCaseFake(),
         submitFoodItemReport: any SubmitFoodItemReportUseCaseProtocol = SubmitFoodItemReportUseCaseFake(),
+        fetchMyPhotoSuggestion: any FetchMyPhotoSuggestionUseCaseProtocol = FetchMyPhotoSuggestionUseCaseFake(),
+        submitPhotoSuggestion: any SubmitPhotoSuggestionUseCaseProtocol = SubmitPhotoSuggestionUseCaseFake(),
         deleteFoodConsumed: any DeleteFoodConsumedUseCaseProtocol = DeleteFoodConsumedUseCaseFake(),
         onFoodUpdated: @escaping () -> Void = {}
     ) -> FoodConsumedDetailViewModel {
@@ -358,6 +405,8 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
             fetchFoodByBarcodeExternally: fetchFoodByBarcodeExternally,
             fetchMyFoodItemReport: fetchMyFoodItemReport,
             submitFoodItemReport: submitFoodItemReport,
+            fetchMyPhotoSuggestion: fetchMyPhotoSuggestion,
+            submitPhotoSuggestion: submitPhotoSuggestion,
             deleteFoodConsumed: deleteFoodConsumed,
             onFoodUpdated: onFoodUpdated
         )

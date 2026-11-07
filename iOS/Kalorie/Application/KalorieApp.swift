@@ -53,6 +53,7 @@ struct KalorieApp: App {
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @Environment(\.scenePhase) private var scenePhase
+    @State private var maintainerClaimCache = MaintainerClaimCache()
     @StateObject private var versionGate = AppVersionGate(
         fetchMinimumVersion: FetchMinimumVersionUseCase(dataProvider: FirestoreDataProvider())
     )
@@ -97,7 +98,7 @@ struct KalorieApp: App {
         case .idle, .loading:
             LoaderIndicator()
         case .loaded:
-            DashboardConfigurator().createView(mergeStatusReporting: authState)
+            DashboardConfigurator(maintainerClaimCache: maintainerClaimCache).createView(mergeStatusReporting: authState)
                 // Forces a full rebuild on every auth transition so no view model is reused
                 // across users. Side effect: it also resets the Dashboard's transient state,
                 // including the selected day, back to today on sign-in/sign-out.
