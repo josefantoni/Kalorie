@@ -42,14 +42,13 @@ struct NotificationsConfigurator {
                 fetchPendingSubmissions: FetchPendingSubmissionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchFoodItemReports: FetchFoodItemReportsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchPhotoSuggestions: FetchPhotoSuggestionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
-                deleteFoodItemReport: DeleteFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider)
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider)
             ),
             makeSubmissionView: { [moderationConfigurator] submission, onResolved in
                 moderationConfigurator.makeReviewView(submission: submission, onResolved: onResolved)
             },
-            makeReportView: { [moderationConfigurator] barcode, reports in
-                moderationConfigurator.makeCatalogueEditorView(initialBarcode: barcode, reports: reports)
+            makeReportView: { [moderationConfigurator] barcode, reports, onReportsChanged in
+                moderationConfigurator.makeCatalogueEditorView(initialBarcode: barcode, reports: reports, onReportsChanged: onReportsChanged)
             },
             makePhotoSuggestionView: { [moderationConfigurator] suggestion, onResolved in
                 moderationConfigurator.makePhotoSuggestionView(suggestion: suggestion, onResolved: onResolved)

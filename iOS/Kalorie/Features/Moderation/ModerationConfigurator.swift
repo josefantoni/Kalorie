@@ -67,11 +67,10 @@ struct ModerationConfigurator {
         ModerationReportsView(
             viewModel: ModerationReportsViewModel(
                 fetchFoodItemReports: FetchFoodItemReportsUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
-                deleteFoodItemReport: DeleteFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider)
+                fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider)
             )
-        ) { [self] barcode, reports in
-            makeCatalogueEditorView(initialBarcode: barcode, reports: reports)
+        ) { [self] barcode, reports, onReportsChanged in
+            makeCatalogueEditorView(initialBarcode: barcode, reports: reports, onReportsChanged: onReportsChanged)
         }
     }
 
@@ -118,7 +117,8 @@ struct ModerationConfigurator {
 
     func makeCatalogueEditorView(
         initialBarcode: String?,
-        reports: [FoodItemReportDomain] = []
+        reports: [FoodItemReportDomain] = [],
+        onReportsChanged: @escaping ([FoodItemReportDomain]) -> Void = { _ in }
     ) -> ModerationCatalogueEditorView {
         ModerationCatalogueEditorView(
             viewModel: ModerationCatalogueEditorViewModel(
@@ -129,11 +129,13 @@ struct ModerationConfigurator {
                     uploadFoodPhoto: UploadFoodPhotoUseCase(storageProvider: storageProvider),
                     deleteFoodPhoto: DeleteFoodPhotoUseCase(storageProvider: storageProvider)
                 ),
+                deleteFoodItemReport: DeleteFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 modelExtractor: FoundationModelExtractor(),
                 cameraAuthorizationProvider: CameraAuthorizationProvider(),
-                initialBarcode: initialBarcode
-            ),
-            reports: reports
+                initialBarcode: initialBarcode,
+                reports: reports,
+                onReportsChanged: onReportsChanged
+            )
         )
     }
 }

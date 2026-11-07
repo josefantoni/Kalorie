@@ -13,7 +13,7 @@ struct NotificationsView: View {
 
     @StateObject var viewModel: NotificationsViewModel
     private let makeSubmissionView: (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView
-    private let makeReportView: (String, [FoodItemReportDomain]) -> ModerationCatalogueEditorView
+    private let makeReportView: (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView
     private let makePhotoSuggestionView: (PhotoSuggestionDomain, @escaping () -> Void) -> ModerationPhotoSuggestionView
 
     // MARK: - Init
@@ -21,7 +21,7 @@ struct NotificationsView: View {
     init(
         viewModel: NotificationsViewModel,
         makeSubmissionView: @escaping (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView,
-        makeReportView: @escaping (String, [FoodItemReportDomain]) -> ModerationCatalogueEditorView,
+        makeReportView: @escaping (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView,
         makePhotoSuggestionView: @escaping (PhotoSuggestionDomain, @escaping () -> Void) -> ModerationPhotoSuggestionView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
@@ -40,14 +40,6 @@ struct NotificationsView: View {
                         destination(for: row)
                     } label: {
                         label(for: row)
-                    }
-                    .swipeActions {
-                        if case .report = row.kind {
-                            Button(L10n.Moderation.buttonResolve) {
-                                Task { await viewModel.onResolveReportsTapped(row) }
-                            }
-                            .tint(Color.success)
-                        }
                     }
                 }
             }
@@ -91,7 +83,9 @@ struct NotificationsView: View {
         case .submission(let submission):
             makeSubmissionView(submission) { viewModel.onRowResolved(id: row.id) }
         case .report(let barcode, let reports):
-            makeReportView(barcode, reports)
+            makeReportView(barcode, reports) { remaining in
+                viewModel.onReportRowChanged(id: row.id, remaining: remaining)
+            }
         case .photoSuggestion(let suggestion):
             makePhotoSuggestionView(suggestion) { viewModel.onRowResolved(id: row.id) }
         }

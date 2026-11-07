@@ -121,101 +121,50 @@ final class ModerationReportsViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onResolveTapped_deletesEveryReportInTheGroupAndRemovesIt() async throws {
-        let reports = [
-            makeReport(barcode: "111", reportedBy: "user-1"),
-            makeReport(barcode: "111", reportedBy: "user-2")
-        ]
-        let deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
+    func test_onGroupReportsChanged_withNoRemainingReports_removesOnlyThatBarcodesGroup() async {
         let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: reports),
-            deleteFoodItemReport: deleteFoodItemReport
+            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
+                makeReport(barcode: "111", reportedBy: "user-1"),
+                makeReport(barcode: "222", reportedBy: "user-2")
+            ])
         )
         await sut.onAppear()
-        let group = try XCTUnwrap(sut.groups.first)
 
-        await sut.onResolveTapped(group)
+        sut.onGroupReportsChanged(barcode: "111", remaining: [])
 
-        XCTAssertEqual(deleteFoodItemReport.deletedReportedBy.sorted(), ["user-1", "user-2"])
-        XCTAssertTrue(sut.groups.isEmpty)
+        XCTAssertEqual(sut.groups.map(\.barcode), ["222"])
     }
 
     @MainActor
-    func test_onResolveTapped_whenSomeDeletesFail_keepsOnlyTheFailedReportsAndShowsAlert() async throws {
-        let reports = [
-            makeReport(barcode: "111", reportedBy: "user-1"),
-            makeReport(barcode: "111", reportedBy: "user-2")
-        ]
-        let deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy(failingReportedBy: ["user-2"])
+    func test_onGroupReportsChanged_withRemainingReports_keepsTheGroupWithOnlyThose() async {
         let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: reports),
-            deleteFoodItemReport: deleteFoodItemReport
+            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
+                makeReport(barcode: "111", reportedBy: "user-1"),
+                makeReport(barcode: "111", reportedBy: "user-2"),
+                makeReport(barcode: "111", reportedBy: "user-3")
+            ])
         )
         await sut.onAppear()
-        let group = try XCTUnwrap(sut.groups.first)
 
-        await sut.onResolveTapped(group)
+        sut.onGroupReportsChanged(barcode: "111", remaining: [makeReport(barcode: "111", reportedBy: "user-3")])
 
-        XCTAssertEqual(
-            sut.groups.first?.reports.map(\.reportedBy),
-            ["user-2"],
-            "a report that failed to delete still exists in Firestore — hiding it would tell the maintainer the item is resolved when it is not"
-        )
-        XCTAssertNotNil(sut.alertItem, "partial failure is accepted by design 0012 only because it is visible to the maintainer")
-    }
-
-    @MainActor
-    func test_onResolveTapped_whenEveryDeleteFails_keepsTheGroupAndShowsAlert() async throws {
-        let reports = [makeReport(barcode: "111", reportedBy: "user-1")]
-        let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: reports),
-            deleteFoodItemReport: DeleteFoodItemReportUseCaseFake(shouldThrow: true)
-        )
-        await sut.onAppear()
-        let group = try XCTUnwrap(sut.groups.first)
-
-        await sut.onResolveTapped(group)
-
-        XCTAssertEqual(sut.groups.first?.reports.count, 1)
-        XCTAssertNotNil(sut.alertItem)
+        XCTAssertEqual(sut.groups.map(\.reports.count), [1], "reports that were deleted must not stay in the list until the next refresh")
+        XCTAssertEqual(sut.groups.first?.reports.map(\.reportedBy), ["user-3"])
     }
 
     // MARK: - Helpers
 
     private func makeSUT(
         fetchFoodItemReports: any FetchFoodItemReportsUseCaseProtocol = FetchFoodItemReportsUseCaseFake(),
-        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
-        deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol = DeleteFoodItemReportUseCaseFake()
+        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake()
     ) -> ModerationReportsViewModel {
         ModerationReportsViewModel(
             fetchFoodItemReports: fetchFoodItemReports,
-            fetchFoodItemByBarcode: fetchFoodItemByBarcode,
-            deleteFoodItemReport: deleteFoodItemReport
+            fetchFoodItemByBarcode: fetchFoodItemByBarcode
         )
     }
 
     private func makeReport(barcode: String, reportedBy: String) -> FoodItemReportDomain {
         FoodItemReportDomain(barcode: barcode, reportedBy: reportedBy, reason: "wrong data", reportedAt: .now)
-    }
-}
-
-private final class DeleteFoodItemReportUseCaseSpy: DeleteFoodItemReportUseCaseProtocol {
-
-    // MARK: - Properties
-
-    private(set) var deletedReportedBy: [String] = []
-    private let failingReportedBy: Set<String>
-
-    // MARK: - Init
-
-    init(failingReportedBy: Set<String> = []) {
-        self.failingReportedBy = failingReportedBy
-    }
-
-    // MARK: - Functions
-
-    func callAsFunction(barcode: String, reportedBy: String) async throws {
-        if failingReportedBy.contains(reportedBy) { throw URLError(.unknown) }
-        deletedReportedBy.append(reportedBy)
     }
 }

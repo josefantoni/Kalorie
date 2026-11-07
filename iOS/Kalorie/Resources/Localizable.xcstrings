@@ -5340,29 +5340,6 @@
         }
       }
     },
-    "moderation_button_resolve" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vyřešeno"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resolved"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vyriešené"
-          }
-        }
-      }
-    },
     "moderation_button_save" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5382,6 +5359,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uložiť"
+          }
+        }
+      }
+    },
+    "moderation_button_saveAndResolve" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložit a vyřešit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save and resolve"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uložiť a vyriešiť"
           }
         }
       }

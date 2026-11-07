@@ -222,6 +222,7 @@ enum L10n {
         static var buttonApprove: String { String(localized: "moderation_button_approve") }
         static var buttonReject: String { String(localized: "moderation_button_reject") }
         static var buttonSave: String { String(localized: "moderation_button_save") }
+        static var buttonSaveAndResolve: String { String(localized: "moderation_button_saveAndResolve") }
         static var rejectReasonPlaceholder: String { String(localized: "moderation_reject_reasonPlaceholder") }
         static var errorReasonRequired: String { String(localized: "moderation_error_reasonRequired") }
         static var editorTitle: String { String(localized: "moderation_editor_title") }
@@ -235,7 +236,6 @@ enum L10n {
         static func reportsCount(_ count: Int) -> String {
             String(format: String(localized: "moderation_reports_count"), count)
         }
-        static var buttonResolve: String { String(localized: "moderation_button_resolve") }
         static var similarItemsSectionTitle: String { String(localized: "moderation_similarItems_title") }
         static var similarItemsEmpty: String { String(localized: "moderation_similarItems_empty") }
     }
