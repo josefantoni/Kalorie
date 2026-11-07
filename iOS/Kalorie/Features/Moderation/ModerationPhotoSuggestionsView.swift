@@ -12,13 +12,13 @@ struct ModerationPhotoSuggestionsView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: ModerationPhotoSuggestionsViewModel
-    private let makeReviewView: (PhotoSuggestionDomain, @escaping () -> Void) -> ModerationPhotoSuggestionView
+    private let makeReviewView: (PhotoSuggestionDomain, @escaping (Bool) -> Void) -> ModerationPhotoSuggestionView
 
     // MARK: - Init
 
     init(
         viewModel: ModerationPhotoSuggestionsViewModel,
-        makeReviewView: @escaping (PhotoSuggestionDomain, @escaping () -> Void) -> ModerationPhotoSuggestionView
+        makeReviewView: @escaping (PhotoSuggestionDomain, @escaping (Bool) -> Void) -> ModerationPhotoSuggestionView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeReviewView = makeReviewView
@@ -35,8 +35,8 @@ struct ModerationPhotoSuggestionsView: View {
             }
             ForEach(viewModel.rows) { row in
                 NavigationLink {
-                    makeReviewView(row.suggestion) {
-                        viewModel.onSuggestionResolved(id: row.id)
+                    makeReviewView(row.suggestion) { isApproved in
+                        viewModel.onSuggestionResolved(id: row.id, isApproved: isApproved)
                     }
                 } label: {
                     Text(row.itemName ?? row.suggestion.itemId)

@@ -14,7 +14,7 @@ struct NotificationsView: View {
     @StateObject var viewModel: NotificationsViewModel
     private let makeSubmissionView: (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView
     private let makeReportView: (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView
-    private let makePhotoSuggestionView: (PhotoSuggestionDomain, @escaping () -> Void) -> ModerationPhotoSuggestionView
+    private let makePhotoSuggestionView: (PhotoSuggestionDomain, @escaping (Bool) -> Void) -> ModerationPhotoSuggestionView
 
     // MARK: - Init
 
@@ -22,7 +22,7 @@ struct NotificationsView: View {
         viewModel: NotificationsViewModel,
         makeSubmissionView: @escaping (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView,
         makeReportView: @escaping (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView,
-        makePhotoSuggestionView: @escaping (PhotoSuggestionDomain, @escaping () -> Void) -> ModerationPhotoSuggestionView
+        makePhotoSuggestionView: @escaping (PhotoSuggestionDomain, @escaping (Bool) -> Void) -> ModerationPhotoSuggestionView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeSubmissionView = makeSubmissionView
@@ -87,7 +87,9 @@ struct NotificationsView: View {
                 viewModel.onReportRowChanged(id: row.id, remaining: remaining)
             }
         case .photoSuggestion(let suggestion):
-            makePhotoSuggestionView(suggestion) { viewModel.onRowResolved(id: row.id) }
+            makePhotoSuggestionView(suggestion) { isApproved in
+                viewModel.onPhotoSuggestionResolved(id: row.id, isApproved: isApproved)
+            }
         }
     }
 

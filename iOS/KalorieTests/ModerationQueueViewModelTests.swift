@@ -56,6 +56,22 @@ final class ModerationQueueViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isColliding(submissionB), "approving one submission can make another pending submission's barcode collide")
     }
 
+    @MainActor
+    func test_onAppear_afterReturningFromADetail_keepsTheSubmissionsResolvedThere() async {
+        let fetchPendingSubmissions = FetchPendingSubmissionsUseCaseSpy(stubbedSubmissions: [
+            makeSubmission(id: "a", barcode: "111"),
+            makeSubmission(id: "b", barcode: "222")
+        ])
+        let sut = makeSUT(fetchPendingSubmissions: fetchPendingSubmissions, fetchFoodItemByBarcode: BarcodeLookupFake(existingBarcodes: []))
+        await sut.onAppear()
+        await sut.onSubmissionResolved(id: "a")
+
+        await sut.onAppear()
+
+        XCTAssertEqual(sut.submissions.map(\.id), ["b"], "popping a pushed detail re-runs .task; a re-fetch would bring back a submission the maintainer just resolved")
+        XCTAssertEqual(fetchPendingSubmissions.callCount, 1)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(

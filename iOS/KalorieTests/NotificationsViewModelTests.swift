@@ -127,6 +127,37 @@ final class NotificationsViewModelTests: XCTestCase {
         )
     }
 
+    @MainActor
+    func test_onPhotoSuggestionResolved_whenApproved_dropsEverySuggestionForTheSameItemAndKeepsOthers() async {
+        let sut = makeSUT(fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: makeSiblingSuggestions()))
+        await sut.onAppear()
+
+        sut.onPhotoSuggestionResolved(id: "photo-111_alice", isApproved: true)
+
+        XCTAssertEqual(sut.rows.map(\.id), ["photo-222_alice"], "the approval removed every user's suggestion for the item, so the sibling row is stale")
+    }
+
+    @MainActor
+    func test_onPhotoSuggestionResolved_whenRejected_dropsOnlyThatSuggestion() async {
+        let sut = makeSUT(fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: makeSiblingSuggestions()))
+        await sut.onAppear()
+
+        sut.onPhotoSuggestionResolved(id: "photo-111_alice", isApproved: false)
+
+        XCTAssertEqual(Set(sut.rows.map(\.id)), ["photo-111_bob", "photo-222_alice"], "a rejection leaves other users' suggestions for the item waiting")
+    }
+
+    @MainActor
+    func test_onAppear_afterReturningFromADetail_keepsTheRowsResolvedThere() async {
+        let sut = makeSUT(fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: makeSiblingSuggestions()))
+        await sut.onAppear()
+        sut.onPhotoSuggestionResolved(id: "photo-111_alice", isApproved: false)
+
+        await sut.onAppear()
+
+        XCTAssertEqual(Set(sut.rows.map(\.id)), ["photo-111_bob", "photo-222_alice"], "popping a pushed detail re-runs .task; a re-fetch would bring back a row the maintainer just resolved")
+    }
+
     // MARK: - Helpers
 
     @MainActor
@@ -178,6 +209,14 @@ final class NotificationsViewModelTests: XCTestCase {
                 salt: 0.1
             )
         )
+    }
+
+    private func makeSiblingSuggestions() -> [PhotoSuggestionDomain] {
+        [
+            PhotoSuggestionDomain(itemId: "111", suggestedBy: "alice", photoURL: URL(fileURLWithPath: "/a.jpg"), suggestedAt: day(1)),
+            PhotoSuggestionDomain(itemId: "111", suggestedBy: "bob", photoURL: URL(fileURLWithPath: "/b.jpg"), suggestedAt: day(2)),
+            PhotoSuggestionDomain(itemId: "222", suggestedBy: "alice", photoURL: URL(fileURLWithPath: "/c.jpg"), suggestedAt: day(3))
+        ]
     }
 
     private func makeSuggestion(itemId: String, date: Date = .now) -> PhotoSuggestionDomain {

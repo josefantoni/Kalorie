@@ -84,7 +84,7 @@ struct ModerationPhotoSuggestionView: View {
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                 approvePhotoSuggestion: ApprovePhotoSuggestionUseCaseFake(),
                 rejectPhotoSuggestion: RejectPhotoSuggestionUseCaseFake()
-            ) {}
+            ) { _ in }
         )
     }
 }

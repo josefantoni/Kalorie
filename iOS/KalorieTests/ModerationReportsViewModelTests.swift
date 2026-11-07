@@ -152,6 +152,22 @@ final class ModerationReportsViewModelTests: XCTestCase {
         XCTAssertEqual(sut.groups.first?.reports.map(\.reportedBy), ["user-3"])
     }
 
+    @MainActor
+    func test_onAppear_afterReturningFromADetail_keepsTheGroupsResolvedThere() async {
+        let sut = makeSUT(
+            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
+                makeReport(barcode: "111", reportedBy: "user-1"),
+                makeReport(barcode: "222", reportedBy: "user-2")
+            ])
+        )
+        await sut.onAppear()
+        sut.onGroupReportsChanged(barcode: "111", remaining: [])
+
+        await sut.onAppear()
+
+        XCTAssertEqual(sut.groups.map(\.barcode), ["222"], "popping a pushed detail re-runs .task; a re-fetch would bring back a group the maintainer just resolved")
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(
