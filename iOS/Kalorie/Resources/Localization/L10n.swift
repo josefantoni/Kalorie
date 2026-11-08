@@ -111,6 +111,7 @@ enum L10n {
         static var emptyWeigh: String { String(localized: "dashboard_empty_weigh") }
         static var weightBadgeLog: String { String(localized: "dashboard_weight_badgeLog") }
         static var weightBadgeEdit: String { String(localized: "dashboard_weight_badgeEdit") }
+        static var weightEnter: String { String(localized: "dashboard_weight_enter") }
         static var weightPickerWhole: String { String(localized: "dashboard_weight_pickerWhole") }
         static var weightPickerTenths: String { String(localized: "dashboard_weight_pickerTenths") }
     }
