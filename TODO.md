@@ -30,9 +30,6 @@
   tests and docs ([ADR 0049](docs/adr/0049-catalogue-names-and-photos-propagate-into-users-copies.md),
   [design 0032](docs/design/0032-propagating-catalogue-changes.md)) are implemented in `backend/functions`.
   Left for the owner:
-  - Add `npm ci && npm test` in `backend/functions` as a step of the `rules` job in
-    `.github/workflows/ci.yml` and add `backend/functions/**` to its path filter (a new CI step, so the
-    owner decides).
   - Deploy: indexes first (wait until built), then `firebase deploy --only functions` from `backend/`.
   - One-off prod fix of `foodItems/8593803625270` (re-saving it in the editor does not fire the function):
     run `propagate(db, "8593803625270", null, <current item data>)` once with gcloud credentials, only for
