@@ -1584,6 +1584,11 @@
     "en": "Edit weight",
     "sk": "Upraviť hmotnosť"
   },
+  "dashboard_weight_enter": {
+    "cs": "Moje váha",
+    "en": "My weight",
+    "sk": "Moja váha"
+  },
   "dashboard_weight_pickerWhole": {
     "cs": "Celá část",
     "en": "Whole part",

@@ -153,6 +153,7 @@
     <string name="dashboard_weight_a11yValue">Váha %1$s, zobrazit historii</string>
     <string name="dashboard_weight_badgeEdit">Upravit váhu</string>
     <string name="dashboard_weight_badgeLog">Zapsat váhu</string>
+    <string name="dashboard_weight_enter">Moje váha</string>
     <string name="dashboard_weight_pickerTenths">Desetiny</string>
     <string name="dashboard_weight_pickerWhole">Celá část</string>
     <string name="defaultMeals_breakfast">Snídaně</string>

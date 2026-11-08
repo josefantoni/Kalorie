@@ -153,6 +153,7 @@
     <string name="dashboard_weight_a11yValue">Hmotnosť %1$s, zobraziť históriu</string>
     <string name="dashboard_weight_badgeEdit">Upraviť hmotnosť</string>
     <string name="dashboard_weight_badgeLog">Zapísať hmotnosť</string>
+    <string name="dashboard_weight_enter">Moja váha</string>
     <string name="dashboard_weight_pickerTenths">Desatiny</string>
     <string name="dashboard_weight_pickerWhole">Celá časť</string>
     <string name="defaultMeals_breakfast">Raňajky</string>
