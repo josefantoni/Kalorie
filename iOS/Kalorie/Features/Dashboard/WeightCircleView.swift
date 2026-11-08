@@ -14,6 +14,7 @@ struct WeightCircleView: View {
     let weights: [BodyWeightDomain]
     let laterWeights: [BodyWeightDomain]
     let unit: BodyWeightUnit
+    var canLogWeight = false
 
     static let size: CGFloat = 72
 
@@ -50,6 +51,14 @@ struct WeightCircleView: View {
                         sparkline
                     }
                 }
+            } else if canLogWeight {
+                Text(L10n.Dashboard.weightEnter)
+                    .font(.caption2.bold())
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                    .padding(.horizontal, 12)
+                    .foregroundStyle(Color.primary)
             } else {
                 Capsule()
                     .fill(Color.secondary.opacity(0.3))

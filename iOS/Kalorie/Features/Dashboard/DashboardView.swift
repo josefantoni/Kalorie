@@ -305,7 +305,12 @@ struct DashboardView: View {
         Button {
             viewModel.isWeightHistoryPushed = true
         } label: {
-            WeightCircleView(weights: viewModel.recentWeights, laterWeights: viewModel.laterWeights, unit: unit)
+            WeightCircleView(
+                weights: viewModel.recentWeights,
+                laterWeights: viewModel.laterWeights,
+                unit: unit,
+                canLogWeight: viewModel.canLogWeight
+            )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(weightAccessibilityLabel(unit: unit))
