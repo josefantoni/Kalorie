@@ -219,6 +219,7 @@ understanding why.
 | [0028](design/0028-body-weight-tracking.md) | Body weight tracking | Proposed | Cross-platform |
 | [0029](design/0029-catalogue-contribution-hint.md) | Catalogue contribution hint | Draft | Cross-platform, iOS, Android |
 | [0031](design/0031-community-product-photos-and-notification-bell.md) | Community product photos and the notification bell | Draft | Backend, Cross-platform, iOS |
+| [0032](design/0032-propagating-catalogue-changes.md) | Propagating catalogue name and photo changes into users' copies | Draft | Backend |
 
 ### Decision records
 
@@ -272,3 +273,4 @@ understanding why.
 | [0046](adr/0046-search-words-are-trimmed-of-edge-punctuation.md) | Search words are trimmed of edge punctuation, not split on it | Accepted | Cross-platform |
 | [0047](adr/0047-openfoodfacts-serving-quantity-sets-one-portion-and-the-measure.md) | OpenFoodFacts `serving_quantity` sets one portion and the measure | Accepted | Cross-platform |
 | [0048](adr/0048-portion-names-have-slovak-forms.md) | Portion names have Slovak forms and follow the app's resolved language | Accepted | Cross-platform |
+| [0049](adr/0049-catalogue-names-and-photos-propagate-into-users-copies.md) | Catalogue names and photos propagate into users' copies | Accepted | Backend |

@@ -26,54 +26,17 @@
   field to `users/{userId}`. [Design 0028](docs/design/0028-body-weight-tracking.md) makes
   `users/{userId}/bodyWeights` the single source of the user's weight; BMR reads "the weight valid
   today" with the same query the Dashboard circle uses and stores none of its own.
-- **Propagate catalogue name and photo changes into users' copies** — analysis only, nothing implemented;
-  write an ADR (Scope: Backend, partly replaces [ADR 0009](docs/adr/0009-denormalised-nutrition-snapshots.md))
-  and a design doc (Scope: Backend) first, then implement.
-  - **Bug:** an admin edits a name while approving a submission (or later in the editor) and the new
-    name shows in the catalogue and in the report detail, but not on the Dashboard or in search. Seen in
-    prod: `foodItems/8593803625270` has `cz_name` "Madeta tvaroh s jogurtem jahodový", the author's
-    `foodConsumed` entry and `users/{uid}/stats/foodFrequency` still say "Tvaroh s jogurtem jahodový".
-    The author logged the food while the submission was still pending, so their copies hold the
-    submitted name. Approval does write the edited form, so this is not a client bug.
-  - **Cause:** by design. ADR 0009 stores a snapshot of the food in `foodConsumed`, `favouriteFoods`,
-    `myCreatedMeals` and (design 0020) `stats/foodFrequency`, and forbids background reconciliation.
-    Security rules forbid a maintainer's device from writing another user's `users/{uid}/…`, so no client
-    can fix it.
-  - **Decision taken:** the owner wants the name to apply everywhere, including logged diary entries.
-    Macros, grams and history stay untouched (ADR 0009's reason about macros still holds). Only
-    `cz_name`, `eng_name` and `photo_url` propagate. The owner's Firebase project is on the Blaze plan
-    already (needed for Storage, [design 0022](docs/design/0022-food-photos.md)).
-  - **Design:** first Cloud Functions code in the repo, `backend/functions`, region `europe-west1`
-    (Firestore is `eur3`), 2nd gen `onDocumentWritten("foodItems/{id}")`. Return early unless one of the
-    three fields differs between `before` and `after`; creation counts (before is absent). Never write
-    to `foodItems`, so there is no trigger loop. Deploy by hand with `firebase deploy --only functions`
-    like rules and indexes ([SETUP.md](docs/SETUP.md)); no CI step and no new secret. Per copy:
-    - `foodConsumed`: collection group query `food_item_id == id`; update `cz_name`, `eng_name` only (no
-      `photo_url` field exists there). Needs a `COLLECTION_GROUP` single-field index exemption on
-      `foodConsumed.food_item_id` in `backend/firestore.indexes.json`, otherwise the query fails.
-    - `favouriteFoods`: collection group query `id == id`; update all three. Same kind of index exemption
-      on `favouriteFoods.id`.
-    - `stats/foodFrequency`: variant A, chosen over a helper field: read every `stats` document
-      (collection group, one read per user per name change), and for those with `entries.<id>`, update
-      `entries.<id>.item.cz_name|eng_name|photo_url` using `FieldPath` keys (a barcode key starts with a
-      digit, see design 0020). Cost is trivial at the current user count; revisit past a few thousand users
-      (variant B: an indexed array of food ids kept by both clients, plus a migration).
-    - `myCreatedMeals`: leave alone. Ingredients (array of maps) cannot be queried, a scan is expensive,
-      and design 0006 already refreshes them when the meal is opened in the editor.
-    - Batch writes of at most 500 (`Constants.Firestore.batchWriteLimit`); make it idempotent so a retry is safe.
-  - **Open points for the analysis:** how ADR 0009 is amended without editing it (new ADR that replaces it
-    in part); whether `eng_name` is always set; photo removal (`photo_url` deleted on the catalogue item)
-    must delete the field in copies, not write `null`; whether OpenFoodFacts-origin copies
-    ([ADR 0044](docs/adr/0044-external-favourites-are-upgraded-when-the-food-enters-the-catalogue.md))
-    being renamed on catalogue creation is wanted; the function's service account needs Firestore access
-    (default is enough); update `docs/ARCHITECTURE.md`, `docs/SETUP.md` and the "no server code" lines in
-    designs 0015/0020 are frozen and stay as they are.
-  - **Tests:** Firestore emulator test of the function: names change in all three copy types, macros and
-    grams do not, an edit that touches none of the three fields writes nothing, creation of a catalogue
-    item renames copies made while it was pending.
-  - **One-off:** the existing mismatch in prod (the author's `foodConsumed` and `foodFrequency`) is fixed
-    by re-saving the item in the admin editor once the function is deployed. Do not write to prod without
-    the owner's approval.
+- **Propagate catalogue name and photo changes into users' copies — rollout** — the function, indexes,
+  tests and docs ([ADR 0049](docs/adr/0049-catalogue-names-and-photos-propagate-into-users-copies.md),
+  [design 0032](docs/design/0032-propagating-catalogue-changes.md)) are implemented in `backend/functions`.
+  Left for the owner:
+  - Add `npm ci && npm test` in `backend/functions` as a step of the `rules` job in
+    `.github/workflows/ci.yml` and add `backend/functions/**` to its path filter (a new CI step, so the
+    owner decides).
+  - Deploy: indexes first (wait until built), then `firebase deploy --only functions` from `backend/`.
+  - One-off prod fix of `foodItems/8593803625270` (re-saving it in the editor does not fire the function):
+    run `propagate(db, "8593803625270", null, <current item data>)` once with gcloud credentials, only for
+    this id and only with the owner's approval.
 - **Dashboard read cost** — not urgent. Firestore bills per document read, and the dominant cost is the
   whole-month `foodConsumed` load on cold launch and pull to refresh
   ([ADR 0015](docs/adr/0015-dashboard-caches-a-month-and-derives-the-day.md)): ~300 documents per load at
