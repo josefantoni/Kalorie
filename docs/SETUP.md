@@ -108,6 +108,19 @@ Setting it:
    (`getIDTokenResult(forcingRefresh: true)`). Custom claims only propagate to a fresh ID token
    (roughly hourly otherwise), so without this step the panel stays invisible and looks broken.
 
+## Cloud Functions
+
+`backend/functions` holds the function that propagates catalogue names and photos
+([design 0032](design/0032-propagating-catalogue-changes.md)). Deploy the indexes first and wait until
+they are built, then:
+
+```sh
+cd backend
+firebase deploy --only functions
+```
+
+Tests run against the Firestore emulator: `cd backend/functions && npm ci && npm test`.
+
 ## Firebase Storage (food photos)
 
 Product photos ([design 0022](design/0022-food-photos.md)) need a Storage bucket, which none of the

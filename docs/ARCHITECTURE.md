@@ -163,6 +163,10 @@ These are the contract a second client has to match exactly.
 - **Nutrition is denormalised** into every collection that references a food, rather than
   joined from `foodItems` at read time. See
   [ADR 0009](adr/0009-denormalised-nutrition-snapshots.md).
+  Names and photos are the exception: a Cloud Function (`backend/functions`) copies `cz_name`, `eng_name`
+  and `photo_url` from `foodItems` into the copies. See
+  [ADR 0049](adr/0049-catalogue-names-and-photos-propagate-into-users-copies.md) and
+  [design 0032](design/0032-propagating-catalogue-changes.md).
 - **Three fields are optional on read** — `energy_kj`, `fat_saturated`, `fiber` — because
   catalogue documents predating them exist. `energy_kj` is derived from macros when absent
   ([ADR 0007](adr/0007-derive-missing-energy-kj-from-macros.md)); the other two stay optional
@@ -345,6 +349,7 @@ builder:
 | `saveAsync(_:to:)` | `addDocument` — Firestore-generated ID |
 | `setAsync(_:id:in:)` | `document(id).setData` — full overwrite |
 | `mergeAsync(_:id:in:)` | `document(id).setData(_, merge: true)` — used only for `settings/app`, so a client never erases a field it does not know |
+| `updateAsync(_:id:in:)` | `document(id).updateData` — writes only the encoded fields and fails with `.notFound` (`NotFound` on Android) when the document does not exist, so a late write cannot recreate a deleted one. Used by `UpdateFoodConsumedUseCase`, whose partial DTO has no name fields |
 | `batchSetAsync(_:in:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) items |
 | `deleteAsync(id:from:)` | `document(id).delete()` |
 | `loadDocumentIdsAsync(from:)` | every document id of a collection, without decoding the documents — used only by the account-deletion wipe, so a document that no longer matches its DTO cannot block the deletion. Not in the protocol extension's reach: a conformer that does not implement it throws `.unsupported` |
