@@ -147,6 +147,8 @@ Android/app/build/
 scripts/secrets/
 scripts/node_modules/
 firestore-rules-tests/node_modules/
+backend/functions/node_modules/
+backend/functions/firestore-debug.log
 
 ### Firebase emulator ###
 firestore-debug.log
