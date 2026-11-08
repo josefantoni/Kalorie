@@ -144,7 +144,8 @@ the weight valid on the day) and up to two entries with `id > dayKey(selectedDay
 
 | Entries valid on or before the day | Circle |
 |---|---|
-| 0 | blurred placeholder (no number, no line), even if later entries exist |
+| 0, `canLogWeight` | the "My weight" hint (`dashboard_weight_enter`), even if later entries exist |
+| 0, otherwise | blurred placeholder (no number, no line), even if later entries exist |
 | 1, and none later | number only |
 | otherwise | number + polyline through the actual points, including the later ones |
 
