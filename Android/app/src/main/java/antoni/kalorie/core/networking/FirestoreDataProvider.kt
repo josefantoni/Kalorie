@@ -17,6 +17,7 @@ import kotlinx.serialization.serializer
 
 sealed class FirestoreDataProviderError : Exception() {
     data object Unreachable : FirestoreDataProviderError()
+    data object NotFound : FirestoreDataProviderError()
 }
 
 interface FirestoreDataProviderProtocol {
@@ -48,6 +49,7 @@ interface FirestoreDataProviderProtocol {
     suspend fun <T> loadRangeAsync(from: String, field: String, lowerBound: String, upperBound: String, serializer: KSerializer<T>): List<T>
     suspend fun <T> setAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>)
     suspend fun <T> mergeAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>)
+    suspend fun <T> updateAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>)
     suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>)
     suspend fun deleteAsync(id: String, from: String)
     suspend fun batchDeleteAsync(ids: List<String>, from: String)
@@ -147,6 +149,12 @@ suspend inline fun <reified T> FirestoreDataProviderProtocol.mergeAsync(
     id: String,
     inCollection: String,
 ): Unit = mergeAsync(item, id, inCollection, serializer<T>())
+
+suspend inline fun <reified T> FirestoreDataProviderProtocol.updateAsync(
+    item: T,
+    id: String,
+    inCollection: String,
+): Unit = updateAsync(item, id, inCollection, serializer<T>())
 
 suspend inline fun <reified T> FirestoreDataProviderProtocol.batchSetAsync(
     items: List<Pair<T, String>>,
@@ -333,6 +341,18 @@ class FirestoreDataProvider(
     override suspend fun <T> mergeAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
         performFirestoreCall {
             firestore.collection(inCollection).document(id).set(FirestoreDataMapper.encode(item, serializer), SetOptions.merge()).await()
+        }
+    }
+
+    override suspend fun <T> updateAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
+        performFirestoreCall {
+            val fields = FirestoreDataMapper.encode(item, serializer).entries.mapNotNull { (key, value) -> value?.let { key to it } }.toMap()
+            try {
+                firestore.collection(inCollection).document(id).update(fields).await()
+            } catch (error: FirebaseFirestoreException) {
+                if (error.code == FirebaseFirestoreException.Code.NOT_FOUND) throw FirestoreDataProviderError.NotFound
+                throw error
+            }
         }
     }
 

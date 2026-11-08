@@ -4,9 +4,14 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.networking.FirestoreDataProviderError
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
-import antoni.kalorie.core.networking.FoodConsumedDTO
+import antoni.kalorie.core.networking.FoodConsumedMealTypeUpdateDTO
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
@@ -18,53 +23,44 @@ class AssignFoodMealTypeUseCaseTest {
     // MARK: - Tests
 
     @Test
-    fun assignFoodMealType_setsMealTypeId() = runTest {
+    fun assignFoodMealType_writesOnlyTheMealTypeId_soAPropagatedNameIsNotReverted() = runTest {
         val (sut, dataProvider) = makeSUT()
 
         sut(makeFood(), mealTypeId = "lunch")
 
-        assertEquals("lunch", dataProvider.savedDTO?.mealTypeId)
-    }
-
-    @Test
-    fun assignFoodMealType_writesToUserSpecificCollection() = runTest {
-        val (sut, dataProvider) = makeSUT(userId = "user-123")
-
-        sut(makeFood(), mealTypeId = "lunch")
-
-        assertEquals("users/user-123/foodConsumed", dataProvider.setSavedCollection)
-    }
-
-    @Test
-    fun assignFoodMealType_preservesFoodItemId() = runTest {
-        val (sut, dataProvider) = makeSUT()
-
-        sut(makeFood(foodItemId = "12345"), mealTypeId = "lunch")
-
+        val updated = dataProvider.updatedItem
+        val keys = updated?.let { Json.encodeToJsonElement(serializerFor(it), it).jsonObject }
         assertEquals(
-            "setAsync overwrites the whole document, so a writer that drops a field would silently corrupt it while only meaning to move the meal-type pin",
-            "12345",
-            dataProvider.savedDTO?.foodItemId,
+            "the in-memory name can be older than a propagated rename, so pinning a meal type must not write cz_name/eng_name back",
+            mapOf("meal_type_id" to "lunch"),
+            keys?.mapValues { it.value.jsonPrimitive.content },
         )
     }
 
     @Test
-    fun assignFoodMealType_preservesWeightAndCalories() = runTest {
-        val (sut, dataProvider) = makeSUT()
+    fun assignFoodMealType_updatesInsteadOfOverwritingTheDocument() = runTest {
+        val (sut, dataProvider) = makeSUT(userId = "user-123")
 
-        sut(makeFood(weight = 150.0, calories = 200), mealTypeId = "lunch")
+        sut(makeFood(), mealTypeId = "lunch")
 
-        assertEquals(150.0, dataProvider.savedDTO?.weight)
-        assertEquals(200, dataProvider.savedDTO?.calories)
+        assertEquals("users/user-123/foodConsumed", dataProvider.updatedCollection)
+        assertEquals("1", dataProvider.updatedId)
+        assertNull(dataProvider.setSavedItem)
     }
 
     @Test
-    fun assignFoodMealType_whenFoodsFiberIsUnknown_staysNilInsteadOfZero() = runTest {
+    fun assignFoodMealType_whenTheEntryWasDeletedMeanwhile_propagatesNotFoundAndWritesNoDocument() = runTest {
         val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedUpdateError = FirestoreDataProviderError.NotFound
 
-        sut(makeFood(fiber = null), mealTypeId = "lunch")
+        try {
+            sut(makeFood(), mealTypeId = "lunch")
+            fail("Expected NotFound error")
+        } catch (_: FirestoreDataProviderError.NotFound) {
+        }
 
-        assertNull(dataProvider.savedDTO?.fiber)
+        assertNull(dataProvider.setSavedItem)
+        assertNull(dataProvider.updatedItem)
     }
 
     @Test
@@ -80,8 +76,11 @@ class AssignFoodMealTypeUseCaseTest {
 
     // MARK: - Helpers
 
-    private val FirestoreDataProviderFake.savedDTO: FoodConsumedDTO?
-        get() = setSavedItem as? FoodConsumedDTO
+    @Suppress("UNCHECKED_CAST")
+    private fun serializerFor(item: Any): KSerializer<Any> = when (item) {
+        is FoodConsumedMealTypeUpdateDTO -> FoodConsumedMealTypeUpdateDTO.serializer()
+        else -> error("Unexpected update payload: $item")
+    } as KSerializer<Any>
 
     private fun makeSUT(userId: String? = "test-user"): Pair<AssignFoodMealTypeUseCase, FirestoreDataProviderFake> {
         val dataProvider = FirestoreDataProviderFake()
