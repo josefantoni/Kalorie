@@ -46,6 +46,10 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var mergedCollection: String? = null
     var mergedId: String? = null
     var mergedItem: Any? = null
+    var stubbedUpdateError: Exception? = null
+    var updatedItem: Any? = null
+    var updatedId: String? = null
+    var updatedCollection: String? = null
     var batchDeletedIdsByCollection: Map<String, List<String>> = emptyMap()
     private var serverReadCount = 0
     var stubbedByField: List<Any> = emptyList()
@@ -246,6 +250,13 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         mergedItem = item
         mergedId = id
         mergedCollection = inCollection
+    }
+
+    override suspend fun <T> updateAsync(item: T, id: String, inCollection: String, serializer: KSerializer<T>) {
+        stubbedUpdateError?.let { throw it }
+        updatedItem = item
+        updatedId = id
+        updatedCollection = inCollection
     }
 
     override suspend fun <T> batchSetAsync(items: List<Pair<T, String>>, inCollection: String, serializer: KSerializer<T>) {

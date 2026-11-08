@@ -4,8 +4,8 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
-import antoni.kalorie.core.networking.FoodConsumedDTO
-import antoni.kalorie.core.networking.setAsync
+import antoni.kalorie.core.networking.FoodConsumedMealTypeUpdateDTO
+import antoni.kalorie.core.networking.updateAsync
 import antoni.kalorie.core.utils.Constants
 
 interface AssignFoodMealTypeUseCaseProtocol {
@@ -21,7 +21,7 @@ class AssignFoodMealTypeUseCase(
 
     override suspend fun invoke(food: FoodConsumedDomain, mealTypeId: String) {
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
-        val dto = FoodConsumedDTO(food = food, mealTypeId = mealTypeId)
-        dataProvider.setAsync(dto, id = food.id, inCollection = Constants.Firestore.foodConsumed(userId))
+        val dto = FoodConsumedMealTypeUpdateDTO(mealTypeId = mealTypeId)
+        dataProvider.updateAsync(dto, id = food.id, inCollection = Constants.Firestore.foodConsumed(userId))
     }
 }

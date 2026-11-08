@@ -88,3 +88,24 @@ data class FoodConsumedDTO(
         alcoholByVolume = alcoholByVolume,
     )
 }
+
+@Serializable
+data class FoodConsumedWeightUpdateDTO(
+    val weight: Double,
+    val calories: Int,
+    @SerialName("calories_per_hundred_grams") val caloriesPerHundredGrams: Double? = null,
+    @SerialName("energy_kj") val energyKJ: Double? = null,
+    val protein: Double,
+    val carbohydrate: Double,
+    @SerialName("carbohydrate_sugar") val carbohydrateSugar: Double,
+    val fat: Double,
+    @SerialName("fat_saturated") val fatSaturated: Double? = null,
+    @SerialName("fat_unsaturated") val fatUnsaturated: Double,
+    val fiber: Double? = null,
+    val salt: Double,
+)
+
+@Serializable
+data class FoodConsumedMealTypeUpdateDTO(
+    @SerialName("meal_type_id") val mealTypeId: String,
+)

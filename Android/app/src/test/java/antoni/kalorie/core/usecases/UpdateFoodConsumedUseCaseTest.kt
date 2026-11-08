@@ -5,9 +5,12 @@ import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodMeasure
+import antoni.kalorie.core.networking.FirestoreDataProviderError
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
-import antoni.kalorie.core.networking.FoodConsumedDTO
+import antoni.kalorie.core.networking.FoodConsumedWeightUpdateDTO
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
@@ -19,21 +22,29 @@ class UpdateFoodConsumedUseCaseTest {
     // MARK: - Tests
 
     @Test
-    fun updateFoodConsumed_whenWeightChanges_preservesFoodItemId() = runTest {
+    fun updateFoodConsumed_writesOnlyWeightAndScaledMacros_soAPropagatedNameIsNotReverted() = runTest {
         val (sut, dataProvider) = makeSUT()
 
-        sut(makeFood(foodItemId = "12345", weight = 100.0), newWeight = 200.0)
+        sut(makeFood(weight = 100.0), newWeight = 200.0)
 
-        assertEquals("12345", dataProvider.savedDTO?.foodItemId)
+        val keys = Json.encodeToJsonElement(FoodConsumedWeightUpdateDTO.serializer(), dataProvider.savedDTO!!).jsonObject.keys
+        assertEquals(
+            "the in-memory name can be older than a propagated rename, so an edit must not write cz_name/eng_name back",
+            setOf(
+                "weight", "calories", "calories_per_hundred_grams", "energy_kj", "protein", "carbohydrate",
+                "carbohydrate_sugar", "fat", "fat_saturated", "fat_unsaturated", "fiber", "salt",
+            ),
+            keys,
+        )
     }
 
     @Test
-    fun updateFoodConsumed_whenWeightChanges_preservesFoodItemKind() = runTest {
+    fun updateFoodConsumed_updatesInsteadOfOverwritingTheDocument() = runTest {
         val (sut, dataProvider) = makeSUT()
 
-        sut(makeFood(weight = 100.0, kind = FoodItemKind.CREATED_MEAL), newWeight = 200.0)
+        sut(makeFood(), newWeight = 200.0)
 
-        assertEquals(FoodItemKind.CREATED_MEAL, dataProvider.savedDTO?.foodItemKind)
+        assertNull(dataProvider.setSavedItem)
     }
 
     @Test
@@ -42,8 +53,23 @@ class UpdateFoodConsumedUseCaseTest {
 
         sut(makeFood(), newWeight = 200.0)
 
-        assertEquals("users/user-123/foodConsumed", dataProvider.setSavedCollection)
-        assertEquals("1", dataProvider.setSavedId)
+        assertEquals("users/user-123/foodConsumed", dataProvider.updatedCollection)
+        assertEquals("1", dataProvider.updatedId)
+    }
+
+    @Test
+    fun updateFoodConsumed_whenTheEntryWasDeletedMeanwhile_propagatesNotFoundAndWritesNoDocument() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedUpdateError = FirestoreDataProviderError.NotFound
+
+        try {
+            sut(makeFood(), newWeight = 200.0)
+            fail("Expected NotFound error")
+        } catch (_: FirestoreDataProviderError.NotFound) {
+        }
+
+        assertNull("a weight edit of a deleted entry must not recreate a document with only the weight and macros", dataProvider.setSavedItem)
+        assertNull(dataProvider.mergedItem)
     }
 
     @Test
@@ -107,32 +133,6 @@ class UpdateFoodConsumedUseCaseTest {
     }
 
     @Test
-    fun updateFoodConsumed_whenWeightChanges_preservesMealTypePin() = runTest {
-        val (sut, dataProvider) = makeSUT()
-
-        sut(makeFood(weight = 100.0, mealTypeId = "breakfast"), newWeight = 200.0)
-
-        assertEquals(
-            "setAsync overwrites the whole document, so a writer that drops meal_type_id would silently unpin the entry on the next weight edit",
-            "breakfast",
-            dataProvider.savedDTO?.mealTypeId,
-        )
-    }
-
-    @Test
-    fun updateFoodConsumed_writesTheFoodsMeasure() = runTest {
-        val (sut, dataProvider) = makeSUT()
-
-        sut(makeFood(weight = 100.0, measure = FoodMeasure.MILLILITRES), newWeight = 200.0)
-
-        assertEquals(
-            "editing a milk entry's amount must not relabel it as grams",
-            "millilitres",
-            dataProvider.savedDTO?.measureUnit,
-        )
-    }
-
-    @Test
     fun updateFoodConsumed_whenExistingWeightIsNotPositive_throwsInvalidWeightError() = runTest {
         val (sut, _) = makeSUT()
 
@@ -145,8 +145,8 @@ class UpdateFoodConsumedUseCaseTest {
 
     // MARK: - Helpers
 
-    private val FirestoreDataProviderFake.savedDTO: FoodConsumedDTO?
-        get() = setSavedItem as? FoodConsumedDTO
+    private val FirestoreDataProviderFake.savedDTO: FoodConsumedWeightUpdateDTO?
+        get() = updatedItem as? FoodConsumedWeightUpdateDTO
 
     private fun makeSUT(userId: String? = "test-user"): Pair<UpdateFoodConsumedUseCase, FirestoreDataProviderFake> {
         val dataProvider = FirestoreDataProviderFake()
