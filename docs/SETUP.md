@@ -93,7 +93,7 @@ custom claim, `maintainer: true`, checked both client-side (renders the panel) a
 Setting it:
 
 1. Find your own UID: Firebase Console → Authentication → Users, or sign in on-device and check
-   the account screen / Crashlytics user ID. Use the UID linked to your Apple/Google sign-in, not
+   the account screen. Use the UID linked to your Apple/Google sign-in, not
    a bare anonymous session — every install starts anonymous (§ 6.2 in `ARCHITECTURE.md`), and
    that UID is throwaway. Signing in with the same Apple/Google account always converges back to
    the same linked UID (via `credentialAlreadyInUse` → migrate), so the claim survives reinstalls
