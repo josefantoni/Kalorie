@@ -82,9 +82,10 @@ fun WeightAccessoryView(viewModel: DashboardViewModel, modifier: Modifier = Modi
             weights = recentWeights,
             laterWeights = laterWeights,
             unit = unit,
+            canLog = canLogWeight,
             modifier = Modifier
                 .clip(CircleShape)
-                .clickable(onClick = viewModel::onWeightCircleTapped)
+                .clickable { viewModel.onWeightCircleTapped() }
                 .semantics { contentDescription = accessibilityLabel },
         )
         if (canLogWeight) {

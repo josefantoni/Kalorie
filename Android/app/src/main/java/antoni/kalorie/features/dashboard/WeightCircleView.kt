@@ -22,10 +22,12 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import antoni.kalorie.R
 import antoni.kalorie.core.models.BodyWeightDomain
 import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.models.BodyWeightWindow
@@ -64,6 +66,7 @@ fun WeightCircleView(
     laterWeights: List<BodyWeightDomain>,
     unit: BodyWeightUnit,
     modifier: Modifier = Modifier,
+    canLog: Boolean = false,
 ) {
     // MARK: - Properties
 
@@ -94,6 +97,16 @@ fun WeightCircleView(
                     Sparkline(points = points, centerIndex = weights.size - 1, unit = unit)
                 }
             }
+        } else if (canLog) {
+            Text(
+                text = stringResource(R.string.dashboard_weight_enter),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 2,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 12.dp),
+                autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = MaterialTheme.typography.labelSmall.fontSize),
+            )
         } else {
             Box(
                 modifier = Modifier
