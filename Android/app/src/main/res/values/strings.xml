@@ -266,6 +266,7 @@
     <string name="myCreatedMeal_error_saveFailed">Could not save the meal</string>
     <string name="myCreatedMeal_field_name_placeholder">Homemade tortilla</string>
     <string name="myCreatedMeal_field_name_title">Meal name</string>
+    <string name="myCreatedMeal_hint_message">Do you bake your own bread? Save it once as a single meal – wholegrain flour, water, salt and caraway, each with its weighed grams. After that you no longer add it ingredient by ingredient, just the piece you have just cut off. Or the classic chicken with rice and broccoli – 7 days a week, that saves some time. 😏</string>
     <string name="myCreatedMeal_search_placeholder">Add food … try %1$s</string>
     <string name="myCreatedMeal_section_catalogue">Food catalogue</string>
     <string name="myCreatedMeal_section_ingredients">Ingredients</string>

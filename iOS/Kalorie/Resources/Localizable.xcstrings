@@ -6122,6 +6122,29 @@
         }
       }
     },
+    "myCreatedMeal_hint_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pečeš doma chleba? Zapiš ho jednou jako jedno jídlo – celozrnná mouka, voda, sůl a kmín, každé s odváženými gramy. Pak už ho nepřidáváš surovinu po surovině, jenom zrovna odkrojený kus. Nebo klasika kuře s rýží a brokolicí – 7 dní v týdnu, to už ušetří nějaký čas. 😏"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do you bake your own bread? Save it once as a single meal – wholegrain flour, water, salt and caraway, each with its weighed grams. After that you no longer add it ingredient by ingredient, just the piece you have just cut off. Or the classic chicken with rice and broccoli – 7 days a week, that saves some time. 😏"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pečieš doma chlieb? Zapíš ho raz ako jedno jedlo – celozrnná múka, voda, soľ a rasca, každá surovina s odváženými gramami. Potom ho už nepridávaš surovinu po surovine, iba práve odrezaný kus. Alebo klasika kuracie mäso s ryžou a brokolicou – 7 dní v týždni, to už ušetrí nejaký čas. 😏"
+          }
+        }
+      }
+    },
     "myCreatedMeal_search_placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
