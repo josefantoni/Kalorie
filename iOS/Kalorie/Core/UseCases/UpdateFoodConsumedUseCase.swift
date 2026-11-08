@@ -35,14 +35,8 @@ struct UpdateFoodConsumedUseCase: UpdateFoodConsumedUseCaseProtocol {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         guard food.weight > 0 else { throw UpdateFoodConsumedError.invalidWeight }
         let scaled = ScaledMacros(food: food, newWeight: newWeight)
-        let dto = FoodConsumedDTO(
-            id: food.id,
-            foodItemId: food.foodItemId,
-            foodItemKind: food.foodItemKind,
-            czName: food.czName,
-            engName: food.engName,
+        let dto = FoodConsumedWeightUpdateDTO(
             weight: newWeight,
-            date: food.date.timeIntervalSince1970,
             calories: scaled.calories,
             caloriesPerHundredGrams: food.caloriesPerHundredGrams,
             energyKJ: scaled.energyKJ,
@@ -53,12 +47,9 @@ struct UpdateFoodConsumedUseCase: UpdateFoodConsumedUseCaseProtocol {
             fatSaturated: scaled.fatSaturated,
             fatUnsaturated: scaled.fatUnsaturated,
             fiber: scaled.fiber,
-            salt: scaled.salt,
-            mealTypeId: food.mealTypeId,
-            measureUnit: food.measure.rawValue,
-            alcoholByVolume: food.alcoholByVolume
+            salt: scaled.salt
         )
-        try await dataProvider.setAsync(dto, id: food.id, in: Constants.Firestore.foodConsumed(userId: userId))
+        try await dataProvider.updateAsync(dto, id: food.id, in: Constants.Firestore.foodConsumed(userId: userId))
     }
 }
 

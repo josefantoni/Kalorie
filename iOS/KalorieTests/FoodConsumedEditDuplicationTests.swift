@@ -173,6 +173,60 @@ private final class FirestoreDocumentStoreFake: FirestoreDataProviderProtocol {
         documents[id] = dto
     }
 
+    func updateAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
+        guard let stored = documents[id] else { return }
+        if let pin = item as? FoodConsumedMealTypeUpdateDTO {
+            documents[id] = FoodConsumedDTO(
+                id: stored.id,
+                foodItemId: stored.foodItemId,
+                foodItemKind: stored.foodItemKind,
+                czName: stored.czName,
+                engName: stored.engName,
+                weight: stored.weight,
+                date: stored.date,
+                calories: stored.calories,
+                caloriesPerHundredGrams: stored.caloriesPerHundredGrams,
+                energyKJ: stored.energyKJ,
+                protein: stored.protein,
+                carbohydrate: stored.carbohydrate,
+                carbohydrateSugar: stored.carbohydrateSugar,
+                fat: stored.fat,
+                fatSaturated: stored.fatSaturated,
+                fatUnsaturated: stored.fatUnsaturated,
+                fiber: stored.fiber,
+                salt: stored.salt,
+                mealTypeId: pin.mealTypeId,
+                measureUnit: stored.measureUnit,
+                alcoholByVolume: stored.alcoholByVolume
+            )
+            return
+        }
+        guard let update = item as? FoodConsumedWeightUpdateDTO else { return }
+        documents[id] = FoodConsumedDTO(
+            id: stored.id,
+            foodItemId: stored.foodItemId,
+            foodItemKind: stored.foodItemKind,
+            czName: stored.czName,
+            engName: stored.engName,
+            weight: update.weight,
+            date: stored.date,
+            calories: update.calories,
+            caloriesPerHundredGrams: update.caloriesPerHundredGrams,
+            energyKJ: update.energyKJ,
+            protein: update.protein,
+            carbohydrate: update.carbohydrate,
+            carbohydrateSugar: update.carbohydrateSugar,
+            fat: update.fat,
+            fatSaturated: update.fatSaturated,
+            fatUnsaturated: update.fatUnsaturated,
+            fiber: update.fiber,
+            salt: update.salt,
+            mealTypeId: stored.mealTypeId,
+            measureUnit: stored.measureUnit,
+            alcoholByVolume: stored.alcoholByVolume
+        )
+    }
+
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
     func deleteAsync(id: String, from collection: String) async throws {
         documents.removeValue(forKey: id)
