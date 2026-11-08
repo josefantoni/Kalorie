@@ -32,7 +32,8 @@ struct HintCard: View {
                 .background(Color.accentColor.opacity(0.2), in: messageShape)
             Button(action: onAction) {
                 Text(actionTitle)
-                    .padding(.horizontal, 16)
+                    .padding(.leading, 14)
+                    .padding(.trailing, 16)
                     .frame(maxHeight: .infinity)
                     .contentShape(Rectangle())
                     .fontWeight(.semibold)
