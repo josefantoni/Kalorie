@@ -277,4 +277,4 @@ The deployment target is iOS 26 — use Liquid Glass without `@available` condit
 
 ## App Check debug tokens
 
-App Check is enforced on Storage and Firestore. Debug builds use the debug provider, so every new simulator or debug device must have its debug token registered under Firebase Console → App Check → app menu → Manage debug tokens. The provider prints the token on first launch (Xcode console). An unregistered build gets `permission-denied`. A token is a credential, do not put it in the shared `Kalorie.xcscheme`.
+App Check is installed but not enforced on Storage and Firestore (console status: Monitoring; enforcement is a later step, see design 0026). Debug builds use the debug provider, so every new simulator or debug device must have its debug token registered under Firebase Console → App Check → app menu → Manage debug tokens. The provider prints the token on first launch (Xcode console). Once enforcement is on, an unregistered build gets `permission-denied`. A token is a credential, do not put it in the shared `Kalorie.xcscheme`.
