@@ -23,6 +23,7 @@ import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetViewModel
+import antoni.kalorie.features.addfoodsheet.HintVisibilityStoreProtocol
 import antoni.kalorie.textkit.parseDecimalInput
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -45,7 +46,9 @@ class MyCreatedMealEditorViewModel(
     private val fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseProtocol,
     private val createMyCreatedMeal: CreateMyCreatedMealUseCaseProtocol,
     private val updateMyCreatedMeal: UpdateMyCreatedMealUseCaseProtocol,
+    private val hintStore: HintVisibilityStoreProtocol,
     private val existingMeal: MyCreatedMealDomain? = null,
+    private val now: () -> Instant = { Instant.now() },
     private val onSaved: () -> Unit = {},
     private val dismissesOnSave: Boolean = true,
 ) : ViewModel() {
@@ -93,6 +96,8 @@ class MyCreatedMealEditorViewModel(
     val isSaveConfirmationVisible = MutableStateFlow(false)
     private val _shouldDismiss = MutableStateFlow(false)
     val shouldDismiss: StateFlow<Boolean> = _shouldDismiss
+    private val _isHintVisible = MutableStateFlow(existingMeal == null && hintStore.isHintVisible(now()))
+    val isHintVisible: StateFlow<Boolean> = _isHintVisible
 
     @StringRes val searchExampleRes: Int = AddFoodSheetViewModel.searchExamples.random()
 
@@ -127,6 +132,12 @@ class MyCreatedMealEditorViewModel(
         }
 
     // MARK: - Functions
+
+    fun onHintHidden() {
+        hintStore.hiddenAt = now()
+        hintStore.hideCount += 1
+        _isHintVisible.value = false
+    }
 
     suspend fun onAppear() {
         if (!isEditing) return

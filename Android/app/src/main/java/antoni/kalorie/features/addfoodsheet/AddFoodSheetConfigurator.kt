@@ -36,6 +36,7 @@ import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCase
 import antoni.kalorie.core.usecases.UpdateMySubmissionUseCase
 import antoni.kalorie.core.usecases.UploadFoodPhotoUseCase
+import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.ContextStringProvider
 import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
 import antoni.kalorie.features.foodquantity.FoodQuantityUnit
@@ -57,7 +58,14 @@ class AddFoodSheetConfigurator(
     fun createView(date: Instant, mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onFoodSaved: () -> Unit = {}) {
         val context = LocalContext.current.applicationContext
         val stringProvider = remember { ContextStringProvider(context) }
-        val contributionHintStore = remember { ContributionHintStore(context) }
+        val contributionHintStore = remember {
+            HintVisibilityStore(
+                context,
+                preferencesName = Constants.AddFood.CONTRIBUTION_HINT_PREFERENCES,
+                hiddenAtKey = Constants.AddFood.CONTRIBUTION_HINT_HIDDEN_AT_KEY,
+                hideCountKey = Constants.AddFood.CONTRIBUTION_HINT_HIDE_COUNT_KEY,
+            )
+        }
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             val storageProvider = StorageDataProvider()
             val uploadFoodPhoto = UploadFoodPhotoUseCase(storageProvider)
