@@ -26,6 +26,16 @@
     }
   ],
   "fieldOverrides": [
+    {
+      "collectionGroup": "foodConsumed",
+      "fieldPath": "food_item_id",
+      "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }]
+    },
+    {
+      "collectionGroup": "favouriteFoods",
+      "fieldPath": "id",
+      "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }]
+    },
     { "collectionGroup": "foodItems", "fieldPath": "id", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "weight", "indexes": [] },
     { "collectionGroup": "foodItems", "fieldPath": "date", "indexes": [] },
