@@ -120,7 +120,7 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
             },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 16.dp)) {
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                     if (isAnonymous) {
                         SectionCard {
                             Text(
