@@ -266,6 +266,7 @@
     <string name="myCreatedMeal_error_saveFailed">Jedlo sa nepodarilo uložiť</string>
     <string name="myCreatedMeal_field_name_placeholder">Domáca tortilla</string>
     <string name="myCreatedMeal_field_name_title">Názov jedla</string>
+    <string name="myCreatedMeal_hint_message">Pečieš doma chlieb? Zapíš ho raz ako jedno jedlo – celozrnná múka, voda, soľ a rasca, každá surovina s odváženými gramami. Potom ho už nepridávaš surovinu po surovine, iba práve odrezaný kus. Alebo klasika kuracie mäso s ryžou a brokolicou – 7 dní v týždni, to už ušetrí nejaký čas. 😏</string>
     <string name="myCreatedMeal_search_placeholder">Pridaj potravinu … napríklad %1$s</string>
     <string name="myCreatedMeal_section_catalogue">Katalóg potravín</string>
     <string name="myCreatedMeal_section_ingredients">Potraviny</string>
