@@ -12,16 +12,38 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_updateFoodConsumed_whenWeightChanges_preservesFoodItemId() async throws {
+    func test_updateFoodConsumed_writesOnlyWeightAndScaledMacros_soAPropagatedNameIsNotReverted() async throws {
         let (sut, dataProvider) = makeSUT()
-        try await sut(makeFood(foodItemId: "12345", weight: 100), newWeight: 200)
-        XCTAssertEqual(dataProvider.savedDTO?.foodItemId, "12345")
+        try await sut(makeFood(weight: 100), newWeight: 200)
+        let keys = try dataProvider.mergedKeys()
+        XCTAssertEqual(
+            keys,
+            [
+                "weight", "calories", "calories_per_hundred_grams", "energy_kj", "protein", "carbohydrate",
+                "carbohydrate_sugar", "fat", "fat_saturated", "fat_unsaturated", "fiber", "salt"
+            ],
+            "the in-memory name can be older than a propagated rename, so an edit must not write cz_name/eng_name back"
+        )
     }
 
-    func test_updateFoodConsumed_whenWeightChanges_preservesFoodItemKind() async throws {
+    func test_updateFoodConsumed_updatesInsteadOfOverwritingTheDocument() async throws {
         let (sut, dataProvider) = makeSUT()
-        try await sut(makeFood(weight: 100, kind: .createdMeal), newWeight: 200)
-        XCTAssertEqual(dataProvider.savedDTO?.foodItemKind, .createdMeal)
+        try await sut(makeFood(weight: 100), newWeight: 200)
+        XCTAssertEqual(dataProvider.mergedId, "1")
+        XCTAssertFalse(dataProvider.didSet)
+    }
+
+    func test_updateFoodConsumed_whenTheEntryWasDeletedMeanwhile_throwsNotFoundAndWritesNothing() async throws {
+        let (sut, dataProvider) = makeSUT()
+        dataProvider.storedIds = []
+        do {
+            try await sut(makeFood(), newWeight: 200)
+            XCTFail("Expected notFound error")
+        } catch FirestoreDataProviderError.notFound {
+            // pass
+        }
+        XCTAssertNil(dataProvider.mergedDTO, "a weight edit of a deleted entry must not recreate a document with only the weight and macros")
+        XCTAssertFalse(dataProvider.didSet)
     }
 
     func test_updateFoodConsumed_whenNotAuthenticated_throwsAuthError() async throws {
@@ -39,49 +61,33 @@ final class UpdateFoodConsumedUseCaseTests: XCTestCase {
         // 1g of a 33 kcal/100g food logs to 0 kcal (rounds down). Rescaling that rounded 0 by
         // newWeight/oldWeight would stay 0 forever; rescaling from the stored per-100g basis does not.
         try await sut(makeFood(weight: 1, calories: 0, caloriesPerHundredGrams: 33), newWeight: 100)
-        XCTAssertEqual(dataProvider.savedDTO?.calories, 33)
+        XCTAssertEqual(dataProvider.mergedDTO?.calories, 33)
     }
 
     func test_updateFoodConsumed_preservesCaloriesPerHundredGrams() async throws {
         let (sut, dataProvider) = makeSUT()
         try await sut(makeFood(weight: 100, caloriesPerHundredGrams: 155), newWeight: 200)
-        XCTAssertEqual(dataProvider.savedDTO?.caloriesPerHundredGrams, 155)
+        XCTAssertEqual(dataProvider.mergedDTO?.caloriesPerHundredGrams, 155)
     }
 
     func test_updateFoodConsumed_whenWeightChanges_scalesEnergyKJFatSaturatedAndFiber() async throws {
         let (sut, dataProvider) = makeSUT()
         try await sut(makeFood(weight: 100, energyKJ: 200, fatSaturated: 4, fiber: 2), newWeight: 200)
-        XCTAssertEqual(dataProvider.savedDTO?.energyKJ, 400)
-        XCTAssertEqual(dataProvider.savedDTO?.fatSaturated, 8)
-        XCTAssertEqual(dataProvider.savedDTO?.fiber, 4)
+        XCTAssertEqual(dataProvider.mergedDTO?.energyKJ, 400)
+        XCTAssertEqual(dataProvider.mergedDTO?.fatSaturated, 8)
+        XCTAssertEqual(dataProvider.mergedDTO?.fiber, 4)
     }
 
     func test_updateFoodConsumed_whenFoodsSaturatedFatIsUnknown_staysNilInsteadOfZero() async throws {
         let (sut, dataProvider) = makeSUT()
         try await sut(makeFood(weight: 100, fatSaturated: nil), newWeight: 200)
-        XCTAssertNil(dataProvider.savedDTO?.fatSaturated)
+        XCTAssertNil(dataProvider.mergedDTO?.fatSaturated)
     }
 
     func test_updateFoodConsumed_whenFoodsFiberIsUnknown_staysNilInsteadOfZero() async throws {
         let (sut, dataProvider) = makeSUT()
         try await sut(makeFood(weight: 100, fiber: nil), newWeight: 200)
-        XCTAssertNil(dataProvider.savedDTO?.fiber)
-    }
-
-    func test_updateFoodConsumed_whenWeightChanges_preservesMealTypePin() async throws {
-        let (sut, dataProvider) = makeSUT()
-        try await sut(makeFood(weight: 100, mealTypeId: "breakfast"), newWeight: 200)
-        XCTAssertEqual(
-            dataProvider.savedDTO?.mealTypeId,
-            "breakfast",
-            "setAsync overwrites the whole document, so a writer that drops meal_type_id would silently unpin the entry on the next weight edit"
-        )
-    }
-
-    func test_updateFoodConsumed_writesTheFoodsMeasure() async throws {
-        let (sut, dataProvider) = makeSUT()
-        try await sut(makeFood(weight: 100, measure: .millilitres), newWeight: 200)
-        XCTAssertEqual(dataProvider.savedDTO?.measureUnit, "millilitres", "editing a milk entry's amount must not relabel it as grams")
+        XCTAssertNil(dataProvider.mergedDTO?.fiber)
     }
 
     func test_updateFoodConsumed_whenExistingWeightIsNotPositive_throwsInvalidWeightError() async throws {
@@ -145,7 +151,15 @@ private final class UpdateFoodConsumedDataProviderFake: FirestoreDataProviderPro
 
     // MARK: - Properties
 
-    var savedDTO: FoodConsumedDTO?
+    var mergedDTO: FoodConsumedWeightUpdateDTO?
+    var mergedId: String?
+    var didSet = false
+    var storedIds: Set<String> = ["1"]
+
+    func mergedKeys() throws -> Set<String> {
+        let data = try JSONEncoder().encode(XCTUnwrap(mergedDTO))
+        return Set(try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any]).keys)
+    }
 
     // MARK: - Functions
 
@@ -163,7 +177,13 @@ private final class UpdateFoodConsumedDataProviderFake: FirestoreDataProviderPro
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
 
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
-        savedDTO = item as? FoodConsumedDTO
+        didSet = true
+    }
+
+    func updateAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
+        guard storedIds.contains(id) else { throw FirestoreDataProviderError.notFound }
+        mergedDTO = item as? FoodConsumedWeightUpdateDTO
+        mergedId = id
     }
 
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}

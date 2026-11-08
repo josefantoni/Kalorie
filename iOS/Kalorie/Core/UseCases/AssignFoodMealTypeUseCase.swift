@@ -29,8 +29,8 @@ struct AssignFoodMealTypeUseCase: AssignFoodMealTypeUseCaseProtocol {
 
     func callAsFunction(_ food: FoodConsumedDomain, mealTypeId: String) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let dto = FoodConsumedDTO(food: food, mealTypeId: mealTypeId)
-        try await dataProvider.setAsync(dto, id: food.id, in: Constants.Firestore.foodConsumed(userId: userId))
+        let dto = FoodConsumedMealTypeUpdateDTO(mealTypeId: mealTypeId)
+        try await dataProvider.updateAsync(dto, id: food.id, in: Constants.Firestore.foodConsumed(userId: userId))
     }
 }
 

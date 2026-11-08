@@ -12,6 +12,7 @@ import OSLog
 enum FirestoreDataProviderError: Error, Equatable {
     case unreachable
     case unsupported
+    case notFound
 }
 
 protocol FirestoreDataProviderProtocol {
@@ -32,6 +33,7 @@ protocol FirestoreDataProviderProtocol {
     func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws
     func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws
     func mergeAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws
+    func updateAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws
     func deleteAsync(id: String, from collection: String) async throws
     func batchDeleteAsync(ids: [String], from collection: String) async throws
@@ -75,6 +77,10 @@ extension FirestoreDataProviderProtocol {
     }
 
     func mergeAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func updateAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
         throw FirestoreDataProviderError.unsupported
     }
 
@@ -369,6 +375,21 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             log("✅ MERGE \(id) → \(collection)")
         } catch {
             logFailure("❌ MERGE \(id) → \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func updateAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {
+        do {
+            let data = try Firestore.Encoder().encode(item)
+            log("🚀 UPDATE \(id) → \(collection) body: \(data)")
+            try await Firestore.firestore().collection(collection).document(id).updateData(data)
+            log("✅ UPDATE \(id) → \(collection)")
+        } catch {
+            logFailure("❌ UPDATE \(id) → \(collection)", error: error)
+            if error.matches(domain: FirestoreErrorDomain, code: FirestoreErrorCode.notFound.rawValue) {
+                throw FirestoreDataProviderError.notFound
+            }
             throw mapError(error)
         }
     }

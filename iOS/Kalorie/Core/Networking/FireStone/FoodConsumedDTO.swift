@@ -108,3 +108,45 @@ extension FoodConsumedDTO {
         )
     }
 }
+
+struct FoodConsumedWeightUpdateDTO: Encodable {
+
+    // MARK: - Properties
+
+    let weight: Double
+    let calories: Int
+    let caloriesPerHundredGrams: Double?
+    let energyKJ: Double?
+    let protein: Double
+    let carbohydrate: Double
+    let carbohydrateSugar: Double
+    let fat: Double
+    let fatSaturated: Double?
+    let fatUnsaturated: Double
+    let fiber: Double?
+    let salt: Double
+
+    // MARK: - Coding keys
+
+    enum CodingKeys: String, CodingKey {
+        case weight, calories, protein, carbohydrate, fat, fiber, salt
+        case carbohydrateSugar = "carbohydrate_sugar"
+        case fatUnsaturated = "fat_unsaturated"
+        case caloriesPerHundredGrams = "calories_per_hundred_grams"
+        case energyKJ = "energy_kj"
+        case fatSaturated = "fat_saturated"
+    }
+}
+
+struct FoodConsumedMealTypeUpdateDTO: Encodable {
+
+    // MARK: - Properties
+
+    let mealTypeId: String
+
+    // MARK: - Coding keys
+
+    enum CodingKeys: String, CodingKey {
+        case mealTypeId = "meal_type_id"
+    }
+}
