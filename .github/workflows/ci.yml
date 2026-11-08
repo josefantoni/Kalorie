@@ -61,8 +61,23 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            firestore-rules-tests/package-lock.json
+            backend/functions/package-lock.json
+
       - name: Test firestore.rules against the emulator
         working-directory: firestore-rules-tests
+        run: |
+          npm ci
+          npm test
+
+      - name: Test the Cloud Functions against the emulator
+        working-directory: backend/functions
         run: |
           npm ci
           npm test
