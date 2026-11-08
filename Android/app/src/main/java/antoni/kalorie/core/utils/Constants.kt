@@ -77,6 +77,12 @@ object Constants {
         const val CONTRIBUTION_HINT_HIDE_COUNT_KEY = "contributionHintHideCount"
     }
 
+    object MyCreatedMeal {
+        const val HINT_PREFERENCES = "myCreatedMealHint"
+        const val HINT_HIDDEN_AT_KEY = "myCreatedMealHintHiddenAt"
+        const val HINT_HIDE_COUNT_KEY = "myCreatedMealHintHideCount"
+    }
+
     object OpenFoodFacts {
         const val HOST = "world.openfoodfacts.org"
         const val SEARCH_PAGE_SIZE = 20

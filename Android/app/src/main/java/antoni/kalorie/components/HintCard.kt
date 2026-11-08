@@ -25,10 +25,10 @@ import androidx.compose.ui.unit.dp
 fun HintCard(
     message: String,
     actionTitle: String,
-    onClick: () -> Unit,
     onAction: () -> Unit,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.surfaceContainer,
+    onClick: (() -> Unit)? = null,
 ) {
     SectionCard(modifier = modifier, color = color) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
@@ -39,7 +39,7 @@ fun HintCard(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .weight(1f)
-                    .clickable(onClick = onClick)
+                    .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
                     .padding(16.dp),
             )
             Box(modifier = Modifier.width(6.dp).fillMaxHeight().background(MaterialTheme.colorScheme.background))

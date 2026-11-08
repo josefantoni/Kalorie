@@ -41,7 +41,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.time.Duration
 import java.time.Instant
 
 enum class AddFoodSheetMode(@StringRes val titleRes: Int) {
@@ -49,8 +48,6 @@ enum class AddFoodSheetMode(@StringRes val titleRes: Int) {
     NEW_ITEM(R.string.addFood_mode_newItem),
     CREATE_MEAL(R.string.addFood_mode_createMeal),
 }
-
-private val CONTRIBUTION_HINT_HIDE_DAYS = listOf(3L, 5L, 8L, 13L, 21L, 30L)
 
 class AddFoodSheetViewModel(
     private val searchFoodItems: SearchFoodItemsUseCaseProtocol,
@@ -66,7 +63,7 @@ class AddFoodSheetViewModel(
     private val fetchFoodFrequency: FetchFoodFrequencyUseCaseProtocol,
     private val fetchMyCreatedMeals: FetchMyCreatedMealsUseCaseProtocol,
     private val deleteMyCreatedMeal: DeleteMyCreatedMealUseCaseProtocol,
-    private val contributionHintStore: ContributionHintStoreProtocol,
+    private val contributionHintStore: HintVisibilityStoreProtocol,
     private val now: () -> Instant = { Instant.now() },
     private val onFoodSaved: () -> Unit = {},
     isScannerVisible: Boolean = false,
@@ -104,7 +101,7 @@ class AddFoodSheetViewModel(
     val rejectionReasonBeingEdited: StateFlow<String?> = _rejectionReasonBeingEdited
     val isSubmissionDeleteConfirmationVisible = MutableStateFlow(false)
     val isMissingBarcodeConfirmationVisible = MutableStateFlow(false)
-    private val _isContributionHintVisible = MutableStateFlow(contributionHintStore.hiddenAt.let { it == null || Duration.between(it, now()) >= Duration.ofDays(CONTRIBUTION_HINT_HIDE_DAYS[minOf(maxOf(contributionHintStore.hideCount, 1), CONTRIBUTION_HINT_HIDE_DAYS.size) - 1]) })
+    private val _isContributionHintVisible = MutableStateFlow(contributionHintStore.isHintVisible(now()))
     val isContributionHintVisible: StateFlow<Boolean> = _isContributionHintVisible
     val isBarcodeRescanVisible = MutableStateFlow(false)
     val rescannedBarcode = MutableStateFlow("")

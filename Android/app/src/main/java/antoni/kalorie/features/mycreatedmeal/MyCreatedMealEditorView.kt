@@ -44,12 +44,14 @@ import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.components.FoodPortionsSection
+import antoni.kalorie.components.HintCard
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.rememberScannerAccess
+import antoni.kalorie.components.tintedSurfaceColor
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.utils.AlertItem
@@ -84,6 +86,7 @@ fun MyCreatedMealEditorView(
     val alertItem by viewModel.alertItem.collectAsState()
     val isSaveConfirmationVisible by viewModel.isSaveConfirmationVisible.collectAsState()
     val shouldDismiss by viewModel.shouldDismiss.collectAsState()
+    val isHintVisible by viewModel.isHintVisible.collectAsState()
     val canSave = remember(name, ingredients, portions) { viewModel.canSave }
     var focusedIngredientId by remember { mutableStateOf<UUID?>(null) }
     val scope = rememberCoroutineScope()
@@ -124,6 +127,17 @@ fun MyCreatedMealEditorView(
         KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { header() }
+                if (isHintVisible) {
+                    item {
+                        HintCard(
+                            message = stringResource(R.string.myCreatedMeal_hint_message),
+                            actionTitle = stringResource(R.string.addFood_contributionHint_hide),
+                            onAction = viewModel::onHintHidden,
+                            modifier = Modifier.padding(top = 8.dp),
+                            color = tintedSurfaceColor(),
+                        )
+                    }
+                }
                 item {
                     SectionCard(modifier = Modifier.padding(top = 8.dp)) {
                         FloatingLabelTextField(

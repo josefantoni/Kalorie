@@ -20,6 +20,8 @@ import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseFake
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMyCreatedMealUseCaseProtocol
+import antoni.kalorie.features.addfoodsheet.HintVisibilityStoreFake
+import antoni.kalorie.features.addfoodsheet.HintVisibilityStoreProtocol
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -30,6 +32,49 @@ import org.junit.Test
 import java.time.Instant
 
 class MyCreatedMealEditorViewModelTest {
+
+    @Test
+    fun init_whenCreatingAndHintNeverHidden_showsHint() {
+        val sut = makeSUT()
+
+        assertTrue("a user building a first meal has to be told what the screen is for", sut.isHintVisible.value)
+    }
+
+    @Test
+    fun init_whenEditing_hidesHint() {
+        val existingMeal = MyCreatedMealDomain(
+            id = "1",
+            name = "Kaše",
+            ingredients = listOf(makeIngredientDomain()),
+            createdAt = Instant.now(),
+            updatedAt = Instant.now(),
+        )
+        val sut = makeSUT(existingMeal = existingMeal)
+
+        assertFalse("someone editing a meal already knows what meals are for", sut.isHintVisible.value)
+    }
+
+    @Test
+    fun init_whenHiddenOnceLessThanThreeDaysAgo_hidesHint() {
+        val now = Instant.ofEpochSecond(1_800_000_000)
+        val store = HintVisibilityStoreFake(hiddenAt = now.minusSeconds(2 * 24 * 60 * 60), hideCount = 1)
+        val sut = makeSUT(hintStore = store, now = now)
+
+        assertFalse("Hide must stick for the first interval", sut.isHintVisible.value)
+    }
+
+    @Test
+    fun onHintHidden_storesNowAndCountsTheHide() {
+        val now = Instant.ofEpochSecond(1_800_000_000)
+        val store = HintVisibilityStoreFake(hideCount = 1)
+        val sut = makeSUT(hintStore = store, now = now)
+
+        sut.onHintHidden()
+
+        assertFalse(sut.isHintVisible.value)
+        assertEquals(now, store.hiddenAt)
+        assertEquals("the count stretches the wait before the hint returns", 2, store.hideCount)
+    }
 
     @Test
     fun canSave_withNoIngredients_isFalse() {
@@ -470,7 +515,9 @@ class MyCreatedMealEditorViewModelTest {
         fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseProtocol = FetchFoodItemsByIdsUseCaseFake(),
         createMyCreatedMeal: CreateMyCreatedMealUseCaseProtocol = CreateMyCreatedMealUseCaseFake(),
         updateMyCreatedMeal: UpdateMyCreatedMealUseCaseProtocol = UpdateMyCreatedMealUseCaseFake(),
+        hintStore: HintVisibilityStoreProtocol = HintVisibilityStoreFake(),
         existingMeal: MyCreatedMealDomain? = null,
+        now: Instant = Instant.now(),
         onSaved: () -> Unit = {},
         dismissesOnSave: Boolean = true,
     ): MyCreatedMealEditorViewModel = MyCreatedMealEditorViewModel(
@@ -481,7 +528,9 @@ class MyCreatedMealEditorViewModelTest {
         fetchFoodItemsByIds = fetchFoodItemsByIds,
         createMyCreatedMeal = createMyCreatedMeal,
         updateMyCreatedMeal = updateMyCreatedMeal,
+        hintStore = hintStore,
         existingMeal = existingMeal,
+        now = { now },
         onSaved = onSaved,
         dismissesOnSave = dismissesOnSave,
     )
