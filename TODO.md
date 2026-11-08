@@ -26,14 +26,6 @@
   field to `users/{userId}`. [Design 0028](docs/design/0028-body-weight-tracking.md) makes
   `users/{userId}/bodyWeights` the single source of the user's weight; BMR reads "the weight valid
   today" with the same query the Dashboard circle uses and stores none of its own.
-- **Propagate catalogue name and photo changes into users' copies — rollout** — the function, indexes,
-  tests and docs ([ADR 0049](docs/adr/0049-catalogue-names-and-photos-propagate-into-users-copies.md),
-  [design 0032](docs/design/0032-propagating-catalogue-changes.md)) are implemented in `backend/functions`.
-  Left for the owner:
-  - Deploy: indexes first (wait until built), then `firebase deploy --only functions` from `backend/`.
-  - One-off prod fix of `foodItems/8593803625270` (re-saving it in the editor does not fire the function):
-    run `propagate(db, "8593803625270", null, <current item data>)` once with gcloud credentials, only for
-    this id and only with the owner's approval.
 - **Dashboard read cost** — not urgent. Firestore bills per document read, and the dominant cost is the
   whole-month `foodConsumed` load on cold launch and pull to refresh
   ([ADR 0015](docs/adr/0015-dashboard-caches-a-month-and-derives-the-day.md)): ~300 documents per load at
