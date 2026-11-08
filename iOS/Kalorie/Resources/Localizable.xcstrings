@@ -3523,6 +3523,29 @@
         }
       }
     },
+    "dashboard_weight_enter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moje váha"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My weight"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moja váha"
+          }
+        }
+      }
+    },
     "dashboard_weight_pickerTenths" : {
       "extractionState" : "manual",
       "localizations" : {

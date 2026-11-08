@@ -153,6 +153,7 @@
     <string name="dashboard_weight_a11yValue">Weight %1$s, show history</string>
     <string name="dashboard_weight_badgeEdit">Edit weight</string>
     <string name="dashboard_weight_badgeLog">Log weight</string>
+    <string name="dashboard_weight_enter">My weight</string>
     <string name="dashboard_weight_pickerTenths">Tenths</string>
     <string name="dashboard_weight_pickerWhole">Whole part</string>
     <string name="defaultMeals_breakfast">Breakfast</string>
