@@ -1673,5 +1673,315 @@
     "cs": "Nastavení se nepodařilo uložit",
     "en": "Could not save the setting",
     "sk": "Nastavenie sa nepodarilo uložiť"
+  },
+  "dashboard_goal_setGoal": {
+    "cs": "Nastav cíl",
+    "en": "Set goal",
+    "sk": "Nastav cieľ"
+  },
+  "dashboard_goal_a11yValue": {
+    "cs": "Denní cíl, splněno %@, zobrazit cíl",
+    "en": "Daily goal, %@ of goal, show goal",
+    "sk": "Denný cieľ, splnené %@, zobraziť cieľ"
+  },
+  "dashboard_goal_a11yEmpty": {
+    "cs": "Denní cíl není nastaven, nastavit",
+    "en": "Daily goal not set, set it",
+    "sk": "Denný cieľ nie je nastavený, nastaviť"
+  },
+  "dashboard_goal_badge": {
+    "cs": "Informace o cíli",
+    "en": "About the goal",
+    "sk": "Informácie o cieli"
+  },
+  "goals_info_noGoalMessage": {
+    "cs": "Denní cíl ukáže, kolik z kalorií a makroživin jsi za den snědl(a). Nastavíš ho ručně, nebo si ho nech spočítat.",
+    "en": "A daily goal shows how much of your calories and macros you have eaten today. Set it by hand or let the app estimate one.",
+    "sk": "Denný cieľ ukáže, koľko z kalórií a makroživín si za deň zjedol(a). Nastavíš ho ručne, alebo si ho nechaj vypočítať."
+  },
+  "goals_info_eaten": {
+    "cs": "Snědeno",
+    "en": "Eaten",
+    "sk": "Zjedené"
+  },
+  "goals_info_goal": {
+    "cs": "Cíl",
+    "en": "Goal",
+    "sk": "Cieľ"
+  },
+  "goals_info_remaining": {
+    "cs": "Zbývá",
+    "en": "Remaining",
+    "sk": "Zostáva"
+  },
+  "goals_info_over": {
+    "cs": "Nad cílem o",
+    "en": "Over by",
+    "sk": "Nad cieľom o"
+  },
+  "goals_info_donutNote": {
+    "cs": "Koláč ukazuje podíl energie (kcal), ne gramů.",
+    "en": "The chart shows each macro's share of energy (kcal), not grams.",
+    "sk": "Koláč ukazuje podiel energie (kcal), nie gramov."
+  },
+  "goals_info_buttonSet": {
+    "cs": "Nastavit cíl",
+    "en": "Set goal",
+    "sk": "Nastaviť cieľ"
+  },
+  "goals_info_buttonEdit": {
+    "cs": "Upravit cíl",
+    "en": "Edit goal",
+    "sk": "Upraviť cieľ"
+  },
+  "goals_macro_percentOfGoal": {
+    "cs": "%@ z cíle",
+    "en": "%@ of goal",
+    "sk": "%@ z cieľa"
+  },
+  "goals_navigationTitle": {
+    "cs": "Denní cíl",
+    "en": "Daily goal",
+    "sk": "Denný cieľ"
+  },
+  "goals_section_current": {
+    "cs": "Aktuální denní cíl",
+    "en": "Current daily goal",
+    "sk": "Aktuálny denný cieľ"
+  },
+  "goals_section_body": {
+    "cs": "Tvoje tělesné údaje",
+    "en": "Your body data",
+    "sk": "Tvoje telesné údaje"
+  },
+  "goals_section_activity": {
+    "cs": "Tvoje týdenní aktivita",
+    "en": "Your weekly activity",
+    "sk": "Tvoja týždenná aktivita"
+  },
+  "goals_field_newKcal": {
+    "cs": "Nový cílený denní příjem",
+    "en": "New target daily intake",
+    "sk": "Nový cielený denný príjem"
+  },
+  "goals_macroMode_percent": {
+    "cs": "Podíl",
+    "en": "Split",
+    "sk": "Podiel"
+  },
+  "goals_macroMode_grams": {
+    "cs": "Gramy",
+    "en": "Grams",
+    "sk": "Gramy"
+  },
+  "goals_field_sex": {
+    "cs": "Pohlaví (pro odhad)",
+    "en": "Sex (used for the estimate)",
+    "sk": "Pohlavie (pre odhad)"
+  },
+  "goals_sex_male": {
+    "cs": "Muž",
+    "en": "Male",
+    "sk": "Muž"
+  },
+  "goals_sex_female": {
+    "cs": "Žena",
+    "en": "Female",
+    "sk": "Žena"
+  },
+  "goals_field_birthYear": {
+    "cs": "Rok narození",
+    "en": "Birth year",
+    "sk": "Rok narodenia"
+  },
+  "goals_field_height": {
+    "cs": "Výška",
+    "en": "Height",
+    "sk": "Výška"
+  },
+  "goals_field_weight": {
+    "cs": "Váha",
+    "en": "Weight",
+    "sk": "Hmotnosť"
+  },
+  "goals_error_percentSum": {
+    "cs": "Součet musí dát 100.",
+    "en": "The values must add up to 100.",
+    "sk": "Súčet musí dať 100."
+  },
+  "goals_hint_macroModeIncomplete": {
+    "cs": "Vyplňte všechna tři makra, pak jde režim přepnout.",
+    "en": "Fill in all three macros to switch the mode.",
+    "sk": "Vyplňte všetky tri makrá, potom sa dá režim prepnúť."
+  },
+  "goals_hint_macroModeNeedsKcal": {
+    "cs": "Pro přepnutí na gramy zadejte nejdřív kcal.",
+    "en": "Enter the kcal goal first to switch to grams.",
+    "sk": "Na prepnutie na gramy zadajte najprv kcal."
+  },
+  "goals_hint_macroModeSumNot100": {
+    "cs": "Procenta musí dávat dohromady 100, pak jde přepnout na gramy.",
+    "en": "The percentages must add up to 100 to switch to grams.",
+    "sk": "Percentá musia dávať dokopy 100, potom sa dá prepnúť na gramy."
+  },
+  "goals_gramsKcal": {
+    "cs": "Gramy odpovídají %@ kcal.",
+    "en": "These grams equal %@ kcal.",
+    "sk": "Gramy zodpovedajú %@ kcal."
+  },
+  "goals_activity_sedentary": {
+    "cs": "Minimální",
+    "en": "Sedentary",
+    "sk": "Minimálna"
+  },
+  "goals_activity_sedentary_detail": {
+    "cs": "Sedavé zaměstnání, skoro žádný pohyb",
+    "en": "Desk job, little exercise",
+    "sk": "Sedavé zamestnanie, takmer žiadny pohyb"
+  },
+  "goals_activity_light": {
+    "cs": "Lehká",
+    "en": "Light",
+    "sk": "Ľahká"
+  },
+  "goals_activity_light_detail": {
+    "cs": "Sedavé zaměstnání, trénink 1–3× týdně",
+    "en": "Desk job, training 1–3× a week",
+    "sk": "Sedavé zamestnanie, tréning 1–3× týždenne"
+  },
+  "goals_activity_moderate": {
+    "cs": "Střední",
+    "en": "Moderate",
+    "sk": "Stredná"
+  },
+  "goals_activity_moderate_detail": {
+    "cs": "Trénink 3–5× týdně",
+    "en": "Training 3–5× a week",
+    "sk": "Tréning 3–5× týždenne"
+  },
+  "goals_activity_high": {
+    "cs": "Vysoká",
+    "en": "High",
+    "sk": "Vysoká"
+  },
+  "goals_activity_high_detail": {
+    "cs": "Trénink 6–7× týdně",
+    "en": "Training 6–7× a week",
+    "sk": "Tréning 6–7× týždenne"
+  },
+  "goals_activity_veryHigh": {
+    "cs": "Velmi vysoká",
+    "en": "Very high",
+    "sk": "Veľmi vysoká"
+  },
+  "goals_activity_veryHigh_detail": {
+    "cs": "Fyzická práce a trénink",
+    "en": "Physical job plus training",
+    "sk": "Fyzická práca a tréning"
+  },
+  "goals_activity_scaleLow": {
+    "cs": "Méně pohybu",
+    "en": "Less active",
+    "sk": "Menej pohybu"
+  },
+  "goals_activity_scaleHigh": {
+    "cs": "Více pohybu",
+    "en": "More active",
+    "sk": "Viac pohybu"
+  },
+  "goals_estimate_bmr": {
+    "cs": "Bazální metabolismus",
+    "en": "Basal metabolic rate",
+    "sk": "Bazálny metabolizmus"
+  },
+  "goals_estimate_expenditure": {
+    "cs": "Denní výdej",
+    "en": "Daily expenditure",
+    "sk": "Denný výdaj"
+  },
+  "goals_estimate_hint": {
+    "cs": "Pro odhad vyplň pohlaví, rok narození, výšku, váhu a aktivitu.",
+    "en": "Fill in sex, birth year, height, weight and activity for an estimate.",
+    "sk": "Pre odhad vyplň pohlavie, rok narodenia, výšku, hmotnosť a aktivitu."
+  },
+  "goals_estimate_disclaimer": {
+    "cs": "Je to jen odhad, skutečný výdej se může lišit.",
+    "en": "It is only an estimate, actual expenditure may differ.",
+    "sk": "Je to len odhad, skutočný výdaj sa môže líšiť."
+  },
+  "goals_variant_gain": {
+    "cs": "Nabírat",
+    "en": "Gain",
+    "sk": "Naberať"
+  },
+  "goals_variant_maintain": {
+    "cs": "Udržovat",
+    "en": "Maintain",
+    "sk": "Udržiavať"
+  },
+  "goals_variant_lose": {
+    "cs": "Zhubnout",
+    "en": "Lose",
+    "sk": "Schudnúť"
+  },
+  "goals_variant_raised": {
+    "cs": "Nejméně bazální metabolismus",
+    "en": "Not below the basal rate",
+    "sk": "Najmenej bazálny metabolizmus"
+  },
+  "goals_button_save": {
+    "cs": "Nastavit denní cíl",
+    "en": "Set daily goal",
+    "sk": "Nastaviť denný cieľ"
+  },
+  "goals_button_end": {
+    "cs": "Ukončit cíl",
+    "en": "End goal",
+    "sk": "Ukončiť cieľ"
+  },
+  "goals_end_title": {
+    "cs": "Ukončit sledování cíle?",
+    "en": "End goal tracking?",
+    "sk": "Ukončiť sledovanie cieľa?"
+  },
+  "goals_end_message": {
+    "cs": "Sledování skončí od dneška. Minulé dny si svůj cíl ponechají, nic se nesmaže.",
+    "en": "Tracking stops from today. Past days keep their goal, nothing is deleted.",
+    "sk": "Sledovanie skončí od dnes. Minulé dni si svoj cieľ ponechajú, nič sa nezmaže."
+  },
+  "goals_error_saveFailed": {
+    "cs": "Cíl se nepodařilo uložit.",
+    "en": "The goal could not be saved.",
+    "sk": "Cieľ sa nepodarilo uložiť."
+  },
+  "settings_dailyGoal_show": {
+    "cs": "Zobrazit denní cíl na přehledu",
+    "en": "Show daily goal on overview",
+    "sk": "Zobraziť denný cieľ na prehľade"
+  },
+  "settings_section_dailyGoal": {
+    "cs": "Denní cíl",
+    "en": "Daily goal",
+    "sk": "Denný cieľ"
+  },
+  "settings_goalBars_show": {
+    "cs": "Zobrazit úsečky plnění cíle",
+    "en": "Show goal progress bars",
+    "sk": "Zobraziť úsečky plnenia cieľa"
+  },
+  "settings_goalPercent_show": {
+    "cs": "Zobrazit řádek „%% z cíle“",
+    "en": "Show “%% of goal” line",
+    "sk": "Zobraziť riadok „%% z cieľa“"
+  },
+  "goals_footer_current": {
+    "cs": "Tohle je cíl, který se uloží a podle kterého se na přehledu měří tvůj den. Zadej denní příjem a rozlož ho na bílkoviny, sacharidy a tuky, buď podílem v procentech, nebo rovnou v gramech. V režimu Podíl se gramy dopočítají z kalorií, v režimu Gramy se kalorie dopočítají z gramů. Pod polem je posuvník s odhadem podle tvých údajů o těle a aktivity; jeho posunutím se denní příjem rovnou přepíše.",
+    "en": "This is the goal that gets saved and that your day is measured against on the overview. Enter your daily intake and split it into protein, carbs and fat, either as a percentage or directly in grams. In Split mode the grams follow from the calories, in Grams mode the calories follow from the grams. Below the field a slider estimates it from your body data and activity; moving it overwrites the daily intake straight away.",
+    "sk": "Toto je cieľ, ktorý sa uloží a podľa ktorého sa na prehľade meria tvoj deň. Zadaj denný príjem a rozlož ho na bielkoviny, sacharidy a tuky, buď podielom v percentách, alebo rovno v gramoch. V režime Podiel sa gramy dopočítajú z kalórií, v režime Gramy sa kalórie dopočítajú z gramov. Pod poľom je posuvník s odhadom podľa tvojich údajov o tele a aktivity; jeho posunutím sa denný príjem hneď prepíše."
+  },
+  "goals_footer_body": {
+    "cs": "Tyto údaje slouží jen k odhadu níže a ukládají se spolu s cílem. Nejsou povinné, cíl si můžeš zadat i ručně.",
+    "en": "These details are only used for the estimate below and are saved with the goal. They are optional, you can also enter a goal by hand.",
+    "sk": "Tieto údaje slúžia len na odhad nižšie a ukladajú sa spolu s cieľom. Nie sú povinné, cieľ si môžeš zadať aj ručne."
   }
 }
