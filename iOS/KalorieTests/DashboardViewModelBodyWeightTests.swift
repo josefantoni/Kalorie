@@ -263,12 +263,48 @@ final class DashboardViewModelBodyWeightTests: XCTestCase {
         XCTAssertEqual(sut.appSettings, changed, "a read that started before the user changed a setting must not bring the old value back")
     }
 
+    func test_goalsFetchStartedBeforeASave_doesNotRestoreTheOldHistory() async throws {
+        let gate = GatedFetchDailyGoalsUseCase()
+        let sut = makeSUT(fetchDailyGoals: gate)
+        let task = Task { await sut.onAppear() }
+        while await !gate.hasStarted {
+            try await Task.sleep(nanoseconds: 1_000_000)
+        }
+        let saved = DailyGoalHistory(entries: [DailyGoalDomain(validFrom: "2020-01-01", kcalGoal: 2000)])
+        await sut.onGoalsChanged(saved)
+        await gate.finish(with: .empty)
+        await task.value
+        XCTAssertEqual(sut.goalHistory, saved)
+    }
+
     // MARK: - Helpers
+
+    func test_goalsChanged_clearsTheWeightCacheBecauseSavingAGoalCanWriteTodaysWeight() async {
+        let fetch = CountingFetchBodyWeights()
+        let sut = makeSUT(fetchBodyWeights: fetch)
+        await sut.onAppear()
+        await sut.onGoalsChanged(.empty)
+        XCTAssertEqual(fetch.callCount, 2)
+    }
+
+    func test_goalCircle_pastDayWithoutGoal_isHiddenButShownOnTodayAndWhenAGoalAppliesThen() async {
+        let sut = makeSUT()
+        sut.onAppSettingsChanged(.defaults)
+        await sut.onGoalsChanged(.empty)
+        XCTAssertTrue(sut.isGoalCircleVisible)
+
+        sut.selectedDay = Date.now.addingTimeInterval(-3 * 86_400)
+        XCTAssertFalse(sut.isGoalCircleVisible)
+
+        await sut.onGoalsChanged(DailyGoalHistory(entries: [DailyGoalDomain(validFrom: "2020-01-01", kcalGoal: 2000)]))
+        XCTAssertTrue(sut.isGoalCircleVisible)
+    }
 
     private func makeSUT(
         fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol = FetchBodyWeightsUseCaseFake(),
         fetchAppSettings: any FetchAppSettingsUseCaseProtocol = FetchAppSettingsUseCaseFake(),
         fetchMealTypes: any FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
+        fetchDailyGoals: any FetchDailyGoalsUseCaseProtocol = FetchDailyGoalsUseCaseFake(),
         saveBodyWeight: any SaveBodyWeightUseCaseProtocol = SaveBodyWeightUseCaseFake()
     ) -> DashboardViewModel {
         let sut = DashboardViewModel(
@@ -282,6 +318,7 @@ final class DashboardViewModelBodyWeightTests: XCTestCase {
             assignFoodMealType: AssignFoodMealTypeUseCaseFake(),
             fetchBodyWeights: fetchBodyWeights,
             fetchAppSettings: fetchAppSettings,
+            fetchDailyGoals: fetchDailyGoals,
             saveBodyWeight: saveBodyWeight,
             authProvider: AuthProviderFake(),
             signInSpotlightStore: SignInSpotlightStoreFake()
@@ -535,4 +572,20 @@ private final class PerDayFetchBodyWeights: FetchBodyWeightsUseCaseProtocol {
     func callAsFunction(from: Date, to: Date) async throws -> [BodyWeightDomain] { [] }
 
     func callAsFunction(inYear year: Int) async throws -> [BodyWeightDomain] { [] }
+}
+
+private actor GatedFetchDailyGoalsUseCase: FetchDailyGoalsUseCaseProtocol {
+
+    private var continuation: CheckedContinuation<DailyGoalHistory, Never>?
+
+    var hasStarted: Bool { continuation != nil }
+
+    func callAsFunction() async throws -> DailyGoalHistory {
+        await withCheckedContinuation { continuation = $0 }
+    }
+
+    func finish(with history: DailyGoalHistory) {
+        continuation?.resume(returning: history)
+        continuation = nil
+    }
 }

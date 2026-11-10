@@ -7,12 +7,16 @@
 
 import SwiftUI
 
-struct MacroSummaryView<Accessory: View>: View {
+struct MacroSummaryView<Accessory: View, LeadingAccessory: View>: View {
 
     // MARK: - Properties
 
     let macros: DailyMacros
+    let goalGrams: GoalMacroGrams?
+    let showsGoalPercent: Bool
+    let showsGoalBars: Bool
     let accessory: Accessory
+    let leadingAccessory: LeadingAccessory
 
     private let donutSize: CGFloat = 160
     private let accessoryTrailingPadding: CGFloat = 20
@@ -24,15 +28,26 @@ struct MacroSummaryView<Accessory: View>: View {
 
     // MARK: - Init
 
-    init(macros: DailyMacros, @ViewBuilder accessory: () -> Accessory) {
+    init(
+        macros: DailyMacros,
+        goalGrams: GoalMacroGrams? = nil,
+        showsGoalPercent: Bool = true,
+        showsGoalBars: Bool = true,
+        @ViewBuilder accessory: () -> Accessory,
+        @ViewBuilder leadingAccessory: () -> LeadingAccessory
+    ) {
         self.macros = macros
+        self.goalGrams = goalGrams
+        self.showsGoalPercent = showsGoalPercent
+        self.showsGoalBars = showsGoalBars
         self.accessory = accessory()
+        self.leadingAccessory = leadingAccessory()
     }
 
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
             MacroDonutView(
                 protein: macros.protein,
                 carbs: macros.carbs,
@@ -48,19 +63,28 @@ struct MacroSummaryView<Accessory: View>: View {
                     .padding(.trailing, accessoryTrailingPadding)
                     .frame(maxWidth: maxOverlayWidth, maxHeight: .infinity, alignment: .topTrailing)
             }
+            .overlay {
+                leadingAccessory
+                    .frame(width: WeightCircleView.size, height: WeightCircleView.size)
+                    .padding(.top, donutSize * 20 / 30 - WeightCircleView.size / 2)
+                    .padding(.leading, accessoryTrailingPadding)
+                    .frame(maxWidth: maxOverlayWidth, maxHeight: .infinity, alignment: .topLeading)
+            }
 
             HStack {
                 Spacer()
-                macroLabel(color: Color.protein, name: L10n.FoodQuantity.protein, value: macros.protein)
+                macroLabel(color: Color.protein, name: L10n.FoodQuantity.protein, value: macros.protein, goal: goalGrams?.protein)
                 Spacer()
-                macroLabel(color: Color.carbs, name: L10n.FoodQuantity.carbs, value: macros.carbs)
+                macroLabel(color: Color.carbs, name: L10n.FoodQuantity.carbs, value: macros.carbs, goal: goalGrams?.carbs)
                 Spacer()
-                macroLabel(color: Color.fat, name: L10n.FoodQuantity.fat, value: macros.fat)
+                macroLabel(color: Color.fat, name: L10n.FoodQuantity.fat, value: macros.fat, goal: goalGrams?.fat)
                 Spacer()
             }
+            .padding(.top)
 
             Divider()
                 .padding(.horizontal)
+                .padding(.vertical, 12)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 detailRow(label: L10n.AddFood.fieldCarbsSugar, value: macros.carbohydrateSugar, dotColor: Color.carbs)
@@ -70,15 +94,15 @@ struct MacroSummaryView<Accessory: View>: View {
             }
             .padding(.horizontal)
         }
-        .padding(.vertical, 12)
+        .padding(.top, 4)
         .frame(maxWidth: .infinity)
     }
 
     // MARK: - Functions
 
     @ViewBuilder
-    private func macroLabel(color: Color, name: String, value: Double) -> some View {
-        VStack(spacing: 4) {
+    private func macroLabel(color: Color, name: String, value: Double, goal: Double?) -> some View {
+        VStack(spacing: 0) {
             HStack(spacing: 4) {
                 Circle()
                     .fill(color)
@@ -87,9 +111,36 @@ struct MacroSummaryView<Accessory: View>: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Text(value.formattedGrams())
-                .font(.subheadline.bold())
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                Text(value.formattedGrams())
+                    .font(.subheadline.bold())
+                if let goal {
+                    Text("/ \(goal.formattedGrams())")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.top, 4)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            if
+                let goal,
+                goal > 0
+            {
+                if showsGoalBars {
+                    GoalProgressBar(progress: value / goal, color: color)
+                        .frame(width: 72)
+                        .padding(.top, 8)
+                }
+                if showsGoalPercent {
+                    Text(L10n.Goals.macroPercentOfGoal((value / goal).formatted(.percent.precision(.fractionLength(0)))))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 6)
+                }
+            }
         }
+        .frame(minWidth: 72)
     }
 
     private func detailRow(label: String, value: Double, dotColor: Color? = nil) -> some View {
@@ -113,6 +164,29 @@ struct MacroSummaryView<Accessory: View>: View {
     }
 }
 
+struct GoalProgressBar: View {
+
+    // MARK: - Properties
+
+    let progress: Double
+    let color: Color
+
+    // MARK: - Body
+
+    var body: some View {
+        Capsule()
+            .fill(Color.secondary.opacity(0.2))
+            .frame(height: 4)
+            .overlay(alignment: .leading) {
+                GeometryReader { proxy in
+                    Capsule()
+                        .fill(color)
+                        .frame(width: proxy.size.width * min(max(progress, 0), 1))
+                }
+            }
+    }
+}
+
 #if DEBUG
 // MARK: - Preview
 
@@ -127,7 +201,8 @@ struct MacroSummaryView<Accessory: View>: View {
             fatSaturated: 22,
             fiber: 18,
             salt: 3.2
-        )
+        ),
+        goalGrams: GoalMacroGrams(protein: 120, carbs: 250, fat: 70)
     ) {
         WeightCircleView(
             weights: [
@@ -138,6 +213,8 @@ struct MacroSummaryView<Accessory: View>: View {
             laterWeights: [BodyWeightDomain(dayKey: "2026-10-28", kilograms: 77.9)],
             unit: .kg
         )
+    } leadingAccessory: {
+        GoalRingView(progress: 1.08, protein: 95, carbs: 210, fat: 58)
     }
 }
 #endif

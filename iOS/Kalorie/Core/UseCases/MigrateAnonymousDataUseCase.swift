@@ -48,6 +48,10 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
             id: Constants.Firestore.appSettingsDocumentId,
             from: Constants.Firestore.settings(userId: sourceUserId)
         )
+        async let dailyGoals: DailyGoalsDTO? = dataProvider.loadAsync(
+            id: Constants.Firestore.goalsDocumentId,
+            from: Constants.Firestore.settings(userId: sourceUserId)
+        )
         let snapshot = PendingMergeSnapshot(
             sourceAnonymousUserId: sourceUserId,
             foodConsumed: try await foodConsumed,
@@ -55,7 +59,8 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
             myCreatedMeals: try await myCreatedMeals,
             foodItemPortions: try await foodItemPortions,
             bodyWeights: try await bodyWeights,
-            appSettings: try await appSettings
+            appSettings: try await appSettings,
+            dailyGoals: try await dailyGoals
         )
         try snapshotStore.save(snapshot)
 
@@ -89,6 +94,7 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
         try await dataProvider.batchSetAsync(portions, in: Constants.Firestore.foodItemPortions(userId: userId))
         try await writeBodyWeights(from: snapshot, userId: userId)
         try await writeAppSettings(from: snapshot, userId: userId)
+        try await writeDailyGoals(from: snapshot, userId: userId)
         try await dataProvider.setAsync(
             MergedAnonymousAccountDTO(id: snapshot.sourceAnonymousUserId),
             id: snapshot.sourceAnonymousUserId,
@@ -117,6 +123,17 @@ struct MigrateAnonymousDataUseCase: MigrateAnonymousDataUseCaseProtocol {
         )
         guard accountSettings == nil else { return }
         try await dataProvider.setAsync(anonymousSettings, id: Constants.Firestore.appSettingsDocumentId, in: collection)
+    }
+
+    private func writeDailyGoals(from snapshot: PendingMergeSnapshot, userId: String) async throws {
+        guard let anonymousGoals = snapshot.dailyGoals else { return }
+        let collection = Constants.Firestore.settings(userId: userId)
+        let accountGoals: DailyGoalsDTO? = try await dataProvider.loadAsync(
+            id: Constants.Firestore.goalsDocumentId,
+            from: collection
+        )
+        guard accountGoals == nil else { return }
+        try await dataProvider.setAsync(anonymousGoals, id: Constants.Firestore.goalsDocumentId, in: collection)
     }
 }
 

@@ -113,6 +113,10 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
             id: Constants.Firestore.appSettingsDocumentId,
             from: Constants.Firestore.settings(userId: userId)
         )
+        try await dataProvider.deleteAsync(
+            id: Constants.Firestore.goalsDocumentId,
+            from: Constants.Firestore.settings(userId: userId)
+        )
     }
 
     private func wipeFirestoreData(userId: String) async throws {

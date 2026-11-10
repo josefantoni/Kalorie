@@ -188,6 +188,24 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(notified?.showBodyWeight, false)
     }
 
+    func test_toggleGoalPercent_savesOnlyThatFlagAndNotifies() async {
+        var notified: AppSettingsDomain?
+        let sut = makeSUT { notified = $0 }
+        await sut.onShowGoalPercentChanged(false)
+        XCTAssertEqual(notified?.showGoalPercent, false)
+        XCTAssertEqual(notified?.showGoalBars, true)
+        XCTAssertEqual(notified?.showDailyGoal, true)
+    }
+
+    func test_toggleGoalBars_savesOnlyThatFlagAndNotifies() async {
+        var notified: AppSettingsDomain?
+        let sut = makeSUT { notified = $0 }
+        await sut.onShowGoalBarsChanged(false)
+        XCTAssertEqual(notified?.showGoalBars, false)
+        XCTAssertEqual(notified?.showGoalPercent, true)
+        XCTAssertEqual(notified?.showDailyGoal, true)
+    }
+
     func test_changeUnit_keepsOtherSettingsAndNotifies() async {
         var notified: AppSettingsDomain?
         let sut = makeSUT(appSettings: AppSettingsDomain(showBodyWeight: false, bodyWeightUnit: .kg)) { notified = $0 }

@@ -91,8 +91,13 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var laterWeights: [BodyWeightDomain] = []
     private var shownWeightsKey: String?
     private var settingsChangeCount = 0
+    private var goalsChangeCount = 0
     @Published private(set) var appSettings = AppSettingsDomain.defaults
     @Published private(set) var hasLoadedSettings = false
+    @Published private(set) var goalHistory = DailyGoalHistory.empty
+    @Published private(set) var hasLoadedGoals = false
+    @Published var isGoalInfoVisible = false
+    @Published var isGoalsScreenPushed = false
     @Published var isWeightPopoverVisible = false
     @Published var isWeightHistoryPushed = false
     @Published var weightPickerKilograms = Constants.BodyWeight.defaultKilograms
@@ -120,6 +125,7 @@ final class DashboardViewModel: ObservableObject {
     private let assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol
     private let fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol
     private let fetchAppSettings: any FetchAppSettingsUseCaseProtocol
+    private let fetchDailyGoals: any FetchDailyGoalsUseCaseProtocol
     private let saveBodyWeight: any SaveBodyWeightUseCaseProtocol
     private let authProvider: any AuthProviderProtocol
     private let signInSpotlightStore: any SignInSpotlightStoreProtocol
@@ -138,6 +144,7 @@ final class DashboardViewModel: ObservableObject {
         assignFoodMealType: any AssignFoodMealTypeUseCaseProtocol,
         fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol,
         fetchAppSettings: any FetchAppSettingsUseCaseProtocol,
+        fetchDailyGoals: any FetchDailyGoalsUseCaseProtocol,
         saveBodyWeight: any SaveBodyWeightUseCaseProtocol,
         authProvider: any AuthProviderProtocol,
         signInSpotlightStore: any SignInSpotlightStoreProtocol,
@@ -156,6 +163,7 @@ final class DashboardViewModel: ObservableObject {
         self.assignFoodMealType = assignFoodMealType
         self.fetchBodyWeights = fetchBodyWeights
         self.fetchAppSettings = fetchAppSettings
+        self.fetchDailyGoals = fetchDailyGoals
         self.saveBodyWeight = saveBodyWeight
         observeDayChange()
     }
@@ -169,6 +177,26 @@ final class DashboardViewModel: ObservableObject {
     // MARK: - Functions
 
     var dailyMacros: DailyMacros { DailyMacros(foods: foodsConsumed) }
+
+    var isGoalCircleVisible: Bool {
+        guard
+            hasLoadedSettings,
+            hasLoadedGoals,
+            appSettings.showDailyGoal
+        else { return false }
+        let selectedKey = BodyWeightDayKey.make(from: selectedDay)
+        return selectedGoal != nil || selectedKey >= BodyWeightDayKey.make(from: now())
+    }
+
+    var selectedGoal: DailyGoalDomain? { goalHistory.goal(onDayKey: BodyWeightDayKey.make(from: selectedDay)) }
+
+    var goalProgress: Double? {
+        guard
+            let kcalGoal = selectedGoal?.kcalGoal,
+            kcalGoal > 0
+        else { return nil }
+        return Double(dailyMacros.calories) / kcalGoal
+    }
 
     var isWeightCircleVisible: Bool { hasLoadedSettings && appSettings.showBodyWeight }
 
@@ -463,6 +491,14 @@ final class DashboardViewModel: ObservableObject {
         }
     }
 
+    @MainActor
+    func onGoalsChanged(_ history: DailyGoalHistory) async {
+        goalsChangeCount += 1
+        goalHistory = history
+        hasLoadedGoals = true
+        await onWeightsChanged()
+    }
+
     func onAppSettingsChanged(_ settings: AppSettingsDomain) {
         settingsChangeCount += 1
         appSettings = settings
@@ -495,11 +531,25 @@ final class DashboardViewModel: ObservableObject {
     @MainActor
     private func refreshSettings() async {
         let changeCountBeforeRead = settingsChangeCount
+        let goalsChangeCountBeforeRead = goalsChangeCount
+        async let settingsRead = fetchAppSettings()
+        async let goalsRead = fetchDailyGoals()
         do {
-            let settings = try await fetchAppSettings()
-            guard changeCountBeforeRead == settingsChangeCount else { return }
-            appSettings = settings
-            hasLoadedSettings = true
+            let settings = try await settingsRead
+            if changeCountBeforeRead == settingsChangeCount {
+                appSettings = settings
+                hasLoadedSettings = true
+            }
+        } catch {
+            guard !Task.isCancelled else { return }
+            Log.error(error, category: Constants.LogCategory.dashboard)
+        }
+        do {
+            let history = try await goalsRead
+            if goalsChangeCountBeforeRead == goalsChangeCount {
+                goalHistory = history
+                hasLoadedGoals = true
+            }
         } catch {
             guard !Task.isCancelled else { return }
             Log.error(error, category: Constants.LogCategory.dashboard)

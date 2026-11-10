@@ -13,6 +13,7 @@ struct BadgeButton: View {
 
     let imageName: BaseImageName
     var size: CGFloat = 34
+    var iconRotation: Angle = .zero
     var accessibilityLabel: String?
     let action: () -> Void
     @Environment(\.isEnabled) private var isEnabled
@@ -34,6 +35,7 @@ struct BadgeButton: View {
             Image(systemName: imageName.rawValue)
                 .font(.system(size: 18))
                 .foregroundStyle(.white)
+                .rotationEffect(iconRotation)
                 .frame(width: size, height: size)
         }
         .buttonStyle(.borderless)

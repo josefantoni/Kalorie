@@ -107,6 +107,12 @@ enum L10n {
         static func weightA11yValue(_ value: String) -> String {
             String(format: String(localized: "dashboard_weight_a11yValue"), value)
         }
+        static var goalSetGoal: String { String(localized: "dashboard_goal_setGoal") }
+        static var goalA11yEmpty: String { String(localized: "dashboard_goal_a11yEmpty") }
+        static var goalBadge: String { String(localized: "dashboard_goal_badge") }
+        static func goalA11yValue(_ value: String) -> String {
+            String(format: String(localized: "dashboard_goal_a11yValue"), value)
+        }
         static var weightA11yEmpty: String { String(localized: "dashboard_weight_a11yEmpty") }
         static var emptyWeigh: String { String(localized: "dashboard_empty_weigh") }
         static var weightBadgeLog: String { String(localized: "dashboard_weight_badgeLog") }
@@ -341,6 +347,67 @@ enum L10n {
         static var errorInvalidQuantity: String { String(localized: "foodQuantity_error_invalidQuantity") }
     }
 
+    enum Goals {
+        static var infoNoGoalMessage: String { String(localized: "goals_info_noGoalMessage") }
+        static var infoEaten: String { String(localized: "goals_info_eaten") }
+        static var infoGoal: String { String(localized: "goals_info_goal") }
+        static var infoRemaining: String { String(localized: "goals_info_remaining") }
+        static var infoOver: String { String(localized: "goals_info_over") }
+        static var infoDonutNote: String { String(localized: "goals_info_donutNote") }
+        static var infoButtonSet: String { String(localized: "goals_info_buttonSet") }
+        static var infoButtonEdit: String { String(localized: "goals_info_buttonEdit") }
+        static var navigationTitle: String { String(localized: "goals_navigationTitle") }
+        static var footerCurrent: String { String(localized: "goals_footer_current") }
+        static var footerBody: String { String(localized: "goals_footer_body") }
+        static var sectionCurrent: String { String(localized: "goals_section_current") }
+        static var sectionBody: String { String(localized: "goals_section_body") }
+        static var sectionActivity: String { String(localized: "goals_section_activity") }
+        static var fieldNewKcal: String { String(localized: "goals_field_newKcal") }
+        static var macroModePercent: String { String(localized: "goals_macroMode_percent") }
+        static var macroModeGrams: String { String(localized: "goals_macroMode_grams") }
+        static var fieldSex: String { String(localized: "goals_field_sex") }
+        static var sexMale: String { String(localized: "goals_sex_male") }
+        static var sexFemale: String { String(localized: "goals_sex_female") }
+        static var fieldBirthYear: String { String(localized: "goals_field_birthYear") }
+        static var fieldHeight: String { String(localized: "goals_field_height") }
+        static var fieldWeight: String { String(localized: "goals_field_weight") }
+        static var errorPercentSum: String { String(localized: "goals_error_percentSum") }
+        static var hintMacroModeIncomplete: String { String(localized: "goals_hint_macroModeIncomplete") }
+        static var hintMacroModeNeedsKcal: String { String(localized: "goals_hint_macroModeNeedsKcal") }
+        static var hintMacroModeSumNot100: String { String(localized: "goals_hint_macroModeSumNot100") }
+        static var activitySedentary: String { String(localized: "goals_activity_sedentary") }
+        static var activityLight: String { String(localized: "goals_activity_light") }
+        static var activityModerate: String { String(localized: "goals_activity_moderate") }
+        static var activityHigh: String { String(localized: "goals_activity_high") }
+        static var activityVeryHigh: String { String(localized: "goals_activity_veryHigh") }
+        static var activitySedentaryDetail: String { String(localized: "goals_activity_sedentary_detail") }
+        static var activityLightDetail: String { String(localized: "goals_activity_light_detail") }
+        static var activityModerateDetail: String { String(localized: "goals_activity_moderate_detail") }
+        static var activityHighDetail: String { String(localized: "goals_activity_high_detail") }
+        static var activityVeryHighDetail: String { String(localized: "goals_activity_veryHigh_detail") }
+        static var activityScaleLow: String { String(localized: "goals_activity_scaleLow") }
+        static var activityScaleHigh: String { String(localized: "goals_activity_scaleHigh") }
+        static var estimateBmr: String { String(localized: "goals_estimate_bmr") }
+        static var estimateExpenditure: String { String(localized: "goals_estimate_expenditure") }
+        static var estimateHint: String { String(localized: "goals_estimate_hint") }
+        static var estimateDisclaimer: String { String(localized: "goals_estimate_disclaimer") }
+        static var variantGain: String { String(localized: "goals_variant_gain") }
+        static var variantMaintain: String { String(localized: "goals_variant_maintain") }
+        static var variantLose: String { String(localized: "goals_variant_lose") }
+        static var variantRaised: String { String(localized: "goals_variant_raised") }
+        static var buttonSave: String { String(localized: "goals_button_save") }
+        static var buttonEnd: String { String(localized: "goals_button_end") }
+        static var endTitle: String { String(localized: "goals_end_title") }
+        static var endMessage: String { String(localized: "goals_end_message") }
+        static var errorSaveFailed: String { String(localized: "goals_error_saveFailed") }
+        static func macroPercentOfGoal(_ value: String) -> String {
+            String(format: String(localized: "goals_macro_percentOfGoal"), value)
+        }
+        static func gramsKcal(_ value: String) -> String {
+            String(format: String(localized: "goals_gramsKcal"), value)
+        }
+    }
+
     enum Settings {
         static var navigationTitle: String { String(localized: "settings_navigationTitle") }
         static var sectionMealLayout: String { String(localized: "settings_section_mealLayout") }
@@ -348,6 +415,10 @@ enum L10n {
         static var sectionBodyWeight: String { String(localized: "settings_section_bodyWeight") }
         static var bodyWeightShow: String { String(localized: "settings_bodyWeight_show") }
         static var bodyWeightUnit: String { String(localized: "settings_bodyWeight_unit") }
+        static var sectionDailyGoal: String { String(localized: "settings_section_dailyGoal") }
+        static var dailyGoalShow: String { String(localized: "settings_dailyGoal_show") }
+        static var goalPercentShow: String { String(format: String(localized: "settings_goalPercent_show")) }
+        static var goalBarsShow: String { String(localized: "settings_goalBars_show") }
         static var errorSaveFailed: String { String(localized: "settings_error_saveFailed") }
         static var fieldNewMealTitle: String { String(localized: "settings_field_newMeal_placeholder") }
         static var datePickerFrom: String { String(localized: "settings_datePicker_from") }

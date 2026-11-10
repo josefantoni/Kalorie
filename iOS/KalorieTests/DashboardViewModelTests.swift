@@ -990,6 +990,7 @@ final class DashboardViewModelTests: XCTestCase {
             assignFoodMealType: assignFoodMealType,
             fetchBodyWeights: fetchBodyWeights,
             fetchAppSettings: fetchAppSettings,
+            fetchDailyGoals: FetchDailyGoalsUseCaseFake(),
             saveBodyWeight: saveBodyWeight,
             authProvider: authProvider,
             signInSpotlightStore: signInSpotlightStore,
