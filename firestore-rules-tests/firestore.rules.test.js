@@ -115,6 +115,8 @@ describe('users/{userId}', () => {
     await assertSucceeds(getDoc(doc(db, 'users/alice/bodyWeights/2026-10-27')));
     await assertSucceeds(setDoc(doc(db, 'users/alice/settings/app'), { show_body_weight: false }, { merge: true }));
     await assertSucceeds(getDoc(doc(db, 'users/alice/settings/app')));
+    await assertSucceeds(setDoc(doc(db, 'users/alice/settings/goals'), { goals: [{ valid_from: '2026-11-06', kcal_goal: 2000 }] }, { merge: true }));
+    await assertSucceeds(getDoc(doc(db, 'users/alice/settings/goals')));
   });
 
   it("denies another user's body weights and settings", async () => {
@@ -125,6 +127,8 @@ describe('users/{userId}', () => {
     await assertFails(getDoc(doc(user('bob'), 'users/alice/bodyWeights/2026-10-27')));
     await assertFails(setDoc(doc(user('bob'), 'users/alice/bodyWeights/2026-10-28'), { id: '2026-10-28', weight_kg: 70 }));
     await assertFails(getDoc(doc(user('bob'), 'users/alice/settings/app')));
+    await assertFails(getDoc(doc(user('bob'), 'users/alice/settings/goals')));
+    await assertFails(setDoc(doc(user('bob'), 'users/alice/settings/goals'), { goals: [] }));
     await assertFails(setDoc(doc(user('bob'), 'users/alice/settings/app'), { show_body_weight: false }));
     await assertFails(getDoc(doc(maintainer(), 'users/alice/bodyWeights/2026-10-27')));
   });
