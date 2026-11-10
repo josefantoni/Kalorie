@@ -81,7 +81,7 @@ class DeleteAccountUseCaseTest {
             fixture.dataProvider.batchDeletedIdsByCollection[Constants.Firestore.bodyWeights(USER_ID)],
         )
         assertNull(fixture.dataProvider.deletedIdsByCollection[Constants.Firestore.bodyWeights(USER_ID)])
-        assertEquals(listOf("app"), fixture.deleted(Constants.Firestore.settings(USER_ID)))
+        assertEquals(listOf("app", "goals"), fixture.deleted(Constants.Firestore.settings(USER_ID)))
         val order = fixture.dataProvider.deletionCollectionOrder
         assertTrue(order.indexOf(Constants.Firestore.settings(USER_ID)) < order.indexOf(Constants.Firestore.USERS))
     }
@@ -211,6 +211,7 @@ class DeleteAccountUseCaseTest {
             "a failure part-way must leave the profile in place so the account is not half-erased",
             listOf(
                 Constants.Firestore.foodConsumed(USER_ID),
+                Constants.Firestore.settings(USER_ID),
                 Constants.Firestore.settings(USER_ID),
                 Constants.Firestore.stats(USER_ID),
                 Constants.Firestore.USERS,

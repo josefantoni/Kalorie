@@ -102,6 +102,45 @@ import antoni.kalorie.features.dashboard.SwipeToDeleteRow
 import kotlinx.coroutines.launch
 import java.time.Instant
 
+@Composable
+private fun SwitchSettingsRow(title: String, isChecked: Boolean, isEnabled: Boolean = true, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = title, modifier = Modifier.weight(1f))
+        Switch(checked = isChecked, onCheckedChange = onCheckedChange, enabled = isEnabled)
+    }
+}
+
+@Composable
+private fun DailyGoalSettingsRows(
+    appSettings: AppSettingsDomain,
+    onShowChanged: (Boolean) -> Unit,
+    onBarsChanged: (Boolean) -> Unit,
+    onPercentChanged: (Boolean) -> Unit,
+) {
+    SwitchSettingsRow(
+        title = stringResource(R.string.settings_dailyGoal_show),
+        isChecked = appSettings.showDailyGoal,
+        onCheckedChange = onShowChanged,
+    )
+    SectionCardDivider()
+    SwitchSettingsRow(
+        title = stringResource(R.string.settings_goalBars_show),
+        isChecked = appSettings.showGoalBars,
+        isEnabled = appSettings.showDailyGoal,
+        onCheckedChange = onBarsChanged,
+    )
+    SectionCardDivider()
+    SwitchSettingsRow(
+        title = stringResource(R.string.settings_goalPercent_show),
+        isChecked = appSettings.showGoalPercent,
+        isEnabled = appSettings.showDailyGoal,
+        onCheckedChange = onPercentChanged,
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss: () -> Unit) {
@@ -374,6 +413,24 @@ private fun SettingsContent(
                                             appSettings = appSettings,
                                             onShowChanged = { isShown -> scope.launch { viewModel.onShowBodyWeightChanged(isShown) } },
                                             onUnitChanged = { unit -> scope.launch { viewModel.onBodyWeightUnitChanged(unit) } },
+                                        )
+                                    }
+                                }
+                                item {
+                                    Text(
+                                        text = stringResource(R.string.settings_section_dailyGoal),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
+                                    )
+                                }
+                                item {
+                                    SectionCard {
+                                        DailyGoalSettingsRows(
+                                            appSettings = appSettings,
+                                            onShowChanged = { isShown -> scope.launch { viewModel.onShowDailyGoalChanged(isShown) } },
+                                            onBarsChanged = { isShown -> scope.launch { viewModel.onShowGoalBarsChanged(isShown) } },
+                                            onPercentChanged = { isShown -> scope.launch { viewModel.onShowGoalPercentChanged(isShown) } },
                                         )
                                     }
                                 }

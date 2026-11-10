@@ -5,5 +5,6 @@ import antoni.kalorie.core.models.FoodConsumedDomain
 sealed interface DashboardDestination {
     data object Dashboard : DashboardDestination
     data object BodyWeightHistory : DashboardDestination
+    data object DailyGoals : DashboardDestination
     data class FoodConsumedDetail(val food: FoodConsumedDomain) : DashboardDestination
 }

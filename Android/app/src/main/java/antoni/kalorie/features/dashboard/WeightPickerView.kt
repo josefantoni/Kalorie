@@ -110,7 +110,7 @@ fun WeightPickerView(
 
 private val PICKER_HEIGHT = 216.dp
 
-private fun NumberPicker.applyTextColor(color: Int) {
+internal fun NumberPicker.applyTextColor(color: Int) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         textColor = color
         return

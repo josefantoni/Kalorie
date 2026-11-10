@@ -86,6 +86,7 @@ class DeleteAccountUseCase(
         val bodyWeightIds = dataProvider.loadDocumentIdsAsync(from = Constants.Firestore.bodyWeights(userId))
         dataProvider.batchDeleteAsync(ids = bodyWeightIds, from = Constants.Firestore.bodyWeights(userId))
         dataProvider.deleteAsync(id = Constants.Firestore.APP_SETTINGS_DOCUMENT_ID, from = Constants.Firestore.settings(userId))
+        dataProvider.deleteAsync(id = Constants.Firestore.GOALS_DOCUMENT_ID, from = Constants.Firestore.settings(userId))
     }
 
     private suspend fun wipeFirestoreData(userId: String) {

@@ -2,6 +2,7 @@ package antoni.kalorie.core.auth
 
 import antoni.kalorie.core.networking.AppSettingsDTO
 import antoni.kalorie.core.networking.BodyWeightDTO
+import antoni.kalorie.core.networking.DailyGoalsDTO
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FoodConsumedDTO
 import antoni.kalorie.core.networking.FoodItemPersonalPortionsDTO
@@ -20,6 +21,7 @@ data class PendingMergeSnapshot(
     val foodItemPortions: List<FoodItemPersonalPortionsDTO> = emptyList(),
     val bodyWeights: List<BodyWeightDTO> = emptyList(),
     val appSettings: AppSettingsDTO? = null,
+    val dailyGoals: DailyGoalsDTO? = null,
 )
 
 interface PendingMergeSnapshotStoreProtocol {

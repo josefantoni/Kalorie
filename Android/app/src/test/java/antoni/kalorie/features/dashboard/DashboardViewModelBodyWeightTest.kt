@@ -5,6 +5,8 @@ import antoni.kalorie.core.models.AppSettingsDomain
 import antoni.kalorie.core.models.BodyWeightDayKey
 import antoni.kalorie.core.models.BodyWeightDomain
 import antoni.kalorie.core.models.BodyWeightUnit
+import antoni.kalorie.core.models.DailyGoalDomain
+import antoni.kalorie.core.models.DailyGoalHistory
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseFake
 import antoni.kalorie.core.usecases.ConfirmMealTypesEmptyUseCaseFake
 import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseFake
@@ -13,6 +15,8 @@ import antoni.kalorie.core.usecases.FetchAppSettingsUseCaseFake
 import antoni.kalorie.core.usecases.FetchAppSettingsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchBodyWeightsUseCaseFake
 import antoni.kalorie.core.usecases.FetchBodyWeightsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchDailyGoalsUseCaseFake
+import antoni.kalorie.core.usecases.FetchDailyGoalsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCaseFake
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseFake
@@ -27,6 +31,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
@@ -325,11 +330,62 @@ class DashboardViewModelBodyWeightTest {
         assertEquals("a read that started before the user changed a setting must not bring the old value back", changed, sut.appSettings.value)
     }
 
+    @Test
+    fun goals_fetchStartedBeforeASave_doesNotRestoreTheOldHistory() = runTest {
+        val gate = GatedFetchDailyGoals()
+        val sut = makeSUT(fetchDailyGoals = gate)
+        val launch = launch { sut.onAppear() }
+        runCurrent()
+        val saved = DailyGoalHistory(listOf(DailyGoalDomain("2020-01-01", kcalGoal = 2000.0)))
+        sut.onGoalsChanged(saved)
+        gate.gate.complete(Unit)
+        launch.join()
+        assertEquals(saved, sut.goalHistory.value)
+    }
+
+    @Test
+    fun goalsChanged_clearsTheWeightCacheBecauseSavingAGoalCanWriteTodaysWeight() = runTest {
+        val fetch = CountingFetchBodyWeights()
+        val sut = makeSUT(fetchBodyWeights = fetch)
+        sut.onAppear()
+        sut.onGoalsChanged(DailyGoalHistory.empty)
+        assertEquals(2, fetch.callCount)
+    }
+
+    @Test
+    fun goalCircle_pastDayWithoutGoal_isHiddenButShownOnTodayAndWhenAGoalAppliesThen() = runTest {
+        val sut = makeSUT()
+        sut.onAppSettingsChanged(AppSettingsDomain.defaults)
+        sut.onGoalsChanged(DailyGoalHistory.empty)
+        assertTrue(sut.isGoalCircleVisible)
+
+        sut.selectedDay.value = Instant.now().minusSeconds(3 * DAY)
+        assertFalse(sut.isGoalCircleVisible)
+
+        sut.onGoalsChanged(DailyGoalHistory(listOf(DailyGoalDomain("2020-01-01", kcalGoal = 2000.0))))
+        assertTrue(sut.isGoalCircleVisible)
+    }
+
+    @Test
+    fun goalProgress_isNilWithoutAKcalGoalAndZeroOnceOneApplies() = runTest {
+        val sut = makeSUT()
+        sut.onAppSettingsChanged(AppSettingsDomain.defaults)
+        sut.onGoalsChanged(DailyGoalHistory.empty)
+        assertNull(sut.goalProgress)
+
+        sut.onGoalsChanged(DailyGoalHistory(listOf(DailyGoalDomain("2020-01-01", kcalGoal = 0.0))))
+        assertNull(sut.goalProgress)
+
+        sut.onGoalsChanged(DailyGoalHistory(listOf(DailyGoalDomain("2020-01-01", kcalGoal = 2000.0))))
+        assertEquals(0.0, sut.goalProgress)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
         fetchBodyWeights: FetchBodyWeightsUseCaseProtocol = FetchBodyWeightsUseCaseFake(),
         fetchAppSettings: FetchAppSettingsUseCaseProtocol = FetchAppSettingsUseCaseFake(),
+        fetchDailyGoals: FetchDailyGoalsUseCaseProtocol = FetchDailyGoalsUseCaseFake(),
         fetchMealTypes: FetchMealTypesUseCaseProtocol = FetchMealTypesUseCaseFake(),
         saveBodyWeight: SaveBodyWeightUseCaseProtocol = SaveBodyWeightUseCaseFake(),
     ): DashboardViewModel = DashboardViewModel(
@@ -343,6 +399,7 @@ class DashboardViewModelBodyWeightTest {
         assignFoodMealType = AssignFoodMealTypeUseCaseFake(),
         fetchBodyWeights = fetchBodyWeights,
         fetchAppSettings = fetchAppSettings,
+        fetchDailyGoals = fetchDailyGoals,
         saveBodyWeight = saveBodyWeight,
         authProvider = AuthProviderFake(),
         signInSpotlightStore = SignInSpotlightStoreFake(),
@@ -439,5 +496,14 @@ private class GatedFetchAppSettings(private val result: AppSettingsDomain) : Fet
     override suspend fun invoke(): AppSettingsDomain {
         gate.await()
         return result
+    }
+}
+
+private class GatedFetchDailyGoals : FetchDailyGoalsUseCaseProtocol {
+    val gate = CompletableDeferred<Unit>()
+
+    override suspend fun invoke(): DailyGoalHistory {
+        gate.await()
+        return DailyGoalHistory.empty
     }
 }

@@ -24,6 +24,7 @@ import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCase
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCase
 import antoni.kalorie.core.usecases.FetchAppSettingsUseCase
 import antoni.kalorie.core.usecases.FetchBodyWeightsUseCase
+import antoni.kalorie.core.usecases.FetchDailyGoalsUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCase
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCase
 import antoni.kalorie.core.usecases.FetchMealTypesUseCase
@@ -33,6 +34,7 @@ import antoni.kalorie.core.usecases.SetupDefaultMealsUseCase
 import antoni.kalorie.core.utils.ContextStringProvider
 import antoni.kalorie.features.account.AccountConfigurator
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
+import antoni.kalorie.features.dailygoals.DailyGoalsConfigurator
 import antoni.kalorie.features.notifications.NotificationsConfigurator
 import antoni.kalorie.features.settings.SettingsConfigurator
 import kotlinx.coroutines.launch
@@ -61,6 +63,7 @@ class DashboardConfigurator(private val maintainerClaimCache: MaintainerClaimCac
                 assignFoodMealType = AssignFoodMealTypeUseCase(dataProvider, authProvider),
                 fetchBodyWeights = FetchBodyWeightsUseCase(dataProvider, authProvider),
                 fetchAppSettings = FetchAppSettingsUseCase(dataProvider, authProvider),
+                fetchDailyGoals = FetchDailyGoalsUseCase(dataProvider, authProvider),
                 saveBodyWeight = SaveBodyWeightUseCase(dataProvider, authProvider),
                 authProvider = authProvider,
                 signInSpotlightStore = signInSpotlightStore,
@@ -75,6 +78,7 @@ class DashboardConfigurator(private val maintainerClaimCache: MaintainerClaimCac
                 foodConsumedDetailConfigurator = FoodConsumedDetailConfigurator(dataProvider, authProvider),
                 bodyWeightHistoryConfigurator = BodyWeightHistoryConfigurator(dataProvider, authProvider),
                 notificationsConfigurator = NotificationsConfigurator(dataProvider, authProvider, maintainerClaimCache),
+                dailyGoalsConfigurator = DailyGoalsConfigurator(dataProvider, authProvider),
             )
         }
         val scope = rememberCoroutineScope()
@@ -102,6 +106,16 @@ class DashboardConfigurator(private val maintainerClaimCache: MaintainerClaimCac
                             selectedDay = selectedDay,
                             onBack = { viewModel.backStack.remove(destination) },
                             onChanged = { scope.launch { viewModel.onWeightsChanged() } },
+                        )
+                    }
+                    is DashboardDestination.DailyGoals -> NavEntry(destination) {
+                        val appSettings by viewModel.appSettings.collectAsState()
+                        val goalHistory by viewModel.goalHistory.collectAsState()
+                        router.makeDailyGoalsView(
+                            history = goalHistory,
+                            unit = appSettings.bodyWeightUnit,
+                            onBack = { viewModel.backStack.remove(destination) },
+                            onChanged = { history -> scope.launch { viewModel.onGoalsChanged(history) } },
                         )
                     }
                     is DashboardDestination.FoodConsumedDetail -> NavEntry(destination) {

@@ -7,6 +7,8 @@ import antoni.kalorie.core.auth.PendingMergeSnapshotStoreFake
 import antoni.kalorie.core.models.AppSettingsDomain
 import antoni.kalorie.core.models.BodyWeightDomain
 import antoni.kalorie.core.models.BodyWeightUnit
+import antoni.kalorie.core.models.DailyGoalDomain
+import antoni.kalorie.core.models.DailyGoalHistory
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodNutritionValues
@@ -15,6 +17,7 @@ import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
 import antoni.kalorie.core.networking.AppSettingsDTO
 import antoni.kalorie.core.networking.BodyWeightDTO
+import antoni.kalorie.core.networking.DailyGoalsDTO
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodConsumedDTO
@@ -216,8 +219,8 @@ class MigrateAnonymousDataUseCaseTest {
     @Test
     fun migrate_settings_writtenOnlyWhenAccountHasNone() = runTest {
         val sut = makeSUT()
-        sut.dataProvider.stubbedDocumentByCollection = mapOf(
-            Constants.Firestore.settings("anon-1") to AppSettingsDTO(AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.LB)),
+        sut.dataProvider.stubbedDocumentByCollectionAndId = mapOf(
+            (Constants.Firestore.settings("anon-1") to "app") to AppSettingsDTO(AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.LB)),
         )
 
         sut.useCase.migrate("anon-1", makeCredential())
@@ -228,14 +231,51 @@ class MigrateAnonymousDataUseCaseTest {
     @Test
     fun migrate_settings_accountSettingsAreNeverOverwritten() = runTest {
         val sut = makeSUT()
-        sut.dataProvider.stubbedDocumentByCollection = mapOf(
-            Constants.Firestore.settings("anon-1") to AppSettingsDTO(AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.LB)),
-            Constants.Firestore.settings("target-1") to AppSettingsDTO(AppSettingsDomain.defaults),
+        sut.dataProvider.stubbedDocumentByCollectionAndId = mapOf(
+            (Constants.Firestore.settings("anon-1") to "app") to AppSettingsDTO(AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.LB)),
+            (Constants.Firestore.settings("target-1") to "app") to AppSettingsDTO(AppSettingsDomain.defaults),
         )
 
         sut.useCase.migrate("anon-1", makeCredential())
 
         assertFalse(sut.dataProvider.setSavedPairs.any { it.first == Constants.Firestore.settings("target-1") })
+    }
+
+    @Test
+    fun migrate_goals_writtenOnlyWhenAccountHasNone() = runTest {
+        val sut = makeSUT()
+        sut.dataProvider.stubbedDocumentByCollectionAndId = mapOf(
+            (Constants.Firestore.settings("anon-1") to "goals") to makeGoals(),
+        )
+
+        sut.useCase.migrate("anon-1", makeCredential())
+
+        assertTrue(sut.dataProvider.setSavedPairs.contains(Constants.Firestore.settings("target-1") to "goals"))
+    }
+
+    @Test
+    fun migrate_goals_accountGoalsAreNeverOverwritten() = runTest {
+        val sut = makeSUT()
+        sut.dataProvider.stubbedDocumentByCollectionAndId = mapOf(
+            (Constants.Firestore.settings("anon-1") to "goals") to makeGoals(),
+            (Constants.Firestore.settings("target-1") to "goals") to makeGoals(),
+        )
+
+        sut.useCase.migrate("anon-1", makeCredential())
+
+        assertFalse(sut.dataProvider.setSavedPairs.any { it.first == Constants.Firestore.settings("target-1") })
+    }
+
+    @Test
+    fun migrate_goals_capturedInSnapshotBeforeSignIn() = runTest {
+        val sut = makeSUT()
+        sut.dataProvider.stubbedDocumentByCollectionAndId = mapOf(
+            (Constants.Firestore.settings("anon-1") to "goals") to makeGoals(),
+        )
+
+        sut.useCase.migrate("anon-1", makeCredential())
+
+        assertTrue(sut.dataProvider.loadedIdCollections.contains(Constants.Firestore.settings("anon-1")))
     }
 
     @Test
@@ -248,6 +288,8 @@ class MigrateAnonymousDataUseCaseTest {
     }
 
     // MARK: - Helpers
+
+    private fun makeGoals() = DailyGoalsDTO(DailyGoalHistory(listOf(DailyGoalDomain("2026-11-01", kcalGoal = 2000.0))))
 
     private fun makeWeight(key: String, kilograms: Double) = BodyWeightDTO(BodyWeightDomain(dayKey = key, kilograms = kilograms))
 

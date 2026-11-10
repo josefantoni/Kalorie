@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import antoni.kalorie.R
+import antoni.kalorie.macrokit.energyShares
 import java.text.NumberFormat
 import kotlin.math.cos
 import kotlin.math.min
@@ -72,7 +73,8 @@ private fun DrawScope.drawDonut(textMeasurer: TextMeasurer, protein: Double, car
     val ringStyle = Stroke(width = outerRadius - innerRadius)
     val arcTopLeft = Offset(center.x - midRadius, center.y - midRadius)
     val arcSize = Size(midRadius * 2, midRadius * 2)
-    val total = protein + carbs + fat
+    val shares = energyShares(protein, carbs, fat)
+    val total = shares.sum()
     val percentFormat = NumberFormat.getPercentInstance()
 
     if (total <= 0) {
@@ -81,7 +83,7 @@ private fun DrawScope.drawDonut(textMeasurer: TextMeasurer, protein: Double, car
     }
 
     var startAngle = -90f
-    for ((value, color) in listOf(protein to proteinColor, carbs to carbsColor, fat to fatColor)) {
+    for ((value, color) in listOf(shares[2] to fatColor, shares[1] to carbsColor, shares[0] to proteinColor)) {
         if (value <= 0) continue
         val sweep = (360 * value / total).toFloat()
         drawArc(color, startAngle, sweep, false, arcTopLeft, arcSize, style = ringStyle)

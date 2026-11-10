@@ -3,7 +3,7 @@ package antoni.kalorie.features.dashboard
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -49,7 +50,8 @@ import antoni.kalorie.components.BadgeButton
 import kotlinx.coroutines.launch
 
 private const val CHECKMARK_SCALE_FROM = 0.6f
-private val CONFIRM_BUTTON_WIDTH = 120.dp
+val POPOVER_BUTTON_HEIGHT = 40.dp
+private val POPOVER_CONTENT_WIDTH = 248.dp
 
 @Composable
 fun WeightAccessoryView(viewModel: DashboardViewModel, modifier: Modifier = Modifier) {
@@ -136,15 +138,15 @@ private fun WeightPopover(viewModel: DashboardViewModel, isVisible: Boolean) {
                 animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow),
                 label = "weightConfirmColor",
             )
-            val buttonWidth by animateDpAsState(
-                targetValue = if (showCheckmark) ButtonDefaults.MinHeight else CONFIRM_BUTTON_WIDTH,
+            val buttonWidthFraction by animateFloatAsState(
+                targetValue = if (showCheckmark) POPOVER_BUTTON_HEIGHT / POPOVER_CONTENT_WIDTH else 1f,
                 animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow),
                 label = "weightConfirmWidth",
             )
             Button(
                 onClick = { scope.launch { viewModel.onWeightConfirmed() } },
                 enabled = !isSaving,
-                modifier = Modifier.height(ButtonDefaults.MinHeight).width(buttonWidth),
+                modifier = Modifier.height(POPOVER_BUTTON_HEIGHT).fillMaxWidth(buttonWidthFraction),
                 contentPadding = PaddingValues(0.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = containerColor,
