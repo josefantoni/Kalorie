@@ -99,6 +99,7 @@ enum Constants {
         static let settings = "settings"
         static let addFoodSheet = "addFoodSheet"
         static let dashboard = "dashboard"
+        static let dailyGoals = "dailyGoals"
         static let myCreatedMeal = "myCreatedMeal"
         static let moderation = "moderation"
         static let foodItemReport = "foodItemReport"
@@ -145,6 +146,7 @@ enum Constants {
         static let reportReasonMaxLength = 500
         static let foodFrequencyDocumentId = "foodFrequency"
         static let appSettingsDocumentId = "app"
+        static let goalsDocumentId = "goals"
         static let bodyWeightRecentLimit = 3
         static let bodyWeightLaterLimit = 2
 

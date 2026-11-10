@@ -60,6 +60,9 @@ struct AppSettingsDomain: Equatable {
 
     var showBodyWeight: Bool
     var bodyWeightUnit: BodyWeightUnit
+    var showDailyGoal = true
+    var showGoalPercent = true
+    var showGoalBars = true
 
     static let defaults = AppSettingsDomain(showBodyWeight: true, bodyWeightUnit: .kg)
 }

@@ -5,6 +5,7 @@
 //  Created by Josef Antoni on 29.07.2026.
 //
 
+import MacroKit
 import SwiftUI
 
 struct MacroDonutView: View {
@@ -42,7 +43,8 @@ struct MacroDonutView: View {
         let center = CGPoint(x: size.width / 2, y: size.height / 2)
         let outerRadius = min(size.width, size.height) / 2 - 2
         let innerRadius = outerRadius * 0.58
-        let total = protein + carbs + fat
+        let shares = EnergyKt.energyShares(protein: protein, carbohydrate: carbs, fat: fat).map(\.doubleValue)
+        let total = shares.reduce(0, +)
 
         guard total > 0 else {
             var ring = Path()
@@ -54,9 +56,9 @@ struct MacroDonutView: View {
         }
 
         let slices: [(Double, Color)] = [
-            (protein, Color.protein),
-            (carbs, Color.carbs),
-            (fat, Color.fat)
+            (shares[2], Color.fat),
+            (shares[1], Color.carbs),
+            (shares[0], Color.protein)
         ]
 
         let midRadius = (outerRadius + innerRadius) / 2

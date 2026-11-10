@@ -30,6 +30,7 @@ struct DashboardConfigurator {
                 assignFoodMealType: AssignFoodMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchBodyWeights: FetchBodyWeightsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchAppSettings: FetchAppSettingsUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                fetchDailyGoals: FetchDailyGoalsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 saveBodyWeight: SaveBodyWeightUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 authProvider: authProvider,
                 signInSpotlightStore: SignInSpotlightStore()
@@ -44,7 +45,8 @@ struct DashboardConfigurator {
                     dataProvider: dataProvider,
                     authProvider: authProvider,
                     maintainerClaimCache: maintainerClaimCache
-                )
+                ),
+                dailyGoalsConfigurator: DailyGoalsConfigurator(dataProvider: dataProvider, authProvider: authProvider)
             )
         )
     }

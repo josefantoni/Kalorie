@@ -107,6 +107,35 @@ struct SettingsView: View {
                                 }
                                 .pickerStyle(.segmented)
                             }
+
+                            Section(header: Text(L10n.Settings.sectionDailyGoal)) {
+                                Toggle(
+                                    L10n.Settings.dailyGoalShow,
+                                    isOn: Binding(
+                                        get: { viewModel.appSettings.showDailyGoal },
+                                        set: { isShown in Task { await viewModel.onShowDailyGoalChanged(isShown) } }
+                                    )
+                                )
+                                .tint(.accentColor)
+                                Toggle(
+                                    L10n.Settings.goalBarsShow,
+                                    isOn: Binding(
+                                        get: { viewModel.appSettings.showGoalBars },
+                                        set: { isShown in Task { await viewModel.onShowGoalBarsChanged(isShown) } }
+                                    )
+                                )
+                                .tint(.accentColor)
+                                .disabled(!viewModel.appSettings.showDailyGoal)
+                                Toggle(
+                                    L10n.Settings.goalPercentShow,
+                                    isOn: Binding(
+                                        get: { viewModel.appSettings.showGoalPercent },
+                                        set: { isShown in Task { await viewModel.onShowGoalPercentChanged(isShown) } }
+                                    )
+                                )
+                                .tint(.accentColor)
+                                .disabled(!viewModel.appSettings.showDailyGoal)
+                            }
                         }
 
                         Section(header: Text(L10n.Settings.sectionOther)) {

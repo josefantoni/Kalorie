@@ -20,7 +20,6 @@ struct DashboardView: View {
     private static let addFoodPulseDuration: Double = 0.35
     private static let addFoodResizeDuration: Double = 0.4
     private static let addFoodAnimationDuration: Double = 8.4
-    private static let weightConfirmWidth: CGFloat = 120
     private static let weightConfirmHeight: CGFloat = 28
     @State private var accountButtonFrame: CGRect = .zero
     @State private var targetedMealTypeId: String?
@@ -48,8 +47,15 @@ struct DashboardView: View {
             ScrollView {
                 LazyVStack(spacing: 30) {
                     if !viewModel.foodsConsumed.isEmpty {
-                        MacroSummaryView(macros: viewModel.dailyMacros) {
+                        MacroSummaryView(
+                            macros: viewModel.dailyMacros,
+                            goalGrams: viewModel.isGoalCircleVisible ? viewModel.selectedGoal?.macroGrams : nil,
+                            showsGoalPercent: viewModel.appSettings.showGoalPercent,
+                            showsGoalBars: viewModel.appSettings.showGoalBars
+                        ) {
                             weightAccessory
+                        } leadingAccessory: {
+                            goalAccessory
                         }
                     }
 
@@ -70,6 +76,11 @@ struct DashboardView: View {
             .navigationDestination(for: FoodConsumedDomain.self) { food in
                 router.makeFoodConsumedDetailView(food: food, mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onFoodConsumedUpdated() }
+                }
+            }
+            .navigationDestination(isPresented: $viewModel.isGoalsScreenPushed) {
+                router.makeDailyGoalsView(history: viewModel.goalHistory, unit: viewModel.appSettings.bodyWeightUnit) { history in
+                    Task { await viewModel.onGoalsChanged(history) }
                 }
             }
             .navigationDestination(isPresented: $viewModel.isWeightHistoryPushed) {
@@ -295,6 +306,51 @@ struct DashboardView: View {
         }
     }
 
+    @ViewBuilder private var goalAccessory: some View {
+        if viewModel.isGoalCircleVisible {
+            Button {
+                viewModel.isGoalsScreenPushed = true
+            } label: {
+                GoalRingView(
+                    progress: viewModel.goalProgress,
+                    protein: viewModel.dailyMacros.protein,
+                    carbs: viewModel.dailyMacros.carbs,
+                    fat: viewModel.dailyMacros.fat
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(goalAccessibilityLabel)
+            .overlay(alignment: .bottomLeading) {
+                BadgeButton(imageName: .infoCircle, size: 28, accessibilityLabel: L10n.Dashboard.goalBadge) {
+                    viewModel.isGoalInfoVisible = true
+                }
+                .offset(x: -4, y: 4)
+                .popover(isPresented: $viewModel.isGoalInfoVisible) {
+                    goalInfoPopover
+                }
+            }
+        }
+    }
+
+    private var goalAccessibilityLabel: String {
+        guard let progress = viewModel.goalProgress else { return L10n.Dashboard.goalA11yEmpty }
+        return L10n.Dashboard.goalA11yValue(progress.formatted(.percent.precision(.fractionLength(0))))
+    }
+
+    private var goalInfoPopover: some View {
+        GoalInfoView(
+            goal: viewModel.selectedGoal,
+            eatenKcal: viewModel.dailyMacros.calories
+        ) {
+            viewModel.isGoalInfoVisible = false
+            viewModel.isGoalsScreenPushed = true
+        }
+        .padding()
+        .frame(width: 280)
+        .dynamicTypeLimit()
+        .presentationCompactAdaptation(.popover)
+    }
+
     @ViewBuilder private var weightAccessory: some View {
         if viewModel.isWeightCircleVisible {
             weightCircle(unit: viewModel.appSettings.bodyWeightUnit)
@@ -378,7 +434,8 @@ struct DashboardView: View {
                 .opacity(viewModel.showWeightCheckmark ? 1 : 0)
                 .scaleEffect(viewModel.showWeightCheckmark ? 1 : 0.6)
         }
-        .frame(width: viewModel.showWeightCheckmark ? Self.weightConfirmHeight : Self.weightConfirmWidth, height: Self.weightConfirmHeight)
+        .frame(maxWidth: viewModel.showWeightCheckmark ? Self.weightConfirmHeight : .infinity)
+        .frame(height: Self.weightConfirmHeight)
     }
 
     private func sectionHeaderButtons(index: Int, group: (mealType: MealTypeDomain?, foods: [FoodConsumedDomain])) -> some View {
@@ -455,6 +512,8 @@ struct DashboardView: View {
             || viewModel.showCalendarSheet
             || viewModel.showAccountSheet
             || viewModel.isWeightHistoryPushed
+            || viewModel.isGoalsScreenPushed
+            || viewModel.isGoalInfoVisible
             || viewModel.isWeightPopoverVisible
             || viewModel.isDeleteConfirmationVisible
             || viewModel.alertItem != nil
@@ -621,6 +680,7 @@ struct DashboardView: View {
         assignFoodMealType: AssignFoodMealTypeUseCaseFake(),
         fetchBodyWeights: FetchBodyWeightsUseCaseFake(),
         fetchAppSettings: FetchAppSettingsUseCaseFake(),
+        fetchDailyGoals: FetchDailyGoalsUseCaseFake(),
         saveBodyWeight: SaveBodyWeightUseCaseFake(),
         authProvider: AuthProviderFake(),
         signInSpotlightStore: SignInSpotlightStoreFake()
@@ -640,7 +700,8 @@ struct DashboardView: View {
                 dataProvider: dataProvider,
                 authProvider: authProvider,
                 maintainerClaimCache: MaintainerClaimCache()
-            )
+            ),
+            dailyGoalsConfigurator: DailyGoalsConfigurator(dataProvider: dataProvider, authProvider: authProvider)
         )
     )
 }

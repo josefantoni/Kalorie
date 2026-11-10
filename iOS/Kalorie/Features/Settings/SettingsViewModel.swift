@@ -90,6 +90,27 @@ final class SettingsViewModel: ObservableObject {
     }
 
     @MainActor
+    func onShowDailyGoalChanged(_ isShown: Bool) async {
+        var updated = appSettings
+        updated.showDailyGoal = isShown
+        await apply(updated)
+    }
+
+    @MainActor
+    func onShowGoalPercentChanged(_ isShown: Bool) async {
+        var updated = appSettings
+        updated.showGoalPercent = isShown
+        await apply(updated)
+    }
+
+    @MainActor
+    func onShowGoalBarsChanged(_ isShown: Bool) async {
+        var updated = appSettings
+        updated.showGoalBars = isShown
+        await apply(updated)
+    }
+
+    @MainActor
     func onBodyWeightUnitChanged(_ unit: BodyWeightUnit) async {
         var updated = appSettings
         updated.bodyWeightUnit = unit

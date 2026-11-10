@@ -18,6 +18,7 @@ struct PendingMergeSnapshot: Codable {
     let foodItemPortions: [FoodItemPersonalPortionsDTO]
     let bodyWeights: [BodyWeightDTO]
     let appSettings: AppSettingsDTO?
+    let dailyGoals: DailyGoalsDTO?
 
     // MARK: - Init
 
@@ -28,7 +29,8 @@ struct PendingMergeSnapshot: Codable {
         myCreatedMeals: [MyCreatedMealDTO],
         foodItemPortions: [FoodItemPersonalPortionsDTO] = [],
         bodyWeights: [BodyWeightDTO] = [],
-        appSettings: AppSettingsDTO? = nil
+        appSettings: AppSettingsDTO? = nil,
+        dailyGoals: DailyGoalsDTO? = nil
     ) {
         self.sourceAnonymousUserId = sourceAnonymousUserId
         self.foodConsumed = foodConsumed
@@ -37,6 +39,7 @@ struct PendingMergeSnapshot: Codable {
         self.foodItemPortions = foodItemPortions
         self.bodyWeights = bodyWeights
         self.appSettings = appSettings
+        self.dailyGoals = dailyGoals
     }
 
     init(from decoder: Decoder) throws {
@@ -48,6 +51,7 @@ struct PendingMergeSnapshot: Codable {
         foodItemPortions = try container.decodeIfPresent([FoodItemPersonalPortionsDTO].self, forKey: .foodItemPortions) ?? []
         bodyWeights = try container.decodeIfPresent([BodyWeightDTO].self, forKey: .bodyWeights) ?? []
         appSettings = try container.decodeIfPresent(AppSettingsDTO.self, forKey: .appSettings)
+        dailyGoals = try container.decodeIfPresent(DailyGoalsDTO.self, forKey: .dailyGoals)
     }
 }
 

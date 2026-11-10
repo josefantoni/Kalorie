@@ -17,6 +17,7 @@ struct DashboardRouter {
     private let accountConfigurator: AccountConfigurator
     private let bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator
     private let notificationsConfigurator: NotificationsConfigurator
+    private let dailyGoalsConfigurator: DailyGoalsConfigurator
 
     // MARK: - Init
 
@@ -26,7 +27,8 @@ struct DashboardRouter {
         foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator,
         accountConfigurator: AccountConfigurator,
         bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator,
-        notificationsConfigurator: NotificationsConfigurator
+        notificationsConfigurator: NotificationsConfigurator,
+        dailyGoalsConfigurator: DailyGoalsConfigurator
     ) {
         self.settingsConfigurator = settingsConfigurator
         self.addFoodSheetConfigurator = addFoodSheetConfigurator
@@ -34,6 +36,7 @@ struct DashboardRouter {
         self.accountConfigurator = accountConfigurator
         self.bodyWeightHistoryConfigurator = bodyWeightHistoryConfigurator
         self.notificationsConfigurator = notificationsConfigurator
+        self.dailyGoalsConfigurator = dailyGoalsConfigurator
     }
 
     // MARK: - Functions
@@ -90,5 +93,9 @@ struct DashboardRouter {
 
     func makeBodyWeightHistoryView(unit: BodyWeightUnit, selectedDay: Date, onChanged: @escaping () -> Void) -> BodyWeightHistoryView {
         bodyWeightHistoryConfigurator.createView(unit: unit, selectedDay: selectedDay, onChanged: onChanged)
+    }
+
+    func makeDailyGoalsView(history: DailyGoalHistory, unit: BodyWeightUnit, onChanged: @escaping (DailyGoalHistory) -> Void) -> DailyGoalsView {
+        dailyGoalsConfigurator.createView(history: history, unit: unit, onChanged: onChanged)
     }
 }
