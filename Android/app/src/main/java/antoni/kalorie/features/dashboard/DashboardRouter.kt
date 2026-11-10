@@ -3,10 +3,12 @@ package antoni.kalorie.features.dashboard
 import androidx.compose.runtime.Composable
 import antoni.kalorie.core.models.AppSettingsDomain
 import antoni.kalorie.core.models.BodyWeightUnit
+import antoni.kalorie.core.models.DailyGoalHistory
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.features.account.AccountConfigurator
 import antoni.kalorie.features.addfoodsheet.AddFoodSheetConfigurator
+import antoni.kalorie.features.dailygoals.DailyGoalsConfigurator
 import antoni.kalorie.features.notifications.NotificationBellViewModel
 import antoni.kalorie.features.notifications.NotificationsConfigurator
 import antoni.kalorie.features.settings.SettingsConfigurator
@@ -20,6 +22,7 @@ class DashboardRouter(
     private val foodConsumedDetailConfigurator: FoodConsumedDetailConfigurator,
     private val bodyWeightHistoryConfigurator: BodyWeightHistoryConfigurator,
     private val notificationsConfigurator: NotificationsConfigurator,
+    private val dailyGoalsConfigurator: DailyGoalsConfigurator,
 ) {
 
     // MARK: - Functions
@@ -74,5 +77,10 @@ class DashboardRouter(
     @Composable
     fun makeBodyWeightHistoryView(unit: BodyWeightUnit, selectedDay: Instant, onBack: () -> Unit, onChanged: () -> Unit) {
         bodyWeightHistoryConfigurator.createView(unit = unit, selectedDay = selectedDay, onBack = onBack, onChanged = onChanged)
+    }
+
+    @Composable
+    fun makeDailyGoalsView(history: DailyGoalHistory, unit: BodyWeightUnit, onBack: () -> Unit, onChanged: (DailyGoalHistory) -> Unit) {
+        dailyGoalsConfigurator.createView(history = history, unit = unit, onBack = onBack, onChanged = onChanged)
     }
 }

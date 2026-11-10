@@ -187,6 +187,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val moveFeedbackTrigger by viewModel.moveFeedbackTrigger.collectAsState()
     val currentFoodsConsumed by rememberUpdatedState(foodsConsumed)
     val isWeightPopoverVisible by viewModel.isWeightPopoverVisible.collectAsState()
+    val isGoalInfoVisible by viewModel.isGoalInfoVisible.collectAsState()
     val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
     var isAddFoodExpanded by remember { mutableStateOf(false) }
     var isAddFoodAnimationPlaying by remember { mutableStateOf(false) }
@@ -200,7 +201,9 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
         alertItem != null ||
         isDeleteConfirmationVisible ||
         isWeightPopoverVisible ||
+        isGoalInfoVisible ||
         viewModel.isWeightHistoryPushed ||
+        viewModel.isGoalsScreenPushed ||
         isSignInSpotlightVisible
     val isAddFoodSequenceActive = isEmptyStateVisible &&
         lifecycleState.isAtLeast(Lifecycle.State.RESUMED) &&
@@ -342,7 +345,18 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         ) {
                             if (foodsConsumed.isNotEmpty()) {
                                 item {
-                                    MacroSummaryView(macros = dailyMacros) {
+                                    viewModel.goalHistory.collectAsState().value
+                                    viewModel.selectedDay.collectAsState().value
+                                    viewModel.hasLoadedSettings.collectAsState().value
+                                    viewModel.hasLoadedGoals.collectAsState().value
+                                    val isGoalVisible = viewModel.isGoalCircleVisible
+                                    MacroSummaryView(
+                                        macros = dailyMacros,
+                                        goalGrams = if (isGoalVisible) viewModel.selectedGoal?.macroGrams else null,
+                                        showsGoalPercent = appSettings.showGoalPercent,
+                                        showsGoalBars = appSettings.showGoalBars,
+                                        leadingAccessory = { GoalAccessoryView(viewModel = viewModel) },
+                                    ) {
                                         WeightAccessoryView(viewModel = viewModel)
                                     }
                                 }

@@ -227,6 +227,36 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun toggleDailyGoal_savesOnlyThatFlagAndNotifies() = runTest {
+        var notified: AppSettingsDomain? = null
+        val sut = makeSUT(onAppSettingsChanged = { notified = it })
+        sut.onShowDailyGoalChanged(false)
+        assertEquals(false, notified?.showDailyGoal)
+        assertEquals(true, notified?.showGoalPercent)
+        assertEquals(true, notified?.showGoalBars)
+    }
+
+    @Test
+    fun toggleGoalPercent_savesOnlyThatFlagAndNotifies() = runTest {
+        var notified: AppSettingsDomain? = null
+        val sut = makeSUT(onAppSettingsChanged = { notified = it })
+        sut.onShowGoalPercentChanged(false)
+        assertEquals(false, notified?.showGoalPercent)
+        assertEquals(true, notified?.showGoalBars)
+        assertEquals(true, notified?.showDailyGoal)
+    }
+
+    @Test
+    fun toggleGoalBars_savesOnlyThatFlagAndNotifies() = runTest {
+        var notified: AppSettingsDomain? = null
+        val sut = makeSUT(onAppSettingsChanged = { notified = it })
+        sut.onShowGoalBarsChanged(false)
+        assertEquals(false, notified?.showGoalBars)
+        assertEquals(true, notified?.showGoalPercent)
+        assertEquals(true, notified?.showDailyGoal)
+    }
+
+    @Test
     fun changeUnit_keepsOtherSettingsAndNotifies() = runTest {
         var notified: AppSettingsDomain? = null
         val sut = makeSUT(appSettings = AppSettingsDomain(showBodyWeight = false, bodyWeightUnit = BodyWeightUnit.KG), onAppSettingsChanged = { notified = it })

@@ -77,6 +77,9 @@ data class BodyWeightWindow(
 data class AppSettingsDomain(
     val showBodyWeight: Boolean,
     val bodyWeightUnit: BodyWeightUnit,
+    val showDailyGoal: Boolean = true,
+    val showGoalPercent: Boolean = true,
+    val showGoalBars: Boolean = true,
 ) {
     companion object {
         val defaults = AppSettingsDomain(showBodyWeight = true, bodyWeightUnit = BodyWeightUnit.KG)

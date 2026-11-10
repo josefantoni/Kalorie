@@ -3,9 +3,12 @@ package antoni.kalorie.core.auth
 import antoni.kalorie.core.models.AppSettingsDomain
 import antoni.kalorie.core.models.BodyWeightDomain
 import antoni.kalorie.core.models.BodyWeightUnit
+import antoni.kalorie.core.models.DailyGoalDomain
+import antoni.kalorie.core.models.DailyGoalHistory
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.networking.AppSettingsDTO
 import antoni.kalorie.core.networking.BodyWeightDTO
+import antoni.kalorie.core.networking.DailyGoalsDTO
 import antoni.kalorie.core.networking.FoodConsumedDTO
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -87,6 +90,7 @@ class PendingMergeSnapshotStoreTest {
         assertEquals("anon-1", loaded.sourceAnonymousUserId)
         assertTrue(loaded.bodyWeights.isEmpty())
         assertNull(loaded.appSettings)
+        assertNull(loaded.dailyGoals)
     }
 
     @Test
@@ -103,6 +107,15 @@ class PendingMergeSnapshotStoreTest {
 
         assertEquals(listOf(78.44), loaded?.bodyWeights?.map { it.weightKg })
         assertEquals(BodyWeightUnit.LB, loaded?.appSettings?.asDomain()?.bodyWeightUnit)
+    }
+
+    @Test
+    fun saveAndLoad_roundTripsDailyGoals() {
+        val sut = makeSUT()
+        val goals = DailyGoalHistory(listOf(DailyGoalDomain("2026-11-01", kcalGoal = 2000.0, proteinPercent = 20.0, carbsPercent = 50.0, fatPercent = 30.0)))
+        sut.save(makeSnapshot(sourceUserId = "anon-1", foodIds = emptyList()).copy(dailyGoals = DailyGoalsDTO(goals)))
+
+        assertEquals(goals, sut.load()?.dailyGoals?.asDomain())
     }
 
     // MARK: - Helpers

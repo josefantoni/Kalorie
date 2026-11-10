@@ -77,6 +77,18 @@ class SettingsViewModel(
         apply(_appSettings.value.copy(showBodyWeight = isShown))
     }
 
+    suspend fun onShowDailyGoalChanged(isShown: Boolean) {
+        apply(_appSettings.value.copy(showDailyGoal = isShown))
+    }
+
+    suspend fun onShowGoalPercentChanged(isShown: Boolean) {
+        apply(_appSettings.value.copy(showGoalPercent = isShown))
+    }
+
+    suspend fun onShowGoalBarsChanged(isShown: Boolean) {
+        apply(_appSettings.value.copy(showGoalBars = isShown))
+    }
+
     suspend fun onBodyWeightUnitChanged(unit: BodyWeightUnit) {
         apply(_appSettings.value.copy(bodyWeightUnit = unit))
     }

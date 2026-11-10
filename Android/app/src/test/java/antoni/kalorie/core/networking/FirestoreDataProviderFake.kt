@@ -59,6 +59,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var queriedServerId: String? = null
     var queriedServerCollection: String? = null
     var stubbedDocumentByCollection: Map<String, Any?> = emptyMap()
+    var stubbedDocumentByCollectionAndId: Map<Pair<String, String>, Any?> = emptyMap()
     var loadedIdCollections: List<String> = emptyList()
     var queriedCollection: String? = null
     var queriedOrderByField: String? = null
@@ -117,6 +118,7 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
         lastQueriedId = id
         lastQueriedCollection = from
         loadedIdCollections = loadedIdCollections + from
+        if (stubbedDocumentByCollectionAndId.containsKey(from to id)) return stubbedDocumentByCollectionAndId[from to id] as T?
         return (if (stubbedDocumentByCollection.containsKey(from)) stubbedDocumentByCollection[from] else stubbedDocument) as T?
     }
 

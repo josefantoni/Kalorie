@@ -30,6 +30,7 @@ object Constants {
         const val FIRESTORE = "firestore"
         const val AUTH = "auth"
         const val DASHBOARD = "dashboard"
+        const val DAILY_GOALS = "dailyGoals"
         const val SETTINGS = "settings"
         const val FOOD_QUANTITY = "foodQuantity"
         const val ADD_FOOD_SHEET = "addFoodSheet"
@@ -143,6 +144,7 @@ object Constants {
         const val REPORTS_PAGE_LIMIT = 50
         const val FOOD_FREQUENCY_DOCUMENT_ID = "foodFrequency"
         const val APP_SETTINGS_DOCUMENT_ID = "app"
+        const val GOALS_DOCUMENT_ID = "goals"
         const val BODY_WEIGHT_RECENT_LIMIT = 3
         const val BODY_WEIGHT_LATER_LIMIT = 2
 

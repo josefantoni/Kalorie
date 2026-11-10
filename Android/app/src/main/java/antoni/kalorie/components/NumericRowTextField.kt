@@ -39,6 +39,7 @@ fun NumericRowTextField(
     fontWeight: FontWeight = FontWeight.Normal,
     suffix: (@Composable () -> Unit)? = null,
     fieldAlignment: Alignment = Alignment.Center,
+    textAlign: TextAlign = TextAlign.End,
 ) {
     // MARK: - Properties
 
@@ -55,7 +56,7 @@ fun NumericRowTextField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         textStyle = MaterialTheme.typography.bodyLarge.copy(
-            textAlign = TextAlign.End,
+            textAlign = textAlign,
             fontWeight = fontWeight,
             color = LocalContentColor.current,
         ),
@@ -75,13 +76,13 @@ fun NumericRowTextField(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                    Box(modifier = Modifier.weight(1f), contentAlignment = if (textAlign == TextAlign.Center) Alignment.Center else Alignment.CenterEnd) {
                         if (value.isEmpty() && placeholder != null) {
                             Text(
                                 text = placeholder,
                                 color = AppColors.hint,
                                 style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.End,
+                                textAlign = textAlign,
                             )
                         }
                         innerTextField()

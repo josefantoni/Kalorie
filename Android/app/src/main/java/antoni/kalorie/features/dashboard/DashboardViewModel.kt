@@ -10,6 +10,8 @@ import antoni.kalorie.core.models.AppSettingsDomain
 import antoni.kalorie.core.models.BodyWeightDayKey
 import antoni.kalorie.core.models.BodyWeightDomain
 import antoni.kalorie.core.models.BodyWeightWindow
+import antoni.kalorie.core.models.DailyGoalDomain
+import antoni.kalorie.core.models.DailyGoalHistory
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.mealType
@@ -20,6 +22,7 @@ import antoni.kalorie.core.usecases.CopyFoodsConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchAppSettingsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchBodyWeightsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchDailyGoalsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchMealTypesUseCaseProtocol
@@ -106,6 +109,7 @@ class DashboardViewModel(
     private val assignFoodMealType: AssignFoodMealTypeUseCaseProtocol,
     private val fetchBodyWeights: FetchBodyWeightsUseCaseProtocol,
     private val fetchAppSettings: FetchAppSettingsUseCaseProtocol,
+    private val fetchDailyGoals: FetchDailyGoalsUseCaseProtocol,
     private val saveBodyWeight: SaveBodyWeightUseCaseProtocol,
     private val authProvider: AuthProviderProtocol,
     private val signInSpotlightStore: SignInSpotlightStoreProtocol,
@@ -150,6 +154,11 @@ class DashboardViewModel(
     val appSettings: StateFlow<AppSettingsDomain> = _appSettings
     private val _hasLoadedSettings = MutableStateFlow(false)
     val hasLoadedSettings: StateFlow<Boolean> = _hasLoadedSettings
+    private val _goalHistory = MutableStateFlow(DailyGoalHistory.empty)
+    val goalHistory: StateFlow<DailyGoalHistory> = _goalHistory
+    private val _hasLoadedGoals = MutableStateFlow(false)
+    val hasLoadedGoals: StateFlow<Boolean> = _hasLoadedGoals
+    val isGoalInfoVisible = MutableStateFlow(false)
     val isWeightPopoverVisible = MutableStateFlow(false)
     val weightPickerKilograms = MutableStateFlow(Constants.BodyWeight.DEFAULT_KILOGRAMS)
     private val _isSavingWeight = MutableStateFlow(false)
@@ -167,9 +176,29 @@ class DashboardViewModel(
     private var weightCacheGeneration = 0
     private var weightPickerDay: Instant? = null
     private var settingsChangeCount = 0
+    private var goalsChangeCount = 0
 
     val isWeightHistoryPushed: Boolean
         get() = backStack.any { it == DashboardDestination.BodyWeightHistory }
+
+    val isGoalsScreenPushed: Boolean
+        get() = backStack.any { it == DashboardDestination.DailyGoals }
+
+    val isGoalCircleVisible: Boolean
+        get() {
+            if (!_hasLoadedSettings.value || !_hasLoadedGoals.value || !_appSettings.value.showDailyGoal) return false
+            val selectedKey = BodyWeightDayKey.make(selectedDay.value)
+            return selectedGoal != null || selectedKey >= BodyWeightDayKey.make(now())
+        }
+
+    val selectedGoal: DailyGoalDomain?
+        get() = _goalHistory.value.goal(BodyWeightDayKey.make(selectedDay.value))
+
+    val goalProgress: Double?
+        get() {
+            val kcalGoal = selectedGoal?.kcalGoal?.takeIf { it > 0 } ?: return null
+            return dailyMacros.calories / kcalGoal
+        }
 
     val isWeightCircleVisible: Boolean
         get() = _hasLoadedSettings.value && _appSettings.value.showBodyWeight
@@ -435,6 +464,17 @@ class DashboardViewModel(
         if (!isWeightHistoryPushed) backStack.add(DashboardDestination.BodyWeightHistory)
     }
 
+    suspend fun onGoalsChanged(history: DailyGoalHistory) {
+        goalsChangeCount += 1
+        _goalHistory.value = history
+        _hasLoadedGoals.value = true
+        onWeightsChanged()
+    }
+
+    fun onGoalCircleTapped() {
+        if (!isGoalsScreenPushed) backStack.add(DashboardDestination.DailyGoals)
+    }
+
     fun onAppSettingsChanged(settings: AppSettingsDomain) {
         settingsChangeCount += 1
         _appSettings.value = settings
@@ -512,16 +552,32 @@ class DashboardViewModel(
 
     private suspend fun refreshSettings() {
         val changeCountBeforeRead = settingsChangeCount
-        try {
-            val settings = fetchAppSettings()
-            if (changeCountBeforeRead != settingsChangeCount) return
-            _appSettings.value = settings
-            _hasLoadedSettings.value = true
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Log.error(error, Constants.LogCategory.DASHBOARD)
+        val goalsChangeCountBeforeRead = goalsChangeCount
+        coroutineScope {
+            val settingsRead = async { runCatchingCancellable { fetchAppSettings() } }
+            val goalsRead = async { runCatchingCancellable { fetchDailyGoals() } }
+            settingsRead.await()?.let { settings ->
+                if (changeCountBeforeRead == settingsChangeCount) {
+                    _appSettings.value = settings
+                    _hasLoadedSettings.value = true
+                }
+            }
+            goalsRead.await()?.let { history ->
+                if (goalsChangeCountBeforeRead == goalsChangeCount) {
+                    _goalHistory.value = history
+                    _hasLoadedGoals.value = true
+                }
+            }
         }
+    }
+
+    private suspend fun <T> runCatchingCancellable(block: suspend () -> T): T? = try {
+        block()
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        Log.error(error, Constants.LogCategory.DASHBOARD)
+        null
     }
 
     private suspend fun loadWeights(date: Instant, forceReload: Boolean = false) {

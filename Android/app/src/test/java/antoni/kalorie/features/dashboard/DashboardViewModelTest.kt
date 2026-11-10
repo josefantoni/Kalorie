@@ -17,6 +17,7 @@ import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseFake
 import antoni.kalorie.core.usecases.DeleteFoodConsumedUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchAppSettingsUseCaseFake
 import antoni.kalorie.core.usecases.FetchBodyWeightsUseCaseFake
+import antoni.kalorie.core.usecases.FetchDailyGoalsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodsConsumedForMonthUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodsConsumedInRangeUseCaseFake
@@ -1151,6 +1152,7 @@ class DashboardViewModelTest {
         assignFoodMealType = assignFoodMealType,
         fetchBodyWeights = FetchBodyWeightsUseCaseFake(),
         fetchAppSettings = FetchAppSettingsUseCaseFake(),
+        fetchDailyGoals = FetchDailyGoalsUseCaseFake(),
         saveBodyWeight = SaveBodyWeightUseCaseFake(),
         authProvider = authProvider,
         signInSpotlightStore = signInSpotlightStore,

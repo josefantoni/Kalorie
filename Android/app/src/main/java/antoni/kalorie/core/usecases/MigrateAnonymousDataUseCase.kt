@@ -7,6 +7,7 @@ import antoni.kalorie.core.auth.PendingMergeSnapshot
 import antoni.kalorie.core.auth.PendingMergeSnapshotStoreProtocol
 import antoni.kalorie.core.networking.AppSettingsDTO
 import antoni.kalorie.core.networking.BodyWeightDTO
+import antoni.kalorie.core.networking.DailyGoalsDTO
 import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.FoodConsumedDTO
@@ -50,6 +51,12 @@ class MigrateAnonymousDataUseCase(
                     from = Constants.Firestore.settings(sourceUserId),
                 )
             }
+            val dailyGoals = async {
+                dataProvider.loadAsync<DailyGoalsDTO>(
+                    id = Constants.Firestore.GOALS_DOCUMENT_ID,
+                    from = Constants.Firestore.settings(sourceUserId),
+                )
+            }
             PendingMergeSnapshot(
                 sourceAnonymousUserId = sourceUserId,
                 foodConsumed = foodConsumed.await(),
@@ -58,6 +65,7 @@ class MigrateAnonymousDataUseCase(
                 foodItemPortions = foodItemPortions.await(),
                 bodyWeights = bodyWeights.await(),
                 appSettings = appSettings.await(),
+                dailyGoals = dailyGoals.await(),
             )
         }
         snapshotStore.save(snapshot)
@@ -85,6 +93,7 @@ class MigrateAnonymousDataUseCase(
         dataProvider.batchSetAsync(snapshot.foodItemPortions.map { it to it.id }, inCollection = Constants.Firestore.foodItemPortions(userId))
         writeBodyWeights(snapshot, userId)
         writeAppSettings(snapshot, userId)
+        writeDailyGoals(snapshot, userId)
         dataProvider.setAsync(
             MergedAnonymousAccountDTO(id = snapshot.sourceAnonymousUserId),
             id = snapshot.sourceAnonymousUserId,
@@ -107,5 +116,13 @@ class MigrateAnonymousDataUseCase(
         val accountSettings = dataProvider.loadAsync<AppSettingsDTO>(id = Constants.Firestore.APP_SETTINGS_DOCUMENT_ID, from = collection)
         if (accountSettings != null) return
         dataProvider.setAsync(anonymousSettings, id = Constants.Firestore.APP_SETTINGS_DOCUMENT_ID, inCollection = collection)
+    }
+
+    private suspend fun writeDailyGoals(snapshot: PendingMergeSnapshot, userId: String) {
+        val anonymousGoals = snapshot.dailyGoals ?: return
+        val collection = Constants.Firestore.settings(userId)
+        val accountGoals = dataProvider.loadAsync<DailyGoalsDTO>(id = Constants.Firestore.GOALS_DOCUMENT_ID, from = collection)
+        if (accountGoals != null) return
+        dataProvider.setAsync(anonymousGoals, id = Constants.Firestore.GOALS_DOCUMENT_ID, inCollection = collection)
     }
 }
