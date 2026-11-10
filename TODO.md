@@ -11,21 +11,6 @@
   names, Czech + English descriptions), switch the App Store Connect DSA status from *not a trader* to *trader* (an address, phone and email are then published on the product page) and make the Play listing consistent, then set `Constants.Tips.isEnabled` / `IS_ENABLED` to `true` on both platforms and restore the tips paragraph in
   `backend/hosting/privacy.html` (Apple / Google process the payment, the app receives no card or purchase
   data) and test a real purchase from Internal testing with a license tester.
-- **Basal metabolic rate (opt-in)** — not designed yet; write a design doc first (Scope: Cross-platform).
-  Decisions taken so far: the app offers to estimate the user's BMR (sex, age, height, weight) and the
-  dashboard then shows the day's kcal total against it. The offer is never automatic: it reuses the
-  [design 0017](docs/design/0017-sign-in-spotlight.md) spotlight and repeats the same way until the user
-  enters the data. The inputs are stored in Firestore under `users/{userId}`, so they follow the account
-  across devices. Open points for the design doc: `ARCHITECTURE.md` § 944 states there are no goals or
-  targets in the app, so this introduces the first one (decide whether to compare against BMR alone or
-  against total daily expenditure with an activity level); the formula (Mifflin-St Jeor) belongs in a
-  shared KMP module next to `MacroKit`; `users/{userId}` is currently written only by the Apple sign-in
-  use case and uses camelCase; health data is a new category, so `backend/hosting/privacy.html`, App
-  Privacy (App Store Connect), Data safety (Play), the Firestore rules and account deletion all need
-  updating; the spotlight needs a second, independent "last shown" state. Weight: do not add a weight
-  field to `users/{userId}`. [Design 0028](docs/design/0028-body-weight-tracking.md) makes
-  `users/{userId}/bodyWeights` the single source of the user's weight; BMR reads "the weight valid
-  today" with the same query the Dashboard circle uses and stores none of its own.
 - **Dashboard read cost** — not urgent. Firestore bills per document read, and the dominant cost is the
   whole-month `foodConsumed` load on cold launch and pull to refresh
   ([ADR 0015](docs/adr/0015-dashboard-caches-a-month-and-derives-the-day.md)): ~300 documents per load at

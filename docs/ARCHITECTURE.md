@@ -92,6 +92,7 @@ users/{userId}/foodItemPortions/{barcode}  personal gram-shortcut portions
 users/{userId}/stats/foodFrequency         one document, per-food log counts (design 0020)
 users/{userId}/bodyWeights/{yyyy-MM-dd}    one entry per calendar day, keyed by the day (design 0028)
 users/{userId}/settings/app                one document, app-wide user settings (design 0028)
+users/{userId}/settings/goals              one document, the daily-goal history (design 0030)
 users/{userId}/mergedAnonymousAccounts/{uid}  marker: the anonymous account {uid} was merged into this user (§ 6.2)
 foodItemSubmissions/{uuid}                 shared, a user's pending/rejected catalogue submission
 foodItemReports/{barcode}_{userId}         shared, a report that a catalogue entry looks wrong
@@ -313,7 +314,23 @@ kilograms stored unrounded whatever unit the user sees. Range 30.0–300.0 kg, a
 (bool, default `true`) and `body_weight_unit` (`"kg"` / `"lb"`, default `"kg"`, an unknown value reads
 as `"kg"`). Every field is optional on read and an absent document means the defaults, so a setting
 added later never breaks an older client. It lives in its own document, not on `users/{userId}`,
-because the sign-in use cases `setAsync` that profile and would erase it (§ 1.2).
+because the sign-in use cases `setAsync` that profile and would erase it (§ 1.2). It also holds
+`show_daily_goal`, `show_goal_percent` and `show_goal_bars` (bools, default `true`) from [design 0030](design/0030-daily-goals.md).
+
+**`settings/goals`** (`DailyGoalsDTO`, [design 0030](design/0030-daily-goals.md)) — one field, `goals`,
+an array of entries. An entry is a complete record of a goal as saved: `valid_from` (a day key, the first
+day it applies), `kcal_goal` (absent means the goal was **ended** from that day), `macro_mode`
+(`"percent"` / `"grams"`) with either `carbs_pct`, `protein_pct`, `fat_pct` or `carbs_g`, `protein_g`,
+`fat_g`, and the calculator inputs `sex` (`"male"` / `"female"`), `birth_year`, `height_cm`, `weight_kg`
+and `activity_level` (`"sedentary"`, `"light"`, `"moderate"`, `"high"`, `"very_high"`). Every field is
+optional on read, an unknown enum value or a wrong-typed field reads as absent and an unreadable entry is skipped; an entry whose `kcal_goal` or `macro_mode` is present but wrong-typed is unreadable too, because absence would change what it means. The goal valid on a day is the entry with the
+latest `valid_from` not after that day (`DailyGoalHistory.goal(onDayKey:)`); an ended entry yields no goal,
+so earlier days keep theirs. Saving stamps today as `valid_from`, replaces an entry of the same day and
+writes the whole list through `mergeAsync`. The list lives in one document because goals change a few
+times a year. It is a separate document from `settings/app` so the anonymous merge (§ 6.2) can apply
+"written only if the account has none" to the goals on their own. The weight inside an entry is the
+weight the goal was calculated from, a second kind of weight next to `bodyWeights`; saving also writes it
+as today's `bodyWeights` entry when it was edited and none exists.
 
 **`foodItemReports`** (`FoodItemReportDTO`) — a user's flag that a `.catalogue` item's data looks
 wrong, keyed by `{barcode}_{userId}` rather than a UUID: a second report from the same user on the
@@ -348,7 +365,7 @@ builder:
 | `loadAsync(from:where:isGreaterThanOrEqualTo:isLessThanOrEqualTo:)` | `id >= lower AND id <= upper`, newest first, no limit — one calendar year of body weights for the history screen. Not in the protocol extension's reach: a double that is asked for it throws |
 | `saveAsync(_:to:)` | `addDocument` — Firestore-generated ID |
 | `setAsync(_:id:in:)` | `document(id).setData` — full overwrite |
-| `mergeAsync(_:id:in:)` | `document(id).setData(_, merge: true)` — used only for `settings/app`, so a client never erases a field it does not know |
+| `mergeAsync(_:id:in:)` | `document(id).setData(_, merge: true)` — used only for `settings/app` and `settings/goals`, so a client never erases a field it does not know |
 | `updateAsync(_:id:in:)` | `document(id).updateData` — writes only the encoded fields and fails with `.notFound` (`NotFound` on Android) when the document does not exist, so a late write cannot recreate a deleted one. Used by `UpdateFoodConsumedUseCase`, whose partial DTO has no name fields |
 | `batchSetAsync(_:in:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) items |
 | `deleteAsync(id:from:)` | `document(id).delete()` |
@@ -953,7 +970,9 @@ lives in `MealKit`, over minutes),
 [design 0016](design/0016-copy-meal-to-another-window.md) (copying a section into another window and
 day — § 3.8),
 [design 0024](design/0024-move-entry-between-meals-by-drag.md) (moving an entry to another meal by
-dragging it — § 3.7a).
+dragging it — § 3.7a),
+[design 0030](design/0030-daily-goals.md) (the optional daily goal, its ring, macro bars and goals
+screen — § 3.3, § 3.6, § 3.9).
 
 ### 3.1 What the Dashboard is
 
@@ -1032,8 +1051,27 @@ Two levels, both computed, both delegating to `MacroKit`:
   `DailyMacros(foods:)` over that section's foods.
 
 `DailyMacros` is an adapter, not logic — it maps `[FoodConsumedDomain]` into `[Macros]`, calls
-`MacroKit.total`, and maps back. There are no goals or targets in the app; the summary shows
-totals only.
+`MacroKit.total`, and maps back.
+
+Daily goals ([design 0030](design/0030-daily-goals.md)) are optional. The goal valid on the selected day
+(`DashboardViewModel.selectedGoal`, from the `DailyGoalHistory` read together with `settings/app`)
+turns the leading slot of `MacroSummaryView` into a progress ring (`GoalRingView`: kcal ÷ kcal goal,
+clockwise from 12 o'clock, a further lap past 100 %, at most three) and adds "/ goal", a thin bar and
+"x % of goal" to each macro label. Without a goal the ring reads "Set goal". Macro goals are stored as a
+percentage split or in grams and read as grams (`DailyGoalDomain.macroGrams`); the "i" badge opens a
+popover with eaten / goal / remaining. The *Daily goal* setting hides the whole element and keeps the stored goal. The donut slices and percentages are **energy shares**
+(4 / 4 / 9 kcal per gram, `MacroKit.energyShares`), not shares of grams, with or without a goal. The
+rules behind the calculator on the goals screen are shared with Android like the rest of `MacroKit`:
+Mifflin-St Jeor (`MacroKit.basalMetabolicRate`, `Energy.kt`), and in `Goals.kt` the activity factors
+(`ActivityLevel`), the five ±5 / ±10 % variants raised to the basal rate (`goalVariants`), the reference intake
+(`referenceKcal`), the split rounding (`roundedToHundred`) and the 10 kcal tolerance of the grams' kcal info
+line (`gramsKcalDiffersFromGoal`). `ActivityLevel` and `GoalVariantKcal` are
+MacroKit's own types, not domain types, so ADR 0039 decision 1 is stretched by them: each client maps its
+`GoalActivityLevel` onto `ActivityLevel`. The screen is the goals screen pushed from the ring:
+the goal being saved, the calculator inputs and one slider with the five variants, which writes the
+variant's kcal into the kcal field at once (nothing is saved until Save). A change of the activity level applies
+the variant the slider shows again (`DailyGoalsViewModel.activityLevel`). A rejected macro mode switch keeps
+its caption only while the same reason still blocks it (`rejectedMacroModeBlock`).
 
 The day total is computed from `foodsConsumed` directly, while the sections are computed
 separately — the two agree only because § 3.2 assigns every food to exactly one section. A
@@ -1147,6 +1185,9 @@ Body weight rides on the same triggers ([design 0028](design/0028-body-weight-tr
 `onAppear`, `onForeground` and `onRefresh` also read `settings/app` (1 read) and the selected day's
 weights (up to three entries on or before the day plus up to two after it: two queries, at most 5
 reads, and only the first query on today), and a day change reads them only on a `weightCache` miss.
+The goal history ([design 0030](design/0030-daily-goals.md)) is read together with `settings/app` on the
+same triggers (1 more read, `settings/goals`) and is not cached per day: a saved goal is handed back by
+callback (`onGoalsChanged`). The goal circle waits for both reads, like the weight circle.
 The cache is keyed by the selected day, not the month, and any write clears all of it, because
 writing day D changes the window of every day around it. Until the first settings read completes the
 circle is not rendered, so it never appears and then vanishes for a user who turned it off on
@@ -1270,7 +1311,9 @@ whole, top to bottom, and it is identical on both clients:
    Dashboard by callback. Hidden in edit mode like everything below the meal layout. The section is
    rendered, and the view model accepts a change, only when the Dashboard has read `settings/app`
    successfully (`hasLoadedAppSettings`): every write sends both fields, so a change made over the
-   defaults of a failed read would overwrite the stored unit or switch.
+   defaults of a failed read would overwrite the stored unit or switch. The section also holds the
+   *Daily goal* toggle ([design 0030](design/0030-daily-goals.md), `show_daily_goal`), which hides the goal
+   circle and everything that belongs to it and keeps the stored goal.
 3. **Other** — a row per action, all styled alike (title, trailing chevron):
    - *Export* — pushes `ExportView` through `isExportPushed` (§ 8).
    - *Feedback* — opens a `mailto:` to the support address with the subject *Zpětná vazba* /
@@ -1690,6 +1733,12 @@ follows the device locale, including the Czech comma.
 Every one carries a `#Preview`, which is where most of the project's sample `FoodItemDomain`
 values live.
 
+**Badges are exempt from the minimum hit area.** The small badges layered over a Dashboard circle (the
+weight badge and the goal "i" badge, `BadgeButton` at 28 pt) are tapped at their visual size. Neither the
+44 × 44 pt (iOS) nor the 48 × 48 dp (Android) minimum is applied to them, and the figures in designs
+0028 and 0030 are not a requirement to satisfy. A tap that misses a badge reaches the circle beneath it,
+which is acceptable. Do not report the small hit area as a defect.
+
 `FoodConsumedView` lives in `FoodConsumedView.swift`, matching the project's own
 `[Feature][Type].swift` rule.
 
@@ -1835,7 +1884,7 @@ The migrate path is `MigrateAnonymousDataUseCase`, one type with two methods rat
 `callAsFunction` — see [ADR 0004](adr/0004-migrate-usecase-exposes-two-methods.md) for why the
 convention is deviated from here. `migrate(fromAnonymousUserId:credential:)` is the live path: it
 loads `foodConsumed`, `favouriteFoods`, `myCreatedMeals`, `foodItemPortions`, `bodyWeights` and
-`settings/app` for the anonymous user concurrently via `async let`, writes the result to disk as a `PendingMergeSnapshot` *before* calling
+`settings/app` and `settings/goals` for the anonymous user concurrently via `async let`, writes the result to disk as a `PendingMergeSnapshot` *before* calling
 `authCommandProvider.signIn(with:)`, then replays the snapshot under the new UID and deletes it.
 The disk write has to come first: the moment `signIn` succeeds, owner-only security rules mean the
 client can no longer read the anonymous account's data, so anything not already captured is
@@ -1849,8 +1898,9 @@ across accounts — so the signed-in account's own layout always wins.
 Body weights follow the same "the account wins" rule, but their ids are day keys, which collide, so
 a blind replay would overwrite the account's own weight. `writeAndCleanup` therefore reads the target
 account's `bodyWeights` first and writes only the anonymous days it does not have; `settings/app` is
-written only if the account has none. A resumed replay skips what already landed, so it stays
-idempotent without extra state. `PendingMergeSnapshot` gained `bodyWeights` and `appSettings` and
+written only if the account has none, and `settings/goals` follows the same rule on its own. A resumed
+replay skips what already landed, so it stays idempotent without extra state. `PendingMergeSnapshot`
+gained `bodyWeights`, `appSettings` and `dailyGoals` and
 must decode a snapshot written before them as empty / `nil` (`decodeIfPresent`): an undecodable
 snapshot stays on disk forever (below), so a strict decode would strand that user's merge for good.
 
@@ -1911,7 +1961,7 @@ itself throwing `requiresRecentLogin`. That second path still exists as a fallba
 where the session goes stale between the check and the call, and is distinguished by
 `dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
 Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods`,
-`myCreatedMeals`, `foodItemPortions`, `bodyWeights`, the `settings/app` and `stats/foodFrequency` documents, the user's own `foodItemSubmissions`, `foodItemReports` and `photoSuggestions` documents (found by `submitted_by` / `reported_by` / `suggested_by`) and the
+`myCreatedMeals`, `foodItemPortions`, `bodyWeights`, the `settings/app`, `settings/goals` and `stats/foodFrequency` documents, the user's own `foodItemSubmissions`, `foodItemReports` and `photoSuggestions` documents (found by `submitted_by` / `reported_by` / `suggested_by`) and the
 `submissionPhotos/{uid}/` and `photoSuggestions/{uid}/` folders. The `mergedAnonymousAccounts` markers are deliberately kept: they carry no personal data and let
 the cleanup script still find the abandoned anonymous accounts after the target account is gone. The `users` profile document goes last — the profile delete
 alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
