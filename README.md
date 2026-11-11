@@ -4,6 +4,7 @@ Mobile apps for tracking calories and macros. Built because existing apps are bl
 
 - **iOS** (`iOS/`) — [available on the App Store](https://apps.apple.com/cz/app/kalorie/id6823155404?l=cs)
 - **Android** (`Android/`) — [available on Google Play](https://play.google.com/store/apps/details?id=antoni.kalorie)
+- **Facebook** — [news and updates](https://www.facebook.com/profile.php?id=61596218141395)
 
 <table>
   <tr>
