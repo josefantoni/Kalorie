@@ -12,14 +12,26 @@
       "runtime": "nodejs22"
     }
   ],
-  "hosting": {
-    "public": "hosting",
-    "ignore": [
-      "firebase.json",
-      "**/.*"
-    ],
-    "cleanUrls": true
-  },
+  "hosting": [
+    {
+      "site": "kalorie-bf11c",
+      "public": "hosting",
+      "ignore": [
+        "firebase.json",
+        "**/.*"
+      ],
+      "cleanUrls": true
+    },
+    {
+      "site": "kalorie-official",
+      "public": "hosting",
+      "ignore": [
+        "firebase.json",
+        "**/.*"
+      ],
+      "cleanUrls": true
+    }
+  ],
   "emulators": {
     "firestore": {
       "port": 8080
