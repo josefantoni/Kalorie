@@ -14,6 +14,7 @@ struct DashboardView: View {
 
     @StateObject var viewModel: DashboardViewModel
     @StateObject private var notificationBell: NotificationBellViewModel
+    private static let addFoodBottomInset: CGFloat = 24
     private static let addFoodFirstRestSeconds = 12
     private static let addFoodRepeatRestSeconds = 20
     private static let addFoodPulseInterval = 4
@@ -67,6 +68,7 @@ struct DashboardView: View {
                 .padding(.bottom, 24)
             }
             .background(Color(.systemGroupedBackground))
+            .ignoresSafeArea(.container, edges: .bottom)
             .simultaneousGesture(TapGesture().onEnded { openSwipeRowId = nil })
             .onScrollPhaseChange { _, newPhase in
                 if newPhase == .interacting { openSwipeRowId = nil }
@@ -91,6 +93,7 @@ struct DashboardView: View {
             .overlay {
                 if viewModel.foodsConsumed.isEmpty && !viewModel.state.isLoading {
                     emptyStateView
+                        .padding(.bottom, addFoodReservedHeight)
                 }
             }
             .safeAreaInset(edge: .top) {
@@ -103,13 +106,15 @@ struct DashboardView: View {
                 .padding(.horizontal)
                 .padding(.top, 8)
             }
-            .safeAreaInset(edge: .bottom) {
-                if !viewModel.foodsConsumed.isEmpty || isEmptyStateVisible {
+            .contentMargins(.bottom, isAddFoodButtonVisible ? addFoodReservedHeight : 0, for: .scrollContent)
+            .overlay(alignment: .bottom) {
+                if isAddFoodButtonVisible {
                     AddFoodButton(isExpanded: isAddFoodExpanded, isAnimationPlaying: isAddFoodAnimationPlaying) {
                         viewModel.showAddFoodSheet.toggle()
                     }
                     .scaleEffect(isAddFoodPulsed ? 1.2 : 1)
-                    .padding(.bottom, 8)
+                    .padding(.bottom, Self.addFoodBottomInset)
+                    .ignoresSafeArea(edges: .bottom)
                 }
             }
             .loader(viewModel.state.isLoading)
@@ -504,6 +509,14 @@ struct DashboardView: View {
 
     private var isEmptyStateVisible: Bool {
         viewModel.foodsConsumed.isEmpty && !viewModel.state.isLoading
+    }
+
+    private var isAddFoodButtonVisible: Bool {
+        !viewModel.foodsConsumed.isEmpty || isEmptyStateVisible
+    }
+
+    private var addFoodReservedHeight: CGFloat {
+        AddFoodButton.collapsedSize + Self.addFoodBottomInset
     }
 
     private var isPresentingAnotherScreen: Bool {
