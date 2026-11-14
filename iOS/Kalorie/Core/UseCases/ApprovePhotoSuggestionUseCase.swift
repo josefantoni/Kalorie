@@ -9,23 +9,22 @@ import Foundation
 
 enum ApprovePhotoSuggestionError: Error {
     case itemMissing
-    case itemAlreadyHasPhoto
 }
 
 protocol ApprovePhotoSuggestionUseCaseProtocol {
-    func callAsFunction(_ suggestion: PhotoSuggestionDomain) async throws
+    func callAsFunction(_ suggestion: PhotoSuggestionDomain, response: String) async throws
 }
 
 struct ApprovePhotoSuggestionUseCase: ApprovePhotoSuggestionUseCaseProtocol {
 
     // MARK: - Properties
 
-    private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let downloadFoodPhoto: any DownloadFoodPhotoUseCaseProtocol
     private let updateFoodItem: any UpdateFoodItemUseCaseProtocol
     private let remover: PhotoSuggestionRemover
+    private let writer: TicketResolutionWriter
 
     // MARK: - Init
 
@@ -37,50 +36,34 @@ struct ApprovePhotoSuggestionUseCase: ApprovePhotoSuggestionUseCaseProtocol {
         downloadFoodPhoto: any DownloadFoodPhotoUseCaseProtocol,
         updateFoodItem: any UpdateFoodItemUseCaseProtocol
     ) {
-        self.dataProvider = dataProvider
         self.authProvider = authProvider
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.downloadFoodPhoto = downloadFoodPhoto
         self.updateFoodItem = updateFoodItem
-        self.remover = PhotoSuggestionRemover(dataProvider: dataProvider, storageProvider: storageProvider)
+        self.remover = PhotoSuggestionRemover(storageProvider: storageProvider)
+        self.writer = TicketResolutionWriter(dataProvider: dataProvider)
     }
 
     // MARK: - Functions
 
-    func callAsFunction(_ suggestion: PhotoSuggestionDomain) async throws {
+    func callAsFunction(_ suggestion: PhotoSuggestionDomain, response: String) async throws {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
+        let trimmedResponse = try TicketResolutionWriter.validated(response)
         guard let item = try await fetchFoodItemByBarcode(barcode: suggestion.itemId) else {
             throw ApprovePhotoSuggestionError.itemMissing
         }
-        guard item.photoURL == nil else { throw ApprovePhotoSuggestionError.itemAlreadyHasPhoto }
         // The suggestion folder is private to its author, so the catalogue gets its own copy under
-        // catalogPhotos (UpdateFoodItemUseCase uploads it) rather than a link into photoSuggestions.
+        // catalogPhotos (UpdateFoodItemUseCase uploads it, and deletes the photo it replaces) rather
+        // than a link into photoSuggestions.
         let photoData = try await downloadFoodPhoto(url: suggestion.photoURL)
         try await updateFoodItem(item, previouslyLoaded: item, photo: .local(photoData), validate: false)
-        await removeAllSuggestions(for: suggestion.itemId)
-    }
-
-    // MARK: - Private
-
-    // Other users' suggestions for the same item would otherwise wait forever: the item has a photo now.
-    private func removeAllSuggestions(for itemId: String) async {
-        do {
-            let documentIds = try await dataProvider.loadDocumentIdsAsync(
-                from: Constants.Firestore.photoSuggestions,
-                where: Constants.Firestore.Field.itemId,
-                isEqualTo: itemId
-            )
-            for documentId in documentIds {
-                guard let ids = PhotoSuggestionDomain.ids(fromDocumentId: documentId) else { continue }
-                do {
-                    try await remover.remove(itemId: ids.itemId, userId: ids.userId)
-                } catch {
-                    Log.error(error, category: Constants.LogCategory.moderation)
-                }
-            }
-        } catch {
-            Log.error(error, category: Constants.LogCategory.moderation)
-        }
+        try await writer.write(
+            status: .accepted,
+            response: trimmedResponse,
+            ticketId: suggestion.id,
+            in: Constants.Firestore.photoSuggestions
+        )
+        await remover.deleteFileQuietly(at: suggestion.photoURL)
     }
 }
 
@@ -93,7 +76,7 @@ struct ApprovePhotoSuggestionUseCaseFake: ApprovePhotoSuggestionUseCaseProtocol 
 
     // MARK: - Functions
 
-    func callAsFunction(_ suggestion: PhotoSuggestionDomain) async throws {
+    func callAsFunction(_ suggestion: PhotoSuggestionDomain, response: String) async throws {
         if let errorToThrow { throw errorToThrow }
     }
 }

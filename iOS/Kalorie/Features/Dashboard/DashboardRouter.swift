@@ -45,8 +45,8 @@ struct DashboardRouter {
         notificationsConfigurator.createBellViewModel()
     }
 
-    func makeNotificationsView() -> NotificationsView {
-        notificationsConfigurator.createView()
+    func makeNotificationsView(isMaintainer: Bool) -> NotificationsView {
+        notificationsConfigurator.createView(isMaintainer: isMaintainer)
     }
 
     func makeSettingsView(

@@ -18,55 +18,51 @@ struct SubmitPhotoSuggestionUseCase: SubmitPhotoSuggestionUseCaseProtocol {
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
     private let storageProvider: any StorageDataProviderProtocol
+    private let notificationsStore: any UserNotificationsStoreProtocol
+    private let locale: String
 
     // MARK: - Init
 
     init(
         dataProvider: any FirestoreDataProviderProtocol,
         authProvider: any AuthProviderProtocol,
-        storageProvider: any StorageDataProviderProtocol
+        storageProvider: any StorageDataProviderProtocol,
+        notificationsStore: any UserNotificationsStoreProtocol,
+        locale: String = TicketLocale.current()
     ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
         self.storageProvider = storageProvider
+        self.notificationsStore = notificationsStore
+        self.locale = locale
     }
 
     // MARK: - Functions
 
     func callAsFunction(itemId: String, photo: Data) async throws {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let path = PhotoSuggestionDomain.storagePath(itemId: itemId, userId: userId)
-        let existing: PhotoSuggestionDTO? = try await dataProvider.loadFromServerAsync(
-            id: PhotoSuggestionDomain.id(itemId: itemId, userId: userId),
-            from: Constants.Firestore.photoSuggestions
-        )
-        guard existing == nil else { return }
-        // The rules deny overwriting, and a previous attempt may have uploaded the file and then failed
-        // on the Firestore write — so the fixed path is cleared first.
-        do {
-            try await storageProvider.deleteAsync(path: path)
-        } catch {
-            Log.warning(error, category: Constants.LogCategory.storage)
-        }
+        let ticketId = try dataProvider.newDocumentId(in: Constants.Firestore.photoSuggestions)
+        let path = "\(Constants.Storage.photoSuggestionsFolder)/\(userId)/\(itemId)/\(ticketId).jpg"
         let photoURL = try await storageProvider.uploadAsync(
             data: photo,
             path: path,
             contentType: Constants.Storage.photoContentType
         )
-        let dto = PhotoSuggestionDTO(itemId: itemId, suggestedBy: userId, photoURL: photoURL, suggestedAt: .now)
-        let documentId = PhotoSuggestionDomain.id(itemId: itemId, userId: userId)
+        let dto = PhotoSuggestionCreateDTO(
+            itemId: itemId,
+            suggestedBy: userId,
+            photoURL: photoURL,
+            suggestedAt: .now,
+            locale: locale
+        )
         do {
-            try await dataProvider.setAsync(dto, id: documentId, in: Constants.Firestore.photoSuggestions)
+            try await dataProvider.setAsync(dto, id: ticketId, in: Constants.Firestore.photoSuggestions)
         } catch {
-            let concurrent: PhotoSuggestionDTO? = try? await dataProvider.loadFromServerAsync(
-                id: documentId,
-                from: Constants.Firestore.photoSuggestions
-            )
-            if concurrent == nil {
-                await deleteUploadedFileQuietly(path: path)
-            }
+            await deleteUploadedFileQuietly(path: path)
             throw error
         }
+        notificationsStore.mayHaveUnread = true
+        notificationsStore.lastSubmittedAt = .now
     }
 
     // MARK: - Private

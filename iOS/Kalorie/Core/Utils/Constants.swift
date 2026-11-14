@@ -109,6 +109,10 @@ enum Constants {
         static let appVersion = "appVersion"
     }
 
+    enum Notifications {
+        static let userCheckInterval: TimeInterval = 24 * 60 * 60
+    }
+
     enum Search {
         static let minimumQueryLength = 2
         static let frequencyEntryLimit = 300
@@ -142,8 +146,11 @@ enum Constants {
         static let users = "users"
         static let batchWriteLimit = 500
         static let inQueryLimit = 30
-        static let reportsPageLimit = 50
         static let reportReasonMaxLength = 500
+        static let responseMaxLength = 1000
+        static let pendingStatus = "pending"
+        static let supportedLocales = ["cs", "en", "sk"]
+        static let fallbackLocale = "en"
         static let foodFrequencyDocumentId = "foodFrequency"
         static let appSettingsDocumentId = "app"
         static let goalsDocumentId = "goals"
@@ -165,6 +172,9 @@ enum Constants {
             static let favouritedAt = "favourited_at"
             static let updatedAt = "updated_at"
             static let status = "status"
+            static let hidden = "hidden"
+            static let authorDeleted = "author_deleted"
+            static let barcode = "barcode"
             static let date = "date"
             static let id = "id"
         }

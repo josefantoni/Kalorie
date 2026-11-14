@@ -27,6 +27,15 @@ final class FetchHasPendingNotificationsUseCaseTests: XCTestCase {
         }
     }
 
+    func test_whenOnlyResolvedTicketsRemain_returnsFalse() async {
+        for collection in [Constants.Firestore.foodItemReports, Constants.Firestore.photoSuggestions] {
+            let (sut, dataProvider) = makeSUT()
+            dataProvider.stubbedResolvedCounts[collection] = 2
+            let hasPending = await sut()
+            XCTAssertFalse(hasPending, "a resolved \(collection) ticket is kept for its author and must not light the maintainer's dot")
+        }
+    }
+
     func test_whenACountFails_returnsFalseInsteadOfShowingAnError() async {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedCounts[Constants.Firestore.photoSuggestions] = 3

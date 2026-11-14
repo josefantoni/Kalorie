@@ -11,18 +11,17 @@ final class ModerationReportsViewModel: ObservableObject {
 
     // MARK: - Types
 
-    struct ReportGroup: Identifiable {
-        let barcode: String
+    struct Row: Identifiable {
+        let report: FoodItemReportDomain
         let itemName: String?
-        let reports: [FoodItemReportDomain]
 
-        var id: String { barcode }
+        var id: String { report.id }
     }
 
     // MARK: - Properties
 
     @Published private(set) var state: LoadingState<Void> = .idle
-    @Published private(set) var groups: [ReportGroup] = []
+    @Published private(set) var rows: [Row] = []
     @Published var alertItem: AlertItem?
 
     private let fetchFoodItemReports: any FetchFoodItemReportsUseCaseProtocol
@@ -54,14 +53,8 @@ final class ModerationReportsViewModel: ObservableObject {
     }
 
     @MainActor
-    func onGroupReportsChanged(barcode: String, remaining: [FoodItemReportDomain]) {
-        guard let index = groups.firstIndex(where: { $0.barcode == barcode }) else { return }
-        guard !remaining.isEmpty else {
-            groups.remove(at: index)
-            return
-        }
-        let group = groups[index]
-        groups[index] = ReportGroup(barcode: barcode, itemName: group.itemName, reports: remaining)
+    func onReportResolved(id: String) {
+        rows.removeAll { $0.id == id }
     }
 
     // MARK: - Private
@@ -70,34 +63,12 @@ final class ModerationReportsViewModel: ObservableObject {
     private func load() async {
         do {
             let reports = try await fetchFoodItemReports()
-            groups = await Self.grouped(reports, fetchFoodItemByBarcode: fetchFoodItemByBarcode)
+            let items = (try? await fetchFoodItemByBarcode(barcodes: Array(Set(reports.map(\.barcode))))) ?? []
+            let namesByBarcode = Dictionary(items.map { ($0.id, $0.displayName) }) { first, _ in first }
+            rows = reports.map { Row(report: $0, itemName: namesByBarcode[$0.barcode]) }
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)
         }
-    }
-
-    private static func grouped(
-        _ reports: [FoodItemReportDomain],
-        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
-    ) async -> [ReportGroup] {
-        let barcodes = Array(Set(reports.map(\.barcode)))
-        let items = (try? await fetchFoodItemByBarcode(barcodes: barcodes)) ?? []
-        let namesByBarcode = Dictionary(items.map { ($0.id, $0.displayName) }) { first, _ in first }
-        let reportsByBarcode = Dictionary(grouping: reports, by: \.barcode)
-        return reportsByBarcode
-            .map { barcode, reports in
-                ReportGroup(
-                    barcode: barcode,
-                    itemName: namesByBarcode[barcode],
-                    reports: reports.sorted { $0.reportedAt > $1.reportedAt }
-                )
-            }
-            .sorted { lhs, rhs in
-                if lhs.reports.count != rhs.reports.count { return lhs.reports.count > rhs.reports.count }
-                let lhsLatest = lhs.reports.first?.reportedAt ?? .distantPast
-                let rhsLatest = rhs.reports.first?.reportedAt ?? .distantPast
-                return lhsLatest > rhsLatest
-            }
     }
 }

@@ -92,18 +92,20 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         )
     }
 
-    func test_callAsFunction_deletesOwnReportsAsPrivacyObligation() async throws {
+    func test_callAsFunction_anonymisesOwnReportsAndKeepsThem() async throws {
         let log = OperationLog()
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedDocumentIds["foodItemReports"] = ["12345678_test-user-id"]
+        dataProvider.stubbedDocumentIds["foodItemReports"] = ["report-1"]
         let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         try await sut()
 
         XCTAssertTrue(
-            log.entries.dropLast().contains("batchDelete:foodItemReports:12345678_test-user-id"),
-            "A report is the user's own data and must not survive account deletion"
+            log.entries.dropLast().contains("anonymise:foodItemReports:reported_by:report-1"),
+            "only the link to the person is removed; the record of what changed in the catalogue stays"
         )
+        XCTAssertFalse(log.entries.contains("deleteReport:report-1"))
+        XCTAssertFalse(log.entries.contains { $0.hasPrefix("batchDelete:foodItemReports") })
     }
 
     func test_callAsFunction_deletesFirestoreDataBeforeDeletingAuthAccount() async throws {
@@ -175,47 +177,31 @@ final class DeleteAccountUseCaseTests: XCTestCase {
         XCTAssertNotNil(storage.files[catalogue], "approved items are shared catalogue content and outlive the account")
     }
 
-    func test_callAsFunction_deletesPhotoSuggestionFilesAndDocumentsIndependently() async throws {
+    func test_callAsFunction_anonymisesPhotoSuggestionsAndKeepsTheirFiles() async throws {
         let log = OperationLog()
         let storage = StorageDataProviderFake()
-        let own = try await storage.uploadAsync(data: Data([1]), path: "photoSuggestions/test-user-id/12345678.jpg", contentType: "image/jpeg")
-        let someoneElse = try await storage.uploadAsync(data: Data([2]), path: "photoSuggestions/other-user/12345678.jpg", contentType: "image/jpeg")
+        let own = try await storage.uploadAsync(data: Data([1]), path: "photoSuggestions/test-user-id/12345678/ticket-1.jpg", contentType: "image/jpeg")
         let dataProvider = DeleteAccountDataProviderFake(log: log)
-        dataProvider.stubbedDocumentIds["photoSuggestions"] = ["99999999_test-user-id"]
+        dataProvider.stubbedDocumentIds["photoSuggestions"] = ["ticket-1"]
         let sut = makeSUT(dataProvider: dataProvider, log: log, storage: storage)
 
         try await sut()
 
-        XCTAssertNil(storage.files[own])
-        XCTAssertNotNil(storage.files[someoneElse])
-        XCTAssertTrue(
-            log.entries.dropLast().contains("batchDelete:photoSuggestions:99999999_test-user-id"),
-            "a suggestion document is found by suggested_by, so one whose file is already gone is still deleted and one without a document cannot fail the wipe"
-        )
+        XCTAssertNotNil(storage.files[own], "a pending photo stays approvable by the maintainer after the account is gone")
+        XCTAssertTrue(log.entries.dropLast().contains("anonymise:photoSuggestions:suggested_by:ticket-1"))
+        XCTAssertFalse(log.entries.contains { $0.hasPrefix("batchDelete:photoSuggestions") })
     }
 
-    func test_callAsFunction_whenAPhotoFileIsAlreadyGone_stillDeletesTheAccount() async throws {
+    func test_callAsFunction_whenAnonymisingATicketFails_doesNotDeleteTheAuthUser() async throws {
         let log = OperationLog()
-        let storage = StorageDataProviderFake()
-        _ = try await storage.uploadAsync(data: Data([1]), path: "photoSuggestions/test-user-id/12345678.jpg", contentType: "image/jpeg")
-        storage.deleteError = NSError(domain: StorageErrorDomain, code: StorageErrorCode.objectNotFound.rawValue)
-        let sut = makeSUT(dataProvider: DeleteAccountDataProviderFake(log: log), log: log, storage: storage)
-
-        try await sut()
-
-        XCTAssertTrue(log.entries.contains("deleteCurrentUser"), "a file removed meanwhile by an approval must not block the wipe")
-    }
-
-    func test_callAsFunction_whenDeletingAPhotoFileFailsForAnotherReason_doesNotDeleteTheAuthUser() async throws {
-        let log = OperationLog()
-        let storage = StorageDataProviderFake()
-        _ = try await storage.uploadAsync(data: Data([1]), path: "photoSuggestions/test-user-id/12345678.jpg", contentType: "image/jpeg")
-        storage.deleteError = URLError(.notConnectedToInternet)
-        let sut = makeSUT(dataProvider: DeleteAccountDataProviderFake(log: log), log: log, storage: storage)
+        let dataProvider = DeleteAccountDataProviderFake(log: log)
+        dataProvider.stubbedDocumentIds["foodItemReports"] = ["report-1"]
+        dataProvider.anonymiseError = URLError(.notConnectedToInternet)
+        let sut = makeSUT(dataProvider: dataProvider, log: log)
 
         _ = try? await sut()
 
-        XCTAssertFalse(log.entries.contains("deleteCurrentUser"))
+        XCTAssertFalse(log.entries.contains("deleteCurrentUser"), "without the Auth account the user can retry; without the ticket link cleared the data would stay tied to a dead uid")
     }
 
     func test_callAsFunction_whenListingPhotosFails_doesNotDeleteTheAuthUser() async throws {
@@ -539,6 +525,7 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
     private let log: OperationLog
     var stubbedDocumentIds: [String: [String]] = [:]
     var shouldFailDecodingDTOs = false
+    var anonymiseError: Error?
 
     // MARK: - Init
 
@@ -559,6 +546,11 @@ private final class DeleteAccountDataProviderFake: FirestoreDataProviderProtocol
 
     func loadDocumentIdsAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> [String] {
         stubbedDocumentIds[String(collection.split(separator: "/").last ?? "")] ?? []
+    }
+
+    func anonymiseAsync(id: String, ownerField: String, in collection: String) async throws {
+        if let anonymiseError { throw anonymiseError }
+        log.record("anonymise:\(collection):\(ownerField):\(id)")
     }
 
     func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }

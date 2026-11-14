@@ -224,7 +224,6 @@ enum L10n {
         static var photosTitle: String { String(localized: "moderation_photos_title") }
         static var photosEmpty: String { String(localized: "moderation_photos_empty") }
         static var photoSuggestionTitle: String { String(localized: "moderation_photoSuggestion_title") }
-        static var photoSuggestionAlreadyHasPhoto: String { String(localized: "moderation_photoSuggestion_alreadyHasPhoto") }
         static var photoSuggestionItemMissing: String { String(localized: "moderation_photoSuggestion_itemMissing") }
         static var buttonApprove: String { String(localized: "moderation_button_approve") }
         static var buttonReject: String { String(localized: "moderation_button_reject") }
@@ -240,11 +239,26 @@ enum L10n {
         static var errorItemChangedSinceLoad: String { String(localized: "moderation_error_itemChangedSinceLoad") }
         static var reportsTitle: String { String(localized: "moderation_reports_title") }
         static var reportsEmpty: String { String(localized: "moderation_reports_empty") }
-        static func reportsCount(_ count: Int) -> String {
-            String(format: String(localized: "moderation_reports_count"), count)
-        }
         static var similarItemsSectionTitle: String { String(localized: "moderation_similarItems_title") }
         static var similarItemsEmpty: String { String(localized: "moderation_similarItems_empty") }
+        static var responseTitle: String { String(localized: "moderation_response_title") }
+        static var responseSend: String { String(localized: "moderation_response_send") }
+
+        static func responseReportAccepted(locale: String) -> String {
+            localized("moderation_response_report_accepted", locale: locale)
+        }
+
+        static func responsePhotoAccepted(locale: String) -> String {
+            localized("moderation_response_photo_accepted", locale: locale)
+        }
+
+        private static func localized(_ key: String, locale: String) -> String {
+            guard
+                let path = Bundle.main.path(forResource: locale, ofType: "lproj"),
+                let bundle = Bundle(path: path)
+            else { return Bundle.main.localizedString(forKey: key, value: nil, table: nil) }
+            return bundle.localizedString(forKey: key, value: nil, table: nil)
+        }
     }
 
     enum FoodItemReport {
@@ -305,6 +319,29 @@ enum L10n {
         static var kindSubmission: String { String(localized: "notifications_kind_submission") }
         static var kindReport: String { String(localized: "notifications_kind_report") }
         static var kindPhoto: String { String(localized: "notifications_kind_photo") }
+        static var userKindReport: String { String(localized: "notifications_user_kind_report") }
+        static var userKindPhoto: String { String(localized: "notifications_user_kind_photo") }
+        static var userReportMessage: String { String(localized: "notifications_user_report_message") }
+        static var userPhotoMessage: String { String(localized: "notifications_user_photo_message") }
+        static var userReasonTitle: String { String(localized: "notifications_user_reason_title") }
+        static var userWithdrawButton: String { String(localized: "notifications_user_withdraw_button") }
+        static var userWithdrawConfirmTitle: String { String(localized: "notifications_user_withdraw_confirm_title") }
+        static var userUnreadAccessibility: String { String(localized: "notifications_user_unread_accessibility") }
+        static var userStatusPending: String { String(localized: "notifications_user_status_pending") }
+        static var userStatusResolved: String { String(localized: "notifications_user_status_resolved") }
+        static var userStatusApproved: String { String(localized: "notifications_user_status_approved") }
+        static var userStatusRejected: String { String(localized: "notifications_user_status_rejected") }
+        static var userStatusTitle: String { String(localized: "notifications_user_status_title") }
+        static var userResponseTitle: String { String(localized: "notifications_user_response_title") }
+        static var userHide: String { String(localized: "notifications_user_hide") }
+
+        static func userResolvedAt(_ date: String) -> String {
+            String(format: String(localized: "notifications_user_resolved_at"), date)
+        }
+
+        static func userSentAt(_ date: String) -> String {
+            String(format: String(localized: "notifications_user_sent_at"), date)
+        }
     }
 
     enum FoodPhoto {

@@ -648,7 +648,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
         let sut = makeSUT(
             item: makeFoodItem(kind: .catalogue),
             fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(
-                stubbedReport: FoodItemReportDomain(barcode: "test", reportedBy: "test-user-id", reason: "wrong", reportedAt: .now)
+                stubbedReport: makeReport(barcode: "test")
             )
         )
         await sut.onAppear()

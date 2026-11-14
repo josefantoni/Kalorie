@@ -11,176 +11,65 @@ import XCTest
 final class ModerationReportsViewModelTests: XCTestCase {
 
     @MainActor
-    func test_onAppear_groupsReportsByBarcode() async {
-        let reports = [
-            makeReport(barcode: "111", reportedBy: "user-1"),
-            makeReport(barcode: "111", reportedBy: "user-2"),
-            makeReport(barcode: "222", reportedBy: "user-3")
-        ]
-        let sut = makeSUT(fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: reports))
+    func test_onAppear_showsOneRowPerTicket_evenForTheSameItem() async {
+        let sut = makeSUT(reports: [
+            makeReport(id: "a", barcode: "111"),
+            makeReport(id: "b", barcode: "111"),
+            makeReport(id: "c", barcode: "222")
+        ])
 
         await sut.onAppear()
 
-        let group111 = sut.groups.first { $0.barcode == "111" }
-        XCTAssertEqual(group111?.reports.count, 2, "two different users reporting the same item must produce one group with two reports, not two rows")
-        XCTAssertEqual(sut.groups.count, 2)
-    }
-
-    @MainActor
-    func test_onAppear_ordersGroupsByReportCountDescending() async {
-        let reports = [
-            makeReport(barcode: "111", reportedBy: "user-1"),
-            makeReport(barcode: "222", reportedBy: "user-2"),
-            makeReport(barcode: "222", reportedBy: "user-3"),
-            makeReport(barcode: "222", reportedBy: "user-4")
-        ]
-        let sut = makeSUT(fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: reports))
-
-        await sut.onAppear()
-
-        XCTAssertEqual(sut.groups.first?.barcode, "222", "the most-reported item is the maintainer's priority signal and must lead the list")
+        XCTAssertEqual(sut.rows.map(\.id), ["a", "b", "c"], "two reports about different fields are answered separately, so they must not be merged into one row")
     }
 
     @MainActor
     func test_onAppear_resolvesItemNameFromCatalogue() async {
-        let reports = [makeReport(barcode: "111", reportedBy: "user-1")]
-        let item = FoodItemDomain(
-            id: "111",
-            kind: .catalogue,
-            czName: "Tvaroh",
-            engName: "Cottage cheese",
-            weight: 200,
-            date: .now,
-            energyKJ: 335,
-            caloriesPerHundredGrams: 80,
-            fat: 0.5,
-            fatSaturated: 0.3,
-            fatUnsaturatedFattyAcids: 0.2,
-            carbohydrate: 4,
-            carbohydratePureSugar: 3,
-            fiber: 0,
-            protein: 13,
-            salt: 0.1
-        )
-        let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: reports),
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item)
-        )
+        let item = makePhotoSuggestionItem(id: "111")
+        let sut = makeSUT(reports: [makeReport(id: "a", barcode: "111")], item: item)
 
         await sut.onAppear()
 
-        XCTAssertEqual(sut.groups.first?.itemName, item.displayName)
+        XCTAssertEqual(sut.rows.first?.itemName, item.displayName)
     }
 
     @MainActor
-    func test_onAppear_whenItemNoLongerResolves_stillShowsTheGroup() async {
-        let reports = [makeReport(barcode: "111", reportedBy: "user-1")]
-        let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: reports),
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: nil)
-        )
+    func test_onAppear_whenItemNoLongerResolves_stillShowsTheRow() async {
+        let sut = makeSUT(reports: [makeReport(id: "a", barcode: "111")], item: nil)
 
         await sut.onAppear()
 
-        XCTAssertEqual(sut.groups.first?.barcode, "111", "a report on a barcode deleted outside the app must still be clearable, not dropped")
-        XCTAssertNil(sut.groups.first?.itemName)
+        XCTAssertEqual(sut.rows.first?.report.barcode, "111", "a report on a barcode deleted outside the app must still be answerable, not dropped")
+        XCTAssertNil(sut.rows.first?.itemName)
     }
 
     @MainActor
-    func test_onAppear_whenLookupReturnsTheSameItemTwice_stillShowsEveryGroup() async {
-        let reports = [
-            makeReport(barcode: "111", reportedBy: "user-1"),
-            makeReport(barcode: "222", reportedBy: "user-1")
-        ]
-        let item = FoodItemDomain(
-            id: "111",
-            kind: .catalogue,
-            czName: "Tvaroh",
-            engName: "Cottage cheese",
-            weight: 200,
-            date: .now,
-            energyKJ: 335,
-            caloriesPerHundredGrams: 80,
-            fat: 0.5,
-            fatSaturated: 0.3,
-            fatUnsaturatedFattyAcids: 0.2,
-            carbohydrate: 4,
-            carbohydratePureSugar: 3,
-            fiber: 0,
-            protein: 13,
-            salt: 0.1
-        )
-        let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: reports),
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item)
-        )
-
+    func test_onReportResolved_removesOnlyThatTicket() async {
+        let sut = makeSUT(reports: [makeReport(id: "a", barcode: "111"), makeReport(id: "b", barcode: "111")])
         await sut.onAppear()
 
-        XCTAssertEqual(sut.groups.count, 2, "a duplicate id from the name lookup must not trap and wipe out the whole queue")
+        sut.onReportResolved(id: "a")
+
+        XCTAssertEqual(sut.rows.map(\.id), ["b"], "resolving one report says nothing about the other report of the same item")
     }
 
     @MainActor
-    func test_onGroupReportsChanged_withNoRemainingReports_removesOnlyThatBarcodesGroup() async {
-        let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
-                makeReport(barcode: "111", reportedBy: "user-1"),
-                makeReport(barcode: "222", reportedBy: "user-2")
-            ])
-        )
+    func test_onAppear_afterReturningFromADetail_keepsTheRowsResolvedThere() async {
+        let sut = makeSUT(reports: [makeReport(id: "a", barcode: "111"), makeReport(id: "b", barcode: "222")])
         await sut.onAppear()
-
-        sut.onGroupReportsChanged(barcode: "111", remaining: [])
-
-        XCTAssertEqual(sut.groups.map(\.barcode), ["222"])
-    }
-
-    @MainActor
-    func test_onGroupReportsChanged_withRemainingReports_keepsTheGroupWithOnlyThose() async {
-        let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
-                makeReport(barcode: "111", reportedBy: "user-1"),
-                makeReport(barcode: "111", reportedBy: "user-2"),
-                makeReport(barcode: "111", reportedBy: "user-3")
-            ])
-        )
-        await sut.onAppear()
-
-        sut.onGroupReportsChanged(barcode: "111", remaining: [makeReport(barcode: "111", reportedBy: "user-3")])
-
-        XCTAssertEqual(sut.groups.map(\.reports.count), [1], "reports that were deleted must not stay in the list until the next refresh")
-        XCTAssertEqual(sut.groups.first?.reports.map(\.reportedBy), ["user-3"])
-    }
-
-    @MainActor
-    func test_onAppear_afterReturningFromADetail_keepsTheGroupsResolvedThere() async {
-        let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
-                makeReport(barcode: "111", reportedBy: "user-1"),
-                makeReport(barcode: "222", reportedBy: "user-2")
-            ])
-        )
-        await sut.onAppear()
-        sut.onGroupReportsChanged(barcode: "111", remaining: [])
+        sut.onReportResolved(id: "a")
 
         await sut.onAppear()
 
-        XCTAssertEqual(sut.groups.map(\.barcode), ["222"], "popping a pushed detail re-runs .task; a re-fetch would bring back a group the maintainer just resolved")
+        XCTAssertEqual(sut.rows.map(\.id), ["b"], "popping a pushed detail re-runs .task; a re-fetch would bring back a row the maintainer just resolved")
     }
 
     // MARK: - Helpers
 
-    private func makeSUT(
-        fetchFoodItemReports: any FetchFoodItemReportsUseCaseProtocol = FetchFoodItemReportsUseCaseFake(),
-        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake()
-    ) -> ModerationReportsViewModel {
+    private func makeSUT(reports: [FoodItemReportDomain], item: FoodItemDomain? = nil) -> ModerationReportsViewModel {
         ModerationReportsViewModel(
-            fetchFoodItemReports: fetchFoodItemReports,
-            fetchFoodItemByBarcode: fetchFoodItemByBarcode
+            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: reports),
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item)
         )
-    }
-
-    private func makeReport(barcode: String, reportedBy: String) -> FoodItemReportDomain {
-        FoodItemReportDomain(barcode: barcode, reportedBy: reportedBy, reason: "wrong data", reportedAt: .now)
     }
 }

@@ -13,59 +13,40 @@ final class ModerationPhotoSuggestionsViewModelTests: XCTestCase {
     // MARK: - Tests
 
     @MainActor
-    func test_onAppear_listsTheOldestSuggestionFirst_whateverOrderTheFetchReturns() async throws {
-        let url = try XCTUnwrap(URL(string: "https://example.com/p.jpg"))
-        let newest = PhotoSuggestionDomain(itemId: "33333333", suggestedBy: "alice", photoURL: url, suggestedAt: Date(timeIntervalSince1970: 300))
-        let oldest = PhotoSuggestionDomain(itemId: "11111111", suggestedBy: "alice", photoURL: url, suggestedAt: Date(timeIntervalSince1970: 100))
-        let middle = PhotoSuggestionDomain(itemId: "22222222", suggestedBy: "alice", photoURL: url, suggestedAt: Date(timeIntervalSince1970: 200))
-        let sut = ModerationPhotoSuggestionsViewModel(
-            fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: [newest, oldest, middle]),
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake()
-        )
+    func test_onAppear_listsOneRowPerTicketInTheOrderTheQueueReturnsThem() async throws {
+        let sut = try await makeLoadedSUT()
 
-        await sut.onAppear()
-
-        XCTAssertEqual(sut.rows.map(\.suggestion.itemId), ["11111111", "22222222", "33333333"], "the longest-waiting suggestion is reviewed first")
+        XCTAssertEqual(sut.rows.map(\.id), ["a", "b", "c"], "the use case orders the queue newest first; the list must not reorder it")
     }
 
     @MainActor
-    func test_onSuggestionResolved_whenApproved_dropsEverySuggestionForTheSameItem() async throws {
+    func test_onSuggestionResolved_dropsOnlyThatTicket_evenWhenAnotherTargetsTheSameItem() async throws {
         let sut = try await makeLoadedSUT()
 
-        sut.onSuggestionResolved(id: "111_alice", isApproved: true)
+        sut.onSuggestionResolved(id: "a")
 
-        XCTAssertEqual(sut.rows.map(\.id), ["222_alice"], "the approval removed every user's suggestion for the item, so the sibling row is stale")
-    }
-
-    @MainActor
-    func test_onSuggestionResolved_whenRejected_dropsOnlyThatSuggestion() async throws {
-        let sut = try await makeLoadedSUT()
-
-        sut.onSuggestionResolved(id: "111_alice", isApproved: false)
-
-        XCTAssertEqual(Set(sut.rows.map(\.id)), ["111_bob", "222_alice"], "a rejection leaves other users' suggestions for the item waiting")
+        XCTAssertEqual(sut.rows.map(\.id), ["b", "c"], "approving one suggestion leaves the other pending ones for the item waiting")
     }
 
     @MainActor
     func test_onAppear_afterReturningFromADetail_keepsTheRowsResolvedThere() async throws {
         let sut = try await makeLoadedSUT()
-        sut.onSuggestionResolved(id: "111_alice", isApproved: false)
+        sut.onSuggestionResolved(id: "a")
 
         await sut.onAppear()
 
-        XCTAssertEqual(Set(sut.rows.map(\.id)), ["111_bob", "222_alice"], "popping a pushed detail re-runs .task; a re-fetch would bring back a row the maintainer just resolved")
+        XCTAssertEqual(sut.rows.map(\.id), ["b", "c"], "popping a pushed detail re-runs .task; a re-fetch would bring back a row the maintainer just resolved")
     }
 
     // MARK: - Helpers
 
     @MainActor
     private func makeLoadedSUT() async throws -> ModerationPhotoSuggestionsViewModel {
-        let url = try XCTUnwrap(URL(string: "https://example.com/p.jpg"))
         let sut = ModerationPhotoSuggestionsViewModel(
             fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: [
-                PhotoSuggestionDomain(itemId: "111", suggestedBy: "alice", photoURL: url, suggestedAt: Date(timeIntervalSince1970: 100)),
-                PhotoSuggestionDomain(itemId: "111", suggestedBy: "bob", photoURL: url, suggestedAt: Date(timeIntervalSince1970: 200)),
-                PhotoSuggestionDomain(itemId: "222", suggestedBy: "alice", photoURL: url, suggestedAt: Date(timeIntervalSince1970: 300))
+                makeSuggestion(id: "a", itemId: "111"),
+                makeSuggestion(id: "b", itemId: "111"),
+                makeSuggestion(id: "c", itemId: "222")
             ]),
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake()
         )

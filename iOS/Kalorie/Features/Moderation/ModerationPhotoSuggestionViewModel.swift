@@ -15,6 +15,8 @@ final class ModerationPhotoSuggestionViewModel: ObservableObject {
     @Published private(set) var itemName: String?
     @Published private(set) var canApprove = true
     @Published private(set) var shouldDismiss = false
+    @Published var responseDraft: ModerationResponseDraft?
+    @Published private(set) var isSendingResponse = false
     @Published var alertItem: AlertItem?
 
     let suggestion: PhotoSuggestionDomain
@@ -22,7 +24,7 @@ final class ModerationPhotoSuggestionViewModel: ObservableObject {
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let approvePhotoSuggestion: any ApprovePhotoSuggestionUseCaseProtocol
     private let rejectPhotoSuggestion: any RejectPhotoSuggestionUseCaseProtocol
-    private let onResolved: (Bool) -> Void
+    private let onResolved: () -> Void
 
     // MARK: - Init
 
@@ -31,7 +33,7 @@ final class ModerationPhotoSuggestionViewModel: ObservableObject {
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         approvePhotoSuggestion: any ApprovePhotoSuggestionUseCaseProtocol,
         rejectPhotoSuggestion: any RejectPhotoSuggestionUseCaseProtocol,
-        onResolved: @escaping (Bool) -> Void
+        onResolved: @escaping () -> Void
     ) {
         self.suggestion = suggestion
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
@@ -47,8 +49,8 @@ final class ModerationPhotoSuggestionViewModel: ObservableObject {
         do {
             let item = try await fetchFoodItemByBarcode(barcode: suggestion.itemId)
             itemName = item?.displayName
-            if item == nil || item?.photoURL != nil {
-                blockApproval(item == nil ? L10n.Moderation.photoSuggestionItemMissing : L10n.Moderation.photoSuggestionAlreadyHasPhoto)
+            if item == nil {
+                blockApproval(L10n.Moderation.photoSuggestionItemMissing)
             }
         } catch {
             Log.warning(error, category: Constants.LogCategory.moderation)
@@ -56,35 +58,48 @@ final class ModerationPhotoSuggestionViewModel: ObservableObject {
     }
 
     @MainActor
-    func onApproveTapped() async {
-        state = .loading
-        defer { state = .loaded }
-        do {
-            try await approvePhotoSuggestion(suggestion)
-            onResolved(true)
-            shouldDismiss = true
-        } catch ApprovePhotoSuggestionError.itemAlreadyHasPhoto {
-            blockApproval(L10n.Moderation.photoSuggestionAlreadyHasPhoto)
-        } catch ApprovePhotoSuggestionError.itemMissing {
-            blockApproval(L10n.Moderation.photoSuggestionItemMissing)
-        } catch {
-            Log.error(error, category: Constants.LogCategory.moderation)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
-        }
+    func onApproveTapped() {
+        guard canApprove, !isSendingResponse else { return }
+        responseDraft = ModerationResponseDraft(
+            status: .accepted,
+            text: L10n.Moderation.responsePhotoAccepted(locale: suggestion.locale)
+        )
     }
 
     @MainActor
-    func onRejectTapped() async {
-        state = .loading
-        defer { state = .loaded }
+    func onRejectTapped() {
+        guard !isSendingResponse else { return }
+        responseDraft = ModerationResponseDraft(status: .rejected, text: "")
+    }
+
+    @MainActor
+    func onResponseSendTapped() async {
+        guard
+            let draft = responseDraft,
+            draft.isSendable,
+            !isSendingResponse
+        else { return }
+        isSendingResponse = true
+        defer { isSendingResponse = false }
         do {
-            try await rejectPhotoSuggestion(suggestion)
-            onResolved(false)
-            shouldDismiss = true
+            switch draft.status {
+            case .accepted:
+                try await approvePhotoSuggestion(suggestion, response: draft.text)
+            case .rejected, .pending:
+                try await rejectPhotoSuggestion(suggestion, response: draft.text)
+            }
+        } catch ApprovePhotoSuggestionError.itemMissing {
+            responseDraft = nil
+            blockApproval(L10n.Moderation.photoSuggestionItemMissing)
+            return
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            responseDraft?.errorTitle = L10n.Common.errorUnknown
+            return
         }
+        responseDraft = nil
+        onResolved()
+        shouldDismiss = true
     }
 
     // MARK: - Private

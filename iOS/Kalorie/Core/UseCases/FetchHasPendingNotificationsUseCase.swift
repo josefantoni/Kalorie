@@ -32,8 +32,16 @@ struct FetchHasPendingNotificationsUseCase: FetchHasPendingNotificationsUseCaseP
                 where: Constants.Firestore.Field.status,
                 isEqualTo: FoodItemSubmissionStatus.pending.rawValue
             )
-            async let reports = dataProvider.countAsync(from: Constants.Firestore.foodItemReports)
-            async let photoSuggestions = dataProvider.countAsync(from: Constants.Firestore.photoSuggestions)
+            async let reports = dataProvider.countAsync(
+                from: Constants.Firestore.foodItemReports,
+                where: Constants.Firestore.Field.status,
+                isEqualTo: Constants.Firestore.pendingStatus
+            )
+            async let photoSuggestions = dataProvider.countAsync(
+                from: Constants.Firestore.photoSuggestions,
+                where: Constants.Firestore.Field.status,
+                isEqualTo: Constants.Firestore.pendingStatus
+            )
             let counts = try await [pendingSubmissions, reports, photoSuggestions]
             return counts.contains { $0 > 0 }
         } catch {

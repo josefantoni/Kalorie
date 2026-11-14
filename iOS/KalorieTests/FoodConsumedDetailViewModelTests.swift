@@ -166,7 +166,7 @@ final class FoodConsumedDetailViewModelTests: XCTestCase {
         let sut = makeSUT(
             food: makeFood(kind: .catalogue),
             fetchMyFoodItemReport: FetchMyFoodItemReportUseCaseFake(
-                stubbedReport: FoodItemReportDomain(barcode: "12345", reportedBy: "test-user-id", reason: "wrong", reportedAt: .now)
+                stubbedReport: makeReport(barcode: "12345")
             )
         )
 

@@ -21,7 +21,7 @@ final class NotificationsViewModelTests: XCTestCase {
 
         await sut.onAppear()
 
-        XCTAssertEqual(Set(sut.rows.map(\.id)), ["report-111", "photo-222_alice"])
+        XCTAssertEqual(Set(sut.rows.map(\.id)), ["report-r111", "photo-p222"])
         XCTAssertNil(sut.alertItem)
     }
 
@@ -34,7 +34,7 @@ final class NotificationsViewModelTests: XCTestCase {
 
         await sut.onAppear()
 
-        XCTAssertEqual(sut.rows.map(\.id), ["report-111"], "one failing query (e.g. rules or index not deployed yet) must not hide what the other sources loaded")
+        XCTAssertEqual(sut.rows.map(\.id), ["report-r111"], "one failing query (e.g. rules or index not deployed yet) must not hide what the other sources loaded")
         XCTAssertNotNil(sut.alertItem)
     }
 
@@ -47,7 +47,7 @@ final class NotificationsViewModelTests: XCTestCase {
 
         await sut.onAppear()
 
-        XCTAssertEqual(sut.rows.map(\.id), ["photo-222_alice"])
+        XCTAssertEqual(sut.rows.map(\.id), ["photo-p222"])
         XCTAssertNotNil(sut.alertItem)
     }
 
@@ -77,43 +77,46 @@ final class NotificationsViewModelTests: XCTestCase {
 
         await sut.onRefresh()
 
-        XCTAssertEqual(Set(sut.rows.map(\.id)), ["report-111", "photo-222_alice"], "a failed refresh must not make the maintainer read the queue as empty")
+        XCTAssertEqual(Set(sut.rows.map(\.id)), ["report-r111", "photo-p222"], "a failed refresh must not make the maintainer read the queue as empty")
         XCTAssertNotNil(sut.alertItem)
     }
 
     @MainActor
-    func test_onReportRowChanged_withRemainingReports_keepsTheRowWithOnlyThose() async {
+    func test_onAppear_showsOneRowPerReport_evenForTheSameItem() async {
         let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [makeReport(barcode: "111"), makeReport(barcode: "111")])
+            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
+                makeReport(barcode: "111", id: "a"),
+                makeReport(barcode: "111", id: "b")
+            ])
         )
+
         await sut.onAppear()
-        let remaining = [makeReport(barcode: "111")]
 
-        sut.onReportRowChanged(id: "report-111", remaining: remaining)
-
-        guard case .report(_, let reports) = sut.rows.first?.kind else { return XCTFail("the row must stay") }
-        XCTAssertEqual(reports.count, 1)
+        XCTAssertEqual(Set(sut.rows.map(\.id)), ["report-a", "report-b"], "each report is answered on its own")
     }
 
     @MainActor
-    func test_onReportRowChanged_withNoRemainingReports_removesTheRow() async {
+    func test_onRowResolved_forAReport_removesOnlyThatTicketsRow() async {
         let sut = makeSUT(
-            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [makeReport(barcode: "111")])
+            fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
+                makeReport(barcode: "111", id: "a"),
+                makeReport(barcode: "111", id: "b")
+            ])
         )
         await sut.onAppear()
 
-        sut.onReportRowChanged(id: "report-111", remaining: [])
+        sut.onRowResolved(id: "report-a")
 
-        XCTAssertTrue(sut.rows.isEmpty)
+        XCTAssertEqual(sut.rows.map(\.id), ["report-b"])
     }
 
     @MainActor
-    func test_onAppear_sortsRowsOldestFirst_andDatesAReportGroupByItsOldestReport() async {
+    func test_onAppear_sortsRowsOldestFirst() async {
         let sut = makeSUT(
             fetchPendingSubmissions: FetchPendingSubmissionsUseCaseFake(stubbedSubmissions: [makeSubmission(id: "s", date: day(2))]),
             fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(stubbedReports: [
-                makeReport(barcode: "111", date: day(5)),
-                makeReport(barcode: "111", date: day(1))
+                makeReport(barcode: "111", id: "late", date: day(5)),
+                makeReport(barcode: "111", id: "early", date: day(1))
             ]),
             fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: [makeSuggestion(itemId: "222", date: day(3))])
         )
@@ -122,40 +125,30 @@ final class NotificationsViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             sut.rows.map(\.id),
-            ["report-111", "submission-s", "photo-222_alice"],
-            "the queue is handled oldest first; a report group counts from its oldest report, so days 1 and 5 sort before a suggestion from day 3"
+            ["report-early", "submission-s", "photo-p222", "report-late"],
+            "the queue is handled oldest first, each ticket by its own date"
         )
     }
 
     @MainActor
-    func test_onPhotoSuggestionResolved_whenApproved_dropsEverySuggestionForTheSameItemAndKeepsOthers() async {
+    func test_onRowResolved_forAPhoto_leavesOtherSuggestionsForTheSameItemWaiting() async {
         let sut = makeSUT(fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: makeSiblingSuggestions()))
         await sut.onAppear()
 
-        sut.onPhotoSuggestionResolved(id: "photo-111_alice", isApproved: true)
+        sut.onRowResolved(id: "photo-a")
 
-        XCTAssertEqual(sut.rows.map(\.id), ["photo-222_alice"], "the approval removed every user's suggestion for the item, so the sibling row is stale")
-    }
-
-    @MainActor
-    func test_onPhotoSuggestionResolved_whenRejected_dropsOnlyThatSuggestion() async {
-        let sut = makeSUT(fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: makeSiblingSuggestions()))
-        await sut.onAppear()
-
-        sut.onPhotoSuggestionResolved(id: "photo-111_alice", isApproved: false)
-
-        XCTAssertEqual(Set(sut.rows.map(\.id)), ["photo-111_bob", "photo-222_alice"], "a rejection leaves other users' suggestions for the item waiting")
+        XCTAssertEqual(Set(sut.rows.map(\.id)), ["photo-b", "photo-c"], "approving one suggestion leaves the other pending ones, and the next approval replaces the photo")
     }
 
     @MainActor
     func test_onAppear_afterReturningFromADetail_keepsTheRowsResolvedThere() async {
         let sut = makeSUT(fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions: makeSiblingSuggestions()))
         await sut.onAppear()
-        sut.onPhotoSuggestionResolved(id: "photo-111_alice", isApproved: false)
+        sut.onRowResolved(id: "photo-a")
 
         await sut.onAppear()
 
-        XCTAssertEqual(Set(sut.rows.map(\.id)), ["photo-111_bob", "photo-222_alice"], "popping a pushed detail re-runs .task; a re-fetch would bring back a row the maintainer just resolved")
+        XCTAssertEqual(Set(sut.rows.map(\.id)), ["photo-b", "photo-c"], "popping a pushed detail re-runs .task; a re-fetch would bring back a row the maintainer just resolved")
     }
 
     // MARK: - Helpers
@@ -170,7 +163,13 @@ final class NotificationsViewModelTests: XCTestCase {
             fetchPendingSubmissions: fetchPendingSubmissions,
             fetchFoodItemReports: fetchFoodItemReports,
             fetchPhotoSuggestions: fetchPhotoSuggestions,
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake()
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
+            isMaintainer: true,
+            fetchUserNotifications: FetchUserNotificationsUseCaseFake(),
+            markUserNotificationSeen: MarkUserNotificationSeenUseCaseFake(),
+            hideUserNotification: HideUserNotificationUseCaseFake(),
+            withdrawUserNotification: WithdrawUserNotificationUseCaseFake(),
+            notificationsStore: UserNotificationsStoreFake()
         )
     }
 
@@ -178,8 +177,16 @@ final class NotificationsViewModelTests: XCTestCase {
         Date(timeIntervalSince1970: Double(number) * 86_400)
     }
 
-    private func makeReport(barcode: String, date: Date = .now) -> FoodItemReportDomain {
-        FoodItemReportDomain(barcode: barcode, reportedBy: "bob", reason: "wrong data", reportedAt: date)
+    private func makeReport(barcode: String, id: String? = nil, date: Date = .now) -> FoodItemReportDomain {
+        FoodItemReportDomain(
+            id: id ?? "r\(barcode)",
+            barcode: barcode,
+            reportedBy: "bob",
+            reason: "wrong data",
+            reportedAt: date,
+            status: .pending,
+            locale: "en"
+        )
     }
 
     private func makeSubmission(id: String, date: Date) -> FoodItemSubmissionDomain {
@@ -213,18 +220,21 @@ final class NotificationsViewModelTests: XCTestCase {
 
     private func makeSiblingSuggestions() -> [PhotoSuggestionDomain] {
         [
-            PhotoSuggestionDomain(itemId: "111", suggestedBy: "alice", photoURL: URL(fileURLWithPath: "/a.jpg"), suggestedAt: day(1)),
-            PhotoSuggestionDomain(itemId: "111", suggestedBy: "bob", photoURL: URL(fileURLWithPath: "/b.jpg"), suggestedAt: day(2)),
-            PhotoSuggestionDomain(itemId: "222", suggestedBy: "alice", photoURL: URL(fileURLWithPath: "/c.jpg"), suggestedAt: day(3))
+            makeSuggestion(itemId: "111", id: "a", date: day(1)),
+            makeSuggestion(itemId: "111", id: "b", date: day(2)),
+            makeSuggestion(itemId: "222", id: "c", date: day(3))
         ]
     }
 
-    private func makeSuggestion(itemId: String, date: Date = .now) -> PhotoSuggestionDomain {
+    private func makeSuggestion(itemId: String, id: String? = nil, date: Date = .now) -> PhotoSuggestionDomain {
         PhotoSuggestionDomain(
+            id: id ?? "p\(itemId)",
             itemId: itemId,
             suggestedBy: "alice",
             photoURL: URL(fileURLWithPath: "/photo.jpg"),
-            suggestedAt: date
+            suggestedAt: date,
+            status: .pending,
+            locale: "en"
         )
     }
 }

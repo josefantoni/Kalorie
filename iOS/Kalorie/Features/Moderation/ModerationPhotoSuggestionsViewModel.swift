@@ -53,9 +53,8 @@ final class ModerationPhotoSuggestionsViewModel: ObservableObject {
     }
 
     @MainActor
-    func onSuggestionResolved(id: String, isApproved: Bool) {
-        let itemId = rows.first { $0.id == id }?.suggestion.itemId
-        rows.removeAll { $0.id == id || (isApproved && $0.suggestion.itemId == itemId) }
+    func onSuggestionResolved(id: String) {
+        rows.removeAll { $0.id == id }
     }
 
     // MARK: - Private
@@ -66,7 +65,7 @@ final class ModerationPhotoSuggestionsViewModel: ObservableObject {
             let suggestions = try await fetchPhotoSuggestions()
             let items = (try? await fetchFoodItemByBarcode(barcodes: Array(Set(suggestions.map(\.itemId))))) ?? []
             let namesById = Dictionary(items.map { ($0.id, $0.displayName) }) { first, _ in first }
-            rows = suggestions.sorted { $0.suggestedAt < $1.suggestedAt }.map { Row(suggestion: $0, itemName: namesById[$0.itemId]) }
+            rows = suggestions.map { Row(suggestion: $0, itemName: namesById[$0.itemId]) }
         } catch {
             Log.error(error, category: Constants.LogCategory.moderation)
             alertItem = AlertItem(title: L10n.Common.errorUnknown)

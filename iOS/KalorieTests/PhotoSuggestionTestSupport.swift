@@ -19,6 +19,7 @@ final class PhotoSuggestionDataProviderFake: FirestoreDataProviderProtocol {
     var stubbedExistingSuggestions: [String: PhotoSuggestionDTO] = [:]
     var suggestionsAppearingAfterFailedSet: [String: PhotoSuggestionDTO] = [:]
     var stubbedCounts: [String: Int] = [:]
+    var stubbedResolvedCounts: [String: Int] = [:]
     var countError: Error?
     private(set) var setCalls: [(id: String, collection: String, item: Any)] = []
     private(set) var deletedIds: [(id: String, collection: String)] = []
@@ -65,11 +66,12 @@ final class PhotoSuggestionDataProviderFake: FirestoreDataProviderProtocol {
     func deleteEntriesAsync(ids: [String], documentId: String, in collection: String) async throws {}
     func countAsync(from collection: String) async throws -> Int {
         if let countError { throw countError }
-        return stubbedCounts[collection] ?? 0
+        return (stubbedCounts[collection] ?? 0) + (stubbedResolvedCounts[collection] ?? 0)
     }
     func countAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> Int {
         if let countError { throw countError }
-        return stubbedCounts[collection] ?? 0
+        guard field == Constants.Firestore.Field.status else { return 0 }
+        return value == Constants.Firestore.pendingStatus ? stubbedCounts[collection] ?? 0 : stubbedResolvedCounts[collection] ?? 0
     }
 }
 

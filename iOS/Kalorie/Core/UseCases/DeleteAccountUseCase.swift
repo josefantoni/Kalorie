@@ -119,6 +119,13 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
         )
     }
 
+    private func anonymiseTickets(in collection: String, ownerField: String, userId: String) async throws {
+        let ticketIds = try await dataProvider.loadDocumentIdsAsync(from: collection, where: ownerField, isEqualTo: userId)
+        for ticketId in ticketIds {
+            try await dataProvider.anonymiseAsync(id: ticketId, ownerField: ownerField, in: collection)
+        }
+    }
+
     private func wipeFirestoreData(userId: String) async throws {
         let mealTypesIds = try await dataProvider.loadDocumentIdsAsync(from: Constants.Firestore.mealTypes(userId: userId))
         try await dataProvider.batchDeleteAsync(ids: mealTypesIds, from: Constants.Firestore.mealTypes(userId: userId))
@@ -156,24 +163,18 @@ struct DeleteAccountUseCase: DeleteAccountUseCaseProtocol {
             try await storageProvider.deleteIgnoringMissing(url: url, category: Constants.LogCategory.account)
         }
 
-        let suggestionURLs = try await storageProvider.listAsync(prefix: "\(Constants.Storage.photoSuggestionsFolder)/\(userId)")
-        for url in suggestionURLs {
-            try await storageProvider.deleteIgnoringMissing(url: url, category: Constants.LogCategory.account)
-        }
-
-        let suggestionIds = try await dataProvider.loadDocumentIdsAsync(
-            from: Constants.Firestore.photoSuggestions,
-            where: Constants.Firestore.Field.suggestedBy,
-            isEqualTo: userId
+        // Tickets are kept without the link to the account: the maintainer's record of what changed in the
+        // catalogue stays, and a pending photo can still be approved.
+        try await anonymiseTickets(
+            in: Constants.Firestore.photoSuggestions,
+            ownerField: Constants.Firestore.Field.suggestedBy,
+            userId: userId
         )
-        try await dataProvider.batchDeleteAsync(ids: suggestionIds, from: Constants.Firestore.photoSuggestions)
-
-        let reportIds = try await dataProvider.loadDocumentIdsAsync(
-            from: Constants.Firestore.foodItemReports,
-            where: Constants.Firestore.Field.reportedBy,
-            isEqualTo: userId
+        try await anonymiseTickets(
+            in: Constants.Firestore.foodItemReports,
+            ownerField: Constants.Firestore.Field.reportedBy,
+            userId: userId
         )
-        try await dataProvider.batchDeleteAsync(ids: reportIds, from: Constants.Firestore.foodItemReports)
 
         do {
             try await dataProvider.deleteAsync(id: userId, from: Constants.Firestore.users)

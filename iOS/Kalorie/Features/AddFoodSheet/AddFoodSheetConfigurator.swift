@@ -74,9 +74,18 @@ struct AddFoodSheetConfigurator {
                         fetchFoodItemPersonalPortions: FetchFoodItemPersonalPortionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         saveFoodItemPersonalPortions: SaveFoodItemPersonalPortionsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         fetchMyFoodItemReport: FetchMyFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                        submitFoodItemReport: SubmitFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                        submitFoodItemReport: SubmitFoodItemReportUseCase(
+                            dataProvider: dataProvider,
+                            authProvider: authProvider,
+                            notificationsStore: UserNotificationsStore(authProvider: authProvider)
+                        ),
                         fetchMyPhotoSuggestion: FetchMyPhotoSuggestionUseCase(dataProvider: dataProvider, authProvider: authProvider),
-                        submitPhotoSuggestion: SubmitPhotoSuggestionUseCase(dataProvider: dataProvider, authProvider: authProvider, storageProvider: storageProvider),
+                        submitPhotoSuggestion: SubmitPhotoSuggestionUseCase(
+                            dataProvider: dataProvider,
+                            authProvider: authProvider,
+                            storageProvider: storageProvider,
+                            notificationsStore: UserNotificationsStore(authProvider: authProvider)
+                        ),
                         meal: meal,
                         updateMyCreatedMeal: UpdateMyCreatedMealUseCase(dataProvider: dataProvider, authProvider: authProvider),
                         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider),
