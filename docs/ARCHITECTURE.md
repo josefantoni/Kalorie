@@ -37,11 +37,12 @@ first version of the security rules), [design 0003](design/0003-favourite-foods.
 [design 0008](design/0008-food-portions.md) (`portions` on `foodItems`/`myCreatedMeals`, and the
 barcode-keyed `foodItemPortions` collection), [design 0009](design/0009-catalogue-moderation.md)
 (`foodItemSubmissions`, and the maintainer claim narrowing `foodItems` writes — see § 7),
-[design 0012](design/0012-report-incorrect-catalogue-data.md) (`foodItemReports`, keyed by
-`{barcode}_{userId}` rather than a UUID, and why that key shape is the opposite choice from
-`foodItemSubmissions` — see § 7),
-[design 0031](design/0031-community-product-photos-and-notification-bell.md) (`photoSuggestions`, keyed
-by `{itemId}_{userId}`, and the Dashboard bell — see § 7.7),
+[design 0012](design/0012-report-incorrect-catalogue-data.md) (`foodItemReports`; its fixed
+`{barcode}_{userId}` key was replaced by auto ids in design 0033 — see § 7.6),
+[design 0031](design/0031-community-product-photos-and-notification-bell.md) (`photoSuggestions` and the
+Dashboard bell — see § 7.7),
+[design 0033](design/0033-user-notifications-for-own-reports-and-photos.md) (reports and photo suggestions
+become kept tickets with a status, a response and a per-user notification — see § 7.7),
 [design 0011](design/0011-food-measure-grams-or-millilitres.md) (`measure_unit` on `foodItems`,
 `favouriteFoods` and `foodConsumed`, and why the numbers are never converted between grams and
 millilitres), [design 0019](design/0019-alcoholic-drink-accuracy-hint.md) (`alcohol_by_volume` on
@@ -95,8 +96,8 @@ users/{userId}/settings/app                one document, app-wide user settings 
 users/{userId}/settings/goals              one document, the daily-goal history (design 0030)
 users/{userId}/mergedAnonymousAccounts/{uid}  marker: the anonymous account {uid} was merged into this user (§ 6.2)
 foodItemSubmissions/{uuid}                 shared, a user's pending/rejected catalogue submission
-foodItemReports/{barcode}_{userId}         shared, a report that a catalogue entry looks wrong
-photoSuggestions/{itemId}_{userId}         shared, a user's photo suggestion for a photo-less catalogue item
+foodItemReports/{autoId}                   shared, a ticket: a report that a catalogue entry looks wrong (design 0033)
+photoSuggestions/{autoId}                  shared, a ticket: a user's photo suggestion for a catalogue item (design 0033)
 config/app                                 shared, minimum supported app version per platform (design 0026)
 ```
 
@@ -110,7 +111,7 @@ Firestore; a document only carries the download URL in `photo_url`:
 ```
 submissionPhotos/{uid}/{uuid}.jpg          a user's photo for a pending/rejected submission
 catalogPhotos/{itemId}/{uuid}.jpg          the approved photo of a catalogue item
-photoSuggestions/{uid}/{itemId}.jpg        a user's suggested photo for an existing catalogue item (design 0031)
+photoSuggestions/{uid}/{itemId}/{suggestionId}.jpg   a user's suggested photo while its ticket is pending (designs 0031, 0033)
 ```
 
 Folder names are in `Constants.Storage`. Approving a submission copies the photo from
@@ -137,9 +138,12 @@ Document IDs are meaningful, not random:
   calendar in the device's current time zone with a POSIX locale, never from `Calendar.current`'s
   own calendar; `fixtures/body-weight-day-key-cases.json` pins it for both clients. The zero-padded
   format sorts as dates, which the `id <= dayKey` query relies on. See [design 0028](design/0028-body-weight-tracking.md).
-- `foodItemReports` is keyed by `{barcode}_{userId}`, the one collection keyed by neither a UUID
-  nor the barcode alone — see [design 0012](design/0012-report-incorrect-catalogue-data.md) for why
-  a composed, deterministic id is the opposite choice from `foodItemSubmissions`' UUID.
+- `foodItemReports` and `photoSuggestions` are keyed by a Firestore auto id generated on the client
+  before the write (`newDocumentId(in:)`; a photo needs it for its Storage path). Neither the item nor
+  the uid is in the id, so a kept ticket never blocks a later one and an anonymised ticket carries no link to
+  the account. "One pending ticket per user and item" is enforced by the client, not the rules
+  ([design 0033](design/0033-user-notifications-for-own-reports-and-photos.md)); this reverses the
+  composed `{barcode}_{userId}` key of design 0012.
 
 The `users/{userId}` profile document is written **only** by `SignInWithAppleUseCase` and
 `SignInWithGoogleUseCase`. An anonymous user therefore has subcollections but no parent
@@ -332,17 +336,16 @@ times a year. It is a separate document from `settings/app` so the anonymous mer
 weight the goal was calculated from, a second kind of weight next to `bodyWeights`; saving also writes it
 as today's `bodyWeights` entry when it was edited and none exists.
 
-**`foodItemReports`** (`FoodItemReportDTO`) — a user's flag that a `.catalogue` item's data looks
-wrong, keyed by `{barcode}_{userId}` rather than a UUID: a second report from the same user on the
-same item replaces the first, which is what bounds one user to one open report per item without
-any rule that can count documents. Four fields — `barcode`, `reported_by`, `reason` (free text,
-1–500 characters — `Constants.Firestore.reportReasonMaxLength` is 500, and the rules cap
-`reason.size() <= 500` independently) and `reported_at` — and no nested item
-snapshot, since the maintainer needs the item's *current* values, not what they were when the
-report was filed. There is no `status` field: a report exists while it is open and is deleted once
-the maintainer corrects the item or dismisses it, the same reasoning that kept
-`foodItemSubmissions` from retaining `approved` entries. See
-[design 0012](design/0012-report-incorrect-catalogue-data.md) and § 7 for the full flow.
+**`foodItemReports`** and **`photoSuggestions`** (design 0033) — a *ticket*: a user's flag that a `.catalogue`
+item's data looks wrong (`FoodItemReportDTO`), or a photo suggested for it (`PhotoSuggestionDTO`). A ticket is
+kept after the maintainer resolves it. Besides its content (`barcode`, `reason` of 1–500 characters, `reported_at`
+/ `item_id`, `photo_url`, `suggested_at`) and the owner (`reported_by` / `suggested_by`) it carries
+`status` (`pending` → `accepted` | `rejected`, final), `locale` (`cs` / `en` / `sk`, the app language the
+author used), `hidden`, and after resolution `response` (1–1000 UTF-16 units) and `resolved_at`. The author
+writes `seen_at` (every time the detail is shown after an event) and sets `hidden: true`. An anonymised ticket
+has no owner field and carries `author_deleted: true`. There is no nested item snapshot: the maintainer needs
+the item's *current* values. Create and read DTOs are separate types so a create never sends a maintainer or
+read-state field. See [design 0033](design/0033-user-notifications-for-own-reports-and-photos.md), § 1.7 and § 7.
 
 ### 1.5 The provider
 
@@ -370,8 +373,12 @@ builder:
 | `batchSetAsync(_:in:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) items |
 | `deleteAsync(id:from:)` | `document(id).delete()` |
 | `loadDocumentIdsAsync(from:)` | every document id of a collection, without decoding the documents — used only by the account-deletion wipe, so a document that no longer matches its DTO cannot block the deletion. Not in the protocol extension's reach: a conformer that does not implement it throws `.unsupported` |
-| `loadDocumentIdsAsync(from:where:isEqualTo:)` | the same for an equality query, no `orderBy` — the wipe's `submitted_by` / `reported_by` queries, served by Firestore's automatic single-field index |
-| `batchDeleteAsync(ids:from:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) ids — used by the account-deletion wipe for every per-user collection, the user's submissions and reports, so a large history is not deleted one round trip per document |
+| `loadDocumentIdsAsync(from:where:isEqualTo:)` | the same for an equality query, no `orderBy` — the wipe's `submitted_by` / `reported_by` / `suggested_by` queries, served by Firestore's automatic single-field index |
+| `batchDeleteAsync(ids:from:)` | one `WriteBatch` per `Constants.Firestore.batchWriteLimit` (500) ids — used by the account-deletion wipe for every per-user collection and the user's submissions, so a large history is not deleted one round trip per document. Tickets are anonymised, not batch-deleted |
+| `newDocumentId(in:)` | a Firestore auto id, generated before the write (design 0033). Android: `newDocumentId(inCollection:)` |
+| `loadAsync(from:whereEqualTo:limit:)` | several equality filters and a limit, read from the server — the "pending ticket for this item" check |
+| `loadAsync(from:whereEqualTo:isHidden:orderBy:descending:)` | equality filters plus `hidden ==`, ordered — the user's notification list; needs the `hidden` composite indexes |
+| `anonymiseAsync(id:ownerField:in:)` | `updateData` that deletes the owner field and sets `author_deleted: true`, the only write the anonymise rule allows |
 
 Consequences worth knowing before adding a method:
 
@@ -413,7 +420,7 @@ Consequences worth knowing before adding a method:
   (§ 7), never to allow anything by itself.
 - `validItemId(id)` — `[0-9]{8}|[0-9]{12}|[0-9]{13}` **or** an uppercase-hex hyphenated UUID
   (§ 1.2). Applied to `foodItems` document ids, to `data.id` inside `validFoodItem`, and to
-  `foodItemReports`' `barcode`.
+  `foodItemReports`' `barcode` and `photoSuggestions`' `item_id`.
 - `validFoodItem(data)` — the shared per-field validation: `id` through `validItemId`, the four
   name fields (`cz_name`, `eng_name`, `cz_name_lowercase`, `eng_name_lowercase`,
   `cz_name_folded`, `eng_name_folded`) as strings, the two `*_search_terms` fields as lists, the
@@ -448,21 +455,22 @@ Consequences worth knowing before adding a method:
   author, the latter existing for account deletion, not as a product feature. See
   [design 0009](design/0009-catalogue-moderation.md) for the original rule text and the Rules
   Playground cases it calls out, and ADR 0028 for what changed since.
-- `foodItemReports/{reportId}`: `allow read` is `isMaintainer() || resource.data.reported_by ==
-  request.auth.uid`, the same two-reader shape `foodItemSubmissions` has, plus one branch for a
-  report that does not exist yet: `resource == null && reportId.matches('.*_' + request.auth.uid)`.
-  `resource` is `null` for an absent document, so without that branch the client's *already
-  reported?* read (`FetchMyFoodItemReportUseCase`) would be denied instead of returning not-found;
-  it lets a user probe only ids ending in their own uid. `create` requires the
-  author's own uid and, critically, that `reportId` itself equals
-  `request.resource.data.barcode + '_' + request.auth.uid` — the one rule in the project that
-  validates a document id against a concatenation of two of its own fields. There is **no `update`
-  clause**: a second report from the same user re-submits the same document id, which Firestore
-  routes through `create` while the first is absent and refuses outright while it is still open,
-  since no rule grants it. The client reads its own report first (`loadAsync(id:from:)`) and offers
-  no second report when one exists, rather than writing blind against a rule that would refuse it.
-  `delete` is `isMaintainer() ||` the author, for account deletion, exactly as on
-  `foodItemSubmissions`. See [design 0012](design/0012-report-incorrect-catalogue-data.md).
+- `foodItemReports/{reportId}` (design 0033, which replaced the fixed-id rules of design 0012): `read` is
+  `isMaintainer()` or the owner (`resource.data.get('reported_by', null) == request.auth.uid`); an ownerless
+  ticket is readable only by the maintainer. `create` uses `keys().hasOnly` over `barcode`, `reported_by`,
+  `reported_at`, `reason`, `status`, `locale`, `hidden`, with `status == 'pending'`, `hidden == false`, a
+  `locale` in `cs`/`en`/`sk` and the author's own uid; the id is no longer validated. There are three
+  `update` clauses: the **author** may change only `seen_at` (any number of times, a number) and `hidden`
+  (only to `true`); the **author** may **anonymise** — touch only the owner field (removed) and
+  `author_deleted: true`; the **maintainer** may **resolve** a `pending` ticket once, writing exactly
+  `status` (`accepted` | `rejected`), `response` (1–1000), `resolved_at` and `hidden: false`, so a ticket the
+  author hid while pending comes back. `delete` is the maintainer, or the owner while the ticket is `pending`
+  (*Withdraw*). The old `resource == null` probe branch is gone with the fixed id.
+- `photoSuggestions/{suggestionId}`: the same shape with `suggested_by` / `suggested_at` / `item_id`. `create`
+  additionally requires `photo_url` of at most 1024 characters matching
+  `…photoSuggestions%2F<uid>%2F<item_id>%2F<suggestionId>.jpg`, and a `foodItems` document that exists and has
+  no `photo_url`. No rule lets anyone change `photo_url` after create, so the maintainer's review cannot be
+  swapped from under them.
 - Photos ([design 0022](design/0022-food-photos.md)): `validFoodItem` accepts an optional
   `photo_url` string of at most 1024 characters. A `foodItemSubmissions` `create` and the author's
   `update` additionally require `ownSubmissionPhoto(item)` — `photo_url` must be present and match
@@ -471,17 +479,12 @@ Consequences worth knowing before adding a method:
   may only carry a `catalogPhotos%2F…` URL. **The regexes are anchored to the URL without an explicit
   port**: the Firebase iOS SDK returns `…googleapis.com:443/…`, which the rule refuses with a bare
   `permission-denied`, so `StorageDataProvider.uploadAsync` strips the port before the URL is stored.
-- `photoSuggestions/{suggestionId}` (design 0031): `read` follows the `foodItemReports` shape (maintainer, the
-  author, and the not-found probe of an id ending in the caller's uid). `create` requires id ==
-  `item_id + '_' + uid`, `suggested_by == uid`, a `photo_url` of at most 1024 characters pointing at the
-  author's own `photoSuggestions/<uid>/<item_id>.jpg`, and a `foodItems` document that exists and has no
-  `photo_url`. `update` is denied; `delete` is the maintainer or the author.
-- `backend/storage.rules`, deployed via the same `firebase.json`: `photoSuggestions/{uid}/{itemId}.jpg` is
-  readable/deletable by its owner or a maintainer, creatable only by the owner for a photo-less existing
+- `backend/storage.rules`, deployed via the same `firebase.json`: `photoSuggestions/{uid}/{itemId}/{fileName}`
+  is readable/deletable by its owner or a maintainer, creatable only by the owner for a photo-less existing
   item (a cross-service `firestore.exists()` / `firestore.get()`, which needs the Storage service agent
-  granted Firestore read access). A create is denied while the `photoSuggestions/{itemId}_{uid}`
-  document exists, even if the file itself is gone, so a pending suggestion's photo can never be
-  overwritten or re-uploaded. `submissionPhotos/{uid}/{file}` is
+  granted Firestore read access) under a file name that is a Firestore auto id plus `.jpg`. The old check
+  that no suggestion document exists was removed with the fixed id; the client-side pending check replaces
+  it. `submissionPhotos/{uid}/{file}` is
   readable and deletable by its owner or a maintainer and creatable only by the owner;
   `catalogPhotos/{itemId}/{file}` is readable by any signed-in user and writable/deletable only by a
   maintainer. Every `create` requires `contentType == 'image/jpeg'` and a size under 1 MB. Covered
@@ -498,14 +501,13 @@ Consequences worth knowing before adding a method:
 `backend/firestore.indexes.json`, deployed via the same `firebase.json`, disables single-field
 indexing on `foodItems`' numeric fields via `fieldOverrides` — only `cz_name_lowercase`,
 `eng_name_lowercase`, `cz_name_folded`, `eng_name_folded` and `id` are ever queried, so every
-other field would otherwise be indexed in both directions for no reason. It also carries two
-composite indexes for `foodItemSubmissions` and one for `foodItemReports`, each for a `where` +
-`orderBy` on two different fields, which a single-field index cannot serve. Both submissions indexes are
-in use today: `status` + `submitted_at` serves the maintainer's pending queue and `submitted_by` +
-`submitted_at` serves the user's own submissions list. The `foodItemReports` index (`reported_by` +
-`reported_at`) is not queried by any current client: it was added for `DeleteAccountUseCase`'s old
-sorted query, which the wipe replaced with an unsorted id query, so only older installed clients still
-need it.
+other field would otherwise be indexed in both directions for no reason. It also carries composite
+indexes for a `where` + `orderBy` on two different fields, which a single-field index cannot serve:
+`foodItemSubmissions` (`status` + `submitted_at` for the maintainer's queue, `submitted_by` + `submitted_at` for
+the user's list) and, for each ticket collection (design 0033), the owner + created field (the account-deletion
+lookup, which no longer sorts but keeps the index), the owner + `hidden` + created field (the user's
+notification list) and `status` + created field (the maintainer's queue). Deploy them, and wait until they are
+built, before shipping a client that queries them.
 
 ### 1.7 Wire schema
 
@@ -584,14 +586,22 @@ ingredient (§ 1.4), and with the two renames noted below by `foodConsumed`:
 | | `submitted_at` | number, seconds | yes | unchanged on maintainer update |
 | | `reject_reason` | string | no — written by `RejectSubmissionUseCase` (trimmed) | non-empty on maintainer update |
 | | `item` | a `foodItems` document | yes | `validFoodItem` |
-| **`foodItemReports`** (`FoodItemReportDTO`) | `barcode` | string | yes | `validItemId`; with the uid it composes the document id |
-| | `reported_by` | string, the reporter's uid | yes | equal to `request.auth.uid` |
+| **`foodItemReports`** (`FoodItemReportDTO`, `FoodItemReportCreateDTO`) | `barcode` | string | yes | `validItemId` |
+| | `reported_by` | string, the reporter's uid | yes on create; removed on anonymisation | equal to `request.auth.uid` on create |
 | | `reason` | string | yes | 1–500 characters |
 | | `reported_at` | number, seconds | yes | number |
-| **`photoSuggestions`** (`PhotoSuggestionDTO`) | `item_id` | string | yes | `validItemId`; with the uid it composes the document id |
-| | `suggested_by` | string, the author's uid | yes | equal to `request.auth.uid` |
-| | `photo_url` | string, download URL | yes | ≤ 1024 characters, the author's own suggestion file for `item_id` |
+| | `status` | `pending` \| `accepted` \| `rejected` | yes | `pending` on create; `accepted` / `rejected` on maintainer resolve, once |
+| | `locale` | `cs` \| `en` \| `sk` | yes on create; absent reads as `en` | the app language of the author; selects the language of the pre-filled response |
+| | `hidden` | bool | yes on create | `false` on create; the author sets `true`; the maintainer's resolve writes `false` |
+| | `response` | string | no — set on resolve | 1–1000 UTF-16 units, maintainer only |
+| | `resolved_at` | number, seconds | no — set on resolve | maintainer only |
+| | `seen_at` | number, seconds | no — absent means unread | the author, repeatedly; never sent on create |
+| | `author_deleted` | bool, `true` | no — set on anonymisation | with the owner field removed, nothing else in the same write |
+| **`photoSuggestions`** (`PhotoSuggestionDTO`, `PhotoSuggestionCreateDTO`) | `item_id` | string | yes | `validItemId` |
+| | `suggested_by` | string, the author's uid | yes on create; removed on anonymisation | equal to `request.auth.uid` on create |
+| | `photo_url` | string, download URL | yes | ≤ 1024 characters, must contain `…%2F<uid>%2F<item_id>%2F<suggestionId>.jpg`; never changes |
 | | `suggested_at` | number, seconds | yes | number |
+| | `status`, `locale`, `hidden`, `response`, `resolved_at`, `seen_at`, `author_deleted` | | | as on `foodItemReports` |
 | **`config/app`** (`AppConfigDTO`) | `min_version_ios` | string, e.g. `1.0.1` | no — absent means no minimum | writes denied; edited in the console |
 | | `min_version_android` | string, e.g. `1.0.1` | no — absent means no minimum | writes denied; edited in the console |
 
@@ -602,7 +612,7 @@ Written by: `foodItems` — `CreateFoodItemUseCase` (only via `ApproveSubmission
 `CreateMealTypeUseCase`, `UpdateMealTypeTimesUseCase`; `foodItemPortions` —
 `SaveFoodItemPersonalPortionsUseCase`; `users/{userId}` — `SignInWithAppleUseCase`,
 `SignInWithGoogleUseCase`; `foodItemSubmissions` — `SubmitFoodItemUseCase` (create),
-`RejectSubmissionUseCase` (maintainer update); `foodItemReports` — `SubmitFoodItemReportUseCase`;
+`RejectSubmissionUseCase` (maintainer update); `foodItemReports` — `SubmitFoodItemReportUseCase` (create), `ResolveFoodItemReportUseCase` (maintainer resolve); `photoSuggestions` — `SubmitPhotoSuggestionUseCase` (create), `ApprovePhotoSuggestionUseCase` and `RejectPhotoSuggestionUseCase` (maintainer resolve); both — `MarkUserNotificationSeenUseCase`, `HideUserNotificationUseCase`, `WithdrawUserNotificationUseCase` (author) and `DeleteAccountUseCase` (anonymise);
 `config/app` — nobody in the app, only the Firebase Console.
 
 `AppConfigDTO` is the one DTO that decodes leniently: a field whose type is not a string (a number
@@ -1961,8 +1971,10 @@ itself throwing `requiresRecentLogin`. That second path still exists as a fallba
 where the session goes stale between the check and the call, and is distinguished by
 `dataAlreadyDeleted: true` so `AccountViewModel.performDelete` knows whether a retry needs to wipe
 Firestore again. The wipe itself deletes `mealTypes`, `foodConsumed`, `favouriteFoods`,
-`myCreatedMeals`, `foodItemPortions`, `bodyWeights`, the `settings/app`, `settings/goals` and `stats/foodFrequency` documents, the user's own `foodItemSubmissions`, `foodItemReports` and `photoSuggestions` documents (found by `submitted_by` / `reported_by` / `suggested_by`) and the
-`submissionPhotos/{uid}/` and `photoSuggestions/{uid}/` folders. The `mergedAnonymousAccounts` markers are deliberately kept: they carry no personal data and let
+`myCreatedMeals`, `foodItemPortions`, `bodyWeights`, the `settings/app`, `settings/goals` and `stats/foodFrequency` documents, the user's own `foodItemSubmissions` documents (found by `submitted_by`) and the
+`submissionPhotos/{uid}/` folder. The user's `foodItemReports` and `photoSuggestions` tickets are **anonymised, not deleted**
+(`anonymiseAsync` per ticket found by `reported_by` / `suggested_by`): the maintainer's record of what changed in the catalogue stays, a pending photo
+and its file stay and can still be approved, and only the link to the account goes. If an anonymisation fails, the Auth user is not deleted so the deletion can be retried. The `mergedAnonymousAccounts` markers are deliberately kept: they carry no personal data and let
 the cleanup script still find the abandoned anonymous accounts after the target account is gone. The `users` profile document goes last — the profile delete
 alone is wrapped in `Log.error` rather than rethrown, since a stray profile document left behind is
 not the kind of correctness problem an orphaned collection would be.
@@ -2015,7 +2027,7 @@ validation fixture the submission and approval paths share with the rules.
 
 ### 7.1 What exists
 
-Ten submission/moderation use cases plus four report ones, all `FirestoreDataProviderProtocol` +
+Ten submission/moderation use cases plus the ticket ones (reports, photo suggestions, notifications — § 7.6, § 7.7), all `FirestoreDataProviderProtocol` +
 `AuthProviderProtocol` except `FetchMaintainerClaimUseCase` (§ 7.3, which touches `FirebaseAuth`
 directly and takes neither):
 
@@ -2030,10 +2042,13 @@ directly and takes neither):
 | `RejectSubmissionUseCase` | overwrites the submission with `status: rejected` and a reason — `setAsync` replaces, so every other field is resent unchanged; a denied write is re-read to tell "already resolved" apart from "resubmitted since review" (ADR 0029) |
 | `UpdateFoodItemUseCase` | the maintainer's correction of an existing `foodItems` entry; same `FoodItemValidation`, no existence check |
 | `FetchMaintainerClaimUseCase` | reads the `maintainer` custom claim via `getIDTokenResult()` |
-| `SubmitFoodItemReportUseCase` | validates the reason, writes under the composed `{barcode}_{userId}` id (§ 7.6) |
-| `FetchMyFoodItemReportUseCase` | reads the caller's own report for one barcode, by key — the *already reported* check |
-| `FetchFoodItemReportsUseCase` | the maintainer's report queue, ordered by `reported_at` |
-| `DeleteFoodItemReportUseCase` | the maintainer clears one report, by its composed key, after correcting or dismissing it |
+| `SubmitFoodItemReportUseCase` | validates the reason, writes a new pending ticket under a generated id with the app `locale` (§ 7.6) |
+| `FetchMyFoodItemReportUseCase` | the caller's **pending** report for one barcode (equality query, limit 1) — the *already reported* check |
+| `FetchFoodItemReportsUseCase` | the maintainer's queue: pending reports, newest first, no page limit |
+| `ResolveFoodItemReportUseCase` | the maintainer resolves one report with a status and a mandatory response; replaces the old delete |
+| `TicketResolutionWriter` | shared by the three resolving use cases: validates the response (trimmed, non-empty, ≤ 1000 UTF-16 units) and writes `status`, `response`, `resolved_at`, `hidden: false` |
+| `SubmitPhotoSuggestionUseCase`, `FetchMyPhotoSuggestionUseCase`, `FetchPhotoSuggestionsUseCase`, `ApprovePhotoSuggestionUseCase`, `RejectPhotoSuggestionUseCase` | the photo-ticket equivalents (§ 7.7) |
+| `FetchUserNotificationsUseCase`, `MarkUserNotificationSeenUseCase`, `HideUserNotificationUseCase`, `WithdrawUserNotificationUseCase` | the author's side of a ticket (§ 7.7) |
 
 ### 7.2 The submission flow (AddFoodSheet)
 
@@ -2098,7 +2113,7 @@ submission row and goes somewhere else:
   `UpdateFoodItemUseCase`. This is the correction path [design 0008](design/0008-food-portions.md)
   deferred here, since canonical portions were write-once purely for lack of an `update` rule. Also
   reachable with a barcode already supplied — see § 7.6.
-- **`ModerationReportsView`** (§ 7.6) — the report queue, grouped by barcode.
+- **`ModerationReportsView`** (§ 7.6) — the report queue, one row per pending ticket.
 
 ### 7.4 What this does not do
 
@@ -2184,36 +2199,32 @@ affordance: neither is a `foodItems` entry a report could point the maintainer a
 
 `FoodItemReporting` (`Core/Utils/`) is the third protocol-extension pair sharing state across two
 view models, the same shape as `FavouriteToggling` (§ 4.6) and `NutritionLabelPrefilling` (§ 7.5):
-`onAppear()` loads whether the current user already has an open report for this barcode
-(`FetchMyFoodItemReportUseCase`, one document read by the composed `{barcode}_{userId}` key — no
-query), and the toolbar menu offers *Report incorrect data* or a disabled *Already reported*
-accordingly. Submitting (`SubmitFoodItemReportUseCase`) validates the reason is non-empty and at
-most `Constants.Firestore.reportReasonMaxLength` (500) characters, then `setAsync`s under that same composed key — a
-second report from the same user replaces rather than duplicates, which is what the key shape buys
-over `foodItemSubmissions`' UUID (§ 1.2): one open report per user per item, enforced by the rules
-having no `update` clause to fall back on rather than by client-side counting.
+`onAppear()` loads whether the current user already has a **pending** report for this barcode
+(`FetchMyFoodItemReportUseCase`, an equality query on `reported_by`, `barcode` and `status == 'pending'` with a limit of 1),
+and the toolbar menu offers *Report incorrect data* or a disabled *Already reported* accordingly. A
+resolved report does not block a new one. Submitting (`SubmitFoodItemReportUseCase`) validates the reason is
+non-empty and at most `Constants.Firestore.reportReasonMaxLength` (500) UTF-16 units, then writes a new ticket
+under a generated id. The rules cannot enforce "one pending report per user and item" (they cannot check that
+no other pending document exists), so a modified client can create a duplicate; the maintainer sees one more
+ticket and rejects it ([design 0033](design/0033-user-notifications-for-own-reports-and-photos.md)).
 
 `ModerationReportsView` / `ModerationReportsViewModel` (§ 7.3) is the maintainer's queue:
-`FetchFoodItemReportsUseCase` loads the whole collection ordered by `reported_at`, and the view
-model groups the result by barcode client-side — `Dictionary(grouping:by:)` over an already-loaded
-list, not a second query — so two different users reporting the same item collapse into one row
-showing a count, sorted with the most-reported item first. Names resolve through the same
-`FetchFoodItemByBarcodeUseCase.callAsFunction(barcodes:)` batched lookup `ModerationQueueViewModel`
-already uses for its own collision check; a barcode that resolves to nothing still renders, as the
-bare barcode, since the report is still clearable. Tapping a row pushes
-`ModerationCatalogueEditorView` pre-loaded with that barcode (`initialBarcode`, resolved in its own
-`onAppear()`) — reporting adds no correction UI of its own, it only routes to the one design 0009
-already built. Resolving is a swipe action that calls `DeleteFoodItemReportUseCase` once per report
-in the group; a partial failure leaves the rest, the same visible, idempotent shape design 0009
-accepted for approval's own two non-transactional writes.
+`FetchFoodItemReportsUseCase` loads the **pending** tickets, newest first, with no page limit, and the list shows
+**one row per ticket** — no grouping by barcode, so two reports about different fields of one item are two rows
+and are answered separately. A row shows the item name (the same batched
+`FetchFoodItemByBarcodeUseCase` lookup; a barcode that resolves to nothing renders as the bare barcode) and the
+reason. Tapping it pushes `ModerationCatalogueEditorView` opened with that one ticket: it shows the ticket's note
+and **two** actions, *Save and resolve* and *Reject*; plain *Save* is shown only when the editor is opened from
+the queue toolbar without a ticket. *Save and resolve* saves the item first and opens the response sheet only on
+success, pre-filled with `moderation_response_report_accepted` **in the ticket's `locale`** (iOS: the
+`<locale>.lproj` bundle; Android: `createConfigurationContext` with that locale), not the maintainer's language.
+*Reject* opens the same sheet empty. *Send* is disabled while the trimmed text is empty and writes
+`ResolveFoodItemReportUseCase(ticketId:status:response:)`: `status`, `response`, `resolved_at` and `hidden: false`.
+If the ticket write fails the item stays saved, the ticket stays pending and the sheet stays open for a retry.
 
-There is no `status` field and no retained "resolved" record — a report is deleted once acted on,
-the same reasoning [design 0009](design/0009-catalogue-moderation.md) gave for not retaining
-approved submissions. `DeleteAccountUseCase.wipeFirestoreData` loads the ids of `foodItemReports where
-reported_by == uid` and deletes each, the same privacy obligation `foodItemSubmissions` already
-carries. The composite index on `reported_by` + `reported_at` (§ 1.6) was added for that query's
-`orderBy`; the wipe no longer sorts, so the index only serves older installed clients and can go
-once none of them remain.
+A report is **kept** after resolution, with its status and the maintainer's response, so its author can read the
+outcome (§ 7.7). Account deletion anonymises it (§ 6.3). This reverses design 0012's *No status field* and its
+*delete once acted on* flow.
 
 See [design 0012](design/0012-report-incorrect-catalogue-data.md) for why this is a signal
 collection rather than a second write path into `foodItems` — routing a correction through
@@ -2230,28 +2241,57 @@ A `.catalogue` item without `photo_url` shows an empty photo pill in the toolbar
 `FoodConsumedDetailView`. The pill state (`FoodPhotoPillState`) is decided only after the catalogue item has
 been fetched (`FoodPhotoSuggesting`), never from a favourite or frequency snapshot, which keeps a stale
 `photo_url`. Tapping it runs the photo pipeline (`FoodPhotoProcessing`) and `SubmitPhotoSuggestionUseCase`,
-which clears the author's own fixed-path file, uploads to `photoSuggestions/{uid}/{itemId}.jpg`, writes
-`photoSuggestions/{itemId}_{uid}` and deletes the file again if that write fails, unless a re-read shows
-that the document was committed anyway. Clearing the path first is needed because Storage denies a
-create while the suggestion document exists (§ 2). A suggestion is pending while its document exists;
-approve and reject both delete it. The pill uses the same photo-source flow as the submission form
+which generates the ticket id, uploads to `photoSuggestions/{uid}/{itemId}/{suggestionId}.jpg`, writes
+the ticket and deletes the file again if that write fails. As with reports, only a **pending** suggestion for the item blocks a new one
+(`FetchMyPhotoSuggestionUseCase`). A suggestion is a ticket (§ 1.4, design 0033): approve and reject **resolve** it
+with a mandatory response instead of deleting it. The pill uses the same photo-source flow as the submission form
 (`foodPhotoSource`, § 7.2).
 
 The maintainer reviews in `ModerationPhotoSuggestionView` (Settings → *Photo suggestions*, or the bell).
-`ApprovePhotoSuggestionUseCase` refuses an item that already has a photo, copies the photo into
-`catalogPhotos` through `UpdateFoodItemUseCase` (the catalogue never links into the private suggestion
-folder) and then removes every user's suggestion for that item (best effort: a failure is logged, and the
-leftover row can only be rejected). Every suggestion removal (approve, reject, `PhotoSuggestionRemover`)
-and account deletion delete files through `StorageDataProviderProtocol.deleteIgnoringMissing`. A file
-that is already gone (`objectNotFound`) is skipped so it cannot keep its document alive. Any other Storage
-error is rethrown and the document is kept, so the removal can be retried.
+*Approve* and *Reject* open the shared response sheet (`ModerationResponseSheet`, also used by the report editor).
+*Approve* pre-fills `moderation_response_photo_accepted` in the ticket's `locale`; *Reject* starts empty; *Send* is
+disabled while the trimmed text is empty. `ApprovePhotoSuggestionUseCase` validates the response first, then copies the
+photo into `catalogPhotos` through `UpdateFoodItemUseCase`, **replacing the item's current photo if it has one**
+(the catalogue never links into the private suggestion folder), writes the resolution through
+`TicketResolutionWriter` and deletes the suggestion file (a failure is logged and leaves an orphaned file).
+Other users' pending suggestions for the item are **left alone**. `RejectPhotoSuggestionUseCase` writes the
+resolution and then deletes the file. Neither deletes the document. Files are deleted through
+`StorageDataProviderProtocol.deleteIgnoringMissing` by the stored `photo_url` (`PhotoSuggestionRemover`),
+because an anonymised ticket has no uid to build a path from; a file that is already gone is skipped, any other
+Storage error is rethrown. A resolved photo has no preview, since its file is deleted.
 
-`NotificationBellViewModel` shows a bell in the Dashboard toolbar for a maintainer; its dot is
-`FetchHasPendingNotificationsUseCase` (three `count()` aggregations, any error means no dot). The claim and
-the dot are refreshed together on appear and foreground, the dot alone on dismissal of the bell sheet or of Settings. The sheet (`NotificationsView`) lists waiting submissions, reports
-(grouped per item) and photo suggestions, oldest first (a report row dates from its oldest report), and
-pushes the existing review screens. `FetchPhotoSuggestionsUseCase` loads the oldest `reportsPageLimit` (50)
-suggestions; the bell sheet and Settings → *Photo suggestions* both show them oldest first.
+`NotificationBellViewModel` is shown to **every** user; `isMaintainer` (from `FetchMaintainerClaimUseCase`, `false`
+when the lookup fails) decides which sheet and which dot. For a maintainer the dot is
+`FetchHasPendingNotificationsUseCase` (three `count()` aggregations, any error means no dot) and the sheet
+(`NotificationsView`) lists waiting submissions, reports and photo suggestions, **one row per ticket**, oldest first,
+and pushes the existing review screens; a resolved row is removed through a single `onRowResolved` callback. The
+claim and the dot are refreshed together on appear and foreground, the dot alone on dismissal of the bell sheet or
+of Settings, of the add-food sheet and when the Dashboard reappears after a pushed screen is popped.
+
+**User notifications** ([design 0033](design/0033-user-notifications-for-own-reports-and-photos.md)). For a
+non-maintainer the same `NotificationsView` / `NotificationsViewModel` lists the user's own tickets,
+`FetchUserNotificationsUseCase`: two concurrent queries, `reported_by == uid && hidden == false` by `reported_at` and the
+same for suggestions, merged and sorted by `lastEventAt = resolvedAt ?? createdAt`, newest first. A ticket is shown
+until the user hides it, not only while pending. A row has a kind icon, the item name, a state label (*Pending*,
+*Resolved* / *Approved*, *Rejected*) and a dot while unread; its id is `<collection>/<documentId>`, because ids of
+the two collections can collide. **Unread** is `seen_at == nil || seen_at < lastEventAt`, so a resolution makes a
+notification unread again. Opening the detail calls `MarkUserNotificationSeenUseCase`, which writes `seen_at` only
+when the notification is unread (repeated writes are allowed). The detail shows the state, the sent photo only
+while pending, the message "I will look at your…" only while pending, the sent date, the note of a report and,
+once resolved, the response and the resolution date.
+
+*Hide* is a swipe (iOS swipe action, Android `RevealingSwipeToDeleteRow`) and writes `hidden: true`
+(`HideUserNotificationUseCase`); the row disappears at once and is restored in place with an error alert if the
+write fails. The maintainer's resolve writes `hidden: false`, so a ticket hidden while pending comes back,
+unread; one hidden after resolution stays hidden. *Withdraw* exists only while pending, with a confirmation
+(`WithdrawUserNotificationUseCase`): a report document is deleted; for a photo the file is deleted first
+(a missing file is fine, another failure keeps the document), then the document. `PERMISSION_DENIED` means the
+maintainer resolved the ticket meanwhile and becomes `alreadyResolved`: the list reloads and the detail closes.
+
+To avoid two reads on every Dashboard appearance, a device-local `UserNotificationsStore` (keyed by uid) gates
+the query: it runs only after a report or photo was submitted (`mayHaveUnread`), while something may be unread,
+or when the last check is over 24 hours old; pull to refresh bypasses the gate. A resolution by the maintainer is
+invisible to the gate, so it reaches the user within 24 hours or at once after a pull to refresh.
 
 `FetchMaintainerClaimUseCase` reads the `maintainer` claim through `AuthProviderProtocol.maintainerClaim`
 and caches it in one `MaintainerClaimCache`. `KalorieApp` creates that cache, and the bell and Settings
