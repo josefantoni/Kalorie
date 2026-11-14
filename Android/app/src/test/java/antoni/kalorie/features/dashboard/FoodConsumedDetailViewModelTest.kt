@@ -4,9 +4,9 @@ import antoni.kalorie.components.FoodPhotoPillState
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
-import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemReportError
 import antoni.kalorie.core.models.MealTypeDomain
+import antoni.kalorie.core.networking.makeReport
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.AssignFoodMealTypeUseCaseFake
@@ -78,7 +78,7 @@ class FoodConsumedDetailViewModelTest {
         val sut = makeSUT(
             food = makeFood(kind = FoodItemKind.CATALOGUE),
             fetchMyFoodItemReport = FetchMyFoodItemReportUseCaseFake(
-                stubbedReport = FoodItemReportDomain(barcode = "12345", reportedBy = "test-user-id", reason = "wrong", reportedAt = Instant.now()),
+                stubbedReport = makeReport(barcode = "12345"),
             ),
         )
 

@@ -8,7 +8,7 @@ data class ApprovePhotoSuggestionUseCaseFake(
 
     // MARK: - Functions
 
-    override suspend fun invoke(suggestion: PhotoSuggestionDomain) {
+    override suspend fun invoke(suggestion: PhotoSuggestionDomain, response: String) {
         errorToThrow?.let { throw it }
     }
 }

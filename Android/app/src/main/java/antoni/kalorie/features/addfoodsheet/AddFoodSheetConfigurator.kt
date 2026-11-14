@@ -43,6 +43,7 @@ import antoni.kalorie.features.foodquantity.FoodQuantityUnit
 import antoni.kalorie.features.foodquantity.FoodQuantityView
 import antoni.kalorie.features.foodquantity.FoodQuantityViewModel
 import antoni.kalorie.features.mycreatedmeal.MyCreatedMealEditorConfigurator
+import antoni.kalorie.features.notifications.UserNotificationsStore
 import java.time.Instant
 
 class AddFoodSheetConfigurator(
@@ -57,6 +58,7 @@ class AddFoodSheetConfigurator(
     @Composable
     fun createView(date: Instant, mealTypes: List<MealTypeDomain>, onDismiss: () -> Unit, onFoodSaved: () -> Unit = {}) {
         val context = LocalContext.current.applicationContext
+        val notificationsStore = remember { UserNotificationsStore(context, authProvider) }
         val stringProvider = remember { ContextStringProvider(context) }
         val contributionHintStore = remember {
             HintVisibilityStore(
@@ -109,9 +111,9 @@ class AddFoodSheetConfigurator(
                         fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
                         fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                         fetchMyFoodItemReport = FetchMyFoodItemReportUseCase(dataProvider, authProvider),
-                        submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider),
+                        submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider, notificationsStore),
                         fetchMyPhotoSuggestion = FetchMyPhotoSuggestionUseCase(dataProvider, authProvider),
-                        submitPhotoSuggestion = SubmitPhotoSuggestionUseCase(dataProvider, authProvider, StorageDataProvider()),
+                        submitPhotoSuggestion = SubmitPhotoSuggestionUseCase(dataProvider, authProvider, StorageDataProvider(), notificationsStore),
                         meal = meal,
                         updateMyCreatedMeal = UpdateMyCreatedMealUseCase(dataProvider, authProvider),
                         onSaved = onSaved,

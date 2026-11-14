@@ -6,9 +6,10 @@ import antoni.kalorie.components.FoodItemFormField
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemReportDomain
+import antoni.kalorie.core.models.TicketStatus
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
-import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
+import antoni.kalorie.core.usecases.ResolveFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodItemError
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseProtocol
 import antoni.kalorie.core.utils.AlertItem
@@ -29,18 +30,18 @@ import kotlinx.coroutines.launch
 class ModerationCatalogueEditorViewModel(
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
     private val updateFoodItem: UpdateFoodItemUseCaseProtocol,
-    private val deleteFoodItemReport: DeleteFoodItemReportUseCaseProtocol,
-    private val initialBarcode: String? = null,
-    reports: List<FoodItemReportDomain> = emptyList(),
+    private val resolveFoodItemReport: ResolveFoodItemReportUseCaseProtocol,
+    private val responseTextProvider: ModerationResponseTextProviderProtocol,
+    val ticket: FoodItemReportDomain? = null,
     private val applicationScope: CoroutineScope,
-    private val onReportsChanged: (List<FoodItemReportDomain>) -> Unit = {},
+    private val onResolved: () -> Unit = {},
 ) : ViewModel(),
     NutritionLabelPrefilling {
 
     // MARK: - Properties
 
-    val isOpenedFromReport: Boolean = initialBarcode != null
-    val barcodeQuery = MutableStateFlow(initialBarcode ?: "")
+    val isOpenedFromReport: Boolean = ticket != null
+    val barcodeQuery = MutableStateFlow(ticket?.barcode ?: "")
     private val _loadedItem = MutableStateFlow<FoodItemDomain?>(null)
     val loadedItem: StateFlow<FoodItemDomain?> = _loadedItem
     override val formInput = MutableStateFlow(FoodItemFormInput())
@@ -52,15 +53,16 @@ class ModerationCatalogueEditorViewModel(
     val alertItem = MutableStateFlow<AlertItem?>(null)
     private val _showCheckmark = MutableStateFlow(false)
     val showCheckmark: StateFlow<Boolean> = _showCheckmark
-    private val _reports = MutableStateFlow(reports)
-    val reports: StateFlow<List<FoodItemReportDomain>> = _reports
+    val responseDraft = MutableStateFlow<ModerationResponseDraft?>(null)
+    private val _isSendingResponse = MutableStateFlow(false)
+    val isSendingResponse: StateFlow<Boolean> = _isSendingResponse
     private val _shouldDismiss = MutableStateFlow(false)
     val shouldDismiss: StateFlow<Boolean> = _shouldDismiss
 
     // MARK: - Functions
 
     suspend fun onAppear() {
-        val barcode = initialBarcode ?: return
+        val barcode = ticket?.barcode ?: return
         if (_loadedItem.value != null) return
         barcodeQuery.value = barcode
         onSearchTapped()
@@ -111,16 +113,62 @@ class ModerationCatalogueEditorViewModel(
     }
 
     suspend fun onSaveAndResolveTapped() {
+        val ticket = ticket ?: return
         if (_state.value.isLoading) return
-        runInApplicationScope {
-            if (!save()) return@runInApplicationScope
-            resolveReports()
-        }
+        var isSaved = false
+        runInApplicationScope { isSaved = save() }
+        if (!isSaved) return
+        responseDraft.value = ModerationResponseDraft(
+            status = TicketStatus.ACCEPTED,
+            text = responseTextProvider.reportAccepted(ticket.locale),
+        )
     }
 
-    suspend fun onRejectTapped() {
-        if (_state.value.isLoading) return
-        runInApplicationScope { resolveReports() }
+    fun onRejectTapped() {
+        if (ticket == null || _state.value.isLoading) return
+        responseDraft.value = ModerationResponseDraft(status = TicketStatus.REJECTED, text = "")
+    }
+
+    fun onResponseTextChanged(text: String) {
+        responseDraft.value = responseDraft.value?.copy(text = text)
+    }
+
+    fun onResponseErrorDismissed() {
+        responseDraft.value = responseDraft.value?.copy(errorTitleRes = null)
+    }
+
+    fun onResponseDismissed() {
+        if (_isSendingResponse.value) return
+        responseDraft.value = null
+    }
+
+    suspend fun onResponseSendTapped() {
+        val ticket = ticket ?: return
+        val draft = responseDraft.value ?: return
+        if (!draft.isSendable || _isSendingResponse.value) return
+        _isSendingResponse.value = true
+        var isResolved = false
+        try {
+            runInApplicationScope {
+                try {
+                    resolveFoodItemReport(ticket.id, draft.status, draft.text)
+                    isResolved = true
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.error(error, Constants.LogCategory.MODERATION)
+                }
+            }
+        } finally {
+            _isSendingResponse.value = false
+        }
+        if (!isResolved) {
+            responseDraft.value = responseDraft.value?.copy(errorTitleRes = R.string.common_error_unknown)
+            return
+        }
+        responseDraft.value = null
+        onResolved()
+        _shouldDismiss.value = true
     }
 
     // MARK: - Private
@@ -159,32 +207,6 @@ class ModerationCatalogueEditorViewModel(
 
     private suspend fun runInApplicationScope(block: suspend () -> Unit) {
         applicationScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }.join()
-    }
-
-    private suspend fun resolveReports() {
-        _state.value = LoadingState.Loading
-        try {
-            val remainingReports = mutableListOf<FoodItemReportDomain>()
-            for (report in _reports.value) {
-                try {
-                    deleteFoodItemReport(report.barcode, report.reportedBy)
-                } catch (error: CancellationException) {
-                    throw error
-                } catch (error: Exception) {
-                    Log.error(error, Constants.LogCategory.MODERATION)
-                    remainingReports += report
-                }
-            }
-            _reports.value = remainingReports
-            onReportsChanged(remainingReports)
-            if (remainingReports.isNotEmpty()) {
-                alertItem.value = AlertItem(titleRes = R.string.common_error_unknown)
-                return
-            }
-            _shouldDismiss.value = true
-        } finally {
-            _state.value = LoadingState.loaded
-        }
     }
 
     private companion object {

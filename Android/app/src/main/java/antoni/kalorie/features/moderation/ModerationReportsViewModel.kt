@@ -14,13 +14,13 @@ import antoni.kalorie.core.utils.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.time.Instant
 
-data class ReportGroup(
-    val barcode: String,
+data class ReportRow(
+    val report: FoodItemReportDomain,
     val itemName: String?,
-    val reports: List<FoodItemReportDomain>,
-)
+) {
+    val id: String get() = report.id
+}
 
 class ModerationReportsViewModel(
     private val fetchFoodItemReports: FetchFoodItemReportsUseCaseProtocol,
@@ -31,8 +31,8 @@ class ModerationReportsViewModel(
 
     private val _state = MutableStateFlow<LoadingState<Unit>>(LoadingState.Idle)
     val state: StateFlow<LoadingState<Unit>> = _state
-    private val _groups = MutableStateFlow<List<ReportGroup>>(emptyList())
-    val groups: StateFlow<List<ReportGroup>> = _groups
+    private val _rows = MutableStateFlow<List<ReportRow>>(emptyList())
+    val rows: StateFlow<List<ReportRow>> = _rows
     val alertItem = MutableStateFlow<AlertItem?>(null)
     val backStack = mutableStateListOf<ModerationReportsDestination>(ModerationReportsDestination.Reports)
 
@@ -41,56 +41,40 @@ class ModerationReportsViewModel(
     suspend fun onAppear() {
         _state.value = LoadingState.Loading
         try {
-            val reports = fetchFoodItemReports()
-            _groups.value = grouped(reports)
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Log.error(error, Constants.LogCategory.MODERATION)
-            alertItem.value = AlertItem(titleRes = R.string.common_error_unknown)
+            load()
         } finally {
             _state.value = LoadingState.loaded
         }
     }
 
     suspend fun onRefresh() {
-        onAppear()
+        load()
     }
 
-    fun onGroupReportsChanged(barcode: String, remaining: List<FoodItemReportDomain>) {
-        _groups.value = _groups.value.mapNotNull { group ->
-            when {
-                group.barcode != barcode -> group
-                remaining.isEmpty() -> null
-                else -> group.copy(reports = remaining)
-            }
-        }
+    fun onReportResolved(id: String) {
+        _rows.value = _rows.value.filterNot { it.id == id }
     }
 
     // MARK: - Private
 
-    private suspend fun grouped(reports: List<FoodItemReportDomain>): List<ReportGroup> {
-        val barcodes = reports.map { it.barcode }.distinct()
-        val items = try {
-            fetchFoodItemByBarcode(barcodes)
+    private suspend fun load() {
+        try {
+            val reports = fetchFoodItemReports()
+            val items = try {
+                fetchFoodItemByBarcode(reports.map { it.barcode }.distinct())
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.warning(error, Constants.LogCategory.MODERATION)
+                emptyList()
+            }
+            val namesByBarcode = buildMap { items.forEach { putIfAbsent(it.id, it.displayName) } }
+            _rows.value = reports.map { ReportRow(it, namesByBarcode[it.barcode]) }
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Log.warning(error, Constants.LogCategory.MODERATION)
-            emptyList()
+            Log.error(error, Constants.LogCategory.MODERATION)
+            alertItem.value = AlertItem(titleRes = R.string.common_error_unknown)
         }
-        val namesByBarcode = buildMap { items.forEach { putIfAbsent(it.id, it.displayName) } }
-        return reports.groupBy { it.barcode }
-            .map { (barcode, barcodeReports) ->
-                ReportGroup(
-                    barcode = barcode,
-                    itemName = namesByBarcode[barcode],
-                    reports = barcodeReports.sortedByDescending { it.reportedAt },
-                )
-            }
-            .sortedWith(
-                compareByDescending<ReportGroup> { it.reports.size }
-                    .thenByDescending { it.reports.firstOrNull()?.reportedAt ?: Instant.MIN },
-            )
     }
 }

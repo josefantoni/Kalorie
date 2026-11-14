@@ -6,6 +6,7 @@ import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.PhotoSuggestionDomain
+import antoni.kalorie.core.models.TicketStatus
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCaseProtocol
@@ -13,6 +14,10 @@ import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCaseFake
 import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchPhotoSuggestionsUseCaseFake
 import antoni.kalorie.core.usecases.FetchPhotoSuggestionsUseCaseProtocol
+import antoni.kalorie.core.usecases.FetchUserNotificationsUseCaseFake
+import antoni.kalorie.core.usecases.HideUserNotificationUseCaseFake
+import antoni.kalorie.core.usecases.MarkUserNotificationSeenUseCaseFake
+import antoni.kalorie.core.usecases.WithdrawUserNotificationUseCaseFake
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -28,26 +33,26 @@ class NotificationsViewModelTest {
     @Test
     fun onAppear_whenEverySourceSucceeds_showsAllRowsAndNoAlert() = runTest {
         val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport("111"))),
-            fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions = listOf(makeSuggestion("222"))),
+            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport("r111", "111"))),
+            fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions = listOf(makeSuggestion("p222", "222"))),
         )
 
         sut.onAppear()
 
-        assertEquals(setOf("report-111", "photo-222_alice"), sut.rows.value.map { it.id }.toSet())
+        assertEquals(setOf("report-r111", "photo-p222"), sut.rows.value.map { it.id }.toSet())
         assertNull(sut.alertItem.value)
     }
 
     @Test
     fun onAppear_whenPhotoSuggestionsFail_stillShowsReportsAndAlerts() = runTest {
         val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport("111"))),
+            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport("r111", "111"))),
             fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(shouldThrow = true),
         )
 
         sut.onAppear()
 
-        assertEquals("one failing query (e.g. rules or index not deployed yet) must not hide what the other sources loaded", listOf("report-111"), sut.rows.value.map { it.id })
+        assertEquals("one failing query (e.g. rules or index not deployed yet) must not hide what the other sources loaded", listOf("report-r111"), sut.rows.value.map { it.id })
         assertNotNull(sut.alertItem.value)
     }
 
@@ -55,12 +60,12 @@ class NotificationsViewModelTest {
     fun onAppear_whenReportsFail_stillShowsPhotoSuggestionsAndAlerts() = runTest {
         val sut = makeSUT(
             fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(shouldThrow = true),
-            fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions = listOf(makeSuggestion("222"))),
+            fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions = listOf(makeSuggestion("p222", "222"))),
         )
 
         sut.onAppear()
 
-        assertEquals(listOf("photo-222_alice"), sut.rows.value.map { it.id })
+        assertEquals(listOf("photo-p222"), sut.rows.value.map { it.id })
         assertNotNull(sut.alertItem.value)
     }
 
@@ -80,9 +85,9 @@ class NotificationsViewModelTest {
 
     @Test
     fun onRefresh_whenPhotoSuggestionsFailAfterALoad_keepsTheRowsAlreadyShownAndAlerts() = runTest {
-        val suggestions = SwitchableFetchPhotoSuggestions(listOf(makeSuggestion("222")))
+        val suggestions = SwitchableFetchPhotoSuggestions(listOf(makeSuggestion("p222", "222")))
         val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport("111"))),
+            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport("r111", "111"))),
             fetchPhotoSuggestions = suggestions,
         )
         sut.onAppear()
@@ -90,85 +95,72 @@ class NotificationsViewModelTest {
 
         sut.onRefresh()
 
-        assertEquals("a failed refresh must not make the maintainer read the queue as empty", setOf("report-111", "photo-222_alice"), sut.rows.value.map { it.id }.toSet())
+        assertEquals("a failed refresh must not make the maintainer read the queue as empty", setOf("report-r111", "photo-p222"), sut.rows.value.map { it.id }.toSet())
         assertNotNull(sut.alertItem.value)
     }
 
     @Test
-    fun onReportRowChanged_withRemainingReports_keepsTheRowWithOnlyThose() = runTest {
-        val sut = makeSUT(fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport("111"), makeReport("111"))))
+    fun onAppear_showsOneRowPerReport_evenForTheSameItem() = runTest {
+        val sut = makeSUT(
+            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(
+                stubbedReports = listOf(makeReport("a", "111", day(1)), makeReport("b", "111", day(2))),
+            ),
+        )
+
         sut.onAppear()
 
-        sut.onReportRowChanged("report-111", listOf(makeReport("111")))
-
-        val kind = sut.rows.value.single().kind as NotificationRow.Kind.Report
-        assertEquals(1, kind.reports.size)
+        assertEquals("two reports about different fields are answered separately", listOf("report-a", "report-b"), sut.rows.value.map { it.id })
     }
 
     @Test
-    fun onReportRowChanged_withNoRemainingReports_removesTheRow() = runTest {
-        val sut = makeSUT(fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport("111"))))
+    fun onRowResolved_forAReport_removesOnlyThatTicketsRow() = runTest {
+        val sut = makeSUT(
+            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(
+                stubbedReports = listOf(makeReport("a", "111", day(1)), makeReport("b", "111", day(2))),
+            ),
+        )
         sut.onAppear()
 
-        sut.onReportRowChanged("report-111", emptyList())
+        sut.onRowResolved("report-a")
 
-        assertTrue(sut.rows.value.isEmpty())
+        assertEquals(listOf("report-b"), sut.rows.value.map { it.id })
     }
 
     @Test
-    fun onAppear_sortsRowsOldestFirst_andDatesAReportGroupByItsOldestReport() = runTest {
+    fun onAppear_sortsRowsOldestFirst() = runTest {
         val sut = makeSUT(
             fetchPendingSubmissions = FetchPendingSubmissionsUseCaseFake(stubbedSubmissions = listOf(makeSubmission("s", day(2)))),
             fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(
-                stubbedReports = listOf(makeReport("111", day(5)), makeReport("111", day(1))),
+                stubbedReports = listOf(makeReport("late", "111", day(5)), makeReport("early", "111", day(1))),
             ),
-            fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions = listOf(makeSuggestion("222", day(3)))),
+            fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions = listOf(makeSuggestion("p222", "222", day(3)))),
         )
 
         sut.onAppear()
 
         assertEquals(
-            "the queue is handled oldest first; a report group counts from its oldest report, so days 1 and 5 sort before a suggestion from day 3",
-            listOf("report-111", "submission-s", "photo-222_alice"),
+            "the queue is handled oldest first, each ticket by its own date",
+            listOf("report-early", "submission-s", "photo-p222", "report-late"),
             sut.rows.value.map { it.id },
         )
     }
 
     @Test
-    fun onPhotoSuggestionResolved_whenApproved_dropsEverySuggestionRowForThatItem() = runTest {
+    fun onRowResolved_forAPhoto_leavesOtherSuggestionsForTheSameItemWaiting() = runTest {
         val sut = makeSUT(
             fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(
-                stubbedSuggestions = listOf(
-                    makeSuggestion("222", day(1), "alice"),
-                    makeSuggestion("222", day(2), "bob"),
-                    makeSuggestion("333", day(3), "alice"),
-                ),
+                stubbedSuggestions = listOf(makeSuggestion("alice-ticket", "222", day(1)), makeSuggestion("bob-ticket", "222", day(2))),
             ),
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport("222"))),
         )
         sut.onAppear()
 
-        sut.onPhotoSuggestionResolved("photo-222_alice", isApproved = true)
+        sut.onRowResolved("photo-alice-ticket")
 
         assertEquals(
-            "approval deletes every suggestion for the item; reports and other items stay",
-            setOf("photo-333_alice", "report-222"),
-            sut.rows.value.map { it.id }.toSet(),
+            "approving one suggestion leaves the others pending, so their rows must stay",
+            listOf("photo-bob-ticket"),
+            sut.rows.value.map { it.id },
         )
-    }
-
-    @Test
-    fun onPhotoSuggestionResolved_whenRejected_dropsOnlyThatRow() = runTest {
-        val sut = makeSUT(
-            fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(
-                stubbedSuggestions = listOf(makeSuggestion("222", day(1), "alice"), makeSuggestion("222", day(2), "bob")),
-            ),
-        )
-        sut.onAppear()
-
-        sut.onPhotoSuggestionResolved("photo-222_alice", isApproved = false)
-
-        assertEquals(listOf("photo-222_bob"), sut.rows.value.map { it.id })
     }
 
     // MARK: - Helpers
@@ -182,15 +174,24 @@ class NotificationsViewModelTest {
         fetchFoodItemReports = fetchFoodItemReports,
         fetchPhotoSuggestions = fetchPhotoSuggestions,
         fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(),
+        isMaintainer = true,
+        fetchUserNotifications = FetchUserNotificationsUseCaseFake(),
+        markUserNotificationSeen = MarkUserNotificationSeenUseCaseFake(),
+        hideUserNotification = HideUserNotificationUseCaseFake(),
+        withdrawUserNotification = WithdrawUserNotificationUseCaseFake(),
+        notificationsStore = UserNotificationsStoreFake(),
     )
 
     private fun day(number: Long): Instant = Instant.ofEpochSecond(number * 86_400)
 
-    private fun makeReport(barcode: String, date: Instant = Instant.now()) = FoodItemReportDomain(
+    private fun makeReport(id: String, barcode: String, date: Instant = Instant.now()) = FoodItemReportDomain(
+        id = id,
         barcode = barcode,
         reportedBy = "bob",
         reason = "wrong data",
         reportedAt = date,
+        status = TicketStatus.PENDING,
+        locale = "en",
     )
 
     private fun makeSubmission(id: String, date: Instant) = FoodItemSubmissionDomain(
@@ -220,11 +221,14 @@ class NotificationsViewModelTest {
         ),
     )
 
-    private fun makeSuggestion(itemId: String, date: Instant = Instant.now(), suggestedBy: String = "alice") = PhotoSuggestionDomain(
+    private fun makeSuggestion(id: String, itemId: String, date: Instant = Instant.now()) = PhotoSuggestionDomain(
+        id = id,
         itemId = itemId,
-        suggestedBy = suggestedBy,
+        suggestedBy = "alice",
         photoUrl = "https://example.com/photo.jpg",
         suggestedAt = date,
+        status = TicketStatus.PENDING,
+        locale = "en",
     )
 }
 

@@ -44,7 +44,6 @@ import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
-import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.rememberScannerAccess
@@ -68,7 +67,8 @@ fun ModerationCatalogueEditorView(
     val state by viewModel.state.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val showCheckmark by viewModel.showCheckmark.collectAsState()
-    val reports by viewModel.reports.collectAsState()
+    val responseDraft by viewModel.responseDraft.collectAsState()
+    val isSendingResponse by viewModel.isSendingResponse.collectAsState()
     val shouldDismiss by viewModel.shouldDismiss.collectAsState()
     val recognizedFields by viewModel.recognizedFields.collectAsState()
     val isNutritionLabelCameraVisible by viewModel.isNutritionLabelCameraVisible.collectAsState()
@@ -109,7 +109,7 @@ fun ModerationCatalogueEditorView(
     ) { innerPadding ->
         KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
-                if (reports.isNotEmpty()) {
+                viewModel.ticket?.let { ticket ->
                     Text(
                         text = stringResource(R.string.moderation_reports_title),
                         style = MaterialTheme.typography.titleSmall,
@@ -117,14 +117,11 @@ fun ModerationCatalogueEditorView(
                         modifier = Modifier.padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
                     )
                     SectionCard {
-                        reports.forEachIndexed { index, report ->
-                            Text(
-                                text = report.reason,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                            )
-                            if (index < reports.lastIndex) SectionCardDivider()
-                        }
+                        Text(
+                            text = ticket.reason,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        )
                     }
                 }
                 if (!viewModel.isOpenedFromReport) {
@@ -163,7 +160,7 @@ fun ModerationCatalogueEditorView(
                         )
                         PrimaryButton(
                             text = stringResource(R.string.moderation_button_reject),
-                            onClick = { scope.launch { viewModel.onRejectTapped() } },
+                            onClick = viewModel::onRejectTapped,
                             style = PrimaryButtonStyle.DESTRUCTIVE,
                             enabled = !state.isLoading,
                             modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -190,6 +187,17 @@ fun ModerationCatalogueEditorView(
                 onClose = { viewModel.isNutritionLabelCameraVisible.value = false },
             )
         }
+    }
+
+    responseDraft?.let { draft ->
+        ModerationResponseSheet(
+            draft = draft,
+            isSending = isSendingResponse,
+            onTextChange = viewModel::onResponseTextChanged,
+            onErrorDismissed = viewModel::onResponseErrorDismissed,
+            onSend = { scope.launch { viewModel.onResponseSendTapped() } },
+            onDismiss = viewModel::onResponseDismissed,
+        )
     }
 
     alertItem?.let { item ->

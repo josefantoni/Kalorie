@@ -3,13 +3,15 @@ package antoni.kalorie.core.usecases
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.PhotoSuggestionDomain
+import antoni.kalorie.core.models.TicketStatus
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.StorageDataProviderProtocol
+import antoni.kalorie.core.utils.Constants
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 
 interface RejectPhotoSuggestionUseCaseProtocol {
-    suspend operator fun invoke(suggestion: PhotoSuggestionDomain)
+    suspend operator fun invoke(suggestion: PhotoSuggestionDomain, response: String)
 }
 
 class RejectPhotoSuggestionUseCase(
@@ -20,14 +22,22 @@ class RejectPhotoSuggestionUseCase(
 
     // MARK: - Properties
 
-    private val remover = PhotoSuggestionRemover(dataProvider, storageProvider)
+    private val remover = PhotoSuggestionRemover(storageProvider)
+    private val writer = TicketResolutionWriter(dataProvider)
 
     // MARK: - Functions
 
-    override suspend fun invoke(suggestion: PhotoSuggestionDomain) {
+    override suspend fun invoke(suggestion: PhotoSuggestionDomain, response: String) {
         if (authProvider.userId == null) throw AuthError.NotAuthenticated
+        val trimmedResponse = TicketResolutionWriter.validated(response)
         withContext(NonCancellable) {
-            remover.remove(itemId = suggestion.itemId, userId = suggestion.suggestedBy)
+            writer.write(
+                status = TicketStatus.REJECTED,
+                response = trimmedResponse,
+                ticketId = suggestion.id,
+                inCollection = Constants.Firestore.PHOTO_SUGGESTIONS,
+            )
+            remover.deleteFileQuietly(suggestion.photoUrl)
         }
     }
 }

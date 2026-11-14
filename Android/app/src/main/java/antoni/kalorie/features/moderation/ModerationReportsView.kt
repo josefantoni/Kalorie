@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
@@ -52,7 +53,7 @@ import kotlinx.coroutines.launch
 fun ModerationReportsView(
     viewModel: ModerationReportsViewModel,
     onDismiss: () -> Unit,
-    makeCatalogueEditorView: @Composable (barcode: String, reports: List<FoodItemReportDomain>, onReportsChanged: (List<FoodItemReportDomain>) -> Unit, onDismiss: () -> Unit) -> Unit,
+    makeCatalogueEditorView: @Composable (report: FoodItemReportDomain, onResolved: () -> Unit, onDismiss: () -> Unit) -> Unit,
 ) {
     // MARK: - Properties
 
@@ -76,16 +77,15 @@ fun ModerationReportsView(
                     ModerationReportsContent(
                         viewModel = viewModel,
                         onDismiss = onDismiss,
-                        onGroupTapped = { group ->
-                            viewModel.backStack.add(ModerationReportsDestination.CatalogueEditor(group.barcode, group.reports))
+                        onRowTapped = { row ->
+                            viewModel.backStack.add(ModerationReportsDestination.CatalogueEditor(row.report))
                         },
                     )
                 }
                 is ModerationReportsDestination.CatalogueEditor -> NavEntry(destination) {
                     makeCatalogueEditorView(
-                        destination.barcode,
-                        destination.reports,
-                        { remaining -> viewModel.onGroupReportsChanged(destination.barcode, remaining) },
+                        destination.report,
+                        { viewModel.onReportResolved(destination.report.id) },
                         { viewModel.backStack.remove(destination) },
                     )
                 }
@@ -99,12 +99,12 @@ fun ModerationReportsView(
 private fun ModerationReportsContent(
     viewModel: ModerationReportsViewModel,
     onDismiss: () -> Unit,
-    onGroupTapped: (ReportGroup) -> Unit,
+    onRowTapped: (ReportRow) -> Unit,
 ) {
     // MARK: - Properties
 
     val state by viewModel.state.collectAsState()
-    val groups by viewModel.groups.collectAsState()
+    val rows by viewModel.rows.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
     val scope = rememberCoroutineScope()
 
@@ -128,7 +128,7 @@ private fun ModerationReportsContent(
             modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()),
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = innerPadding.bottomOnly()) {
-                if (groups.isEmpty() && !state.isLoading) {
+                if (rows.isEmpty() && !state.isLoading) {
                     item {
                         Text(
                             text = stringResource(R.string.moderation_reports_empty),
@@ -140,19 +140,21 @@ private fun ModerationReportsContent(
                 }
                 item {
                     SectionCard {
-                        groups.forEachIndexed { index, group ->
-                            key(group.barcode) {
+                        rows.forEachIndexed { index, row ->
+                            key(row.id) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { onGroupTapped(group) }
+                                        .clickable { onRowTapped(row) }
                                         .padding(start = 16.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(text = group.itemName ?: group.barcode, style = MaterialTheme.typography.bodyLarge)
+                                        Text(text = row.itemName ?: row.report.barcode, style = MaterialTheme.typography.bodyLarge)
                                         Text(
-                                            text = stringResource(R.string.moderation_reports_count, group.reports.size),
+                                            text = row.report.reason,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
@@ -163,7 +165,7 @@ private fun ModerationReportsContent(
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
-                                if (index < groups.lastIndex) SectionCardDivider()
+                                if (index < rows.lastIndex) SectionCardDivider()
                             }
                         }
                     }

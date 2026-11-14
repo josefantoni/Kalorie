@@ -23,9 +23,10 @@ class FetchFoodItemReportsUseCase(
         if (authProvider.userId == null) throw AuthError.NotAuthenticated
         val dtos: List<FoodItemReportDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.FOOD_ITEM_REPORTS,
+            field = Constants.Firestore.Field.STATUS,
+            isEqualTo = Constants.Firestore.PENDING_STATUS,
             orderBy = Constants.Firestore.Field.REPORTED_AT,
             descending = true,
-            limit = Constants.Firestore.REPORTS_PAGE_LIMIT,
         )
         return dtos.map { it.asDomain() }
     }

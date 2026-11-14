@@ -1169,11 +1169,6 @@
     "en": "Enter a reason for the rejection",
     "sk": "Uveď dôvod zamietnutia"
   },
-  "moderation_photoSuggestion_alreadyHasPhoto": {
-    "cs": "Produkt už fotku má. Tento návrh lze jen zamítnout.",
-    "en": "This product already has a photo. This suggestion can only be rejected.",
-    "sk": "Produkt už fotku má. Tento návrh je možné iba zamietnuť."
-  },
   "moderation_photoSuggestion_itemMissing": {
     "cs": "Produkt už v katalogu neexistuje. Návrh lze jen zamítnout.",
     "en": "This product is no longer in the catalogue. This suggestion can only be rejected.",
@@ -1213,11 +1208,6 @@
     "cs": "Důvod zamítnutí",
     "en": "Reason for rejection",
     "sk": "Dôvod zamietnutia"
-  },
-  "moderation_reports_count": {
-    "cs": "%lld× nahlášeno",
-    "en": "Reported %lld×",
-    "sk": "%lld× nahlásené"
   },
   "moderation_reports_empty": {
     "cs": "Žádná nahlášení",

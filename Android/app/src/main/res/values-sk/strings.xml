@@ -300,7 +300,6 @@
     <string name="moderation_error_changedSinceReview">Používateľ žiadosť medzitým upravil, skontroluj ju znova</string>
     <string name="moderation_error_itemChangedSinceLoad">Položka sa medzitým zmenila, načítaj ju znova</string>
     <string name="moderation_error_reasonRequired">Uveď dôvod zamietnutia</string>
-    <string name="moderation_photoSuggestion_alreadyHasPhoto">Produkt už fotku má. Tento návrh je možné iba zamietnuť.</string>
     <string name="moderation_photoSuggestion_itemMissing">Produkt už v katalógu neexistuje. Tento návrh je možné iba zamietnuť.</string>
     <string name="moderation_photoSuggestion_title">Návrh fotky</string>
     <string name="moderation_photos_empty">Žiadne návrhy fotiek na schválenie</string>
@@ -309,7 +308,6 @@
     <string name="moderation_queue_empty">Žiadne položky na schválenie</string>
     <string name="moderation_queue_title">Na schválenie</string>
     <string name="moderation_reject_reasonPlaceholder">Dôvod zamietnutia</string>
-    <string name="moderation_reports_count">%1$d× nahlásené</string>
     <string name="moderation_reports_empty">Žiadne nahlásenia</string>
     <string name="moderation_reports_title">Nahlásenia</string>
     <string name="moderation_response_photo_accepted">Vďaka za fotku! Pridal som ju k potravine.</string>

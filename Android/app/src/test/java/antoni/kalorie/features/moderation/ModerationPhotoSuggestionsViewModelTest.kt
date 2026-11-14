@@ -1,65 +1,46 @@
 package antoni.kalorie.features.moderation
 
 import antoni.kalorie.core.models.PhotoSuggestionDomain
+import antoni.kalorie.core.networking.makeSuggestion
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchPhotoSuggestionsUseCaseFake
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.time.Instant
 
 class ModerationPhotoSuggestionsViewModelTest {
 
     // MARK: - Tests
 
     @Test
-    fun onAppear_listsTheOldestSuggestionFirst_whateverOrderTheFetchReturns() = runTest {
-        val newest = makeSuggestion("33333333", 300)
-        val oldest = makeSuggestion("11111111", 100)
-        val middle = makeSuggestion("22222222", 200)
-        val sut = ModerationPhotoSuggestionsViewModel(
-            fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions = listOf(newest, oldest, middle)),
-            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(),
+    fun onAppear_listsOneRowPerTicketInTheOrderTheQueueReturnsThem() = runTest {
+        val sut = makeSUT(
+            makeSuggestion(id = "newest", itemId = "33333333"),
+            makeSuggestion(id = "middle", itemId = "22222222"),
+            makeSuggestion(id = "oldest", itemId = "11111111"),
         )
 
         sut.onAppear()
 
-        assertEquals(
-            "the longest-waiting suggestion is reviewed first",
-            listOf("11111111", "22222222", "33333333"),
-            sut.rows.value.map { it.suggestion.itemId },
-        )
+        assertEquals("the queue is already newest first; a client sort would hide the order the maintainer asked for", listOf("newest", "middle", "oldest"), sut.rows.value.map { it.id })
     }
 
     @Test
-    fun onSuggestionResolved_whenApproved_dropsEverySuggestionForThatItem() = runTest {
+    fun onSuggestionResolved_dropsOnlyThatTicket_evenWhenAnotherTargetsTheSameItem() = runTest {
         val sut = makeSUT(
-            makeSuggestion("11111111", 100, "alice"),
-            makeSuggestion("11111111", 200, "bob"),
-            makeSuggestion("22222222", 300, "alice"),
+            makeSuggestion(id = "alice-ticket", itemId = "11111111"),
+            makeSuggestion(id = "bob-ticket", itemId = "11111111"),
+            makeSuggestion(id = "other-item", itemId = "22222222"),
         )
         sut.onAppear()
 
-        sut.onSuggestionResolved("11111111_alice", isApproved = true)
+        sut.onSuggestionResolved("alice-ticket")
 
         assertEquals(
-            "approval deletes every suggestion for the item, so a stale row for it must not stay",
-            listOf("22222222"),
-            sut.rows.value.map { it.suggestion.itemId },
+            "approving one suggestion leaves the others pending, so their rows must stay",
+            listOf("bob-ticket", "other-item"),
+            sut.rows.value.map { it.id },
         )
-    }
-
-    @Test
-    fun onSuggestionResolved_whenRejected_dropsOnlyThatSuggestion() = runTest {
-        val sut = makeSUT(
-            makeSuggestion("11111111", 100, "alice"),
-            makeSuggestion("11111111", 200, "bob"),
-        )
-        sut.onAppear()
-
-        sut.onSuggestionResolved("11111111_alice", isApproved = false)
-
-        assertEquals(listOf("11111111_bob"), sut.rows.value.map { it.id })
     }
 
     // MARK: - Helpers
@@ -67,12 +48,5 @@ class ModerationPhotoSuggestionsViewModelTest {
     private fun makeSUT(vararg suggestions: PhotoSuggestionDomain) = ModerationPhotoSuggestionsViewModel(
         fetchPhotoSuggestions = FetchPhotoSuggestionsUseCaseFake(stubbedSuggestions = suggestions.toList()),
         fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(),
-    )
-
-    private fun makeSuggestion(itemId: String, seconds: Long, suggestedBy: String = "alice") = PhotoSuggestionDomain(
-        itemId = itemId,
-        suggestedBy = suggestedBy,
-        photoUrl = "https://example.com/p.jpg",
-        suggestedAt = Instant.ofEpochSecond(seconds),
     )
 }

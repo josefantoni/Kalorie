@@ -6953,29 +6953,6 @@
         }
       }
     },
-    "moderation_photoSuggestion_alreadyHasPhoto" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Produkt už fotku má. Tento návrh lze jen zamítnout."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This product already has a photo. This suggestion can only be rejected."
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Produkt už fotku má. Tento návrh je možné iba zamietnuť."
-          }
-        }
-      }
-    },
     "moderation_photoSuggestion_itemMissing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7110,29 +7087,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dôvod zamietnutia"
-          }
-        }
-      }
-    },
-    "moderation_reports_count" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld× nahlášeno"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reported %lld×"
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld× nahlásené"
           }
         }
       }
