@@ -11,28 +11,25 @@ struct PhotoSuggestionRemover {
 
     // MARK: - Properties
 
-    private let dataProvider: any FirestoreDataProviderProtocol
     private let storageProvider: any StorageDataProviderProtocol
 
     // MARK: - Init
 
-    init(dataProvider: any FirestoreDataProviderProtocol, storageProvider: any StorageDataProviderProtocol) {
-        self.dataProvider = dataProvider
+    init(storageProvider: any StorageDataProviderProtocol) {
         self.storageProvider = storageProvider
     }
 
     // MARK: - Functions
 
-    func remove(itemId: String, userId: String) async throws {
-        // A file that is already gone must not keep the document, and so the queue row, alive forever.
-        // Any other failure keeps the document so the removal can be retried instead of orphaning the file.
-        try await storageProvider.deleteIgnoringMissing(
-            path: PhotoSuggestionDomain.storagePath(itemId: itemId, userId: userId),
-            category: Constants.LogCategory.moderation
-        )
-        try await dataProvider.deleteAsync(
-            id: PhotoSuggestionDomain.id(itemId: itemId, userId: userId),
-            from: Constants.Firestore.photoSuggestions
-        )
+    func deleteFile(at photoURL: URL) async throws {
+        try await storageProvider.deleteIgnoringMissing(url: photoURL, category: Constants.LogCategory.moderation)
+    }
+
+    func deleteFileQuietly(at photoURL: URL) async {
+        do {
+            try await deleteFile(at: photoURL)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.moderation)
+        }
     }
 }

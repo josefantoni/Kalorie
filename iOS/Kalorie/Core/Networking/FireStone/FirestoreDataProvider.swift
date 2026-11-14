@@ -43,6 +43,10 @@ protocol FirestoreDataProviderProtocol {
     func deleteEntriesAsync(ids: [String], documentId: String, in collection: String) async throws
     func countAsync(from collection: String) async throws -> Int
     func countAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> Int
+    func newDocumentId(in collection: String) throws -> String
+    func loadAsync<T: Decodable>(from collection: String, whereEqualTo filters: [(String, String)], limit: Int) async throws -> [T]
+    func loadAsync<T: Decodable>(from collection: String, whereEqualTo filters: [(String, String)], isHidden: Bool, orderBy orderField: String, descending: Bool) async throws -> [T]
+    func anonymiseAsync(id: String, ownerField: String, in collection: String) async throws
 }
 
 extension FirestoreDataProviderProtocol {
@@ -109,6 +113,22 @@ extension FirestoreDataProviderProtocol {
     }
 
     func countAsync(from collection: String, where field: String, isEqualTo value: String) async throws -> Int {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func newDocumentId(in collection: String) throws -> String {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, whereEqualTo filters: [(String, String)], limit: Int) async throws -> [T] {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, whereEqualTo filters: [(String, String)], isHidden: Bool, orderBy orderField: String, descending: Bool) async throws -> [T] {
+        throw FirestoreDataProviderError.unsupported
+    }
+
+    func anonymiseAsync(id: String, ownerField: String, in collection: String) async throws {
         throw FirestoreDataProviderError.unsupported
     }
 }
@@ -363,6 +383,65 @@ struct FirestoreDataProvider: FirestoreDataProviderProtocol {
             return result
         } catch {
             logFailure("❌ GET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func newDocumentId(in collection: String) throws -> String {
+        Firestore.firestore().collection(collection).document().documentID
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, whereEqualTo filters: [(String, String)], limit: Int) async throws -> [T] {
+        let description = filters.map { "\($0.0) == '\($0.1)'" }.joined(separator: " AND ")
+        log("🚀 GET \(collection) WHERE \(description) LIMIT \(limit)")
+        do {
+            var query: Query = Firestore.firestore().collection(collection)
+            for (field, value) in filters {
+                query = query.whereField(field, isEqualTo: value)
+            }
+            let snapshot = try await query.limit(to: limit).getDocuments(source: .server)
+            snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
+            let result: [T] = try snapshot.documents.compactMap { try $0.data(as: T.self) }
+            log("✅ GET \(collection) → \(result.count) items")
+            return result
+        } catch {
+            logFailure("❌ GET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func loadAsync<T: Decodable>(from collection: String, whereEqualTo filters: [(String, String)], isHidden: Bool, orderBy orderField: String, descending: Bool) async throws -> [T] {
+        let description = filters.map { "\($0.0) == '\($0.1)'" }.joined(separator: " AND ")
+        log("🚀 GET \(collection) WHERE \(description) AND hidden == \(isHidden) ORDER BY \(orderField) \(descending ? "DESC" : "ASC")")
+        do {
+            var query: Query = Firestore.firestore().collection(collection)
+            for (field, value) in filters {
+                query = query.whereField(field, isEqualTo: value)
+            }
+            let snapshot = try await query
+                .whereField(Constants.Firestore.Field.hidden, isEqualTo: isHidden)
+                .order(by: orderField, descending: descending)
+                .getDocuments(source: .server)
+            snapshot.documents.forEach { log("  [\($0.documentID)] \($0.data())") }
+            let result: [T] = try snapshot.documents.compactMap { try $0.data(as: T.self) }
+            log("✅ GET \(collection) → \(result.count) items")
+            return result
+        } catch {
+            logFailure("❌ GET \(collection)", error: error)
+            throw mapError(error)
+        }
+    }
+
+    func anonymiseAsync(id: String, ownerField: String, in collection: String) async throws {
+        do {
+            log("🚀 ANONYMISE \(id) → \(collection)")
+            try await Firestore.firestore().collection(collection).document(id).updateData([
+                ownerField: FieldValue.delete(),
+                Constants.Firestore.Field.authorDeleted: true
+            ])
+            log("✅ ANONYMISE \(id) → \(collection)")
+        } catch {
+            logFailure("❌ ANONYMISE \(id) → \(collection)", error: error)
             throw mapError(error)
         }
     }

@@ -20,65 +20,38 @@ final class FetchMyFoodItemReportUseCaseTests: XCTestCase {
         } catch AuthError.notAuthenticated {}
     }
 
-    func test_fetchMyFoodItemReport_readsByTheComposedBarcodeAndUserIdKey() async throws {
+    func test_fetchMyFoodItemReport_asksOnlyForTheUsersPendingTicketForThatItem() async throws {
         let (sut, dataProvider) = makeSUT(userId: "user-42")
         _ = try await sut(barcode: "12345678")
-        XCTAssertEqual(dataProvider.queriedId, "12345678_user-42")
-        XCTAssertEqual(dataProvider.queriedCollection, Constants.Firestore.foodItemReports)
+        let query = try XCTUnwrap(dataProvider.equalityQueries.first)
+        XCTAssertEqual(query.collection, Constants.Firestore.foodItemReports)
+        XCTAssertEqual(
+            Set(query.filters),
+            ["reported_by==user-42", "barcode==12345678", "status==pending"],
+            "a resolved ticket must not block a new report for the same item"
+        )
+        XCTAssertEqual(query.limit, 1)
     }
 
-    func test_fetchMyFoodItemReport_whenNoDocument_returnsNil() async throws {
+    func test_fetchMyFoodItemReport_whenNoPendingTicket_returnsNil() async throws {
         let (sut, _) = makeSUT()
         let result = try await sut(barcode: "12345678")
         XCTAssertNil(result)
     }
 
-    func test_fetchMyFoodItemReport_whenDocumentExists_returnsIt() async throws {
+    func test_fetchMyFoodItemReport_whenAPendingTicketExists_returnsIt() async throws {
         let (sut, dataProvider) = makeSUT(userId: "user-42")
-        dataProvider.stubbedDTO = FoodItemReportDTO(barcode: "12345678", reportedBy: "user-42", reason: "wrong fat", reportedAt: .now)
+        dataProvider.stubbedReports = [makeReportDTO(id: "report-9", reportedBy: "user-42")]
         let result = try await sut(barcode: "12345678")
+        XCTAssertEqual(result?.id, "report-9")
         XCTAssertEqual(result?.reason, "wrong fat")
     }
 
     // MARK: - Helpers
 
-    private func makeSUT(userId: String? = "test-user") -> (sut: FetchMyFoodItemReportUseCase, dataProvider: FetchMyFoodItemReportDataProviderFake) {
-        let dataProvider = FetchMyFoodItemReportDataProviderFake()
-        let authProvider = AuthProviderFake(userId: userId)
-        let sut = FetchMyFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider)
+    private func makeSUT(userId: String? = "test-user") -> (sut: FetchMyFoodItemReportUseCase, dataProvider: TicketDataProviderFake) {
+        let dataProvider = TicketDataProviderFake()
+        let sut = FetchMyFoodItemReportUseCase(dataProvider: dataProvider, authProvider: AuthProviderFake(userId: userId))
         return (sut, dataProvider)
     }
-}
-
-private final class FetchMyFoodItemReportDataProviderFake: FirestoreDataProviderProtocol {
-
-    // MARK: - Properties
-
-    var stubbedDTO: FoodItemReportDTO?
-    var queriedId: String?
-    var queriedCollection: String?
-
-    // MARK: - Functions
-
-    func loadAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
-    func loadFromServerAsync<T: Decodable>(from collection: String) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isGreaterThanOrEqualTo lowerBound: Double, isLessThan upperBound: Double) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, hasPrefix prefix: String, limit: Int) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
-    func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] { [] }
-
-    func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? {
-        queriedId = id
-        queriedCollection = collection
-        return stubbedDTO as? T
-    }
-
-    func loadAsync<T: Decodable>(from collection: String, whereDocumentIdIn ids: [String]) async throws -> [T] { [] }
-    func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }
-    func loadAsync<T: Decodable>(from collection: String, orderBy field: String, descending: Bool, limit: Int) async throws -> [T] { [] }
-    func saveAsync<T: Encodable>(_ item: T, to collection: String) async throws {}
-    func setAsync<T: Encodable>(_ item: T, id: String, in collection: String) async throws {}
-    func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
-    func deleteAsync(id: String, from collection: String) async throws {}
 }

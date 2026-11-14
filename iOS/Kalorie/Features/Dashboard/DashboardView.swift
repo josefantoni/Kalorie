@@ -74,7 +74,11 @@ struct DashboardView: View {
                 if newPhase == .interacting { openSwipeRowId = nil }
             }
             .sensoryFeedback(.success, trigger: viewModel.moveFeedbackTrigger)
-            .refreshable { await viewModel.onRefresh() }
+            .refreshable {
+                async let dashboard: Void = viewModel.onRefresh()
+                async let bell: Void = notificationBell.onRefresh()
+                _ = await (dashboard, bell)
+            }
             .navigationDestination(for: FoodConsumedDomain.self) { food in
                 router.makeFoodConsumedDetailView(food: food, mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onFoodConsumedUpdated() }
@@ -128,23 +132,21 @@ struct DashboardView: View {
                     }
                     .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { accountButtonFrame = $0 }
                 }
-                if notificationBell.isBellVisible {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            notificationBell.onBellTapped()
-                        } label: {
-                            Image(systemName: BaseImageName.bell.rawValue)
-                                .overlay(alignment: .topTrailing) {
-                                    if notificationBell.hasPendingNotifications {
-                                        Circle()
-                                            .fill(Color.error)
-                                            .frame(width: 9, height: 9)
-                                            .offset(x: 3, y: -2)
-                                    }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        notificationBell.onBellTapped()
+                    } label: {
+                        Image(systemName: BaseImageName.bell.rawValue)
+                            .overlay(alignment: .topTrailing) {
+                                if notificationBell.hasPendingNotifications {
+                                    Circle()
+                                        .fill(Color.error)
+                                        .frame(width: 9, height: 9)
+                                        .offset(x: 3, y: -2)
                                 }
-                        }
-                        .accessibilityLabel(L10n.Notifications.bellAccessibility)
+                            }
                     }
+                    .accessibilityLabel(L10n.Notifications.bellAccessibility)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -158,7 +160,7 @@ struct DashboardView: View {
             .sheet(isPresented: $notificationBell.isSheetVisible) {
                 Task { await notificationBell.onSheetDismissed() }
             } content: {
-                router.makeNotificationsView()
+                router.makeNotificationsView(isMaintainer: notificationBell.isMaintainer)
                     .dynamicTypeLimit()
             }
             .sheet(isPresented: $viewModel.showSettings) {
@@ -173,7 +175,10 @@ struct DashboardView: View {
                 )
                 .dynamicTypeLimit()
             }
-            .sheet(isPresented: $viewModel.showAddFoodSheet, onDismiss: viewModel.onAddFoodSheetDismissed) {
+            .sheet(isPresented: $viewModel.showAddFoodSheet) {
+                viewModel.onAddFoodSheetDismissed()
+                Task { await notificationBell.onDotRefreshNeeded() }
+            } content: {
                 router.makeAddFoodSheetView(for: viewModel.selectedDay, mealTypes: viewModel.mealTypes) {
                     Task { await viewModel.onFoodConsumedUpdated() }
                 }
@@ -208,13 +213,13 @@ struct DashboardView: View {
             .task {
                 await viewModel.onAppear()
             }
-            .task {
-                await notificationBell.onAppear()
-            }
             .task(id: isAddFoodSequenceActive) {
                 await runAddFoodSequence()
             }
-            .onAppear { isDashboardVisible = true }
+            .onAppear {
+                isDashboardVisible = true
+                Task { await notificationBell.onAppear() }
+            }
             .onDisappear { isDashboardVisible = false }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {

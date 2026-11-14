@@ -31,11 +31,12 @@ struct FetchFoodItemReportsUseCase: FetchFoodItemReportsUseCaseProtocol {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
         let dtos: [FoodItemReportDTO] = try await dataProvider.loadAsync(
             from: Constants.Firestore.foodItemReports,
+            where: Constants.Firestore.Field.status,
+            isEqualTo: Constants.Firestore.pendingStatus,
             orderBy: Constants.Firestore.Field.reportedAt,
-            descending: true,
-            limit: Constants.Firestore.reportsPageLimit
+            descending: true
         )
-        return dtos.map { $0.asDomain() }
+        return dtos.compactMap { $0.asDomain() }
     }
 }
 

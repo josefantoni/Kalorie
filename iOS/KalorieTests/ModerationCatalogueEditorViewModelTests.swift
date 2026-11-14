@@ -98,12 +98,9 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onAppear_withInitialBarcode_prefillsFormFromIt() async {
+    func test_onAppear_withATicket_prefillsFormFromItsItem() async {
         let item = makeItem()
-        let sut = makeSUT(
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item),
-            initialBarcode: "12345678"
-        )
+        let sut = makeSUT(fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item), ticket: makeReport())
 
         await sut.onAppear()
 
@@ -111,153 +108,152 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
     }
 
     @MainActor
-    func test_onAppear_withoutInitialBarcode_doesNothing() async {
+    func test_onAppear_withoutATicket_doesNothing() async {
         let sut = makeSUT()
 
         await sut.onAppear()
 
         XCTAssertNil(sut.loadedItem)
+        XCTAssertFalse(sut.isOpenedFromReport, "the plain Save button belongs to the editor opened without a ticket")
     }
 
     @MainActor
-    func test_onSaveAndResolveTapped_savesThenDeletesEveryReportAndDismisses() async {
+    func test_onSaveAndResolveTapped_savesFirst_thenOpensTheSheetPrefilledInTheTicketsLocale() async {
         let updateFoodItem = UpdateFoodItemUseCaseSpy()
-        let deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
-        var changedReports: [[String]] = []
+        let resolve = ResolveFoodItemReportUseCaseSpy()
         let sut = makeSUT(
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeItem()),
             updateFoodItem: updateFoodItem,
-            deleteFoodItemReport: deleteFoodItemReport,
-            initialBarcode: "12345678",
-            reports: [makeReport(reportedBy: "user-1"), makeReport(reportedBy: "user-2")]
-        ) { changedReports.append($0.map(\.reportedBy)) }
+            resolveFoodItemReport: resolve,
+            ticket: makeReport(locale: "cs")
+        )
         await sut.onAppear()
-
         sut.formInput.name = "Opravený název"
+
         await sut.onSaveAndResolveTapped()
 
         XCTAssertEqual(updateFoodItem.receivedItem?.czName, "Opravený název")
-        XCTAssertEqual(deleteFoodItemReport.deletedReportedBy.sorted(), ["user-1", "user-2"])
-        XCTAssertEqual(changedReports, [[]], "the parent list and the bell must learn the group is gone")
-        XCTAssertTrue(sut.shouldDismiss)
+        XCTAssertEqual(sut.responseDraft?.status, .accepted)
+        XCTAssertEqual(sut.responseDraft?.text, "Díky za nahlášení! Údaje u potraviny jsem opravil.", "the author reads it in their language, not the maintainer's")
+        XCTAssertTrue(resolve.calls.isEmpty, "the ticket is resolved only when the maintainer sends the response")
+        XCTAssertFalse(sut.shouldDismiss)
     }
 
     @MainActor
-    func test_onSaveAndResolveTapped_whenSaveFails_keepsTheReportsOpen() async {
-        let deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
-        var changedReports: [[String]] = []
+    func test_onSaveAndResolveTapped_whenSaveFails_doesNotOpenTheSheetOrResolve() async {
+        let resolve = ResolveFoodItemReportUseCaseSpy()
         let sut = makeSUT(
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeItem()),
             updateFoodItem: UpdateFoodItemUseCaseFake(errorToThrow: UpdateFoodItemError.changedSinceLoad),
-            deleteFoodItemReport: deleteFoodItemReport,
-            initialBarcode: "12345678",
-            reports: [makeReport(reportedBy: "user-1")]
-        ) { changedReports.append($0.map(\.reportedBy)) }
+            resolveFoodItemReport: resolve,
+            ticket: makeReport()
+        )
         await sut.onAppear()
 
         await sut.onSaveAndResolveTapped()
 
-        XCTAssertTrue(deleteFoodItemReport.deletedReportedBy.isEmpty, "resolving a report whose correction was not saved would close it with the item still wrong")
-        XCTAssertTrue(changedReports.isEmpty)
-        XCTAssertFalse(sut.shouldDismiss)
+        XCTAssertNil(sut.responseDraft, "resolving a report whose correction was not saved would close it with the item still wrong")
+        XCTAssertTrue(resolve.calls.isEmpty)
         XCTAssertEqual(sut.alertItem?.title, L10n.Moderation.errorItemChangedSinceLoad)
     }
 
     @MainActor
-    func test_onRejectTapped_deletesEveryReportWithoutSavingTheForm() async {
+    func test_onRejectTapped_opensAnEmptySheetWithoutSavingTheForm() async {
         let updateFoodItem = UpdateFoodItemUseCaseSpy()
-        let deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
         let sut = makeSUT(
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeItem()),
             updateFoodItem: updateFoodItem,
-            deleteFoodItemReport: deleteFoodItemReport,
-            initialBarcode: "12345678",
-            reports: [makeReport(reportedBy: "user-1"), makeReport(reportedBy: "user-2")]
+            ticket: makeReport()
         )
         await sut.onAppear()
-
         sut.formInput.name = "Rozpracovaná úprava"
-        await sut.onRejectTapped()
+
+        sut.onRejectTapped()
 
         XCTAssertNil(updateFoodItem.receivedItem, "rejecting a report judges it wrong, so the catalogue entry must stay untouched")
-        XCTAssertEqual(deleteFoodItemReport.deletedReportedBy.sorted(), ["user-1", "user-2"])
+        XCTAssertEqual(sut.responseDraft?.status, .rejected)
+        XCTAssertEqual(sut.responseDraft?.isSendable, false, "a rejection must be explained to the author")
+    }
+
+    @MainActor
+    func test_onResponseSendTapped_resolvesTheTicketWithTheEditedResponse_andDismisses() async {
+        let resolve = ResolveFoodItemReportUseCaseSpy()
+        var resolved = 0
+        let sut = makeSUT(
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeItem()),
+            resolveFoodItemReport: resolve,
+            ticket: makeReport(id: "report-7")
+        ) { resolved += 1 }
+        await sut.onAppear()
+        await sut.onSaveAndResolveTapped()
+        sut.responseDraft?.text = "Fixed it"
+
+        await sut.onResponseSendTapped()
+
+        XCTAssertEqual(resolve.calls, [.init(ticketId: "report-7", status: .accepted, response: "Fixed it")])
+        XCTAssertEqual(resolved, 1, "the parent list and the bell must learn the ticket is gone from the queue")
+        XCTAssertNil(sut.responseDraft)
         XCTAssertTrue(sut.shouldDismiss)
     }
 
     @MainActor
-    func test_onRejectTapped_whenSomeDeletesFail_keepsOnlyTheFailedReportsAndDoesNotDismiss() async {
-        var changedReports: [[String]] = []
+    func test_onResponseSendTapped_whenTheTicketWriteFails_keepsTheItemSavedAndTheSheetOpenForARetry() async {
+        let resolve = ResolveFoodItemReportUseCaseSpy()
+        resolve.error = URLError(.notConnectedToInternet)
+        var resolved = 0
         let sut = makeSUT(
-            deleteFoodItemReport: DeleteFoodItemReportUseCaseSpy(failingReportedBy: ["user-2"]),
-            initialBarcode: "12345678",
-            reports: [makeReport(reportedBy: "user-1"), makeReport(reportedBy: "user-2")]
-        ) { changedReports.append($0.map(\.reportedBy)) }
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeItem()),
+            resolveFoodItemReport: resolve,
+            ticket: makeReport()
+        ) { resolved += 1 }
+        await sut.onAppear()
+        await sut.onSaveAndResolveTapped()
 
-        await sut.onRejectTapped()
+        await sut.onResponseSendTapped()
 
-        XCTAssertEqual(
-            sut.reports.map(\.reportedBy),
-            ["user-2"],
-            "a report that failed to delete still exists in Firestore — closing the screen would tell the maintainer it is resolved when it is not"
-        )
-        XCTAssertNotNil(sut.alertItem, "partial failure is accepted by design 0012 only because it is visible to the maintainer")
-        XCTAssertEqual(changedReports, [["user-2"]], "the parent list and the bell must not keep reports that are already deleted")
+        XCTAssertNotNil(sut.responseDraft, "the maintainer must not have to retype the response")
+        XCTAssertNotNil(sut.responseDraft?.errorTitle)
+        XCTAssertEqual(resolved, 0)
         XCTAssertFalse(sut.shouldDismiss)
+
+        resolve.error = nil
+        await sut.onResponseSendTapped()
+
+        XCTAssertEqual(resolve.calls.count, 1)
+        XCTAssertTrue(sut.shouldDismiss)
     }
 
     @MainActor
-    func test_actions_whileAnotherActionIsRunning_areIgnored() async {
+    func test_onResponseSendTapped_withEmptyText_doesNotWrite() async {
+        let resolve = ResolveFoodItemReportUseCaseSpy()
+        let sut = makeSUT(resolveFoodItemReport: resolve, ticket: makeReport())
+        sut.onRejectTapped()
+
+        await sut.onResponseSendTapped()
+
+        XCTAssertTrue(resolve.calls.isEmpty)
+        XCTAssertNotNil(sut.responseDraft)
+    }
+
+    @MainActor
+    func test_onSaveAndResolveTapped_whileASaveIsRunning_isIgnored() async {
         let updateFoodItem = SuspendingUpdateFoodItemUseCase()
-        let deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
-        var changedReports: [[String]] = []
         let sut = makeSUT(
             fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: makeItem()),
             updateFoodItem: updateFoodItem,
-            deleteFoodItemReport: deleteFoodItemReport,
-            initialBarcode: "12345678",
-            reports: [makeReport(reportedBy: "user-1")]
-        ) { changedReports.append($0.map(\.reportedBy)) }
+            ticket: makeReport()
+        )
         await sut.onAppear()
 
         let first = Task { await sut.onSaveAndResolveTapped() }
         while updateFoodItem.callCount == 0 { await Task.yield() }
         await sut.onSaveAndResolveTapped()
-        await sut.onRejectTapped()
+        sut.onRejectTapped()
         updateFoodItem.release()
         await first.value
 
         XCTAssertEqual(updateFoodItem.callCount, 1, "a double tap must not save twice")
-        XCTAssertEqual(deleteFoodItemReport.deletedReportedBy, ["user-1"])
-        XCTAssertEqual(changedReports, [[]])
-        XCTAssertNil(sut.alertItem)
-    }
-
-    @MainActor
-    func test_onSaveAndResolveTapped_retryAfterPartialDeleteFailure_savesAgainWithoutChangedSinceLoad() async {
-        let item = makeItem()
-        let uploadedURL = URL(fileURLWithPath: "/uploaded.jpg")
-        let updateFoodItem = StoringUpdateFoodItemUseCase(stored: item, uploadedURL: uploadedURL)
-        let deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy(failingReportedBy: ["user-2"])
-        var changedReports: [[String]] = []
-        let sut = makeSUT(
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(stubbedItem: item),
-            updateFoodItem: updateFoodItem,
-            deleteFoodItemReport: deleteFoodItemReport,
-            initialBarcode: "12345678",
-            reports: [makeReport(reportedBy: "user-1"), makeReport(reportedBy: "user-2")]
-        ) { changedReports.append($0.map(\.reportedBy)) }
-        await sut.onAppear()
-        sut.formInput.photo = .local(Data([1, 2]))
-
-        await sut.onSaveAndResolveTapped()
-        deleteFoodItemReport.failingReportedBy = []
-        sut.alertItem = nil
-        await sut.onSaveAndResolveTapped()
-
-        XCTAssertNil(sut.alertItem, "Firestore already holds the uploaded photo, so the retry must compare against it, not the pre-upload copy")
-        XCTAssertEqual(deleteFoodItemReport.deletedReportedBy.sorted(), ["user-1", "user-2"])
-        XCTAssertEqual(changedReports, [["user-2"], []])
-        XCTAssertTrue(sut.shouldDismiss)
+        XCTAssertEqual(sut.responseDraft?.status, .accepted)
     }
 
     // MARK: - Helpers
@@ -265,27 +261,21 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
     private func makeSUT(
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         updateFoodItem: any UpdateFoodItemUseCaseProtocol = UpdateFoodItemUseCaseFake(),
-        deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol = DeleteFoodItemReportUseCaseFake(),
+        resolveFoodItemReport: any ResolveFoodItemReportUseCaseProtocol = ResolveFoodItemReportUseCaseFake(),
         modelExtractor: any NutritionLabelModelExtractorProtocol = NutritionLabelModelExtractorFake(),
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol = CameraAuthorizationProviderFake(),
-        initialBarcode: String? = nil,
-        reports: [FoodItemReportDomain] = [],
-        onReportsChanged: @escaping ([FoodItemReportDomain]) -> Void = { _ in }
+        ticket: FoodItemReportDomain? = nil,
+        onResolved: @escaping () -> Void = {}
     ) -> ModerationCatalogueEditorViewModel {
         ModerationCatalogueEditorViewModel(
             fetchFoodItemByBarcode: fetchFoodItemByBarcode,
             updateFoodItem: updateFoodItem,
-            deleteFoodItemReport: deleteFoodItemReport,
+            resolveFoodItemReport: resolveFoodItemReport,
             modelExtractor: modelExtractor,
             cameraAuthorizationProvider: cameraAuthorizationProvider,
-            initialBarcode: initialBarcode,
-            reports: reports,
-            onReportsChanged: onReportsChanged
+            ticket: ticket,
+            onResolved: onResolved
         )
-    }
-
-    private func makeReport(reportedBy: String) -> FoodItemReportDomain {
-        FoodItemReportDomain(barcode: "12345678", reportedBy: reportedBy, reason: "wrong data", reportedAt: .now)
     }
 
     private func makeItem(id: String = "12345678", date: Date = .now) -> FoodItemDomain {
@@ -347,52 +337,25 @@ private final class SuspendingUpdateFoodItemUseCase: UpdateFoodItemUseCaseProtoc
     }
 }
 
-private final class StoringUpdateFoodItemUseCase: UpdateFoodItemUseCaseProtocol {
+private final class ResolveFoodItemReportUseCaseSpy: ResolveFoodItemReportUseCaseProtocol {
+
+    // MARK: - Types
+
+    struct Call: Equatable {
+        let ticketId: String
+        let status: TicketStatus
+        let response: String
+    }
 
     // MARK: - Properties
 
-    private(set) var callCount = 0
-    private var stored: FoodItemDomain
-    private let uploadedURL: URL
-
-    // MARK: - Init
-
-    init(stored: FoodItemDomain, uploadedURL: URL) {
-        self.stored = stored
-        self.uploadedURL = uploadedURL
-    }
+    private(set) var calls: [Call] = []
+    var error: Error?
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Bool) async throws -> FoodItemDomain {
-        callCount += 1
-        guard previouslyLoaded == stored else { throw UpdateFoodItemError.changedSinceLoad }
-        if case .local = photo {
-            stored = item.withPhotoURL(uploadedURL)
-        } else {
-            stored = item
-        }
-        return stored
-    }
-}
-
-private final class DeleteFoodItemReportUseCaseSpy: DeleteFoodItemReportUseCaseProtocol {
-
-    // MARK: - Properties
-
-    private(set) var deletedReportedBy: [String] = []
-    var failingReportedBy: Set<String>
-
-    // MARK: - Init
-
-    init(failingReportedBy: Set<String> = []) {
-        self.failingReportedBy = failingReportedBy
-    }
-
-    // MARK: - Functions
-
-    func callAsFunction(barcode: String, reportedBy: String) async throws {
-        if failingReportedBy.contains(reportedBy) { throw URLError(.unknown) }
-        deletedReportedBy.append(reportedBy)
+    func callAsFunction(ticketId: String, status: TicketStatus, response: String) async throws {
+        if let error { throw error }
+        calls.append(Call(ticketId: ticketId, status: status, response: response))
     }
 }

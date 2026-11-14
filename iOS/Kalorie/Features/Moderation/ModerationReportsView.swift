@@ -12,13 +12,13 @@ struct ModerationReportsView: View {
     // MARK: - Properties
 
     @StateObject var viewModel: ModerationReportsViewModel
-    private let makeCatalogueEditorView: (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView
+    private let makeCatalogueEditorView: (FoodItemReportDomain, @escaping () -> Void) -> ModerationCatalogueEditorView
 
     // MARK: - Init
 
     init(
         viewModel: ModerationReportsViewModel,
-        makeCatalogueEditorView: @escaping (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView
+        makeCatalogueEditorView: @escaping (FoodItemReportDomain, @escaping () -> Void) -> ModerationCatalogueEditorView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeCatalogueEditorView = makeCatalogueEditorView
@@ -28,22 +28,23 @@ struct ModerationReportsView: View {
 
     var body: some View {
         List {
-            if viewModel.groups.isEmpty && !viewModel.state.isLoading {
+            if viewModel.rows.isEmpty && !viewModel.state.isLoading {
                 Text(L10n.Moderation.reportsEmpty)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            ForEach(viewModel.groups) { group in
+            ForEach(viewModel.rows) { row in
                 NavigationLink {
-                    makeCatalogueEditorView(group.barcode, group.reports) { remaining in
-                        viewModel.onGroupReportsChanged(barcode: group.barcode, remaining: remaining)
+                    makeCatalogueEditorView(row.report) {
+                        viewModel.onReportResolved(id: row.id)
                     }
                 } label: {
                     VStack(alignment: .leading) {
-                        Text(group.itemName ?? group.barcode)
-                        Text(L10n.Moderation.reportsCount(group.reports.count))
+                        Text(row.itemName ?? row.report.barcode)
+                        Text(row.report.reason)
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .lineLimit(2)
                     }
                 }
             }
@@ -72,17 +73,16 @@ struct ModerationReportsView: View {
                 fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake()
             )
-        ) { barcode, reports, onReportsChanged in
+        ) { report, onResolved in
             ModerationCatalogueEditorView(
                 viewModel: ModerationCatalogueEditorViewModel(
                     fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                     updateFoodItem: UpdateFoodItemUseCaseFake(),
-                    deleteFoodItemReport: DeleteFoodItemReportUseCaseFake(),
+                    resolveFoodItemReport: ResolveFoodItemReportUseCaseFake(),
                     modelExtractor: NutritionLabelModelExtractorFake(),
                     cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
-                    initialBarcode: barcode,
-                    reports: reports,
-                    onReportsChanged: onReportsChanged
+                    ticket: report,
+                    onResolved: onResolved
                 )
             )
         }

@@ -14,14 +14,31 @@ final class NotificationsViewModel: ObservableObject {
     struct Row: Identifiable {
         enum Kind {
             case submission(FoodItemSubmissionDomain)
-            case report(barcode: String, reports: [FoodItemReportDomain])
+            case report(FoodItemReportDomain)
             case photoSuggestion(PhotoSuggestionDomain)
+            case userNotification(UserNotificationDomain)
         }
 
         let id: String
-        let kind: Kind
+        var kind: Kind
         let title: String
         let date: Date
+
+        var isHideable: Bool {
+            guard case .userNotification = kind else { return false }
+            return true
+        }
+
+        var isUnread: Bool {
+            guard case .userNotification(let notification) = kind else { return false }
+            return notification.isUnread
+        }
+    }
+
+    enum WithdrawResult {
+        case withdrawn
+        case alreadyResolved
+        case failed
     }
 
     // MARK: - Properties
@@ -34,6 +51,12 @@ final class NotificationsViewModel: ObservableObject {
     private let fetchFoodItemReports: any FetchFoodItemReportsUseCaseProtocol
     private let fetchPhotoSuggestions: any FetchPhotoSuggestionsUseCaseProtocol
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
+    private let isMaintainer: Bool
+    private let fetchUserNotifications: any FetchUserNotificationsUseCaseProtocol
+    private let markUserNotificationSeen: any MarkUserNotificationSeenUseCaseProtocol
+    private let hideUserNotification: any HideUserNotificationUseCaseProtocol
+    private let withdrawUserNotification: any WithdrawUserNotificationUseCaseProtocol
+    private let notificationsStore: any UserNotificationsStoreProtocol
 
     // MARK: - Init
 
@@ -41,12 +64,24 @@ final class NotificationsViewModel: ObservableObject {
         fetchPendingSubmissions: any FetchPendingSubmissionsUseCaseProtocol,
         fetchFoodItemReports: any FetchFoodItemReportsUseCaseProtocol,
         fetchPhotoSuggestions: any FetchPhotoSuggestionsUseCaseProtocol,
-        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
+        fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
+        isMaintainer: Bool,
+        fetchUserNotifications: any FetchUserNotificationsUseCaseProtocol,
+        markUserNotificationSeen: any MarkUserNotificationSeenUseCaseProtocol,
+        hideUserNotification: any HideUserNotificationUseCaseProtocol,
+        withdrawUserNotification: any WithdrawUserNotificationUseCaseProtocol,
+        notificationsStore: any UserNotificationsStoreProtocol
     ) {
         self.fetchPendingSubmissions = fetchPendingSubmissions
         self.fetchFoodItemReports = fetchFoodItemReports
         self.fetchPhotoSuggestions = fetchPhotoSuggestions
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
+        self.isMaintainer = isMaintainer
+        self.fetchUserNotifications = fetchUserNotifications
+        self.markUserNotificationSeen = markUserNotificationSeen
+        self.hideUserNotification = hideUserNotification
+        self.withdrawUserNotification = withdrawUserNotification
+        self.notificationsStore = notificationsStore
     }
 
     // MARK: - Functions
@@ -70,35 +105,104 @@ final class NotificationsViewModel: ObservableObject {
     }
 
     @MainActor
-    func onPhotoSuggestionResolved(id: String, isApproved: Bool) {
-        var resolvedItemId: String?
-        if case .photoSuggestion(let suggestion)? = rows.first(where: { $0.id == id })?.kind {
-            resolvedItemId = suggestion.itemId
+    func onDetailShown(id: String) async {
+        guard
+            let index = rows.firstIndex(where: { $0.id == id }),
+            case .userNotification(let notification) = rows[index].kind,
+            notification.isUnread
+        else { return }
+        do {
+            try await markUserNotificationSeen(notification)
+        } catch {
+            Log.warning(error, category: Constants.LogCategory.moderation)
+            return
         }
-        rows.removeAll { row in
-            guard case .photoSuggestion(let suggestion) = row.kind else { return false }
-            return row.id == id || (isApproved && suggestion.itemId == resolvedItemId)
-        }
+        markSeenLocally(id: id)
     }
 
     @MainActor
-    func onReportRowChanged(id: String, remaining: [FoodItemReportDomain]) {
-        guard let index = rows.firstIndex(where: { $0.id == id }) else { return }
+    func onWithdrawConfirmed(id: String) async -> WithdrawResult {
         guard
-            !remaining.isEmpty,
-            case .report(let barcode, _) = rows[index].kind
-        else {
-            rows.remove(at: index)
+            let row = rows.first(where: { $0.id == id }),
+            case .userNotification(let notification) = row.kind
+        else { return .failed }
+        do {
+            try await withdrawUserNotification(notification)
+        } catch WithdrawUserNotificationError.alreadyResolved {
+            await load()
+            return .alreadyResolved
+        } catch {
+            Log.error(error, category: Constants.LogCategory.moderation)
+            return .failed
+        }
+        rows.removeAll { $0.id == id }
+        notificationsStore.mayHaveUnread = rows.contains(where: \.isUnread)
+        return .withdrawn
+    }
+
+    @MainActor
+    func onHideTapped(id: String) async {
+        guard
+            let index = rows.firstIndex(where: { $0.id == id }),
+            case .userNotification(let notification) = rows[index].kind
+        else { return }
+        let row = rows.remove(at: index)
+        do {
+            try await hideUserNotification(notification)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.moderation)
+            rows.insert(row, at: min(index, rows.count))
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
             return
         }
-        let row = rows[index]
-        rows[index] = Row(id: row.id, kind: .report(barcode: barcode, reports: remaining), title: row.title, date: row.date)
+        notificationsStore.mayHaveUnread = rows.contains(where: \.isUnread)
     }
 
     // MARK: - Private
 
     @MainActor
+    private func markSeenLocally(id: String) {
+        guard
+            let index = rows.firstIndex(where: { $0.id == id }),
+            case .userNotification(var seen) = rows[index].kind
+        else { return }
+        seen.seenAt = .now
+        rows[index].kind = .userNotification(seen)
+        if !rows.contains(where: \.isUnread) {
+            notificationsStore.mayHaveUnread = false
+        }
+    }
+
+    @MainActor
     private func load() async {
+        if isMaintainer {
+            await loadModeration()
+        } else {
+            await loadUserNotifications()
+        }
+    }
+
+    @MainActor
+    private func loadUserNotifications() async {
+        let notifications: [UserNotificationDomain]
+        let startedAt = Date.now
+        do {
+            notifications = try await fetchUserNotifications()
+        } catch {
+            Log.error(error, category: Constants.LogCategory.moderation)
+            alertItem = AlertItem(title: L10n.Common.errorUnknown)
+            return
+        }
+        notificationsStore.recordFetch(notifications, startedAt: startedAt)
+        let items = (try? await fetchFoodItemByBarcode(barcodes: Array(Set(notifications.map(\.itemId))))) ?? []
+        let namesById = Dictionary(items.map { ($0.id, $0.displayName) }) { first, _ in first }
+        rows = notifications.map {
+            Row(id: $0.rowId, kind: .userNotification($0), title: namesById[$0.itemId] ?? $0.itemId, date: $0.lastEventAt)
+        }
+    }
+
+    @MainActor
+    private func loadModeration() async {
         async let submissionsResult = Self.attempt { try await fetchPendingSubmissions() }
         async let reportsResult = Self.attempt { try await fetchFoodItemReports() }
         async let suggestionsResult = Self.attempt { try await fetchPhotoSuggestions() }
@@ -123,6 +227,7 @@ final class NotificationsViewModel: ObservableObject {
             case .submission: fetchedSubmissions == nil
             case .report: fetchedReports == nil
             case .photoSuggestion: fetchedSuggestions == nil
+            case .userNotification: false
             }
         }
         rows = (Self.rows(submissions: submissions, reports: reports, suggestions: suggestions, namesById: namesById) + keptRows)
@@ -147,13 +252,8 @@ final class NotificationsViewModel: ObservableObject {
         let submissionRows = submissions.map {
             Row(id: "submission-\($0.id)", kind: .submission($0), title: $0.item.displayName, date: $0.submittedAt)
         }
-        let reportRows = Dictionary(grouping: reports, by: \.barcode).map { barcode, reports in
-            Row(
-                id: "report-\(barcode)",
-                kind: .report(barcode: barcode, reports: reports.sorted { $0.reportedAt > $1.reportedAt }),
-                title: namesById[barcode] ?? barcode,
-                date: reports.map(\.reportedAt).min() ?? .distantPast
-            )
+        let reportRows = reports.map {
+            Row(id: "report-\($0.id)", kind: .report($0), title: namesById[$0.barcode] ?? $0.barcode, date: $0.reportedAt)
         }
         let suggestionRows = suggestions.map {
             Row(id: "photo-\($0.id)", kind: .photoSuggestion($0), title: namesById[$0.itemId] ?? $0.itemId, date: $0.suggestedAt)

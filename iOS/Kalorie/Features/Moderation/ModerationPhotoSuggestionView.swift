@@ -39,11 +39,11 @@ struct ModerationPhotoSuggestionView: View {
             VStack(spacing: 12) {
                 if viewModel.canApprove {
                     PrimaryButton(L10n.Moderation.buttonApprove) {
-                        Task { await viewModel.onApproveTapped() }
+                        viewModel.onApproveTapped()
                     }
                 }
                 PrimaryButton(L10n.Moderation.buttonReject, style: .destructive) {
-                    Task { await viewModel.onRejectTapped() }
+                    viewModel.onRejectTapped()
                 }
             }
         }
@@ -57,6 +57,9 @@ struct ModerationPhotoSuggestionView: View {
             )
         }
         .task { await viewModel.onAppear() }
+        .moderationResponseSheet(draft: $viewModel.responseDraft, isSending: viewModel.isSendingResponse) {
+            Task { await viewModel.onResponseSendTapped() }
+        }
         .onChange(of: viewModel.shouldDismiss) {
             if viewModel.shouldDismiss { dismiss() }
         }
@@ -71,15 +74,18 @@ struct ModerationPhotoSuggestionView: View {
         ModerationPhotoSuggestionView(
             viewModel: ModerationPhotoSuggestionViewModel(
                 suggestion: PhotoSuggestionDomain(
+                    id: "ticket-1",
                     itemId: "12345678",
                     suggestedBy: "user-1",
                     photoURL: URL(fileURLWithPath: "/tmp/none.jpg"),
-                    suggestedAt: .now
+                    suggestedAt: .now,
+                    status: .pending,
+                    locale: "en"
                 ),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                 approvePhotoSuggestion: ApprovePhotoSuggestionUseCaseFake(),
                 rejectPhotoSuggestion: RejectPhotoSuggestionUseCaseFake()
-            ) { _ in }
+            ) {}
         )
     }
 }

@@ -38,7 +38,7 @@ struct ModerationConfigurator {
             makeReviewView: { [self] submission, onResolved in
                 makeReviewView(submission: submission, onResolved: onResolved)
             },
-            makeCatalogueEditorView: { [self] barcode in makeCatalogueEditorView(initialBarcode: barcode) }
+            makeCatalogueEditorView: { [self] in makeCatalogueEditorView() }
         )
     }
 
@@ -69,8 +69,8 @@ struct ModerationConfigurator {
                 fetchFoodItemReports: FetchFoodItemReportsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCase(dataProvider: dataProvider)
             )
-        ) { [self] barcode, reports, onReportsChanged in
-            makeCatalogueEditorView(initialBarcode: barcode, reports: reports, onReportsChanged: onReportsChanged)
+        ) { [self] report, onResolved in
+            makeCatalogueEditorView(ticket: report, onResolved: onResolved)
         }
     }
 
@@ -85,7 +85,7 @@ struct ModerationConfigurator {
         }
     }
 
-    func makePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: @escaping (Bool) -> Void) -> ModerationPhotoSuggestionView {
+    func makePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: @escaping () -> Void) -> ModerationPhotoSuggestionView {
         ModerationPhotoSuggestionView(
             viewModel: ModerationPhotoSuggestionViewModel(
                 suggestion: suggestion,
@@ -116,9 +116,8 @@ struct ModerationConfigurator {
     // MARK: - Private
 
     func makeCatalogueEditorView(
-        initialBarcode: String?,
-        reports: [FoodItemReportDomain] = [],
-        onReportsChanged: @escaping ([FoodItemReportDomain]) -> Void = { _ in }
+        ticket: FoodItemReportDomain? = nil,
+        onResolved: @escaping () -> Void = {}
     ) -> ModerationCatalogueEditorView {
         ModerationCatalogueEditorView(
             viewModel: ModerationCatalogueEditorViewModel(
@@ -129,12 +128,11 @@ struct ModerationConfigurator {
                     uploadFoodPhoto: UploadFoodPhotoUseCase(storageProvider: storageProvider),
                     deleteFoodPhoto: DeleteFoodPhotoUseCase(storageProvider: storageProvider)
                 ),
-                deleteFoodItemReport: DeleteFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
+                resolveFoodItemReport: ResolveFoodItemReportUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 modelExtractor: FoundationModelExtractor(),
                 cameraAuthorizationProvider: CameraAuthorizationProvider(),
-                initialBarcode: initialBarcode,
-                reports: reports,
-                onReportsChanged: onReportsChanged
+                ticket: ticket,
+                onResolved: onResolved
             )
         )
     }

@@ -13,16 +13,16 @@ struct NotificationsView: View {
 
     @StateObject var viewModel: NotificationsViewModel
     private let makeSubmissionView: (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView
-    private let makeReportView: (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView
-    private let makePhotoSuggestionView: (PhotoSuggestionDomain, @escaping (Bool) -> Void) -> ModerationPhotoSuggestionView
+    private let makeReportView: (FoodItemReportDomain, @escaping () -> Void) -> ModerationCatalogueEditorView
+    private let makePhotoSuggestionView: (PhotoSuggestionDomain, @escaping () -> Void) -> ModerationPhotoSuggestionView
 
     // MARK: - Init
 
     init(
         viewModel: NotificationsViewModel,
         makeSubmissionView: @escaping (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView,
-        makeReportView: @escaping (String, [FoodItemReportDomain], @escaping ([FoodItemReportDomain]) -> Void) -> ModerationCatalogueEditorView,
-        makePhotoSuggestionView: @escaping (PhotoSuggestionDomain, @escaping (Bool) -> Void) -> ModerationPhotoSuggestionView
+        makeReportView: @escaping (FoodItemReportDomain, @escaping () -> Void) -> ModerationCatalogueEditorView,
+        makePhotoSuggestionView: @escaping (PhotoSuggestionDomain, @escaping () -> Void) -> ModerationPhotoSuggestionView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeSubmissionView = makeSubmissionView
@@ -40,6 +40,16 @@ struct NotificationsView: View {
                         destination(for: row)
                     } label: {
                         label(for: row)
+                    }
+                    .swipeActions(edge: .trailing) {
+                        if row.isHideable {
+                            Button(role: .destructive) {
+                                Task { await viewModel.onHideTapped(id: row.id) }
+                            } label: {
+                                Image(systemName: BaseImageName.trash.rawValue)
+                            }
+                            .accessibilityLabel(L10n.Notifications.userHide)
+                        }
                     }
                 }
             }
@@ -82,14 +92,17 @@ struct NotificationsView: View {
         switch row.kind {
         case .submission(let submission):
             makeSubmissionView(submission) { viewModel.onRowResolved(id: row.id) }
-        case .report(let barcode, let reports):
-            makeReportView(barcode, reports) { remaining in
-                viewModel.onReportRowChanged(id: row.id, remaining: remaining)
-            }
+        case .report(let report):
+            makeReportView(report) { viewModel.onRowResolved(id: row.id) }
         case .photoSuggestion(let suggestion):
-            makePhotoSuggestionView(suggestion) { isApproved in
-                viewModel.onPhotoSuggestionResolved(id: row.id, isApproved: isApproved)
-            }
+            makePhotoSuggestionView(suggestion) { viewModel.onRowResolved(id: row.id) }
+        case .userNotification(let notification):
+            UserNotificationDetailView(
+                title: row.title,
+                notification: notification,
+                onShown: { await viewModel.onDetailShown(id: row.id) },
+                onWithdraw: { await viewModel.onWithdrawConfirmed(id: row.id) }
+            )
         }
     }
 
@@ -98,6 +111,15 @@ struct NotificationsView: View {
             Image(systemName: iconName(for: row.kind))
                 .foregroundStyle(.secondary)
                 .frame(width: 24)
+                .overlay(alignment: .topTrailing) {
+                    if row.isUnread {
+                        Circle()
+                            .fill(Color.error)
+                            .frame(width: 9, height: 9)
+                            .offset(x: 3, y: -2)
+                            .accessibilityLabel(L10n.Notifications.userUnreadAccessibility)
+                    }
+                }
             VStack(alignment: .leading) {
                 Text(row.title)
                 Text(kindLabel(for: row.kind))
@@ -112,6 +134,7 @@ struct NotificationsView: View {
         case .submission: BaseImageName.plusCircle.rawValue
         case .report: BaseImageName.pencil.rawValue
         case .photoSuggestion: BaseImageName.cameraFill.rawValue
+        case .userNotification(let notification): notification.kind.iconName
         }
     }
 
@@ -120,6 +143,7 @@ struct NotificationsView: View {
         case .submission: L10n.Notifications.kindSubmission
         case .report: L10n.Notifications.kindReport
         case .photoSuggestion: L10n.Notifications.kindPhoto
+        case .userNotification(let notification): notification.statusLabel
         }
     }
 }
@@ -133,7 +157,13 @@ struct NotificationsView: View {
             fetchPendingSubmissions: FetchPendingSubmissionsUseCaseFake(),
             fetchFoodItemReports: FetchFoodItemReportsUseCaseFake(),
             fetchPhotoSuggestions: FetchPhotoSuggestionsUseCaseFake(),
-            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake()
+            fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
+            isMaintainer: true,
+            fetchUserNotifications: FetchUserNotificationsUseCaseFake(),
+            markUserNotificationSeen: MarkUserNotificationSeenUseCaseFake(),
+            hideUserNotification: HideUserNotificationUseCaseFake(),
+            withdrawUserNotification: WithdrawUserNotificationUseCaseFake(),
+            notificationsStore: UserNotificationsStoreFake()
         ),
         makeSubmissionView: { submission, onResolved in
             ModerationReviewView(
@@ -148,12 +178,12 @@ struct NotificationsView: View {
                 )
             )
         },
-        makeReportView: { _, _, _ in
+        makeReportView: { _, _ in
             ModerationCatalogueEditorView(
                 viewModel: ModerationCatalogueEditorViewModel(
                     fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                     updateFoodItem: UpdateFoodItemUseCaseFake(),
-                    deleteFoodItemReport: DeleteFoodItemReportUseCaseFake(),
+                    resolveFoodItemReport: ResolveFoodItemReportUseCaseFake(),
                     modelExtractor: NutritionLabelModelExtractorFake(),
                     cameraAuthorizationProvider: CameraAuthorizationProviderFake()
                 )
@@ -166,7 +196,7 @@ struct NotificationsView: View {
                     fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                     approvePhotoSuggestion: ApprovePhotoSuggestionUseCaseFake(),
                     rejectPhotoSuggestion: RejectPhotoSuggestionUseCaseFake()
-                ) { _ in }
+                ) {}
             )
         }
     )

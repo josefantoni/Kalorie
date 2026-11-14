@@ -24,12 +24,10 @@ struct ModerationCatalogueEditorView: View {
 
     var body: some View {
         List {
-            if !viewModel.reports.isEmpty {
+            if let ticket = viewModel.ticket {
                 Section(L10n.Moderation.reportsTitle) {
-                    ForEach(viewModel.reports, id: \.reportedBy) { report in
-                        Text(report.reason)
-                            .fontWeight(.medium)
-                    }
+                    Text(ticket.reason)
+                        .fontWeight(.medium)
                 }
             }
             if !viewModel.isOpenedFromReport {
@@ -97,6 +95,9 @@ struct ModerationCatalogueEditorView: View {
                 dismissButton: .default(Text(L10n.Common.ok))
             )
         }
+        .moderationResponseSheet(draft: $viewModel.responseDraft, isSending: viewModel.isSendingResponse) {
+            Task { await viewModel.onResponseSendTapped() }
+        }
         .onChange(of: viewModel.shouldDismiss) {
             if viewModel.shouldDismiss { dismiss() }
         }
@@ -119,7 +120,7 @@ struct ModerationCatalogueEditorView: View {
     private var rejectButtonSection: some View {
         Section {
             PrimaryButton(L10n.Moderation.buttonReject, style: .destructive) {
-                Task { await viewModel.onRejectTapped() }
+                viewModel.onRejectTapped()
             }
             .disabled(viewModel.state.isLoading)
             .listRowInsets(EdgeInsets())
@@ -139,7 +140,7 @@ struct ModerationCatalogueEditorView: View {
             viewModel: ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                 updateFoodItem: UpdateFoodItemUseCaseFake(),
-                deleteFoodItemReport: DeleteFoodItemReportUseCaseFake(),
+                resolveFoodItemReport: ResolveFoodItemReportUseCaseFake(),
                 modelExtractor: NutritionLabelModelExtractorFake(),
                 cameraAuthorizationProvider: CameraAuthorizationProviderFake()
             )

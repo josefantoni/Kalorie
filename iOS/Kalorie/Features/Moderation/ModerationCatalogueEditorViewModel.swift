@@ -22,48 +22,48 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
     @Published var isRecognizingNutritionLabel = false
     @Published var isNutritionLabelCameraVisible = false
     @Published var nutritionLabelCameraHint: String?
-    @Published private(set) var reports: [FoodItemReportDomain]
+    @Published var responseDraft: ModerationResponseDraft?
+    @Published private(set) var isSendingResponse = false
     @Published private(set) var shouldDismiss = false
 
     private let fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol
     private let updateFoodItem: any UpdateFoodItemUseCaseProtocol
-    private let deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol
+    private let resolveFoodItemReport: any ResolveFoodItemReportUseCaseProtocol
     private let modelExtractor: any NutritionLabelModelExtractorProtocol
     private let cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol
-    private let initialBarcode: String?
-    private let onReportsChanged: ([FoodItemReportDomain]) -> Void
+    private let onResolved: () -> Void
 
-    var isOpenedFromReport: Bool { initialBarcode != nil }
+    let ticket: FoodItemReportDomain?
+
+    var isOpenedFromReport: Bool { ticket != nil }
 
     // MARK: - Init
 
     init(
         fetchFoodItemByBarcode: any FetchFoodItemByBarcodeUseCaseProtocol,
         updateFoodItem: any UpdateFoodItemUseCaseProtocol,
-        deleteFoodItemReport: any DeleteFoodItemReportUseCaseProtocol,
+        resolveFoodItemReport: any ResolveFoodItemReportUseCaseProtocol,
         modelExtractor: any NutritionLabelModelExtractorProtocol,
         cameraAuthorizationProvider: any CameraAuthorizationProviderProtocol,
-        initialBarcode: String? = nil,
-        reports: [FoodItemReportDomain] = [],
-        onReportsChanged: @escaping ([FoodItemReportDomain]) -> Void = { _ in }
+        ticket: FoodItemReportDomain? = nil,
+        onResolved: @escaping () -> Void = {}
     ) {
         self.fetchFoodItemByBarcode = fetchFoodItemByBarcode
         self.updateFoodItem = updateFoodItem
-        self.deleteFoodItemReport = deleteFoodItemReport
+        self.resolveFoodItemReport = resolveFoodItemReport
         self.modelExtractor = modelExtractor
         self.cameraAuthorizationProvider = cameraAuthorizationProvider
-        self.initialBarcode = initialBarcode
-        self.reports = reports
-        self.onReportsChanged = onReportsChanged
-        self.barcodeQuery = initialBarcode ?? ""
+        self.ticket = ticket
+        self.onResolved = onResolved
+        self.barcodeQuery = ticket?.barcode ?? ""
     }
 
     // MARK: - Functions
 
     @MainActor
     func onAppear() async {
-        guard let initialBarcode, loadedItem == nil else { return }
-        barcodeQuery = initialBarcode
+        guard let ticket, loadedItem == nil else { return }
+        barcodeQuery = ticket.barcode
         await onSearchTapped()
     }
 
@@ -111,15 +111,40 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
 
     @MainActor
     func onSaveAndResolveTapped() async {
-        guard !state.isLoading else { return }
+        guard let ticket, !state.isLoading else { return }
         guard await save() else { return }
-        await resolveReports()
+        responseDraft = ModerationResponseDraft(
+            status: .accepted,
+            text: L10n.Moderation.responseReportAccepted(locale: ticket.locale)
+        )
     }
 
     @MainActor
-    func onRejectTapped() async {
-        guard !state.isLoading else { return }
-        await resolveReports()
+    func onRejectTapped() {
+        guard ticket != nil, !state.isLoading else { return }
+        responseDraft = ModerationResponseDraft(status: .rejected, text: "")
+    }
+
+    @MainActor
+    func onResponseSendTapped() async {
+        guard
+            let ticket,
+            let draft = responseDraft,
+            draft.isSendable,
+            !isSendingResponse
+        else { return }
+        isSendingResponse = true
+        defer { isSendingResponse = false }
+        do {
+            try await resolveFoodItemReport(ticketId: ticket.id, status: draft.status, response: draft.text)
+        } catch {
+            Log.error(error, category: Constants.LogCategory.moderation)
+            responseDraft?.errorTitle = L10n.Common.errorUnknown
+            return
+        }
+        responseDraft = nil
+        onResolved()
+        shouldDismiss = true
     }
 
     // MARK: - Private
@@ -156,27 +181,4 @@ final class ModerationCatalogueEditorViewModel: ObservableObject, NutritionLabel
             return false
         }
     }
-
-    @MainActor
-    private func resolveReports() async {
-        state = .loading
-        defer { state = .loaded }
-        var remainingReports: [FoodItemReportDomain] = []
-        for report in reports {
-            do {
-                try await deleteFoodItemReport(barcode: report.barcode, reportedBy: report.reportedBy)
-            } catch {
-                Log.error(error, category: Constants.LogCategory.moderation)
-                remainingReports.append(report)
-            }
-        }
-        reports = remainingReports
-        onReportsChanged(remainingReports)
-        guard remainingReports.isEmpty else {
-            alertItem = AlertItem(title: L10n.Common.errorUnknown)
-            return
-        }
-        shouldDismiss = true
-    }
-
 }

@@ -8,7 +8,7 @@
 import Foundation
 
 protocol RejectPhotoSuggestionUseCaseProtocol {
-    func callAsFunction(_ suggestion: PhotoSuggestionDomain) async throws
+    func callAsFunction(_ suggestion: PhotoSuggestionDomain, response: String) async throws
 }
 
 struct RejectPhotoSuggestionUseCase: RejectPhotoSuggestionUseCaseProtocol {
@@ -17,6 +17,7 @@ struct RejectPhotoSuggestionUseCase: RejectPhotoSuggestionUseCaseProtocol {
 
     private let authProvider: any AuthProviderProtocol
     private let remover: PhotoSuggestionRemover
+    private let writer: TicketResolutionWriter
 
     // MARK: - Init
 
@@ -26,14 +27,22 @@ struct RejectPhotoSuggestionUseCase: RejectPhotoSuggestionUseCaseProtocol {
         storageProvider: any StorageDataProviderProtocol
     ) {
         self.authProvider = authProvider
-        self.remover = PhotoSuggestionRemover(dataProvider: dataProvider, storageProvider: storageProvider)
+        self.remover = PhotoSuggestionRemover(storageProvider: storageProvider)
+        self.writer = TicketResolutionWriter(dataProvider: dataProvider)
     }
 
     // MARK: - Functions
 
-    func callAsFunction(_ suggestion: PhotoSuggestionDomain) async throws {
+    func callAsFunction(_ suggestion: PhotoSuggestionDomain, response: String) async throws {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
-        try await remover.remove(itemId: suggestion.itemId, userId: suggestion.suggestedBy)
+        let trimmedResponse = try TicketResolutionWriter.validated(response)
+        try await writer.write(
+            status: .rejected,
+            response: trimmedResponse,
+            ticketId: suggestion.id,
+            in: Constants.Firestore.photoSuggestions
+        )
+        await remover.deleteFileQuietly(at: suggestion.photoURL)
     }
 }
 
@@ -46,7 +55,7 @@ struct RejectPhotoSuggestionUseCaseFake: RejectPhotoSuggestionUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ suggestion: PhotoSuggestionDomain) async throws {
+    func callAsFunction(_ suggestion: PhotoSuggestionDomain, response: String) async throws {
         if let errorToThrow { throw errorToThrow }
     }
 }

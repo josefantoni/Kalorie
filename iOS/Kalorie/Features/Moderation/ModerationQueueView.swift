@@ -13,14 +13,14 @@ struct ModerationQueueView: View {
 
     @StateObject var viewModel: ModerationQueueViewModel
     private let makeReviewView: (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView
-    private let makeCatalogueEditorView: (String?) -> ModerationCatalogueEditorView
+    private let makeCatalogueEditorView: () -> ModerationCatalogueEditorView
 
     // MARK: - Init
 
     init(
         viewModel: ModerationQueueViewModel,
         makeReviewView: @escaping (FoodItemSubmissionDomain, @escaping () -> Void) -> ModerationReviewView,
-        makeCatalogueEditorView: @escaping (String?) -> ModerationCatalogueEditorView
+        makeCatalogueEditorView: @escaping () -> ModerationCatalogueEditorView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel)
         self.makeReviewView = makeReviewView
@@ -59,7 +59,7 @@ struct ModerationQueueView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink {
-                    makeCatalogueEditorView(nil)
+                    makeCatalogueEditorView()
                 } label: {
                     Image(systemName: BaseImageName.pencil.rawValue)
                 }
@@ -99,15 +99,14 @@ struct ModerationQueueView: View {
                     )
                 )
             },
-            makeCatalogueEditorView: { barcode in
+            makeCatalogueEditorView: {
                 ModerationCatalogueEditorView(
                     viewModel: ModerationCatalogueEditorViewModel(
                         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseFake(),
                         updateFoodItem: UpdateFoodItemUseCaseFake(),
-                        deleteFoodItemReport: DeleteFoodItemReportUseCaseFake(),
+                        resolveFoodItemReport: ResolveFoodItemReportUseCaseFake(),
                         modelExtractor: NutritionLabelModelExtractorFake(),
-                        cameraAuthorizationProvider: CameraAuthorizationProviderFake(),
-                        initialBarcode: barcode
+                        cameraAuthorizationProvider: CameraAuthorizationProviderFake()
                     )
                 )
             }

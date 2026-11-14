@@ -17,12 +17,21 @@ struct SubmitFoodItemReportUseCase: SubmitFoodItemReportUseCaseProtocol {
 
     private let dataProvider: any FirestoreDataProviderProtocol
     private let authProvider: any AuthProviderProtocol
+    private let notificationsStore: any UserNotificationsStoreProtocol
+    private let locale: String
 
     // MARK: - Init
 
-    init(dataProvider: any FirestoreDataProviderProtocol, authProvider: any AuthProviderProtocol) {
+    init(
+        dataProvider: any FirestoreDataProviderProtocol,
+        authProvider: any AuthProviderProtocol,
+        notificationsStore: any UserNotificationsStoreProtocol,
+        locale: String = TicketLocale.current()
+    ) {
         self.dataProvider = dataProvider
         self.authProvider = authProvider
+        self.notificationsStore = notificationsStore
+        self.locale = locale
     }
 
     // MARK: - Functions
@@ -35,12 +44,17 @@ struct SubmitFoodItemReportUseCase: SubmitFoodItemReportUseCaseProtocol {
         guard trimmedReason.utf16.count <= Constants.Firestore.reportReasonMaxLength else {
             throw FoodItemReportError.reasonTooLong
         }
-        let dto = FoodItemReportDTO(barcode: barcode, reportedBy: userId, reason: trimmedReason, reportedAt: .now)
-        try await dataProvider.setAsync(
-            dto,
-            id: FoodItemReportDomain.id(barcode: barcode, userId: userId),
-            in: Constants.Firestore.foodItemReports
+        let dto = FoodItemReportCreateDTO(
+            barcode: barcode,
+            reportedBy: userId,
+            reason: trimmedReason,
+            reportedAt: .now,
+            locale: locale
         )
+        let ticketId = try dataProvider.newDocumentId(in: Constants.Firestore.foodItemReports)
+        try await dataProvider.setAsync(dto, id: ticketId, in: Constants.Firestore.foodItemReports)
+        notificationsStore.mayHaveUnread = true
+        notificationsStore.lastSubmittedAt = .now
     }
 }
 

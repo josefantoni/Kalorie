@@ -31,9 +31,10 @@ struct FetchPhotoSuggestionsUseCase: FetchPhotoSuggestionsUseCaseProtocol {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
         let dtos: [PhotoSuggestionDTO] = try await dataProvider.loadAsync(
             from: Constants.Firestore.photoSuggestions,
+            where: Constants.Firestore.Field.status,
+            isEqualTo: Constants.Firestore.pendingStatus,
             orderBy: Constants.Firestore.Field.suggestedAt,
-            descending: false,
-            limit: Constants.Firestore.reportsPageLimit
+            descending: true
         )
         return dtos.compactMap { $0.asDomain() }
     }

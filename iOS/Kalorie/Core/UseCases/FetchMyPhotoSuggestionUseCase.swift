@@ -29,11 +29,16 @@ struct FetchMyPhotoSuggestionUseCase: FetchMyPhotoSuggestionUseCaseProtocol {
 
     func callAsFunction(itemId: String) async throws -> Bool {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let dto: PhotoSuggestionDTO? = try await dataProvider.loadFromServerAsync(
-            id: PhotoSuggestionDomain.id(itemId: itemId, userId: userId),
-            from: Constants.Firestore.photoSuggestions
+        let dtos: [PhotoSuggestionDTO] = try await dataProvider.loadAsync(
+            from: Constants.Firestore.photoSuggestions,
+            whereEqualTo: [
+                (Constants.Firestore.Field.suggestedBy, userId),
+                (Constants.Firestore.Field.itemId, itemId),
+                (Constants.Firestore.Field.status, Constants.Firestore.pendingStatus)
+            ],
+            limit: 1
         )
-        return dto != nil
+        return !dtos.isEmpty
     }
 }
 

@@ -29,11 +29,16 @@ struct FetchMyFoodItemReportUseCase: FetchMyFoodItemReportUseCaseProtocol {
 
     func callAsFunction(barcode: String) async throws -> FoodItemReportDomain? {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
-        let dto: FoodItemReportDTO? = try await dataProvider.loadAsync(
-            id: FoodItemReportDomain.id(barcode: barcode, userId: userId),
-            from: Constants.Firestore.foodItemReports
+        let dtos: [FoodItemReportDTO] = try await dataProvider.loadAsync(
+            from: Constants.Firestore.foodItemReports,
+            whereEqualTo: [
+                (Constants.Firestore.Field.reportedBy, userId),
+                (Constants.Firestore.Field.barcode, barcode),
+                (Constants.Firestore.Field.status, Constants.Firestore.pendingStatus)
+            ],
+            limit: 1
         )
-        return dto?.asDomain()
+        return dtos.first?.asDomain()
     }
 }
 

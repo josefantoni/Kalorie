@@ -7,20 +7,20 @@
 
 import Foundation
 
-struct FoodItemReportDomain: Equatable {
+struct FoodItemReportDomain: Equatable, Identifiable {
 
     // MARK: - Properties
 
+    let id: String
     let barcode: String
-    let reportedBy: String
+    let reportedBy: String?
     let reason: String
     let reportedAt: Date
-
-    // MARK: - Functions
-
-    static func id(barcode: String, userId: String) -> String {
-        "\(barcode)_\(userId)"
-    }
+    let status: TicketStatus
+    let locale: String
+    var response: String?
+    var resolvedAt: Date?
+    var seenAt: Date?
 }
 
 enum FoodItemReportError: Error {
