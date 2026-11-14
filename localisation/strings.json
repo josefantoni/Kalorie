@@ -1229,6 +1229,26 @@
     "en": "Reports",
     "sk": "Nahlásenia"
   },
+  "moderation_response_photo_accepted": {
+    "cs": "Díky za fotku! Přidal jsem ji k potravině.",
+    "en": "Thanks for the photo! I have added it to the food.",
+    "sk": "Vďaka za fotku! Pridal som ju k potravine."
+  },
+  "moderation_response_report_accepted": {
+    "cs": "Díky za nahlášení! Údaje u potraviny jsem opravil.",
+    "en": "Thanks for the report! I have corrected the food's details.",
+    "sk": "Vďaka za nahlásenie! Údaje pri potravine som opravil."
+  },
+  "moderation_response_send": {
+    "cs": "Odeslat",
+    "en": "Send",
+    "sk": "Odoslať"
+  },
+  "moderation_response_title": {
+    "cs": "Odpověď uživateli",
+    "en": "Reply to the user",
+    "sk": "Odpoveď používateľovi"
+  },
   "moderation_section_title": {
     "cs": "Moderace",
     "en": "Moderation",
@@ -1378,6 +1398,91 @@
     "cs": "Oznámení",
     "en": "Notifications",
     "sk": "Oznámenia"
+  },
+  "notifications_user_hide": {
+    "cs": "Smazat",
+    "en": "Delete",
+    "sk": "Zmazať"
+  },
+  "notifications_user_kind_photo": {
+    "cs": "Fotka potraviny",
+    "en": "Food photo",
+    "sk": "Fotka potraviny"
+  },
+  "notifications_user_kind_report": {
+    "cs": "Nahlášení potraviny",
+    "en": "Food report",
+    "sk": "Nahlásenie potraviny"
+  },
+  "notifications_user_photo_message": {
+    "cs": "Na tvoji fotku se co nejdříve podívám. Až ji vyřídím, dám ti tady vědět.",
+    "en": "I will look at your photo as soon as I can. I will let you know here once I have dealt with it.",
+    "sk": "Na tvoju fotku sa čo najskôr pozriem. Keď ju vybavím, dám ti tu vedieť."
+  },
+  "notifications_user_reason_title": {
+    "cs": "Tvoje poznámka",
+    "en": "Your note",
+    "sk": "Tvoja poznámka"
+  },
+  "notifications_user_report_message": {
+    "cs": "Tvému nahlášení se budu co nejdříve věnovat. Až ho vyřídím, dám ti tady vědět.",
+    "en": "I will look at your report as soon as I can. I will let you know here once I have dealt with it.",
+    "sk": "Tvojmu nahláseniu sa budem čo najskôr venovať. Keď ho vybavím, dám ti tu vedieť."
+  },
+  "notifications_user_resolved_at": {
+    "cs": "Vyřízeno %@",
+    "en": "Dealt with %@",
+    "sk": "Vybavené %@"
+  },
+  "notifications_user_response_title": {
+    "cs": "Odpověď",
+    "en": "Response",
+    "sk": "Odpoveď"
+  },
+  "notifications_user_sent_at": {
+    "cs": "Odesláno %@",
+    "en": "Sent %@",
+    "sk": "Odoslané %@"
+  },
+  "notifications_user_status_approved": {
+    "cs": "Schváleno",
+    "en": "Approved",
+    "sk": "Schválené"
+  },
+  "notifications_user_status_pending": {
+    "cs": "Čeká na vyřízení",
+    "en": "Pending",
+    "sk": "Čaká na vybavenie"
+  },
+  "notifications_user_status_rejected": {
+    "cs": "Zamítnuto",
+    "en": "Rejected",
+    "sk": "Zamietnuté"
+  },
+  "notifications_user_status_resolved": {
+    "cs": "Vyřešeno",
+    "en": "Resolved",
+    "sk": "Vyriešené"
+  },
+  "notifications_user_status_title": {
+    "cs": "Stav",
+    "en": "Status",
+    "sk": "Stav"
+  },
+  "notifications_user_unread_accessibility": {
+    "cs": "Nepřečteno",
+    "en": "Unread",
+    "sk": "Neprečítané"
+  },
+  "notifications_user_withdraw_button": {
+    "cs": "Zrušit odeslání",
+    "en": "Withdraw",
+    "sk": "Zrušiť odoslanie"
+  },
+  "notifications_user_withdraw_confirm_title": {
+    "cs": "Zrušit odeslání?",
+    "en": "Withdraw this submission?",
+    "sk": "Zrušiť odoslanie?"
   },
   "settings_button_create": {
     "cs": "Vytvořit",
