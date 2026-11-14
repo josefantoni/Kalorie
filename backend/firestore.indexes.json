@@ -23,6 +23,48 @@
         { "fieldPath": "reported_by", "order": "ASCENDING" },
         { "fieldPath": "reported_at", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "photoSuggestions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "suggested_by", "order": "ASCENDING" },
+        { "fieldPath": "suggested_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "foodItemReports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reported_by", "order": "ASCENDING" },
+        { "fieldPath": "hidden", "order": "ASCENDING" },
+        { "fieldPath": "reported_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "photoSuggestions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "suggested_by", "order": "ASCENDING" },
+        { "fieldPath": "hidden", "order": "ASCENDING" },
+        { "fieldPath": "suggested_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "foodItemReports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "reported_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "photoSuggestions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "suggested_at", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

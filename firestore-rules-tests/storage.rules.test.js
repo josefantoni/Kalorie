@@ -131,10 +131,13 @@ describe('everything else', () => {
   });
 });
 
-describe('photoSuggestions/{uid}', () => {
+describe('photoSuggestions/{uid}/{itemId}', () => {
   const ITEM = '8593807012345';
   const UUID_ITEM = '3F2504E0-4F89-41D3-9A0C-0305E82C3301';
-  const file = `photoSuggestions/alice/${ITEM}.jpg`;
+  const SID = 'aB3dE5gH7jK9mN1pQ3sT';
+  const SID2 = 'zY8xW6vU4tS2rQ0pO9nM';
+  const pathOf = (uid, item, sid) => `photoSuggestions/${uid}/${item}/${sid}.jpg`;
+  const file = pathOf('alice', ITEM, SID);
 
   const seedItem = (id, extra = {}) =>
     env.withSecurityRulesDisabled(async (ctx) => {
@@ -148,7 +151,7 @@ describe('photoSuggestions/{uid}', () => {
     let lastError;
     for (let attempt = 0; attempt < 20; attempt++) {
       try {
-        await uploadBytes(ref(user('warmup'), `photoSuggestions/warmup/${ITEM}.jpg`), bytes(), JPEG);
+        await uploadBytes(ref(user('warmup'), pathOf('warmup', ITEM, SID)), bytes(), JPEG);
         return;
       } catch (error) {
         lastError = error;
@@ -166,7 +169,7 @@ describe('photoSuggestions/{uid}', () => {
 
   it('accepts a UUID-identified item', async () => {
     await seedItem(UUID_ITEM);
-    await assertSucceeds(uploadBytes(ref(user('alice'), `photoSuggestions/alice/${UUID_ITEM}.jpg`), bytes(), JPEG));
+    await assertSucceeds(uploadBytes(ref(user('alice'), pathOf('alice', UUID_ITEM, SID)), bytes(), JPEG));
   });
 
   it('denies uploading into another user\'s folder', async () => {
@@ -185,18 +188,27 @@ describe('photoSuggestions/{uid}', () => {
     await assertFails(uploadBytes(ref(user('alice'), file), bytes(1024 * 1024), JPEG));
   });
 
-  it('denies a file name that is not an item id', async () => {
-    await assertFails(uploadBytes(ref(user('alice'), 'photoSuggestions/alice/a.jpg'), bytes(), JPEG));
-    await assertFails(uploadBytes(ref(user('alice'), `photoSuggestions/alice/${ITEM}.png`), bytes(), JPEG));
+  it('denies a file name that is not a Firestore auto id', async () => {
+    await assertFails(uploadBytes(ref(user('alice'), pathOf('alice', ITEM, 'a')), bytes(), JPEG));
+    await assertFails(uploadBytes(ref(user('alice'), pathOf('alice', ITEM, ITEM)), bytes(), JPEG));
+    await assertFails(uploadBytes(ref(user('alice'), `photoSuggestions/alice/${ITEM}/${SID}.png`), bytes(), JPEG));
+  });
+
+  it('denies a folder that is not an item id', async () => {
+    await assertFails(uploadBytes(ref(user('alice'), pathOf('alice', '123', SID)), bytes(), JPEG));
+  });
+
+  it('denies the old flat path', async () => {
+    await assertFails(uploadBytes(ref(user('alice'), `photoSuggestions/alice/${ITEM}.jpg`), bytes(), JPEG));
   });
 
   it('denies a photo for an item that does not exist', async () => {
-    await assertFails(uploadBytes(ref(user('alice'), `photoSuggestions/alice/${UUID_ITEM}.jpg`), bytes(), JPEG));
+    await assertFails(uploadBytes(ref(user('alice'), pathOf('alice', UUID_ITEM, SID)), bytes(), JPEG));
   });
 
   it('denies a photo for an item that already has one', async () => {
     await seedItem(UUID_ITEM, { photo_url: 'https://example.invalid/p.jpg' });
-    await assertFails(uploadBytes(ref(user('alice'), `photoSuggestions/alice/${UUID_ITEM}.jpg`), bytes(), JPEG));
+    await assertFails(uploadBytes(ref(user('alice'), pathOf('alice', UUID_ITEM, SID)), bytes(), JPEG));
   });
 
   describe('once the file exists', () => {
@@ -225,17 +237,11 @@ describe('photoSuggestions/{uid}', () => {
       await assertFails(deleteObject(ref(user('bob'), file)));
     });
 
-    it('denies re-uploading after deleting the file while a suggestion is pending', async () => {
+    it('lets the same user keep a second photo for the item, even while a suggestion is pending', async () => {
       await env.withSecurityRulesDisabled(async (ctx) => {
-        await setDoc(doc(ctx.firestore(), `photoSuggestions/${ITEM}_alice`), { item_id: ITEM });
+        await setDoc(doc(ctx.firestore(), 'photoSuggestions/' + SID), { item_id: ITEM, suggested_by: 'alice' });
       });
-      await assertSucceeds(deleteObject(ref(user('alice'), file)));
-      await assertFails(uploadBytes(ref(user('alice'), file), bytes(), JPEG));
-    });
-
-    it('allows re-uploading once the pending suggestion is gone', async () => {
-      await assertSucceeds(deleteObject(ref(user('alice'), file)));
-      await assertSucceeds(uploadBytes(ref(user('alice'), file), bytes(), JPEG));
+      await assertSucceeds(uploadBytes(ref(user('alice'), pathOf('alice', ITEM, SID2)), bytes(), JPEG));
     });
   });
 });

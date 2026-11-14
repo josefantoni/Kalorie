@@ -1,4 +1,5 @@
 const { describe, it, before, after, beforeEach } = require('node:test');
+const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const path = require('node:path');
 const {
@@ -6,16 +7,20 @@ const {
   assertFails,
   assertSucceeds,
 } = require('@firebase/rules-unit-testing');
-const { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } = require('firebase/firestore');
+const { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, deleteField } = require('firebase/firestore');
 
 const UUID = '3F2504E0-4F89-41D3-9A0C-0305E82C3301';
 const BARCODE = '8593807012345';
+const TICKET_ID = 'aB3dE5gH7jK9mN1pQ3sT';
+const OTHER_ID = 'zY8xW6vU4tS2rQ0pO9nM';
+const LOCALE_IDS = { cs: 'cS3dE5gH7jK9mN1pQ3sT', en: 'eN3dE5gH7jK9mN1pQ3sT', sk: 'sK3dE5gH7jK9mN1pQ3sT' };
 
 const BUCKET_URL = 'https://firebasestorage.googleapis.com/v0/b/kalorie-bf11c.firebasestorage.app/o/';
 const photoUrl = (folder, owner, name = 'a.jpg') =>
   `${BUCKET_URL}${folder}%2F${owner}%2F${name}?alt=media&token=t`;
 const submissionPhoto = (uid) => photoUrl('submissionPhotos', uid);
-const suggestionPhoto = (uid, itemId = BARCODE) => photoUrl('photoSuggestions', uid, `${itemId}.jpg`);
+const suggestionPhoto = (uid, itemId = BARCODE, sid = TICKET_ID) =>
+  photoUrl('photoSuggestions', uid, `${itemId}%2F${sid}.jpg`);
 const catalogPhoto = (itemId) => photoUrl('catalogPhotos', itemId);
 
 let env;
@@ -62,16 +67,22 @@ function report(barcode, uid, overrides = {}) {
     reported_by: uid,
     reason: 'Calories look wrong',
     reported_at: 1_700_000_000,
+    status: 'pending',
+    locale: 'cs',
+    hidden: false,
     ...overrides,
   };
 }
 
-function suggestion(itemId, uid, overrides = {}) {
+function suggestion(itemId, uid, overrides = {}, id = TICKET_ID) {
   return {
     item_id: itemId,
     suggested_by: uid,
-    photo_url: suggestionPhoto(uid, itemId),
+    photo_url: suggestionPhoto(uid, itemId, id),
     suggested_at: 1_700_000_000,
+    status: 'pending',
+    locale: 'cs',
+    hidden: false,
     ...overrides,
   };
 }
@@ -415,185 +426,303 @@ describe('foodItemSubmissions', () => {
   });
 });
 
-describe('foodItemReports', () => {
-  const rid = `${BARCODE}_alice`;
-  const path = `foodItemReports/${rid}`;
+const clean = (obj) => Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
 
-  it('lets a user create a report under {barcode}_{uid}', async () => {
-    await assertSucceeds(setDoc(doc(user('alice'), path), report(BARCODE, 'alice')));
-  });
-
-  it('accepts a UUID-identified food as the barcode', async () => {
-    await assertSucceeds(setDoc(doc(user('alice'), `foodItemReports/${UUID}_alice`), report(UUID, 'alice')));
-  });
-
-  it('denies a document id that does not match barcode and uid', async () => {
-    await assertFails(setDoc(doc(user('alice'), `foodItemReports/${BARCODE}_bob`), report(BARCODE, 'alice')));
-    await assertFails(setDoc(doc(user('alice'), 'foodItemReports/random'), report(BARCODE, 'alice')));
-  });
-
-  it('denies a report attributed to someone else', async () => {
-    await assertFails(setDoc(doc(user('alice'), path), report(BARCODE, 'alice', { reported_by: 'bob' })));
-  });
-
-  it('denies an invalid barcode', async () => {
-    await assertFails(setDoc(doc(user('alice'), 'foodItemReports/123_alice'), report('123', 'alice')));
-  });
-
-  it('enforces a reason of 1 to 500 characters', async () => {
-    await assertFails(setDoc(doc(user('alice'), path), report(BARCODE, 'alice', { reason: '' })));
-    await assertSucceeds(setDoc(doc(user('alice'), path), report(BARCODE, 'alice', { reason: 'x'.repeat(500) })));
-    await env.clearFirestore();
-    await assertFails(setDoc(doc(user('alice'), path), report(BARCODE, 'alice', { reason: 'x'.repeat(501) })));
-  });
-
-  it('requires reported_at to be a number', async () => {
-    await assertFails(setDoc(doc(user('alice'), path), report(BARCODE, 'alice', { reported_at: 'now' })));
-  });
-
-  it('denies creation while signed out', async () => {
-    await assertFails(setDoc(doc(anonymous(), path), report(BARCODE, 'alice')));
-  });
-
-  describe('once a report is open', () => {
-    beforeEach(() => seed((db) => setDoc(doc(db, path), report(BARCODE, 'alice'))));
-
-    it('lets the reporter and a maintainer read it', async () => {
-      await assertSucceeds(getDoc(doc(user('alice'), path)));
-      await assertSucceeds(getDoc(doc(maintainer(), path)));
+function describeTicket({ name, owner, createdField, make: rawMake, extraCreateCases, immutableField }) {
+  const make = (item, uid, overrides = {}, id = TICKET_ID) => clean(rawMake(item, uid, overrides, id));
+  describe(name, () => {
+    const path = `${name}/${TICKET_ID}`;
+    const resolution = (overrides = {}) => ({
+      status: 'accepted',
+      response: 'Thanks!',
+      resolved_at: 1_700_000_500,
+      hidden: false,
+      ...overrides,
     });
 
-    it('denies another user reading it', async () => {
-      await assertFails(getDoc(doc(user('bob'), path)));
+    beforeEach(() => seed((db) => setDoc(doc(db, `foodItems/${BARCODE}`), foodItem(BARCODE))));
+
+    describe('create', () => {
+      it('lets a user create a pending ticket under an auto id', async () => {
+        await assertSucceeds(setDoc(doc(user('alice'), path), make(BARCODE, 'alice')));
+      });
+
+      it('accepts a UUID-identified item', async () => {
+        await seed((db) => setDoc(doc(db, `foodItems/${UUID}`), foodItem(UUID)));
+        await assertSucceeds(setDoc(doc(user('alice'), path), make(UUID, 'alice')));
+      });
+
+      it('lets the same user create a second ticket for the same item', async () => {
+        await assertSucceeds(setDoc(doc(user('alice'), path), make(BARCODE, 'alice')));
+        await assertSucceeds(setDoc(doc(user('alice'), `${name}/${OTHER_ID}`), make(BARCODE, 'alice', {}, OTHER_ID)));
+      });
+
+      it('denies a ticket attributed to someone else', async () => {
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { [owner]: 'bob' })));
+      });
+
+      it('denies an invalid item id', async () => {
+        await assertFails(setDoc(doc(user('alice'), path), make('123', 'alice')));
+      });
+
+      it('denies any status but pending', async () => {
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { status: 'accepted' })));
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { status: undefined })));
+      });
+
+      it('denies hidden: true or a missing hidden', async () => {
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { hidden: true })));
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { hidden: undefined })));
+      });
+
+      it('accepts cs, en and sk and denies a missing or unknown locale', async () => {
+        for (const locale of ['cs', 'en', 'sk']) {
+          await assertSucceeds(setDoc(doc(user('alice'), `${name}/${LOCALE_IDS[locale]}`), make(BARCODE, 'alice', { locale }, LOCALE_IDS[locale])));
+        }
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { locale: 'de' })));
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { locale: undefined })));
+      });
+
+      it('denies the fields only a later write may carry', async () => {
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { response: 'x' })));
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { seen_at: 1_700_000_100 })));
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { resolved_at: 1_700_000_100 })));
+      });
+
+      it(`requires ${createdField} to be a number`, async () => {
+        await assertFails(setDoc(doc(user('alice'), path), make(BARCODE, 'alice', { [createdField]: 'now' })));
+      });
+
+      it('denies creation while signed out', async () => {
+        await assertFails(setDoc(doc(anonymous(), path), make(BARCODE, 'alice')));
+      });
+
+      extraCreateCases(path);
     });
 
-    it('refuses a second report from the same user, since there is no update rule', async () => {
-      await assertFails(setDoc(doc(user('alice'), path), report(BARCODE, 'alice', { reason: 'Changed my mind' })));
-    });
+    describe('once a ticket is pending', () => {
+      beforeEach(() => seed((db) => setDoc(doc(db, path), make(BARCODE, 'alice'))));
 
-    it('lets the reporter and a maintainer delete it', async () => {
-      await assertSucceeds(deleteDoc(doc(user('alice'), path)));
-      await seed((db) => setDoc(doc(db, path), report(BARCODE, 'alice')));
-      await assertSucceeds(deleteDoc(doc(maintainer(), path)));
-    });
+      it('lets the author and a maintainer read it, not another user', async () => {
+        await assertSucceeds(getDoc(doc(user('alice'), path)));
+        await assertSucceeds(getDoc(doc(maintainer(), path)));
+        await assertFails(getDoc(doc(user('bob'), path)));
+      });
 
-    it('denies another user deleting it', async () => {
-      await assertFails(deleteDoc(doc(user('bob'), path)));
+      it('lets the author query their visible tickets, not another user\'s', async () => {
+        const col = (db) => collection(db, name);
+        await assertSucceeds(getDocs(query(col(user('alice')), where(owner, '==', 'alice'), where('hidden', '==', false))));
+        await assertFails(getDocs(query(col(user('alice')), where(owner, '==', 'bob'))));
+        await assertFails(getDocs(col(user('alice'))));
+      });
+
+      it('lets a maintainer query the pending queue', async () => {
+        await assertSucceeds(getDocs(query(collection(maintainer(), name), where('status', '==', 'pending'))));
+      });
+
+      describe('seen_at and hidden', () => {
+        it('lets the author write seen_at repeatedly', async () => {
+          await assertSucceeds(updateDoc(doc(user('alice'), path), { seen_at: 1_700_000_100 }));
+          await assertSucceeds(updateDoc(doc(user('alice'), path), { seen_at: 1_700_000_200 }));
+        });
+
+        it('denies a seen_at that is not a number', async () => {
+          await assertFails(updateDoc(doc(user('alice'), path), { seen_at: 'now' }));
+        });
+
+        it('lets the author hide it but not unhide it', async () => {
+          await assertSucceeds(updateDoc(doc(user('alice'), path), { hidden: true }));
+          await assertFails(updateDoc(doc(user('alice'), path), { hidden: false }));
+        });
+
+        it('lets the author write seen_at and hidden together', async () => {
+          await assertSucceeds(updateDoc(doc(user('alice'), path), { seen_at: 1_700_000_100, hidden: true }));
+        });
+
+        it('denies the author writing anything else', async () => {
+          for (const change of [
+            { status: 'accepted' },
+            { response: 'x' },
+            { resolved_at: 1 },
+            { [immutableField.name]: immutableField.value },
+            { seen_at: 1_700_000_100, status: 'accepted' },
+          ]) {
+            await assertFails(updateDoc(doc(user('alice'), path), change));
+          }
+        });
+
+        it('denies another user and, for these fields, a maintainer', async () => {
+          await assertFails(updateDoc(doc(user('bob'), path), { seen_at: 1_700_000_100 }));
+          await assertFails(updateDoc(doc(maintainer(), path), { seen_at: 1_700_000_100 }));
+          await assertFails(updateDoc(doc(maintainer(), path), { hidden: true }));
+        });
+      });
+
+      describe('resolution', () => {
+        it('lets a maintainer resolve it with a response', async () => {
+          await assertSucceeds(updateDoc(doc(maintainer(), path), resolution()));
+        });
+
+        it('lets a maintainer reject it', async () => {
+          await assertSucceeds(updateDoc(doc(maintainer(), path), resolution({ status: 'rejected' })));
+        });
+
+        it('denies an empty response, one over 1000 characters, and a missing one', async () => {
+          await assertFails(updateDoc(doc(maintainer(), path), resolution({ response: '' })));
+          await assertFails(updateDoc(doc(maintainer(), path), resolution({ response: 'x'.repeat(1001) })));
+          await assertFails(updateDoc(doc(maintainer(), path), { status: 'accepted', resolved_at: 1, hidden: false }));
+          await assertSucceeds(updateDoc(doc(maintainer(), path), resolution({ response: 'x'.repeat(1000) })));
+        });
+
+        it('denies a status other than accepted or rejected', async () => {
+          await assertFails(updateDoc(doc(maintainer(), path), resolution({ status: 'pending' })));
+          await assertFails(updateDoc(doc(maintainer(), path), resolution({ status: 'done' })));
+        });
+
+        it('requires resolved_at to be a number and hidden to be false', async () => {
+          await assertFails(updateDoc(doc(maintainer(), path), resolution({ resolved_at: 'now' })));
+          await assertFails(updateDoc(doc(maintainer(), path), resolution({ hidden: true })));
+        });
+
+        it('denies touching any other field in the same write', async () => {
+          await assertFails(updateDoc(doc(maintainer(), path), resolution({ [immutableField.name]: immutableField.value })));
+          await assertFails(updateDoc(doc(maintainer(), path), resolution({ seen_at: 1 })));
+        });
+
+        it('denies a second resolution', async () => {
+          await assertSucceeds(updateDoc(doc(maintainer(), path), resolution()));
+          await assertFails(updateDoc(doc(maintainer(), path), resolution({ status: 'rejected', response: 'again' })));
+        });
+
+        it('denies a regular user resolving their own ticket', async () => {
+          await assertFails(updateDoc(doc(user('alice'), path), resolution()));
+        });
+
+        it('brings back a ticket the author had hidden', async () => {
+          await updateDoc(doc(user('alice'), path), { hidden: true });
+          await assertSucceeds(updateDoc(doc(maintainer(), path), resolution()));
+          const snap = await getDoc(doc(maintainer(), path));
+          assert.equal(snap.data().hidden, false);
+        });
+      });
+
+      describe('account deletion', () => {
+        const anonymise = { [owner]: deleteField(), author_deleted: true };
+
+        it('lets the author remove the owner field and set author_deleted', async () => {
+          await assertSucceeds(updateDoc(doc(user('alice'), path), anonymise));
+        });
+
+        it('denies it together with any other field', async () => {
+          await assertFails(updateDoc(doc(user('alice'), path), { ...anonymise, hidden: true }));
+          await assertFails(updateDoc(doc(user('alice'), path), { ...anonymise, status: 'accepted' }));
+        });
+
+        it('denies removing the owner without author_deleted, and setting it to false', async () => {
+          await assertFails(updateDoc(doc(user('alice'), path), { [owner]: deleteField() }));
+          await assertFails(updateDoc(doc(user('alice'), path), { [owner]: deleteField(), author_deleted: false }));
+        });
+
+        it('denies handing the ticket to someone else', async () => {
+          await assertFails(updateDoc(doc(user('alice'), path), { [owner]: 'bob', author_deleted: true }));
+        });
+
+        it('denies another user anonymising it', async () => {
+          await assertFails(updateDoc(doc(user('bob'), path), anonymise));
+        });
+
+        it('leaves the ticket resolvable by the maintainer and unreadable by anyone else', async () => {
+          await assertSucceeds(updateDoc(doc(user('alice'), path), anonymise));
+          await assertFails(getDoc(doc(user('alice'), path)));
+          await assertSucceeds(getDoc(doc(maintainer(), path)));
+          await assertSucceeds(updateDoc(doc(maintainer(), path), resolution()));
+        });
+      });
+
+      describe('delete', () => {
+        it('lets the author withdraw a pending ticket', async () => {
+          await assertSucceeds(deleteDoc(doc(user('alice'), path)));
+        });
+
+        it('lets a maintainer delete it', async () => {
+          await assertSucceeds(deleteDoc(doc(maintainer(), path)));
+        });
+
+        it('denies another user', async () => {
+          await assertFails(deleteDoc(doc(user('bob'), path)));
+        });
+
+        it('denies the author deleting a resolved ticket', async () => {
+          await seed((db) => updateDoc(doc(db, path), resolution()));
+          await assertFails(deleteDoc(doc(user('alice'), path)));
+          await assertSucceeds(deleteDoc(doc(maintainer(), path)));
+        });
+      });
     });
   });
+}
 
-  it("lets a user probe their own report id when it does not exist, but not someone else's", async () => {
-    await assertSucceeds(getDoc(doc(user('alice'), path)));
-    await assertFails(getDoc(doc(user('bob'), path)));
-  });
+describeTicket({
+  name: 'foodItemReports',
+  owner: 'reported_by',
+  createdField: 'reported_at',
+  make: report,
+  immutableField: { name: 'reason', value: 'Changed my mind' },
+  extraCreateCases: (path) => {
+    it('enforces a reason of 1 to 500 characters', async () => {
+      await assertFails(setDoc(doc(user('alice'), path), report(BARCODE, 'alice', { reason: '' })));
+      await assertSucceeds(setDoc(doc(user('alice'), path), report(BARCODE, 'alice', { reason: 'x'.repeat(500) })));
+      await env.clearFirestore();
+      await assertFails(setDoc(doc(user('alice'), path), report(BARCODE, 'alice', { reason: 'x'.repeat(501) })));
+    });
+  },
 });
 
-describe('photoSuggestions', () => {
-  const sid = `${BARCODE}_alice`;
-  const path = `photoSuggestions/${sid}`;
-  const seedItem = (id = BARCODE, overrides = {}) =>
-    seed((db) => setDoc(doc(db, `foodItems/${id}`), foodItem(id, overrides)));
+describeTicket({
+  name: 'photoSuggestions',
+  owner: 'suggested_by',
+  createdField: 'suggested_at',
+  make: suggestion,
+  immutableField: { name: 'photo_url', value: suggestionPhoto('alice', UUID) },
+  extraCreateCases: () => {
+    const ticket = `photoSuggestions/${TICKET_ID}`;
 
-  beforeEach(() => seedItem());
-
-  it('lets a user create a suggestion under {itemId}_{uid}', async () => {
-    await assertSucceeds(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice')));
-  });
-
-  it('accepts a UUID-identified item', async () => {
-    await seedItem(UUID);
-    await assertSucceeds(setDoc(doc(user('alice'), `photoSuggestions/${UUID}_alice`), suggestion(UUID, 'alice')));
-  });
-
-  it('denies a document id that does not match item and uid', async () => {
-    await assertFails(setDoc(doc(user('alice'), `photoSuggestions/${BARCODE}_bob`), suggestion(BARCODE, 'alice')));
-    await assertFails(setDoc(doc(user('alice'), 'photoSuggestions/random'), suggestion(BARCODE, 'alice')));
-  });
-
-  it('denies a suggestion carrying a field beyond the four it defines', async () => {
-    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { padding: 'x'.repeat(1000) })));
-  });
-
-  it('denies a suggestion attributed to someone else', async () => {
-    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { suggested_by: 'bob' })));
-  });
-
-  it('denies a photo_url that is not the author\'s own suggestion file for that item', async () => {
-    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { photo_url: suggestionPhoto('bob') })));
-    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { photo_url: submissionPhoto('alice') })));
-    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { photo_url: catalogPhoto(BARCODE) })));
-    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { photo_url: suggestionPhoto('alice', UUID) })));
-  });
-
-  it('denies a photo_url longer than 1024 characters', async () => {
-    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', {
-      photo_url: `${suggestionPhoto('alice')}&${'x'.repeat(1024)}`,
-    })));
-  });
-
-  it('requires suggested_at to be a number', async () => {
-    await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { suggested_at: 'now' })));
-  });
-
-  it('denies a suggestion for an item that does not exist', async () => {
-    await assertFails(setDoc(doc(user('alice'), `photoSuggestions/${UUID}_alice`), suggestion(UUID, 'alice')));
-  });
-
-  it('denies a suggestion for an item that already has a photo', async () => {
-    await seedItem(UUID, { photo_url: catalogPhoto(UUID) });
-    await assertFails(setDoc(doc(user('alice'), `photoSuggestions/${UUID}_alice`), suggestion(UUID, 'alice')));
-  });
-
-  it('denies creation while signed out', async () => {
-    await assertFails(setDoc(doc(anonymous(), path), suggestion(BARCODE, 'alice')));
-  });
-
-  describe('once a suggestion is pending', () => {
-    beforeEach(() => seed((db) => setDoc(doc(db, path), suggestion(BARCODE, 'alice'))));
-
-    it('lets the author and a maintainer read it', async () => {
-      await assertSucceeds(getDoc(doc(user('alice'), path)));
-      await assertSucceeds(getDoc(doc(maintainer(), path)));
+    it('requires the photo_url to be the ticket\'s own file', async () => {
+      await assertSucceeds(setDoc(doc(user('alice'), ticket), suggestion(BARCODE, 'alice')));
     });
 
-    it('denies another user reading it', async () => {
-      await assertFails(getDoc(doc(user('bob'), path)));
+    it('denies a photo_url for another suggestion id, item, user or folder', async () => {
+      const bad = [
+        suggestionPhoto('alice', BARCODE, OTHER_ID),
+        suggestionPhoto('bob'),
+        suggestionPhoto('alice', UUID),
+        submissionPhoto('alice'),
+        catalogPhoto(BARCODE),
+      ];
+      for (const photo_url of bad) {
+        await assertFails(setDoc(doc(user('alice'), ticket), suggestion(BARCODE, 'alice', { photo_url })));
+      }
     });
 
-    it('denies any update, even by the author or a maintainer', async () => {
-      await assertFails(setDoc(doc(user('alice'), path), suggestion(BARCODE, 'alice', { suggested_at: 1 })));
-      await assertFails(setDoc(doc(maintainer(), path), suggestion(BARCODE, 'alice', { suggested_at: 1 })));
+    it('denies a photo_url longer than 1024 characters', async () => {
+      await assertFails(setDoc(doc(user('alice'), ticket), suggestion(BARCODE, 'alice', {
+        photo_url: `${suggestionPhoto('alice')}&${'x'.repeat(1024)}`,
+      })));
     });
 
-    it('lets the author and a maintainer delete it', async () => {
-      await assertSucceeds(deleteDoc(doc(user('alice'), path)));
-      await seed((db) => setDoc(doc(db, path), suggestion(BARCODE, 'alice')));
-      await assertSucceeds(deleteDoc(doc(maintainer(), path)));
+    it('denies a suggestion carrying a field beyond those it defines', async () => {
+      await assertFails(setDoc(doc(user('alice'), ticket), suggestion(BARCODE, 'alice', { padding: 'x'.repeat(1000) })));
     });
 
-    it('denies another user deleting it', async () => {
-      await assertFails(deleteDoc(doc(user('bob'), path)));
+    it('denies a suggestion for an item that does not exist', async () => {
+      await assertFails(setDoc(doc(user('alice'), ticket), suggestion(UUID, 'alice')));
     });
 
-    it('lets a maintainer list the suggestions of one item', async () => {
-      const q = query(collection(maintainer(), 'photoSuggestions'), where('item_id', '==', BARCODE));
-      await assertSucceeds(getDocs(q));
+    it('denies a suggestion for an item that already has a photo', async () => {
+      await seed((db) => setDoc(doc(db, `foodItems/${UUID}`), foodItem(UUID, { photo_url: catalogPhoto(UUID) })));
+      await assertFails(setDoc(doc(user('alice'), ticket), suggestion(UUID, 'alice')));
     });
-
-    it('denies a regular user listing the collection', async () => {
-      await assertFails(getDocs(collection(user('alice'), 'photoSuggestions')));
-    });
-
-    it('lets the author list their own suggestions for account deletion, but not another user\'s', async () => {
-      await assertSucceeds(getDocs(query(collection(user('alice'), 'photoSuggestions'), where('suggested_by', '==', 'alice'))));
-      await assertFails(getDocs(query(collection(user('alice'), 'photoSuggestions'), where('suggested_by', '==', 'bob'))));
-    });
-  });
-
-  it("lets a user probe their own suggestion id when it does not exist, but not someone else's", async () => {
-    await assertSucceeds(getDoc(doc(user('alice'), path)));
-    await assertFails(getDoc(doc(user('bob'), path)));
-  });
+  },
 });
 
 describe('config', () => {

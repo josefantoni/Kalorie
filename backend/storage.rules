@@ -15,23 +15,21 @@ service firebase.storage {
       allow delete: if request.auth != null && (request.auth.uid == uid || isMaintainer());
     }
 
-    function suggestionItemId(fileName) {
-      return fileName.split('\\.jpg')[0];
+    function validItemId(id) {
+      return id.matches('[0-9]{8}|[0-9]{12}|[0-9]{13}') ||
+        id.matches('[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}');
     }
-    function suggestionItemPath(fileName) {
-      return /databases/(default)/documents/foodItems/$(suggestionItemId(fileName));
-    }
-    function validSuggestionFileName(fileName) {
-      return fileName.matches('([0-9]{8}|[0-9]{12}|[0-9]{13}|[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})\\.jpg');
+    function suggestionItemPath(itemId) {
+      return /databases/(default)/documents/foodItems/$(itemId);
     }
 
-    match /photoSuggestions/{uid}/{fileName} {
+    match /photoSuggestions/{uid}/{itemId}/{fileName} {
       allow read: if request.auth != null && (request.auth.uid == uid || isMaintainer());
       allow create: if request.auth != null && request.auth.uid == uid && resource == null && validJpeg() &&
-        validSuggestionFileName(fileName) &&
-        firestore.exists(suggestionItemPath(fileName)) &&
-        !('photo_url' in firestore.get(suggestionItemPath(fileName)).data) &&
-        !firestore.exists(/databases/(default)/documents/photoSuggestions/$(suggestionItemId(fileName) + '_' + uid));
+        validItemId(itemId) &&
+        fileName.matches('[A-Za-z0-9]{20}\\.jpg') &&
+        firestore.exists(suggestionItemPath(itemId)) &&
+        !('photo_url' in firestore.get(suggestionItemPath(itemId)).data);
       allow delete: if request.auth != null && (request.auth.uid == uid || isMaintainer());
     }
 

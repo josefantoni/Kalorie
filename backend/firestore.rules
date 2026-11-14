@@ -101,46 +101,91 @@ service cloud.firestore {
     }
 
     match /foodItemReports/{reportId} {
-      // resource is null for a report that does not exist yet; without the second branch the client's
-      // "already reported?" read would be denied instead of returning not-found.
       allow read: if isMaintainer() ||
-        (resource == null && reportId.matches('.*_' + request.auth.uid)) ||
-        (resource != null && resource.data.reported_by == request.auth.uid);
+        (resource.data.get('reported_by', null) == request.auth.uid);
 
       allow create: if request.auth != null &&
-        reportId == request.resource.data.barcode + '_' + request.auth.uid &&
+        request.resource.data.keys().hasOnly(['barcode', 'reported_by', 'reported_at', 'reason', 'status', 'locale', 'hidden']) &&
         request.resource.data.reported_by == request.auth.uid &&
         validItemId(request.resource.data.barcode) &&
         request.resource.data.reason is string &&
         request.resource.data.reason.size() > 0 &&
         request.resource.data.reason.size() <= 500 &&
-        request.resource.data.reported_at is number;
+        request.resource.data.reported_at is number &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.hidden == false &&
+        request.resource.data.locale in ['cs', 'en', 'sk'];
 
-      allow delete: if isMaintainer() || resource.data.reported_by == request.auth.uid;
+      allow update: if request.auth != null &&
+        resource.data.get('reported_by', null) == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen_at', 'hidden']) &&
+        request.resource.data.get('seen_at', 0) is number &&
+        (request.resource.data.hidden == true || request.resource.data.hidden == resource.data.hidden);
+
+      allow update: if request.auth != null &&
+        resource.data.get('reported_by', null) == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reported_by', 'author_deleted']) &&
+        !('reported_by' in request.resource.data) &&
+        request.resource.data.author_deleted == true;
+
+      allow update: if isMaintainer() &&
+        resource.data.status == 'pending' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'response', 'resolved_at', 'hidden']) &&
+        request.resource.data.status in ['accepted', 'rejected'] &&
+        request.resource.data.hidden == false &&
+        request.resource.data.response is string &&
+        request.resource.data.response.size() > 0 &&
+        request.resource.data.response.size() <= 1000 &&
+        request.resource.data.resolved_at is number;
+
+      allow delete: if isMaintainer() ||
+        (resource.data.get('reported_by', null) == request.auth.uid && resource.data.status == 'pending');
     }
 
     match /photoSuggestions/{suggestionId} {
-      // resource is null for a suggestion that does not exist yet; without the second branch the client's
-      // "already suggested?" read would be denied instead of returning not-found.
       allow read: if isMaintainer() ||
-        (resource == null && suggestionId.matches('.*_' + request.auth.uid)) ||
-        (resource != null && resource.data.suggested_by == request.auth.uid);
+        (resource.data.get('suggested_by', null) == request.auth.uid);
 
       allow create: if request.auth != null &&
-        request.resource.data.keys().hasOnly(['item_id', 'suggested_by', 'suggested_at', 'photo_url']) &&
-        suggestionId == request.resource.data.item_id + '_' + request.auth.uid &&
+        request.resource.data.keys().hasOnly(['item_id', 'suggested_by', 'suggested_at', 'photo_url', 'status', 'locale', 'hidden']) &&
         request.resource.data.suggested_by == request.auth.uid &&
         validItemId(request.resource.data.item_id) &&
-        request.resource.data.suggested_at is number &&
         request.resource.data.photo_url is string &&
         request.resource.data.photo_url.size() <= 1024 &&
         request.resource.data.photo_url.matches(
           photoUrlPrefix() + 'photoSuggestions%2F' + request.auth.uid + '%2F' +
-          request.resource.data.item_id + '\\.jpg.*') &&
+          request.resource.data.item_id + '%2F' + suggestionId + '\\.jpg.*') &&
         exists(/databases/$(database)/documents/foodItems/$(request.resource.data.item_id)) &&
-        !('photo_url' in get(/databases/$(database)/documents/foodItems/$(request.resource.data.item_id)).data);
+        !('photo_url' in get(/databases/$(database)/documents/foodItems/$(request.resource.data.item_id)).data) &&
+        request.resource.data.suggested_at is number &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.hidden == false &&
+        request.resource.data.locale in ['cs', 'en', 'sk'];
 
-      allow delete: if isMaintainer() || resource.data.suggested_by == request.auth.uid;
+      allow update: if request.auth != null &&
+        resource.data.get('suggested_by', null) == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen_at', 'hidden']) &&
+        request.resource.data.get('seen_at', 0) is number &&
+        (request.resource.data.hidden == true || request.resource.data.hidden == resource.data.hidden);
+
+      allow update: if request.auth != null &&
+        resource.data.get('suggested_by', null) == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['suggested_by', 'author_deleted']) &&
+        !('suggested_by' in request.resource.data) &&
+        request.resource.data.author_deleted == true;
+
+      allow update: if isMaintainer() &&
+        resource.data.status == 'pending' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'response', 'resolved_at', 'hidden']) &&
+        request.resource.data.status in ['accepted', 'rejected'] &&
+        request.resource.data.hidden == false &&
+        request.resource.data.response is string &&
+        request.resource.data.response.size() > 0 &&
+        request.resource.data.response.size() <= 1000 &&
+        request.resource.data.resolved_at is number;
+
+      allow delete: if isMaintainer() ||
+        (resource.data.get('suggested_by', null) == request.auth.uid && resource.data.status == 'pending');
     }
   }
 }
