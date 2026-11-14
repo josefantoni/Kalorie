@@ -1,5 +1,6 @@
 package antoni.kalorie.core.networking
 
+import antoni.kalorie.core.utils.Constants
 import kotlinx.serialization.KSerializer
 import java.util.concurrent.ConcurrentHashMap
 
@@ -87,9 +88,54 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
     var incrementedCollection: String? = null
     var deletedEntryIds: List<String> = emptyList()
     var stubbedCountsByCollection: Map<String, Int> = emptyMap()
+    var stubbedResolvedCountsByCollection: Map<String, Int> = emptyMap()
     var stubbedCountError: Exception? = null
+    var stubbedNewDocumentIds: List<String> = emptyList()
+    private var generatedDocumentIdCount = 0
+    val newDocumentIdCollections: MutableList<String> = java.util.Collections.synchronizedList(mutableListOf())
+    val equalityQueries: MutableList<EqualityQuery> = java.util.Collections.synchronizedList(mutableListOf())
+    val anonymisedTickets: MutableList<Triple<String, String, String>> = java.util.Collections.synchronizedList(mutableListOf())
+    var stubbedAnonymiseError: Exception? = null
+
+    data class EqualityQuery(
+        val from: String,
+        val filters: List<Pair<String, String>>,
+        val isHidden: Boolean?,
+        val orderBy: String?,
+        val descending: Boolean?,
+        val limit: Int?,
+    )
 
     // MARK: - Functions
+
+    override fun newDocumentId(inCollection: String): String {
+        newDocumentIdCollections.add(inCollection)
+        return stubbedNewDocumentIds.getOrNull(newDocumentIdCollections.size - 1) ?: "generated-id-${generatedDocumentIdCount++}"
+    }
+
+    override suspend fun <T> loadAsync(from: String, whereEqualTo: List<Pair<String, String>>, limit: Int, serializer: KSerializer<T>): List<T> {
+        stubbedError?.let { throw it }
+        equalityQueries.add(EqualityQuery(from, whereEqualTo, null, null, null, limit))
+        return (stubbedByFieldByCollection[from] ?: stubbedByField) as List<T>
+    }
+
+    override suspend fun <T> loadAsync(
+        from: String,
+        whereEqualTo: List<Pair<String, String>>,
+        isHidden: Boolean,
+        orderBy: String,
+        descending: Boolean,
+        serializer: KSerializer<T>,
+    ): List<T> {
+        stubbedError?.let { throw it }
+        equalityQueries.add(EqualityQuery(from, whereEqualTo, isHidden, orderBy, descending, null))
+        return (stubbedByFieldByCollection[from] ?: stubbedByField) as List<T>
+    }
+
+    override suspend fun anonymiseAsync(id: String, ownerField: String, inCollection: String) {
+        stubbedAnonymiseError?.let { throw it }
+        anonymisedTickets.add(Triple(id, ownerField, inCollection))
+    }
 
     override suspend fun loadDocumentIdsAsync(from: String): List<String> {
         stubbedError?.let { throw it }
@@ -306,11 +352,13 @@ class FirestoreDataProviderFake : FirestoreDataProviderProtocol {
 
     override suspend fun countAsync(from: String): Int {
         stubbedCountError?.let { throw it }
-        return stubbedCountsByCollection[from] ?: 0
+        return (stubbedCountsByCollection[from] ?: 0) + (stubbedResolvedCountsByCollection[from] ?: 0)
     }
 
     override suspend fun countAsync(from: String, field: String, isEqualTo: String): Int {
         stubbedCountError?.let { throw it }
-        return stubbedCountsByCollection[from] ?: 0
+        if (field != Constants.Firestore.Field.STATUS) return 0
+        val counts = if (isEqualTo == Constants.Firestore.PENDING_STATUS) stubbedCountsByCollection else stubbedResolvedCountsByCollection
+        return counts[from] ?: 0
     }
 }

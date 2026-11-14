@@ -130,6 +130,7 @@ import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -156,7 +157,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val activeDays by viewModel.activeDaysInMonth.collectAsState()
     val showCalendarSheet by viewModel.showCalendarSheet.collectAsState()
     val notificationBell = router.makeNotificationBellViewModel()
-    val isBellVisible by notificationBell.isBellVisible.collectAsState()
+    val isMaintainer by notificationBell.isMaintainer.collectAsState()
     val hasPendingNotifications by notificationBell.hasPendingNotifications.collectAsState()
     val isNotificationsSheetVisible by notificationBell.isSheetVisible.collectAsState()
     val showSettings by viewModel.showSettings.collectAsState()
@@ -294,14 +295,12 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         }
                     },
                     actions = {
-                        if (isBellVisible) {
-                            IconButton(onClick = notificationBell::onBellTapped) {
-                                BadgedBox(badge = { if (hasPendingNotifications) Badge(containerColor = AppColors.error) }) {
-                                    Icon(
-                                        Icons.Outlined.Notifications,
-                                        contentDescription = stringResource(R.string.notifications_bell_accessibility),
-                                    )
-                                }
+                        IconButton(onClick = notificationBell::onBellTapped) {
+                            BadgedBox(badge = { if (hasPendingNotifications) Badge(containerColor = AppColors.error) }) {
+                                Icon(
+                                    Icons.Outlined.Notifications,
+                                    contentDescription = stringResource(R.string.notifications_bell_accessibility),
+                                )
                             }
                         }
                         IconButton(onClick = { viewModel.showSettings.value = !viewModel.showSettings.value }) {
@@ -330,7 +329,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         onRefresh = {
                             scope.launch {
                                 isRefreshing = true
-                                viewModel.onRefresh()
+                                coroutineScope {
+                                    launch { notificationBell.onRefresh() }
+                                    viewModel.onRefresh()
+                                }
                                 isRefreshing = false
                             }
                         },
@@ -521,7 +523,10 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
         router.makeAddFoodSheetView(
             date = selectedDay,
             mealTypes = mealTypes,
-            onDismiss = viewModel::onAddFoodSheetDismissed,
+            onDismiss = {
+                viewModel.onAddFoodSheetDismissed()
+                scope.launch { notificationBell.onDotRefreshNeeded() }
+            },
             onFoodSaved = { scope.launch { viewModel.onFoodConsumedUpdated() } },
         )
     }
@@ -531,12 +536,12 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     }
 
     if (isNotificationsSheetVisible) {
-        router.makeNotificationsView(
-            onDismiss = {
-                notificationBell.isSheetVisible.value = false
-                scope.launch { notificationBell.onSheetDismissed() }
-            },
-        )
+        val onNotificationsDismiss = {
+            notificationBell.isSheetVisible.value = false
+            scope.launch { notificationBell.onSheetDismissed() }
+            Unit
+        }
+        router.makeNotificationsView(isMaintainer = isMaintainer, onDismiss = onNotificationsDismiss)
     }
 
     if (showSettings) {

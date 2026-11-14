@@ -23,9 +23,10 @@ class FetchPhotoSuggestionsUseCase(
         if (authProvider.userId == null) throw AuthError.NotAuthenticated
         val dtos: List<PhotoSuggestionDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.PHOTO_SUGGESTIONS,
+            field = Constants.Firestore.Field.STATUS,
+            isEqualTo = Constants.Firestore.PENDING_STATUS,
             orderBy = Constants.Firestore.Field.SUGGESTED_AT,
-            descending = false,
-            limit = Constants.Firestore.REPORTS_PAGE_LIMIT,
+            descending = true,
         )
         return dtos.map { it.asDomain() }
     }

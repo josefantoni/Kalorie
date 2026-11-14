@@ -3,6 +3,7 @@ package antoni.kalorie.features.moderation
 import androidx.lifecycle.ViewModel
 import antoni.kalorie.R
 import antoni.kalorie.core.models.PhotoSuggestionDomain
+import antoni.kalorie.core.models.TicketStatus
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.usecases.ApprovePhotoSuggestionError
 import antoni.kalorie.core.usecases.ApprovePhotoSuggestionUseCaseProtocol
@@ -12,7 +13,6 @@ import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.LoadingState
 import antoni.kalorie.core.utils.Log
-import antoni.kalorie.core.utils.isLoading
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +22,8 @@ class ModerationPhotoSuggestionViewModel(
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
     private val approvePhotoSuggestion: ApprovePhotoSuggestionUseCaseProtocol,
     private val rejectPhotoSuggestion: RejectPhotoSuggestionUseCaseProtocol,
-    private val onResolved: (isApproved: Boolean) -> Unit,
+    private val responseTextProvider: ModerationResponseTextProviderProtocol,
+    private val onResolved: () -> Unit,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -35,6 +36,9 @@ class ModerationPhotoSuggestionViewModel(
     val canApprove: StateFlow<Boolean> = _canApprove
     private val _shouldDismiss = MutableStateFlow(false)
     val shouldDismiss: StateFlow<Boolean> = _shouldDismiss
+    val responseDraft = MutableStateFlow<ModerationResponseDraft?>(null)
+    private val _isSendingResponse = MutableStateFlow(false)
+    val isSendingResponse: StateFlow<Boolean> = _isSendingResponse
     val alertItem = MutableStateFlow<AlertItem?>(null)
 
     // MARK: - Functions
@@ -43,9 +47,7 @@ class ModerationPhotoSuggestionViewModel(
         try {
             val item = fetchFoodItemByBarcode(suggestion.itemId)
             _itemName.value = item?.displayName
-            if (item == null || item.photoUrl != null) {
-                blockApproval(if (item == null) R.string.moderation_photoSuggestion_itemMissing else R.string.moderation_photoSuggestion_alreadyHasPhoto)
-            }
+            if (item == null) blockApproval(R.string.moderation_photoSuggestion_itemMissing)
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
@@ -53,42 +55,57 @@ class ModerationPhotoSuggestionViewModel(
         }
     }
 
-    suspend fun onApproveTapped() {
-        if (_state.value.isLoading) return
-        _state.value = LoadingState.Loading
-        try {
-            approvePhotoSuggestion(suggestion)
-            onResolved(true)
-            _shouldDismiss.value = true
-        } catch (error: CancellationException) {
-            throw error
-        } catch (_: ApprovePhotoSuggestionError.ItemAlreadyHasPhoto) {
-            blockApproval(R.string.moderation_photoSuggestion_alreadyHasPhoto)
-        } catch (_: ApprovePhotoSuggestionError.ItemMissing) {
-            blockApproval(R.string.moderation_photoSuggestion_itemMissing)
-        } catch (error: Exception) {
-            Log.error(error, Constants.LogCategory.MODERATION)
-            alertItem.value = AlertItem(titleRes = R.string.common_error_unknown)
-        } finally {
-            _state.value = LoadingState.loaded
-        }
+    fun onApproveTapped() {
+        if (!_canApprove.value || _isSendingResponse.value) return
+        responseDraft.value = ModerationResponseDraft(
+            status = TicketStatus.ACCEPTED,
+            text = responseTextProvider.photoAccepted(suggestion.locale),
+        )
     }
 
-    suspend fun onRejectTapped() {
-        if (_state.value.isLoading) return
-        _state.value = LoadingState.Loading
+    fun onRejectTapped() {
+        if (_isSendingResponse.value) return
+        responseDraft.value = ModerationResponseDraft(status = TicketStatus.REJECTED, text = "")
+    }
+
+    fun onResponseTextChanged(text: String) {
+        responseDraft.value = responseDraft.value?.copy(text = text)
+    }
+
+    fun onResponseErrorDismissed() {
+        responseDraft.value = responseDraft.value?.copy(errorTitleRes = null)
+    }
+
+    fun onResponseDismissed() {
+        if (_isSendingResponse.value) return
+        responseDraft.value = null
+    }
+
+    suspend fun onResponseSendTapped() {
+        val draft = responseDraft.value ?: return
+        if (!draft.isSendable || _isSendingResponse.value) return
+        _isSendingResponse.value = true
         try {
-            rejectPhotoSuggestion(suggestion)
-            onResolved(false)
-            _shouldDismiss.value = true
+            when (draft.status) {
+                TicketStatus.ACCEPTED -> approvePhotoSuggestion(suggestion, draft.text)
+                TicketStatus.REJECTED, TicketStatus.PENDING -> rejectPhotoSuggestion(suggestion, draft.text)
+            }
         } catch (error: CancellationException) {
             throw error
+        } catch (_: ApprovePhotoSuggestionError.ItemMissing) {
+            responseDraft.value = null
+            blockApproval(R.string.moderation_photoSuggestion_itemMissing)
+            return
         } catch (error: Exception) {
             Log.error(error, Constants.LogCategory.MODERATION)
-            alertItem.value = AlertItem(titleRes = R.string.common_error_unknown)
+            responseDraft.value = responseDraft.value?.copy(errorTitleRes = R.string.common_error_unknown)
+            return
         } finally {
-            _state.value = LoadingState.loaded
+            _isSendingResponse.value = false
         }
+        responseDraft.value = null
+        onResolved()
+        _shouldDismiss.value = true
     }
 
     // MARK: - Private

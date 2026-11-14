@@ -31,8 +31,8 @@ class DashboardRouter(
     fun makeNotificationBellViewModel(): NotificationBellViewModel = notificationsConfigurator.createBellViewModel(userId)
 
     @Composable
-    fun makeNotificationsView(onDismiss: () -> Unit) {
-        notificationsConfigurator.createView(onDismiss = onDismiss)
+    fun makeNotificationsView(isMaintainer: Boolean, onDismiss: () -> Unit) {
+        notificationsConfigurator.createView(isMaintainer = isMaintainer, onDismiss = onDismiss)
     }
 
     @Composable

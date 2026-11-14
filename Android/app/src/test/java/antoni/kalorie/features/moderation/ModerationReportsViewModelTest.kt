@@ -4,6 +4,7 @@ import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.displayName
+import antoni.kalorie.core.networking.makeReport
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemReportsUseCaseFake
@@ -17,124 +18,75 @@ import java.time.Instant
 class ModerationReportsViewModelTest {
 
     @Test
-    fun onAppear_groupsReportsByBarcode() = runTest {
-        val reports = listOf(
-            makeReport(barcode = "111", reportedBy = "user-1"),
-            makeReport(barcode = "111", reportedBy = "user-2"),
-            makeReport(barcode = "222", reportedBy = "user-3"),
+    fun onAppear_showsOneRowPerTicket_evenForTheSameItem() = runTest {
+        val sut = makeSUT(
+            reports = listOf(
+                makeReport(id = "a", barcode = "111"),
+                makeReport(id = "b", barcode = "111"),
+                makeReport(id = "c", barcode = "222"),
+            ),
         )
-        val sut = makeSUT(fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = reports))
 
         sut.onAppear()
 
-        val group111 = sut.groups.value.first { it.barcode == "111" }
-        assertEquals(2, group111.reports.size)
-        assertEquals(2, sut.groups.value.size)
-    }
-
-    @Test
-    fun onAppear_ordersGroupsByReportCountDescending() = runTest {
-        val reports = listOf(
-            makeReport(barcode = "111", reportedBy = "user-1"),
-            makeReport(barcode = "222", reportedBy = "user-2"),
-            makeReport(barcode = "222", reportedBy = "user-3"),
-            makeReport(barcode = "222", reportedBy = "user-4"),
+        assertEquals(
+            "two reports about different fields are answered separately, so they must not be merged into one row",
+            listOf("a", "b", "c"),
+            sut.rows.value.map { it.id },
         )
-        val sut = makeSUT(fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = reports))
-
-        sut.onAppear()
-
-        assertEquals("222", sut.groups.value.first().barcode)
     }
 
     @Test
     fun onAppear_resolvesItemNameFromCatalogue() = runTest {
         val item = makeItem(id = "111")
-        val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport(barcode = "111", reportedBy = "user-1"))),
-            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = item),
-        )
+        val sut = makeSUT(reports = listOf(makeReport(id = "a", barcode = "111")), item = item)
 
         sut.onAppear()
 
-        assertEquals(item.displayName, sut.groups.value.first().itemName)
+        assertEquals(item.displayName, sut.rows.value.first().itemName)
     }
 
     @Test
-    fun onAppear_whenItemNoLongerResolves_stillShowsTheGroup() = runTest {
-        val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = listOf(makeReport(barcode = "111", reportedBy = "user-1"))),
-            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = null),
-        )
+    fun onAppear_whenItemNoLongerResolves_stillShowsTheRow() = runTest {
+        val sut = makeSUT(reports = listOf(makeReport(id = "a", barcode = "111")), item = null)
 
         sut.onAppear()
 
-        assertEquals("111", sut.groups.value.first().barcode)
-        assertNull(sut.groups.value.first().itemName)
+        assertEquals("a report on a barcode deleted outside the app must still be answerable, not dropped", "111", sut.rows.value.first().report.barcode)
+        assertNull(sut.rows.value.first().itemName)
     }
 
     @Test
-    fun onAppear_whenLookupReturnsTheSameItemTwice_stillShowsEveryGroup() = runTest {
-        val reports = listOf(
-            makeReport(barcode = "111", reportedBy = "user-1"),
-            makeReport(barcode = "222", reportedBy = "user-1"),
-        )
+    fun onAppear_whenLookupReturnsTheSameItemTwice_stillShowsEveryRow() = runTest {
         val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = reports),
-            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem(id = "111")),
+            reports = listOf(makeReport(id = "a", barcode = "111"), makeReport(id = "b", barcode = "222")),
+            item = makeItem(id = "111"),
         )
 
         sut.onAppear()
 
-        assertEquals(2, sut.groups.value.size)
+        assertEquals(2, sut.rows.value.size)
     }
 
     @Test
-    fun onGroupReportsChanged_withNoRemainingReports_removesOnlyThatBarcodesGroup() = runTest {
-        val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(
-                stubbedReports = listOf(
-                    makeReport(barcode = "111", reportedBy = "user-1"),
-                    makeReport(barcode = "222", reportedBy = "user-2"),
-                ),
-            ),
-        )
+    fun onReportResolved_removesOnlyThatTicket() = runTest {
+        val sut = makeSUT(reports = listOf(makeReport(id = "a", barcode = "111"), makeReport(id = "b", barcode = "111")))
         sut.onAppear()
 
-        sut.onGroupReportsChanged("111", emptyList())
+        sut.onReportResolved("a")
 
-        assertEquals(listOf("222"), sut.groups.value.map { it.barcode })
-    }
-
-    @Test
-    fun onGroupReportsChanged_withRemainingReports_keepsTheGroupWithOnlyThose() = runTest {
-        val sut = makeSUT(
-            fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(
-                stubbedReports = listOf(
-                    makeReport(barcode = "111", reportedBy = "user-1"),
-                    makeReport(barcode = "111", reportedBy = "user-2"),
-                    makeReport(barcode = "111", reportedBy = "user-3"),
-                ),
-            ),
-        )
-        sut.onAppear()
-
-        sut.onGroupReportsChanged("111", listOf(makeReport(barcode = "111", reportedBy = "user-3")))
-
-        assertEquals(listOf("user-3"), sut.groups.value.single().reports.map { it.reportedBy })
+        assertEquals("resolving one report says nothing about the other report of the same item", listOf("b"), sut.rows.value.map { it.id })
     }
 
     // MARK: - Helpers
 
     private fun makeSUT(
-        fetchFoodItemReports: FetchFoodItemReportsUseCaseProtocol = FetchFoodItemReportsUseCaseFake(),
-        fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
+        reports: List<FoodItemReportDomain> = emptyList(),
+        item: FoodItemDomain? = null,
     ): ModerationReportsViewModel = ModerationReportsViewModel(
-        fetchFoodItemReports = fetchFoodItemReports,
-        fetchFoodItemByBarcode = fetchFoodItemByBarcode,
+        fetchFoodItemReports = FetchFoodItemReportsUseCaseFake(stubbedReports = reports) as FetchFoodItemReportsUseCaseProtocol,
+        fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = item) as FetchFoodItemByBarcodeUseCaseProtocol,
     )
-
-    private fun makeReport(barcode: String, reportedBy: String): FoodItemReportDomain = FoodItemReportDomain(barcode = barcode, reportedBy = reportedBy, reason = "wrong data", reportedAt = Instant.now())
 
     private fun makeItem(id: String = "12345678", czName: String = "Tvaroh", date: Instant = Instant.now()): FoodItemDomain = FoodItemDomain(
         id = id,

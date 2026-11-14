@@ -2,12 +2,13 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
-import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemReportError
+import antoni.kalorie.core.models.TicketLocale
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
-import antoni.kalorie.core.networking.FoodItemReportDTO
+import antoni.kalorie.core.networking.FoodItemReportCreateDTO
 import antoni.kalorie.core.networking.setAsync
 import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.features.notifications.UserNotificationsStoreProtocol
 import java.time.Instant
 
 interface SubmitFoodItemReportUseCaseProtocol {
@@ -17,6 +18,8 @@ interface SubmitFoodItemReportUseCaseProtocol {
 class SubmitFoodItemReportUseCase(
     private val dataProvider: FirestoreDataProviderProtocol,
     private val authProvider: AuthProviderProtocol,
+    private val notificationsStore: UserNotificationsStoreProtocol,
+    private val locale: String = TicketLocale.current(),
 ) : SubmitFoodItemReportUseCaseProtocol {
 
     // MARK: - Functions
@@ -26,11 +29,16 @@ class SubmitFoodItemReportUseCase(
         val trimmedReason = reason.trim()
         if (trimmedReason.isEmpty()) throw FoodItemReportError.ReasonRequired
         if (trimmedReason.length > Constants.Firestore.REPORT_REASON_MAX_LENGTH) throw FoodItemReportError.ReasonTooLong
-        val dto = FoodItemReportDTO(barcode = barcode, reportedBy = userId, reason = trimmedReason, reportedAt = Instant.now())
-        dataProvider.setAsync(
-            dto,
-            id = FoodItemReportDomain.id(barcode = barcode, userId = userId),
-            inCollection = Constants.Firestore.FOOD_ITEM_REPORTS,
+        val dto = FoodItemReportCreateDTO(
+            barcode = barcode,
+            reportedBy = userId,
+            reason = trimmedReason,
+            reportedAt = Instant.now(),
+            locale = locale,
         )
+        val ticketId = dataProvider.newDocumentId(Constants.Firestore.FOOD_ITEM_REPORTS)
+        dataProvider.setAsync(dto, id = ticketId, inCollection = Constants.Firestore.FOOD_ITEM_REPORTS)
+        notificationsStore.mayHaveUnread = true
+        notificationsStore.lastSubmittedAt = Instant.now()
     }
 }

@@ -23,6 +23,7 @@ import antoni.kalorie.core.usecases.SubmitFoodItemReportUseCase
 import antoni.kalorie.core.usecases.SubmitPhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.UpdateFoodConsumedUseCase
 import antoni.kalorie.core.utils.ContextStringProvider
+import antoni.kalorie.features.notifications.UserNotificationsStore
 
 class FoodConsumedDetailConfigurator(
     private val dataProvider: FirestoreDataProviderProtocol,
@@ -39,6 +40,7 @@ class FoodConsumedDetailConfigurator(
         onFoodUpdated: () -> Unit,
     ) {
         val context = LocalContext.current.applicationContext
+        val notificationsStore = remember { UserNotificationsStore(context, authProvider) }
         val stringProvider = remember { ContextStringProvider(context) }
         val viewModel = viewModel {
             FoodConsumedDetailViewModel(
@@ -53,9 +55,9 @@ class FoodConsumedDetailConfigurator(
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
                 fetchFoodByBarcodeExternally = FetchFoodByBarcodeExternallyUseCase(),
                 fetchMyFoodItemReport = FetchMyFoodItemReportUseCase(dataProvider, authProvider),
-                submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider),
+                submitFoodItemReport = SubmitFoodItemReportUseCase(dataProvider, authProvider, notificationsStore),
                 fetchMyPhotoSuggestion = FetchMyPhotoSuggestionUseCase(dataProvider, authProvider),
-                submitPhotoSuggestion = SubmitPhotoSuggestionUseCase(dataProvider, authProvider, StorageDataProvider()),
+                submitPhotoSuggestion = SubmitPhotoSuggestionUseCase(dataProvider, authProvider, StorageDataProvider(), notificationsStore),
                 deleteFoodConsumed = DeleteFoodConsumedUseCase(dataProvider, authProvider),
                 onFoodUpdated = onFoodUpdated,
             )

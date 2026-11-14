@@ -2,7 +2,8 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderFake
-import antoni.kalorie.core.networking.FirestoreDataProviderFake
+import antoni.kalorie.core.networking.TicketDataProviderFake
+import antoni.kalorie.core.networking.makeSuggestionDTO
 import antoni.kalorie.core.utils.Constants
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -14,32 +15,46 @@ class FetchPhotoSuggestionsUseCaseTest {
     // MARK: - Tests
 
     @Test
-    fun fetchPhotoSuggestions_whenNotAuthenticated_throwsAuthError() = runTest {
+    fun fetch_whenNotAuthenticated_throwsAuthError() = runTest {
         val (sut, _) = makeSUT(userId = null)
 
         try {
             sut()
-            fail("Expected NotAuthenticated")
+            fail("Expected notAuthenticated error")
         } catch (_: AuthError.NotAuthenticated) {
         }
     }
 
     @Test
-    fun fetchPhotoSuggestions_fetchesTheOldestPageFirst_soTheLongestWaitingSuggestionIsNeverHiddenByTheLimit() = runTest {
+    fun fetch_loadsOnlyPendingSuggestions_newestFirst() = runTest {
         val (sut, dataProvider) = makeSUT()
 
         sut()
 
-        assertEquals(Constants.Firestore.PHOTO_SUGGESTIONS, dataProvider.queriedCollection)
-        assertEquals(Constants.Firestore.Field.SUGGESTED_AT, dataProvider.queriedOrderByField)
-        assertEquals(false, dataProvider.queriedDescending)
-        assertEquals(Constants.Firestore.REPORTS_PAGE_LIMIT, dataProvider.queriedLimit)
+        val expected = TicketDataProviderFake.OrderedQuery(
+            Constants.Firestore.PHOTO_SUGGESTIONS,
+            listOf("status" to "pending"),
+            isHidden = null,
+            orderField = "suggested_at",
+            descending = true,
+        )
+        assertEquals(listOf(expected), dataProvider.orderedQueries)
+    }
+
+    @Test
+    fun fetch_returnsEveryPendingSuggestionForAnItem() = runTest {
+        val (sut, dataProvider) = makeSUT()
+        dataProvider.stubbedSuggestions = listOf(makeSuggestionDTO(id = "a", itemId = "12345678"), makeSuggestionDTO(id = "b", itemId = "12345678"))
+
+        val suggestions = sut()
+
+        assertEquals("approving one must leave the others pending", listOf("a", "b"), suggestions.map { it.id })
     }
 
     // MARK: - Helpers
 
-    private fun makeSUT(userId: String? = "maintainer-user"): Pair<FetchPhotoSuggestionsUseCase, FirestoreDataProviderFake> {
-        val dataProvider = FirestoreDataProviderFake()
+    private fun makeSUT(userId: String? = "maintainer"): Pair<FetchPhotoSuggestionsUseCase, TicketDataProviderFake> {
+        val dataProvider = TicketDataProviderFake()
         return FetchPhotoSuggestionsUseCase(dataProvider, AuthProviderFake(userId = userId)) to dataProvider
     }
 }

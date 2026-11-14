@@ -13,7 +13,6 @@ import antoni.kalorie.core.networking.StorageDataProviderFake
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
-import com.google.firebase.storage.StorageException
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
@@ -142,17 +141,18 @@ class DeleteAccountUseCaseTest {
     }
 
     @Test
-    fun invoke_deletesOwnReportsAsPrivacyObligation() = runTest {
+    fun invoke_anonymisesOwnReportsAndKeepsThem() = runTest {
         val fixture = makeSUT()
-        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.FOOD_ITEM_REPORTS to listOf("12345678_$USER_ID"))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.FOOD_ITEM_REPORTS to listOf("report-1"))
 
         fixture.sut()
 
         assertEquals(
-            "a report is the user's own data and must not survive account deletion",
-            listOf("12345678_$USER_ID"),
-            fixture.deleted(Constants.Firestore.FOOD_ITEM_REPORTS),
+            "only the link to the person is removed; the record of what changed in the catalogue stays",
+            listOf(Triple("report-1", Constants.Firestore.Field.REPORTED_BY, Constants.Firestore.FOOD_ITEM_REPORTS)),
+            fixture.dataProvider.anonymisedTickets,
         )
+        assertTrue(fixture.deleted(Constants.Firestore.FOOD_ITEM_REPORTS).isEmpty())
     }
 
     @Test
@@ -406,49 +406,34 @@ class DeleteAccountUseCaseTest {
     }
 
     @Test
-    fun invoke_deletesPhotoSuggestionFilesAndDocumentsIndependently() = runTest {
+    fun invoke_anonymisesPhotoSuggestionsAndKeepsTheirFiles() = runTest {
         val storage = StorageDataProviderFake()
-        val own = storage.uploadAsync(byteArrayOf(1), "photoSuggestions/$USER_ID/12345678.jpg", "image/jpeg")
-        val someoneElse = storage.uploadAsync(byteArrayOf(2), "photoSuggestions/other-user/12345678.jpg", "image/jpeg")
+        val own = storage.uploadAsync(byteArrayOf(1), "photoSuggestions/$USER_ID/12345678/ticket-1.jpg", "image/jpeg")
         val fixture = makeSUT(storage = storage)
-        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.PHOTO_SUGGESTIONS to listOf("99999999_$USER_ID"))
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.PHOTO_SUGGESTIONS to listOf("ticket-1"))
 
         fixture.sut()
 
-        assertNull(storage.files[own])
-        assertNotNull(storage.files[someoneElse])
+        assertNotNull("a pending photo stays approvable by the maintainer after the account is gone", storage.files[own])
         assertEquals(
-            "a suggestion document is found by suggested_by, so one whose file is already gone is still deleted",
-            listOf("99999999_$USER_ID"),
-            fixture.deleted(Constants.Firestore.PHOTO_SUGGESTIONS),
+            listOf(Triple("ticket-1", Constants.Firestore.Field.SUGGESTED_BY, Constants.Firestore.PHOTO_SUGGESTIONS)),
+            fixture.dataProvider.anonymisedTickets,
         )
+        assertTrue(fixture.deleted(Constants.Firestore.PHOTO_SUGGESTIONS).isEmpty())
     }
 
     @Test
-    fun invoke_whenAPhotoFileIsAlreadyGone_stillDeletesTheAccount() = runTest {
-        val storage = StorageDataProviderFake()
-        storage.uploadAsync(byteArrayOf(1), "photoSuggestions/$USER_ID/12345678.jpg", "image/jpeg")
-        storage.deleteError = StorageException.fromExceptionAndHttpCode(null, 404)
-        val fixture = makeSUT(storage = storage)
-
-        fixture.sut()
-
-        assertEquals("a file removed meanwhile by an approval must not block the wipe", 1, fixture.authCommandProvider.deleteCallCount)
-    }
-
-    @Test
-    fun invoke_whenDeletingAPhotoFileFailsForAnotherReason_doesNotDeleteTheAuthUser() = runTest {
-        val storage = StorageDataProviderFake()
-        storage.uploadAsync(byteArrayOf(1), "photoSuggestions/$USER_ID/12345678.jpg", "image/jpeg")
-        storage.deleteError = IOException("offline")
-        val fixture = makeSUT(storage = storage)
+    fun invoke_whenAnonymisingATicketFails_doesNotDeleteTheAuthUser() = runTest {
+        val fixture = makeSUT()
+        fixture.dataProvider.stubbedDocumentIdsByCollection = mapOf(Constants.Firestore.FOOD_ITEM_REPORTS to listOf("report-1"))
+        fixture.dataProvider.stubbedAnonymiseError = IOException("offline")
 
         try {
             fixture.sut()
         } catch (_: IOException) {
         }
 
-        assertEquals(0, fixture.authCommandProvider.deleteCallCount)
+        assertEquals("without the ticket link cleared the data would stay tied to a dead uid, and the user can retry only while the account exists", 0, fixture.authCommandProvider.deleteCallCount)
     }
 
     @Test

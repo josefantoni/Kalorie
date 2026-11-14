@@ -4,25 +4,23 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.PhotoSuggestionDomain
+import antoni.kalorie.core.models.TicketStatus
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.StorageDataProviderProtocol
 import antoni.kalorie.core.utils.Constants
-import antoni.kalorie.core.utils.Log
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 
 sealed class ApprovePhotoSuggestionError : Exception() {
     data object ItemMissing : ApprovePhotoSuggestionError()
-    data object ItemAlreadyHasPhoto : ApprovePhotoSuggestionError()
 }
 
 interface ApprovePhotoSuggestionUseCaseProtocol {
-    suspend operator fun invoke(suggestion: PhotoSuggestionDomain)
+    suspend operator fun invoke(suggestion: PhotoSuggestionDomain, response: String)
 }
 
 class ApprovePhotoSuggestionUseCase(
-    private val dataProvider: FirestoreDataProviderProtocol,
+    dataProvider: FirestoreDataProviderProtocol,
     private val authProvider: AuthProviderProtocol,
     storageProvider: StorageDataProviderProtocol,
     private val fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol,
@@ -32,47 +30,28 @@ class ApprovePhotoSuggestionUseCase(
 
     // MARK: - Properties
 
-    private val remover = PhotoSuggestionRemover(dataProvider, storageProvider)
+    private val remover = PhotoSuggestionRemover(storageProvider)
+    private val writer = TicketResolutionWriter(dataProvider)
 
     // MARK: - Functions
 
-    override suspend fun invoke(suggestion: PhotoSuggestionDomain) {
+    override suspend fun invoke(suggestion: PhotoSuggestionDomain, response: String) {
         if (authProvider.userId == null) throw AuthError.NotAuthenticated
+        val trimmedResponse = TicketResolutionWriter.validated(response)
         val item = fetchFoodItemByBarcode(suggestion.itemId) ?: throw ApprovePhotoSuggestionError.ItemMissing
-        if (item.photoUrl != null) throw ApprovePhotoSuggestionError.ItemAlreadyHasPhoto
         // The suggestion folder is private to its author, so the catalogue gets its own copy under
-        // catalogPhotos (UpdateFoodItemUseCase uploads it) rather than a link into photoSuggestions.
+        // catalogPhotos (UpdateFoodItemUseCase uploads it, and deletes the photo it replaces) rather
+        // than a link into photoSuggestions.
         val photoData = downloadFoodPhoto(suggestion.photoUrl)
         withContext(NonCancellable) {
             updateFoodItem(item, item, FoodItemFormPhoto.Local(photoData), validate = false)
-            removeAllSuggestions(suggestion.itemId)
-        }
-    }
-
-    // MARK: - Private
-
-    // Other users' suggestions for the same item would otherwise wait forever: the item has a photo now.
-    private suspend fun removeAllSuggestions(itemId: String) {
-        try {
-            val documentIds = dataProvider.loadDocumentIdsAsync(
-                from = Constants.Firestore.PHOTO_SUGGESTIONS,
-                field = Constants.Firestore.Field.ITEM_ID,
-                isEqualTo = itemId,
+            writer.write(
+                status = TicketStatus.ACCEPTED,
+                response = trimmedResponse,
+                ticketId = suggestion.id,
+                inCollection = Constants.Firestore.PHOTO_SUGGESTIONS,
             )
-            for (documentId in documentIds) {
-                val (suggestionItemId, userId) = PhotoSuggestionDomain.ids(documentId) ?: continue
-                try {
-                    remover.remove(suggestionItemId, userId)
-                } catch (error: CancellationException) {
-                    throw error
-                } catch (error: Exception) {
-                    Log.error(error, Constants.LogCategory.MODERATION)
-                }
-            }
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Log.error(error, Constants.LogCategory.MODERATION)
+            remover.deleteFileQuietly(suggestion.photoUrl)
         }
     }
 }

@@ -55,7 +55,7 @@ fun ModerationQueueView(
     viewModel: ModerationQueueViewModel,
     onDismiss: () -> Unit,
     makeReviewView: @Composable (submission: FoodItemSubmissionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) -> Unit,
-    makeCatalogueEditorView: @Composable (barcode: String?, onDismiss: () -> Unit) -> Unit,
+    makeCatalogueEditorView: @Composable (onDismiss: () -> Unit) -> Unit,
 ) {
     // MARK: - Properties
 
@@ -94,7 +94,7 @@ fun ModerationQueueView(
                     )
                 }
                 is ModerationQueueDestination.CatalogueEditor -> NavEntry(destination) {
-                    makeCatalogueEditorView(null) { viewModel.backStack.remove(destination) }
+                    makeCatalogueEditorView { viewModel.backStack.remove(destination) }
                 }
             }
         },

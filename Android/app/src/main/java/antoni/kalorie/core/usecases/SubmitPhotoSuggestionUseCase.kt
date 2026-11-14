@@ -2,15 +2,17 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
-import antoni.kalorie.core.models.PhotoSuggestionDomain
+import antoni.kalorie.core.models.TicketLocale
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
-import antoni.kalorie.core.networking.PhotoSuggestionDTO
+import antoni.kalorie.core.networking.PhotoSuggestionCreateDTO
 import antoni.kalorie.core.networking.StorageDataProviderProtocol
-import antoni.kalorie.core.networking.loadFromServerAsync
 import antoni.kalorie.core.networking.setAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
+import antoni.kalorie.features.notifications.UserNotificationsStoreProtocol
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import java.time.Instant
 
 interface SubmitPhotoSuggestionUseCaseProtocol {
@@ -21,42 +23,32 @@ class SubmitPhotoSuggestionUseCase(
     private val dataProvider: FirestoreDataProviderProtocol,
     private val authProvider: AuthProviderProtocol,
     private val storageProvider: StorageDataProviderProtocol,
+    private val notificationsStore: UserNotificationsStoreProtocol,
+    private val locale: String = TicketLocale.current(),
 ) : SubmitPhotoSuggestionUseCaseProtocol {
 
     // MARK: - Functions
 
     override suspend fun invoke(itemId: String, photo: ByteArray) {
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
-        val path = PhotoSuggestionDomain.storagePath(itemId, userId)
-        val documentId = PhotoSuggestionDomain.id(itemId, userId)
-        val existing: PhotoSuggestionDTO? = dataProvider.loadFromServerAsync(id = documentId, from = Constants.Firestore.PHOTO_SUGGESTIONS)
-        if (existing != null) return
-        // The rules deny overwriting, and a previous attempt may have uploaded the file and then failed
-        // on the Firestore write — so the fixed path is cleared first.
-        try {
-            storageProvider.deleteAtPathAsync(path)
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            Log.warning(error, Constants.LogCategory.STORAGE)
-        }
+        val ticketId = dataProvider.newDocumentId(Constants.Firestore.PHOTO_SUGGESTIONS)
+        val path = "${Constants.Storage.PHOTO_SUGGESTIONS_FOLDER}/$userId/$itemId/$ticketId.jpg"
         val photoUrl = storageProvider.uploadAsync(photo, path, Constants.Storage.PHOTO_CONTENT_TYPE)
-        val dto = PhotoSuggestionDTO(itemId = itemId, suggestedBy = userId, photoUrl = photoUrl, suggestedAt = Instant.now())
+        val dto = PhotoSuggestionCreateDTO(
+            itemId = itemId,
+            suggestedBy = userId,
+            photoUrl = photoUrl,
+            suggestedAt = Instant.now(),
+            locale = locale,
+        )
         try {
-            dataProvider.setAsync(dto, id = documentId, inCollection = Constants.Firestore.PHOTO_SUGGESTIONS)
-        } catch (error: CancellationException) {
-            throw error
+            dataProvider.setAsync(dto, id = ticketId, inCollection = Constants.Firestore.PHOTO_SUGGESTIONS)
         } catch (error: Exception) {
-            val concurrent: PhotoSuggestionDTO? = try {
-                dataProvider.loadFromServerAsync(id = documentId, from = Constants.Firestore.PHOTO_SUGGESTIONS)
-            } catch (reReadError: CancellationException) {
-                throw reReadError
-            } catch (_: Exception) {
-                null
-            }
-            if (concurrent == null) deleteUploadedFileQuietly(path)
+            withContext(NonCancellable) { deleteUploadedFileQuietly(path) }
             throw error
         }
+        notificationsStore.mayHaveUnread = true
+        notificationsStore.lastSubmittedAt = Instant.now()
     }
 
     // MARK: - Private

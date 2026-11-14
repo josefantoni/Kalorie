@@ -89,6 +89,13 @@ class DeleteAccountUseCase(
         dataProvider.deleteAsync(id = Constants.Firestore.GOALS_DOCUMENT_ID, from = Constants.Firestore.settings(userId))
     }
 
+    private suspend fun anonymiseTickets(inCollection: String, ownerField: String, userId: String) {
+        val ticketIds = dataProvider.loadDocumentIdsAsync(from = inCollection, field = ownerField, isEqualTo = userId)
+        for (ticketId in ticketIds) {
+            dataProvider.anonymiseAsync(id = ticketId, ownerField = ownerField, inCollection = inCollection)
+        }
+    }
+
     private suspend fun wipeFirestoreData(userId: String) {
         val mealTypeIds = dataProvider.loadDocumentIdsAsync(from = Constants.Firestore.mealTypes(userId))
         dataProvider.batchDeleteAsync(ids = mealTypeIds, from = Constants.Firestore.mealTypes(userId))
@@ -113,21 +120,18 @@ class DeleteAccountUseCase(
         storageProvider.listAsync("${Constants.Storage.SUBMISSION_PHOTOS_FOLDER}/$userId").forEach {
             storageProvider.deleteIgnoringMissing(it, Constants.LogCategory.ACCOUNT)
         }
-        storageProvider.listAsync("${Constants.Storage.PHOTO_SUGGESTIONS_FOLDER}/$userId").forEach {
-            storageProvider.deleteIgnoringMissing(it, Constants.LogCategory.ACCOUNT)
-        }
-        val suggestionIds = dataProvider.loadDocumentIdsAsync(
-            from = Constants.Firestore.PHOTO_SUGGESTIONS,
-            field = Constants.Firestore.Field.SUGGESTED_BY,
-            isEqualTo = userId,
+        // Tickets are kept without the link to the account: the maintainer's record of what changed in the
+        // catalogue stays, and a pending photo can still be approved.
+        anonymiseTickets(
+            inCollection = Constants.Firestore.PHOTO_SUGGESTIONS,
+            ownerField = Constants.Firestore.Field.SUGGESTED_BY,
+            userId = userId,
         )
-        dataProvider.batchDeleteAsync(ids = suggestionIds, from = Constants.Firestore.PHOTO_SUGGESTIONS)
-        val reportIds = dataProvider.loadDocumentIdsAsync(
-            from = Constants.Firestore.FOOD_ITEM_REPORTS,
-            field = Constants.Firestore.Field.REPORTED_BY,
-            isEqualTo = userId,
+        anonymiseTickets(
+            inCollection = Constants.Firestore.FOOD_ITEM_REPORTS,
+            ownerField = Constants.Firestore.Field.REPORTED_BY,
+            userId = userId,
         )
-        dataProvider.batchDeleteAsync(ids = reportIds, from = Constants.Firestore.FOOD_ITEM_REPORTS)
         try {
             dataProvider.deleteAsync(id = userId, from = Constants.Firestore.USERS)
         } catch (error: CancellationException) {

@@ -51,9 +51,8 @@ class ModerationPhotoSuggestionsViewModel(
         load()
     }
 
-    fun onSuggestionResolved(id: String, isApproved: Boolean) {
-        val itemId = _rows.value.firstOrNull { it.id == id }?.suggestion?.itemId
-        _rows.value = _rows.value.filterNot { it.id == id || (isApproved && it.suggestion.itemId == itemId) }
+    fun onSuggestionResolved(id: String) {
+        _rows.value = _rows.value.filterNot { it.id == id }
     }
 
     // MARK: - Private
@@ -69,7 +68,7 @@ class ModerationPhotoSuggestionsViewModel(
                 emptyList()
             }
             val namesById = buildMap { items.forEach { putIfAbsent(it.id, it.displayName) } }
-            _rows.value = suggestions.sortedBy { it.suggestedAt }.map { PhotoSuggestionRow(it, namesById[it.itemId]) }
+            _rows.value = suggestions.map { PhotoSuggestionRow(it, namesById[it.itemId]) }
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {

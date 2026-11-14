@@ -13,7 +13,6 @@ import antoni.kalorie.core.networking.StorageDataProvider
 import antoni.kalorie.core.usecases.ApprovePhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.ApproveSubmissionUseCase
 import antoni.kalorie.core.usecases.CreateFoodItemUseCase
-import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCase
 import antoni.kalorie.core.usecases.DeleteFoodPhotoUseCase
 import antoni.kalorie.core.usecases.DownloadFoodPhotoUseCase
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCase
@@ -22,6 +21,7 @@ import antoni.kalorie.core.usecases.FetchPendingSubmissionsUseCase
 import antoni.kalorie.core.usecases.FetchPhotoSuggestionsUseCase
 import antoni.kalorie.core.usecases.RejectPhotoSuggestionUseCase
 import antoni.kalorie.core.usecases.RejectSubmissionUseCase
+import antoni.kalorie.core.usecases.ResolveFoodItemReportUseCase
 import antoni.kalorie.core.usecases.SearchFoodItemsUseCase
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCase
 import antoni.kalorie.core.usecases.UploadFoodPhotoUseCase
@@ -52,8 +52,8 @@ class ModerationConfigurator(
             makeReviewView = { submission, onResolved, onReviewDismiss ->
                 MakeReviewView(submission = submission, onResolved = onResolved, onDismiss = onReviewDismiss)
             },
-            makeCatalogueEditorView = { barcode, onEditorDismiss ->
-                MakeCatalogueEditorView(initialBarcode = barcode, onDismiss = onEditorDismiss)
+            makeCatalogueEditorView = { onEditorDismiss ->
+                MakeCatalogueEditorView(onDismiss = onEditorDismiss)
             },
         )
     }
@@ -69,8 +69,8 @@ class ModerationConfigurator(
         ModerationReportsView(
             viewModel = viewModel,
             onDismiss = onDismiss,
-            makeCatalogueEditorView = { barcode, reports, onReportsChanged, onEditorDismiss ->
-                MakeCatalogueEditorView(initialBarcode = barcode, onDismiss = onEditorDismiss, reports = reports, onReportsChanged = onReportsChanged)
+            makeCatalogueEditorView = { report, onResolved, onEditorDismiss ->
+                MakeCatalogueEditorView(onDismiss = onEditorDismiss, ticket = report, onResolved = onResolved)
             },
         )
     }
@@ -93,7 +93,8 @@ class ModerationConfigurator(
     }
 
     @Composable
-    fun MakePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: (isApproved: Boolean) -> Unit, onDismiss: () -> Unit) {
+    fun MakePhotoSuggestionView(suggestion: PhotoSuggestionDomain, onResolved: () -> Unit, onDismiss: () -> Unit) {
+        val context = LocalContext.current.applicationContext
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationPhotoSuggestionViewModel(
                 suggestion = suggestion,
@@ -112,6 +113,7 @@ class ModerationConfigurator(
                     ),
                 ),
                 rejectPhotoSuggestion = RejectPhotoSuggestionUseCase(dataProvider, authProvider, storageProvider),
+                responseTextProvider = ModerationResponseTextProvider(context),
                 onResolved = onResolved,
             )
         }
@@ -141,21 +143,21 @@ class ModerationConfigurator(
 
     @Composable
     fun MakeCatalogueEditorView(
-        initialBarcode: String?,
         onDismiss: () -> Unit,
-        reports: List<FoodItemReportDomain> = emptyList(),
-        onReportsChanged: (List<FoodItemReportDomain>) -> Unit = {},
+        ticket: FoodItemReportDomain? = null,
+        onResolved: () -> Unit = {},
     ) {
         val applicationScope = (LocalContext.current.applicationContext as KalorieApplication).applicationScope
+        val context = LocalContext.current.applicationContext
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             ModerationCatalogueEditorViewModel(
                 fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCase(dataProvider),
                 updateFoodItem = UpdateFoodItemUseCase(dataProvider, authProvider, UploadFoodPhotoUseCase(storageProvider), DeleteFoodPhotoUseCase(storageProvider)),
-                deleteFoodItemReport = DeleteFoodItemReportUseCase(dataProvider, authProvider),
-                initialBarcode = initialBarcode,
-                reports = reports,
+                resolveFoodItemReport = ResolveFoodItemReportUseCase(dataProvider, authProvider),
+                responseTextProvider = ModerationResponseTextProvider(context),
+                ticket = ticket,
                 applicationScope = applicationScope,
-                onReportsChanged = onReportsChanged,
+                onResolved = onResolved,
             )
         }
         ModerationCatalogueEditorView(viewModel = viewModel, onDismiss = onDismiss)

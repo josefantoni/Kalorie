@@ -21,10 +21,15 @@ class FetchMyFoodItemReportUseCase(
 
     override suspend fun invoke(barcode: String): FoodItemReportDomain? {
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
-        val dto: FoodItemReportDTO? = dataProvider.loadAsync(
-            id = FoodItemReportDomain.id(barcode = barcode, userId = userId),
+        val dtos: List<FoodItemReportDTO> = dataProvider.loadAsync(
             from = Constants.Firestore.FOOD_ITEM_REPORTS,
+            whereEqualTo = listOf(
+                Constants.Firestore.Field.REPORTED_BY to userId,
+                Constants.Firestore.Field.BARCODE to barcode,
+                Constants.Firestore.Field.STATUS to Constants.Firestore.PENDING_STATUS,
+            ),
+            limit = 1,
         )
-        return dto?.asDomain()
+        return dtos.firstOrNull()?.asDomain()
     }
 }

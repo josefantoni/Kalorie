@@ -6,18 +6,19 @@ import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodItemReportDomain
+import antoni.kalorie.core.models.TicketStatus
+import antoni.kalorie.core.networking.makeReport
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
-import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCaseFake
-import antoni.kalorie.core.usecases.DeleteFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseFake
 import antoni.kalorie.core.usecases.FetchFoodItemByBarcodeUseCaseProtocol
+import antoni.kalorie.core.usecases.ResolveFoodItemReportUseCaseFake
+import antoni.kalorie.core.usecases.ResolveFoodItemReportUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateFoodItemError
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseFake
 import antoni.kalorie.core.usecases.UpdateFoodItemUseCaseProtocol
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -145,124 +146,184 @@ class ModerationCatalogueEditorViewModelTest {
     }
 
     @Test
-    fun onAppear_withInitialBarcode_prefillsFormFromIt() = runTest {
-        val item = makeItem()
+    fun onAppear_withATicket_prefillsFormFromItsItem() = runTest {
         val sut = makeSUT(
-            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = item),
-            initialBarcode = "12345678",
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
+            ticket = makeReport(),
         )
 
         sut.onAppear()
 
-        assertEquals(item, sut.loadedItem.value)
+        assertEquals("12345678", sut.formInput.value.scannedCode)
+        assertTrue(sut.isOpenedFromReport)
     }
 
     @Test
-    fun onAppear_withoutInitialBarcode_doesNothing() = runTest {
+    fun onAppear_withoutATicket_doesNothing() = runTest {
         val sut = makeSUT()
 
         sut.onAppear()
 
         assertNull(sut.loadedItem.value)
+        assertFalse(sut.isOpenedFromReport)
     }
 
     @Test
-    fun onSaveAndResolveTapped_savesThenDeletesEveryReportAndDismisses() = runTest {
+    fun onSaveAndResolveTapped_savesFirst_thenOpensTheSheetPrefilledInTheTicketsLocale() = runTest {
         val updateFoodItem = UpdateFoodItemUseCaseSpy()
-        val deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
-        val changedReports = mutableListOf<List<String>>()
+        val resolve = ResolveFoodItemReportUseCaseSpy()
         val sut = makeSUT(
             fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
             updateFoodItem = updateFoodItem,
-            deleteFoodItemReport = deleteFoodItemReport,
-            initialBarcode = "12345678",
-            reports = listOf(makeReport("user-1"), makeReport("user-2")),
-            onReportsChanged = { changedReports += it.map { report -> report.reportedBy } },
+            resolveFoodItemReport = resolve,
+            ticket = makeReport(locale = "cs"),
         )
         sut.onAppear()
-
         sut.formInput.value = sut.formInput.value.copy(name = "Opravený název")
+
         sut.onSaveAndResolveTapped()
 
         assertEquals("Opravený název", updateFoodItem.receivedItem?.czName)
-        assertEquals(listOf("user-1", "user-2"), deleteFoodItemReport.deletedReportedBy.sorted())
-        assertEquals(listOf(emptyList<String>()), changedReports)
-        assertTrue(sut.shouldDismiss.value)
+        assertEquals(TicketStatus.ACCEPTED, sut.responseDraft.value?.status)
+        assertEquals("the author reads it in their language, not the maintainer's", "report-accepted-cs", sut.responseDraft.value?.text)
+        assertTrue("the ticket is resolved only when the maintainer sends the response", resolve.calls.isEmpty())
+        assertFalse(sut.shouldDismiss.value)
     }
 
     @Test
-    fun onSaveAndResolveTapped_whenSaveFails_keepsTheReportsOpen() = runTest {
-        val deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
-        val changedReports = mutableListOf<List<String>>()
+    fun onSaveAndResolveTapped_whenSaveFails_doesNotOpenTheSheetOrResolve() = runTest {
+        val resolve = ResolveFoodItemReportUseCaseSpy()
         val sut = makeSUT(
             fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
             updateFoodItem = UpdateFoodItemUseCaseFake(errorToThrow = UpdateFoodItemError.ChangedSinceLoad),
-            deleteFoodItemReport = deleteFoodItemReport,
-            initialBarcode = "12345678",
-            reports = listOf(makeReport("user-1")),
-            onReportsChanged = { changedReports += it.map { report -> report.reportedBy } },
+            resolveFoodItemReport = resolve,
+            ticket = makeReport(),
         )
         sut.onAppear()
 
         sut.onSaveAndResolveTapped()
 
-        assertTrue(deleteFoodItemReport.deletedReportedBy.isEmpty())
-        assertTrue(changedReports.isEmpty())
-        assertFalse(sut.shouldDismiss.value)
+        assertNull("resolving a report whose correction was not saved would close it with the item still wrong", sut.responseDraft.value)
+        assertTrue(resolve.calls.isEmpty())
         assertEquals(R.string.moderation_error_itemChangedSinceLoad, sut.alertItem.value?.titleRes)
     }
 
     @Test
-    fun onRejectTapped_deletesEveryReportWithoutSavingTheForm() = runTest {
+    fun onRejectTapped_opensAnEmptySheetWithoutSavingTheForm() = runTest {
         val updateFoodItem = UpdateFoodItemUseCaseSpy()
-        val deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
         val sut = makeSUT(
             fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
             updateFoodItem = updateFoodItem,
-            deleteFoodItemReport = deleteFoodItemReport,
-            initialBarcode = "12345678",
-            reports = listOf(makeReport("user-1"), makeReport("user-2")),
+            ticket = makeReport(),
         )
         sut.onAppear()
-
         sut.formInput.value = sut.formInput.value.copy(name = "Rozpracovaná úprava")
+
         sut.onRejectTapped()
 
-        assertNull(updateFoodItem.receivedItem)
-        assertEquals(listOf("user-1", "user-2"), deleteFoodItemReport.deletedReportedBy.sorted())
+        assertNull("rejecting a report judges it wrong, so the catalogue entry must stay untouched", updateFoodItem.receivedItem)
+        assertEquals(TicketStatus.REJECTED, sut.responseDraft.value?.status)
+        assertEquals("a rejection must be explained to the author", false, sut.responseDraft.value?.isSendable)
+    }
+
+    @Test
+    fun onResponseSendTapped_resolvesTheTicketWithTheEditedResponse_andDismisses() = runTest {
+        val resolve = ResolveFoodItemReportUseCaseSpy()
+        var resolved = 0
+        val sut = makeSUT(
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
+            resolveFoodItemReport = resolve,
+            ticket = makeReport(id = "report-7"),
+            onResolved = { resolved += 1 },
+        )
+        sut.onAppear()
+        sut.onSaveAndResolveTapped()
+        sut.onResponseTextChanged("Fixed it")
+
+        sut.onResponseSendTapped()
+
+        assertEquals(listOf(ResolveCall("report-7", TicketStatus.ACCEPTED, "Fixed it")), resolve.calls)
+        assertEquals("the parent list and the bell must learn the ticket is gone from the queue", 1, resolved)
+        assertNull(sut.responseDraft.value)
         assertTrue(sut.shouldDismiss.value)
     }
 
     @Test
-    fun onRejectTapped_whenSomeDeletesFail_keepsOnlyTheFailedReportsAndDoesNotDismiss() = runTest {
-        val changedReports = mutableListOf<List<String>>()
-        val sut = makeSUT(
-            deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy(failingReportedBy = setOf("user-2")),
-            initialBarcode = "12345678",
-            reports = listOf(makeReport("user-1"), makeReport("user-2")),
-            onReportsChanged = { changedReports += it.map { report -> report.reportedBy } },
-        )
-
+    fun onResponseSendTapped_whenRejecting_resolvesAsRejected() = runTest {
+        val resolve = ResolveFoodItemReportUseCaseSpy()
+        val sut = makeSUT(resolveFoodItemReport = resolve, ticket = makeReport(id = "report-8"))
         sut.onRejectTapped()
+        sut.onResponseTextChanged("Not reproducible")
 
-        assertEquals(listOf("user-2"), sut.reports.value.map { it.reportedBy })
-        assertNotNull(sut.alertItem.value)
-        assertEquals(listOf(listOf("user-2")), changedReports)
-        assertFalse(sut.shouldDismiss.value)
+        sut.onResponseSendTapped()
+
+        assertEquals(listOf(ResolveCall("report-8", TicketStatus.REJECTED, "Not reproducible")), resolve.calls)
     }
 
     @Test
-    fun actions_whileAnotherActionIsRunning_areIgnored() = runTest {
+    fun onResponseSendTapped_whenTheTicketWriteFails_keepsTheItemSavedAndTheSheetOpenForARetry() = runTest {
+        val resolve = ResolveFoodItemReportUseCaseSpy()
+        resolve.error = java.io.IOException("offline")
+        var resolved = 0
+        val sut = makeSUT(
+            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
+            resolveFoodItemReport = resolve,
+            ticket = makeReport(),
+            onResolved = { resolved += 1 },
+        )
+        sut.onAppear()
+        sut.onSaveAndResolveTapped()
+
+        sut.onResponseSendTapped()
+
+        assertNotNull("the maintainer must not have to retype the response", sut.responseDraft.value)
+        assertNotNull(sut.responseDraft.value?.errorTitleRes)
+        assertEquals(0, resolved)
+        assertFalse(sut.shouldDismiss.value)
+
+        resolve.error = null
+        sut.onResponseSendTapped()
+
+        assertEquals(1, resolve.calls.size)
+        assertTrue(sut.shouldDismiss.value)
+    }
+
+    @Test
+    fun onResponseSendTapped_withEmptyText_doesNotWrite() = runTest {
+        val resolve = ResolveFoodItemReportUseCaseSpy()
+        val sut = makeSUT(resolveFoodItemReport = resolve, ticket = makeReport())
+        sut.onRejectTapped()
+
+        sut.onResponseSendTapped()
+
+        assertTrue(resolve.calls.isEmpty())
+        assertNotNull(sut.responseDraft.value)
+    }
+
+    @Test
+    fun onResponseSendTapped_whileASendIsRunning_isIgnored() = runTest {
+        val resolve = ResolveFoodItemReportUseCaseSpy()
+        resolve.gate = CompletableDeferred()
+        val sut = makeSUT(resolveFoodItemReport = resolve, ticket = makeReport())
+        sut.onRejectTapped()
+        sut.onResponseTextChanged("No")
+
+        val first = launch { sut.onResponseSendTapped() }
+        yield()
+        sut.onResponseSendTapped()
+        resolve.gate?.complete(Unit)
+        first.join()
+
+        assertEquals("a double tap must not write the resolution twice", 1, resolve.calls.size)
+    }
+
+    @Test
+    fun onSaveAndResolveTapped_whileASaveIsRunning_isIgnored() = runTest {
         val updateFoodItem = SuspendingUpdateFoodItemUseCase()
-        val deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy()
-        val changedReports = mutableListOf<List<String>>()
         val sut = makeSUT(
             fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = makeItem()),
             updateFoodItem = updateFoodItem,
-            deleteFoodItemReport = deleteFoodItemReport,
-            initialBarcode = "12345678",
-            reports = listOf(makeReport("user-1")),
-            onReportsChanged = { changedReports += it.map { report -> report.reportedBy } },
+            ticket = makeReport(),
         )
         sut.onAppear()
 
@@ -273,57 +334,8 @@ class ModerationCatalogueEditorViewModelTest {
         updateFoodItem.gate.complete(Unit)
         first.join()
 
-        assertEquals(1, updateFoodItem.callCount)
-        assertEquals(listOf("user-1"), deleteFoodItemReport.deletedReportedBy)
-        assertEquals(listOf(emptyList<String>()), changedReports)
-        assertNull(sut.alertItem.value)
-    }
-
-    @Test
-    fun onSaveAndResolveTapped_retryAfterPartialDeleteFailure_savesAgainWithoutChangedSinceLoad() = runTest {
-        val item = makeItem()
-        val updateFoodItem = StoringUpdateFoodItemUseCase(stored = item, uploadedUrl = "https://example.com/uploaded.jpg")
-        val deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy(failingReportedBy = setOf("user-2"))
-        val changedReports = mutableListOf<List<String>>()
-        val sut = makeSUT(
-            fetchFoodItemByBarcode = FetchFoodItemByBarcodeUseCaseFake(stubbedItem = item),
-            updateFoodItem = updateFoodItem,
-            deleteFoodItemReport = deleteFoodItemReport,
-            initialBarcode = "12345678",
-            reports = listOf(makeReport("user-1"), makeReport("user-2")),
-            onReportsChanged = { changedReports += it.map { report -> report.reportedBy } },
-        )
-        sut.onAppear()
-        sut.formInput.value = sut.formInput.value.copy(photo = FoodItemFormPhoto.Local(byteArrayOf(1, 2)))
-
-        sut.onSaveAndResolveTapped()
-        deleteFoodItemReport.failingReportedBy = emptySet()
-        sut.alertItem.value = null
-        sut.onSaveAndResolveTapped()
-
-        assertNull(sut.alertItem.value)
-        assertEquals(listOf("user-1", "user-2"), deleteFoodItemReport.deletedReportedBy.sorted())
-        assertEquals(listOf(listOf("user-2"), emptyList()), changedReports)
-        assertTrue(sut.shouldDismiss.value)
-    }
-
-    @Test
-    fun onRejectTapped_whenTheCallerIsCancelledMidway_stillDeletesEveryReportAndNotifies() = runTest {
-        val changedReports = mutableListOf<List<String>>()
-        var caller: Job? = null
-        val deleteFoodItemReport = DeleteFoodItemReportUseCaseSpy(onDeleted = { caller?.cancel() })
-        val sut = makeSUT(
-            deleteFoodItemReport = deleteFoodItemReport,
-            initialBarcode = "12345678",
-            reports = listOf(makeReport("user-1"), makeReport("user-2"), makeReport("user-3")),
-            onReportsChanged = { changedReports += it.map { report -> report.reportedBy } },
-        )
-
-        caller = launch { sut.onRejectTapped() }
-        caller.join()
-
-        assertEquals(listOf("user-1", "user-2", "user-3"), deleteFoodItemReport.deletedReportedBy)
-        assertEquals(listOf(emptyList<String>()), changedReports)
+        assertEquals("a double tap must not save twice", 1, updateFoodItem.callCount)
+        assertEquals(TicketStatus.ACCEPTED, sut.responseDraft.value?.status)
     }
 
     // MARK: - Helpers
@@ -331,22 +343,19 @@ class ModerationCatalogueEditorViewModelTest {
     private fun makeSUT(
         fetchFoodItemByBarcode: FetchFoodItemByBarcodeUseCaseProtocol = FetchFoodItemByBarcodeUseCaseFake(),
         updateFoodItem: UpdateFoodItemUseCaseProtocol = UpdateFoodItemUseCaseFake(),
-        deleteFoodItemReport: DeleteFoodItemReportUseCaseProtocol = DeleteFoodItemReportUseCaseFake(),
-        initialBarcode: String? = null,
-        reports: List<FoodItemReportDomain> = emptyList(),
-        onReportsChanged: (List<FoodItemReportDomain>) -> Unit = {},
+        resolveFoodItemReport: ResolveFoodItemReportUseCaseProtocol = ResolveFoodItemReportUseCaseFake(),
+        ticket: FoodItemReportDomain? = null,
+        onResolved: () -> Unit = {},
         applicationScope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
     ): ModerationCatalogueEditorViewModel = ModerationCatalogueEditorViewModel(
         fetchFoodItemByBarcode = fetchFoodItemByBarcode,
         updateFoodItem = updateFoodItem,
-        deleteFoodItemReport = deleteFoodItemReport,
-        initialBarcode = initialBarcode,
-        reports = reports,
+        resolveFoodItemReport = resolveFoodItemReport,
+        responseTextProvider = ModerationResponseTextProviderFake(),
+        ticket = ticket,
         applicationScope = applicationScope,
-        onReportsChanged = onReportsChanged,
+        onResolved = onResolved,
     )
-
-    private fun makeReport(reportedBy: String): FoodItemReportDomain = FoodItemReportDomain(barcode = "12345678", reportedBy = reportedBy, reason = "wrong data", reportedAt = Instant.now())
 
     private fun makeItem(id: String = "12345678", czName: String = "Tvaroh", date: Instant = Instant.now()): FoodItemDomain = FoodItemDomain(
         id = id,
@@ -398,40 +407,21 @@ private class SuspendingUpdateFoodItemUseCase : UpdateFoodItemUseCaseProtocol {
     }
 }
 
-private class StoringUpdateFoodItemUseCase(
-    private var stored: FoodItemDomain,
-    private val uploadedUrl: String,
-) : UpdateFoodItemUseCaseProtocol {
+private data class ResolveCall(val ticketId: String, val status: TicketStatus, val response: String)
+
+private class ResolveFoodItemReportUseCaseSpy : ResolveFoodItemReportUseCaseProtocol {
 
     // MARK: - Properties
 
-    var callCount = 0
+    var error: Exception? = null
+    var gate: CompletableDeferred<Unit>? = null
+    val calls = mutableListOf<ResolveCall>()
 
     // MARK: - Functions
 
-    override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean): FoodItemDomain {
-        callCount += 1
-        if (previouslyLoaded != stored) throw UpdateFoodItemError.ChangedSinceLoad
-        stored = if (photo is FoodItemFormPhoto.Local) item.withPhotoUrl(uploadedUrl) else item
-        return stored
-    }
-}
-
-private class DeleteFoodItemReportUseCaseSpy(
-    var failingReportedBy: Set<String> = emptySet(),
-    var onDeleted: () -> Unit = {},
-) : DeleteFoodItemReportUseCaseProtocol {
-
-    // MARK: - Properties
-
-    val deletedReportedBy = mutableListOf<String>()
-
-    // MARK: - Functions
-
-    override suspend fun invoke(barcode: String, reportedBy: String) {
-        if (reportedBy in failingReportedBy) throw RuntimeException("delete failed")
-        deletedReportedBy += reportedBy
-        onDeleted()
-        yield()
+    override suspend fun invoke(ticketId: String, status: TicketStatus, response: String) {
+        error?.let { throw it }
+        calls.add(ResolveCall(ticketId, status, response))
+        gate?.await()
     }
 }

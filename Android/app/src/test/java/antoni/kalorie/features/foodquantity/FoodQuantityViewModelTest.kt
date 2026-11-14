@@ -5,13 +5,13 @@ import antoni.kalorie.components.FoodPhotoPillState
 import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
-import antoni.kalorie.core.models.FoodItemReportDomain
 import antoni.kalorie.core.models.FoodItemReportError
 import antoni.kalorie.core.models.FoodNutritionValues
 import antoni.kalorie.core.models.FoodPortionDomain
 import antoni.kalorie.core.models.MealTypeDomain
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
+import antoni.kalorie.core.networking.makeReport
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseFake
 import antoni.kalorie.core.usecases.AddFavouriteFoodUseCaseProtocol
 import antoni.kalorie.core.usecases.FetchFoodByBarcodeExternallyUseCaseFake
@@ -1079,7 +1079,7 @@ class FoodQuantityViewModelTest {
         val sut = makeSUT(
             item = makeFoodItem(kind = FoodItemKind.CATALOGUE),
             fetchMyFoodItemReport = FetchMyFoodItemReportUseCaseFake(
-                stubbedReport = FoodItemReportDomain(barcode = "test", reportedBy = "test-user-id", reason = "wrong", reportedAt = Instant.now()),
+                stubbedReport = makeReport(barcode = "test"),
             ),
         )
 

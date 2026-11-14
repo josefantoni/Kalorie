@@ -55,6 +55,8 @@ fun ModerationPhotoSuggestionView(
     val canApprove by viewModel.canApprove.collectAsState()
     val shouldDismiss by viewModel.shouldDismiss.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
+    val responseDraft by viewModel.responseDraft.collectAsState()
+    val isSendingResponse by viewModel.isSendingResponse.collectAsState()
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) { viewModel.onAppear() }
@@ -82,13 +84,13 @@ fun ModerationPhotoSuggestionView(
                 if (canApprove) {
                     PrimaryButton(
                         text = stringResource(R.string.moderation_button_approve),
-                        onClick = { scope.launch { viewModel.onApproveTapped() } },
+                        onClick = viewModel::onApproveTapped,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
                 PrimaryButton(
                     text = stringResource(R.string.moderation_button_reject),
-                    onClick = { scope.launch { viewModel.onRejectTapped() } },
+                    onClick = viewModel::onRejectTapped,
                     style = PrimaryButtonStyle.DESTRUCTIVE,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -113,6 +115,17 @@ fun ModerationPhotoSuggestionView(
                 }
             }
         }
+    }
+
+    responseDraft?.let { draft ->
+        ModerationResponseSheet(
+            draft = draft,
+            isSending = isSendingResponse,
+            onTextChange = viewModel::onResponseTextChanged,
+            onErrorDismissed = viewModel::onResponseErrorDismissed,
+            onSend = { scope.launch { viewModel.onResponseSendTapped() } },
+            onDismiss = viewModel::onResponseDismissed,
+        )
     }
 
     alertItem?.let { item ->

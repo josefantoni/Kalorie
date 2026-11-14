@@ -130,6 +130,11 @@ object Constants {
         val FIRST_DAY_KEY = "%04d-01-01".format(Locale.ROOT, FIRST_YEAR)
     }
 
+    object Notifications {
+        const val USER_PREFERENCES = "userNotifications"
+        const val USER_CHECK_INTERVAL_SECONDS = 24 * 60 * 60L
+    }
+
     object Firestore {
         const val BATCH_WRITE_LIMIT = 500
         const val IN_QUERY_LIMIT = 30
@@ -141,7 +146,10 @@ object Constants {
         const val APP_CONFIG_DOCUMENT_ID = "app"
         const val FOOD_ITEM_SUBMISSIONS = "foodItemSubmissions"
         const val REPORT_REASON_MAX_LENGTH = 500
-        const val REPORTS_PAGE_LIMIT = 50
+        const val RESPONSE_MAX_LENGTH = 1000
+        const val PENDING_STATUS = "pending"
+        val SUPPORTED_LOCALES = listOf("cs", "en", "sk")
+        const val FALLBACK_LOCALE = "en"
         const val FOOD_FREQUENCY_DOCUMENT_ID = "foodFrequency"
         const val APP_SETTINGS_DOCUMENT_ID = "app"
         const val GOALS_DOCUMENT_ID = "goals"
@@ -163,6 +171,9 @@ object Constants {
             const val FAVOURITED_AT = "favourited_at"
             const val UPDATED_AT = "updated_at"
             const val STATUS = "status"
+            const val HIDDEN = "hidden"
+            const val AUTHOR_DELETED = "author_deleted"
+            const val BARCODE = "barcode"
             const val DATE = "date"
             const val ID = "id"
         }

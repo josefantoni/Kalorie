@@ -4,10 +4,13 @@ import antoni.kalorie.core.auth.AuthProviderFake
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.PhotoSuggestionDomain
+import antoni.kalorie.core.models.TicketStatus
+import antoni.kalorie.core.networking.FirestoreDataMapper
 import antoni.kalorie.core.networking.FoodItemDTO
-import antoni.kalorie.core.networking.PhotoSuggestionDataProviderFake
 import antoni.kalorie.core.networking.StorageDataProviderFake
 import antoni.kalorie.core.networking.StorageDataProviderProtocol
+import antoni.kalorie.core.networking.TicketDataProviderFake
+import antoni.kalorie.core.networking.TicketResolutionDTO
 import antoni.kalorie.core.networking.makePhotoSuggestionItem
 import antoni.kalorie.core.utils.Constants
 import com.google.firebase.storage.StorageException
@@ -18,6 +21,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -32,11 +36,11 @@ class ApprovePhotoSuggestionUseCaseTest {
     @Test
     fun approve_givesTheCatalogueItemAPhotoInCatalogPhotos_neverALinkIntoThePrivateSuggestionFolder() = runTest {
         val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem())
-        val suggestion = makeSuggestion(storage)
+        val suggestion = makeStoredSuggestion(storage)
 
-        sut(suggestion)
+        sut(suggestion, "Thanks")
 
-        val dto = dataProvider.setCalls.first { it.second == Constants.Firestore.FOOD_ITEMS }.third as FoodItemDTO
+        val dto = dataProvider.sets.first { it.collection == Constants.Firestore.FOOD_ITEMS }.item as FoodItemDTO
         val photoUrl = dto.photoUrl.orEmpty()
         assertTrue(photoUrl.contains("catalogPhotos%2F12345678%2F"))
         assertFalse("the author keeps delete rights on the suggestion folder, so every user's photo must not live there", photoUrl.contains("photoSuggestions"))
@@ -45,120 +49,134 @@ class ApprovePhotoSuggestionUseCaseTest {
     @Test
     fun approve_whenTheCatalogueItemHasZeroCalories_stillAttachesThePhoto() = runTest {
         val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem(caloriesPerHundredGrams = 0.0))
-        val suggestion = makeSuggestion(storage)
+        val suggestion = makeStoredSuggestion(storage)
 
-        sut(suggestion)
+        sut(suggestion, "Thanks")
 
-        val dto = dataProvider.setCalls.first { it.second == Constants.Firestore.FOOD_ITEMS }.third as FoodItemDTO
+        val dto = dataProvider.sets.first { it.collection == Constants.Firestore.FOOD_ITEMS }.item as FoodItemDTO
         assertNotNull("approving a photo must not re-validate an item the moderator did not edit", dto.photoUrl)
         assertEquals(0.0, dto.caloriesPerHundredGrams, 0.0)
     }
 
     @Test
-    fun approve_deletesEveryUsersSuggestionForTheItem_filesAndDocuments() = runTest {
-        val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem())
-        val suggestion = makeSuggestion(storage)
-        dataProvider.stubbedSuggestionDocumentIds = listOf("12345678_alice", "12345678_bob")
+    fun approve_whenTheItemAlreadyHasAPhoto_replacesItAndDeletesTheOldFile() = runTest {
+        val existing = "https://storage.fake/catalogPhotos%2F12345678%2Fold.jpg"
+        val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem(photoUrl = existing))
+        storage.files[existing] = byteArrayOf(9)
+        val suggestion = makeStoredSuggestion(storage)
 
-        sut(suggestion)
+        sut(suggestion, "Thanks")
 
-        val deleted = dataProvider.deletedIds.filter { it.second == Constants.Firestore.PHOTO_SUGGESTIONS }.map { it.first }
-        assertEquals(setOf("12345678_alice", "12345678_bob"), deleted.toSet())
-        assertEquals(
-            setOf("photoSuggestions/alice/12345678.jpg", "photoSuggestions/bob/12345678.jpg"),
-            storage.deletedPaths.toSet(),
-        )
+        val dto = dataProvider.sets.first { it.collection == Constants.Firestore.FOOD_ITEMS }.item as FoodItemDTO
+        assertNotEquals("a later suggestion that was pending before the item got its photo replaces it", existing, dto.photoUrl)
+        assertTrue("the replaced catalogue photo must not stay in Storage", storage.deletedUrls.contains(existing))
     }
 
     @Test
-    fun approve_whenTheItemAlreadyHasAPhoto_throwsAndOverwritesNothing() = runTest {
-        val item = makePhotoSuggestionItem(photoUrl = "https://example.com/catalogPhotos/12345678/x.jpg")
-        val (sut, dataProvider, storage) = makeSUT(currentItem = item)
-        val suggestion = makeSuggestion(storage)
+    fun approve_writesTheResolution_thenDeletesTheSuggestionFile_andLeavesTheDocument() = runTest {
+        val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem())
+        val suggestion = makeStoredSuggestion(storage)
+
+        sut(suggestion, "  Thanks for the photo!  ")
+
+        val update = dataProvider.updates.first()
+        assertEquals(Constants.Firestore.PHOTO_SUGGESTIONS, update.collection)
+        assertEquals(suggestion.id, update.id)
+        val encoded = FirestoreDataMapper.encode(update.item as TicketResolutionDTO, TicketResolutionDTO.serializer())
+        assertEquals("accepted", encoded["status"])
+        assertEquals("Thanks for the photo!", encoded["response"])
+        assertEquals(false, encoded["hidden"])
+        assertTrue("the file is deleted once the ticket records the outcome", storage.deletedUrls.contains(suggestion.photoUrl))
+        assertTrue("the ticket is kept so its author can read the response", dataProvider.deletes.isEmpty())
+    }
+
+    @Test
+    fun approve_leavesOtherUsersPendingSuggestionsForTheItemAlone() = runTest {
+        val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem())
+        val suggestion = makeStoredSuggestion(storage)
+        dataProvider.stubbedDocumentIds = mapOf(Constants.Firestore.PHOTO_SUGGESTIONS to listOf(suggestion.id, "other-user-ticket"))
+
+        sut(suggestion, "Thanks")
+
+        assertEquals("approving one suggestion must not resolve or delete the others", listOf(suggestion.id), dataProvider.updates.map { it.id })
+        assertTrue(dataProvider.deletes.isEmpty())
+        assertEquals(listOf(suggestion.photoUrl), storage.deletedUrls)
+    }
+
+    @Test
+    fun approve_withEmptyResponse_throwsAndChangesNothing() = runTest {
+        val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem())
+        val suggestion = makeStoredSuggestion(storage)
 
         try {
-            sut(suggestion)
-            fail("Expected ItemAlreadyHasPhoto")
-        } catch (_: ApprovePhotoSuggestionError.ItemAlreadyHasPhoto) {
+            sut(suggestion, "  ")
+            fail("Expected ResponseRequired error")
+        } catch (_: TicketResolutionError.ResponseRequired) {
         }
 
-        assertTrue(dataProvider.setCalls.isEmpty())
-        assertTrue("the suggestion stays so the maintainer can still reject it", dataProvider.deletedIds.isEmpty())
+        assertTrue("the catalogue must not change when the ticket cannot be answered", dataProvider.sets.isEmpty())
+        assertTrue(dataProvider.updates.isEmpty())
+        assertTrue(storage.deletedUrls.isEmpty())
     }
 
     @Test
     fun approve_whenTheItemIsGone_throwsItemMissing() = runTest {
         val (sut, _, storage) = makeSUT(currentItem = null)
-        val suggestion = makeSuggestion(storage)
+        val suggestion = makeStoredSuggestion(storage)
 
         try {
-            sut(suggestion)
+            sut(suggestion, "Thanks")
             fail("Expected ItemMissing")
         } catch (_: ApprovePhotoSuggestionError.ItemMissing) {
         }
     }
 
     @Test
-    fun approve_whenTheCatalogueWriteFails_keepsTheSuggestionsAndDoesNotLeaveACatalogueFile() = runTest {
+    fun approve_whenTheCatalogueWriteFails_resolvesNothingAndKeepsTheFile() = runTest {
         val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem())
-        val suggestion = makeSuggestion(storage)
-        dataProvider.stubbedSetError = IOException("offline")
+        val suggestion = makeStoredSuggestion(storage)
+        dataProvider.failingWriteCollections = setOf(Constants.Firestore.FOOD_ITEMS)
 
         try {
-            sut(suggestion)
+            sut(suggestion, "Thanks")
         } catch (_: IOException) {
         }
 
-        assertTrue(dataProvider.deletedIds.isEmpty())
+        assertTrue(dataProvider.updates.isEmpty())
+        assertFalse("the suggestion stays pending and can still be approved or rejected", storage.deletedUrls.contains(suggestion.photoUrl))
         assertFalse(storage.files.keys.any { it.contains("catalogPhotos") })
     }
 
     @Test
-    fun reject_deletesTheFileAndTheDocumentOfThatSuggestionOnly() = runTest {
-        val (_, dataProvider, storage) = makeSUT(currentItem = null)
-        val suggestion = makeSuggestion(storage)
-        val sut = RejectPhotoSuggestionUseCase(dataProvider, AuthProviderFake(userId = "maintainer"), storage)
-
-        sut(suggestion)
-
-        assertEquals(listOf("photoSuggestions/alice/12345678.jpg"), storage.deletedPaths)
-        assertEquals(listOf("12345678_alice"), dataProvider.deletedIds.map { it.first })
-    }
-
-    @Test
-    fun reject_whenTheFileIsAlreadyGone_stillDeletesTheDocument() = runTest {
-        val (_, dataProvider, storage) = makeSUT(currentItem = null)
-        val suggestion = makeSuggestion(storage)
-        storage.deleteError = StorageException.fromExceptionAndHttpCode(null, 404)
-        val sut = RejectPhotoSuggestionUseCase(dataProvider, AuthProviderFake(userId = "maintainer"), storage)
-
-        sut(suggestion)
-
-        assertEquals("a missing file must not keep the row in the queue forever", listOf("12345678_alice"), dataProvider.deletedIds.map { it.first })
-    }
-
-    @Test
-    fun reject_whenTheFileDeleteFailsForAnotherReason_keepsTheDocumentSoItCanBeRetried() = runTest {
-        val (_, dataProvider, storage) = makeSUT(currentItem = null)
-        val suggestion = makeSuggestion(storage)
-        storage.deleteError = IOException("offline")
-        val sut = RejectPhotoSuggestionUseCase(dataProvider, AuthProviderFake(userId = "maintainer"), storage)
+    fun approve_whenTheResolutionWriteFails_throwsAndKeepsTheFileForARetry() = runTest {
+        val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem())
+        val suggestion = makeStoredSuggestion(storage)
+        dataProvider.failingWriteCollections = setOf(Constants.Firestore.PHOTO_SUGGESTIONS)
 
         try {
-            sut(suggestion)
-            fail("the failure must reach the caller")
-        } catch (error: IOException) {
-            assertEquals("offline", error.message)
+            sut(suggestion, "Thanks")
+            fail("the sheet must stay open for a retry")
+        } catch (_: IOException) {
         }
 
-        assertTrue("deleting the document would orphan the file with nothing left to retry from", dataProvider.deletedIds.isEmpty())
+        assertFalse("a retry downloads the photo again", storage.deletedUrls.contains(suggestion.photoUrl))
     }
 
     @Test
-    fun approve_whenCancelledWhileTheCatalogueWriteIsInFlight_stillRemovesTheSuggestions() = runTest {
-        val dataProvider = PhotoSuggestionDataProviderFake()
+    fun approve_whenTheFileDeleteFailsAfterTheResolution_doesNotThrow() = runTest {
+        val (sut, dataProvider, storage) = makeSUT(currentItem = makePhotoSuggestionItem())
+        val suggestion = makeStoredSuggestion(storage)
+        storage.deleteError = IOException("offline")
+
+        sut(suggestion, "Thanks")
+
+        assertEquals("the ticket is resolved; an orphaned file is only logged", listOf(suggestion.id), dataProvider.updates.map { it.id })
+    }
+
+    @Test
+    fun approve_whenCancelledWhileTheCatalogueWriteIsInFlight_stillWritesTheResolution() = runTest {
+        val dataProvider = TicketDataProviderFake()
         dataProvider.currentItem = makePhotoSuggestionItem()
-        dataProvider.stubbedSuggestionDocumentIds = listOf("12345678_alice")
         val storage = StorageDataProviderFake()
         val sut = ApprovePhotoSuggestionUseCase(
             dataProvider = dataProvider,
@@ -168,39 +186,99 @@ class ApprovePhotoSuggestionUseCaseTest {
             downloadFoodPhoto = DownloadFoodPhotoUseCase(storage),
             updateFoodItem = SlowUpdateFoodItemUseCase(),
         )
-        val suggestion = makeSuggestion(storage)
+        val suggestion = makeStoredSuggestion(storage)
 
-        val job = launch { sut(suggestion) }
+        val job = launch { sut(suggestion, "Thanks") }
         yield()
         job.cancel()
         advanceUntilIdle()
 
         assertEquals(
-            "leaving the screen mid-approval must not leave a photo on the item with its suggestions still pending",
-            listOf("12345678_alice"),
-            dataProvider.deletedIds.map { it.first },
+            "leaving the screen mid-approval must not leave a photo on the item with its ticket still pending",
+            listOf(suggestion.id),
+            dataProvider.updates.map { it.id },
         )
     }
 
     @Test
-    fun reject_whenCancelledWhileTheFileDeleteIsInFlight_stillDeletesTheDocument() = runTest {
-        val dataProvider = PhotoSuggestionDataProviderFake()
+    fun reject_writesTheResolution_thenDeletesTheFile_andLeavesTheDocument() = runTest {
+        val (_, dataProvider, storage) = makeSUT(currentItem = null)
+        val suggestion = makeStoredSuggestion(storage)
+        val sut = makeRejectSUT(dataProvider, storage)
+
+        sut(suggestion, "Out of focus")
+
+        val encoded = FirestoreDataMapper.encode(dataProvider.updates.first().item as TicketResolutionDTO, TicketResolutionDTO.serializer())
+        assertEquals("rejected", encoded["status"])
+        assertEquals("Out of focus", encoded["response"])
+        assertEquals(false, encoded["hidden"])
+        assertEquals(listOf(suggestion.photoUrl), storage.deletedUrls)
+        assertTrue(dataProvider.deletes.isEmpty())
+    }
+
+    @Test
+    fun reject_withEmptyResponse_throwsAndChangesNothing() = runTest {
+        val (_, dataProvider, storage) = makeSUT(currentItem = null)
+        val suggestion = makeStoredSuggestion(storage)
+        val sut = makeRejectSUT(dataProvider, storage)
+
+        try {
+            sut(suggestion, "")
+            fail("Expected ResponseRequired error")
+        } catch (_: TicketResolutionError.ResponseRequired) {
+        }
+
+        assertTrue(dataProvider.updates.isEmpty())
+        assertTrue(storage.deletedUrls.isEmpty())
+    }
+
+    @Test
+    fun reject_whenTheFileIsAlreadyGone_stillResolves() = runTest {
+        val (_, dataProvider, storage) = makeSUT(currentItem = null)
+        val suggestion = makeStoredSuggestion(storage)
+        storage.deleteError = StorageException.fromExceptionAndHttpCode(null, 404)
+        val sut = makeRejectSUT(dataProvider, storage)
+
+        sut(suggestion, "Out of focus")
+
+        assertEquals(listOf(suggestion.id), dataProvider.updates.map { it.id })
+    }
+
+    @Test
+    fun reject_whenTheResolutionWriteFails_keepsTheFile() = runTest {
+        val (_, dataProvider, storage) = makeSUT(currentItem = null)
+        val suggestion = makeStoredSuggestion(storage)
+        dataProvider.failingWriteCollections = setOf(Constants.Firestore.PHOTO_SUGGESTIONS)
+        val sut = makeRejectSUT(dataProvider, storage)
+
+        try {
+            sut(suggestion, "Out of focus")
+            fail("the sheet must stay open for a retry")
+        } catch (_: IOException) {
+        }
+
+        assertTrue("deleting the file of a still pending ticket would leave an unanswerable row", storage.deletedUrls.isEmpty())
+    }
+
+    @Test
+    fun reject_whenCancelledWhileTheFileDeleteIsInFlight_stillWritesTheResolution() = runTest {
+        val dataProvider = TicketDataProviderFake()
         val storage = StorageDataProviderFake()
-        val suggestion = makeSuggestion(storage)
+        val suggestion = makeStoredSuggestion(storage)
         val sut = RejectPhotoSuggestionUseCase(dataProvider, AuthProviderFake(userId = "maintainer"), SlowDeleteStorageDataProviderFake(storage))
 
-        val job = launch { sut(suggestion) }
+        val job = launch { sut(suggestion, "Out of focus") }
         yield()
         job.cancel()
         advanceUntilIdle()
 
-        assertEquals(listOf("12345678_alice"), dataProvider.deletedIds.map { it.first })
+        assertEquals(listOf(suggestion.id), dataProvider.updates.map { it.id })
     }
 
     // MARK: - Helpers
 
-    private fun makeSUT(currentItem: FoodItemDomain?): Triple<ApprovePhotoSuggestionUseCase, PhotoSuggestionDataProviderFake, StorageDataProviderFake> {
-        val dataProvider = PhotoSuggestionDataProviderFake()
+    private fun makeSUT(currentItem: FoodItemDomain?): Triple<ApprovePhotoSuggestionUseCase, TicketDataProviderFake, StorageDataProviderFake> {
+        val dataProvider = TicketDataProviderFake()
         dataProvider.currentItem = currentItem
         val storage = StorageDataProviderFake()
         val authProvider = AuthProviderFake(userId = "maintainer")
@@ -220,9 +298,23 @@ class ApprovePhotoSuggestionUseCaseTest {
         return Triple(sut, dataProvider, storage)
     }
 
-    private suspend fun makeSuggestion(storage: StorageDataProviderFake): PhotoSuggestionDomain {
-        val url = storage.uploadAsync(byteArrayOf(7), "photoSuggestions/alice/12345678.jpg", "image/jpeg")
-        return PhotoSuggestionDomain(itemId = "12345678", suggestedBy = "alice", photoUrl = url, suggestedAt = Instant.now())
+    private fun makeRejectSUT(dataProvider: TicketDataProviderFake, storage: StorageDataProviderFake) = RejectPhotoSuggestionUseCase(
+        dataProvider = dataProvider,
+        authProvider = AuthProviderFake(userId = "maintainer"),
+        storageProvider = storage,
+    )
+
+    private suspend fun makeStoredSuggestion(storage: StorageDataProviderFake): PhotoSuggestionDomain {
+        val url = storage.uploadAsync(byteArrayOf(7), "photoSuggestions/alice/12345678/ticket-1.jpg", "image/jpeg")
+        return PhotoSuggestionDomain(
+            id = "ticket-1",
+            itemId = "12345678",
+            suggestedBy = "alice",
+            photoUrl = url,
+            suggestedAt = Instant.now(),
+            status = TicketStatus.PENDING,
+            locale = "en",
+        )
     }
 }
 
@@ -236,8 +328,8 @@ private class SlowUpdateFoodItemUseCase : UpdateFoodItemUseCaseProtocol {
 private class SlowDeleteStorageDataProviderFake(
     private val base: StorageDataProviderFake,
 ) : StorageDataProviderProtocol by base {
-    override suspend fun deleteAtPathAsync(path: String) {
+    override suspend fun deleteAsync(url: String) {
         delay(1_000)
-        base.deleteAtPathAsync(path)
+        base.deleteAsync(url)
     }
 }

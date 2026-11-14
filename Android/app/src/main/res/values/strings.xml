@@ -300,7 +300,6 @@
     <string name="moderation_error_changedSinceReview">The submission changed since you opened it — review it again</string>
     <string name="moderation_error_itemChangedSinceLoad">This item changed since you loaded it — search again to see the latest version</string>
     <string name="moderation_error_reasonRequired">Enter a reason for the rejection</string>
-    <string name="moderation_photoSuggestion_alreadyHasPhoto">This product already has a photo. This suggestion can only be rejected.</string>
     <string name="moderation_photoSuggestion_itemMissing">This product is no longer in the catalogue. This suggestion can only be rejected.</string>
     <string name="moderation_photoSuggestion_title">Photo suggestion</string>
     <string name="moderation_photos_empty">No photo suggestions to review</string>
@@ -309,7 +308,6 @@
     <string name="moderation_queue_empty">Nothing to review</string>
     <string name="moderation_queue_title">Pending review</string>
     <string name="moderation_reject_reasonPlaceholder">Reason for rejection</string>
-    <string name="moderation_reports_count">Reported %1$d×</string>
     <string name="moderation_reports_empty">No reports</string>
     <string name="moderation_reports_title">Reports</string>
     <string name="moderation_response_photo_accepted">Thanks for the photo! I have added it to the food.</string>

@@ -35,6 +35,16 @@ class FetchHasPendingNotificationsUseCaseTest {
     }
 
     @Test
+    fun whenOnlyResolvedTicketsRemain_returnsFalse() = runTest {
+        for (collection in listOf(Constants.Firestore.FOOD_ITEM_REPORTS, Constants.Firestore.PHOTO_SUGGESTIONS)) {
+            val (sut, dataProvider) = makeSUT()
+            dataProvider.stubbedResolvedCountsByCollection = mapOf(collection to 2)
+
+            assertFalse("a resolved $collection ticket is kept for its author and must not light the maintainer's dot", sut())
+        }
+    }
+
+    @Test
     fun whenACountFails_returnsFalseInsteadOfShowingAnError() = runTest {
         val (sut, dataProvider) = makeSUT()
         dataProvider.stubbedCountsByCollection = mapOf(Constants.Firestore.PHOTO_SUGGESTIONS to 3)

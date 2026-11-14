@@ -29,8 +29,20 @@ class FetchHasPendingNotificationsUseCase(
                         isEqualTo = FoodItemSubmissionStatus.PENDING.wireValue,
                     )
                 },
-                async { dataProvider.countAsync(from = Constants.Firestore.FOOD_ITEM_REPORTS) },
-                async { dataProvider.countAsync(from = Constants.Firestore.PHOTO_SUGGESTIONS) },
+                async {
+                    dataProvider.countAsync(
+                        from = Constants.Firestore.FOOD_ITEM_REPORTS,
+                        field = Constants.Firestore.Field.STATUS,
+                        isEqualTo = Constants.Firestore.PENDING_STATUS,
+                    )
+                },
+                async {
+                    dataProvider.countAsync(
+                        from = Constants.Firestore.PHOTO_SUGGESTIONS,
+                        field = Constants.Firestore.Field.STATUS,
+                        isEqualTo = Constants.Firestore.PENDING_STATUS,
+                    )
+                },
             ).awaitAll()
             counts.any { it > 0 }
         }
