@@ -77,6 +77,23 @@ hide it per call site. `FloatingLabelTextField` draws its own line inset 16 dp f
 same as `SectionCardDivider` and the iOS 26 list separators, so do not add padding around the field to move it. A field alone in its card (food search, meal name) passes `isUnderlineFullWidth = true` and draws the line edge to edge. The food name in the food form shares its card with other fields, so it keeps the inset line. The underline doubles as a separator: do not put a `SectionCardDivider`
 directly after a field.
 
+## Screen layout and spacing
+
+Every screen that stacks `SectionCard`s is built on `SectionStack` (scrolling `Column`) or `LazySectionStack`
+(`LazyColumn`), both in `components/SectionStack.kt`. They give 8 dp of padding at the bottom and 8 dp between
+children, none at the top (the top bar already leaves about 16 dp under its title); `SectionCard` adds its own
+4 dp above and below, so the result is 4 dp from the top bar, 16 dp between blocks and 12 dp at the bottom. Pass the Scaffold's `innerPadding.bottomOnly()` as `contentPadding`.
+
+- **Never write `padding(top = …)` on a card, a `Spacer` between blocks or your own `spacedBy`.** The rhythm
+  lives in one place.
+- **A section title is `SectionGroup(title, trailing)`** wrapping its card, never a loose `Text`. It sits
+  16 dp below the previous card and 6 dp above its own. No screen has a different title gap, Settings included.
+- **A loose element outside a card** (full-width button, segmented picker, add badge) carries
+  `padding(horizontal = 16.dp, vertical = 4.dp)`, the same 4 dp a card has, so its gaps match the cards'.
+  Several buttons in a row share one `Column` with `spacedBy(16.dp)`.
+- Every screen that shows information is a card stack, as on iOS where it is a `List` of `Section`s. A new
+  detail screen starts from `SectionStack`, not from a `Column` with its own padding.
+
 ## Primary buttons
 
 A full-width primary action (Export, Create, Approve, Delete) is `PrimaryButton`
