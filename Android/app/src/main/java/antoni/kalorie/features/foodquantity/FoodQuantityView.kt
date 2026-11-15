@@ -63,6 +63,8 @@ import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.popTransitionSpec
 import antoni.kalorie.components.predictivePopTransitionSpec
 import antoni.kalorie.components.pushTransitionSpec
@@ -229,8 +231,8 @@ private fun FoodQuantityContent(
                 )
             },
         ) { innerPadding ->
-            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
                     SectionCard(modifier = Modifier.padding(top = 8.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(start = 16.dp, end = 6.dp),

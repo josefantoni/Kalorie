@@ -46,6 +46,8 @@ import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.illustrations.BaguetteRain
 import antoni.kalorie.components.illustrations.GrandmaCooking
 import antoni.kalorie.components.illustrations.LunchIllustration
@@ -83,8 +85,8 @@ fun SupportView(viewModel: SupportViewModel, onBack: () -> Unit) {
                 )
             },
         ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 16.dp)) {
+            Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom())) {
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 16.dp).padding(innerPadding.bottomOnly())) {
                     SectionCard {
                         Text(
                             text = stringResource(R.string.support_intro),

@@ -36,6 +36,8 @@ import antoni.kalorie.components.PortionDraftListView
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.core.models.displayName
@@ -80,8 +82,8 @@ fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit
             )
         },
     ) { innerPadding ->
-        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
                 if (personalPortions.isEmpty()) {
                     Text(
                         text = stringResource(R.string.myPortions_empty),

@@ -45,6 +45,8 @@ import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.utils.AlertItem
@@ -105,8 +107,8 @@ fun ModerationCatalogueEditorView(
             )
         },
     ) { innerPadding ->
-        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
                 if (reports.isNotEmpty()) {
                     Text(
                         text = stringResource(R.string.moderation_reports_title),

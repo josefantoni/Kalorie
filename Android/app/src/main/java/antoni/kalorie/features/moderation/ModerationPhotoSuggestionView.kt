@@ -36,6 +36,9 @@ import antoni.kalorie.components.FoodPhotoRemoteContent
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
+import antoni.kalorie.components.sheetBottomBar
 import antoni.kalorie.core.utils.isLoading
 import kotlinx.coroutines.launch
 
@@ -73,7 +76,7 @@ fun ModerationPhotoSuggestionView(
         },
         bottomBar = {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier.sheetBottomBar().fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 if (canApprove) {
@@ -92,8 +95,8 @@ fun ModerationPhotoSuggestionView(
             }
         },
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom())) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp).padding(innerPadding.bottomOnly())) {
                 FoodPhotoRemoteContent(
                     url = viewModel.suggestion.photoUrl,
                     modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)),
@@ -105,7 +108,7 @@ fun ModerationPhotoSuggestionView(
                 )
             }
             if (state.isLoading) {
-                Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.matchParentSize().padding(innerPadding.bottomOnly()), contentAlignment = Alignment.Center) {
                     LoaderIndicator()
                 }
             }

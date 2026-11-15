@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -49,6 +51,7 @@ import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
+import antoni.kalorie.components.sheetBottomBar
 import antoni.kalorie.core.models.FoodExportFormat
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -99,9 +102,17 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
                 },
             )
         },
+        bottomBar = {
+            PrimaryButton(
+                text = stringResource(R.string.export_button_export),
+                onClick = { scope.launch { viewModel.onExportTapped() } },
+                enabled = !isExportDisabled,
+                modifier = Modifier.sheetBottomBar().fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            )
+        },
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            Column(modifier = Modifier.fillMaxSize().padding(vertical = 16.dp)) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 16.dp)) {
                 SectionCard {
                     DateRow(label = stringResource(R.string.export_datePicker_from), date = fromDate) { editedDate = EditedDate.FROM }
                     SectionCardDivider()
@@ -138,12 +149,6 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
                         }
                     }
                 }
-                PrimaryButton(
-                    text = stringResource(R.string.export_button_export),
-                    onClick = { scope.launch { viewModel.onExportTapped() } },
-                    enabled = !isExportDisabled,
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp),
-                )
             }
             if (state == ExportViewModel.State.GENERATING) {
                 Box(modifier = Modifier.fillMaxSize().clickable(enabled = false) {}, contentAlignment = Alignment.Center) {

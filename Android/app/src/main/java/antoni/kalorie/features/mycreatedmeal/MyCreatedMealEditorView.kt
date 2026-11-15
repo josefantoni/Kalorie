@@ -50,6 +50,8 @@ import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.components.tintedSurfaceColor
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
@@ -124,8 +126,8 @@ fun MyCreatedMealEditorView(
             )
         },
     ) { innerPadding ->
-        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
+            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = innerPadding.bottomOnly()) {
                 item { header() }
                 if (isHintVisible) {
                     item {

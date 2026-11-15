@@ -45,6 +45,8 @@ import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.utils.AlertItem
@@ -174,8 +176,8 @@ fun NewItemReviewContent(viewModel: AddFoodSheetViewModel, onBack: () -> Unit) {
             )
         },
     ) { innerPadding ->
-        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
+            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = innerPadding.bottomOnly()) {
                 rejectionReason?.let { reason ->
                     item {
                         Text(

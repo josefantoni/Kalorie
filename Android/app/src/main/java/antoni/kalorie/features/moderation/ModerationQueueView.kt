@@ -40,6 +40,8 @@ import antoni.kalorie.components.AccentPullToRefreshBox
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.popTransitionSpec
 import antoni.kalorie.components.predictivePopTransitionSpec
 import antoni.kalorie.components.pushTransitionSpec
@@ -137,9 +139,9 @@ private fun ModerationQueueContent(
         AccentPullToRefreshBox(
             isRefreshing = false,
             onRefresh = { scope.launch { viewModel.onRefresh() } },
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()),
         ) {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = innerPadding.bottomOnly()) {
                 if (submissions.isEmpty() && !state.isLoading) {
                     item {
                         Text(

@@ -67,6 +67,10 @@ import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
+import antoni.kalorie.components.sheetBottomBar
+import antoni.kalorie.components.sheetContentWindowInsets
 import antoni.kalorie.components.sheetScrollGuard
 import antoni.kalorie.core.auth.AuthProviderKind
 import antoni.kalorie.core.utils.Constants
@@ -95,6 +99,8 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         dragHandle = null,
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = { sheetContentWindowInsets() },
     ) {
         Scaffold(
             modifier = Modifier.sheetScrollGuard(),
@@ -114,13 +120,13 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                         text = stringResource(R.string.account_button_deleteAccount),
                         onClick = { viewModel.showDeleteConfirmation.value = true },
                         style = PrimaryButtonStyle.DESTRUCTIVE,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        modifier = Modifier.sheetBottomBar().fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                     )
                 }
             },
         ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom())) {
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
                     if (isAnonymous) {
                         SectionCard {
                             Text(
@@ -227,7 +233,7 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                     }
                 }
                 if (state != AccountViewModel.State.IDLE) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.fillMaxSize().padding(innerPadding.bottomOnly()), contentAlignment = Alignment.Center) {
                         LoaderIndicator()
                     }
                 }
