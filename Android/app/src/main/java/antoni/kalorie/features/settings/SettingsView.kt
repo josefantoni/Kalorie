@@ -5,20 +5,25 @@ import android.content.ClipData
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
@@ -62,7 +67,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
@@ -86,11 +90,14 @@ import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.popTransitionSpec
 import antoni.kalorie.components.predictivePopTransitionSpec
 import antoni.kalorie.components.pushTransitionSpec
+import antoni.kalorie.components.sheetBottomBar
+import antoni.kalorie.components.sheetContentWindowInsets
 import antoni.kalorie.components.sheetScrollGuard
-import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.models.AppSettingsDomain
 import antoni.kalorie.core.models.BodyWeightUnit
 import antoni.kalorie.core.utils.Constants
@@ -99,6 +106,7 @@ import antoni.kalorie.core.utils.minutesSinceMidnight
 import antoni.kalorie.core.utils.withAddedMinutes
 import antoni.kalorie.core.utils.zoned
 import antoni.kalorie.features.dashboard.SwipeToDeleteRow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -165,6 +173,8 @@ fun SettingsView(viewModel: SettingsViewModel, router: SettingsRouter, onDismiss
             confirmValueChange = { it != SheetValue.Hidden || !isEditingState.value },
         ),
         dragHandle = null,
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = { sheetContentWindowInsets() },
         sheetGesturesEnabled = viewModel.backStack.size <= 1,
     ) {
         NavDisplay(
@@ -286,7 +296,7 @@ private fun BodyWeightSettingsRows(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun SettingsContent(
     viewModel: SettingsViewModel,
@@ -304,8 +314,29 @@ private fun SettingsContent(
     val appSettings by viewModel.appSettings.collectAsState()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
+    val listState = rememberLazyListState()
+    val isImeVisible = WindowInsets.isImeVisible
     val context = LocalContext.current
     val feedbackSubject = stringResource(R.string.settings_button_feedback)
+
+    LaunchedEffect(isImeVisible, isAddFormVisible, isEditing) {
+        if (!isImeVisible || !isAddFormVisible || !isEditing) return@LaunchedEffect
+        // Let the keyboard's own scroll-to-focus finish, otherwise it overrides ours.
+        delay(400)
+        val lastIndex = listState.layoutInfo.totalItemsCount - 1
+        if (listState.layoutInfo.visibleItemsInfo.none { it.index == lastIndex }) {
+            listState.scrollToItem(lastIndex)
+        }
+        val info = listState.layoutInfo
+        val last = info.visibleItemsInfo.lastOrNull() ?: return@LaunchedEffect
+        val overflow = bottomOverflow(
+            itemOffset = last.offset,
+            itemSize = last.size,
+            viewportEnd = info.viewportEndOffset,
+            afterContentPadding = info.afterContentPadding,
+        )
+        if (overflow > 0) listState.animateScrollBy(overflow.toFloat())
+    }
 
     // MARK: - Body
 
@@ -322,9 +353,21 @@ private fun SettingsContent(
                 },
             )
         },
+        bottomBar = {
+            if (isEditing && isAddFormVisible) {
+                PrimaryButton(
+                    text = stringResource(R.string.settings_button_create),
+                    onClick = {
+                        scope.launch { viewModel.onCreateMealType() }
+                        focusManager.clearFocus()
+                    },
+                    modifier = Modifier.sheetBottomBar().fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                )
+            }
+        },
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding)) {
-            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().imePadding()) {
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding)) {
+            Box(modifier = Modifier.fillMaxSize().imePadding()) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
@@ -354,7 +397,7 @@ private fun SettingsContent(
                         }
                     }
 
-                    LazyColumn(modifier = Modifier.weight(1f)) {
+                    LazyColumn(modifier = Modifier.weight(1f), state = listState, contentPadding = innerPadding.bottomOnly()) {
                         item {
                             SectionCard {
                                 mealTypes.forEachIndexed { index, mealType ->
@@ -393,8 +436,6 @@ private fun SettingsContent(
                                 FooterView(
                                     isAddFormVisible = isAddFormVisible,
                                     viewModel = viewModel,
-                                    focusManager = focusManager,
-                                    onCreate = { scope.launch { viewModel.onCreateMealType() } },
                                 )
                             }
                         } else {
@@ -508,7 +549,7 @@ private fun SettingsContent(
             }
 
             if (state.isLoading) {
-                Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.matchParentSize().padding(innerPadding.bottomOnly()), contentAlignment = Alignment.Center) {
                     LoaderIndicator()
                 }
             }
@@ -572,27 +613,19 @@ private fun SupportRow(onClick: () -> Unit) {
 private fun FooterView(
     isAddFormVisible: Boolean,
     viewModel: SettingsViewModel,
-    focusManager: FocusManager,
-    onCreate: () -> Unit,
 ) {
     if (!isAddFormVisible) {
         Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), contentAlignment = Alignment.Center) {
             BadgeButton(icon = Icons.Filled.Add, onClick = viewModel::onShowAddForm, contentDescription = null)
         }
     } else {
-        AddMealForm(
-            viewModel = viewModel,
-            onCreate = {
-                onCreate()
-                focusManager.clearFocus()
-            },
-        )
+        AddMealForm(viewModel = viewModel)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddMealForm(viewModel: SettingsViewModel, onCreate: () -> Unit) {
+private fun AddMealForm(viewModel: SettingsViewModel) {
     val name by viewModel.newMealName.collectAsState()
     val initialStart = remember { viewModel.newMealStart.value.zoned() }
     val initialEnd = remember { viewModel.newMealEnd.value.zoned() }
@@ -631,11 +664,6 @@ private fun AddMealForm(viewModel: SettingsViewModel, onCreate: () -> Unit) {
                 TimeRow(stringResource(R.string.settings_datePicker_to), endState, Modifier.weight(1f)) { editedState = endState }
             }
         }
-        PrimaryButton(
-            text = stringResource(R.string.settings_button_create),
-            onClick = onCreate,
-            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 20.dp),
-        )
     }
 
     editedState?.let { state ->
@@ -669,3 +697,10 @@ private fun Instant.atMinutesOfDay(minutes: Int): Instant {
     val time = zoned()
     return time.toLocalDate().atStartOfDay().plusMinutes(minutes.toLong()).atZone(time.zone).toInstant()
 }
+
+internal fun bottomOverflow(
+    itemOffset: Int,
+    itemSize: Int,
+    viewportEnd: Int,
+    afterContentPadding: Int,
+): Int = itemOffset + itemSize - (viewportEnd - afterContentPadding)
