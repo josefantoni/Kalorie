@@ -363,7 +363,7 @@
     <string name="settings_feedback_noMail_copy">Kopírovať adresu</string>
     <string name="settings_feedback_noMail_message">V zariadení nie je nastavená žiadna poštová aplikácia. Napíš nám, prosím, na adresu %1$s.</string>
     <string name="settings_feedback_noMail_title">Poštu sa nepodarilo otvoriť</string>
-    <string name="settings_field_newMeal_placeholder">Jedny raňajky snáď, ale čo druhé … 🧐?</string>
+    <string name="settings_field_newMeal_placeholder">Jedny raňajky snáď, ale čo druhé?🧐</string>
     <string name="settings_goalBars_show">Zobraziť úsečky plnenia cieľa</string>
     <string name="settings_goalPercent_show">Zobraziť riadok „% z cieľa“</string>
     <string name="settings_navigationTitle">Nastavenia</string>

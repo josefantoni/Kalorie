@@ -1470,9 +1470,9 @@
     "sk": "Poštu sa nepodarilo otvoriť"
   },
   "settings_field_newMeal_placeholder": {
-    "cs": "Jedna snad, ale co druhá snídaně … 🧐?",
-    "en": "What about second breakfast … 🧐?",
-    "sk": "Jedny raňajky snáď, ale čo druhé … 🧐?"
+    "cs": "Jedna snad, ale co druhá snídaně?🧐",
+    "en": "What about second breakfast?🧐",
+    "sk": "Jedny raňajky snáď, ale čo druhé?🧐"
   },
   "settings_navigationTitle": {
     "cs": "Nastavení",

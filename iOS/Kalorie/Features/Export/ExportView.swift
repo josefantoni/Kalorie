@@ -34,14 +34,12 @@ struct ExportView: View {
                 }
                 .pickerStyle(.segmented)
             }
-            Section {
-                PrimaryButton(L10n.Export.buttonExport) {
-                    Task { await viewModel.onExportTapped() }
-                }
-                .disabled(viewModel.isExportDisabled)
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
+        }
+        .bottomPinnedButtons {
+            PrimaryButton(L10n.Export.buttonExport) {
+                Task { await viewModel.onExportTapped() }
             }
+            .disabled(viewModel.isExportDisabled)
         }
         .navigationTitle(L10n.Export.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)

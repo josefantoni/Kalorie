@@ -363,7 +363,7 @@
     <string name="settings_feedback_noMail_copy">Copy address</string>
     <string name="settings_feedback_noMail_message">No mail app is set up on this device. Please write to us at %1$s.</string>
     <string name="settings_feedback_noMail_title">Couldn\'t open Mail</string>
-    <string name="settings_field_newMeal_placeholder">What about second breakfast … 🧐?</string>
+    <string name="settings_field_newMeal_placeholder">What about second breakfast?🧐</string>
     <string name="settings_goalBars_show">Show goal progress bars</string>
     <string name="settings_goalPercent_show">Show “% of goal” line</string>
     <string name="settings_navigationTitle">Settings</string>
