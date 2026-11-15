@@ -1,5 +1,6 @@
 package antoni.kalorie.features.moderation
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -7,15 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,6 +42,8 @@ import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionGroup
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.rememberScannerAccess
@@ -108,24 +108,20 @@ fun ModerationCatalogueEditorView(
         },
     ) { innerPadding ->
         KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
+            SectionStack(contentPadding = innerPadding.bottomOnly()) {
                 viewModel.ticket?.let { ticket ->
-                    Text(
-                        text = stringResource(R.string.moderation_reports_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
-                    )
-                    SectionCard {
-                        Text(
-                            text = ticket.reason,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                        )
+                    SectionGroup(title = stringResource(R.string.moderation_reports_title)) {
+                        SectionCard {
+                            Text(
+                                text = ticket.reason,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                            )
+                        }
                     }
                 }
                 if (!viewModel.isOpenedFromReport) {
-                    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                    SectionCard {
                         FloatingLabelTextField(
                             title = stringResource(R.string.moderation_editor_searchPlaceholder),
                             isUnderlineFullWidth = true,
@@ -151,7 +147,10 @@ fun ModerationCatalogueEditorView(
                     )
                 }
                 if (viewModel.isOpenedFromReport) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 8.dp)) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
                         PrimaryButton(
                             text = stringResource(R.string.moderation_button_saveAndResolve),
                             onClick = { scope.launch { viewModel.onSaveAndResolveTapped() } },
@@ -163,7 +162,7 @@ fun ModerationCatalogueEditorView(
                             onClick = viewModel::onRejectTapped,
                             style = PrimaryButtonStyle.DESTRUCTIVE,
                             enabled = !state.isLoading,
-                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }

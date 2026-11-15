@@ -3,15 +3,12 @@ package antoni.kalorie.features.export
 import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -50,6 +47,7 @@ import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.components.sheetBottomBar
 import antoni.kalorie.core.models.FoodExportFormat
@@ -112,13 +110,13 @@ fun ExportView(viewModel: ExportViewModel, onBack: () -> Unit) {
         },
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 16.dp)) {
+            SectionStack {
                 SectionCard {
                     DateRow(label = stringResource(R.string.export_datePicker_from), date = fromDate) { editedDate = EditedDate.FROM }
                     SectionCardDivider()
                     DateRow(label = stringResource(R.string.export_datePicker_to), date = toDate) { editedDate = EditedDate.TO }
                 }
-                SectionCard(modifier = Modifier.padding(top = 12.dp)) {
+                SectionCard {
                     Row(
                         modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,

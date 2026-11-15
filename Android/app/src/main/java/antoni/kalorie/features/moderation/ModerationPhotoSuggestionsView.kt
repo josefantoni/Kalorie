@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -35,6 +34,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.components.AccentPullToRefreshBox
+import antoni.kalorie.components.LazySectionStack
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
@@ -125,7 +125,7 @@ private fun ModerationPhotoSuggestionsContent(
             onRefresh = { scope.launch { viewModel.onRefresh() } },
             modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()),
         ) {
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = innerPadding.bottomOnly()) {
+            LazySectionStack(contentPadding = innerPadding.bottomOnly()) {
                 if (rows.isEmpty() && !state.isLoading) {
                     item {
                         Text(

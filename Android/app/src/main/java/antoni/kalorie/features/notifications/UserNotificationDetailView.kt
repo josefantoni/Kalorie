@@ -1,15 +1,10 @@
 package antoni.kalorie.features.notifications
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -31,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -40,6 +34,10 @@ import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.FoodPhotoRemoteContent
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionGroup
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.sheetBottomBar
 import antoni.kalorie.core.models.TicketStatus
 import antoni.kalorie.core.models.UserNotificationDomain
@@ -92,65 +90,81 @@ fun UserNotificationDetailView(
             }
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding).verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            notification.photoUrl?.let { photoUrl ->
-                FoodPhotoRemoteContent(
-                    url = photoUrl,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)),
-                )
-            }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        SectionStack(modifier = Modifier.padding(innerPadding)) {
+            SectionCard {
+                notification.photoUrl?.let { photoUrl ->
+                    FoodPhotoRemoteContent(
+                        url = photoUrl,
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+                    )
+                    SectionCardDivider()
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = stringResource(R.string.notifications_user_status_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = stringResource(notification.statusLabelRes()),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = when (notification.status) {
+                            TicketStatus.PENDING -> MaterialTheme.colorScheme.onSurface
+                            TicketStatus.ACCEPTED -> AppColors.success
+                            TicketStatus.REJECTED -> AppColors.error
+                        },
+                    )
+                }
+                if (notification.status == TicketStatus.PENDING) {
+                    SectionCardDivider()
+                    Text(
+                        text = stringResource(notification.kind.messageRes()),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                }
+                SectionCardDivider()
                 Text(
-                    text = stringResource(R.string.notifications_user_status_title),
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = stringResource(R.string.notifications_user_sent_at, sentAt),
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = stringResource(notification.statusLabelRes()),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = when (notification.status) {
-                        TicketStatus.PENDING -> MaterialTheme.colorScheme.onSurface
-                        TicketStatus.ACCEPTED -> AppColors.success
-                        TicketStatus.REJECTED -> AppColors.error
-                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                 )
             }
-            if (notification.status == TicketStatus.PENDING) {
-                Text(text = stringResource(notification.kind.messageRes()), style = MaterialTheme.typography.bodyLarge)
-            }
-            Text(
-                text = stringResource(R.string.notifications_user_sent_at, sentAt),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             notification.reason?.let { reason ->
-                Text(
-                    text = stringResource(R.string.notifications_user_reason_title),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 12.dp),
-                )
-                Text(text = reason, style = MaterialTheme.typography.bodyLarge)
+                SectionGroup(title = stringResource(R.string.notifications_user_reason_title)) {
+                    SectionCard {
+                        Text(
+                            text = reason,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        )
+                    }
+                }
             }
             val response = notification.response
             if (notification.status != TicketStatus.PENDING && response != null) {
-                Text(
-                    text = stringResource(R.string.notifications_user_response_title),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 12.dp),
-                )
-                Text(text = response, style = MaterialTheme.typography.bodyLarge)
-                notification.resolvedAt?.let { resolvedAt ->
-                    Text(
-                        text = stringResource(R.string.notifications_user_resolved_at, formatter.format(resolvedAt)),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                SectionGroup(title = stringResource(R.string.notifications_user_response_title)) {
+                    SectionCard {
+                        Text(
+                            text = response,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                        )
+                        notification.resolvedAt?.let { resolvedAt ->
+                            SectionCardDivider()
+                            Text(
+                                text = stringResource(R.string.notifications_user_resolved_at, formatter.format(resolvedAt)),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                            )
+                        }
+                    }
                 }
             }
         }
