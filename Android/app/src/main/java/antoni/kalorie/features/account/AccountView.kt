@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,12 +15,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
@@ -67,6 +64,7 @@ import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.sheetBottomBar
@@ -126,7 +124,7 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
             },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom())) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
+                SectionStack(contentPadding = innerPadding.bottomOnly()) {
                     if (isAnonymous) {
                         SectionCard {
                             Text(
@@ -199,7 +197,6 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
                     SectionCard {
                         LinkRow(
                             title = stringResource(R.string.common_privacyPolicy),
@@ -219,10 +216,9 @@ fun AccountView(viewModel: AccountViewModel, onDismiss: () -> Unit) {
                         )
                     }
                     if (!isAnonymous) {
-                        Spacer(modifier = Modifier.height(16.dp))
                         FilledTonalButton(
                             onClick = { viewModel.showSignOutConfirmation.value = true },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(56.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).height(56.dp),
                         ) {
                             Text(
                                 text = stringResource(R.string.account_button_signOut),

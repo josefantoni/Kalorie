@@ -53,7 +53,7 @@ fun FoodItemFormSections(
 ) {
     // MARK: - Body
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(SectionStackSpacing)) {
         FoodPortionsSection(
             portions = formInput.portions,
             onPortionsChange = { onFormInputChange(formInput.copy(portions = it)) },

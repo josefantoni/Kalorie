@@ -1,5 +1,6 @@
 package antoni.kalorie.features.moderation
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -7,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -43,6 +42,8 @@ import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionGroup
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.rememberScannerAccess
@@ -95,9 +96,9 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
         },
     ) { innerPadding ->
         KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
+            SectionStack(contentPadding = innerPadding.bottomOnly()) {
                 viewModel.rejectReasonIfAny?.let { reason ->
-                    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                    SectionCard {
                         Text(
                             text = stringResource(R.string.addFood_submission_rejectedReason, reason),
                             fontWeight = FontWeight.Medium,
@@ -115,35 +116,34 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                     onFieldEdited = viewModel::onFormFieldEdited,
                 )
                 if (viewModel.showsSimilarCatalogueItemsSection && isSimilarSectionAvailable) {
-                    Text(
-                        text = stringResource(R.string.moderation_similarItems_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
-                    )
-                    SectionCard {
-                        if (similarCatalogueItems.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.moderation_similarItems_empty),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            )
-                        } else {
-                            similarCatalogueItems.forEachIndexed { index, item ->
-                                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-                                    Text(item.displayName)
-                                    Text(
-                                        text = "${item.caloriesPerHundredGrams.roundToInt()} ${stringResource(R.string.common_unit_kcal)} / 100 ${stringResource(item.measure.unitSymbolRes)}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                    SectionGroup(title = stringResource(R.string.moderation_similarItems_title)) {
+                        SectionCard {
+                            if (similarCatalogueItems.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.moderation_similarItems_empty),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                )
+                            } else {
+                                similarCatalogueItems.forEachIndexed { index, item ->
+                                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                                        Text(item.displayName)
+                                        Text(
+                                            text = "${item.caloriesPerHundredGrams.roundToInt()} ${stringResource(R.string.common_unit_kcal)} / 100 ${stringResource(item.measure.unitSymbolRes)}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    if (index < similarCatalogueItems.lastIndex) SectionCardDivider()
                                 }
-                                if (index < similarCatalogueItems.lastIndex) SectionCardDivider()
                             }
                         }
                     }
                 }
-                Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 20.dp, end = 16.dp, bottom = 8.dp)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
                     PrimaryButton(
                         text = stringResource(R.string.moderation_button_approve),
                         onClick = { scope.launch { viewModel.onApproveTapped() } },
@@ -153,7 +153,7 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                         text = stringResource(R.string.moderation_button_reject),
                         onClick = { viewModel.isRejectSheetVisible.value = true },
                         style = PrimaryButtonStyle.DESTRUCTIVE,
-                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }

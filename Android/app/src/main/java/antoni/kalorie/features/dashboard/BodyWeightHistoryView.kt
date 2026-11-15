@@ -5,13 +5,11 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -48,11 +46,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
+import antoni.kalorie.components.LazySectionStack
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.RevealingSwipeToDeleteRow
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.core.models.BodyWeightDayKey
 import antoni.kalorie.core.models.BodyWeightDomain
@@ -103,12 +103,12 @@ fun BodyWeightHistoryView(viewModel: BodyWeightHistoryViewModel, onBack: () -> U
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {
                 state.isLoading -> LoaderIndicator(modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp))
-                state is LoadingState.Error -> LoadFailedState(onRetry = { scope.launch { viewModel.onRetryTapped() } })
-                weights.isEmpty() -> EmptyState()
-                else -> LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
+                state is LoadingState.Error -> SectionStack { LoadFailedState(onRetry = { scope.launch { viewModel.onRetryTapped() } }) }
+                weights.isEmpty() -> SectionStack { EmptyState() }
+                else -> LazySectionStack {
                     item { ChartSection(viewModel) }
                     item {
-                        SectionCard(modifier = Modifier.padding(top = 12.dp)) {
+                        SectionCard {
                             weights.forEachIndexed { index, weight ->
                                 WeightRow(
                                     weight = weight,
@@ -273,7 +273,7 @@ private fun WeightRow(
 
 @Composable
 private fun LoadFailedState(onRetry: () -> Unit) {
-    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+    SectionCard {
         Column(
             modifier = Modifier.fillMaxWidth().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -291,7 +291,7 @@ private fun LoadFailedState(onRetry: () -> Unit) {
 
 @Composable
 private fun EmptyState() {
-    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+    SectionCard {
         Column(
             modifier = Modifier.fillMaxWidth().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

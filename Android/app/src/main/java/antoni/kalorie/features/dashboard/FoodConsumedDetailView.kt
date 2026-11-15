@@ -3,7 +3,6 @@ package antoni.kalorie.features.dashboard
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,9 +11,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -53,7 +50,9 @@ import antoni.kalorie.components.ReportReasonDialog
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionGroup
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.rememberFoodPhotoThumbnailState
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedGrams
@@ -164,8 +163,8 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
             },
         ) { innerPadding ->
             KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                SectionStack {
+                    SectionCard {
                         Row(
                             modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(start = 16.dp, end = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -221,36 +220,31 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                         }
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 2.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                    SectionGroup(
+                        title = stringResource(R.string.foodQuantity_section_nutrition),
+                        trailing = if (viewModel.isAlcoholicDrink) {
+                            { AlcoholicDrinkHintView(formattedAlcoholByVolume = viewModel.formattedAlcoholByVolume) }
+                        } else {
+                            null
+                        },
                     ) {
-                        Text(
-                            text = stringResource(R.string.foodQuantity_section_nutrition),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        if (viewModel.isAlcoholicDrink) {
-                            AlcoholicDrinkHintView(formattedAlcoholByVolume = viewModel.formattedAlcoholByVolume)
+                        SectionCard {
+                            LabeledRow(label = stringResource(R.string.foodQuantity_macro_calories)) { Text("${macros.calories} ${stringResource(R.string.common_unit_kcal)}") }
+                            SectionCardDivider()
+                            LabeledRow(label = stringResource(R.string.foodQuantity_macro_protein)) { Text(macros.protein.formattedGrams()) }
+                            SectionCardDivider()
+                            LabeledRow(label = stringResource(R.string.foodQuantity_macro_carbs)) { Text(macros.carbohydrate.formattedGrams()) }
+                            SectionCardDivider()
+                            LabeledRow(label = stringResource(R.string.addFood_field_carbsSugar)) { Text(macros.carbohydrateSugar.formattedGrams()) }
+                            SectionCardDivider()
+                            LabeledRow(label = stringResource(R.string.foodQuantity_macro_fat)) { Text(macros.fat.formattedGrams()) }
+                            SectionCardDivider()
+                            LabeledRow(label = stringResource(R.string.addFood_field_fatSaturated)) { Text(macros.fatSaturated.formattedGrams()) }
+                            SectionCardDivider()
+                            LabeledRow(label = stringResource(R.string.foodQuantity_macro_fiber)) { Text(macros.fiber.formattedGrams()) }
+                            SectionCardDivider()
+                            LabeledRow(label = stringResource(R.string.addFood_field_salt)) { Text(macros.salt.formattedGrams(fractionDigits = 2)) }
                         }
-                    }
-                    SectionCard {
-                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_calories)) { Text("${macros.calories} ${stringResource(R.string.common_unit_kcal)}") }
-                        SectionCardDivider()
-                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_protein)) { Text(macros.protein.formattedGrams()) }
-                        SectionCardDivider()
-                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_carbs)) { Text(macros.carbohydrate.formattedGrams()) }
-                        SectionCardDivider()
-                        LabeledRow(label = stringResource(R.string.addFood_field_carbsSugar)) { Text(macros.carbohydrateSugar.formattedGrams()) }
-                        SectionCardDivider()
-                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_fat)) { Text(macros.fat.formattedGrams()) }
-                        SectionCardDivider()
-                        LabeledRow(label = stringResource(R.string.addFood_field_fatSaturated)) { Text(macros.fatSaturated.formattedGrams()) }
-                        SectionCardDivider()
-                        LabeledRow(label = stringResource(R.string.foodQuantity_macro_fiber)) { Text(macros.fiber.formattedGrams()) }
-                        SectionCardDivider()
-                        LabeledRow(label = stringResource(R.string.addFood_field_salt)) { Text(macros.salt.formattedGrams(fractionDigits = 2)) }
                     }
                 }
                 if (state.isLoading) {

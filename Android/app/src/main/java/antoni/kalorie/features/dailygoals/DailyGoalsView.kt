@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
@@ -67,11 +65,13 @@ import androidx.compose.ui.viewinterop.AndroidView
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.BadgeButton
+import antoni.kalorie.components.LazySectionStack
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionGroup
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
@@ -133,11 +133,7 @@ fun DailyGoalsView(viewModel: DailyGoalsViewModel, onBack: () -> Unit) {
         },
     ) { padding ->
         KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            LazySectionStack {
                 item { BodyDataSection(viewModel) }
                 item { ActivitySection(viewModel) }
                 item { CurrentGoalSection(viewModel, kcalFocusRequester, kcalBringIntoView) }
@@ -149,7 +145,7 @@ fun DailyGoalsView(viewModel: DailyGoalsViewModel, onBack: () -> Unit) {
                             onClick = { viewModel.isEndConfirmationVisible.value = true },
                             style = PrimaryButtonStyle.DESTRUCTIVE,
                             enabled = !isSaving,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                         )
                     }
                 }
@@ -212,7 +208,7 @@ private fun SaveGoalButton(viewModel: DailyGoalsViewModel, onClick: () -> Unit) 
         text = stringResource(R.string.goals_button_save),
         onClick = onClick,
         enabled = viewModel.canSave,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
     )
 }
 
@@ -230,76 +226,77 @@ private fun CurrentGoalSection(viewModel: DailyGoalsViewModel, kcalFocusRequeste
     val gramsInPercentMode = viewModel.gramsInPercentMode
     val gramsKcal = viewModel.kcalOfEnteredGramsDifferingFromGoal
 
-    SectionHeader(stringResource(R.string.goals_section_current))
-    SectionCard {
-        Block { InfoText(stringResource(R.string.goals_footer_current)) }
-        SectionCardDivider()
-        val currentEstimate = estimate
-        if (currentEstimate != null) {
-            Block(verticalSpacing = 12.dp) {
-                ValueRow(stringResource(R.string.goals_estimate_expenditure), kcalString(currentEstimate.expenditure))
-                ValueRow(stringResource(R.string.goals_estimate_bmr), kcalString(currentEstimate.basalRate))
-                BulletCaption(stringResource(R.string.goals_estimate_disclaimer))
-            }
+    SectionGroup(title = stringResource(R.string.goals_section_current)) {
+        SectionCard {
+            Block { InfoText(stringResource(R.string.goals_footer_current)) }
             SectionCardDivider()
-            Block(verticalSpacing = 10.dp) {
-                VariantSlider(viewModel, currentEstimate.variants)
-                KcalRow(viewModel, kcalFocusRequester, kcalBringIntoView)
-            }
-            if (viewModel.selectedVariant?.isRaisedToBasalRate == true) {
+            val currentEstimate = estimate
+            if (currentEstimate != null) {
+                Block(verticalSpacing = 12.dp) {
+                    ValueRow(stringResource(R.string.goals_estimate_expenditure), kcalString(currentEstimate.expenditure))
+                    ValueRow(stringResource(R.string.goals_estimate_bmr), kcalString(currentEstimate.basalRate))
+                    BulletCaption(stringResource(R.string.goals_estimate_disclaimer))
+                }
                 SectionCardDivider()
-                Block { Caption(stringResource(R.string.goals_variant_raised)) }
-            }
-        } else {
-            Block(verticalSpacing = 8.dp) {
-                InfoText(stringResource(R.string.goals_estimate_hint))
-                KcalRow(viewModel, kcalFocusRequester, kcalBringIntoView)
-            }
-        }
-        SectionCardDivider()
-        Block(verticalSpacing = 12.dp) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                GoalMacroMode.entries.forEachIndexed { index, mode ->
-                    SegmentedButton(
-                        selected = macroMode == mode,
-                        onClick = { viewModel.onMacroModeChanged(mode) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = GoalMacroMode.entries.size),
-                        colors = appSegmentedButtonColors(),
-                        icon = {},
-                    ) {
-                        Text(stringResource(if (mode == GoalMacroMode.PERCENT) R.string.goals_macroMode_percent else R.string.goals_macroMode_grams))
-                    }
+                Block(verticalSpacing = 10.dp) {
+                    VariantSlider(viewModel, currentEstimate.variants)
+                    KcalRow(viewModel, kcalFocusRequester, kcalBringIntoView)
+                }
+                if (viewModel.selectedVariant?.isRaisedToBasalRate == true) {
+                    SectionCardDivider()
+                    Block { Caption(stringResource(R.string.goals_variant_raised)) }
+                }
+            } else {
+                Block(verticalSpacing = 8.dp) {
+                    InfoText(stringResource(R.string.goals_estimate_hint))
+                    KcalRow(viewModel, kcalFocusRequester, kcalBringIntoView)
                 }
             }
-            MacroRow(
-                title = stringResource(R.string.foodQuantity_macro_protein),
-                text = viewModel.proteinText.collectAsState().value,
-                grams = gramsInPercentMode?.protein,
-                macroMode = macroMode,
-                onTextChange = viewModel::onProteinTextChanged,
-                onStep = { viewModel.onStep(GoalMacro.PROTEIN, it) },
-            )
-            MacroRow(
-                title = stringResource(R.string.foodQuantity_macro_carbs),
-                text = viewModel.carbsText.collectAsState().value,
-                grams = gramsInPercentMode?.carbs,
-                macroMode = macroMode,
-                onTextChange = viewModel::onCarbsTextChanged,
-                onStep = { viewModel.onStep(GoalMacro.CARBS, it) },
-            )
-            MacroRow(
-                title = stringResource(R.string.foodQuantity_macro_fat),
-                text = viewModel.fatText.collectAsState().value,
-                grams = gramsInPercentMode?.fat,
-                macroMode = macroMode,
-                onTextChange = viewModel::onFatTextChanged,
-                onStep = { viewModel.onStep(GoalMacro.FAT, it) },
-            )
-            if (viewModel.isPercentSumInvalid) {
-                Text(stringResource(R.string.goals_error_percentSum), style = MaterialTheme.typography.bodySmall, color = AppColors.error)
-            }
-            if (gramsKcal != null) {
-                BulletCaption(stringResource(R.string.goals_gramsKcal, NumberFormat.getIntegerInstance().format(gramsKcal.roundToInt())))
+            SectionCardDivider()
+            Block(verticalSpacing = 12.dp) {
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    GoalMacroMode.entries.forEachIndexed { index, mode ->
+                        SegmentedButton(
+                            selected = macroMode == mode,
+                            onClick = { viewModel.onMacroModeChanged(mode) },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = GoalMacroMode.entries.size),
+                            colors = appSegmentedButtonColors(),
+                            icon = {},
+                        ) {
+                            Text(stringResource(if (mode == GoalMacroMode.PERCENT) R.string.goals_macroMode_percent else R.string.goals_macroMode_grams))
+                        }
+                    }
+                }
+                MacroRow(
+                    title = stringResource(R.string.foodQuantity_macro_protein),
+                    text = viewModel.proteinText.collectAsState().value,
+                    grams = gramsInPercentMode?.protein,
+                    macroMode = macroMode,
+                    onTextChange = viewModel::onProteinTextChanged,
+                    onStep = { viewModel.onStep(GoalMacro.PROTEIN, it) },
+                )
+                MacroRow(
+                    title = stringResource(R.string.foodQuantity_macro_carbs),
+                    text = viewModel.carbsText.collectAsState().value,
+                    grams = gramsInPercentMode?.carbs,
+                    macroMode = macroMode,
+                    onTextChange = viewModel::onCarbsTextChanged,
+                    onStep = { viewModel.onStep(GoalMacro.CARBS, it) },
+                )
+                MacroRow(
+                    title = stringResource(R.string.foodQuantity_macro_fat),
+                    text = viewModel.fatText.collectAsState().value,
+                    grams = gramsInPercentMode?.fat,
+                    macroMode = macroMode,
+                    onTextChange = viewModel::onFatTextChanged,
+                    onStep = { viewModel.onStep(GoalMacro.FAT, it) },
+                )
+                if (viewModel.isPercentSumInvalid) {
+                    Text(stringResource(R.string.goals_error_percentSum), style = MaterialTheme.typography.bodySmall, color = AppColors.error)
+                }
+                if (gramsKcal != null) {
+                    BulletCaption(stringResource(R.string.goals_gramsKcal, NumberFormat.getIntegerInstance().format(gramsKcal.roundToInt())))
+                }
             }
         }
     }
@@ -318,83 +315,86 @@ private fun BodyDataSection(viewModel: DailyGoalsViewModel) {
     val sexMale = stringResource(R.string.goals_sex_male)
     val sexFemale = stringResource(R.string.goals_sex_female)
 
-    CollapsibleHeader(
+    SectionGroup(
         title = stringResource(R.string.goals_section_body),
-        isCollapsible = viewModel.isBodyDataRemembered,
-        isCollapsed = isCollapsed,
-        onToggle = viewModel::onBodyDataToggled,
-    )
-    SectionCard {
-        if (isCollapsed) {
-            val summary = listOfNotNull(
-                sex?.let { if (it == GoalSex.MALE) sexMale else sexFemale },
-                birthYear?.toString(),
-                heightCm?.let { viewModel.heightLabel(it) },
-                weightKilograms?.let { viewModel.unit.formatted(it) },
-            ).joinToString(" · ")
-            SummaryRow(summary, onClick = viewModel::onBodyDataToggled)
+        trailing = if (viewModel.isBodyDataRemembered) {
+            { CollapseChevron(isCollapsed = isCollapsed, onToggle = viewModel::onBodyDataToggled) }
         } else {
-            Block(verticalSpacing = 12.dp) {
-                InfoText(stringResource(R.string.goals_footer_body))
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    GoalSex.entries.forEachIndexed { index, value ->
-                        SegmentedButton(
-                            selected = sex == value,
-                            onClick = { viewModel.onSexChanged(value) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = GoalSex.entries.size),
-                            colors = appSegmentedButtonColors(),
-                            icon = {},
-                        ) {
-                            Text(if (value == GoalSex.MALE) sexMale else sexFemale)
+            null
+        },
+    ) {
+        SectionCard {
+            if (isCollapsed) {
+                val summary = listOfNotNull(
+                    sex?.let { if (it == GoalSex.MALE) sexMale else sexFemale },
+                    birthYear?.toString(),
+                    heightCm?.let { viewModel.heightLabel(it) },
+                    weightKilograms?.let { viewModel.unit.formatted(it) },
+                ).joinToString(" · ")
+                SummaryRow(summary, onClick = viewModel::onBodyDataToggled)
+            } else {
+                Block(verticalSpacing = 12.dp) {
+                    InfoText(stringResource(R.string.goals_footer_body))
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        GoalSex.entries.forEachIndexed { index, value ->
+                            SegmentedButton(
+                                selected = sex == value,
+                                onClick = { viewModel.onSexChanged(value) },
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = GoalSex.entries.size),
+                                colors = appSegmentedButtonColors(),
+                                icon = {},
+                            ) {
+                                Text(if (value == GoalSex.MALE) sexMale else sexFemale)
+                            }
                         }
                     }
                 }
-            }
-            SectionCardDivider()
-            WheelRow(
-                title = stringResource(R.string.goals_field_birthYear),
-                value = birthYear?.toString(),
-                isVisible = isBirthYearPickerVisible,
-                onTap = viewModel::onBirthYearTapped,
-                onDismiss = { viewModel.isBirthYearPickerVisible.value = false },
-            ) {
-                val years = remember(viewModel.currentYear) { viewModel.birthYears }
-                WheelPicker(
-                    options = years,
-                    selection = birthYear ?: (viewModel.currentYear - DEFAULT_PICKER_AGE),
-                    label = { it.toString() },
-                    onSelect = viewModel::onBirthYearChanged,
-                )
-            }
-            SectionCardDivider()
-            WheelRow(
-                title = stringResource(R.string.goals_field_height),
-                value = heightCm?.let { viewModel.heightLabel(it) },
-                isVisible = isHeightPickerVisible,
-                onTap = viewModel::onHeightTapped,
-                onDismiss = { viewModel.isHeightPickerVisible.value = false },
-            ) {
-                val heights = remember { GoalLimits.heightRangeCm.toList() }
-                WheelPicker(
-                    options = heights,
-                    selection = heightCm ?: DEFAULT_PICKER_HEIGHT_CM,
-                    label = { viewModel.heightLabel(it) },
-                    onSelect = viewModel::onHeightChanged,
-                )
-            }
-            SectionCardDivider()
-            WheelRow(
-                title = stringResource(R.string.goals_field_weight),
-                value = weightKilograms?.let { viewModel.unit.formatted(it) },
-                isVisible = isWeightPickerVisible,
-                onTap = viewModel::onWeightTapped,
-                onDismiss = { viewModel.isWeightPickerVisible.value = false },
-            ) {
-                WeightPickerView(
-                    kilograms = weightKilograms ?: antoni.kalorie.core.utils.Constants.BodyWeight.DEFAULT_KILOGRAMS,
-                    unit = viewModel.unit,
-                    onKilogramsChange = viewModel::onWeightChanged,
-                )
+                SectionCardDivider()
+                WheelRow(
+                    title = stringResource(R.string.goals_field_birthYear),
+                    value = birthYear?.toString(),
+                    isVisible = isBirthYearPickerVisible,
+                    onTap = viewModel::onBirthYearTapped,
+                    onDismiss = { viewModel.isBirthYearPickerVisible.value = false },
+                ) {
+                    val years = remember(viewModel.currentYear) { viewModel.birthYears }
+                    WheelPicker(
+                        options = years,
+                        selection = birthYear ?: (viewModel.currentYear - DEFAULT_PICKER_AGE),
+                        label = { it.toString() },
+                        onSelect = viewModel::onBirthYearChanged,
+                    )
+                }
+                SectionCardDivider()
+                WheelRow(
+                    title = stringResource(R.string.goals_field_height),
+                    value = heightCm?.let { viewModel.heightLabel(it) },
+                    isVisible = isHeightPickerVisible,
+                    onTap = viewModel::onHeightTapped,
+                    onDismiss = { viewModel.isHeightPickerVisible.value = false },
+                ) {
+                    val heights = remember { GoalLimits.heightRangeCm.toList() }
+                    WheelPicker(
+                        options = heights,
+                        selection = heightCm ?: DEFAULT_PICKER_HEIGHT_CM,
+                        label = { viewModel.heightLabel(it) },
+                        onSelect = viewModel::onHeightChanged,
+                    )
+                }
+                SectionCardDivider()
+                WheelRow(
+                    title = stringResource(R.string.goals_field_weight),
+                    value = weightKilograms?.let { viewModel.unit.formatted(it) },
+                    isVisible = isWeightPickerVisible,
+                    onTap = viewModel::onWeightTapped,
+                    onDismiss = { viewModel.isWeightPickerVisible.value = false },
+                ) {
+                    WeightPickerView(
+                        kilograms = weightKilograms ?: antoni.kalorie.core.utils.Constants.BodyWeight.DEFAULT_KILOGRAMS,
+                        unit = viewModel.unit,
+                        onKilogramsChange = viewModel::onWeightChanged,
+                    )
+                }
             }
         }
     }
@@ -406,31 +406,34 @@ private fun ActivitySection(viewModel: DailyGoalsViewModel) {
     val activityLevel by viewModel.activityLevel.collectAsState()
     val levels = GoalActivityLevel.entries
 
-    CollapsibleHeader(
+    SectionGroup(
         title = stringResource(R.string.goals_section_activity),
-        isCollapsible = viewModel.isActivityRemembered,
-        isCollapsed = isCollapsed,
-        onToggle = viewModel::onActivityToggled,
-    )
-    SectionCard {
-        if (isCollapsed) {
-            SummaryRow(activityLevel?.let { stringResource(it.titleRes) } ?: "—", onClick = viewModel::onActivityToggled)
+        trailing = if (viewModel.isActivityRemembered) {
+            { CollapseChevron(isCollapsed = isCollapsed, onToggle = viewModel::onActivityToggled) }
         } else {
-            Block(verticalSpacing = 4.dp) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Caption(stringResource(R.string.goals_activity_scaleLow))
-                    Caption(stringResource(R.string.goals_activity_scaleHigh))
-                }
-                Slider(
-                    value = levels.indexOf(activityLevel ?: GoalActivityLevel.LIGHT).coerceAtLeast(0).toFloat(),
-                    onValueChange = { value -> levels.getOrNull(value.roundToInt())?.let(viewModel::onActivityLevelChanged) },
-                    valueRange = 0f..(levels.size - 1).toFloat(),
-                    steps = levels.size - 2,
-                )
-                activityLevel?.let { level ->
-                    Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(stringResource(level.titleRes), style = MaterialTheme.typography.titleMedium)
-                        Caption(stringResource(level.detailRes))
+            null
+        },
+    ) {
+        SectionCard {
+            if (isCollapsed) {
+                SummaryRow(activityLevel?.let { stringResource(it.titleRes) } ?: "—", onClick = viewModel::onActivityToggled)
+            } else {
+                Block(verticalSpacing = 4.dp) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Caption(stringResource(R.string.goals_activity_scaleLow))
+                        Caption(stringResource(R.string.goals_activity_scaleHigh))
+                    }
+                    Slider(
+                        value = levels.indexOf(activityLevel ?: GoalActivityLevel.LIGHT).coerceAtLeast(0).toFloat(),
+                        onValueChange = { value -> levels.getOrNull(value.roundToInt())?.let(viewModel::onActivityLevelChanged) },
+                        valueRange = 0f..(levels.size - 1).toFloat(),
+                        steps = levels.size - 2,
+                    )
+                    activityLevel?.let { level ->
+                        Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(stringResource(level.titleRes), style = MaterialTheme.typography.titleMedium)
+                            Caption(stringResource(level.detailRes))
+                        }
                     }
                 }
             }
@@ -591,33 +594,15 @@ private const val DEFAULT_PICKER_HEIGHT_CM = 178
 // MARK: - Building blocks
 
 @Composable
-private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 16.dp),
-    )
-}
-
-@Composable
-private fun CollapsibleHeader(title: String, isCollapsible: Boolean, isCollapsed: Boolean, onToggle: () -> Unit) {
+private fun CollapseChevron(isCollapsed: Boolean, onToggle: () -> Unit) {
     val rotation by animateFloatAsState(targetValue = if (isCollapsed) COLLAPSED_CHEVRON_ROTATION else 0f, label = "goalsChevron")
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 24.dp, top = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-        if (isCollapsible) {
-            BadgeButton(
-                icon = Icons.Filled.KeyboardArrowDown,
-                onClick = onToggle,
-                contentDescription = null,
-                modifier = Modifier.rotate(rotation),
-                size = MACRO_STEP_BUTTON_SIZE.dp,
-            )
-        }
-    }
+    BadgeButton(
+        icon = Icons.Filled.KeyboardArrowDown,
+        onClick = onToggle,
+        contentDescription = null,
+        modifier = Modifier.rotate(rotation),
+        size = MACRO_STEP_BUTTON_SIZE.dp,
+    )
 }
 
 @Composable

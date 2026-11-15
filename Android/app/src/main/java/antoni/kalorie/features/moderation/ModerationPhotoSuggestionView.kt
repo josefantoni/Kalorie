@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -27,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,6 +32,9 @@ import antoni.kalorie.components.FoodPhotoRemoteContent
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.PrimaryButtonStyle
+import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.sheetBottomBar
@@ -98,16 +97,19 @@ fun ModerationPhotoSuggestionView(
         },
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom())) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp).padding(innerPadding.bottomOnly())) {
-                FoodPhotoRemoteContent(
-                    url = viewModel.suggestion.photoUrl,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)),
-                )
-                Text(
-                    text = itemName ?: viewModel.suggestion.itemId,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(vertical = 16.dp),
-                )
+            SectionStack(contentPadding = innerPadding.bottomOnly()) {
+                SectionCard {
+                    FoodPhotoRemoteContent(
+                        url = viewModel.suggestion.photoUrl,
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+                    )
+                    SectionCardDivider()
+                    Text(
+                        text = itemName ?: viewModel.suggestion.itemId,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                }
             }
             if (state.isLoading) {
                 Box(modifier = Modifier.matchParentSize().padding(innerPadding.bottomOnly()), contentAlignment = Alignment.Center) {

@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -84,10 +83,12 @@ import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.BadgeButton
 import antoni.kalorie.components.FloatingLabelTextField
+import antoni.kalorie.components.LazySectionStack
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionGroup
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.components.bottomOnly
@@ -368,37 +369,31 @@ private fun SettingsContent(
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding)) {
             Box(modifier = Modifier.fillMaxSize().imePadding()) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_section_mealLayout),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        FilledTonalButton(
-                            onClick = {
-                                if (isEditing) {
-                                    onEditingChange(false)
-                                    scope.launch { viewModel.onSaveReorder() }
-                                } else {
-                                    onEditingChange(true)
+                LazySectionStack(state = listState, contentPadding = innerPadding.bottomOnly()) {
+                    item {
+                        SectionGroup(
+                            title = stringResource(R.string.settings_section_mealLayout),
+                            trailing = {
+                                FilledTonalButton(
+                                    modifier = Modifier.height(32.dp),
+                                    contentPadding = PaddingValues(horizontal = 16.dp),
+                                    onClick = {
+                                        if (isEditing) {
+                                            onEditingChange(false)
+                                            scope.launch { viewModel.onSaveReorder() }
+                                        } else {
+                                            onEditingChange(true)
+                                        }
+                                    },
+                                ) {
+                                    Text(
+                                        text = stringResource(
+                                            if (isEditing) R.string.settings_button_editDone else R.string.settings_button_edit,
+                                        ),
+                                    )
                                 }
                             },
                         ) {
-                            Text(
-                                text = stringResource(
-                                    if (isEditing) R.string.settings_button_editDone else R.string.settings_button_edit,
-                                ),
-                            )
-                        }
-                    }
-
-                    LazyColumn(modifier = Modifier.weight(1f), state = listState, contentPadding = innerPadding.bottomOnly()) {
-                        item {
                             SectionCard {
                                 mealTypes.forEachIndexed { index, mealType ->
                                     key(mealType.id) {
@@ -431,24 +426,18 @@ private fun SettingsContent(
                                 }
                             }
                         }
-                        if (isEditing) {
+                    }
+                    if (isEditing) {
+                        item {
+                            FooterView(
+                                isAddFormVisible = isAddFormVisible,
+                                viewModel = viewModel,
+                            )
+                        }
+                    } else {
+                        if (viewModel.hasLoadedAppSettings) {
                             item {
-                                FooterView(
-                                    isAddFormVisible = isAddFormVisible,
-                                    viewModel = viewModel,
-                                )
-                            }
-                        } else {
-                            if (viewModel.hasLoadedAppSettings) {
-                                item {
-                                    Text(
-                                        text = stringResource(R.string.settings_section_bodyWeight),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
-                                    )
-                                }
-                                item {
+                                SectionGroup(title = stringResource(R.string.settings_section_bodyWeight)) {
                                     SectionCard {
                                         BodyWeightSettingsRows(
                                             appSettings = appSettings,
@@ -457,15 +446,9 @@ private fun SettingsContent(
                                         )
                                     }
                                 }
-                                item {
-                                    Text(
-                                        text = stringResource(R.string.settings_section_dailyGoal),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
-                                    )
-                                }
-                                item {
+                            }
+                            item {
+                                SectionGroup(title = stringResource(R.string.settings_section_dailyGoal)) {
                                     SectionCard {
                                         DailyGoalSettingsRows(
                                             appSettings = appSettings,
@@ -476,15 +459,9 @@ private fun SettingsContent(
                                     }
                                 }
                             }
-                            item {
-                                Text(
-                                    text = stringResource(R.string.settings_section_other),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
-                                )
-                            }
-                            item {
+                        }
+                        item {
+                            SectionGroup(title = stringResource(R.string.settings_section_other)) {
                                 SectionCard {
                                     NavigationRow(
                                         title = stringResource(R.string.export_navigationTitle),
@@ -507,24 +484,17 @@ private fun SettingsContent(
                                     )
                                 }
                             }
-                            if (Constants.Tips.IS_ENABLED) {
-                                item {
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    SectionCard {
-                                        SupportRow(onClick = { viewModel.backStack.add(SettingsDestination.Support) })
-                                    }
+                        }
+                        if (Constants.Tips.IS_ENABLED) {
+                            item {
+                                SectionCard {
+                                    SupportRow(onClick = { viewModel.backStack.add(SettingsDestination.Support) })
                                 }
                             }
-                            if (isMaintainer) {
-                                item {
-                                    Text(
-                                        text = stringResource(R.string.moderation_section_title),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = 2.dp),
-                                    )
-                                }
-                                item {
+                        }
+                        if (isMaintainer) {
+                            item {
+                                SectionGroup(title = stringResource(R.string.moderation_section_title)) {
                                     SectionCard {
                                         NavigationRow(
                                             title = stringResource(R.string.moderation_queue_title),
@@ -647,7 +617,7 @@ private fun AddMealForm(viewModel: SettingsViewModel) {
         viewModel.newMealEnd.value = end
     }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         SectionCard {
             FloatingLabelTextField(
                 title = stringResource(R.string.settings_field_newMeal_placeholder),

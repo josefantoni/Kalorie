@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -59,9 +58,11 @@ import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.components.HintCard
+import antoni.kalorie.components.LazySectionStack
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionGroup
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
 import antoni.kalorie.components.bottomOnly
@@ -307,7 +308,7 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
         },
     ) { innerPadding ->
         KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = innerPadding.bottomOnly()) {
+            LazySectionStack(contentPadding = innerPadding.bottomOnly()) {
                 item { ModePicker(viewModel) }
                 item {
                     SectionCard {
@@ -330,30 +331,23 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                             actionTitle = stringResource(R.string.addFood_contributionHint_hide),
                             onClick = viewModel::onContributionHintTapped,
                             onAction = viewModel::onContributionHintHidden,
-                            modifier = Modifier.padding(top = 7.dp),
                             color = tintedSurfaceColor(),
                         )
                     }
                 }
                 if (searchText.isEmpty() && favouriteFoods.isNotEmpty()) {
                     item {
-                        Text(
-                            text = stringResource(R.string.addFood_section_favourites),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 32.dp, top = 20.dp, end = 32.dp, bottom = 2.dp),
-                        )
-                    }
-                    item {
-                        SectionCard {
-                            favouriteFoods.forEachIndexed { index, item ->
-                                key("favourite-${item.id}") {
-                                    FoodItemRow(
-                                        item = item,
-                                        isFavourite = true,
-                                        modifier = Modifier.clickable { scope.launch { viewModel.onSelectFavouriteFood(item) } },
-                                    )
-                                    if (index < favouriteFoods.lastIndex) SectionCardDivider()
+                        SectionGroup(title = stringResource(R.string.addFood_section_favourites)) {
+                            SectionCard {
+                                favouriteFoods.forEachIndexed { index, item ->
+                                    key("favourite-${item.id}") {
+                                        FoodItemRow(
+                                            item = item,
+                                            isFavourite = true,
+                                            modifier = Modifier.clickable { scope.launch { viewModel.onSelectFavouriteFood(item) } },
+                                        )
+                                        if (index < favouriteFoods.lastIndex) SectionCardDivider()
+                                    }
                                 }
                             }
                         }
@@ -361,32 +355,26 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                 }
                 if (searchText.isEmpty() && myCreatedMeals.isNotEmpty()) {
                     item {
-                        Text(
-                            text = stringResource(R.string.addFood_section_myCreatedMeals),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 32.dp, top = 20.dp, end = 32.dp, bottom = 2.dp),
-                        )
-                    }
-                    item {
-                        SectionCard {
-                            myCreatedMeals.forEachIndexed { index, meal ->
-                                key("meal-${meal.id}") {
-                                    SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteMealRequested(meal) }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth().clickable { viewModel.onSelectFoodItem(meal.asFoodItem()) },
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            FoodItemRow(item = meal.asFoodItem(), isFavourite = false, modifier = Modifier.weight(1f))
-                                            Icon(
-                                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(end = 12.dp),
-                                            )
+                        SectionGroup(title = stringResource(R.string.addFood_section_myCreatedMeals)) {
+                            SectionCard {
+                                myCreatedMeals.forEachIndexed { index, meal ->
+                                    key("meal-${meal.id}") {
+                                        SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteMealRequested(meal) }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth().clickable { viewModel.onSelectFoodItem(meal.asFoodItem()) },
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                FoodItemRow(item = meal.asFoodItem(), isFavourite = false, modifier = Modifier.weight(1f))
+                                                Icon(
+                                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.padding(end = 12.dp),
+                                                )
+                                            }
                                         }
+                                        if (index < myCreatedMeals.lastIndex) SectionCardDivider()
                                     }
-                                    if (index < myCreatedMeals.lastIndex) SectionCardDivider()
                                 }
                             }
                         }
@@ -394,26 +382,20 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                 }
                 if (searchText.isEmpty() && mySubmissions.isNotEmpty()) {
                     item {
-                        Text(
-                            text = stringResource(R.string.addFood_section_mySubmissions),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 32.dp, top = 20.dp, end = 32.dp, bottom = 2.dp),
-                        )
-                    }
-                    item {
-                        SectionCard {
-                            mySubmissions.forEachIndexed { index, submission ->
-                                key("submission-${submission.id}") {
-                                    SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteSubmissionRequested(submission) }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                                        FoodItemRow(
-                                            item = submission.item,
-                                            isFavourite = false,
-                                            submissionStatus = submission.status,
-                                            modifier = Modifier.clickable { viewModel.onSelectSubmission(submission) },
-                                        )
+                        SectionGroup(title = stringResource(R.string.addFood_section_mySubmissions)) {
+                            SectionCard {
+                                mySubmissions.forEachIndexed { index, submission ->
+                                    key("submission-${submission.id}") {
+                                        SwipeToDeleteRow(onDeleteRequested = { viewModel.onDeleteSubmissionRequested(submission) }, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+                                            FoodItemRow(
+                                                item = submission.item,
+                                                isFavourite = false,
+                                                submissionStatus = submission.status,
+                                                modifier = Modifier.clickable { viewModel.onSelectSubmission(submission) },
+                                            )
+                                        }
+                                        if (index < mySubmissions.lastIndex) SectionCardDivider()
                                     }
-                                    if (index < mySubmissions.lastIndex) SectionCardDivider()
                                 }
                             }
                         }
@@ -421,58 +403,50 @@ private fun SearchContent(viewModel: AddFoodSheetViewModel, onDismiss: () -> Uni
                 }
                 if (displayedResults.isNotEmpty() || searchText.isNotEmpty()) {
                     item {
-                        Text(
-                            text = stringResource(
+                        SectionGroup(
+                            title = stringResource(
                                 if (displayedResults.isNotEmpty()) R.string.addFood_section_searchResults else R.string.addFood_section_externalResults,
                             ),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 32.dp, top = 20.dp, end = 32.dp, bottom = 2.dp),
-                        )
-                    }
-                    if (displayedResults.isNotEmpty()) {
-                        item {
-                            SectionCard {
-                                displayedResults.forEachIndexed { index, item ->
-                                    key(item.id) {
-                                        FoodItemRow(
-                                            item = item,
-                                            isFavourite = item.id in favouriteIds,
-                                            submissionStatus = viewModel.submissionStatus(item),
-                                            modifier = Modifier.clickable {
-                                                if (viewModel.submissionStatus(item) == FoodItemSubmissionStatus.REJECTED) {
-                                                    viewModel.onSelectRejectedSubmission(item)
-                                                } else {
-                                                    scope.launch { viewModel.onSelectResult(item) }
-                                                }
-                                            },
-                                        )
-                                        if (index < displayedResults.lastIndex) SectionCardDivider()
+                        ) {
+                            if (displayedResults.isNotEmpty()) {
+                                SectionCard {
+                                    displayedResults.forEachIndexed { index, item ->
+                                        key(item.id) {
+                                            FoodItemRow(
+                                                item = item,
+                                                isFavourite = item.id in favouriteIds,
+                                                submissionStatus = viewModel.submissionStatus(item),
+                                                modifier = Modifier.clickable {
+                                                    if (viewModel.submissionStatus(item) == FoodItemSubmissionStatus.REJECTED) {
+                                                        viewModel.onSelectRejectedSubmission(item)
+                                                    } else {
+                                                        scope.launch { viewModel.onSelectResult(item) }
+                                                    }
+                                                },
+                                            )
+                                            if (index < displayedResults.lastIndex) SectionCardDivider()
+                                        }
                                     }
                                 }
-                            }
-                        }
-                    } else if (isExternalSearchLoading) {
-                        item {
-                            Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                                LoaderIndicator()
-                            }
-                        }
-                    } else {
-                        item {
-                            SectionCard {
-                                externalFoodItems.forEachIndexed { index, item ->
-                                    key(item.id) {
-                                        Text(
-                                            text = item.displayName,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable { viewModel.onSelectFoodItem(item) }
-                                                .heightIn(min = SectionRowMinHeight)
-                                                .wrapContentHeight(Alignment.CenterVertically)
-                                                .padding(horizontal = 16.dp),
-                                        )
-                                        if (index < externalFoodItems.lastIndex) SectionCardDivider()
+                            } else if (isExternalSearchLoading) {
+                                Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                    LoaderIndicator()
+                                }
+                            } else {
+                                SectionCard {
+                                    externalFoodItems.forEachIndexed { index, item ->
+                                        key(item.id) {
+                                            Text(
+                                                text = item.displayName,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable { viewModel.onSelectFoodItem(item) }
+                                                    .heightIn(min = SectionRowMinHeight)
+                                                    .wrapContentHeight(Alignment.CenterVertically)
+                                                    .padding(horizontal = 16.dp),
+                                            )
+                                            if (index < externalFoodItems.lastIndex) SectionCardDivider()
+                                        }
                                     }
                                 }
                             }
@@ -561,7 +535,7 @@ private fun BackButton(onClick: () -> Unit) {
 private fun ModePicker(viewModel: AddFoodSheetViewModel) {
     val mode by viewModel.mode.collectAsState()
     val modes = AddFoodSheetMode.entries
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
         modes.forEachIndexed { index, entry ->
             SegmentedButton(
                 selected = mode == entry,

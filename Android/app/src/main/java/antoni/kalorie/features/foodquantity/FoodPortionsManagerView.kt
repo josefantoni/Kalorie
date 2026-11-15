@@ -1,15 +1,12 @@
 package antoni.kalorie.features.foodquantity
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +33,7 @@ import antoni.kalorie.components.PortionDraftListView
 import antoni.kalorie.components.SaveToolbarButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
@@ -83,7 +81,7 @@ fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit
         },
     ) { innerPadding ->
         KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
+            SectionStack(contentPadding = innerPadding.bottomOnly()) {
                 if (personalPortions.isEmpty()) {
                     Text(
                         text = stringResource(R.string.myPortions_empty),
@@ -125,7 +123,6 @@ fun FoodPortionsManagerView(viewModel: FoodQuantityViewModel, onBack: () -> Unit
                         viewModel.portionDrafts.value = portionDrafts + draft
                         focusedDraftId = draft.id
                     },
-                    modifier = Modifier.padding(vertical = 8.dp),
                 )
             }
         }

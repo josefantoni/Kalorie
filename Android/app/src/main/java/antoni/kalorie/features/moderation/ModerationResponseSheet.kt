@@ -1,12 +1,9 @@
 package antoni.kalorie.features.moderation
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
@@ -32,6 +29,7 @@ import antoni.kalorie.R
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.sheetBottomBar
@@ -79,8 +77,8 @@ fun ModerationResponseSheet(
             },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom())) {
-                Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(innerPadding.bottomOnly())) {
-                    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                SectionStack(contentPadding = innerPadding.bottomOnly()) {
+                    SectionCard {
                         TextField(
                             value = draft.text,
                             onValueChange = onTextChange,

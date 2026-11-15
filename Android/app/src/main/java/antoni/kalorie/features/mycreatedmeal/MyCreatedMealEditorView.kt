@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -45,10 +44,12 @@ import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemRow
 import antoni.kalorie.components.FoodPortionsSection
 import antoni.kalorie.components.HintCard
+import antoni.kalorie.components.LazySectionStack
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.NumericRowTextField
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.SectionGroup
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
@@ -127,7 +128,7 @@ fun MyCreatedMealEditorView(
         },
     ) { innerPadding ->
         KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = innerPadding.bottomOnly()) {
+            LazySectionStack(contentPadding = innerPadding.bottomOnly()) {
                 item { header() }
                 if (isHintVisible) {
                     item {
@@ -135,13 +136,12 @@ fun MyCreatedMealEditorView(
                             message = stringResource(R.string.myCreatedMeal_hint_message),
                             actionTitle = stringResource(R.string.addFood_contributionHint_hide),
                             onAction = viewModel::onHintHidden,
-                            modifier = Modifier.padding(top = 8.dp),
                             color = tintedSurfaceColor(),
                         )
                     }
                 }
                 item {
-                    SectionCard(modifier = Modifier.padding(top = 8.dp)) {
+                    SectionCard {
                         FloatingLabelTextField(
                             title = stringResource(R.string.myCreatedMeal_field_name_title),
                             isUnderlineFullWidth = true,
@@ -153,86 +153,87 @@ fun MyCreatedMealEditorView(
                     }
                 }
                 if (ingredients.isNotEmpty()) {
-                    item { SectionHeader(stringResource(R.string.myCreatedMeal_section_ingredients)) }
                     item {
-                        SectionCard {
-                            ingredients.forEachIndexed { index, draft ->
-                                key("ingredient-${draft.id}") {
-                                    SwipeToDeleteRow(
-                                        onDeleteRequested = {
-                                            val deletedIndex = ingredients.indexOfFirst { it.id == draft.id }
-                                            if (deletedIndex >= 0) viewModel.onDeleteIngredient(setOf(deletedIndex))
-                                        },
-                                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    ) {
-                                        IngredientRow(
-                                            draft = draft,
-                                            isFocusRequested = focusedIngredientId == draft.id,
-                                            onGramsTextChange = { text ->
-                                                viewModel.ingredients.value = ingredients.map { if (it.id == draft.id) it.copy(gramsText = text) else it }
+                        SectionGroup(title = stringResource(R.string.myCreatedMeal_section_ingredients)) {
+                            SectionCard {
+                                ingredients.forEachIndexed { index, draft ->
+                                    key("ingredient-${draft.id}") {
+                                        SwipeToDeleteRow(
+                                            onDeleteRequested = {
+                                                val deletedIndex = ingredients.indexOfFirst { it.id == draft.id }
+                                                if (deletedIndex >= 0) viewModel.onDeleteIngredient(setOf(deletedIndex))
                                             },
-                                            onGramsFieldDefocused = { viewModel.onGramsFieldDefocused(draft.id) },
-                                        )
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                        ) {
+                                            IngredientRow(
+                                                draft = draft,
+                                                isFocusRequested = focusedIngredientId == draft.id,
+                                                onGramsTextChange = { text ->
+                                                    viewModel.ingredients.value = ingredients.map { if (it.id == draft.id) it.copy(gramsText = text) else it }
+                                                },
+                                                onGramsFieldDefocused = { viewModel.onGramsFieldDefocused(draft.id) },
+                                            )
+                                        }
+                                        if (index < ingredients.lastIndex) SectionCardDivider()
                                     }
-                                    if (index < ingredients.lastIndex) SectionCardDivider()
                                 }
                             }
                         }
                     }
                 }
-                item { SectionHeader(stringResource(R.string.myCreatedMeal_section_catalogue)) }
                 item {
-                    SectionCard {
-                        FloatingLabelTextField(
-                            title = stringResource(R.string.myCreatedMeal_search_placeholder, stringResource(viewModel.searchExampleRes)),
-                            isUnderlineFullWidth = true,
-                            text = searchText,
-                            onTextChange = { viewModel.searchText.value = it },
-                            trailingButton = {
-                                BadgeButton(icon = BarcodeIcon, onClick = scannerAccess.open, contentDescription = null)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                    SectionGroup(title = stringResource(R.string.myCreatedMeal_section_catalogue)) {
+                        SectionCard {
+                            FloatingLabelTextField(
+                                title = stringResource(R.string.myCreatedMeal_search_placeholder, stringResource(viewModel.searchExampleRes)),
+                                isUnderlineFullWidth = true,
+                                text = searchText,
+                                onTextChange = { viewModel.searchText.value = it },
+                                trailingButton = {
+                                    BadgeButton(icon = BarcodeIcon, onClick = scannerAccess.open, contentDescription = null)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                     }
                 }
                 if (searchText.isNotEmpty()) {
                     item {
-                        SectionHeader(
-                            stringResource(
+                        SectionGroup(
+                            title = stringResource(
                                 if (searchResults.isNotEmpty()) R.string.addFood_section_searchResults else R.string.addFood_section_externalResults,
                             ),
-                        )
-                    }
-                    item {
-                        SectionCard {
-                            if (searchResults.isNotEmpty()) {
-                                searchResults.forEachIndexed { index, item ->
-                                    key("result-${item.id}") {
-                                        FoodItemRow(
-                                            item = item,
-                                            isFavourite = false,
-                                            modifier = Modifier.clickable { focusedIngredientId = viewModel.onSelectSearchResult(item) },
-                                        )
-                                        if (index < searchResults.lastIndex) SectionCardDivider()
+                        ) {
+                            SectionCard {
+                                if (searchResults.isNotEmpty()) {
+                                    searchResults.forEachIndexed { index, item ->
+                                        key("result-${item.id}") {
+                                            FoodItemRow(
+                                                item = item,
+                                                isFavourite = false,
+                                                modifier = Modifier.clickable { focusedIngredientId = viewModel.onSelectSearchResult(item) },
+                                            )
+                                            if (index < searchResults.lastIndex) SectionCardDivider()
+                                        }
                                     }
-                                }
-                            } else if (isExternalSearchLoading) {
-                                Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                                    LoaderIndicator()
-                                }
-                            } else {
-                                externalSearchResults.forEachIndexed { index, item ->
-                                    key("external-${item.id}") {
-                                        Text(
-                                            text = item.displayName,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable { focusedIngredientId = viewModel.onSelectSearchResult(item) }
-                                                .heightIn(min = SectionRowMinHeight)
-                                                .wrapContentHeight(Alignment.CenterVertically)
-                                                .padding(horizontal = 16.dp),
-                                        )
-                                        if (index < externalSearchResults.lastIndex) SectionCardDivider()
+                                } else if (isExternalSearchLoading) {
+                                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                        LoaderIndicator()
+                                    }
+                                } else {
+                                    externalSearchResults.forEachIndexed { index, item ->
+                                        key("external-${item.id}") {
+                                            Text(
+                                                text = item.displayName,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable { focusedIngredientId = viewModel.onSelectSearchResult(item) }
+                                                    .heightIn(min = SectionRowMinHeight)
+                                                    .wrapContentHeight(Alignment.CenterVertically)
+                                                    .padding(horizontal = 16.dp),
+                                            )
+                                            if (index < externalSearchResults.lastIndex) SectionCardDivider()
+                                        }
                                     }
                                 }
                             }
@@ -302,16 +303,6 @@ fun MyCreatedMealEditorView(
 }
 
 // MARK: - Functions
-
-@Composable
-private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 32.dp, top = 8.dp, end = 32.dp, bottom = 2.dp),
-    )
-}
 
 @Composable
 private fun IngredientRow(

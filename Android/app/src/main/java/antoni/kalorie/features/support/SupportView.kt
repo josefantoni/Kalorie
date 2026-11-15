@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -46,6 +44,7 @@ import antoni.kalorie.components.PrimaryButton
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
+import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.illustrations.BaguetteRain
@@ -86,7 +85,7 @@ fun SupportView(viewModel: SupportViewModel, onBack: () -> Unit) {
             },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom())) {
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 16.dp).padding(innerPadding.bottomOnly())) {
+                SectionStack(contentPadding = innerPadding.bottomOnly()) {
                     SectionCard {
                         Text(
                             text = stringResource(R.string.support_intro),
@@ -95,7 +94,7 @@ fun SupportView(viewModel: SupportViewModel, onBack: () -> Unit) {
                         )
                     }
                     if (products.isNotEmpty()) {
-                        SectionCard(modifier = Modifier.padding(top = 12.dp)) {
+                        SectionCard {
                             products.forEachIndexed { index, product ->
                                 if (index > 0) SectionCardDivider()
                                 Row(

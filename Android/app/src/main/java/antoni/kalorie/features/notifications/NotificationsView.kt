@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AddCircleOutline
@@ -53,6 +52,7 @@ import androidx.navigation3.ui.NavDisplay
 import antoni.kalorie.R
 import antoni.kalorie.components.AccentPullToRefreshBox
 import antoni.kalorie.components.AppColors
+import antoni.kalorie.components.LazySectionStack
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.RevealingSwipeToDeleteRow
 import antoni.kalorie.components.SectionCard
@@ -194,7 +194,7 @@ private fun NotificationsContent(
             onRefresh = { scope.launch { viewModel.onRefresh() } },
             modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()),
         ) {
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = innerPadding.bottomOnly()) {
+            LazySectionStack(contentPadding = innerPadding.bottomOnly()) {
                 if (rows.isEmpty()) {
                     if (!state.isLoading) {
                         item {

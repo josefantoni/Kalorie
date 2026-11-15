@@ -77,7 +77,11 @@ fun PortionDraftListView(
 fun PortionDraftAddSection(drafts: List<FoodPortionDraft>, onAdd: (FoodPortionDraft) -> Unit, modifier: Modifier = Modifier) {
     // MARK: - Body
 
-    Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+    Column(
+        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         BadgeButton(
             icon = Icons.Filled.Add,
             onClick = { onAdd(FoodPortionDraft.blank) },
