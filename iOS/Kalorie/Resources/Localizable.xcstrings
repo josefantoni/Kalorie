@@ -8362,19 +8362,19 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jedna snad, ale co druhá snídaně … 🧐?"
+            "value" : "Jedna snad, ale co druhá snídaně?🧐"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "What about second breakfast … 🧐?"
+            "value" : "What about second breakfast?🧐"
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jedny raňajky snáď, ale čo druhé … 🧐?"
+            "value" : "Jedny raňajky snáď, ale čo druhé?🧐"
           }
         }
       }

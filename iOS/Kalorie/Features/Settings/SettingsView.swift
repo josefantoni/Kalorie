@@ -80,7 +80,6 @@ struct SettingsView: View {
 
                     if editMode == .active && viewModel.isAddFormVisible {
                         newMealFormSection
-                        createButtonSection
                     }
 
                     if editMode == .inactive {
@@ -226,9 +225,15 @@ struct SettingsView: View {
                     }
                 }
                 .environment(\.editMode, $editMode)
+                .scrollRowIntoView(Self.newMealTimesRowID, when: focusedField != nil)
+                .bottomPinnedButtons(isVisible: editMode == .active && viewModel.isAddFormVisible) {
+                    PrimaryButton(L10n.Settings.buttonCreate) {
+                        Task { await viewModel.onCreateMealType() }
+                        focusedField = nil
+                    }
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-            .keyboardDoneToolbar()
             .task { await viewModel.onAppear() }
             .navigationTitle(L10n.Settings.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
@@ -298,26 +303,45 @@ struct SettingsView: View {
             }
             .frame(minHeight: Self.newMealRowHeight)
             .listRowInsets(.vertical, 0)
+            .id(Self.newMealTimesRowID)
         }
         .listSectionSpacing(.custom(20))
     }
 
-    private var createButtonSection: some View {
-        Section {
-            PrimaryButton(L10n.Settings.buttonCreate) {
-                Task { await viewModel.onCreateMealType() }
-                focusedField = nil
-            }
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-        }
-        .listSectionSpacing(.custom(24))
-    }
-
+    private static var newMealTimesRowID: String { "newMealTimes" }
     private static var newMealRowHeight: CGFloat { 56 }
     private static var supportIconSize: CGFloat { 36 }
 
+}
+
+private extension View {
+    func scrollRowIntoView(_ id: String, when isTriggered: Bool) -> some View {
+        modifier(ScrollRowIntoView(id: id, isTriggered: isTriggered))
+    }
+}
+
+private struct ScrollRowIntoView: ViewModifier {
+
+    // MARK: - Properties
+
+    let id: String
+    let isTriggered: Bool
+
+    // MARK: - Body
+
+    func body(content: Content) -> some View {
+        ScrollViewReader { proxy in
+            content
+                .onChange(of: isTriggered) {
+                    guard isTriggered else { return }
+                    Task {
+                        // Wait for the keyboard's own scroll-to-focus to finish, otherwise it overrides ours.
+                        try? await Task.sleep(for: .milliseconds(400))
+                        withAnimation { proxy.scrollTo(id, anchor: .bottom) }
+                    }
+                }
+        }
+    }
 }
 
 #if DEBUG

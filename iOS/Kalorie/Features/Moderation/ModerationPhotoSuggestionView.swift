@@ -23,20 +23,19 @@ struct ModerationPhotoSuggestionView: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            List {
-                Section {
-                    Color.clear
-                        .aspectRatio(1, contentMode: .fit)
-                        .overlay { FoodPhotoContent(photo: .remote(viewModel.suggestion.photoURL), contentMode: .fill) }
-                        .clipShape(.rect(cornerRadius: 12))
-                        .listRowInsets(EdgeInsets())
-                    Text(viewModel.itemName ?? viewModel.suggestion.itemId)
-                        .fontWeight(.medium)
-                }
+        List {
+            Section {
+                Color.clear
+                    .aspectRatio(1, contentMode: .fit)
+                    .overlay { FoodPhotoContent(photo: .remote(viewModel.suggestion.photoURL), contentMode: .fill) }
+                    .clipShape(.rect(cornerRadius: 12))
+                    .listRowInsets(EdgeInsets())
+                Text(viewModel.itemName ?? viewModel.suggestion.itemId)
+                    .fontWeight(.medium)
             }
-            .listSectionSpacing(.custom(24))
-
+        }
+        .listSectionSpacing(.custom(24))
+        .bottomPinnedButtons {
             VStack(spacing: 12) {
                 if viewModel.canApprove {
                     PrimaryButton(L10n.Moderation.buttonApprove) {
@@ -47,10 +46,6 @@ struct ModerationPhotoSuggestionView: View {
                     Task { await viewModel.onRejectTapped() }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity)
-            .background(Color(uiColor: .systemGroupedBackground))
         }
         .navigationTitle(L10n.Moderation.photoSuggestionTitle)
         .navigationBarTitleDisplayMode(.inline)

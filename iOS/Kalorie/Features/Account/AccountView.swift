@@ -27,98 +27,91 @@ struct AccountView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                List {
-                    Section {
-                        if viewModel.isAnonymous {
-                            Text(L10n.Account.anonymousDescription)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+            List {
+                Section {
+                    if viewModel.isAnonymous {
+                        Text(L10n.Account.anonymousDescription)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
 
-                            HStack(spacing: 20) {
-                                VStack(spacing: 6) {
-                                    Button {
-                                        Task { await viewModel.onSignInWithAppleTapped() }
-                                    } label: {
-                                        providerLogo(kind: .apple)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityLabel(L10n.Account.buttonSignInWithApple)
-
-                                    Text(L10n.Account.signInProviderApple)
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
+                        HStack(spacing: 20) {
+                            VStack(spacing: 6) {
+                                Button {
+                                    Task { await viewModel.onSignInWithAppleTapped() }
+                                } label: {
+                                    providerLogo(kind: .apple)
                                 }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(L10n.Account.buttonSignInWithApple)
 
-                                VStack(spacing: 6) {
-                                    Button {
-                                        Task { await viewModel.onSignInWithGoogleTapped() }
-                                    } label: {
-                                        providerLogo(kind: .google)
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityLabel(L10n.Account.buttonSignInWithGoogle)
-
-                                    Text(L10n.Account.signInProviderGoogle)
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                }
+                                Text(L10n.Account.signInProviderApple)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 20)
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color(uiColor: .secondarySystemGroupedBackground))
-                        } else {
-                            HStack {
-                                Text(viewModel.displayName ?? L10n.Account.signedInDefaultName)
-                                    .font(.headline)
 
-                                Spacer()
+                            VStack(spacing: 6) {
+                                Button {
+                                    Task { await viewModel.onSignInWithGoogleTapped() }
+                                } label: {
+                                    providerLogo(kind: .google)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(L10n.Account.buttonSignInWithGoogle)
 
-                                BadgeButton(imageName: .infoCircle) {
-                                    viewModel.isLinkInfoPopoverVisible = true
-                                }
-                                .popover(isPresented: $viewModel.isLinkInfoPopoverVisible) {
-                                    linkInfoPopover
-                                        .dynamicTypeLimit()
-                                        .presentationCompactAdaptation(.popover)
-                                }
+                                Text(L10n.Account.signInProviderGoogle)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
                             }
                         }
-                    }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color(uiColor: .secondarySystemGroupedBackground))
+                    } else {
+                        HStack {
+                            Text(viewModel.displayName ?? L10n.Account.signedInDefaultName)
+                                .font(.headline)
 
-                    Section {
-                        if let privacyPolicyURL = Constants.Support.privacyPolicyURL {
-                            linkRow(L10n.Common.privacyPolicy, url: privacyPolicyURL)
-                        }
+                            Spacer()
 
-                        if let openFoodFactsURL = Constants.OpenFoodFacts.baseURL {
-                            linkRow(L10n.Account.dataAttribution, url: openFoodFactsURL, isDescription: true)
-                        }
-
-                        if let ciqualURL = Constants.Ciqual.datasetURL {
-                            linkRow(L10n.Account.ciqualAttribution, url: ciqualURL, isDescription: true)
-                        }
-                    }
-
-                    if !viewModel.isAnonymous {
-                        Section {
-                            signOutButton
-                                .listRowInsets(EdgeInsets())
-                                .listRowBackground(Color.clear)
+                            BadgeButton(imageName: .infoCircle) {
+                                viewModel.isLinkInfoPopoverVisible = true
+                            }
+                            .popover(isPresented: $viewModel.isLinkInfoPopoverVisible) {
+                                linkInfoPopover
+                                    .dynamicTypeLimit()
+                                    .presentationCompactAdaptation(.popover)
+                            }
                         }
                     }
                 }
-                .listSectionSpacing(.custom(24))
+
+                Section {
+                    if let privacyPolicyURL = Constants.Support.privacyPolicyURL {
+                        linkRow(L10n.Common.privacyPolicy, url: privacyPolicyURL)
+                    }
+
+                    if let openFoodFactsURL = Constants.OpenFoodFacts.baseURL {
+                        linkRow(L10n.Account.dataAttribution, url: openFoodFactsURL, isDescription: true)
+                    }
+
+                    if let ciqualURL = Constants.Ciqual.datasetURL {
+                        linkRow(L10n.Account.ciqualAttribution, url: ciqualURL, isDescription: true)
+                    }
+                }
 
                 if !viewModel.isAnonymous {
-                    PrimaryButton(L10n.Account.buttonDeleteAccount, style: .destructive) {
-                        viewModel.showDeleteConfirmation = true
+                    Section {
+                        signOutButton
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity)
-                    .background(Color(uiColor: .systemGroupedBackground))
+                }
+            }
+            .listSectionSpacing(.custom(24))
+            .bottomPinnedButtons(isVisible: !viewModel.isAnonymous) {
+                PrimaryButton(L10n.Account.buttonDeleteAccount, style: .destructive) {
+                    viewModel.showDeleteConfirmation = true
                 }
             }
             .navigationTitle(L10n.Account.navigationTitle)
