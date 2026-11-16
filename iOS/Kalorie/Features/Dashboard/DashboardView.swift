@@ -47,7 +47,9 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 // Not a LazyVStack: after popping back from a screen whose edit changed the summary, the first
-                // scroll sent SwiftUI into an endless lazy layout pass and froze the main thread.
+                // scroll sent SwiftUI into an endless lazy layout pass and froze the main thread. The full-width
+                // frame below replaces what a LazyVStack did on its own; without it an empty day shrinks the
+                // ScrollView, and the empty-state overlay with it, to the horizontal padding.
                 VStack(spacing: 30) {
                     if !viewModel.foodsConsumed.isEmpty {
                         MacroSummaryView(
@@ -66,6 +68,7 @@ struct DashboardView: View {
                         mealSection(index: index, group: group)
                     }
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal)
                 .padding(.bottom, 24)
             }
