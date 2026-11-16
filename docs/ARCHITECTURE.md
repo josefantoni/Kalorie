@@ -1274,7 +1274,7 @@ meal type through `AssignFoodMealTypeUseCase` — the same write the detail scre
   `antoni.Kalorie.food-consumed`, exported in `Info.plist`, `.ownProcess` visibility), received by
   `onFoodsDropped`. Android carries it as plain-text `ClipData` without `DRAG_FLAG_GLOBAL`. Both
   keep the drag inside the app.
-- To make this possible the iOS dashboard is a `ScrollView` + `LazyVStack` of section cards rather
+- To make this possible the iOS dashboard is a `ScrollView` + `VStack` of section cards rather
   than a `List`, because a `List` row could not be dragged into another section.
 - The list scrolls while a row is dragged near its top or bottom edge, so a section off screen can
   be reached.
