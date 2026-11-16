@@ -46,7 +46,9 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 30) {
+                // Not a LazyVStack: after popping back from a screen whose edit changed the summary, the first
+                // scroll sent SwiftUI into an endless lazy layout pass and froze the main thread.
+                VStack(spacing: 30) {
                     if !viewModel.foodsConsumed.isEmpty {
                         MacroSummaryView(
                             macros: viewModel.dailyMacros,
