@@ -326,8 +326,10 @@ private final class SuspendingUpdateFoodItemUseCase: UpdateFoodItemUseCaseProtoc
     // MARK: - Functions
 
     func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Bool) async throws -> FoodItemDomain {
-        callCount += 1
-        await withCheckedContinuation { continuation = $0 }
+        await withCheckedContinuation {
+            continuation = $0
+            callCount += 1
+        }
         return item
     }
 
