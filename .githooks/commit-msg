@@ -1,0 +1,5 @@
+#!/bin/sh
+if grep -qiE '^(Co-Authored-By: .*(Claude|anthropic)|Claude-Session:|.*Generated with \[?Claude)' "$1"; then
+  echo "commit-msg: attribution trailers are not allowed in this repo (see CLAUDE.md)." >&2
+  exit 1
+fi

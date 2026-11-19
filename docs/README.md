@@ -10,8 +10,8 @@ is neither a plan nor a description of reality.
 
 | Document | Written | Lifecycle | Lives in |
 |---|---|---|---|
-| **Design doc** | Before implementation | **Frozen** once shipped — a historical record of why we built it this way | `docs/design/` |
-| **ADR** | When a decision is made | **Immutable** — never edited, only superseded by a newer ADR | `docs/adr/` |
+| **Design doc** | Before implementation | **Frozen** once merged to `main` — a historical record of why we built it this way; living until then | `docs/design/` |
+| **ADR** | When a decision is made | **Immutable** once merged to `main` — never edited, only superseded by a newer ADR; editable until then | `docs/adr/` |
 | **Setup / runbook** | When manual configuration exists | **Living** — updated whenever the environment changes | `docs/SETUP.md` |
 | **Code comment** | While writing the code | Lives and dies with the code it explains | Next to the code |
 | **Status, review findings, test counts** | — | Belongs in the commit message or the PR, and dies there | Not in `docs/` |
