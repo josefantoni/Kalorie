@@ -3,23 +3,110 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="icon.png">
 <title>Kalorie – Zásady ochrany osobních údajů / Zásady ochrany osobných údajov / Privacy policy</title>
 <style>
-  :root { color-scheme: light dark; }
-  body { font: 16px/1.5 -apple-system, system-ui, sans-serif; margin: 0; }
-  .brand { background: #1B7F6B; padding: 1.75rem 1rem; text-align: center; }
-  .brand img { display: block; width: 88px; height: 88px; margin: 0 auto; border-radius: 22%; box-shadow: 0 0 0 2px rgba(255, 255, 255, .3); }
-  main { max-width: 40rem; margin: 0 auto; padding: 1rem; }
-  h1 { font-size: 1.6rem; }
+  :root {
+    color-scheme: light;
+    --green: #1B7F6B;
+    --green-dark: #14594b;
+    --cream: #F6F2E8;
+    --ink: #1f2a27;
+    --phone-w: clamp(132px, min(36vw, 33vh), 300px);
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--cream); }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font: 16px/1.5 -apple-system, system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--cream) url("img/bg-tile.webp") 0 0 / 1900px auto repeat;
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 700px) { body { background-size: 1150px auto; } }
+
+  .controls { position: absolute; top: .9rem; right: .9rem; z-index: 20; display: flex; align-items: center; gap: .5rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .dropdown { position: relative; }
+  .icon-btn {
+    display: flex; align-items: center; gap: .4rem;
+    height: 40px; padding: 0 .65rem;
+    border: .5px solid #111; border-radius: 12px;
+    background: #fff; color: #111;
+    font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer;
+  }
+  .icon-btn:hover { background: #f0f0f0; }
+  .icon-btn:focus-visible, .panel button:focus-visible, .panel a:focus-visible, .store:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+  .flag { width: 27px; height: 18px; border-radius: 3px; display: block; box-shadow: 0 0 0 .5px #111; margin: .5px; flex: none; }
+  .chev { width: 10px; height: 10px; flex: none; transition: transform .15s; }
+  .icon-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+  .burger { width: 40px; padding: 0; justify-content: center; }
+  .burger svg { width: 20px; height: 20px; }
+
+  .panel {
+    position: absolute; right: 0; top: calc(100% + .45rem);
+    min-width: 11rem; margin: 0; padding: .35rem; list-style: none;
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(20, 60, 50, .22), 0 0 0 1px rgba(0, 0, 0, .15);
+  }
+  .panel[hidden] { display: none; }
+  .panel button, .panel a {
+    display: flex; align-items: center; gap: .6rem; width: 100%;
+    padding: .6rem .7rem; border: 0; border-radius: 10px; background: none;
+    color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+  }
+  .panel button:hover, .panel a:hover { background: #f0f0f0; }
+  .panel button[aria-checked="true"] { background: #e6e6e6; font-weight: 700; }
+  #menu-panel { min-width: 16rem; }
+
+  main { width: calc(100% - 2rem); max-width: 42rem; margin: 4.5rem auto 2rem; padding: 1.2rem 1.6rem 1.6rem; background: rgba(255, 255, 255, .95); border-radius: 18px; box-shadow: 0 8px 28px rgba(20, 60, 50, .15); display: block; flex: none; }
+  main a { color: var(--green-dark); }
+  h1 { font-size: 1.6rem; margin-top: .4rem; }
   h2 { font-size: 1.2rem; margin-top: 1.5rem; }
   hr { margin: 2.5rem 0; }
+  .js hr { display: none; }
+  .js main > div[hidden] { display: none; }
+  noscript p { margin-top: 0; }
 </style>
+<noscript><style>.controls { display: none; }</style></noscript>
 </head>
 <body>
-<header class="brand"><img src="icon.png" width="88" height="88" alt="Kalorie"></header>
-<main>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="flag-cs" viewBox="0 0 3 2"><rect width="3" height="2" fill="#fff"/><rect y="1" width="3" height="1" fill="#D7141A"/><path d="M0 0 1.5 1 0 2Z" fill="#11457E"/></symbol>
+  <symbol id="flag-sk" viewBox="0 0 9 6"><rect width="9" height="6" fill="#fff"/><rect y="2" width="9" height="2" fill="#0B4EA2"/><rect y="4" width="9" height="2" fill="#EE1C25"/><path d="M1.6 1.1h2.4v2.2c0 .8-.6 1.4-1.2 1.7-.6-.3-1.2-.9-1.2-1.7Z" fill="#EE1C25" stroke="#fff" stroke-width=".18"/><path d="M2.8 1.8v2.4M2.2 2.5h1.2" stroke="#fff" stroke-width=".28"/></symbol>
+  <symbol id="flag-en" viewBox="0 0 60 40"><clipPath id="uk-t"><path d="M30 20h30v20zv20h-30zh-30v-20zv-20h30z"/></clipPath><rect width="60" height="40" fill="#012169"/><path d="M0 0 60 40M60 0 0 40" stroke="#fff" stroke-width="8"/><path d="M0 0 60 40M60 0 0 40" clip-path="url(#uk-t)" stroke="#C8102E" stroke-width="2.7"/><path d="M30 0v40M0 20h60" stroke="#fff" stroke-width="11"/><path d="M30 0v40M0 20h60" stroke="#C8102E" stroke-width="6.5"/></symbol>
+</svg>
 
-<p><a href="#cs">Čeština</a> · <a href="#sk">Slovenčina</a> · <a href="#en">English</a></p>
+<div class="controls">
+    <div class="dropdown">
+      <button class="icon-btn" id="lang-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="lang-panel" aria-label="Jazyk / Language">
+        <svg class="flag" id="lang-flag" aria-hidden="true"><use href="#flag-cs"/></svg>
+        <svg class="chev" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <ul class="panel" id="lang-panel" hidden>
+        <li><button type="button" data-lang="cs" role="menuitemradio" aria-checked="true"><svg class="flag" aria-hidden="true"><use href="#flag-cs"/></svg>Čeština</button></li>
+        <li><button type="button" data-lang="sk" role="menuitemradio" aria-checked="false"><svg class="flag" aria-hidden="true"><use href="#flag-sk"/></svg>Slovenčina</button></li>
+        <li><button type="button" data-lang="en" role="menuitemradio" aria-checked="false"><svg class="flag" aria-hidden="true"><use href="#flag-en"/></svg>English</button></li>
+      </ul>
+    </div>
+    <div class="dropdown">
+      <button class="icon-btn burger" id="menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu-panel" aria-label="Menu">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 5h16M2 10h16M2 15h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <ul class="panel" id="menu-panel" hidden>
+        <li><a id="link-home" href="/" data-i18n="home">Domů</a></li>
+        <li><a id="link-privacy" href="/privacy#cs" data-i18n="privacy">Zásady ochrany osobních údajů</a></li>
+        <li><a id="link-delete" href="/delete-account#cs" data-i18n="delete">Smazání účtu</a></li>
+      </ul>
+    </div>
+  </div>
+
+<main>
+<noscript><p><a href="#cs">Čeština</a> · <a href="#sk">Slovenčina</a> · <a href="#en">English</a></p></noscript>
 
 <div lang="cs" id="cs">
 <h1>Kalorie – zásady ochrany osobních údajů</h1>
@@ -206,5 +293,84 @@
 </div>
 
 </main>
+
+<script>
+(function () {
+  var T = {
+    cs: { title: "Kalorie – Zásady ochrany osobních údajů", home: "Domů", privacy: "Zásady ochrany osobních údajů", "delete": "Smazání účtu" },
+    sk: { title: "Kalorie – Zásady ochrany osobných údajov", home: "Domov", privacy: "Zásady ochrany osobných údajov", "delete": "Zmazanie účtu" },
+    en: { title: "Kalorie – Privacy policy", home: "Home", privacy: "Privacy policy", "delete": "Delete account" }
+  };
+  var KEY = "kalorie-lang";
+  var $ = function (id) { return document.getElementById(id); };
+  document.documentElement.className = "js";
+  Array.prototype.forEach.call(document.querySelectorAll("main > div[id]"), function (d) { d.removeAttribute("id"); });
+
+  function initial() {
+    var h = (location.hash || "").slice(1);
+    if (T[h]) return h;
+    try { var s = localStorage.getItem(KEY); if (s && T[s]) return s; } catch (e) {}
+    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
+    for (var i = 0; i < list.length; i++) {
+      var p = String(list[i]).toLowerCase().slice(0, 2);
+      if (T[p]) return p;
+    }
+    return "en";
+  }
+
+  function setLang(l, fromUser) {
+    var t = T[l];
+    document.documentElement.lang = l;
+    document.title = t.title;
+    Array.prototype.forEach.call(document.querySelectorAll("main > div[lang]"), function (d) { d.hidden = d.getAttribute("lang") !== l; });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) { el.textContent = t[el.getAttribute("data-i18n")]; });
+    $("lang-flag").firstElementChild.setAttribute("href", "#flag-" + l);
+    $("link-privacy").href = "/privacy#" + l;
+    $("link-delete").href = "/delete-account#" + l;
+    Array.prototype.forEach.call(document.querySelectorAll("#lang-panel button"), function (b) {
+      b.setAttribute("aria-checked", b.getAttribute("data-lang") === l ? "true" : "false");
+    });
+    try { localStorage.setItem(KEY, l); } catch (e) {}
+    if (fromUser) {
+      try { history.replaceState(null, "", "#" + l); } catch (e) {}
+      window.scrollTo(0, 0);
+    }
+  }
+
+  var pairs = [["lang-btn", "lang-panel"], ["menu-btn", "menu-panel"]];
+  function closeAll(except) {
+    pairs.forEach(function (p) {
+      if (p[0] === except) return;
+      $(p[1]).hidden = true;
+      $(p[0]).setAttribute("aria-expanded", "false");
+    });
+  }
+  pairs.forEach(function (p) {
+    $(p[0]).addEventListener("click", function (e) {
+      e.stopPropagation();
+      var open = $(p[1]).hidden;
+      closeAll(p[0]);
+      $(p[1]).hidden = !open;
+      this.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    $(p[1]).addEventListener("click", function (e) { e.stopPropagation(); });
+  });
+  document.addEventListener("click", function () { closeAll(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeAll(); } });
+  Array.prototype.forEach.call(document.querySelectorAll("#lang-panel button"), function (b) {
+    b.addEventListener("click", function (e) { setLang(b.getAttribute("data-lang"), true); closeAll(); if (e.detail === 0) { $("lang-btn").focus(); } });
+  });
+  window.addEventListener("hashchange", function () {
+    var h = location.hash.slice(1);
+    if (T[h]) setLang(h, false);
+  });
+
+  setLang(initial(), false);
+  if (T[(location.hash || "").slice(1)]) {
+    window.scrollTo(0, 0);
+    window.addEventListener("load", function () { window.scrollTo(0, 0); });
+  }
+})();
+</script>
 </body>
 </html>
