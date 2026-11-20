@@ -30,7 +30,7 @@ iOS, Android, the backend and the shared KMP modules live in one git repository.
 - **A commit concerns one platform** (`iOS/`, `Android/`, `backend/`, KMP modules, `docs/`). Mix them only when a single change to a shared contract (rules, document shape, KMP API) has to land on all of them at once.
 - **A change to a KMP module or the Firestore contract** = check both clients (iOS build, Android build), not just the one you are working on.
 - **Never create a tag or release without a platform prefix** (`ios-1.2`, `android-1.0`).
-- **CI**: whenever you change `.github/workflows/`, make sure a change in one platform does not needlessly trigger the other's build. Status and plan are in `TODO.md` (Android readiness).
+- **CI**: whenever you change `.github/workflows/`, make sure a change in one platform does not needlessly trigger the other's build.
 - If a new CI step or secret is needed, tell the user — do not quietly work it out yourself.
 
 ## Code comments
@@ -42,12 +42,9 @@ iOS, Android, the backend and the shared KMP modules live in one git repository.
 
 ## Code navigation
 
-Order of tools — always like this, never skip a step:
-1. **LSP** (`definition`, `references`, `hover`) — for symbols, types, callers
-2. **`grep` / `find`** — for a pattern LSP does not cover
-3. **`Read`** — only once you know exactly which file and roughly where
-
-Never read a file "to have a look" — search first, Read only as the last step.
+Find code with **LSP** (`definition`, `references`, `hover`) for symbols, types and callers, and with `grep` / `find`
+for patterns LSP does not cover. Open a file with `Read` once you know which file and roughly where — reading files to
+browse fills the context with code the task does not need.
 
 ## Documentation navigation
 
