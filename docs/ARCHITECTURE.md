@@ -2307,7 +2307,7 @@ until Firebase refreshes the token itself (about an hour); the rules still deny 
 ## 8. Data export
 
 **Scope:** `Cross-platform` for the report contract, the xlsx writer and the PDF layout (all in
-ExportKit); `iOS` for the screen, the day bucketing and the file delivery.
+ExportKit); `iOS` and `Android` for the screen, the day bucketing and the file delivery.
 
 **Read first:** [design 0014](design/0014-data-export.md) (the report rules, why day bucketing and
 meal resolution stay in Swift, and the dated Updates on PdfKmp and the removed offline handling),
@@ -2392,8 +2392,9 @@ MealKit; the only arithmetic is adding already-absolute values, with no scaling 
 - `energyKJ` in the report is whatever the domain already holds; when the stored value was absent it
   was derived at decode time (ADR 0007), the export does not derive it again.
 - Every string reaching ExportKit is already localized; ExportKit holds no `Locale` or `Calendar`
-  and no `kotlinx-datetime`, which is the reason day bucketing stays in Swift. An Android client
-  supplies the same inputs from its own calendar, meal resolution and strings.
+  and no `kotlinx-datetime`, which is the reason day bucketing stays in the platform clients. Android
+  supplies the same inputs from its own calendar, meal resolution and strings
+  (`FoodExportReportFactory.kt`) and hands the file to the system chooser through a `FileProvider`.
 - The `.xlsx` container has no compression on purpose: `commonMain` has no deflate, and the file is
   small. ZIP64 is not needed.
 - There is no interval limit: two years is around 11,000 entries, and the cost is one Firestore read
