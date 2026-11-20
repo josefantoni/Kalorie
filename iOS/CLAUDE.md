@@ -49,7 +49,7 @@ The rule about code comments is in the root `CLAUDE.md`.
 Three-layer structure:
 
 ```
-View → ViewModel → UseCase → (DataProvider / persistence directly)
+View → ViewModel → UseCase → providers (Firestore, Auth, StoreKit, …) / other UseCases
 ```
 
 - **View** — SwiftUI `struct`, no business logic
@@ -63,38 +63,39 @@ View → ViewModel → UseCase → (DataProvider / persistence directly)
 Each use case is defined by a protocol with a `callAsFunction` signature, implemented as a `struct`, and injected as `any UseCaseProtocol`.
 
 ```swift
-protocol LoadExchangeRatesUseCaseProtocol {
-    func callAsFunction(for currency: String) async throws -> [ExchangeRateDomain]
+protocol FetchMealTypesUseCaseProtocol {
+    func callAsFunction() async throws -> [MealTypeDomain]
 }
 
-struct LoadExchangeRatesUseCase: LoadExchangeRatesUseCaseProtocol {
-    private let dataProvider: any DataProvider
+struct FetchMealTypesUseCase: FetchMealTypesUseCaseProtocol {
+    private let dataProvider: any FirestoreDataProviderProtocol
+    private let authProvider: any AuthProviderProtocol
 
-    func callAsFunction(for currency: String) async throws -> [ExchangeRateDomain] {
-        let response: [ExchangeRateDTO] = try await dataProvider.loadAsync(
-            ExchangeRateEndpoint.rates(currency: currency)
-        )
-        return response.map(ExchangeRateDomain.init)
+    func callAsFunction() async throws -> [MealTypeDomain] {
+        guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
+        let dtos: [MealTypeDTO] = try await dataProvider.loadAsync(from: Constants.Firestore.mealTypes(userId: userId))
+        return dtos.map { MealTypeDomain(...) }.sorted { $0.startMinutes < $1.startMinutes }
     }
 }
 
-struct LoadExchangeRatesUseCaseFake: LoadExchangeRatesUseCaseProtocol {
-    func callAsFunction(for currency: String) async throws -> [ExchangeRateDomain] { [] }
+#if DEBUG
+struct FetchMealTypesUseCaseFake: FetchMealTypesUseCaseProtocol {
+    var stubbedTypes: [MealTypeDomain] = []
+
+    func callAsFunction() async throws -> [MealTypeDomain] { stubbedTypes }
 }
+#endif
 ```
 
-Call site reads as natural language: `try await loadExchangeRates(for: currency)`.
-
-For CoreData-backed UseCases the UseCase takes `NSManagedObjectContext` directly and performs the persistence operation itself — no extra layer in between.
+Call site reads as natural language: `mealTypes = try await fetchMealTypes()`.
 
 ---
 
 ## Networking / Data Access — DataProvider Protocol
 
 - Generic `FirestoreDataProviderProtocol` wraps Firestore: `loadAsync<T: Decodable>` + `saveAsync<T: Encodable>`
-- Each UseCase calls the DataProvider directly and maps DTOs to domain types
-- CoreData UseCases receive `NSManagedObjectContext` via `init` and operate on it directly
-- Domain models are never coupled to DTO or CoreData types
+- A UseCase that reads or writes Firestore calls the DataProvider directly and maps DTOs to domain types; a UseCase may also compose other UseCases
+- Domain models are never coupled to DTO types
 
 ---
 
@@ -103,12 +104,19 @@ For CoreData-backed UseCases the UseCase takes `NSManagedObjectContext` directly
 No singleton DI container. Each feature has a `Configurator` struct that assembles the full dependency graph at the call site.
 
 ```swift
-struct LoginConfigurator {
-    func createView() -> LoginView {
-        LoginView(
-            viewModel: LoginViewModel(
-                loginUseCase: LoginUseCase(
-                    dataProvider: FirestoreDataProvider()
+struct ExportConfigurator {
+    func createView(mealTypes: [MealTypeDomain]) -> ExportView {
+        let dataProvider = FirestoreDataProvider()
+        let authProvider = AuthProvider()
+        return ExportView(
+            viewModel: ExportViewModel(
+                mealTypes: mealTypes,
+                generateFoodExport: GenerateFoodExportUseCase(
+                    fetchFoodsConsumedInRange: FetchFoodsConsumedInRangeUseCase(
+                        dataProvider: dataProvider,
+                        authProvider: authProvider
+                    ),
+                    ...
                 )
             )
         )
@@ -150,11 +158,11 @@ enum State {
 
 ```swift
 // ViewModel
-@Published var isCardPickerPushed = false
+@Published var isExportPushed = false
 
 // View
-.navigationDestination(isPresented: $viewModel.isCardPickerPushed) {
-    router.makeCardPickerView()
+.navigationDestination(isPresented: $viewModel.isExportPushed) {
+    router.makeExportView(mealTypes: viewModel.mealTypes)
 }
 ```
 
@@ -194,16 +202,19 @@ Required section headers in every type:
 - Memory leak tracking via `addTeardownBlock` (class SUT only — not structs)
 
 ```swift
-final class LoadExchangeRatesUseCaseTests: XCTestCase {
-    func test_loadsRates_returnsExpectedResult() async throws {
-        let (sut, _) = makeSUT()
-        let rates = try await sut(for: "USD")
-        XCTAssertFalse(rates.isEmpty)
+final class FetchMinimumVersionUseCaseTests: XCTestCase {
+    func test_fetch_returnsTheIosField() async throws {
+        let (sut, _) = makeSUT(config: AppConfigDTO(minVersionIos: "1.0.1", minVersionAndroid: "9.0"))
+        let minimum = try await sut()
+        XCTAssertEqual(minimum, AppVersion("1.0.1"))
     }
 
-    private func makeSUT() -> (sut: LoadExchangeRatesUseCase, dataProvider: DataProviderFake) {
-        let dataProvider = DataProviderFake()
-        let sut = LoadExchangeRatesUseCase(dataProvider: dataProvider)
+    private func makeSUT(
+        config: AppConfigDTO? = nil
+    ) -> (sut: FetchMinimumVersionUseCase, dataProvider: FetchMinimumVersionDataProviderFake) {
+        let dataProvider = FetchMinimumVersionDataProviderFake()
+        dataProvider.stubbedConfig = config
+        let sut = FetchMinimumVersionUseCase(dataProvider: dataProvider)
         return (sut, dataProvider)
     }
 }
@@ -227,12 +238,12 @@ arm64-only, and the link fails with `Undefined symbols for architecture x86_64`.
 
 | Category | Convention | Example |
 |---|---|---|
-| Protocols | `Protocol` suffix | `LoadExchangeRatesUseCaseProtocol` |
-| Fake test objects | `Fake` suffix | `DataProviderFake` |
-| UI lifecycle callbacks | `on` prefix | `onAppear`, `onSegmentChanged` |
-| Boolean properties | `is/has/can` prefix | `isLoading`, `hasError` |
-| Collections | plural | `exchangeRateRows`, `cards` |
-| Files | `[Feature][Type].swift` | `ExchangeRateViewModel.swift` |
+| Protocols | `Protocol` suffix | `FetchMealTypesUseCaseProtocol` |
+| Fake test objects | `Fake` suffix | `FetchMealTypesUseCaseFake`, `AuthProviderFake` |
+| UI lifecycle callbacks | `on` prefix | `onAppear`, `onSaveTapped` |
+| Boolean properties | `is/has/can` prefix | `isLoading`, `hasChanges`, `canSave` |
+| Collections | plural | `mealTypes`, `favouriteFoods` |
+| Files | `[Feature][Type].swift` | `SettingsViewModel.swift` |
 
 ---
 
