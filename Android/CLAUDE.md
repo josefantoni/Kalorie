@@ -128,7 +128,7 @@ It mirrors the iOS component of the same name. Never call `FilledIconButton` or
 
 ## Strings
 
-`res/values-cs/strings.xml` (Czech) and `res/values/strings.xml` (English, the default for every other device language) are **generated** from
+`res/values-cs/strings.xml` (Czech), `res/values-sk/strings.xml` (Slovak) and `res/values/strings.xml` (English, the default for every other device language) are **generated** from
 `localisation/strings.json`, the single source shared with iOS; never edit them by hand. Keys are
 1:1 with iOS, so a new string is added to that JSON and then `npm run generate-strings` is run in
 `scripts/`. A string only Android needs still goes into the same file.
