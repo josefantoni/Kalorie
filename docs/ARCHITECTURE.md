@@ -2307,10 +2307,10 @@ until Firebase refreshes the token itself (about an hour); the rules still deny 
 ## 8. Data export
 
 **Scope:** `Cross-platform` for the report contract, the xlsx writer and the PDF layout (all in
-ExportKit); `iOS` for the screen, the day bucketing and the file delivery.
+ExportKit); `iOS` and `Android` for the screen, the day bucketing and the file delivery.
 
 **Read first:** [design 0014](design/0014-data-export.md) (the report rules, why day bucketing and
-meal resolution stay in Swift, and the dated Updates on PdfKmp and the removed offline handling),
+meal resolution stay in the platform clients rather than in ExportKit, and the dated Updates on PdfKmp and the removed offline handling),
 [ADR 0032](adr/0032-unknown-optional-nutrient-shown-as-dash-not-zero.md) (dash for one food's
 unknown value, zero in a sum), [ADR 0034](adr/0034-kotlin-toolchain-pinned-at-2.4.10-across-kmp-modules.md)
 (the Kotlin version PdfKmp needs), [design 0011](design/0011-food-measure-grams-or-millilitres.md)
@@ -2341,13 +2341,33 @@ SettingsView ─▶ ExportView ─▶ ExportViewModel ─▶ GenerateFoodExportU
                                                    temp file URL ─▶ UIActivityViewController
 ```
 
-The screen is pushed inside the sheet's `NavigationStack` (`isExportPushed`, `SettingsRouter`),
+On iOS the screen is pushed inside the sheet's `NavigationStack` (`isExportPushed`, `SettingsRouter`),
 not presented separately. The file is written to the temporary directory as
 `Kalorie_<from>_<to>.<ext>` and removed when the share sheet finishes (`ExportViewModel.onShareFinished`).
 `ShareLink` is not used: it needs its item before the tap, and the file exists only after an async
 generation.
 
-### 8.2 Swift side
+Android has the same chain, with `FoodExportReportFactory.kt` in place of the Swift one:
+
+```
+SettingsView ─▶ ExportView ─▶ ExportViewModel ─▶ GenerateFoodExportUseCase
+                                                        │  FetchFoodsConsumedInRangeUseCase
+                                                        │  FoodExportReportFactory (Kotlin)
+                                                        │  ExportKit: buildReport → renderXlsx / renderPdf
+                                                        ▼
+                                          cacheDir/exports file ─▶ FileProvider URI ─▶ ACTION_SEND chooser
+```
+
+The screen is a `SettingsDestination.Export` entry on the Settings back stack. The file goes to
+`cacheDir/exports/` (exposed by `res/xml/file_paths.xml`) under the same name. The chooser reports
+no completion, so the file cannot be removed when sharing ends; instead `GenerateFoodExportUseCase`
+empties the folder before it writes the next export, and at most one file is left behind.
+
+### 8.2 Client side
+
+The iOS types are described below; the Android ones in `core/usecases/` mirror them with
+`java.time` (`ZoneId`, `Locale`, `DateTimeFormatter`) in place of `Calendar` and the same
+`resolvedMealTypeId` rule.
 
 `FetchFoodsConsumedInRangeUseCase` is one ordinary range query over `date`,
 `[startOfDay(from), startOfDay(to) + 1 day)`, through the provider's existing range method — the
@@ -2392,8 +2412,9 @@ MealKit; the only arithmetic is adding already-absolute values, with no scaling 
 - `energyKJ` in the report is whatever the domain already holds; when the stored value was absent it
   was derived at decode time (ADR 0007), the export does not derive it again.
 - Every string reaching ExportKit is already localized; ExportKit holds no `Locale` or `Calendar`
-  and no `kotlinx-datetime`, which is the reason day bucketing stays in Swift. An Android client
-  supplies the same inputs from its own calendar, meal resolution and strings.
+  and no `kotlinx-datetime`, which is the reason day bucketing stays in the platform clients. Android
+  supplies the same inputs from its own calendar, meal resolution and strings
+  (`FoodExportReportFactory.kt`) and hands the file to the system chooser through a `FileProvider`.
 - The `.xlsx` container has no compression on purpose: `commonMain` has no deflate, and the file is
   small. ZIP64 is not needed.
 - There is no interval limit: two years is around 11,000 entries, and the cost is one Firestore read
