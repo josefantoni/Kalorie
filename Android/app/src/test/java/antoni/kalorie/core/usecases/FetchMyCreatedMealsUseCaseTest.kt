@@ -82,6 +82,7 @@ class FetchMyCreatedMealsUseCaseTest {
     private fun makeIngredient(): MyCreatedMealIngredientDomain = MyCreatedMealIngredientDomain(
         foodItemId = "12345",
         czName = "Ovesné vločky",
+        skName = "Ovesné vločky",
         engName = "Oats",
         grams = 50.0,
         nutrition = FoodNutritionValues(

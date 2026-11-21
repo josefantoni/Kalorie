@@ -1,6 +1,7 @@
 package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.FoodItemRequiredNames
 import antoni.kalorie.core.models.FoodItemValidation
 import antoni.kalorie.core.models.FoodItemValidationError
 import antoni.kalorie.core.models.FoodPortionError
@@ -43,7 +44,7 @@ class CreateFoodItemUseCase(
     // MARK: - Functions
 
     override suspend fun invoke(item: FoodItemDomain): FoodItemDomain {
-        FoodItemValidation.validate(item)?.let { throw CreateFoodItemError.from(it) }
+        FoodItemValidation.validate(item, FoodItemRequiredNames.All)?.let { throw CreateFoodItemError.from(it) }
         val existing: FoodItemDTO? = dataProvider.loadFromServerAsync(id = item.id, from = Constants.Firestore.FOOD_ITEMS)
         if (existing != null) throw CreateFoodItemError.ItemAlreadyExists
         try {

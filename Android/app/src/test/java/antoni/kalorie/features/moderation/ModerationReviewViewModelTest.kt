@@ -37,7 +37,7 @@ class ModerationReviewViewModelTest {
         val approveSubmission = ApproveSubmissionUseCaseSpy()
         val sut = makeSUT(submission = makeSubmission(date = originalDate), approveSubmission = approveSubmission)
 
-        sut.formInput.value = sut.formInput.value.copy(name = "Opravený název")
+        sut.formInput.value = sut.formInput.value.copy(czName = "Opravený název")
         sut.onApproveTapped()
 
         assertEquals(originalDate, approveSubmission.receivedItem?.date)
@@ -49,7 +49,7 @@ class ModerationReviewViewModelTest {
         val approveSubmission = ApproveSubmissionUseCaseSpy()
         val sut = makeSUT(submission = makeSubmission(engName = "Cottage cheese"), approveSubmission = approveSubmission)
 
-        sut.formInput.value = sut.formInput.value.copy(name = "Opravený název")
+        sut.formInput.value = sut.formInput.value.copy(czName = "Opravený název")
         sut.onApproveTapped()
 
         assertEquals("Cottage cheese", approveSubmission.receivedItem?.engName)
@@ -223,6 +223,16 @@ class ModerationReviewViewModelTest {
     }
 
     @Test
+    fun onAppear_searchesInTheSubmissionsLanguageNotTheMaintainersDeviceLanguage() = runTest {
+        val searchFoodItems = SearchFoodItemsUseCaseSpy()
+        val sut = makeSUT(submission = makeSubmission(barcode = null, nameLanguage = "sk"), searchFoodItems = searchFoodItems)
+
+        sut.onAppear()
+
+        assertEquals("a Slovak submission must be compared with the Slovak catalogue names, or a duplicate on a Czech maintainer's device goes unseen", "sk", searchFoodItems.receivedLanguageCode)
+    }
+
+    @Test
     fun onAppear_whenSearchFails_marksSectionUnavailableButDoesNotBlockApproval() = runTest {
         val searchFoodItems = SearchFoodItemsUseCaseSpy(shouldThrow = true)
         val approveSubmission = ApproveSubmissionUseCaseSpy()
@@ -250,13 +260,14 @@ class ModerationReviewViewModelTest {
         onResolved = {},
     )
 
-    private fun makeSubmission(id: String = "sub-1", barcode: String? = "12345678", date: Instant = Instant.now(), engName: String = "Cottage cheese"): FoodItemSubmissionDomain = FoodItemSubmissionDomain(
+    private fun makeSubmission(id: String = "sub-1", barcode: String? = "12345678", date: Instant = Instant.now(), engName: String = "Cottage cheese", nameLanguage: String = "cs"): FoodItemSubmissionDomain = FoodItemSubmissionDomain(
         id = id,
         barcode = barcode,
         submittedBy = "some-user",
         status = FoodItemSubmissionStatus.PENDING,
         submittedAt = Instant.now(),
         rejectReason = null,
+        nameLanguage = nameLanguage,
         item = makeItem(id = barcode ?: "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D", date = date).copy(engName = engName),
     )
 
@@ -264,6 +275,7 @@ class ModerationReviewViewModelTest {
         id = id,
         kind = FoodItemKind.CATALOGUE,
         czName = czName,
+        skName = czName,
         engName = "Cottage cheese",
         weight = 200.0,
         date = date,
@@ -326,11 +338,13 @@ private class SearchFoodItemsUseCaseSpy(
     // MARK: - Properties
 
     var receivedQuery: String? = null
+    var receivedLanguageCode: String? = null
 
     // MARK: - Functions
 
-    override suspend fun invoke(query: String): List<FoodItemDomain> {
+    override suspend fun invoke(query: String, languageCode: String?): List<FoodItemDomain> {
         receivedQuery = query
+        receivedLanguageCode = languageCode
         if (shouldThrow) throw RuntimeException("search failed")
         return stubbedItems
     }

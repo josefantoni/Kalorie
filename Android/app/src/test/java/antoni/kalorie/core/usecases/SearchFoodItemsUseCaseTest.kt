@@ -2,7 +2,6 @@ package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
-import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.networking.FirestoreDataMapper
 import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodItemDTO
@@ -16,12 +15,10 @@ class SearchFoodItemsUseCaseTest {
     // MARK: - Tests
 
     @Test
-    fun search_mergesResultsFromBothFoldedNameFields() = runTest {
+    fun search_mergesResultsFromThePrefixAndTokenFields() = runTest {
         val (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByPrefixField = mapOf(
-            "cz_name_folded" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
-            "eng_name_folded" to listOf(makeDTO(id = "2", czName = "Tvaroh jemný")),
-        )
+        dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(makeDTO(id = "1", czName = "Tvaroh")))
+        dataProvider.stubbedByArrayContainsField = mapOf("cz_name_search_terms" to listOf(makeDTO(id = "2", czName = "Měkký tvaroh")))
 
         val result = sut(query = "tv")
 
@@ -29,28 +26,13 @@ class SearchFoodItemsUseCaseTest {
     }
 
     @Test
-    fun search_withSameItemMatchingBothFoldedFields_deduplicatesById() = runTest {
-        val (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByPrefixField = mapOf(
-            "cz_name_folded" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
-            "eng_name_folded" to listOf(makeDTO(id = "1", czName = "Tvaroh")),
-        )
-
-        val result = sut(query = "tv")
-
-        assertEquals(1, result.size)
-    }
-
-    @Test
     fun search_matchesOnlyTheNameInTheAppLanguage() = runTest {
-        val (sut, dataProvider) = makeSUT()
+        val (sut, dataProvider) = makeSUT(languageCode = "en")
         val dto = makeDTO(id = "1", czName = "Hovězí maso", engName = "Beef")
         dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(dto), "eng_name_folded" to listOf(dto))
-        val item = dto.asDomain()
-        val hidden = if (item.displayName == item.czName) item.engName else item.czName
 
-        val byHiddenName = sut(query = hidden.take(3))
-        val byDisplayedName = sut(query = item.displayName.take(3))
+        val byHiddenName = sut(query = "hov")
+        val byDisplayedName = sut(query = "bee")
 
         assertEquals(emptyList<FoodItemDomain>(), byHiddenName)
         assertEquals(listOf("1"), byDisplayedName.map { it.id })
@@ -90,10 +72,7 @@ class SearchFoodItemsUseCaseTest {
         val result = sut(query = "tv")
 
         assertEquals(listOf("1"), result.map { it.id })
-        assertEquals(
-            setOf("cz_name_folded", "eng_name_folded", "cz_name_search_terms", "eng_name_search_terms"),
-            dataProvider.queriedSearchFields.toSet(),
-        )
+        assertEquals(setOf("cz_name_folded", "cz_name_search_terms"), dataProvider.queriedSearchFields.toSet())
     }
 
     @Test
@@ -131,7 +110,6 @@ class SearchFoodItemsUseCaseTest {
 
         assertEquals(listOf("1"), result.map { it.id })
         assertEquals("mlek", dataProvider.arrayContainsValuesByField["cz_name_search_terms"])
-        assertEquals("mlek", dataProvider.arrayContainsValuesByField["eng_name_search_terms"])
     }
 
     @Test
@@ -155,37 +133,102 @@ class SearchFoodItemsUseCaseTest {
     }
 
     @Test
-    fun search_mergesInTheFixedFieldOrderWithoutResorting() = runTest {
+    fun search_mergesPrefixResultsBeforeTokenResults() = runTest {
         val (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByPrefixField = mapOf(
-            "cz_name_folded" to listOf(makeDTO(id = "czFolded")),
-            "eng_name_folded" to listOf(makeDTO(id = "engFolded")),
-        )
-        dataProvider.stubbedByArrayContainsField = mapOf(
-            "cz_name_search_terms" to listOf(makeDTO(id = "czToken")),
-            "eng_name_search_terms" to listOf(makeDTO(id = "engToken")),
-        )
+        dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(makeDTO(id = "czFolded")))
+        dataProvider.stubbedByArrayContainsField = mapOf("cz_name_search_terms" to listOf(makeDTO(id = "czToken")))
 
         val result = sut(query = "tv")
 
         assertEquals(
             "the concatenation is the user-visible order — a client that merges in another order shows a different list",
-            listOf("czFolded", "engFolded", "czToken", "engToken"),
+            listOf("czFolded", "czToken"),
             result.map { it.id },
         )
     }
 
+    @Test
+    fun search_onSlovakDevice_queriesOnlyTheTwoSlovakFields() = runTest {
+        val (sut, dataProvider) = makeSUT(languageCode = "sk")
+        dataProvider.stubbedByPrefixField = mapOf("sk_name_folded" to listOf(makeDTO(id = "1", czName = "Mléko", skName = "Mlieko")))
+
+        val result = sut(query = "mlie")
+
+        assertEquals(setOf("sk_name_folded", "sk_name_search_terms"), dataProvider.queriedSearchFields.toSet())
+        assertEquals(2, dataProvider.queriedSearchFields.size)
+        assertEquals(listOf("1"), result.map { it.id })
+    }
+
+    @Test
+    fun search_withExplicitLanguage_queriesThatLanguageInsteadOfTheDevices() = runTest {
+        val (sut, dataProvider) = makeSUT(languageCode = "cs")
+        dataProvider.stubbedByPrefixField = mapOf("sk_name_folded" to listOf(makeDTO(id = "1", czName = "Brambory", skName = "Zemiaky")))
+
+        val result = sut(query = "zemiaky", languageCode = "sk")
+
+        assertEquals(setOf("sk_name_folded", "sk_name_search_terms"), dataProvider.queriedSearchFields.toSet())
+        assertEquals("the displayed-name filter must follow the explicit language too, or the Slovak match is dropped on a Czech device", listOf("1"), result.map { it.id })
+    }
+
+    @Test
+    fun search_onSlovakDevice_doesNotMatchTheCzechSpelling() = runTest {
+        val (sut, dataProvider) = makeSUT(languageCode = "sk")
+        dataProvider.stubbedByPrefixField = mapOf("sk_name_folded" to listOf(makeDTO(id = "1", czName = "Brambory", skName = "Zemiaky")))
+
+        val result = sut(query = "bram")
+
+        assertEquals(emptyList<FoodItemDomain>(), result)
+    }
+
+    @Test
+    fun search_onCzechDevice_queriesOnlyTheTwoCzechFields() = runTest {
+        val (sut, dataProvider) = makeSUT(languageCode = "cs")
+        dataProvider.stubbedByPrefixField = mapOf("cz_name_folded" to listOf(makeDTO(id = "1", czName = "Mléko", skName = "Mlieko")))
+
+        val result = sut(query = "mlé")
+
+        assertEquals(setOf("cz_name_folded", "cz_name_search_terms"), dataProvider.queriedSearchFields.toSet())
+        assertEquals(2, dataProvider.queriedSearchFields.size)
+        assertEquals(listOf("1"), result.map { it.id })
+    }
+
+    @Test
+    fun search_onEnglishDevice_queriesOnlyTheTwoEnglishFields() = runTest {
+        val (sut, dataProvider) = makeSUT(languageCode = "en")
+        dataProvider.stubbedByPrefixField = mapOf("eng_name_folded" to listOf(makeDTO(id = "1", czName = "Mléko", engName = "Milk")))
+
+        val result = sut(query = "mi")
+
+        assertEquals(
+            "every catalogue item has a non-empty English name, so the Czech fallback queries are gone",
+            setOf("eng_name_folded", "eng_name_search_terms"),
+            dataProvider.queriedSearchFields.toSet(),
+        )
+        assertEquals(2, dataProvider.queriedSearchFields.size)
+        assertEquals(listOf("1"), result.map { it.id })
+    }
+
+    @Test
+    fun search_onOtherLanguageDevice_queriesTheEnglishFields() = runTest {
+        val (sut, dataProvider) = makeSUT(languageCode = "de")
+
+        sut(query = "mi")
+
+        assertEquals(setOf("eng_name_folded", "eng_name_search_terms"), dataProvider.queriedSearchFields.toSet())
+    }
+
     // MARK: - Helpers
 
-    private fun makeSUT(): Pair<SearchFoodItemsUseCase, FirestoreDataProviderFake> {
+    private fun makeSUT(languageCode: String = "cs"): Pair<SearchFoodItemsUseCase, FirestoreDataProviderFake> {
         val dataProvider = FirestoreDataProviderFake()
-        val sut = SearchFoodItemsUseCase(dataProvider = dataProvider)
+        val sut = SearchFoodItemsUseCase(dataProvider = dataProvider, languageCode = { languageCode })
         return sut to dataProvider
     }
 
     private fun makeDTO(
         id: String = "8594004428464",
         czName: String = "Tvaroh",
+        skName: String = czName,
         engName: String = czName,
         fat: Double = 0.5,
         carbohydrate: Double = 4.0,
@@ -195,6 +238,7 @@ class SearchFoodItemsUseCaseTest {
             id = id,
             kind = FoodItemKind.CATALOGUE,
             czName = czName,
+            skName = skName,
             engName = engName,
             weight = 100.0,
             date = Instant.now(),

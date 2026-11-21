@@ -3,7 +3,9 @@ package antoni.kalorie.core.networking
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.models.FoodMeasure
+import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 import java.time.Instant
 
@@ -60,16 +62,38 @@ class FoodItemDTOTest {
         assertEquals("https://storage.fake/a.jpg", dto.asDomain().photoUrl)
     }
 
+    @Test
+    fun skName_survivesRoundTripWithFoldedAndSearchTerms() {
+        val json = FirestoreDataMapper.encode(FoodItemDTO(makeItem(skName = "Mäso ľadové")), FoodItemDTO.serializer())
+
+        assertEquals("Mäso ľadové", json["sk_name"])
+        assertEquals("maso ladove", json["sk_name_folded"])
+        assertEquals(true, (json["sk_name_search_terms"] as? List<*>)?.contains("lad"))
+        assertEquals("Mäso ľadové", decode(json).asDomain().skName)
+    }
+
+    @Test
+    fun decode_whenSkNameIsAbsent_fails() {
+        val json = encodedJSON().apply { remove("sk_name") }
+
+        try {
+            decode(json)
+            fail("sk_name is required, so a document without it must not decode as an empty name")
+        } catch (_: SerializationException) {
+        }
+    }
+
     // MARK: - Helpers
 
     private fun encodedJSON(): MutableMap<String, Any?> = FirestoreDataMapper.encode(FoodItemDTO(makeItem()), FoodItemDTO.serializer()).toMutableMap()
 
     private fun decode(json: Map<String, Any?>): FoodItemDTO = FirestoreDataMapper.decode(json, FoodItemDTO.serializer())
 
-    private fun makeItem(alcoholByVolume: Double? = null, photoUrl: String? = null): FoodItemDomain = FoodItemDomain(
+    private fun makeItem(skName: String = "Mléko", alcoholByVolume: Double? = null, photoUrl: String? = null): FoodItemDomain = FoodItemDomain(
         id = "12345678",
         kind = FoodItemKind.CATALOGUE,
         czName = "Mléko",
+        skName = skName,
         engName = "Milk",
         weight = 1000.0,
         date = Instant.now(),

@@ -133,7 +133,7 @@ class AddFoodSheetViewModel(
             }
             val matchingMeals = myCreatedMeals.value
                 .map { it.asFoodItem() }
-                .filter { matchesSearchQuery(it.czName, query) }
+                .filter { matchesSearchQuery(it.displayName, query) }
             val matchingSubmissions = mySubmissions.value
                 .map { it.item }
                 .filter { matchesSearchQuery(it.displayName, query) }
@@ -274,9 +274,9 @@ class AddFoodSheetViewModel(
             val submissionId = editingSubmissionId
             if (submissionId != null) {
                 val previousPhotoUrl = mySubmissions.value.firstOrNull { it.id == submissionId }?.item?.photoUrl
-                updateMySubmission(submissionId, item, formInput.value.photo, previousPhotoUrl)
+                updateMySubmission(submissionId, item, formInput.value.nameLanguage, formInput.value.photo, previousPhotoUrl)
             } else {
-                submitFoodItem(item, formInput.value.photo)
+                submitFoodItem(item, formInput.value.nameLanguage, formInput.value.photo)
             }
             editingSubmissionId = null
             _rejectionReasonBeingEdited.value = null
@@ -314,7 +314,7 @@ class AddFoodSheetViewModel(
     }
 
     private fun openEditingForm(submission: FoodItemSubmissionDomain) {
-        formInput.value = FoodItemFormInput.from(submission.item)
+        formInput.value = FoodItemFormInput.from(submission)
         recognizedFields.value = emptySet()
         editingSubmissionId = submission.id
         _rejectionReasonBeingEdited.value = submission.rejectReason

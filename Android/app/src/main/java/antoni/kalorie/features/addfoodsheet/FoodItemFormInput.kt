@@ -5,15 +5,20 @@ import antoni.kalorie.components.FoodPortionDraft
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodMeasure
 import antoni.kalorie.core.models.FoodPortionDomain
+import antoni.kalorie.core.models.currentLanguageCode
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
 import antoni.kalorie.textkit.parseDecimalInput
 import java.time.Instant
+import antoni.kalorie.textkit.nameLanguage as resolveNameLanguage
 
 data class FoodItemFormInput(
     val scannedCode: String = "",
-    val name: String = "",
+    val nameLanguage: String = resolveNameLanguage(currentLanguageCode),
+    val czName: String = "",
+    val skName: String = "",
     val engName: String = "",
     val weightOfProduct: Double = 100.0,
     val energyKJ: Double = 0.0,
@@ -32,13 +37,29 @@ data class FoodItemFormInput(
     val photo: FoodItemFormPhoto = FoodItemFormPhoto.None,
 ) {
 
+    // MARK: - Properties
+
+    val name: String
+        get() = when (nameLanguage) {
+            "cs" -> czName
+            "sk" -> skName
+            else -> engName
+        }
+
     // MARK: - Functions
+
+    fun withName(name: String): FoodItemFormInput = when (nameLanguage) {
+        "cs" -> copy(czName = name)
+        "sk" -> copy(skName = name)
+        else -> copy(engName = name)
+    }
 
     fun asFoodItemDomain(id: String? = null, kind: FoodItemKind = FoodItemKind.CATALOGUE, date: Instant = Instant.now()): FoodItemDomain = FoodItemDomain(
         id = id ?: scannedCode,
         kind = kind,
-        czName = name,
-        engName = engName,
+        czName = czName.trim(),
+        skName = skName.trim(),
+        engName = engName.trim(),
         weight = weightOfProduct,
         date = date,
         energyKJ = energyKJ,
@@ -77,7 +98,7 @@ data class FoodItemFormInput(
         if (scannedCode.isEmpty() && code != null) result = result.copy(scannedCode = code)
         val readName = reading.name
         if (name.isEmpty() && readName != null) {
-            result = result.copy(name = readName)
+            result = result.withName(readName)
             applied.add(FoodItemFormField.NAME)
         }
         val readMeasure = reading.measure
@@ -110,9 +131,12 @@ data class FoodItemFormInput(
         get() = portions.all { it.name.isBlank() && it.gramsText.isEmpty() }
 
     companion object {
+        fun from(submission: FoodItemSubmissionDomain): FoodItemFormInput = from(submission.item).copy(nameLanguage = submission.nameLanguage)
+
         fun from(item: FoodItemDomain): FoodItemFormInput = FoodItemFormInput(
             scannedCode = item.barcode ?: "",
-            name = item.czName,
+            czName = item.czName,
+            skName = item.skName,
             engName = item.engName,
             weightOfProduct = item.weight,
             energyKJ = item.energyKJ,

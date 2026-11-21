@@ -98,6 +98,7 @@ class AssignFoodMealTypeUseCaseTest {
         foodItemId = foodItemId,
         foodItemKind = FoodItemKind.CATALOGUE,
         czName = "Vejce",
+        skName = "Vejce",
         engName = "Egg",
         weight = weight,
         date = Instant.now(),

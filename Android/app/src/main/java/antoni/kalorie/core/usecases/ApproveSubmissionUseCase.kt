@@ -11,6 +11,7 @@ import antoni.kalorie.core.networking.loadFromServerAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.epochSecondsAsExactDouble
+import antoni.kalorie.textkit.completeNames
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -51,7 +52,7 @@ class ApproveSubmissionUseCase(
                 from = Constants.Firestore.FOOD_ITEM_SUBMISSIONS,
             ) ?: throw ApproveSubmissionError.AlreadyResolved
             if (current.submittedAt != submission.submittedAt.epochSecondsAsExactDouble()) throw ApproveSubmissionError.ChangedSinceReview
-            createFoodItem(item.withPhotoUrl(catalogueUrl))
+            createFoodItem(completedNames(item, submission).withPhotoUrl(catalogueUrl))
         } catch (error: Exception) {
             withContext(NonCancellable) { deleteFoodPhoto.deleteQuietly(catalogueUrl) }
             throw error
@@ -69,6 +70,15 @@ class ApproveSubmissionUseCase(
     }
 
     // MARK: - Private
+
+    private fun completedNames(item: FoodItemDomain, submission: FoodItemSubmissionDomain): FoodItemDomain = item.withNames(
+        completeNames(
+            nameLanguage = submission.nameLanguage,
+            czech = item.czName,
+            slovak = item.skName,
+            english = item.engName,
+        ),
+    )
 
     private suspend fun bytesOf(photo: FoodItemFormPhoto): ByteArray = when (photo) {
         is FoodItemFormPhoto.Local -> photo.data

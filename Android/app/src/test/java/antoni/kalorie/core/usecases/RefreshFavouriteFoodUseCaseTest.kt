@@ -161,6 +161,7 @@ class RefreshFavouriteFoodUseCaseTest {
         id = "12345",
         kind = kind,
         czName = "Vejce",
+        skName = "Vejce",
         engName = "Egg",
         weight = 100.0,
         date = Instant.ofEpochSecond(500),

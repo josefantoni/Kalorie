@@ -92,6 +92,7 @@ class FetchFavouriteFoodsUseCaseTest {
             id = id,
             kind = FoodItemKind.CATALOGUE,
             czName = czName,
+            skName = czName,
             engName = "",
             weight = 100.0,
             date = Instant.now(),

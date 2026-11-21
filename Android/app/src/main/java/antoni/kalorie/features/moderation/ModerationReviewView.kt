@@ -36,6 +36,7 @@ import androidx.compose.ui.window.DialogProperties
 import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.FoodItemFormBarcodeRow
+import antoni.kalorie.components.FoodItemFormNameFields
 import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.PrimaryButton
@@ -112,6 +113,7 @@ fun ModerationReviewView(viewModel: ModerationReviewViewModel, onDismiss: () -> 
                     barcodeRow = FoodItemFormBarcodeRow.Locked,
                     highlightedFields = recognizedFields,
                     showsAlcoholByVolumeField = true,
+                    nameFields = FoodItemFormNameFields.AllLanguages(originalLanguage = formInput.nameLanguage),
                     onNutritionLabelScanTapped = scannerAccess.open,
                     onFieldEdited = viewModel::onFormFieldEdited,
                 )

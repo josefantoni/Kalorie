@@ -10,6 +10,7 @@ import antoni.kalorie.macrokit.energyKJFromMacros
 import antoni.kalorie.textkit.decodeHtmlEntities
 import antoni.kalorie.textkit.servingQuantity
 import antoni.kalorie.textkit.servingQuantityUnit
+import antoni.kalorie.textkit.slovakName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -31,6 +32,7 @@ data class OpenFoodFactsBarcodeResponseDTO(
 @Serializable
 data class OpenFoodFactsProductDTO(
     val code: String,
+    @SerialName("product_name_sk") val productNameSk: String? = null,
     @SerialName("product_name_cs") val productNameCs: String? = null,
     @SerialName("product_name_en") val productNameEn: String? = null,
     @SerialName("product_name") val productName: String? = null,
@@ -60,6 +62,7 @@ data class OpenFoodFactsProductDTO(
             id = code,
             kind = FoodItemKind.EXTERNAL,
             czName = decodeHtmlEntities(rawName),
+            skName = decodeHtmlEntities(slovakName(slovak = productNameSk, czech = rawName, english = null)),
             engName = decodeHtmlEntities(rawOriginalName),
             weight = 100.0,
             date = Instant.now(),

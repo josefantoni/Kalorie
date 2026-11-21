@@ -36,6 +36,7 @@ import antoni.kalorie.components.BadgeButton
 import antoni.kalorie.components.BarcodeIcon
 import antoni.kalorie.components.FloatingLabelTextField
 import antoni.kalorie.components.FoodItemFormBarcodeRow
+import antoni.kalorie.components.FoodItemFormNameFields
 import antoni.kalorie.components.FoodItemFormSections
 import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.PrimaryButton
@@ -142,6 +143,7 @@ fun ModerationCatalogueEditorView(
                         highlightedFields = recognizedFields,
                         barcodeRow = if (viewModel.isOpenedFromReport) FoodItemFormBarcodeRow.Locked else FoodItemFormBarcodeRow.Hidden,
                         showsAlcoholByVolumeField = true,
+                        nameFields = FoodItemFormNameFields.AllLanguages(originalLanguage = null),
                         onNutritionLabelScanTapped = if (viewModel.isOpenedFromReport) null else scannerAccess.open,
                         onFieldEdited = viewModel::onFormFieldEdited,
                     )

@@ -52,7 +52,7 @@ class FirestoreDataMapperTest {
 
     @Test
     fun decode_readsSnakeCaseKeysAndTheKindEnum() {
-        val data = makeFoodConsumedData(weight = 100L, date = 1L) + mapOf("food_item_kind" to "created_meal", "cz_name" to "Jogurt")
+        val data = makeFoodConsumedData(weight = 100L, date = 1L) + mapOf("food_item_kind" to "created_meal", "cz_name" to "Jogurt", "sk_name" to "Jogurt")
 
         val dto = FirestoreDataMapper.decode(data, FoodConsumedDTO.serializer())
 
@@ -115,6 +115,7 @@ class FirestoreDataMapperTest {
         "food_item_id" to "1",
         "food_item_kind" to "catalogue",
         "cz_name" to "Vejce",
+        "sk_name" to "Vejce",
         "eng_name" to "Egg",
         "weight" to weight,
         "date" to date,

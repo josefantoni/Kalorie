@@ -202,6 +202,7 @@ fun makePhotoSuggestionItem(id: String = "12345678", photoUrl: String? = null, c
     id = id,
     kind = FoodItemKind.CATALOGUE,
     czName = "Tvaroh",
+    skName = "Tvaroh",
     engName = "",
     weight = 200.0,
     date = Instant.ofEpochSecond(1_700_000_000),

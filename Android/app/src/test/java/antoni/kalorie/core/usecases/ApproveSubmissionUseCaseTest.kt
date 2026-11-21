@@ -11,6 +11,7 @@ import antoni.kalorie.core.networking.FirestoreDataProviderFake
 import antoni.kalorie.core.networking.FoodItemSubmissionDTO
 import antoni.kalorie.core.networking.StorageDataProviderFake
 import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.textkit.FoodNames
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -36,6 +37,36 @@ class ApproveSubmissionUseCaseTest {
             fail("Expected notAuthenticated error")
         } catch (_: AuthError.NotAuthenticated) {
         }
+    }
+
+    @Test
+    fun approve_fillsEveryBlankNameWithTheEditedOriginalName() = runTest {
+        val (sut, dataProvider, createFoodItem, _) = makeSUT()
+        val submission = makeSubmission(nameLanguage = "sk", names = FoodNames(czech = "", slovak = "Snikers", english = ""))
+        dataProvider.stubbedServerDocument = makeDTO(submission)
+        val edited = submission.item.withNames(FoodNames(czech = "", slovak = "Snickers", english = " "))
+
+        sut(submission, edited, localPhoto)
+
+        val created = createFoodItem.receivedItem ?: error("no catalogue item was created")
+        assertEquals("Snickers", created.skName)
+        assertEquals("a name the maintainer left empty takes the original, with the typo fix applied", "Snickers", created.czName)
+        assertEquals("Snickers", created.engName)
+    }
+
+    @Test
+    fun approve_keepsNamesTheMaintainerFilledIn() = runTest {
+        val (sut, dataProvider, createFoodItem, _) = makeSUT()
+        val submission = makeSubmission(nameLanguage = "sk", names = FoodNames(czech = "", slovak = "Mlieko", english = ""))
+        dataProvider.stubbedServerDocument = makeDTO(submission)
+        val edited = submission.item.withNames(FoodNames(czech = "Mléko", slovak = "Mlieko", english = ""))
+
+        sut(submission, edited, localPhoto)
+
+        val created = createFoodItem.receivedItem ?: error("no catalogue item was created")
+        assertEquals("Mléko", created.czName)
+        assertEquals("Mlieko", created.skName)
+        assertEquals("Mlieko", created.engName)
     }
 
     @Test
@@ -227,18 +258,26 @@ class ApproveSubmissionUseCaseTest {
 
     private val localPhoto = FoodItemFormPhoto.Local(byteArrayOf(1, 2, 3))
 
-    private fun makeSubmission(id: String = "sub-1", barcode: String = "12345678", photoUrl: String? = null): FoodItemSubmissionDomain = FoodItemSubmissionDomain(
+    private fun makeSubmission(
+        id: String = "sub-1",
+        barcode: String = "12345678",
+        photoUrl: String? = null,
+        nameLanguage: String = "cs",
+        names: FoodNames = FoodNames(czech = "Tvaroh", slovak = "", english = ""),
+    ): FoodItemSubmissionDomain = FoodItemSubmissionDomain(
         id = id,
         barcode = barcode,
         submittedBy = "some-user",
         status = FoodItemSubmissionStatus.PENDING,
         submittedAt = Instant.now(),
         rejectReason = null,
+        nameLanguage = nameLanguage,
         item = FoodItemDomain(
             id = barcode,
             kind = FoodItemKind.CATALOGUE,
-            czName = "Tvaroh",
-            engName = "",
+            czName = names.czech,
+            skName = names.slovak,
+            engName = names.english,
             weight = 200.0,
             date = Instant.now(),
             energyKJ = 335.0,
@@ -262,6 +301,7 @@ class ApproveSubmissionUseCaseTest {
         status = submission.status,
         submittedAt = submittedAt,
         rejectReason = submission.rejectReason,
+        nameLanguage = submission.nameLanguage,
         item = submission.item,
     )
 }

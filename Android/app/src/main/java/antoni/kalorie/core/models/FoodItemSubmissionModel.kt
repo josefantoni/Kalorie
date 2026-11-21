@@ -20,6 +20,7 @@ data class FoodItemSubmissionDomain(
     val status: FoodItemSubmissionStatus,
     val submittedAt: Instant,
     val rejectReason: String?,
+    val nameLanguage: String,
     val item: FoodItemDomain,
 )
 

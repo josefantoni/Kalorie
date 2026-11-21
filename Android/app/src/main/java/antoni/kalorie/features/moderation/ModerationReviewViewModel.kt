@@ -19,6 +19,7 @@ import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.NutritionLabelPrefilling
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.features.addfoodsheet.FoodItemFormInput
+import antoni.kalorie.textkit.originalName
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +36,7 @@ class ModerationReviewViewModel(
 
     // MARK: - Properties
 
-    override val formInput = MutableStateFlow(FoodItemFormInput.from(submission.item))
+    override val formInput = MutableStateFlow(FoodItemFormInput.from(submission))
     override val recognizedFields = MutableStateFlow<Set<FoodItemFormField>>(emptySet())
     override val isNutritionLabelCameraVisible = MutableStateFlow(false)
     override val nutritionLabelCameraHintRes = MutableStateFlow<Int?>(null)
@@ -62,7 +63,10 @@ class ModerationReviewViewModel(
     suspend fun onAppear() {
         if (!showsSimilarCatalogueItemsSection) return
         try {
-            _similarCatalogueItems.value = searchFoodItems(submission.item.czName)
+            _similarCatalogueItems.value = searchFoodItems(
+                originalName(submission.nameLanguage, submission.item.czName, submission.item.skName, submission.item.engName),
+                submission.nameLanguage,
+            )
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {

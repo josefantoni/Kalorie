@@ -119,6 +119,7 @@ class FetchFoodItemByBarcodeUseCaseTest {
             id = id,
             kind = FoodItemKind.CATALOGUE,
             czName = czName,
+            skName = czName,
             engName = "Cottage cheese",
             weight = 100.0,
             date = Instant.now(),

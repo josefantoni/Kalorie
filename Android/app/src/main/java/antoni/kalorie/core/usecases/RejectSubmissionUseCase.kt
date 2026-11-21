@@ -41,6 +41,7 @@ class RejectSubmissionUseCase(
             status = FoodItemSubmissionStatus.REJECTED,
             submittedAt = submission.submittedAt,
             rejectReason = trimmedReason,
+            nameLanguage = submission.nameLanguage,
             item = submission.item,
         )
         try {

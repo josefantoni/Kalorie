@@ -4,6 +4,7 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemFormPhoto
+import antoni.kalorie.core.models.FoodItemRequiredNames
 import antoni.kalorie.core.models.FoodItemValidation
 import antoni.kalorie.core.models.FoodItemValidationError
 import antoni.kalorie.core.models.FoodPortionError
@@ -51,7 +52,7 @@ class UpdateFoodItemUseCase(
     // full document is re-read and compared client-side to catch a concurrent maintainer edit.
     override suspend fun invoke(item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Boolean): FoodItemDomain {
         if (authProvider.userId == null) throw AuthError.NotAuthenticated
-        if (validate) FoodItemValidation.validate(item)?.let { throw UpdateFoodItemError.from(it) }
+        if (validate) FoodItemValidation.validate(item, FoodItemRequiredNames.All)?.let { throw UpdateFoodItemError.from(it) }
         val current: FoodItemDTO? = dataProvider.loadAsync(id = item.id, from = Constants.Firestore.FOOD_ITEMS)
         if (current?.asDomain() != previouslyLoaded) throw UpdateFoodItemError.ChangedSinceLoad
         val uploadedUrl = (photo as? FoodItemFormPhoto.Local)?.let {

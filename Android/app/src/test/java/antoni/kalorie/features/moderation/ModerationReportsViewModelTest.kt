@@ -92,6 +92,7 @@ class ModerationReportsViewModelTest {
         id = id,
         kind = FoodItemKind.CATALOGUE,
         czName = czName,
+        skName = czName,
         engName = "Cottage cheese",
         weight = 200.0,
         date = date,

@@ -36,6 +36,7 @@ class OpenFoodFactsProductDTOTest {
             checkNotNull(item)
             assertEquals(name, fields.getValue("id").jsonPrimitive.content, item.id)
             assertEquals(name, fields.getValue("czName").jsonPrimitive.content, item.czName)
+            assertEquals(name, fields.getValue("skName").jsonPrimitive.content, item.skName)
             assertEquals(name, fields.getValue("engName").jsonPrimitive.content, item.engName)
             assertEquals(name, fields.double("weight"), item.weight, ACCURACY)
             assertEquals(name, fields.double("energyKJ"), item.energyKJ, ACCURACY)

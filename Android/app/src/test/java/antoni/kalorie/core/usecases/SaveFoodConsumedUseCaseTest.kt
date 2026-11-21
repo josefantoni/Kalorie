@@ -115,6 +115,15 @@ class SaveFoodConsumedUseCaseTest {
     }
 
     @Test
+    fun saveFoodConsumed_copiesTheSlovakNameFromTheFoodWithoutRecomputingIt() = runTest {
+        val (sut, dataProvider) = makeSUT()
+
+        sut(makeItem(czName = "Mléko", skName = "Mlieko"), grams = 100.0, date = Instant.now(), mealTypeId = null)
+
+        assertEquals("Mlieko", dataProvider.savedDTO?.skName)
+    }
+
+    @Test
     fun saveFoodConsumed_scalesEnergyKJFatSaturatedAndFiberToLoggedWeight() = runTest {
         val (sut, dataProvider) = makeSUT()
 
@@ -191,6 +200,7 @@ class SaveFoodConsumedUseCaseTest {
 
     private fun makeItem(
         czName: String = "Vejce",
+        skName: String = czName,
         engName: String = "Egg",
         weight: Double = 100.0,
         caloriesPerHundredGrams: Double = 155.0,
@@ -201,6 +211,7 @@ class SaveFoodConsumedUseCaseTest {
         id = "12345",
         kind = kind,
         czName = czName,
+        skName = skName,
         engName = engName,
         weight = weight,
         date = Instant.now(),

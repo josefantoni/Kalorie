@@ -320,6 +320,7 @@ class MigrateAnonymousDataUseCaseTest {
         foodItemId = id,
         foodItemKind = FoodItemKind.CATALOGUE,
         czName = "Test",
+        skName = "Test",
         engName = "Test",
         weight = 100.0,
         date = Instant.now().epochSecond.toDouble(),
@@ -338,6 +339,7 @@ class MigrateAnonymousDataUseCaseTest {
             id = id,
             kind = FoodItemKind.CATALOGUE,
             czName = "Test",
+            skName = "Test",
             engName = "Test",
             weight = 100.0,
             date = Instant.now(),
@@ -363,6 +365,7 @@ class MigrateAnonymousDataUseCaseTest {
                 MyCreatedMealIngredientDomain(
                     foodItemId = "12345",
                     czName = "Test",
+                    skName = "Test",
                     engName = "Test",
                     grams = 50.0,
                     nutrition = FoodNutritionValues(

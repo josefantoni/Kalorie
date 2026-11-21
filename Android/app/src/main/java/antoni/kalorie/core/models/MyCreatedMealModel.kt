@@ -1,11 +1,14 @@
 package antoni.kalorie.core.models
 
 import antoni.kalorie.macrokit.weightedMeanPerHundredGrams
+import antoni.kalorie.textkit.nameLanguage
+import antoni.kalorie.textkit.namesInLanguage
 import java.time.Instant
 
 data class MyCreatedMealIngredientDomain(
     val foodItemId: String,
     val czName: String,
+    val skName: String,
     val engName: String,
     val grams: Double,
     val nutrition: FoodNutritionValues,
@@ -22,7 +25,7 @@ data class MyCreatedMealDomain(
 
     // MARK: - Functions
 
-    fun asFoodItem(): FoodItemDomain {
+    fun asFoodItem(languageCode: String = currentLanguageCode): FoodItemDomain {
         val gramsList = ingredients.map { it.grams }
         val totalGrams = gramsList.sum()
         fun density(value: (FoodNutritionValues) -> Double): Double = weightedMeanPerHundredGrams(values = ingredients.map { value(it.nutrition) }, grams = gramsList)
@@ -30,11 +33,13 @@ data class MyCreatedMealDomain(
             val values = ingredients.map { value(it.nutrition) ?: return null }
             return weightedMeanPerHundredGrams(values = values, grams = gramsList)
         }
+        val names = namesInLanguage(nameLanguage(languageCode), name)
         return FoodItemDomain(
             id = id,
             kind = FoodItemKind.CREATED_MEAL,
-            czName = name,
-            engName = "",
+            czName = names.czech,
+            skName = names.slovak,
+            engName = names.english,
             weight = totalGrams,
             date = createdAt,
             energyKJ = density { it.energyKJ },

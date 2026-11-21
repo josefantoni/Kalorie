@@ -1197,6 +1197,7 @@ class DashboardViewModelTest {
         foodItemId = id,
         foodItemKind = FoodItemKind.CATALOGUE,
         czName = "Jídlo",
+        skName = "Jídlo",
         engName = "Food",
         weight = 100.0,
         date = todayAt(hour, minute),

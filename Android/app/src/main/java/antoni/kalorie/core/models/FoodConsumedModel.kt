@@ -10,6 +10,7 @@ data class FoodConsumedDomain(
     val foodItemId: String,
     val foodItemKind: FoodItemKind,
     override val czName: String,
+    override val skName: String,
     override val engName: String,
     val weight: Double,
     val date: Instant,

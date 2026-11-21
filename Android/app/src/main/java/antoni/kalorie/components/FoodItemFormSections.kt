@@ -34,6 +34,11 @@ import antoni.kalorie.textkit.parseDecimalInput
 import antoni.kalorie.textkit.sanitizeDecimalInput
 import java.math.BigDecimal
 
+sealed interface FoodItemFormNameFields {
+    data object Single : FoodItemFormNameFields
+    data class AllLanguages(val originalLanguage: String?) : FoodItemFormNameFields
+}
+
 sealed interface FoodItemFormBarcodeRow {
     data object Hidden : FoodItemFormBarcodeRow
     data object Locked : FoodItemFormBarcodeRow
@@ -48,6 +53,7 @@ fun FoodItemFormSections(
     barcodeRow: FoodItemFormBarcodeRow = FoodItemFormBarcodeRow.Hidden,
     highlightedFields: Set<FoodItemFormField> = emptySet(),
     showsAlcoholByVolumeField: Boolean = false,
+    nameFields: FoodItemFormNameFields = FoodItemFormNameFields.Single,
     onNutritionLabelScanTapped: (() -> Unit)? = null,
     onFieldEdited: (FoodItemFormField) -> Unit = {},
 ) {
@@ -60,17 +66,48 @@ fun FoodItemFormSections(
             measure = formInput.measure,
         )
         SectionCard {
-            FloatingLabelTextField(
-                title = stringResource(R.string.addFood_field_name_title),
-                text = formInput.name,
-                onTextChange = {
-                    onFormInputChange(formInput.copy(name = it))
-                    onFieldEdited(FoodItemFormField.NAME)
-                },
-                placeholder = stringResource(R.string.addFood_field_name_placeholder),
-                isHighlighted = FoodItemFormField.NAME in highlightedFields,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            when (nameFields) {
+                FoodItemFormNameFields.Single -> FloatingLabelTextField(
+                    title = stringResource(R.string.addFood_field_name_title),
+                    text = formInput.name,
+                    onTextChange = {
+                        onFormInputChange(formInput.withName(it))
+                        onFieldEdited(FoodItemFormField.NAME)
+                    },
+                    placeholder = stringResource(R.string.addFood_field_name_placeholder),
+                    isHighlighted = FoodItemFormField.NAME in highlightedFields,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                is FoodItemFormNameFields.AllLanguages -> {
+                    LanguageNameField(
+                        language = "cs",
+                        title = stringResource(R.string.addFood_field_czechName_title),
+                        text = formInput.czName,
+                        originalLanguage = nameFields.originalLanguage,
+                        scanTargetLanguage = nameFields.originalLanguage ?: formInput.nameLanguage,
+                        isHighlighted = FoodItemFormField.NAME in highlightedFields,
+                        onFieldEdited = onFieldEdited,
+                    ) { onFormInputChange(formInput.copy(czName = it)) }
+                    LanguageNameField(
+                        language = "sk",
+                        title = stringResource(R.string.addFood_field_slovakName_title),
+                        text = formInput.skName,
+                        originalLanguage = nameFields.originalLanguage,
+                        scanTargetLanguage = nameFields.originalLanguage ?: formInput.nameLanguage,
+                        isHighlighted = FoodItemFormField.NAME in highlightedFields,
+                        onFieldEdited = onFieldEdited,
+                    ) { onFormInputChange(formInput.copy(skName = it)) }
+                    LanguageNameField(
+                        language = "en",
+                        title = stringResource(R.string.addFood_field_englishName_title),
+                        text = formInput.engName,
+                        originalLanguage = nameFields.originalLanguage,
+                        scanTargetLanguage = nameFields.originalLanguage ?: formInput.nameLanguage,
+                        isHighlighted = FoodItemFormField.NAME in highlightedFields,
+                        onFieldEdited = onFieldEdited,
+                    ) { onFormInputChange(formInput.copy(engName = it)) }
+                }
+            }
             when (barcodeRow) {
                 FoodItemFormBarcodeRow.Hidden -> Unit
                 FoodItemFormBarcodeRow.Locked -> FloatingLabelTextField(
@@ -286,3 +323,29 @@ private fun DecimalTextField(value: Double, onValueChange: (Double) -> Unit, isH
 private fun formattedDecimal(value: Double): String = if (value == 0.0) "" else BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
 
 private fun highlightWeight(isHighlighted: Boolean): FontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Normal
+
+@Composable
+private fun LanguageNameField(
+    language: String,
+    title: String,
+    text: String,
+    originalLanguage: String?,
+    scanTargetLanguage: String,
+    isHighlighted: Boolean,
+    onFieldEdited: (FoodItemFormField) -> Unit,
+    onTextChange: (String) -> Unit,
+) {
+    val isOriginal = language == originalLanguage
+    val isScanTarget = language == scanTargetLanguage
+    FloatingLabelTextField(
+        title = if (isOriginal) stringResource(R.string.addFood_field_originalName_title, title) else title,
+        text = text,
+        onTextChange = {
+            onTextChange(it)
+            if (isScanTarget) onFieldEdited(FoodItemFormField.NAME)
+        },
+        placeholder = stringResource(R.string.addFood_field_name_placeholder),
+        isHighlighted = isScanTarget && isHighlighted,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}

@@ -91,7 +91,7 @@ object Constants {
         const val GRAMS_UNIT = "g"
         const val MILLILITRES_UNIT = "ml"
         const val PER_HUNDRED_AMOUNT = 100.0
-        const val PRODUCT_FIELDS = "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
+        const val PRODUCT_FIELDS = "code,product_name,product_name_sk,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
         const val REQUEST_TIMEOUT_MILLIS = 10_000
         const val MAX_ATTEMPTS = 3
         val RETRY_DELAY = 500.milliseconds
@@ -158,8 +158,10 @@ object Constants {
 
         object Field {
             const val CZ_NAME_FOLDED = "cz_name_folded"
+            const val SK_NAME_FOLDED = "sk_name_folded"
             const val ENG_NAME_FOLDED = "eng_name_folded"
             const val CZ_NAME_SEARCH_TERMS = "cz_name_search_terms"
+            const val SK_NAME_SEARCH_TERMS = "sk_name_search_terms"
             const val ENG_NAME_SEARCH_TERMS = "eng_name_search_terms"
             const val SUBMITTED_BY = "submitted_by"
             const val SUBMITTED_AT = "submitted_at"

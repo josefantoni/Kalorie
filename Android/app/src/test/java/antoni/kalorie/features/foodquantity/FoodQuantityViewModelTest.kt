@@ -1193,6 +1193,7 @@ class FoodQuantityViewModelTest {
             MyCreatedMealIngredientDomain(
                 foodItemId = "beef",
                 czName = "Hovězí",
+                skName = "Hovězí",
                 engName = "Beef",
                 grams = 200.0,
                 nutrition = FoodNutritionValues(
@@ -1283,6 +1284,7 @@ class FoodQuantityViewModelTest {
         id = "test",
         kind = kind,
         czName = "Tvaroh",
+        skName = "Tvaroh",
         engName = "Cottage cheese",
         weight = 100.0,
         date = Instant.now(),

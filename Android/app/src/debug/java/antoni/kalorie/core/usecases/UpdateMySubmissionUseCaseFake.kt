@@ -12,7 +12,7 @@ data class UpdateMySubmissionUseCaseFake(
 
     // MARK: - Functions
 
-    override suspend fun invoke(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoUrl: String?): FoodItemSubmissionDomain {
+    override suspend fun invoke(id: String, item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto, previousPhotoUrl: String?): FoodItemSubmissionDomain {
         errorToThrow?.let { throw it }
         return FoodItemSubmissionDomain(
             id = id,
@@ -21,6 +21,7 @@ data class UpdateMySubmissionUseCaseFake(
             status = FoodItemSubmissionStatus.PENDING,
             submittedAt = Instant.now(),
             rejectReason = null,
+            nameLanguage = nameLanguage,
             item = item,
         )
     }
