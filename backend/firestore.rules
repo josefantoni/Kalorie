@@ -20,12 +20,15 @@ service cloud.firestore {
         validItemId(data.id) &&
         data.cz_name is string &&
         data.eng_name is string &&
+        data.sk_name is string &&
         data.cz_name_lowercase is string &&
         data.eng_name_lowercase is string &&
         data.cz_name_folded is string &&
         data.eng_name_folded is string &&
+        data.sk_name_folded is string &&
         data.cz_name_search_terms is list &&
         data.eng_name_search_terms is list &&
+        data.sk_name_search_terms is list &&
         data.weight is number &&
         data.date is number &&
         data.calories_per_hundred_grams is number &&
@@ -42,6 +45,18 @@ service cloud.firestore {
         (!('alcohol_by_volume' in data) ||
           (data.alcohol_by_volume is number && data.alcohol_by_volume > 0 && data.alcohol_by_volume <= 100)) &&
         (!('photo_url' in data) || (data.photo_url is string && data.photo_url.size() <= 1024));
+    }
+
+    function completeNames(item) {
+      return item.cz_name.size() > 0 &&
+        item.sk_name.size() > 0 &&
+        item.eng_name.size() > 0;
+    }
+
+    function originalNameFilled(submission) {
+      return (submission.name_language == 'cs' && submission.item.cz_name.size() > 0) ||
+        (submission.name_language == 'sk' && submission.item.sk_name.size() > 0) ||
+        (submission.name_language == 'en' && submission.item.eng_name.size() > 0);
     }
 
     function ownSubmissionPhoto(item) {
@@ -68,6 +83,7 @@ service cloud.firestore {
         validItemId(itemId) &&
         request.resource.data.id == itemId &&
         validFoodItem(request.resource.data) &&
+        completeNames(request.resource.data) &&
         (!('photo_url' in request.resource.data) ||
           request.resource.data.photo_url.matches(photoUrlPrefix() + 'catalogPhotos%2F.*'));
     }
@@ -80,6 +96,7 @@ service cloud.firestore {
         request.resource.data.submitted_by == request.auth.uid &&
         request.resource.data.status == 'pending' &&
         validFoodItem(request.resource.data.item) &&
+        originalNameFilled(request.resource.data) &&
         ownSubmissionPhoto(request.resource.data.item);
 
       allow update: if (isMaintainer() &&
@@ -89,12 +106,16 @@ service cloud.firestore {
           request.resource.data.status == 'rejected' &&
           request.resource.data.reject_reason is string &&
           request.resource.data.reject_reason.size() > 0 &&
-          validFoodItem(request.resource.data.item)) ||
+          request.resource.data.name_language == resource.data.name_language &&
+          validFoodItem(request.resource.data.item) &&
+          originalNameFilled(request.resource.data)) ||
         (resource.data.submitted_by == request.auth.uid &&
           request.resource.data.submitted_by == resource.data.submitted_by &&
           request.resource.data.get('barcode', null) == resource.data.get('barcode', null) &&
           request.resource.data.status == 'pending' &&
+          request.resource.data.name_language == resource.data.name_language &&
           validFoodItem(request.resource.data.item) &&
+          originalNameFilled(request.resource.data) &&
           ownSubmissionPhoto(request.resource.data.item));
 
       allow delete: if isMaintainer() || resource.data.submitted_by == request.auth.uid;

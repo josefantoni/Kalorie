@@ -30,12 +30,15 @@ function foodItem(id, overrides = {}) {
     id,
     cz_name: 'Rohlik',
     eng_name: 'Roll',
+    sk_name: 'Rožok',
     cz_name_lowercase: 'rohlik',
     eng_name_lowercase: 'roll',
     cz_name_folded: 'rohlik',
     eng_name_folded: 'roll',
+    sk_name_folded: 'rozok',
     cz_name_search_terms: ['r', 'ro', 'roh', 'rohl', 'rohli', 'rohlik'],
     eng_name_search_terms: ['r', 'ro', 'rol', 'roll'],
+    sk_name_search_terms: ['r', 'ro', 'roz', 'rozo', 'rozok'],
     weight: 100,
     date: 1_700_000_000,
     calories_per_hundred_grams: 250,
@@ -56,6 +59,7 @@ function submission(id, uid, overrides = {}) {
     submitted_by: uid,
     status: 'pending',
     submitted_at: 1_700_000_000,
+    name_language: 'cs',
     item: foodItem(BARCODE, { photo_url: submissionPhoto(uid) }),
     ...overrides,
   };
@@ -230,7 +234,7 @@ describe('foodItems', () => {
     'cz_name', 'eng_name', 'cz_name_lowercase', 'eng_name_lowercase', 'cz_name_folded',
     'eng_name_folded', 'cz_name_search_terms', 'eng_name_search_terms', 'weight', 'date',
     'calories_per_hundred_grams', 'fat', 'fat_unsaturated_fatty_acids', 'carbohydrate',
-    'carbohydrate_pure_sugar', 'protein', 'salt',
+    'carbohydrate_pure_sugar', 'protein', 'salt', 'sk_name', 'sk_name_folded', 'sk_name_search_terms',
   ]) {
     it(`requires ${field}`, async () => {
       const data = foodItem(BARCODE);
@@ -245,6 +249,16 @@ describe('foodItems', () => {
 
   it('rejects search terms written as a string instead of a list', async () => {
     await assertFails(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { cz_name_search_terms: 'rohlik' })));
+  });
+
+  for (const field of ['cz_name', 'sk_name', 'eng_name']) {
+    it(`rejects an empty ${field}, because the search queries only the device language's fields`, async () => {
+      await assertFails(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { [field]: '' })));
+    });
+  }
+
+  it('rejects Slovak search terms written as a string instead of a list', async () => {
+    await assertFails(setDoc(doc(maintainer(), `foodItems/${BARCODE}`), foodItem(BARCODE, { sk_name_search_terms: 'rozok' })));
   });
 
   it('rejects a name field written as a number', async () => {
@@ -309,6 +323,32 @@ describe('foodItemSubmissions', () => {
 
   it('denies creating a submission that is already rejected', async () => {
     await assertFails(setDoc(doc(user('alice'), path), submission(sid, 'alice', { status: 'rejected' })));
+  });
+
+  it('denies a submission whose item has no sk_name', async () => {
+    const item = foodItem(BARCODE);
+    delete item.sk_name;
+    await assertFails(setDoc(doc(user('alice'), path), submission(sid, 'alice', { item })));
+  });
+
+  it('accepts a submission that carries only the name in its original language', async () => {
+    const item = foodItem(BARCODE, { cz_name: '', eng_name: '', photo_url: submissionPhoto('alice') });
+    await assertSucceeds(setDoc(doc(user('alice'), path), submission(sid, 'alice', { name_language: 'sk', item })));
+  });
+
+  it('denies a submission whose original-language name is empty', async () => {
+    const item = foodItem(BARCODE, { eng_name: '', photo_url: submissionPhoto('alice') });
+    await assertFails(setDoc(doc(user('alice'), path), submission(sid, 'alice', { name_language: 'en', item })));
+  });
+
+  it('denies a submission without name_language', async () => {
+    const data = submission(sid, 'alice');
+    delete data.name_language;
+    await assertFails(setDoc(doc(user('alice'), path), data));
+  });
+
+  it('denies an unknown name_language', async () => {
+    await assertFails(setDoc(doc(user('alice'), path), submission(sid, 'alice', { name_language: 'de' })));
   });
 
   it('denies a submission whose item fails validFoodItem', async () => {
@@ -398,6 +438,15 @@ describe('foodItemSubmissions', () => {
     it('lets the author edit while the submission stays pending', async () => {
       const item = foodItem(BARCODE, { cz_name: 'Housky', photo_url: submissionPhoto('alice') });
       await assertSucceeds(setDoc(doc(user('alice'), path), submission(sid, 'alice', { item })));
+    });
+
+    it('denies the author changing name_language', async () => {
+      await assertFails(setDoc(doc(user('alice'), path), submission(sid, 'alice', { name_language: 'en' })));
+    });
+
+    it('denies a maintainer reject that changes name_language', async () => {
+      const data = submission(sid, 'alice', { status: 'rejected', reject_reason: 'x', name_language: 'en' });
+      await assertFails(setDoc(doc(maintainer(), path), data));
     });
 
     it('denies the author approving or rejecting their own submission', async () => {
