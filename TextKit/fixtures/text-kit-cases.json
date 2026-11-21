@@ -55,7 +55,74 @@
     { "input": "áčďěéňóřšťúůýž", "expected": "acdeenorstuuyz" },
     { "input": "ÁČĎĚÉŇÓŘŠŤÚŮÝŽ", "expected": "ACDEENORSTUUYZ" },
     { "input": "rohlík", "expected": "rohlik" },
-    { "input": "Polotučné mléko", "expected": "Polotucne mleko" }
+    { "input": "Polotučné mléko", "expected": "Polotucne mleko" },
+    { "input": "äôĺľŕ", "expected": "aollr" },
+    { "input": "ÄÔĹĽŔ", "expected": "AOLLR" },
+    { "input": "Mäso a údeniny, ľadový šalát", "expected": "Maso a udeniny, ladovy salat" }
+  ],
+  "slovakName": [
+    { "slovak": "mlieko", "czech": "mléko", "english": "milk", "expected": "mlieko" },
+    { "slovak": "", "czech": "mléko", "english": "milk", "expected": "mléko" },
+    { "slovak": "   ", "czech": "mléko", "english": "milk", "expected": "mléko" },
+    { "slovak": null, "czech": "mléko", "english": "milk", "expected": "mléko" },
+    { "slovak": "", "czech": "", "english": "milk", "expected": "milk" },
+    { "slovak": null, "czech": "  ", "english": "milk", "expected": "milk" },
+    { "slovak": "", "czech": "", "english": "", "expected": "" },
+    { "slovak": null, "czech": null, "english": null, "expected": "" }
+  ],
+  "displayName": [
+    { "language": "cs", "czech": "mléko", "slovak": "mlieko", "english": "milk", "expected": "mléko" },
+    { "language": "cs", "czech": "", "slovak": "mlieko", "english": "milk", "expected": "mlieko" },
+    { "language": "cs", "czech": "  ", "slovak": "", "english": "milk", "expected": "milk" },
+    { "language": "sk", "czech": "mléko", "slovak": "mlieko", "english": "milk", "expected": "mlieko" },
+    { "language": "sk", "czech": "mléko", "slovak": "", "english": "milk", "expected": "mléko" },
+    { "language": "sk", "czech": "", "slovak": " ", "english": "milk", "expected": "milk" },
+    { "language": "en", "czech": "mléko", "slovak": "mlieko", "english": "milk", "expected": "milk" },
+    { "language": "en", "czech": "mléko", "slovak": "mlieko", "english": "", "expected": "mléko" },
+    { "language": "en", "czech": "", "slovak": "mlieko", "english": "  ", "expected": "mlieko" },
+    { "language": "de", "czech": "mléko", "slovak": "mlieko", "english": "milk", "expected": "milk" },
+    { "language": "", "czech": "mléko", "slovak": "mlieko", "english": "", "expected": "mléko" },
+    { "language": "cs", "czech": "", "slovak": "", "english": "", "expected": "" }
+  ],
+  "nameLanguage": [
+    { "language": "cs", "expected": "cs" },
+    { "language": "sk", "expected": "sk" },
+    { "language": "en", "expected": "en" },
+    { "language": "de", "expected": "en" },
+    { "language": "", "expected": "en" }
+  ],
+  "originalName": [
+    { "nameLanguage": "cs", "czech": " mléko ", "slovak": "mlieko", "english": "milk", "expected": "mléko" },
+    { "nameLanguage": "sk", "czech": "mléko", "slovak": "mlieko", "english": "milk", "expected": "mlieko" },
+    { "nameLanguage": "en", "czech": "mléko", "slovak": "mlieko", "english": "milk", "expected": "milk" },
+    { "nameLanguage": "sk", "czech": "mléko", "slovak": "", "english": "milk", "expected": "" }
+  ],
+  "namesInLanguage": [
+    { "nameLanguage": "cs", "name": " mléko ", "czech": "mléko", "slovak": "", "english": "" },
+    { "nameLanguage": "sk", "name": "mlieko", "czech": "", "slovak": "mlieko", "english": "" },
+    { "nameLanguage": "en", "name": "milk", "czech": "", "slovak": "", "english": "milk" }
+  ],
+  "completeNames": [
+    {
+      "nameLanguage": "sk",
+      "input": { "czech": "", "slovak": "Snickers", "english": "" },
+      "expected": { "czech": "Snickers", "slovak": "Snickers", "english": "Snickers" }
+    },
+    {
+      "nameLanguage": "en",
+      "input": { "czech": "  ", "slovak": "", "english": " milk " },
+      "expected": { "czech": "milk", "slovak": "milk", "english": "milk" }
+    },
+    {
+      "nameLanguage": "cs",
+      "input": { "czech": "mléko", "slovak": "mlieko", "english": "" },
+      "expected": { "czech": "mléko", "slovak": "mlieko", "english": "mléko" }
+    },
+    {
+      "nameLanguage": "sk",
+      "input": { "czech": "mléko", "slovak": "mlieko", "english": "milk" },
+      "expected": { "czech": "mléko", "slovak": "mlieko", "english": "milk" }
+    }
   ],
   "searchTerms": [
     {

@@ -18,10 +18,9 @@ private val portionEntries = listOf(
 
 private val sizeTokens = listOf("s", "m", "l", "xl")
 private val whitespaceRun = Regex("\\s+")
-private val portionKeyFoldMap = diacriticFoldMap + mapOf('ä' to 'a', 'ô' to 'o', 'ľ' to 'l', 'ĺ' to 'l', 'ŕ' to 'r')
 
 private fun portionKey(name: String): String =
-    name.lowercase().map { portionKeyFoldMap[it] ?: it }.joinToString("").removePrefix("1 ")
+    name.lowercase().map { diacriticFoldMap[it] ?: it }.joinToString("").removePrefix("1 ")
 
 fun localizedPortionName(name: String, languageCode: String): String {
     val collapsed = name.trim().replace(whitespaceRun, " ")
