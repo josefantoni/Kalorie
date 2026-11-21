@@ -677,26 +677,27 @@ spotlight's pattern), never in Firestore.
 
 ### 2.2 Local search
 
-`SearchFoodItemsUseCase` is a diacritics-and-case-folded prefix range over `cz_name_folded` and
-`eng_name_folded`, plus two `array-contains` queries described below — four concurrent `async let`
-queries, ten results each, de-duplicated by id **first occurrence wins**, in this fixed order:
-`cz_name_folded` → `eng_name_folded` → `cz_name_search_terms` → `eng_name_search_terms`. The
+`SearchFoodItemsUseCase` is a diacritics-and-case-folded prefix range over the folded name field of
+the device language (`cz_name_folded`, `sk_name_folded`, or `eng_name_folded` for every other
+language), plus one `array-contains` query on the same language's `*_search_terms` field, described
+below — two concurrent queries, ten results each, de-duplicated by id **first occurrence wins**, prefix
+results before token results ([design 0034](design/0034-slovak-catalogue-names.md)). Every catalogue item
+carries all three names, so the other languages' fields are never needed. The
 concatenation *is* the user-visible order — each query's ten results arrive in Firestore index
 order, i.e. alphabetically by the matched field, and nothing re-sorts them — so a client that
-merges in another order, or sorts the union, shows a different list. The folded pair is what lets "rohlik" find
-"Rohlík". All four queries are still sent, but the merged result is then cut down to the items whose displayed name
-(`displayName`, § 5.3) matches the query, so the name in the other language never produces a hit
+merges in another order, or sorts the union, shows a different list. The folded field is what lets "rohlik" find
+"Rohlík". The merged result is then cut down to the items whose displayed name
+(`displayName`, § 5.3) matches the query
 ([ADR 0042](adr/0042-search-matches-the-displayed-name-only.md)). The `*_lowercase` fields are still written and required, but no query reads them any
 more ([ADR 0040](adr/0040-search-is-diacritic-insensitive-everywhere-and-drops-the-lowercase-queries.md)).
 The diacritic fold itself
 (`foldDiacritics`, a Czech accent-to-base character map) lives in KMP `TextKit`, bridged into
 Swift as `String.foldingDiacritics()`, so a second client shares the exact folding rather than
 re-deriving it. The mechanics and the limits are recorded in
-[ADR 0013](adr/0013-prefix-search-over-lowercased-name-fields.md). The fold map covers only the
-15 Czech diacritic pairs; Slovak-specific characters (`ä ô ĺ ľ ŕ`, absent from Czech) pass through
-unfolded. This is by design, not a gap: `foodItems` is a Czech-first catalogue and § 5.3 already
-has `BilingualNamed.displayName` show a Slovak user the Czech name — a Slovak diacritic in a
-catalogue name is not an expected case to search around.
+[ADR 0013](adr/0013-prefix-search-over-lowercased-name-fields.md). The fold map covers the
+15 Czech diacritic pairs and the Slovak-specific characters absent from Czech (`ä ô ĺ ľ ŕ`), so a
+Slovak name folds the same way a Czech one does
+([design 0034](design/0034-slovak-catalogue-names.md)).
 
 Two of the four concurrent queries match by **any word**, not only the first: `array-contains` over
 `cz_name_search_terms` / `eng_name_search_terms`, each holding every prefix of every word in the
@@ -930,7 +931,7 @@ reachable from `AddFoodSheetViewModel` at all** — its only caller now is `Appr
 (§ 7). The *add a new food* form still collects the same fields, but `onCreateFoodItem` calls
 `SubmitFoodItemUseCase` instead, which writes to `foodItemSubmissions`, not `foodItems`.
 
-Its validation — id a valid barcode or an uppercase UUID (§ 1.2); Czech name non-empty;
+Its validation — id a valid barcode or an uppercase UUID (§ 1.2); for a submission the name in its `name_language` non-blank, for a catalogue write all three names non-blank (design 0034);
 calories > 0; portions (`weight` is not validated, since it feeds no calculation) — is `FoodItemValidation`, a static predicate shared with
 `SubmitFoodItemUseCase` and `UpdateFoodItemUseCase` (§ 7) so the three write paths cannot drift. `fixtures/food-item-validation-cases.json` pins it: the
 `itemId` cases are read by `FoodItemValidationTests` and by `firestore-rules-tests` (the rules
@@ -1708,11 +1709,14 @@ follows this in both languages.
 
 One thing about the app is Czech-first in a way neither catalogue covers:
 
-- `BilingualNamed.displayName` picks `czName` when the device language is `cs` or `sk` (`engName` when `czName` is empty, [ADR 0042](adr/0042-search-matches-the-displayed-name-only.md)), and
-  otherwise `engName` falling back to `czName` when `engName` is empty. This is data-level
-  localisation — the food's own two names — and it is independent of both string catalogues.
-  **Cross-platform**, unlike the rest of this section: the rule, its language-only (not region)
-  matching, and the empty-`engName` fallback that a created meal relies on are recorded in
+- `BilingualNamed.displayName` (TextKit `displayName`) returns the first non-blank name in the order
+  `cs` → `czName`, `skName`, `engName`; `sk` → `skName`, `czName`, `engName`; any other language →
+  `engName`, `czName`, `skName` ([design 0034](design/0034-slovak-catalogue-names.md)). A catalogue item
+  has all three names, so the fallback serves only a pending submission, the user's copies of it and a
+  logged created meal, which carry the name in one language. This is data-level
+  localisation — the food's own names — and it is independent of both string catalogues.
+  **Cross-platform**, unlike the rest of this section: the render-time choice and its language-only
+  (not region) matching are recorded in
   [ADR 0036](adr/0036-food-display-name-is-chosen-by-device-language-at-render-time.md). It is
   resolved at render time and never stored.
 - A portion's single free-text `name` is passed through `TextKit`'s `localizedPortionName(name, languageCode)`
@@ -1935,8 +1939,10 @@ A snapshot that cannot be read — `PendingMergeSnapshotStore.load()` throws on 
 deliberately left in place: `resumePendingMergeOnce` logs the error and launch continues, every
 launch. Deleting it would be irreversible, and `load()` also throws on a transient I/O error (on iOS
 a background launch before the first unlock, under data protection), where the file is fine. Writes
-are atomic, and the snapshot decodes the same DTOs every Firestore read does, so a decode failure
-would mean every stored document is already unreadable. The file does not linger for good: sign-out
+are atomic, and the snapshot decodes the same DTOs every Firestore read does. A field a release adds
+to those DTOs is missing from a snapshot written by the previous release, which no backfill can reach, so
+`load()` fills `sk_name` (the Slovak, then Czech, then English name) into the snapshot's documents before
+decoding; a later required field needs the same treatment. The file does not linger for good: sign-out
 and account deletion delete it without loading it, and the next live `migrate` overwrites it. There is no UI for it, since
 the anonymous account's data is unreachable from the client and the user could do nothing about it.
 
