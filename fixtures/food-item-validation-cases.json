@@ -16,7 +16,7 @@
     { "input": "١٢٣٤٥٦٧٨", "valid": false },
     { "input": "１２３４５６７８", "valid": false }
   ],
-  "foodItemBase": { "id": "12345678", "czName": "Tvaroh", "caloriesPerHundredGrams": 80, "weight": 200, "portions": [], "alcoholByVolume": null },
+  "foodItemBase": { "id": "12345678", "czName": "Tvaroh", "skName": "Tvaroh", "engName": "Cottage cheese", "caloriesPerHundredGrams": 80, "weight": 200, "portions": [], "alcoholByVolume": null },
   "foodItem": [
     { "name": "valid base item", "overrides": {}, "expected": null },
     { "name": "valid alcohol by volume", "overrides": {"alcoholByVolume": 12}, "expected": null },
@@ -27,7 +27,9 @@
     { "name": "invalid code", "overrides": {"id": "123456789"}, "expected": "invalidCode" },
     { "name": "uppercase UUID id", "overrides": {"id": "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D"}, "expected": null },
     { "name": "empty name", "overrides": {"czName": ""}, "expected": "invalidName" },
-    { "name": "whitespace-only name is not empty", "overrides": {"czName": "   "}, "expected": null },
+    { "name": "whitespace-only name is empty", "overrides": {"czName": "   "}, "expected": "invalidName" },
+    { "name": "empty Slovak name", "overrides": {"skName": ""}, "expected": "invalidName" },
+    { "name": "empty English name", "overrides": {"engName": ""}, "expected": "invalidName" },
     { "name": "zero calories", "overrides": {"caloriesPerHundredGrams": 0}, "expected": "invalidCalories" },
     { "name": "negative calories", "overrides": {"caloriesPerHundredGrams": -1}, "expected": "invalidCalories" },
     { "name": "weight is not validated: existing catalogue items keep their stored package weight", "overrides": {"weight": 0}, "expected": null },
