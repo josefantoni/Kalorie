@@ -1,6 +1,6 @@
 const { FieldPath, FieldValue } = require('firebase-admin/firestore');
 
-const NAME_FIELDS = ['cz_name', 'eng_name'];
+const NAME_FIELDS = ['cz_name', 'sk_name', 'eng_name'];
 const PHOTO_FIELD = 'photo_url';
 const CREATED_MEAL = 'created_meal';
 const NOT_FOUND = 5;

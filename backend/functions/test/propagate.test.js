@@ -77,6 +77,21 @@ describe('propagate', () => {
     }
   });
 
+  it('carries a translated sk_name into foodConsumed, favouriteFoods and foodFrequency', async () => {
+    const before = { ...OLD, sk_name: 'Tvaroh' };
+    const after = { ...OLD, sk_name: 'Tvaroh mäkký' };
+    await consumed('a', 'x', { sk_name: 'Tvaroh' });
+    await favourite('a', { sk_name: 'Tvaroh' });
+    await frequency('a', BARCODE, { sk_name: 'Tvaroh' });
+    await propagate(db, BARCODE, before, after);
+
+    assert.equal((await read('users/a/foodConsumed/x-a')).data().sk_name, 'Tvaroh mäkký');
+    assert.equal((await read(`users/a/favouriteFoods/${BARCODE}`)).data().sk_name, 'Tvaroh mäkký');
+    const s = (await read('users/a/stats/foodFrequency')).data().entries[BARCODE];
+    assert.equal(s.item.sk_name, 'Tvaroh mäkký');
+    assert.equal(s.item.cz_name, OLD.cz_name);
+  });
+
   it('writes nothing when none of the three fields changed', async () => {
     await consumed('a', 'x');
     const before = (await read('users/a/foodConsumed/x-a')).updateTime;
