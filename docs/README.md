@@ -222,6 +222,7 @@ understanding why.
 | [0031](design/0031-community-product-photos-and-notification-bell.md) | Community product photos and the notification bell | Draft | Backend, Cross-platform, iOS |
 | [0032](design/0032-propagating-catalogue-changes.md) | Propagating catalogue name and photo changes into users' copies | Draft | Backend |
 | [0033](design/0033-user-notifications-for-own-reports-and-photos.md) | User notifications for own reports and photo suggestions | Draft | Backend, Cross-platform, iOS, Android |
+| [0034](design/0034-slovak-catalogue-names.md) | Slovak catalogue names | Draft | Backend, Cross-platform, iOS, Android |
 
 ### Decision records
 
