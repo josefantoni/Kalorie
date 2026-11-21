@@ -144,6 +144,7 @@ final class FetchFoodFrequencyUseCaseTests: XCTestCase {
                 "id": id,
                 "food_item_kind": "catalogue",
                 "cz_name": "Tvaroh",
+                "sk_name": "Tvaroh",
                 "eng_name": "",
                 "weight": 100.0,
                 "date": 0.0,

@@ -5,6 +5,7 @@
 //  Created by Josef Antoni on 10.09.2026.
 //
 
+import TextKit
 import XCTest
 @testable import Kalorie
 
@@ -31,6 +32,34 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
         XCTAssertEqual(createFoodItem.receivedItem?.id, submission.item.id)
         XCTAssertEqual(dataProvider.deletedId, submission.id)
         XCTAssertEqual(dataProvider.deletedCollection, Constants.Firestore.foodItemSubmissions)
+    }
+
+    func test_approve_fillsEveryBlankNameWithTheEditedOriginalName() async throws {
+        let (sut, dataProvider, createFoodItem, _) = makeSUT()
+        let submission = makeSubmission(nameLanguage: "sk", names: FoodNames(czech: "", slovak: "Snikers", english: ""))
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        let edited = submission.item.withNames(FoodNames(czech: "", slovak: "Snickers", english: " "))
+
+        try await sut(submission: submission, item: edited, photo: .local(Data([1])))
+
+        let created = try XCTUnwrap(createFoodItem.receivedItem)
+        XCTAssertEqual(created.skName, "Snickers")
+        XCTAssertEqual(created.czName, "Snickers", "a name the maintainer left empty takes the original, with the typo fix applied")
+        XCTAssertEqual(created.engName, "Snickers")
+    }
+
+    func test_approve_keepsNamesTheMaintainerFilledIn() async throws {
+        let (sut, dataProvider, createFoodItem, _) = makeSUT()
+        let submission = makeSubmission(nameLanguage: "sk", names: FoodNames(czech: "", slovak: "Mlieko", english: ""))
+        dataProvider.stubbedReReadDTO = makeDTO(from: submission)
+        let edited = submission.item.withNames(FoodNames(czech: "Mléko", slovak: "Mlieko", english: ""))
+
+        try await sut(submission: submission, item: edited, photo: .local(Data([1])))
+
+        let created = try XCTUnwrap(createFoodItem.receivedItem)
+        XCTAssertEqual(created.czName, "Mléko")
+        XCTAssertEqual(created.skName, "Mlieko")
+        XCTAssertEqual(created.engName, "Mlieko")
     }
 
     func test_approve_whenBarcodeEnteredCatalogueAfterSubmissionWasFiled_refusesAndKeepsSubmission() async throws {
@@ -158,7 +187,13 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
         return (sut, dataProvider, createFoodItem, storage)
     }
 
-    private func makeSubmission(id: String = "sub-1", barcode: String = "12345678", photoURL: URL? = nil) -> FoodItemSubmissionDomain {
+    private func makeSubmission(
+        id: String = "sub-1",
+        barcode: String = "12345678",
+        photoURL: URL? = nil,
+        nameLanguage: String = "cs",
+        names: FoodNames = FoodNames(czech: "Tvaroh", slovak: "", english: "")
+    ) -> FoodItemSubmissionDomain {
         FoodItemSubmissionDomain(
             id: id,
             barcode: barcode,
@@ -166,11 +201,13 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
             status: .pending,
             submittedAt: .now,
             rejectReason: nil,
+            nameLanguage: nameLanguage,
             item: FoodItemDomain(
                 id: barcode,
                 kind: .catalogue,
-                czName: "Tvaroh",
-                engName: "",
+                czName: names.czech,
+                skName: names.slovak,
+                engName: names.english,
                 weight: 200,
                 date: .now,
                 energyKJ: 335,
@@ -196,6 +233,7 @@ final class ApproveSubmissionUseCaseTests: XCTestCase {
             status: submission.status,
             submittedAt: submittedAt ?? submission.submittedAt,
             rejectReason: submission.rejectReason,
+            nameLanguage: submission.nameLanguage,
             item: submission.item
         )
     }

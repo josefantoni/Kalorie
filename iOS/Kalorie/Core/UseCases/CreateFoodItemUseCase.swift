@@ -45,7 +45,7 @@ struct CreateFoodItemUseCase: CreateFoodItemUseCaseProtocol {
     // MARK: - Functions
 
     func callAsFunction(_ item: FoodItemDomain) async throws -> FoodItemDomain {
-        if let validationError = FoodItemValidation.validate(item) {
+        if let validationError = FoodItemValidation.validate(item, requiredNames: .all) {
             throw CreateFoodItemError(validationError)
         }
         let existing: FoodItemDTO? = try await dataProvider.loadFromServerAsync(

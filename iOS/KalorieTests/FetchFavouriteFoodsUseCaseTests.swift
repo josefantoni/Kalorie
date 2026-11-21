@@ -73,6 +73,7 @@ final class FetchFavouriteFoodsUseCaseTests: XCTestCase {
                 id: id,
                 kind: .catalogue,
                 czName: czName,
+                skName: czName,
                 engName: "",
                 weight: 100,
                 date: .now,

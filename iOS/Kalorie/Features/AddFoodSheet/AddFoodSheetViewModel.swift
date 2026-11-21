@@ -14,7 +14,9 @@ struct FoodItemFormInput {
     // MARK: - Properties
 
     var scannedCode = ""
-    var name = ""
+    var nameLanguage = NameRulesKt.nameLanguage(languageCode: Locale.currentLanguageCode)
+    var czName = ""
+    var skName = ""
     var engName = ""
     var weightOfProduct: Double = 100
     var energyKJ: Double = 0
@@ -34,10 +36,38 @@ struct FoodItemFormInput {
 }
 
 extension FoodItemFormInput {
+
+    // MARK: - Properties
+
+    var name: String {
+        get {
+            switch nameLanguage {
+            case "cs": czName
+            case "sk": skName
+            default: engName
+            }
+        }
+        set {
+            switch nameLanguage {
+            case "cs": czName = newValue
+            case "sk": skName = newValue
+            default: engName = newValue
+            }
+        }
+    }
+
+    // MARK: - Init
+
+    init(submission: FoodItemSubmissionDomain) {
+        self.init(item: submission.item)
+        nameLanguage = submission.nameLanguage
+    }
+
     init(item: FoodItemDomain) {
         self.init(
             scannedCode: item.barcode ?? "",
-            name: item.czName,
+            czName: item.czName,
+            skName: item.skName,
             engName: item.engName,
             weightOfProduct: item.weight,
             energyKJ: item.energyKJ,
@@ -59,12 +89,15 @@ extension FoodItemFormInput {
         )
     }
 
+    // MARK: - Functions
+
     func asFoodItemDomain(id: String? = nil, kind: FoodItemKind = .catalogue, date: Date = .now) -> FoodItemDomain {
         FoodItemDomain(
             id: id ?? scannedCode,
             kind: kind,
-            czName: name,
-            engName: engName,
+            czName: czName.trimmingCharacters(in: .whitespacesAndNewlines),
+            skName: skName.trimmingCharacters(in: .whitespacesAndNewlines),
+            engName: engName.trimmingCharacters(in: .whitespacesAndNewlines),
             weight: weightOfProduct,
             date: date,
             energyKJ: energyKJ,
@@ -255,7 +288,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         }
         let matchingMeals = myCreatedMeals
             .map { $0.asFoodItem() }
-            .filter { SearchTermsKt.matchesSearchQuery(name: $0.czName, query: query) }
+            .filter { SearchTermsKt.matchesSearchQuery(name: $0.displayName, query: query) }
         let matchingSubmissions = mySubmissions
             .map(\.item)
             .filter { SearchTermsKt.matchesSearchQuery(name: $0.displayName, query: query) }
@@ -734,9 +767,15 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
         do {
             if let editingSubmissionId {
                 let previousPhotoURL = mySubmissions.first { $0.id == editingSubmissionId }?.item.photoURL
-                _ = try await updateMySubmission(id: editingSubmissionId, item: item, photo: formInput.photo, previousPhotoURL: previousPhotoURL)
+                _ = try await updateMySubmission(
+                    id: editingSubmissionId,
+                    item: item,
+                    nameLanguage: formInput.nameLanguage,
+                    photo: formInput.photo,
+                    previousPhotoURL: previousPhotoURL
+                )
             } else {
-                _ = try await submitFoodItem(item, photo: formInput.photo)
+                _ = try await submitFoodItem(item, nameLanguage: formInput.nameLanguage, photo: formInput.photo)
             }
             editingSubmissionId = nil
             rejectionReasonBeingEdited = nil
@@ -773,7 +812,7 @@ final class AddFoodSheetViewModel: ObservableObject, NutritionLabelPrefilling {
 
     @MainActor
     private func openEditingForm(for submission: FoodItemSubmissionDomain) {
-        formInput = FoodItemFormInput(item: submission.item)
+        formInput = FoodItemFormInput(submission: submission)
         recognizedFields = []
         editingSubmissionId = submission.id
         rejectionReasonBeingEdited = submission.rejectReason

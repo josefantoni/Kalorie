@@ -404,7 +404,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         sut.localFoodItems = [makeFoodItem(id: "cat", czName: "Kaše")]
         sut.searchText = "kaše"
         XCTAssertEqual(sut.displayedResults.map(\.id), ["meal", "cat"])
-        XCTAssertEqual(sut.displayedResults.first?.czName, "Ovesná kaše")
+        XCTAssertEqual(sut.displayedResults.first?.displayName, "Ovesná kaše")
     }
 
     @MainActor
@@ -659,6 +659,39 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         XCTAssertEqual(updateMySubmission.receivedId, "sub-1")
         XCTAssertTrue(sut.isSubmissionConfirmationVisible)
         XCTAssertNil(sut.rejectionReasonBeingEdited, "resolving the resubmission must clear the rejection banner")
+    }
+
+    @MainActor
+    func test_onCreateFoodItem_whenEditingSlovakSubmission_sendsTheSubmissionsNameLanguage() async {
+        let submission = makeSubmission(id: "sub-1", barcode: "87654321", status: .rejected, rejectReason: "Wrong calories", nameLanguage: "sk")
+        let updateMySubmission = UpdateMySubmissionUseCaseSpy()
+        let sut = makeSUT(
+            fetchMySubmissions: FetchMySubmissionsUseCaseFake(stubbedSubmissions: [submission]),
+            updateMySubmission: updateMySubmission
+        )
+        await sut.onAppear()
+        sut.onSelectRejectedSubmission(makeFoodItem(id: "87654321", czName: "Ovar"))
+        sut.formInput.weightOfProduct = 200
+        sut.formInput.caloriesPerHundredGrams = 80
+
+        await sut.onCreateFoodItem()
+
+        XCTAssertEqual(updateMySubmission.receivedNameLanguage, "sk", "an edit must keep the language the submission was written in, not take the device language")
+    }
+
+    @MainActor
+    func test_onCreateFoodItem_withNoEditingSubmission_sendsTheFormsNameLanguage() async {
+        let submitFoodItem = SubmitFoodItemUseCaseSpy()
+        let sut = makeSUT(submitFoodItem: submitFoodItem)
+        sut.formInput.scannedCode = "12345678"
+        sut.formInput.nameLanguage = "sk"
+        sut.formInput.name = "Tvaroh"
+        sut.formInput.weightOfProduct = 200
+        sut.formInput.caloriesPerHundredGrams = 80
+
+        await sut.onCreateFoodItem()
+
+        XCTAssertEqual(submitFoodItem.receivedNameLanguage, "sk")
     }
 
     @MainActor
@@ -988,7 +1021,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
         )
     }
 
-    private func makeSubmission(id: String = "sub-1", barcode: String = "12345678", status: FoodItemSubmissionStatus = .pending, rejectReason: String? = nil) -> FoodItemSubmissionDomain {
+    private func makeSubmission(id: String = "sub-1", barcode: String = "12345678", status: FoodItemSubmissionStatus = .pending, rejectReason: String? = nil, nameLanguage: String = "cs") -> FoodItemSubmissionDomain {
         FoodItemSubmissionDomain(
             id: id,
             barcode: barcode,
@@ -996,6 +1029,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             status: status,
             submittedAt: .now,
             rejectReason: rejectReason,
+            nameLanguage: nameLanguage,
             item: makeFoodItem(id: barcode, czName: "Ovar")
         )
     }
@@ -1015,6 +1049,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
             id: id,
             kind: kind,
             czName: czName,
+            skName: czName,
             engName: czName,
             weight: 100,
             date: .now,
@@ -1039,6 +1074,7 @@ final class AddFoodSheetViewModelTests: XCTestCase {
                 MyCreatedMealIngredientDomain(
                     foodItemId: "12345",
                     czName: "Ovesné vločky",
+                    skName: "Ovesné vločky",
                     engName: "Oats",
                     grams: 50,
                     nutrition: FoodNutritionValues(
@@ -1066,14 +1102,16 @@ private final class SubmitFoodItemUseCaseSpy: SubmitFoodItemUseCaseProtocol {
     // MARK: - Properties
 
     private(set) var receivedItem: FoodItemDomain?
+    private(set) var receivedNameLanguage: String?
     private(set) var receivedPhoto: FoodItemFormPhoto?
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(_ item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
         receivedItem = item
+        receivedNameLanguage = nameLanguage
         receivedPhoto = photo
-        return FoodItemSubmissionDomain(id: "new-id", barcode: item.id, submittedBy: "test-user", status: .pending, submittedAt: .now, rejectReason: nil, item: item)
+        return FoodItemSubmissionDomain(id: "new-id", barcode: item.id, submittedBy: "test-user", status: .pending, submittedAt: .now, rejectReason: nil, nameLanguage: nameLanguage, item: item)
     }
 }
 
@@ -1083,13 +1121,15 @@ private final class UpdateMySubmissionUseCaseSpy: UpdateMySubmissionUseCaseProto
 
     private(set) var receivedId: String?
     private(set) var receivedItem: FoodItemDomain?
+    private(set) var receivedNameLanguage: String?
 
     // MARK: - Functions
 
-    func callAsFunction(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(id: String, item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain {
         receivedId = id
         receivedItem = item
-        return FoodItemSubmissionDomain(id: id, barcode: item.id, submittedBy: "test-user", status: .pending, submittedAt: .now, rejectReason: nil, item: item)
+        receivedNameLanguage = nameLanguage
+        return FoodItemSubmissionDomain(id: id, barcode: item.id, submittedBy: "test-user", status: .pending, submittedAt: .now, rejectReason: nil, nameLanguage: nameLanguage, item: item)
     }
 }
 

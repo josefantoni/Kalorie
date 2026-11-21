@@ -16,6 +16,7 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
     let foodItemId: String
     let foodItemKind: FoodItemKind
     let czName: String
+    let skName: String
     let engName: String
     let weight: Double
     let date: Date
@@ -58,6 +59,7 @@ struct FoodConsumedDomain: BilingualNamed, Hashable {
             foodItemId: foodItemId,
             foodItemKind: foodItemKind,
             czName: czName,
+            skName: skName,
             engName: engName,
             weight: weight ?? self.weight,
             date: date,

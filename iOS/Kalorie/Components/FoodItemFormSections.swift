@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+enum FoodItemFormNameFields: Equatable {
+    case single
+    case allLanguages(originalLanguage: String?)
+}
+
 enum FoodItemFormBarcodeRow {
     case hidden
     case locked
@@ -21,6 +26,7 @@ struct FoodItemFormSections: View {
     var highlightedFields: Set<FoodItemFormField> = []
     var barcodeRow: FoodItemFormBarcodeRow = .hidden
     var showsAlcoholByVolumeField = false
+    var nameFields: FoodItemFormNameFields = .single
     var onNutritionLabelScanTapped: (() -> Void)?
     var onFieldEdited: (FoodItemFormField) -> Void = { _ in }
 
@@ -31,13 +37,20 @@ struct FoodItemFormSections: View {
             FoodPortionsSection(portions: $formInput.portions, measure: formInput.measure)
             
             Section {
-                FloatingLabelTextField(
-                    title: L10n.AddFood.fieldNameTitle,
-                    text: nameBinding,
-                    placeholder: L10n.AddFood.fieldNamePlaceholder,
-                    isHighlighted: highlightedFields.contains(.name)
-                )
-                .listRowInsets(.vertical, 0)
+                switch nameFields {
+                case .single:
+                    FloatingLabelTextField(
+                        title: L10n.AddFood.fieldNameTitle,
+                        text: nameBinding,
+                        placeholder: L10n.AddFood.fieldNamePlaceholder,
+                        isHighlighted: highlightedFields.contains(.name)
+                    )
+                    .listRowInsets(.vertical, 0)
+                case .allLanguages(let originalLanguage):
+                    languageNameField(language: "cs", title: L10n.AddFood.fieldCzechNameTitle, text: $formInput.czName, originalLanguage: originalLanguage, scanTargetLanguage: originalLanguage ?? formInput.nameLanguage)
+                    languageNameField(language: "sk", title: L10n.AddFood.fieldSlovakNameTitle, text: $formInput.skName, originalLanguage: originalLanguage, scanTargetLanguage: originalLanguage ?? formInput.nameLanguage)
+                    languageNameField(language: "en", title: L10n.AddFood.fieldEnglishNameTitle, text: $formInput.engName, originalLanguage: originalLanguage, scanTargetLanguage: originalLanguage ?? formInput.nameLanguage)
+                }
                 barcodeRowView
                     .listRowInsets(.vertical, 0)
             }
@@ -64,6 +77,24 @@ struct FoodItemFormSections: View {
     }
 
     // MARK: - Functions
+
+    private func languageNameField(language: String, title: String, text: Binding<String>, originalLanguage: String?, scanTargetLanguage: String) -> some View {
+        let isOriginal = language == originalLanguage
+        let isScanTarget = language == scanTargetLanguage
+        return FloatingLabelTextField(
+            title: isOriginal ? L10n.AddFood.fieldOriginalNameTitle(title: title) : title,
+            text: Binding(
+                get: { text.wrappedValue },
+                set: {
+                    text.wrappedValue = $0
+                    if isScanTarget { onFieldEdited(.name) }
+                }
+            ),
+            placeholder: L10n.AddFood.fieldNamePlaceholder,
+            isHighlighted: isScanTarget && highlightedFields.contains(.name)
+        )
+        .listRowInsets(.vertical, 0)
+    }
 
     private var nameBinding: Binding<String> {
         Binding(

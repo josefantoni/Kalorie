@@ -35,6 +35,7 @@ struct ModerationReviewView: View {
                 highlightedFields: viewModel.recognizedFields,
                 barcodeRow: .locked,
                 showsAlcoholByVolumeField: true,
+                nameFields: .allLanguages(originalLanguage: viewModel.formInput.nameLanguage),
                 onNutritionLabelScanTapped: {
                     Task { await viewModel.onNutritionLabelCameraTapped() }
                 }
@@ -140,11 +141,13 @@ struct ModerationReviewView: View {
                     status: .pending,
                     submittedAt: .now,
                     rejectReason: "nějaký text",
+                    nameLanguage: "sk",
                     item: FoodItemDomain(
                         id: "12345678",
                         kind: .catalogue,
-                        czName: "Tvaroh",
-                        engName: "Cottage cheese",
+                        czName: "",
+                        skName: "Tvaroh",
+                        engName: "",
                         weight: 200,
                         date: .now,
                         energyKJ: 335,

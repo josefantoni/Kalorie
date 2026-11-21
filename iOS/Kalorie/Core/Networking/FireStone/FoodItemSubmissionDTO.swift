@@ -17,6 +17,7 @@ struct FoodItemSubmissionDTO: Codable {
     let status: FoodItemSubmissionStatus
     let submittedAt: TimeInterval
     let rejectReason: String?
+    let nameLanguage: String
     let item: FoodItemDTO
 
     // MARK: - Coding keys
@@ -26,6 +27,7 @@ struct FoodItemSubmissionDTO: Codable {
         case submittedBy = "submitted_by"
         case submittedAt = "submitted_at"
         case rejectReason = "reject_reason"
+        case nameLanguage = "name_language"
     }
 
     // MARK: - Init
@@ -37,6 +39,7 @@ struct FoodItemSubmissionDTO: Codable {
         status: FoodItemSubmissionStatus,
         submittedAt: Date,
         rejectReason: String?,
+        nameLanguage: String,
         item: FoodItemDomain
     ) {
         self.id = id
@@ -45,6 +48,7 @@ struct FoodItemSubmissionDTO: Codable {
         self.status = status
         self.submittedAt = submittedAt.timeIntervalSince1970
         self.rejectReason = rejectReason
+        self.nameLanguage = nameLanguage
         self.item = FoodItemDTO(item: item)
     }
 
@@ -58,6 +62,7 @@ struct FoodItemSubmissionDTO: Codable {
             status: status,
             submittedAt: submittedAt.toDate,
             rejectReason: rejectReason,
+            nameLanguage: nameLanguage,
             item: item.asDomain()
         )
     }

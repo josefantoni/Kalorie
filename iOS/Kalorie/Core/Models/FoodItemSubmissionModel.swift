@@ -22,6 +22,7 @@ struct FoodItemSubmissionDomain {
     let status: FoodItemSubmissionStatus
     let submittedAt: Date
     let rejectReason: String?
+    let nameLanguage: String
     let item: FoodItemDomain
 }
 

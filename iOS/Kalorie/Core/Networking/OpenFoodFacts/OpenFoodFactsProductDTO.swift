@@ -29,6 +29,7 @@ struct OpenFoodFactsProductDTO: Decodable {
     // MARK: - Properties
 
     let code: String
+    let productNameSk: String?
     let productNameCs: String?
     let productNameEn: String?
     let productName: String?
@@ -44,6 +45,7 @@ struct OpenFoodFactsProductDTO: Decodable {
         case servingQuantity = "serving_quantity"
         case servingQuantityUnit = "serving_quantity_unit"
         case imageFrontUrl = "image_front_url"
+        case productNameSk = "product_name_sk"
         case productNameCs = "product_name_cs"
         case productNameEn = "product_name_en"
         case productName = "product_name"
@@ -73,6 +75,7 @@ struct OpenFoodFactsProductDTO: Decodable {
             id: code,
             kind: .external,
             czName: displayName,
+            skName: NameRulesKt.slovakName(slovak: productNameSk, czech: rawName, english: nil).decodingHTMLEntities(),
             engName: rawOriginalName.decodingHTMLEntities(),
             weight: 100,
             date: .now,

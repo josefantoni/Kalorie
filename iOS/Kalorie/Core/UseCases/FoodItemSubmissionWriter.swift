@@ -35,12 +35,13 @@ struct FoodItemSubmissionWriter {
     func write(
         id: String,
         item: FoodItemDomain,
+        nameLanguage: String,
         photo: FoodItemFormPhoto,
         previousPhotoURL: URL?
     ) async throws -> FoodItemSubmissionDomain {
         guard let userId = authProvider.userId else { throw AuthError.notAuthenticated }
         let item = item.id.isEmpty ? item.withId(id) : item
-        if let validationError = FoodItemValidation.validate(item) {
+        if let validationError = FoodItemValidation.validate(item, requiredNames: .original(nameLanguage: nameLanguage)) {
             throw FoodItemSubmissionError(validationError)
         }
         guard photo != .none else { throw FoodItemSubmissionError.photoMissing }
@@ -57,6 +58,7 @@ struct FoodItemSubmissionWriter {
             status: .pending,
             submittedAt: .now,
             rejectReason: nil,
+            nameLanguage: nameLanguage,
             item: item.withPhotoURL(uploadedURL ?? remoteURL(of: photo))
         )
         let dto = FoodItemSubmissionDTO(
@@ -66,6 +68,7 @@ struct FoodItemSubmissionWriter {
             status: submission.status,
             submittedAt: submission.submittedAt,
             rejectReason: submission.rejectReason,
+            nameLanguage: submission.nameLanguage,
             item: submission.item
         )
         do {

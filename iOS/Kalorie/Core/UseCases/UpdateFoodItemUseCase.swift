@@ -71,7 +71,7 @@ struct UpdateFoodItemUseCase: UpdateFoodItemUseCaseProtocol {
     @discardableResult
     func callAsFunction(_ item: FoodItemDomain, previouslyLoaded: FoodItemDomain, photo: FoodItemFormPhoto, validate: Bool) async throws -> FoodItemDomain {
         guard authProvider.userId != nil else { throw AuthError.notAuthenticated }
-        if validate, let validationError = FoodItemValidation.validate(item) {
+        if validate, let validationError = FoodItemValidation.validate(item, requiredNames: .all) {
             throw UpdateFoodItemError(validationError)
         }
         let current: FoodItemDTO? = try await dataProvider.loadAsync(id: item.id, from: Constants.Firestore.foodItems)

@@ -48,6 +48,7 @@ final class FoodItemScalingTests: XCTestCase {
             id: "12345678",
             kind: .catalogue,
             czName: "Tvaroh",
+            skName: "Tvaroh",
             engName: "Cottage cheese",
             weight: 200,
             date: .now,

@@ -81,6 +81,7 @@ final class RecordFoodFrequencyUseCaseTests: XCTestCase {
             id: id,
             kind: kind,
             czName: czName,
+            skName: czName,
             engName: "",
             weight: 100,
             date: .now,

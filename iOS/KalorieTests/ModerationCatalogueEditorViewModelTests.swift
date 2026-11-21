@@ -41,7 +41,7 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         sut.barcodeQuery = "12345678"
         await sut.onSearchTapped()
 
-        sut.formInput.name = "Opravený název"
+        sut.formInput.czName = "Opravený název"
         await sut.onSaveTapped()
 
         XCTAssertEqual(updateFoodItem.receivedItem?.date, originalDate, "correcting a field must not silently reset the item's original date")
@@ -74,7 +74,7 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
         sut.barcodeQuery = "12345678"
         await sut.onSearchTapped()
 
-        sut.formInput.name = "Opravený název"
+        sut.formInput.czName = "Opravený název"
         await sut.onSaveTapped()
 
         XCTAssertEqual(sut.alertItem?.title, L10n.Moderation.errorItemChangedSinceLoad)
@@ -128,7 +128,7 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
             ticket: makeReport(locale: "cs")
         )
         await sut.onAppear()
-        sut.formInput.name = "Opravený název"
+        sut.formInput.czName = "Opravený název"
 
         await sut.onSaveAndResolveTapped()
 
@@ -166,7 +166,7 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
             ticket: makeReport()
         )
         await sut.onAppear()
-        sut.formInput.name = "Rozpracovaná úprava"
+        sut.formInput.czName = "Rozpracovaná úprava"
 
         sut.onRejectTapped()
 
@@ -283,6 +283,7 @@ final class ModerationCatalogueEditorViewModelTests: XCTestCase {
             id: id,
             kind: .catalogue,
             czName: "Tvaroh",
+            skName: "Tvaroh",
             engName: "Cottage cheese",
             weight: 200,
             date: date,

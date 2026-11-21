@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TextKit
 
 struct PendingMergeSnapshot: Codable {
 
@@ -78,12 +79,46 @@ struct PendingMergeSnapshotStore: PendingMergeSnapshotStoreProtocol {
 
     func load() throws -> PendingMergeSnapshot? {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return nil }
-        return try JSONDecoder().decode(PendingMergeSnapshot.self, from: Data(contentsOf: fileURL))
+        let data = try Data(contentsOf: fileURL)
+        return try JSONDecoder().decode(PendingMergeSnapshot.self, from: Self.fillingMissingSlovakNames(in: data))
     }
 
     func delete() throws {
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return }
         try FileManager.default.removeItem(at: fileURL)
+    }
+
+    static func fillingMissingSlovakNames(in data: Data) -> Data {
+        guard var root = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return data }
+        var changed = false
+
+        func filled(_ items: Any?) -> Any? {
+            guard let items = items as? [[String: Any]] else { return items }
+            return items.map { item -> [String: Any] in
+                guard item["sk_name"] == nil else { return item }
+                changed = true
+                var item = item
+                item["sk_name"] = NameRulesKt.slovakName(
+                    slovak: nil,
+                    czech: item["cz_name"] as? String,
+                    english: item["eng_name"] as? String
+                )
+                return item
+            }
+        }
+
+        if let foodConsumed = filled(root["foodConsumed"]) { root["foodConsumed"] = foodConsumed }
+        if let favouriteFoods = filled(root["favouriteFoods"]) { root["favouriteFoods"] = favouriteFoods }
+        if let meals = root["myCreatedMeals"] as? [[String: Any]] {
+            root["myCreatedMeals"] = meals.map { meal -> [String: Any] in
+                var meal = meal
+                if let ingredients = filled(meal["ingredients"]) { meal["ingredients"] = ingredients }
+                return meal
+            }
+        }
+
+        guard changed, let result = try? JSONSerialization.data(withJSONObject: root) else { return data }
+        return result
     }
 }
 

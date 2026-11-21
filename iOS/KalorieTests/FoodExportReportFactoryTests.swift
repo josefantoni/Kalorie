@@ -136,6 +136,7 @@ final class FoodExportReportFactoryTests: XCTestCase {
             foodItemId: id,
             foodItemKind: .catalogue,
             czName: id,
+            skName: id,
             engName: id,
             weight: 100,
             date: date,

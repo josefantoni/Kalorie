@@ -72,7 +72,7 @@ final class FetchFoodByBarcodeExternallyUseCaseTests: XCTestCase {
 
         XCTAssertEqual(
             URLProtocolStub.lastRequest?.url?.absoluteString,
-            "https://world.openfoodfacts.org/api/v2/product/1234567890123?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
+            "https://world.openfoodfacts.org/api/v2/product/1234567890123?fields=code,product_name,product_name_sk,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
         )
         XCTAssertEqual(URLProtocolStub.lastRequest?.timeoutInterval, 10)
     }
@@ -85,7 +85,7 @@ final class FetchFoodByBarcodeExternallyUseCaseTests: XCTestCase {
 
         XCTAssertEqual(
             URLProtocolStub.lastRequest?.url?.absoluteString,
-            "https://world.openfoodfacts.org/api/v2/product/12%203%2F4?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
+            "https://world.openfoodfacts.org/api/v2/product/12%203%2F4?fields=code,product_name,product_name_sk,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
         )
     }
 

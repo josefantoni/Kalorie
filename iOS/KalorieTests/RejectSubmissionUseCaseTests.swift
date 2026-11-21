@@ -70,6 +70,7 @@ final class RejectSubmissionUseCaseTests: XCTestCase {
             status: .pending,
             submittedAt: submission.submittedAt,
             rejectReason: nil,
+            nameLanguage: "cs",
             item: submission.item
         )
         do {
@@ -94,6 +95,7 @@ final class RejectSubmissionUseCaseTests: XCTestCase {
             status: .pending,
             submittedAt: submission.submittedAt.addingTimeInterval(60),
             rejectReason: nil,
+            nameLanguage: "cs",
             item: submission.item
         )
         do {
@@ -136,10 +138,12 @@ final class RejectSubmissionUseCaseTests: XCTestCase {
             status: .pending,
             submittedAt: .now,
             rejectReason: nil,
+            nameLanguage: "cs",
             item: FoodItemDomain(
                 id: barcode,
                 kind: .catalogue,
                 czName: "Tvaroh",
+                skName: "Tvaroh",
                 engName: "",
                 weight: 200,
                 date: .now,

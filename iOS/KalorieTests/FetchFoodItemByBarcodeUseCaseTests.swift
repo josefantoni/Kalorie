@@ -85,6 +85,7 @@ final class FetchFoodItemByBarcodeUseCaseTests: XCTestCase {
                 id: id,
                 kind: .catalogue,
                 czName: czName,
+                skName: czName,
                 engName: "Cottage cheese",
                 weight: 100,
                 date: .now,

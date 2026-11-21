@@ -35,6 +35,7 @@ struct SaveFoodConsumedUseCase: SaveFoodConsumedUseCaseProtocol {
             foodItemId: item.id,
             foodItemKind: item.kind,
             czName: item.czName,
+            skName: item.skName,
             engName: item.engName,
             weight: grams,
             date: date.timeIntervalSince1970,

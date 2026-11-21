@@ -51,6 +51,7 @@ final class FoodExportDayBucketingTests: XCTestCase {
             foodItemId: name,
             foodItemKind: .catalogue,
             czName: name,
+            skName: name,
             engName: name,
             weight: 100,
             date: date,

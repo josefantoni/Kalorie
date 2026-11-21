@@ -162,6 +162,12 @@ enum L10n {
         static var fieldBarcodeTitle: String { String(localized: "addFood_field_barcode_title") }
         static var fieldNameTitle: String { String(localized: "addFood_field_name_title") }
         static var fieldNamePlaceholder: String { String(localized: "addFood_field_name_placeholder") }
+        static var fieldCzechNameTitle: String { String(localized: "addFood_field_czechName_title") }
+        static var fieldSlovakNameTitle: String { String(localized: "addFood_field_slovakName_title") }
+        static var fieldEnglishNameTitle: String { String(localized: "addFood_field_englishName_title") }
+        static func fieldOriginalNameTitle(title: String) -> String {
+            String(format: String(localized: "addFood_field_originalName_title"), title)
+        }
         static var fieldWeight: String { String(localized: "addFood_field_weight") }
         static var fieldEnergyKJ: String { String(localized: "addFood_field_energyKJ") }
         static var fieldCaloriesPer100g: String { String(localized: "addFood_field_caloriesPer100g") }

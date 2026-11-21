@@ -6,9 +6,11 @@
 //
 
 import Foundation
+import TextKit
 
 protocol BilingualNamed {
     var czName: String { get }
+    var skName: String { get }
     var engName: String { get }
 }
 
@@ -24,7 +26,10 @@ extension Locale {
 
 extension BilingualNamed {
     var displayName: String {
-        if Locale.isCzechOrSlovak { return czName.isEmpty ? engName : czName }
-        return engName.isEmpty ? czName : engName
+        displayName(languageCode: Locale.currentLanguageCode)
+    }
+
+    func displayName(languageCode: String) -> String {
+        NameRulesKt.displayName(languageCode: languageCode, czech: czName, slovak: skName, english: engName)
     }
 }

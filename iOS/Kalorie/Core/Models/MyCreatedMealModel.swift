@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TextKit
 import MacroKit
 
 struct MyCreatedMealIngredientDomain: Equatable {
@@ -14,6 +15,7 @@ struct MyCreatedMealIngredientDomain: Equatable {
 
     let foodItemId: String
     let czName: String
+    let skName: String
     let engName: String
     let grams: Double
     let nutrition: FoodNutritionValues
@@ -53,7 +55,7 @@ extension MyCreatedMealDomain {
 
     // MARK: - Functions
 
-    func asFoodItem() -> FoodItemDomain {
+    func asFoodItem(languageCode: String = Locale.currentLanguageCode) -> FoodItemDomain {
         let gramsList = ingredients.map(\.grams)
         let totalGrams = gramsList.reduce(0, +)
         func density(_ value: (FoodNutritionValues) -> Double) -> Double {
@@ -67,11 +69,13 @@ extension MyCreatedMealDomain {
             }
             return weightedMeanPerHundredGrams(values: values, grams: gramsList)
         }
+        let names = NameRulesKt.namesInLanguage(nameLanguage: NameRulesKt.nameLanguage(languageCode: languageCode), name: name)
         return FoodItemDomain(
             id: id,
             kind: .createdMeal,
-            czName: name,
-            engName: "",
+            czName: names.czech,
+            skName: names.slovak,
+            engName: names.english,
             weight: totalGrams,
             date: createdAt,
             energyKJ: density(\.energyKJ),

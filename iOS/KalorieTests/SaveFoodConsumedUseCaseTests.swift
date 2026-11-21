@@ -28,6 +28,12 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
         XCTAssertEqual(dataProvider.savedToCollection, "users/user-123/foodConsumed")
     }
 
+    func test_saveFoodConsumed_copiesTheSlovakNameFromTheFoodWithoutRecomputingIt() async throws {
+        let (sut, dataProvider) = makeSUT()
+        try await sut(makeItem(czName: "Mléko", skName: "Mlieko"), grams: 100, date: .now, mealTypeId: nil)
+        XCTAssertEqual(dataProvider.savedDTO?.skName, "Mlieko")
+    }
+
     func test_saveFoodConsumed_setsDocumentIdToMatchDTOId() async throws {
         let (sut, dataProvider) = makeSUT()
         try await sut(makeItem(), grams: 100, date: .now, mealTypeId: nil)
@@ -115,6 +121,7 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
 
     private func makeItem(
         czName: String = "Vejce",
+        skName: String? = nil,
         engName: String = "Egg",
         weight: Double = 100,
         caloriesPerHundredGrams: Double = 155,
@@ -126,6 +133,7 @@ final class SaveFoodConsumedUseCaseTests: XCTestCase {
             id: "12345",
             kind: kind,
             czName: czName,
+            skName: skName ?? czName,
             engName: engName,
             weight: weight,
             date: .now,

@@ -14,6 +14,7 @@ struct MyCreatedMealIngredientDTO: Codable {
 
     let foodItemId: String
     let czName: String
+    let skName: String
     let engName: String
     let grams: Double
     let energyKJ: Double?
@@ -33,6 +34,7 @@ struct MyCreatedMealIngredientDTO: Codable {
         case grams, fat, carbohydrate, protein, salt, fiber
         case foodItemId = "food_item_id"
         case czName = "cz_name"
+        case skName = "sk_name"
         case engName = "eng_name"
         case energyKJ = "energy_kj"
         case caloriesPerHundredGrams = "calories_per_hundred_grams"
@@ -46,6 +48,7 @@ struct MyCreatedMealIngredientDTO: Codable {
     init(ingredient: MyCreatedMealIngredientDomain) {
         foodItemId = ingredient.foodItemId
         czName = ingredient.czName
+        skName = ingredient.skName
         engName = ingredient.engName
         grams = ingredient.grams
         energyKJ = ingredient.nutrition.energyKJ
@@ -66,6 +69,7 @@ struct MyCreatedMealIngredientDTO: Codable {
         MyCreatedMealIngredientDomain(
             foodItemId: foodItemId,
             czName: czName,
+            skName: skName,
             engName: engName,
             grams: grams,
             nutrition: FoodNutritionValues(

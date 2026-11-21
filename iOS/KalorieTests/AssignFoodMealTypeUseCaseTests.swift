@@ -72,6 +72,7 @@ final class AssignFoodMealTypeUseCaseTests: XCTestCase {
             foodItemId: foodItemId,
             foodItemKind: .catalogue,
             czName: "Vejce",
+            skName: "Vejce",
             engName: "Egg",
             weight: weight,
             date: .now,

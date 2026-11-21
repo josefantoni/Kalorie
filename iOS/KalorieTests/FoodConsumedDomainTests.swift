@@ -35,6 +35,7 @@ final class FoodConsumedDomainTests: XCTestCase {
             foodItemId: "12345",
             foodItemKind: .catalogue,
             czName: "Mléko",
+            skName: "Mléko",
             engName: "Milk",
             weight: 200,
             date: .now,

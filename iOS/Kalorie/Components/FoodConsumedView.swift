@@ -55,6 +55,7 @@ struct FoodConsumedView: View {
             foodItemId: "1",
             foodItemKind: .catalogue,
             czName: "Jogurt bílý",
+            skName: "Jogurt bílý",
             engName: "White yoghurt",
             weight: 200,
             date: .now,

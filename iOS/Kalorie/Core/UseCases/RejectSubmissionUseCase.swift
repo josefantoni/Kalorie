@@ -45,6 +45,7 @@ struct RejectSubmissionUseCase: RejectSubmissionUseCaseProtocol {
             status: .rejected,
             submittedAt: submission.submittedAt,
             rejectReason: trimmedReason,
+            nameLanguage: submission.nameLanguage,
             item: submission.item
         )
         do {

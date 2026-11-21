@@ -13,55 +13,77 @@ final class FoodItemValidationTests: XCTestCase {
     // MARK: - Tests
 
     func test_validate_withInvalidCode_returnsInvalidCode() {
-        XCTAssertEqual(FoodItemValidation.validate(makeItem(id: "123456789")), .invalidCode)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(id: "123456789"), requiredNames: .all), .invalidCode)
     }
 
     func test_validate_withNonASCIIDigitsCode_returnsInvalidCode() {
-        XCTAssertEqual(FoodItemValidation.validate(makeItem(id: "١٢٣٤٥٦٧٨")), .invalidCode)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(id: "١٢٣٤٥٦٧٨"), requiredNames: .all), .invalidCode)
     }
 
     func test_validate_withEmptyName_returnsInvalidName() {
-        XCTAssertEqual(FoodItemValidation.validate(makeItem(name: "")), .invalidName)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(name: ""), requiredNames: .all), .invalidName)
+    }
+
+    func test_validate_catalogueWithAnyBlankName_returnsInvalidName() {
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(skName: ""), requiredNames: .all), .invalidName)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(engName: "  "), requiredNames: .all), .invalidName)
+    }
+
+    func test_validate_submissionWithOnlyOriginalName_returnsNil() {
+        let slovakOnly = makeItem(name: "", skName: "Mlieko", engName: "")
+        XCTAssertNil(
+            FoodItemValidation.validate(slovakOnly, requiredNames: .original(nameLanguage: "sk")),
+            "a submission from a Slovak device carries only sk_name until the maintainer approves it"
+        )
+    }
+
+    func test_validate_submissionWithBlankOriginalName_returnsInvalidName() {
+        let czechOnly = makeItem(name: "Mléko", skName: "", engName: "")
+        XCTAssertEqual(
+            FoodItemValidation.validate(czechOnly, requiredNames: .original(nameLanguage: "en")),
+            .invalidName,
+            "the original-language field is the one that must be filled, not any field"
+        )
     }
 
     func test_validate_withZeroCalories_returnsInvalidCalories() {
-        XCTAssertEqual(FoodItemValidation.validate(makeItem(caloriesPerHundredGrams: 0)), .invalidCalories)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(caloriesPerHundredGrams: 0), requiredNames: .all), .invalidCalories)
     }
 
     func test_validate_withAlcoholByVolumeOutOfRange_returnsInvalidAlcoholByVolume() {
-        XCTAssertEqual(FoodItemValidation.validate(makeItem(alcoholByVolume: 0)), .invalidAlcoholByVolume)
-        XCTAssertEqual(FoodItemValidation.validate(makeItem(alcoholByVolume: -1)), .invalidAlcoholByVolume)
-        XCTAssertEqual(FoodItemValidation.validate(makeItem(alcoholByVolume: 101)), .invalidAlcoholByVolume)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(alcoholByVolume: 0), requiredNames: .all), .invalidAlcoholByVolume)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(alcoholByVolume: -1), requiredNames: .all), .invalidAlcoholByVolume)
+        XCTAssertEqual(FoodItemValidation.validate(makeItem(alcoholByVolume: 101), requiredNames: .all), .invalidAlcoholByVolume)
     }
 
     func test_validate_withValidAlcoholByVolume_returnsNil() {
-        XCTAssertNil(FoodItemValidation.validate(makeItem(alcoholByVolume: 12)))
+        XCTAssertNil(FoodItemValidation.validate(makeItem(alcoholByVolume: 12), requiredNames: .all))
     }
 
     func test_validate_withNoAlcoholByVolume_returnsNil() {
-        XCTAssertNil(FoodItemValidation.validate(makeItem(alcoholByVolume: nil)))
+        XCTAssertNil(FoodItemValidation.validate(makeItem(alcoholByVolume: nil), requiredNames: .all))
     }
 
     func test_validate_withZeroWeight_isValidBecausePackageWeightFeedsNoCalculation() {
-        XCTAssertNil(FoodItemValidation.validate(makeItem(weight: 0)))
+        XCTAssertNil(FoodItemValidation.validate(makeItem(weight: 0), requiredNames: .all))
     }
 
     func test_validate_withInvalidPortion_returnsInvalidPortion() {
         let item = makeItem(portions: [FoodPortionDomain(name: "", grams: 30)])
-        XCTAssertEqual(FoodItemValidation.validate(item), .invalidPortion(.invalidName))
+        XCTAssertEqual(FoodItemValidation.validate(item, requiredNames: .all), .invalidPortion(.invalidName))
     }
 
     func test_validate_withValidItem_returnsNil() {
-        XCTAssertNil(FoodItemValidation.validate(makeItem()))
+        XCTAssertNil(FoodItemValidation.validate(makeItem(), requiredNames: .all))
     }
 
     func test_validate_withUppercaseUUID_returnsNil() {
-        XCTAssertNil(FoodItemValidation.validate(makeItem(id: "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D")), "a barcode-less submission's id is the uppercase UUID of the submission")
+        XCTAssertNil(FoodItemValidation.validate(makeItem(id: "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D"), requiredNames: .all), "a barcode-less submission's id is the uppercase UUID of the submission")
     }
 
     func test_validate_withLowercaseUUID_returnsInvalidCode() {
         XCTAssertEqual(
-            FoodItemValidation.validate(makeItem(id: "9a5e1b2c-8d3f-4a6e-9c1d-7b2a4e5f6c8d")),
+            FoodItemValidation.validate(makeItem(id: "9a5e1b2c-8d3f-4a6e-9c1d-7b2a4e5f6c8d"), requiredNames: .all),
             .invalidCode,
             "UUID().uuidString is always uppercase; a lowercase id must never be accepted as this item's own identity"
         )
@@ -85,6 +107,8 @@ final class FoodItemValidationTests: XCTestCase {
             let item = makeItem(
                 id: overrides.id ?? base.id,
                 name: overrides.czName ?? base.czName,
+                skName: overrides.skName ?? base.skName,
+                engName: overrides.engName ?? base.engName,
                 weight: overrides.weight ?? base.weight,
                 caloriesPerHundredGrams: overrides.caloriesPerHundredGrams ?? base.caloriesPerHundredGrams,
                 alcoholByVolume: overrides.alcoholByVolume ?? base.alcoholByVolume,
@@ -93,7 +117,7 @@ final class FoodItemValidationTests: XCTestCase {
                 }
             )
             XCTAssertEqual(
-                FoodItemValidation.validate(item).map(fixtureName),
+                FoodItemValidation.validate(item, requiredNames: .all).map(fixtureName),
                 foodItemCase.expected,
                 foodItemCase.name
             )
@@ -117,6 +141,8 @@ final class FoodItemValidationTests: XCTestCase {
     private func makeItem(
         id: String = "12345678",
         name: String = "Tvaroh",
+        skName: String = "Tvaroh",
+        engName: String = "Cottage cheese",
         weight: Double = 200,
         caloriesPerHundredGrams: Double = 80,
         alcoholByVolume: Double? = nil,
@@ -126,7 +152,8 @@ final class FoodItemValidationTests: XCTestCase {
             id: id,
             kind: .catalogue,
             czName: name,
-            engName: "Cottage cheese",
+            skName: skName,
+            engName: engName,
             weight: weight,
             date: .now,
             energyKJ: 335,
@@ -163,6 +190,8 @@ final class FoodItemValidationTests: XCTestCase {
     private struct FoodItemFields: Decodable {
         let id: String
         let czName: String
+        let skName: String
+        let engName: String
         let caloriesPerHundredGrams: Double
         let weight: Double
         let portions: [PortionFields]
@@ -172,6 +201,8 @@ final class FoodItemValidationTests: XCTestCase {
     private struct FoodItemOverrides: Decodable {
         let id: String?
         let czName: String?
+        let skName: String?
+        let engName: String?
         let caloriesPerHundredGrams: Double?
         let weight: Double?
         let portions: [PortionFields]?

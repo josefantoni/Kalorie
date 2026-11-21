@@ -344,6 +344,26 @@
     "en": "Food name",
     "sk": "Názov potraviny"
   },
+  "addFood_field_czechName_title": {
+    "cs": "Český název",
+    "en": "Czech name",
+    "sk": "Český názov"
+  },
+  "addFood_field_englishName_title": {
+    "cs": "Anglický název",
+    "en": "English name",
+    "sk": "Anglický názov"
+  },
+  "addFood_field_originalName_title": {
+    "cs": "%@ (originál)",
+    "en": "%@ (original)",
+    "sk": "%@ (originál)"
+  },
+  "addFood_field_slovakName_title": {
+    "cs": "Slovenský název",
+    "en": "Slovak name",
+    "sk": "Slovenský názov"
+  },
   "addFood_field_protein": {
     "cs": "Bílkoviny",
     "en": "Protein",

@@ -170,6 +170,16 @@ final class ModerationReviewViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onAppear_searchesInTheSubmissionsLanguageNotTheMaintainersDeviceLanguage() async {
+        let searchFoodItems = SearchFoodItemsUseCaseSpy()
+        let sut = makeSUT(submission: makeSubmission(barcode: nil, nameLanguage: "sk"), searchFoodItems: searchFoodItems)
+
+        await sut.onAppear()
+
+        XCTAssertEqual(searchFoodItems.receivedLanguageCode, "sk", "a Slovak submission must be compared with the Slovak catalogue names, or a duplicate on a Czech maintainer's device goes unseen")
+    }
+
+    @MainActor
     func test_onAppear_whenSearchFails_marksSectionUnavailableButDoesNotBlockApproval() async {
         let searchFoodItems = SearchFoodItemsUseCaseSpy(shouldThrow: true)
         let approveSubmission = ApproveSubmissionUseCaseSpy()
@@ -189,6 +199,7 @@ final class ModerationReviewViewModelTests: XCTestCase {
             id: id,
             kind: .catalogue,
             czName: czName,
+            skName: czName,
             engName: "",
             weight: 100,
             date: .now,
@@ -227,7 +238,8 @@ final class ModerationReviewViewModelTests: XCTestCase {
         id: String = "sub-1",
         barcode: String? = "12345678",
         date: Date = .now,
-        engName: String = "Cottage cheese"
+        engName: String = "Cottage cheese",
+        nameLanguage: String = "cs"
     ) -> FoodItemSubmissionDomain {
         FoodItemSubmissionDomain(
             id: id,
@@ -236,10 +248,12 @@ final class ModerationReviewViewModelTests: XCTestCase {
             status: .pending,
             submittedAt: .now,
             rejectReason: nil,
+            nameLanguage: nameLanguage,
             item: FoodItemDomain(
                 id: barcode ?? "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D",
                 kind: .catalogue,
                 czName: "Tvaroh",
+                skName: "Tvaroh",
                 engName: engName,
                 weight: 200,
                 date: date,
@@ -280,6 +294,7 @@ private final class SearchFoodItemsUseCaseSpy: SearchFoodItemsUseCaseProtocol {
     // MARK: - Properties
 
     private(set) var receivedQuery: String?
+    private(set) var receivedLanguageCode: String?
     private let stubbedItems: [FoodItemDomain]
     private let shouldThrow: Bool
 
@@ -292,8 +307,9 @@ private final class SearchFoodItemsUseCaseSpy: SearchFoodItemsUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(query: String) async throws -> [FoodItemDomain] {
+    func callAsFunction(query: String, languageCode: String?) async throws -> [FoodItemDomain] {
         receivedQuery = query
+        receivedLanguageCode = languageCode
         if shouldThrow { throw NSError(domain: "SearchFoodItemsUseCaseSpy", code: 0) }
         return stubbedItems
     }

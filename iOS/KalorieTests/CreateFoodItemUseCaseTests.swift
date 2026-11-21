@@ -144,6 +144,7 @@ final class CreateFoodItemUseCaseTests: XCTestCase {
             id: id,
             kind: .catalogue,
             czName: name,
+            skName: name,
             engName: "Cottage cheese",
             weight: weight,
             date: .now,

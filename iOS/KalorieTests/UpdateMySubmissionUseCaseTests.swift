@@ -15,7 +15,7 @@ final class UpdateMySubmissionUseCaseTests: XCTestCase {
     func test_update_whenNotAuthenticated_throwsAuthError() async throws {
         let (sut, _, _) = makeSUT(userId: nil)
         do {
-            _ = try await sut(id: "sub-1", item: makeItem(), photo: localPhoto, previousPhotoURL: nil)
+            _ = try await sut(id: "sub-1", item: makeItem(), nameLanguage: "cs", photo: localPhoto, previousPhotoURL: nil)
             XCTFail("Expected notAuthenticated error")
         } catch AuthError.notAuthenticated {
             // pass
@@ -25,7 +25,7 @@ final class UpdateMySubmissionUseCaseTests: XCTestCase {
     func test_update_withInvalidItem_throwsValidationErrorAndDoesNotWrite() async throws {
         let (sut, dataProvider, _) = makeSUT()
         do {
-            _ = try await sut(id: "sub-1", item: makeItem(name: ""), photo: localPhoto, previousPhotoURL: nil)
+            _ = try await sut(id: "sub-1", item: makeItem(name: ""), nameLanguage: "cs", photo: localPhoto, previousPhotoURL: nil)
             XCTFail("Expected invalidName error")
         } catch FoodItemSubmissionError.invalidName {
             // pass
@@ -38,7 +38,7 @@ final class UpdateMySubmissionUseCaseTests: XCTestCase {
         let item = makeItem()
         dataProvider.stubbedExistingFoodItem = FoodItemDTO(item: item)
         do {
-            _ = try await sut(id: "sub-1", item: item, photo: localPhoto, previousPhotoURL: nil)
+            _ = try await sut(id: "sub-1", item: item, nameLanguage: "cs", photo: localPhoto, previousPhotoURL: nil)
             XCTFail("Expected itemAlreadyExists error")
         } catch FoodItemSubmissionError.itemAlreadyExists {
             // pass
@@ -49,7 +49,7 @@ final class UpdateMySubmissionUseCaseTests: XCTestCase {
     func test_update_withValidItem_resetsStatusToPendingUnderTheSameSubmissionId() async throws {
         let (sut, dataProvider, _) = makeSUT(userId: "user-123")
         let item = makeItem()
-        let result = try await sut(id: "sub-1", item: item, photo: localPhoto, previousPhotoURL: nil)
+        let result = try await sut(id: "sub-1", item: item, nameLanguage: "cs", photo: localPhoto, previousPhotoURL: nil)
         XCTAssertEqual(result.id, "sub-1")
         XCTAssertEqual(result.barcode, item.id)
         XCTAssertEqual(result.submittedBy, "user-123")
@@ -62,7 +62,7 @@ final class UpdateMySubmissionUseCaseTests: XCTestCase {
     func test_update_withoutPhoto_throwsPhotoMissingSoAnOldPhotolessSubmissionMustGainOne() async throws {
         let (sut, dataProvider, _) = makeSUT()
         do {
-            _ = try await sut(id: "sub-1", item: makeItem(), photo: .none, previousPhotoURL: nil)
+            _ = try await sut(id: "sub-1", item: makeItem(), nameLanguage: "cs", photo: .none, previousPhotoURL: nil)
             XCTFail("Expected photoMissing error")
         } catch FoodItemSubmissionError.photoMissing {
             // pass
@@ -73,7 +73,7 @@ final class UpdateMySubmissionUseCaseTests: XCTestCase {
     func test_update_withReplacedPhoto_writesFirstThenDeletesTheOldFile() async throws {
         let (sut, _, storage) = makeSUT()
         let old = try await storage.uploadAsync(data: Data([9]), path: "submissionPhotos/test-user/old.jpg", contentType: "image/jpeg")
-        let result = try await sut(id: "sub-1", item: makeItem(), photo: localPhoto, previousPhotoURL: old)
+        let result = try await sut(id: "sub-1", item: makeItem(), nameLanguage: "cs", photo: localPhoto, previousPhotoURL: old)
         XCTAssertEqual(storage.deletedURLs, [old])
         XCTAssertNotEqual(result.item.photoURL, old)
         XCTAssertNotNil(storage.files[try XCTUnwrap(result.item.photoURL)])
@@ -82,7 +82,7 @@ final class UpdateMySubmissionUseCaseTests: XCTestCase {
     func test_update_withUnchangedRemotePhoto_touchesNoStorage() async throws {
         let (sut, _, storage) = makeSUT()
         let old = try await storage.uploadAsync(data: Data([9]), path: "submissionPhotos/test-user/old.jpg", contentType: "image/jpeg")
-        _ = try await sut(id: "sub-1", item: makeItem(), photo: .remote(old), previousPhotoURL: old)
+        _ = try await sut(id: "sub-1", item: makeItem(), nameLanguage: "cs", photo: .remote(old), previousPhotoURL: old)
         XCTAssertTrue(storage.deletedURLs.isEmpty, "the author's only copy must survive when the photo was not replaced")
         XCTAssertEqual(storage.uploadedPaths.count, 1)
     }
@@ -91,7 +91,7 @@ final class UpdateMySubmissionUseCaseTests: XCTestCase {
         let (sut, dataProvider, storage) = makeSUT()
         let old = try await storage.uploadAsync(data: Data([9]), path: "submissionPhotos/test-user/old.jpg", contentType: "image/jpeg")
         dataProvider.writeError = URLError(.notConnectedToInternet)
-        _ = try? await sut(id: "sub-1", item: makeItem(), photo: localPhoto, previousPhotoURL: old)
+        _ = try? await sut(id: "sub-1", item: makeItem(), nameLanguage: "cs", photo: localPhoto, previousPhotoURL: old)
         XCTAssertEqual(Array(storage.files.keys), [old])
     }
 
@@ -116,6 +116,7 @@ final class UpdateMySubmissionUseCaseTests: XCTestCase {
             id: id,
             kind: .catalogue,
             czName: name,
+            skName: name,
             engName: "Cottage cheese",
             weight: 200,
             date: .now,

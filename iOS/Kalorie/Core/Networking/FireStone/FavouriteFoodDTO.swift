@@ -15,6 +15,7 @@ struct FavouriteFoodDTO: Codable {
     let id: String
     let foodItemKind: FoodItemKind
     let czName: String
+    let skName: String
     let engName: String
     let weight: Double
     let date: TimeInterval
@@ -39,6 +40,7 @@ struct FavouriteFoodDTO: Codable {
     enum CodingKeys: String, CodingKey {
         case id, weight, date, fat, carbohydrate, protein, salt, fiber, portions
         case czName = "cz_name"
+        case skName = "sk_name"
         case engName = "eng_name"
         case energyKJ = "energy_kj"
         case caloriesPerHundredGrams = "calories_per_hundred_grams"
@@ -58,6 +60,7 @@ struct FavouriteFoodDTO: Codable {
         id = item.id
         foodItemKind = item.kind
         czName = item.czName
+        skName = item.skName
         engName = item.engName
         weight = item.weight
         date = item.date.timeIntervalSince1970
@@ -85,6 +88,7 @@ struct FavouriteFoodDTO: Codable {
             id: id,
             kind: foodItemKind,
             czName: czName,
+            skName: skName,
             engName: engName,
             weight: weight,
             date: Date(timeIntervalSince1970: date),

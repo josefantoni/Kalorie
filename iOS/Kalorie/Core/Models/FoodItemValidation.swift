@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TextKit
 
 enum FoodItemValidationError: Error, Equatable {
     case invalidCode
@@ -36,6 +37,11 @@ extension FoodItemValidationError {
     }
 }
 
+enum FoodItemRequiredNames: Equatable {
+    case all
+    case original(nameLanguage: String)
+}
+
 enum FoodItemValidation {
 
     // MARK: - Functions
@@ -48,9 +54,9 @@ enum FoodItemValidation {
         UUID(uuidString: id) != nil && id == id.uppercased()
     }
 
-    static func validate(_ item: FoodItemDomain) -> FoodItemValidationError? {
+    static func validate(_ item: FoodItemDomain, requiredNames: FoodItemRequiredNames) -> FoodItemValidationError? {
         guard isValidBarcode(item.id) || isValidSubmissionUUID(item.id) else { return .invalidCode }
-        guard !item.czName.isEmpty else { return .invalidName }
+        guard hasRequiredNames(item, requiredNames) else { return .invalidName }
         guard item.caloriesPerHundredGrams > 0 else { return .invalidCalories }
         if let alcoholByVolume = item.alcoholByVolume, !(alcoholByVolume > 0 && alcoholByVolume <= 100) {
             return .invalidAlcoholByVolume
@@ -64,5 +70,16 @@ enum FoodItemValidation {
             return .invalidPortion(error)
         }
         return nil
+    }
+
+    // MARK: - Private
+
+    private static func hasRequiredNames(_ item: FoodItemDomain, _ requiredNames: FoodItemRequiredNames) -> Bool {
+        switch requiredNames {
+        case .all:
+            [item.czName, item.skName, item.engName].allSatisfy { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        case .original(let nameLanguage):
+            !NameRulesKt.originalName(nameLanguage: nameLanguage, czech: item.czName, slovak: item.skName, english: item.engName).isEmpty
+        }
     }
 }

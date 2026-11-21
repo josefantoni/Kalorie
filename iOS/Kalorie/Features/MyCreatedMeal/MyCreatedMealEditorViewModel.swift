@@ -111,6 +111,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
                     id: ingredient.foodItemId,
                     kind: .catalogue,
                     czName: ingredient.czName,
+                    skName: ingredient.skName,
                     engName: ingredient.engName,
                     weight: ingredient.grams,
                     date: .now,
@@ -157,6 +158,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
                 let fresh = freshById[ingredients[index].item.id],
                 fresh.nutrition != ingredients[index].item.nutrition
                     || fresh.czName != ingredients[index].item.czName
+                    || fresh.skName != ingredients[index].item.skName
                     || fresh.engName != ingredients[index].item.engName
             else { continue }
             ingredients[index].item = fresh
@@ -300,6 +302,7 @@ final class MyCreatedMealEditorViewModel: ObservableObject {
             MyCreatedMealIngredientDomain(
                 foodItemId: draft.item.id,
                 czName: draft.item.czName,
+                skName: draft.item.skName,
                 engName: draft.item.engName,
                 grams: Self.parsedGrams(draft.gramsText),
                 nutrition: draft.item.nutrition
