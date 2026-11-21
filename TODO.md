@@ -11,6 +11,11 @@
   names, Czech + English descriptions), switch the App Store Connect DSA status from *not a trader* to *trader* (an address, phone and email are then published on the product page) and make the Play listing consistent, then set `Constants.Tips.isEnabled` / `IS_ENABLED` to `true` on both platforms and restore the tips paragraph in
   `backend/hosting/privacy.html` (Apple / Google process the payment, the app receives no card or purchase
   data) and test a real purchase from Internal testing with a license tester.
+- **In-app review prompt** — neither platform asks for a store rating yet. Ratings raise the store
+  conversion rate and feed ASO. Use the system prompt (`RequestReviewAction` / `SKStoreReviewController` on
+  iOS, Play In-App Review API on Android), triggered only for an engaged user, e.g. after a food entry on the
+  third distinct day with entries, never on first launch or mid-flow. The OS throttles how often the dialog
+  appears and may show nothing, so the app must not depend on it.
 - **Dashboard read cost** — not urgent. Firestore bills per document read, and the dominant cost is the
   whole-month `foodConsumed` load on cold launch and pull to refresh
   ([ADR 0015](docs/adr/0015-dashboard-caches-a-month-and-derives-the-day.md)): ~300 documents per load at
