@@ -16,6 +16,11 @@ internal val diacriticFoldMap = mapOf(
     'ů' to 'u', 'Ů' to 'U',
     'ý' to 'y', 'Ý' to 'Y',
     'ž' to 'z', 'Ž' to 'Z',
+    'ä' to 'a', 'Ä' to 'A',
+    'ô' to 'o', 'Ô' to 'O',
+    'ĺ' to 'l', 'Ĺ' to 'L',
+    'ľ' to 'l', 'Ľ' to 'L',
+    'ŕ' to 'r', 'Ŕ' to 'R',
 )
 
 fun foldDiacritics(input: String): String =
