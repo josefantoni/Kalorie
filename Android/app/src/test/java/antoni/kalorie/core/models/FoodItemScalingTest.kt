@@ -57,6 +57,7 @@ class FoodItemScalingTest {
         id = "12345678",
         kind = FoodItemKind.CATALOGUE,
         czName = "Tvaroh",
+        skName = "Tvaroh",
         engName = "Cottage cheese",
         weight = 200.0,
         date = Instant.now(),

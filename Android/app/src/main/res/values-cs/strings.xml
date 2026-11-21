@@ -63,7 +63,9 @@
     <string name="addFood_field_caloriesPer100ml">Kalorie na 100 mililitrů</string>
     <string name="addFood_field_carbs">Sacharidy</string>
     <string name="addFood_field_carbsSugar">z toho cukry</string>
+    <string name="addFood_field_czechName_title">Český název</string>
     <string name="addFood_field_energyKJ">Energie (kJ) na 100 g</string>
+    <string name="addFood_field_englishName_title">Anglický název</string>
     <string name="addFood_field_fat">Tuky</string>
     <string name="addFood_field_fatSaturated">z toho nasycené</string>
     <string name="addFood_field_fatUnsaturated">z toho nenasycené</string>
@@ -71,8 +73,10 @@
     <string name="addFood_field_measure">Nutriční hodnoty na</string>
     <string name="addFood_field_name_placeholder">Tvaroh nízkotučný</string>
     <string name="addFood_field_name_title">Název potraviny</string>
+    <string name="addFood_field_originalName_title">%1$s (originál)</string>
     <string name="addFood_field_protein">Bílkoviny</string>
     <string name="addFood_field_salt">Sůl</string>
+    <string name="addFood_field_slovakName_title">Slovenský název</string>
     <string name="addFood_field_weight">Hmotnost</string>
     <string name="addFood_mode_createMeal">Vlastní jídlo</string>
     <string name="addFood_mode_newItem">Nová potravina</string>

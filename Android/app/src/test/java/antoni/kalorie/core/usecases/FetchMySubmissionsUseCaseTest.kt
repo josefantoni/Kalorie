@@ -67,10 +67,12 @@ class FetchMySubmissionsUseCaseTest {
         status = FoodItemSubmissionStatus.PENDING,
         submittedAt = Instant.now(),
         rejectReason = null,
+        nameLanguage = "cs",
         item = FoodItemDomain(
             id = barcode,
             kind = FoodItemKind.CATALOGUE,
             czName = "Tvaroh",
+            skName = "Tvaroh",
             engName = "",
             weight = 200.0,
             date = Instant.now(),

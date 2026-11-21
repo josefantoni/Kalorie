@@ -94,6 +94,19 @@ class PendingMergeSnapshotStoreTest {
     }
 
     @Test
+    fun load_snapshotWrittenBeforeSlovakNames_stillDecodes_withTheFallbackName() {
+        val directory = temporaryFolder.newFolder()
+        val sut = PendingMergeSnapshotStore(directory)
+        sut.save(makeSnapshot(sourceUserId = "anon-1", foodIds = listOf("f1")))
+        val file = java.io.File(directory, "pending-merge.json")
+        file.writeText(file.readText().replace(Regex(""","sk_name":"[^"]*\""""), ""))
+
+        val loaded = checkNotNull(sut.load())
+
+        assertEquals("Test", loaded.foodConsumed.single().skName)
+    }
+
+    @Test
     fun saveAndLoad_roundTripsBodyWeightsAndSettings() {
         val sut = makeSUT()
         sut.save(
@@ -130,6 +143,7 @@ class PendingMergeSnapshotStoreTest {
                 foodItemId = id,
                 foodItemKind = FoodItemKind.CATALOGUE,
                 czName = "Test",
+                skName = "Test",
                 engName = "Test",
                 weight = 100.0,
                 date = Instant.now().epochSecond.toDouble(),

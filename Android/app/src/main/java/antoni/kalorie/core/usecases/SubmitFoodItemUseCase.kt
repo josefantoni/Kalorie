@@ -8,7 +8,7 @@ import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import java.util.UUID
 
 interface SubmitFoodItemUseCaseProtocol {
-    suspend operator fun invoke(item: FoodItemDomain, photo: FoodItemFormPhoto): FoodItemSubmissionDomain
+    suspend operator fun invoke(item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto): FoodItemSubmissionDomain
 }
 
 class SubmitFoodItemUseCase(
@@ -24,9 +24,10 @@ class SubmitFoodItemUseCase(
 
     // MARK: - Functions
 
-    override suspend fun invoke(item: FoodItemDomain, photo: FoodItemFormPhoto): FoodItemSubmissionDomain = writer.write(
+    override suspend fun invoke(item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto): FoodItemSubmissionDomain = writer.write(
         id = UUID.randomUUID().toString().uppercase(),
         item = item,
+        nameLanguage = nameLanguage,
         photo = photo,
         previousPhotoUrl = null,
     )

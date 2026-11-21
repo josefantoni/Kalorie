@@ -30,7 +30,7 @@ class UpdateMySubmissionUseCaseTest {
         val (sut, _, _) = makeSUT(userId = null)
 
         try {
-            sut("sub-1", makeItem(), localPhoto, null)
+            sut("sub-1", makeItem(), "cs", localPhoto, null)
             fail("Expected notAuthenticated error")
         } catch (_: AuthError.NotAuthenticated) {
         }
@@ -41,7 +41,7 @@ class UpdateMySubmissionUseCaseTest {
         val (sut, dataProvider, _) = makeSUT()
 
         try {
-            sut("sub-1", makeItem(name = ""), localPhoto, null)
+            sut("sub-1", makeItem(name = ""), "cs", localPhoto, null)
             fail("Expected invalidName error")
         } catch (_: FoodItemSubmissionError.InvalidName) {
         }
@@ -56,7 +56,7 @@ class UpdateMySubmissionUseCaseTest {
         dataProvider.stubbedServerDocument = FoodItemDTO(item)
 
         try {
-            sut("sub-1", item, localPhoto, null)
+            sut("sub-1", item, "cs", localPhoto, null)
             fail("Expected itemAlreadyExists error")
         } catch (_: FoodItemSubmissionError.ItemAlreadyExists) {
         }
@@ -69,7 +69,7 @@ class UpdateMySubmissionUseCaseTest {
         val (sut, dataProvider, _) = makeSUT(userId = "user-123")
         val item = makeItem()
 
-        val result = sut("sub-1", item, localPhoto, null)
+        val result = sut("sub-1", item, "cs", localPhoto, null)
 
         assertEquals("sub-1", result.id)
         assertEquals(item.id, result.barcode)
@@ -85,7 +85,7 @@ class UpdateMySubmissionUseCaseTest {
         val (sut, dataProvider, _) = makeSUT()
 
         try {
-            sut("sub-1", makeItem(), FoodItemFormPhoto.None, null)
+            sut("sub-1", makeItem(), "cs", FoodItemFormPhoto.None, null)
             fail("Expected photoMissing error")
         } catch (_: FoodItemSubmissionError.PhotoMissing) {
         }
@@ -98,7 +98,7 @@ class UpdateMySubmissionUseCaseTest {
         val (sut, _, storage) = makeSUT()
         val old = storage.seedOldPhoto()
 
-        val result = sut("sub-1", makeItem(), localPhoto, old)
+        val result = sut("sub-1", makeItem(), "cs", localPhoto, old)
 
         assertEquals(listOf(old), storage.deletedUrls)
         assertNotEquals(old, result.item.photoUrl)
@@ -110,7 +110,7 @@ class UpdateMySubmissionUseCaseTest {
         val (sut, _, storage) = makeSUT()
         val old = storage.seedOldPhoto()
 
-        sut("sub-1", makeItem(), FoodItemFormPhoto.Remote(old), old)
+        sut("sub-1", makeItem(), "cs", FoodItemFormPhoto.Remote(old), old)
 
         assertTrue("the author's only copy must survive when the photo was not replaced", storage.deletedUrls.isEmpty())
         assertEquals(1, storage.uploadedPaths.size)
@@ -123,7 +123,7 @@ class UpdateMySubmissionUseCaseTest {
         dataProvider.stubbedSetError = RuntimeException("offline")
 
         try {
-            sut("sub-1", makeItem(), localPhoto, old)
+            sut("sub-1", makeItem(), "cs", localPhoto, old)
         } catch (_: RuntimeException) {
         }
 
@@ -152,6 +152,7 @@ class UpdateMySubmissionUseCaseTest {
         id = id,
         kind = FoodItemKind.CATALOGUE,
         czName = name,
+        skName = name,
         engName = "Cottage cheese",
         weight = 200.0,
         date = Instant.now(),

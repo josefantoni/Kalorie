@@ -28,7 +28,7 @@ class SubmitFoodItemUseCaseTest {
         val (sut, _, _) = makeSUT(userId = null)
 
         try {
-            sut(makeItem(), localPhoto)
+            sut(makeItem(), "cs", localPhoto)
             fail("Expected notAuthenticated error")
         } catch (_: AuthError.NotAuthenticated) {
         }
@@ -39,7 +39,7 @@ class SubmitFoodItemUseCaseTest {
         val (sut, dataProvider, _) = makeSUT()
 
         try {
-            sut(makeItem(id = "123"), localPhoto)
+            sut(makeItem(id = "123"), "cs", localPhoto)
             fail("Expected invalidCode error")
         } catch (_: FoodItemSubmissionError.InvalidCode) {
         }
@@ -54,7 +54,7 @@ class SubmitFoodItemUseCaseTest {
         dataProvider.stubbedServerDocument = FoodItemDTO(item)
 
         try {
-            sut(item, localPhoto)
+            sut(item, "cs", localPhoto)
             fail("Expected itemAlreadyExists error")
         } catch (_: FoodItemSubmissionError.ItemAlreadyExists) {
         }
@@ -67,7 +67,7 @@ class SubmitFoodItemUseCaseTest {
         val (sut, dataProvider, _) = makeSUT(userId = "user-123")
         val item = makeItem()
 
-        val result = sut(item, localPhoto)
+        val result = sut(item, "cs", localPhoto)
 
         assertEquals("the item already has a real barcode; it must be kept, not discarded", item.id, result.barcode)
         assertEquals("user-123", result.submittedBy)
@@ -82,7 +82,7 @@ class SubmitFoodItemUseCaseTest {
     fun submit_withEmptyId_usesTheGeneratedSubmissionIdAsTheItemsIdentityAndHasNoBarcode() = runTest {
         val (sut, _, _) = makeSUT(userId = "user-123")
 
-        val result = sut(makeItem(id = "", name = "Kukuřice"), localPhoto)
+        val result = sut(makeItem(id = "", name = "Kukuřice"), "cs", localPhoto)
 
         assertEquals(
             "a barcode-less item's identity is the submission's own id, so favourites, portions and entries keep pointing at the right document once approved",
@@ -97,7 +97,7 @@ class SubmitFoodItemUseCaseTest {
         val (sut, dataProvider, storage) = makeSUT()
 
         try {
-            sut(makeItem(), FoodItemFormPhoto.None)
+            sut(makeItem(), "cs", FoodItemFormPhoto.None)
             fail("Expected photoMissing error")
         } catch (_: FoodItemSubmissionError.PhotoMissing) {
         }
@@ -110,7 +110,7 @@ class SubmitFoodItemUseCaseTest {
     fun submit_withLocalPhoto_uploadsToTheAuthorsFolderAndStoresItsUrlOnTheItem() = runTest {
         val (sut, _, storage) = makeSUT(userId = "user-123")
 
-        val result = sut(makeItem(), localPhoto)
+        val result = sut(makeItem(), "cs", localPhoto)
 
         val path = storage.uploadedPaths.first()
         assertTrue("storage rules only let the author write into their own folder", path.startsWith("submissionPhotos/user-123/"))
@@ -121,7 +121,7 @@ class SubmitFoodItemUseCaseTest {
     fun submit_withRemotePhoto_keepsItAndUploadsNothing() = runTest {
         val (sut, _, storage) = makeSUT()
 
-        val result = sut(makeItem(), FoodItemFormPhoto.Remote("https://storage.fake/existing.jpg"))
+        val result = sut(makeItem(), "cs", FoodItemFormPhoto.Remote("https://storage.fake/existing.jpg"))
 
         assertEquals("https://storage.fake/existing.jpg", result.item.photoUrl)
         assertTrue(storage.uploadedPaths.isEmpty())
@@ -133,7 +133,7 @@ class SubmitFoodItemUseCaseTest {
         dataProvider.stubbedSetError = RuntimeException("offline")
 
         try {
-            sut(makeItem(), localPhoto)
+            sut(makeItem(), "cs", localPhoto)
             fail("Expected the write error")
         } catch (error: RuntimeException) {
             assertEquals("offline", error.message)
@@ -148,7 +148,7 @@ class SubmitFoodItemUseCaseTest {
         storage.uploadError = RuntimeException("offline")
 
         try {
-            sut(makeItem(), localPhoto)
+            sut(makeItem(), "cs", localPhoto)
             fail("Expected photoUploadFailed error")
         } catch (_: FoodItemSubmissionError.PhotoUploadFailed) {
         }
@@ -163,7 +163,7 @@ class SubmitFoodItemUseCaseTest {
         dataProvider.stubbedServerDocument = FoodItemDTO(item)
 
         try {
-            sut(item, localPhoto)
+            sut(item, "cs", localPhoto)
         } catch (_: FoodItemSubmissionError.ItemAlreadyExists) {
         }
 
@@ -190,6 +190,7 @@ class SubmitFoodItemUseCaseTest {
         id = id,
         kind = FoodItemKind.CATALOGUE,
         czName = name,
+        skName = name,
         engName = "Cottage cheese",
         weight = 200.0,
         date = Instant.now(),

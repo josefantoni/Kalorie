@@ -108,6 +108,7 @@ class FetchFoodsConsumedForMonthUseCaseTest {
         foodItemId = id,
         foodItemKind = FoodItemKind.CATALOGUE,
         czName = czName,
+        skName = czName,
         engName = "",
         weight = 100.0,
         date = date.epochSecond.toDouble(),

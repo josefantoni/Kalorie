@@ -1,5 +1,7 @@
 package antoni.kalorie.core.models
 
+import antoni.kalorie.textkit.originalName
+
 sealed class FoodItemValidationError : Exception() {
     data object InvalidCode : FoodItemValidationError()
     data object InvalidName : FoodItemValidationError()
@@ -24,6 +26,11 @@ sealed class FoodItemValidationError : Exception() {
     }
 }
 
+sealed interface FoodItemRequiredNames {
+    data object All : FoodItemRequiredNames
+    data class Original(val nameLanguage: String) : FoodItemRequiredNames
+}
+
 object FoodItemValidation {
 
     // MARK: - Properties
@@ -37,9 +44,9 @@ object FoodItemValidation {
 
     fun isValidSubmissionUUID(id: String): Boolean = submissionUUIDPattern.matches(id)
 
-    fun validate(item: FoodItemDomain): FoodItemValidationError? {
+    fun validate(item: FoodItemDomain, requiredNames: FoodItemRequiredNames): FoodItemValidationError? {
         if (!isValidBarcode(item.id) && !isValidSubmissionUUID(item.id)) return FoodItemValidationError.InvalidCode
-        if (item.czName.isEmpty()) return FoodItemValidationError.InvalidName
+        if (!hasRequiredNames(item, requiredNames)) return FoodItemValidationError.InvalidName
         if (item.caloriesPerHundredGrams.isNaN() || item.caloriesPerHundredGrams <= 0) return FoodItemValidationError.InvalidCalories
         val alcoholByVolume = item.alcoholByVolume
         if (alcoholByVolume != null && !(alcoholByVolume > 0 && alcoholByVolume <= 100)) return FoodItemValidationError.InvalidAlcoholByVolume
@@ -50,5 +57,10 @@ object FoodItemValidation {
         }
         FoodPortionValidation.validate(item.portions)?.let { return FoodItemValidationError.InvalidPortion(it) }
         return null
+    }
+
+    private fun hasRequiredNames(item: FoodItemDomain, requiredNames: FoodItemRequiredNames): Boolean = when (requiredNames) {
+        FoodItemRequiredNames.All -> listOf(item.czName, item.skName, item.engName).all { it.isNotBlank() }
+        is FoodItemRequiredNames.Original -> originalName(requiredNames.nameLanguage, item.czName, item.skName, item.engName).isNotEmpty()
     }
 }

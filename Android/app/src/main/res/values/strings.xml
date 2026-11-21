@@ -63,7 +63,9 @@
     <string name="addFood_field_caloriesPer100ml">Calories per 100ml</string>
     <string name="addFood_field_carbs">Carbohydrates</string>
     <string name="addFood_field_carbsSugar">of which sugars</string>
+    <string name="addFood_field_czechName_title">Czech name</string>
     <string name="addFood_field_energyKJ">Energy (kJ) per 100g</string>
+    <string name="addFood_field_englishName_title">English name</string>
     <string name="addFood_field_fat">Fat</string>
     <string name="addFood_field_fatSaturated">of which saturates</string>
     <string name="addFood_field_fatUnsaturated">of which unsaturated</string>
@@ -71,8 +73,10 @@
     <string name="addFood_field_measure">Nutrition per</string>
     <string name="addFood_field_name_placeholder">Low-fat cottage cheese</string>
     <string name="addFood_field_name_title">Food name</string>
+    <string name="addFood_field_originalName_title">%1$s (original)</string>
     <string name="addFood_field_protein">Protein</string>
     <string name="addFood_field_salt">Salt</string>
+    <string name="addFood_field_slovakName_title">Slovak name</string>
     <string name="addFood_field_weight">Weight</string>
     <string name="addFood_mode_createMeal">My meal</string>
     <string name="addFood_mode_newItem">New food</string>

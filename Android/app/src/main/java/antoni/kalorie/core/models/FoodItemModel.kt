@@ -1,11 +1,13 @@
 package antoni.kalorie.core.models
 
+import antoni.kalorie.textkit.FoodNames
 import java.time.Instant
 
 data class FoodItemDomain(
     val id: String,
     val kind: FoodItemKind,
     override val czName: String,
+    override val skName: String,
     override val engName: String,
     val weight: Double,
     val date: Instant,
@@ -31,6 +33,7 @@ data class FoodItemDomain(
         id: String,
         kind: FoodItemKind,
         czName: String,
+        skName: String,
         engName: String,
         weight: Double,
         date: Instant,
@@ -39,6 +42,7 @@ data class FoodItemDomain(
         id = id,
         kind = kind,
         czName = czName,
+        skName = skName,
         engName = engName,
         weight = weight,
         date = date,
@@ -78,4 +82,6 @@ data class FoodItemDomain(
     fun withPhotoUrl(photoUrl: String?): FoodItemDomain = copy(photoUrl = photoUrl)
 
     fun withId(id: String): FoodItemDomain = copy(id = id)
+
+    fun withNames(names: FoodNames): FoodItemDomain = copy(czName = names.czech, skName = names.slovak, engName = names.english)
 }

@@ -101,6 +101,18 @@ class CreateMyCreatedMealUseCaseTest {
         assertNull(foodItem.fiber)
     }
 
+    @Test
+    fun asFoodItem_storesTheMealNameInTheDeviceLanguageOnly() = runTest {
+        val (sut, _) = makeSUT()
+        val meal = sut("Ovsená kaša", listOf(makeIngredient()))
+
+        val slovak = meal.asFoodItem(languageCode = "sk")
+        val english = meal.asFoodItem(languageCode = "de")
+
+        assertEquals(listOf("", "Ovsená kaša", ""), listOf(slovak.czName, slovak.skName, slovak.engName))
+        assertEquals(listOf("", "", "Ovsená kaša"), listOf(english.czName, english.skName, english.engName))
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(userId: String? = "test-user"): Pair<CreateMyCreatedMealUseCase, FirestoreDataProviderFake> {
@@ -116,6 +128,7 @@ class CreateMyCreatedMealUseCaseTest {
     ): MyCreatedMealIngredientDomain = MyCreatedMealIngredientDomain(
         foodItemId = "12345",
         czName = "Ovesné vločky",
+        skName = "Ovesné vločky",
         engName = "Oats",
         grams = grams,
         nutrition = FoodNutritionValues(

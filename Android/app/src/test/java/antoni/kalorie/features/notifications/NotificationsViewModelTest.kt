@@ -201,10 +201,12 @@ class NotificationsViewModelTest {
         status = FoodItemSubmissionStatus.PENDING,
         submittedAt = date,
         rejectReason = null,
+        nameLanguage = "cs",
         item = FoodItemDomain(
             id = "333",
             kind = FoodItemKind.CATALOGUE,
             czName = "Tvaroh",
+            skName = "Tvaroh",
             engName = "",
             weight = 100.0,
             date = Instant.now(),

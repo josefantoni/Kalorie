@@ -20,7 +20,7 @@ class DTOWireShapeTest {
 
         assertEquals(
             setOf(
-                "id", "food_item_kind", "cz_name", "eng_name", "weight", "date", "energy_kj", "calories_per_hundred_grams",
+                "id", "food_item_kind", "cz_name", "sk_name", "eng_name", "weight", "date", "energy_kj", "calories_per_hundred_grams",
                 "fat", "fat_saturated", "fat_unsaturated_fatty_acids", "carbohydrate", "carbohydrate_pure_sugar", "fiber",
                 "protein", "salt", "favourited_at", "portions", "measure_unit",
             ),
@@ -50,12 +50,13 @@ class DTOWireShapeTest {
             status = FoodItemSubmissionStatus.REJECTED,
             submittedAt = fixedDate,
             rejectReason = "Wrong calories",
+            nameLanguage = "cs",
             item = makeItem(),
         )
 
         val encoded = FirestoreDataMapper.encode(dto, FoodItemSubmissionDTO.serializer())
 
-        assertEquals(setOf("id", "barcode", "submitted_by", "status", "submitted_at", "reject_reason", "item"), encoded.keys)
+        assertEquals(setOf("id", "barcode", "submitted_by", "status", "submitted_at", "reject_reason", "name_language", "item"), encoded.keys)
         assertEquals("rejected", encoded["status"])
         assertEquals(fixedDate.epochSecond.toDouble(), encoded["submitted_at"])
         assertEquals("12345678", (encoded["item"] as Map<*, *>)["id"])
@@ -70,6 +71,7 @@ class DTOWireShapeTest {
             status = FoodItemSubmissionStatus.PENDING,
             submittedAt = fixedDate,
             rejectReason = null,
+            nameLanguage = "cs",
             item = makeItem(),
         )
         val encoded = FirestoreDataMapper.encode(dto, FoodItemSubmissionDTO.serializer()) - "barcode"
@@ -175,6 +177,7 @@ class DTOWireShapeTest {
         id = "12345678",
         kind = FoodItemKind.CATALOGUE,
         czName = "Mléko",
+        skName = "Mléko",
         engName = "Milk",
         weight = 1000.0,
         date = fixedDate,

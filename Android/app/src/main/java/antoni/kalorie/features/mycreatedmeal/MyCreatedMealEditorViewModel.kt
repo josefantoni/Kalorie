@@ -65,6 +65,7 @@ class MyCreatedMealEditorViewModel(
                     id = ingredient.foodItemId,
                     kind = FoodItemKind.CATALOGUE,
                     czName = ingredient.czName,
+                    skName = ingredient.skName,
                     engName = ingredient.engName,
                     weight = ingredient.grams,
                     date = Instant.now(),
@@ -157,6 +158,7 @@ class MyCreatedMealEditorViewModel(
                 (
                     fresh.nutrition != draft.item.nutrition ||
                         fresh.czName != draft.item.czName ||
+                        fresh.skName != draft.item.skName ||
                         fresh.engName != draft.item.engName
                     )
             ) {
@@ -306,6 +308,7 @@ class MyCreatedMealEditorViewModel(
             MyCreatedMealIngredientDomain(
                 foodItemId = draft.item.id,
                 czName = draft.item.czName,
+                skName = draft.item.skName,
                 engName = draft.item.engName,
                 grams = parsedGrams(draft.gramsText),
                 nutrition = draft.item.nutrition,

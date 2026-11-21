@@ -1,6 +1,7 @@
 package antoni.kalorie.core.usecases
 
 import antoni.kalorie.core.models.FoodItemDomain
+import antoni.kalorie.core.models.currentLanguageCode
 import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 import antoni.kalorie.core.networking.FoodItemDTO
@@ -8,39 +9,47 @@ import antoni.kalorie.core.networking.loadArrayContainsAsync
 import antoni.kalorie.core.networking.loadHasPrefixAsync
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.textkit.matchesSearchQuery
+import antoni.kalorie.textkit.nameLanguage
 import antoni.kalorie.textkit.searchQuery
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import java.text.BreakIterator
 
 interface SearchFoodItemsUseCaseProtocol {
-    suspend operator fun invoke(query: String): List<FoodItemDomain>
+    suspend operator fun invoke(query: String, languageCode: String? = null): List<FoodItemDomain>
 }
 
 class SearchFoodItemsUseCase(
     private val dataProvider: FirestoreDataProviderProtocol,
+    private val languageCode: () -> String = { currentLanguageCode },
 ) : SearchFoodItemsUseCaseProtocol {
 
     // MARK: - Functions
 
-    override suspend fun invoke(query: String): List<FoodItemDomain> = coroutineScope {
+    override suspend fun invoke(query: String, languageCode: String?): List<FoodItemDomain> = coroutineScope {
         if (graphemeCount(query.trim()) < Constants.Search.MINIMUM_QUERY_LENGTH) return@coroutineScope emptyList()
         val searchQuery = searchQuery(query)
         val foldedQuery = searchQuery.folded
         val foldedLastWord = searchQuery.lastWord
-        val byFoldedName = async { loadByPrefix(Constants.Firestore.Field.CZ_NAME_FOLDED, foldedQuery) }
-        val byFoldedOriginalName = async { loadByPrefix(Constants.Firestore.Field.ENG_NAME_FOLDED, foldedQuery) }
-        val byCzNameToken = async { loadByToken(Constants.Firestore.Field.CZ_NAME_SEARCH_TERMS, foldedLastWord) }
-        val byEngNameToken = async { loadByToken(Constants.Firestore.Field.ENG_NAME_SEARCH_TERMS, foldedLastWord) }
+        val language = languageCode ?: this@SearchFoodItemsUseCase.languageCode()
+        val (prefixFields, tokenFields) = searchFields(language)
+        val byPrefix = prefixFields.map { field -> async { loadByPrefix(field, foldedQuery) } }
+        val byToken = tokenFields.map { field -> async { loadByToken(field, foldedLastWord) } }
         val seen = mutableSetOf<String>()
-        listOf(byFoldedName, byFoldedOriginalName, byCzNameToken, byEngNameToken)
+        (byPrefix + byToken)
             .flatMap { it.await() }
             .filter { seen.add(it.id) }
             .map { it.asDomain() }
-            .filter { matchesSearchQuery(it.displayName, searchQuery) }
+            .filter { matchesSearchQuery(it.displayName(language), searchQuery) }
     }
 
     // MARK: - Private
+
+    private fun searchFields(language: String): Pair<List<String>, List<String>> = when (nameLanguage(language)) {
+        "cs" -> listOf(Constants.Firestore.Field.CZ_NAME_FOLDED) to listOf(Constants.Firestore.Field.CZ_NAME_SEARCH_TERMS)
+        "sk" -> listOf(Constants.Firestore.Field.SK_NAME_FOLDED) to listOf(Constants.Firestore.Field.SK_NAME_SEARCH_TERMS)
+        else -> listOf(Constants.Firestore.Field.ENG_NAME_FOLDED) to listOf(Constants.Firestore.Field.ENG_NAME_SEARCH_TERMS)
+    }
 
     private suspend fun loadByPrefix(field: String, prefix: String): List<FoodItemDTO> = dataProvider.loadHasPrefixAsync(from = Constants.Firestore.FOOD_ITEMS, field = field, hasPrefix = prefix, limit = RESULT_LIMIT)
 

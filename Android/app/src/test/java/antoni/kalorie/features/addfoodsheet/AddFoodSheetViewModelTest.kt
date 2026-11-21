@@ -314,7 +314,7 @@ class AddFoodSheetViewModelTest {
         assertFalse("a freshly reopened form must allow a barcode again", sut.isEditingSubmission)
         assertFalse("reopening the tab must show the prompt again, not the old review screen", sut.isReviewPushed.value)
 
-        sut.formInput.value = sut.formInput.value.copy(scannedCode = "99999999", name = "Nová položka", weightOfProduct = 100.0, caloriesPerHundredGrams = 50.0)
+        sut.formInput.value = sut.formInput.value.copy(scannedCode = "99999999", nameLanguage = "cs", czName = "Nová položka", weightOfProduct = 100.0, caloriesPerHundredGrams = 50.0)
         sut.onCreateFoodItem()
 
         assertEquals("a freshly reopened form must submit a new submission", "99999999", submitFoodItem.receivedItem?.id)
@@ -325,7 +325,7 @@ class AddFoodSheetViewModelTest {
     fun onModeSelected_withAlreadyActiveMode_keepsHalfTypedForm() {
         val sut = makeSUT()
         sut.onModeSelected(AddFoodSheetMode.NEW_ITEM)
-        sut.formInput.value = sut.formInput.value.copy(name = "Ovar")
+        sut.formInput.value = sut.formInput.value.copy(nameLanguage = "cs", czName = "Ovar")
 
         sut.onModeSelected(AddFoodSheetMode.NEW_ITEM)
 
@@ -445,6 +445,35 @@ class AddFoodSheetViewModelTest {
         assertEquals("sub-1", updateMySubmission.receivedId)
         assertTrue(sut.isSubmissionConfirmationVisible.value)
         assertNull("resolving the resubmission must clear the rejection banner", sut.rejectionReasonBeingEdited.value)
+    }
+
+    @Test
+    fun onCreateFoodItem_whenEditingSlovakSubmission_sendsTheSubmissionsNameLanguage() = runTest {
+        val submission = makeSubmission(id = "sub-1", barcode = "87654321", status = FoodItemSubmissionStatus.REJECTED, rejectReason = "Wrong calories", nameLanguage = "sk")
+        val updateMySubmission = UpdateMySubmissionUseCaseSpy()
+        val sut = makeSUT(
+            fetchMySubmissions = FetchMySubmissionsUseCaseFake(stubbedSubmissions = listOf(submission)),
+            updateMySubmission = updateMySubmission,
+        )
+        sut.onAppear()
+        sut.onSelectRejectedSubmission(makeFoodItem(id = "87654321", czName = "Ovar"))
+        sut.formInput.value = sut.formInput.value.copy(weightOfProduct = 200.0, caloriesPerHundredGrams = 80.0)
+
+        sut.onCreateFoodItem()
+
+        assertEquals("an edit must keep the language the submission was written in, not take the device language", "sk", updateMySubmission.receivedNameLanguage)
+    }
+
+    @Test
+    fun onCreateFoodItem_withNoEditingSubmission_sendsTheFormsNameLanguage() = runTest {
+        val submitFoodItem = SubmitFoodItemUseCaseSpy()
+        val sut = makeSUT(submitFoodItem = submitFoodItem)
+        fillValidForm(sut, scannedCode = "12345678")
+        sut.formInput.value = sut.formInput.value.copy(nameLanguage = "sk", czName = "", skName = "Tvaroh")
+
+        sut.onCreateFoodItem()
+
+        assertEquals("sk", submitFoodItem.receivedNameLanguage)
     }
 
     @Test
@@ -1318,7 +1347,8 @@ class AddFoodSheetViewModelTest {
     private fun fillValidForm(sut: AddFoodSheetViewModel, scannedCode: String) {
         sut.formInput.value = sut.formInput.value.copy(
             scannedCode = scannedCode,
-            name = "Tvaroh",
+            nameLanguage = "cs",
+            czName = "Tvaroh",
             weightOfProduct = 200.0,
             caloriesPerHundredGrams = 80.0,
         )
@@ -1329,6 +1359,7 @@ class AddFoodSheetViewModelTest {
         barcode: String,
         status: FoodItemSubmissionStatus,
         rejectReason: String? = null,
+        nameLanguage: String = "cs",
     ): FoodItemSubmissionDomain = FoodItemSubmissionDomain(
         id = id,
         barcode = barcode,
@@ -1336,13 +1367,14 @@ class AddFoodSheetViewModelTest {
         status = status,
         submittedAt = Instant.now(),
         rejectReason = rejectReason,
+        nameLanguage = nameLanguage,
         item = makeFoodItem(id = barcode, czName = "Ovar"),
     )
 
     private class SearchFoodItemsUseCaseSpy : SearchFoodItemsUseCaseProtocol {
         val queries = mutableListOf<String>()
 
-        override suspend fun invoke(query: String): List<FoodItemDomain> {
+        override suspend fun invoke(query: String, languageCode: String?): List<FoodItemDomain> {
             queries += query
             return emptyList()
         }
@@ -1350,10 +1382,12 @@ class AddFoodSheetViewModelTest {
 
     private class SubmitFoodItemUseCaseSpy : SubmitFoodItemUseCaseProtocol {
         var receivedItem: FoodItemDomain? = null
+        var receivedNameLanguage: String? = null
         var receivedPhoto: FoodItemFormPhoto? = null
 
-        override suspend fun invoke(item: FoodItemDomain, photo: FoodItemFormPhoto): FoodItemSubmissionDomain {
+        override suspend fun invoke(item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto): FoodItemSubmissionDomain {
             receivedItem = item
+            receivedNameLanguage = nameLanguage
             receivedPhoto = photo
             return FoodItemSubmissionDomain(
                 id = "new-id",
@@ -1362,6 +1396,7 @@ class AddFoodSheetViewModelTest {
                 status = FoodItemSubmissionStatus.PENDING,
                 submittedAt = Instant.now(),
                 rejectReason = null,
+                nameLanguage = nameLanguage,
                 item = item,
             )
         }
@@ -1369,10 +1404,12 @@ class AddFoodSheetViewModelTest {
 
     private class UpdateMySubmissionUseCaseSpy : UpdateMySubmissionUseCaseProtocol {
         var receivedId: String? = null
+        var receivedNameLanguage: String? = null
         var receivedPreviousPhotoUrl: String? = null
 
-        override suspend fun invoke(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoUrl: String?): FoodItemSubmissionDomain {
+        override suspend fun invoke(id: String, item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto, previousPhotoUrl: String?): FoodItemSubmissionDomain {
             receivedId = id
+            receivedNameLanguage = nameLanguage
             receivedPreviousPhotoUrl = previousPhotoUrl
             return FoodItemSubmissionDomain(
                 id = id,
@@ -1381,6 +1418,7 @@ class AddFoodSheetViewModelTest {
                 status = FoodItemSubmissionStatus.PENDING,
                 submittedAt = Instant.now(),
                 rejectReason = null,
+                nameLanguage = nameLanguage,
                 item = item,
             )
         }
@@ -1402,6 +1440,7 @@ class AddFoodSheetViewModelTest {
             MyCreatedMealIngredientDomain(
                 foodItemId = "12345",
                 czName = "Ovesné vločky",
+                skName = "Ovesné vločky",
                 engName = "Oats",
                 grams = 50.0,
                 nutrition = FoodNutritionValues(
@@ -1438,6 +1477,7 @@ class AddFoodSheetViewModelTest {
         id = id,
         kind = kind,
         czName = czName,
+        skName = czName,
         engName = czName,
         weight = 80.0,
         date = Instant.now(),

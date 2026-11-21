@@ -197,6 +197,7 @@ class CopyFoodsConsumedUseCaseTest {
         foodItemId = "item-$id",
         foodItemKind = kind,
         czName = "Jídlo",
+        skName = "Jídlo",
         engName = "Food",
         weight = 150.0,
         date = Instant.now(),

@@ -79,6 +79,7 @@ class ModerationQueueViewModelTest {
         status = FoodItemSubmissionStatus.PENDING,
         submittedAt = Instant.now(),
         rejectReason = null,
+        nameLanguage = "cs",
         item = makeItem(id = barcode),
     )
 
@@ -86,6 +87,7 @@ class ModerationQueueViewModelTest {
         id = id,
         kind = FoodItemKind.CATALOGUE,
         czName = czName,
+        skName = czName,
         engName = "Cottage cheese",
         weight = 200.0,
         date = date,
@@ -130,6 +132,7 @@ private class BarcodeLookupFake(
             id = barcode,
             kind = FoodItemKind.CATALOGUE,
             czName = "Existing",
+            skName = "Existing",
             engName = "Existing",
             weight = 100.0,
             date = Instant.now(),

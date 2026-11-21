@@ -144,6 +144,7 @@ class UpdateFoodItemUseCaseTest {
         id = id,
         kind = FoodItemKind.CATALOGUE,
         czName = name,
+        skName = name,
         engName = "Cottage cheese",
         weight = 200.0,
         date = Instant.now(),

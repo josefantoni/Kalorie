@@ -76,7 +76,7 @@ class FetchFoodByBarcodeExternallyUseCaseTest {
         sut("1234567890123")
 
         assertEquals(
-            "https://world.openfoodfacts.org/api/v2/product/1234567890123?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit",
+            "https://world.openfoodfacts.org/api/v2/product/1234567890123?fields=code,product_name,product_name_sk,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit",
             session.lastRequest?.url,
         )
         assertEquals(10_000, session.lastRequest?.timeoutMillis)
@@ -90,7 +90,7 @@ class FetchFoodByBarcodeExternallyUseCaseTest {
         sut("12 3/4")
 
         assertEquals(
-            "https://world.openfoodfacts.org/api/v2/product/12%203%2F4?fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit",
+            "https://world.openfoodfacts.org/api/v2/product/12%203%2F4?fields=code,product_name,product_name_sk,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit",
             session.lastRequest?.url,
         )
     }

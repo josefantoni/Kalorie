@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 data class MyCreatedMealIngredientDTO(
     @SerialName("food_item_id") val foodItemId: String,
     @SerialName("cz_name") val czName: String,
+    @SerialName("sk_name") val skName: String,
     @SerialName("eng_name") val engName: String,
     val grams: Double,
     @SerialName("energy_kj") val energyKJ: Double? = null,
@@ -32,6 +33,7 @@ data class MyCreatedMealIngredientDTO(
     constructor(ingredient: MyCreatedMealIngredientDomain) : this(
         foodItemId = ingredient.foodItemId,
         czName = ingredient.czName,
+        skName = ingredient.skName,
         engName = ingredient.engName,
         grams = ingredient.grams,
         energyKJ = ingredient.nutrition.energyKJ,
@@ -51,6 +53,7 @@ data class MyCreatedMealIngredientDTO(
     fun asDomain(): MyCreatedMealIngredientDomain = MyCreatedMealIngredientDomain(
         foodItemId = foodItemId,
         czName = czName,
+        skName = skName,
         engName = engName,
         grams = grams,
         nutrition = FoodNutritionValues(

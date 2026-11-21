@@ -7,7 +7,7 @@ import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.networking.FirestoreDataProviderProtocol
 
 interface UpdateMySubmissionUseCaseProtocol {
-    suspend operator fun invoke(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoUrl: String?): FoodItemSubmissionDomain
+    suspend operator fun invoke(id: String, item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto, previousPhotoUrl: String?): FoodItemSubmissionDomain
 }
 
 class UpdateMySubmissionUseCase(
@@ -26,7 +26,8 @@ class UpdateMySubmissionUseCase(
     override suspend fun invoke(
         id: String,
         item: FoodItemDomain,
+        nameLanguage: String,
         photo: FoodItemFormPhoto,
         previousPhotoUrl: String?,
-    ): FoodItemSubmissionDomain = writer.write(id = id, item = item, photo = photo, previousPhotoUrl = previousPhotoUrl)
+    ): FoodItemSubmissionDomain = writer.write(id = id, item = item, nameLanguage = nameLanguage, photo = photo, previousPhotoUrl = previousPhotoUrl)
 }

@@ -198,6 +198,7 @@ class FoodExportReportFactoryTest {
         foodItemId = id,
         foodItemKind = FoodItemKind.CATALOGUE,
         czName = id,
+        skName = id,
         engName = id,
         weight = 100.0,
         date = date,

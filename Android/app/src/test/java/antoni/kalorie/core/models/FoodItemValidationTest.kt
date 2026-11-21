@@ -20,49 +20,74 @@ class FoodItemValidationTest {
 
     @Test
     fun validate_withInvalidCode_returnsInvalidCode() {
-        assertEquals(FoodItemValidationError.InvalidCode, FoodItemValidation.validate(makeItem(id = "123456789")))
+        assertEquals(FoodItemValidationError.InvalidCode, FoodItemValidation.validate(makeItem(id = "123456789"), FoodItemRequiredNames.All))
     }
 
     @Test
     fun validate_withNonASCIIDigitsCode_returnsInvalidCode() {
-        assertEquals(FoodItemValidationError.InvalidCode, FoodItemValidation.validate(makeItem(id = "١٢٣٤٥٦٧٨")))
+        assertEquals(FoodItemValidationError.InvalidCode, FoodItemValidation.validate(makeItem(id = "١٢٣٤٥٦٧٨"), FoodItemRequiredNames.All))
     }
 
     @Test
     fun validate_withEmptyName_returnsInvalidName() {
-        assertEquals(FoodItemValidationError.InvalidName, FoodItemValidation.validate(makeItem(name = "")))
+        assertEquals(FoodItemValidationError.InvalidName, FoodItemValidation.validate(makeItem(name = ""), FoodItemRequiredNames.All))
+    }
+
+    @Test
+    fun validate_catalogueWithAnyBlankName_returnsInvalidName() {
+        assertEquals(FoodItemValidationError.InvalidName, FoodItemValidation.validate(makeItem(skName = ""), FoodItemRequiredNames.All))
+        assertEquals(FoodItemValidationError.InvalidName, FoodItemValidation.validate(makeItem(engName = "  "), FoodItemRequiredNames.All))
+    }
+
+    @Test
+    fun validate_submissionWithOnlyOriginalName_returnsNil() {
+        val slovakOnly = makeItem(name = "", skName = "Mlieko", engName = "")
+        assertNull(
+            "a submission from a Slovak device carries only sk_name until the maintainer approves it",
+            FoodItemValidation.validate(slovakOnly, FoodItemRequiredNames.Original("sk")),
+        )
+    }
+
+    @Test
+    fun validate_submissionWithBlankOriginalName_returnsInvalidName() {
+        val czechOnly = makeItem(name = "Mléko", skName = "", engName = "")
+        assertEquals(
+            "the original-language field is the one that must be filled, not any field",
+            FoodItemValidationError.InvalidName,
+            FoodItemValidation.validate(czechOnly, FoodItemRequiredNames.Original("en")),
+        )
     }
 
     @Test
     fun validate_withZeroCalories_returnsInvalidCalories() {
-        assertEquals(FoodItemValidationError.InvalidCalories, FoodItemValidation.validate(makeItem(caloriesPerHundredGrams = 0.0)))
+        assertEquals(FoodItemValidationError.InvalidCalories, FoodItemValidation.validate(makeItem(caloriesPerHundredGrams = 0.0), FoodItemRequiredNames.All))
     }
 
     @Test
     fun validate_withAlcoholByVolumeOutOfRange_returnsInvalidAlcoholByVolume() {
-        assertEquals(FoodItemValidationError.InvalidAlcoholByVolume, FoodItemValidation.validate(makeItem(alcoholByVolume = 0.0)))
-        assertEquals(FoodItemValidationError.InvalidAlcoholByVolume, FoodItemValidation.validate(makeItem(alcoholByVolume = -1.0)))
-        assertEquals(FoodItemValidationError.InvalidAlcoholByVolume, FoodItemValidation.validate(makeItem(alcoholByVolume = 101.0)))
+        assertEquals(FoodItemValidationError.InvalidAlcoholByVolume, FoodItemValidation.validate(makeItem(alcoholByVolume = 0.0), FoodItemRequiredNames.All))
+        assertEquals(FoodItemValidationError.InvalidAlcoholByVolume, FoodItemValidation.validate(makeItem(alcoholByVolume = -1.0), FoodItemRequiredNames.All))
+        assertEquals(FoodItemValidationError.InvalidAlcoholByVolume, FoodItemValidation.validate(makeItem(alcoholByVolume = 101.0), FoodItemRequiredNames.All))
     }
 
     @Test
     fun validate_withValidAlcoholByVolume_returnsNil() {
-        assertNull(FoodItemValidation.validate(makeItem(alcoholByVolume = 12.0)))
+        assertNull(FoodItemValidation.validate(makeItem(alcoholByVolume = 12.0), FoodItemRequiredNames.All))
     }
 
     @Test
     fun validate_withNoAlcoholByVolume_returnsNil() {
-        assertNull(FoodItemValidation.validate(makeItem(alcoholByVolume = null)))
+        assertNull(FoodItemValidation.validate(makeItem(alcoholByVolume = null), FoodItemRequiredNames.All))
     }
 
     @Test
     fun validate_withZeroWeight_isValidBecausePackageWeightFeedsNoCalculation() {
-        assertNull(FoodItemValidation.validate(makeItem(weight = 0.0)))
+        assertNull(FoodItemValidation.validate(makeItem(weight = 0.0), FoodItemRequiredNames.All))
     }
 
     @Test
     fun validate_withNaNCalories_returnsInvalidCalories() {
-        assertEquals(FoodItemValidationError.InvalidCalories, FoodItemValidation.validate(makeItem(caloriesPerHundredGrams = Double.NaN)))
+        assertEquals(FoodItemValidationError.InvalidCalories, FoodItemValidation.validate(makeItem(caloriesPerHundredGrams = Double.NaN), FoodItemRequiredNames.All))
     }
 
     @Test
@@ -70,20 +95,20 @@ class FoodItemValidationTest {
         val item = makeItem(portions = listOf(FoodPortionDomain(name = "", grams = 30.0)))
         assertEquals(
             FoodItemValidationError.InvalidPortion(FoodPortionError.InvalidName),
-            FoodItemValidation.validate(item),
+            FoodItemValidation.validate(item, FoodItemRequiredNames.All),
         )
     }
 
     @Test
     fun validate_withValidItem_returnsNil() {
-        assertNull(FoodItemValidation.validate(makeItem()))
+        assertNull(FoodItemValidation.validate(makeItem(), FoodItemRequiredNames.All))
     }
 
     @Test
     fun validate_withUppercaseUUID_returnsNil() {
         assertNull(
             "a barcode-less submission's id is the uppercase UUID of the submission",
-            FoodItemValidation.validate(makeItem(id = "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D")),
+            FoodItemValidation.validate(makeItem(id = "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D"), FoodItemRequiredNames.All),
         )
     }
 
@@ -92,7 +117,7 @@ class FoodItemValidationTest {
         assertEquals(
             "UUID().uuidString is always uppercase; a lowercase id must never be accepted as this item's own identity",
             FoodItemValidationError.InvalidCode,
-            FoodItemValidation.validate(makeItem(id = "9a5e1b2c-8d3f-4a6e-9c1d-7b2a4e5f6c8d")),
+            FoodItemValidation.validate(makeItem(id = "9a5e1b2c-8d3f-4a6e-9c1d-7b2a4e5f6c8d"), FoodItemRequiredNames.All),
         )
     }
 
@@ -117,6 +142,8 @@ class FoodItemValidationTest {
             val item = makeItem(
                 id = field("id").jsonPrimitive.content,
                 name = field("czName").jsonPrimitive.content,
+                skName = field("skName").jsonPrimitive.content,
+                engName = field("engName").jsonPrimitive.content,
                 weight = field("weight").jsonPrimitive.double,
                 caloriesPerHundredGrams = field("caloriesPerHundredGrams").jsonPrimitive.double,
                 alcoholByVolume = if (alcoholByVolumeField is JsonNull) null else alcoholByVolumeField.jsonPrimitive.double,
@@ -126,7 +153,7 @@ class FoodItemValidationTest {
             assertEquals(
                 foodItemCase.getValue("name").jsonPrimitive.content,
                 expected,
-                FoodItemValidation.validate(item)?.let(::fixtureName),
+                FoodItemValidation.validate(item, FoodItemRequiredNames.All)?.let(::fixtureName),
             )
         }
     }
@@ -156,6 +183,8 @@ class FoodItemValidationTest {
     private fun makeItem(
         id: String = "12345678",
         name: String = "Tvaroh",
+        skName: String = "Tvaroh",
+        engName: String = "Cottage cheese",
         weight: Double = 200.0,
         caloriesPerHundredGrams: Double = 80.0,
         alcoholByVolume: Double? = null,
@@ -164,7 +193,8 @@ class FoodItemValidationTest {
         id = id,
         kind = FoodItemKind.CATALOGUE,
         czName = name,
-        engName = "Cottage cheese",
+        skName = skName,
+        engName = engName,
         weight = weight,
         date = Instant.now(),
         energyKJ = 335.0,

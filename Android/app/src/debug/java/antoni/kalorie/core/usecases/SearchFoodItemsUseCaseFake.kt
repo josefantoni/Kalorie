@@ -9,7 +9,7 @@ data class SearchFoodItemsUseCaseFake(
 
     // MARK: - Functions
 
-    override suspend fun invoke(query: String): List<FoodItemDomain> {
+    override suspend fun invoke(query: String, languageCode: String?): List<FoodItemDomain> {
         if (shouldThrow) throw RuntimeException("SearchFoodItemsUseCaseFake")
         return stubbedItems
     }

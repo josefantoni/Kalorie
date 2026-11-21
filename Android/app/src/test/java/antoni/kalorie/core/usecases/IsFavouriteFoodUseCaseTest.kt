@@ -37,6 +37,7 @@ class IsFavouriteFoodUseCaseTest {
                 id = "12345",
                 kind = FoodItemKind.CATALOGUE,
                 czName = "Vejce",
+                skName = "Vejce",
                 engName = "Egg",
                 weight = 100.0,
                 date = Instant.now(),

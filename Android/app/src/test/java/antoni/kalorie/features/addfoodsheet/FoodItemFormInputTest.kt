@@ -3,6 +3,8 @@ package antoni.kalorie.features.addfoodsheet
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemFormPhoto
 import antoni.kalorie.core.models.FoodItemKind
+import antoni.kalorie.core.models.FoodItemSubmissionDomain
+import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.FoodMeasure
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -16,6 +18,56 @@ class FoodItemFormInputTest {
 
         assertEquals(100.0, result.weight, 0.0)
         assertEquals(FoodMeasure.MILLILITRES, result.measure)
+    }
+
+    @Test
+    fun asFoodItemDomain_onSlovakDevice_storesTheTypedNameAsSlovakOnly() {
+        val item = FoodItemFormInput(nameLanguage = "sk").withName("Mlieko").asFoodItemDomain(id = "1")
+
+        assertEquals("Mlieko", item.skName)
+        assertEquals("a Slovak name typed on a Slovak device must not be stored as Czech", "", item.czName)
+        assertEquals("", item.engName)
+    }
+
+    @Test
+    fun asFoodItemDomain_onEnglishDevice_storesTheTypedNameAsEnglishOnly() {
+        val item = FoodItemFormInput(nameLanguage = "en").withName("Milk").asFoodItemDomain(id = "1")
+
+        assertEquals("Milk", item.engName)
+        assertEquals("", item.czName)
+        assertEquals("", item.skName)
+    }
+
+    @Test
+    fun asFoodItemDomain_trimsTheNames() {
+        val item = FoodItemFormInput(nameLanguage = "cs").withName("  Mléko  ").asFoodItemDomain(id = "1")
+
+        assertEquals("Mléko", item.czName)
+    }
+
+    @Test
+    fun initFromSubmission_editsTheOriginalLanguageNameWhateverTheDeviceLanguage() {
+        val submission = FoodItemSubmissionDomain(
+            id = "sub-1",
+            barcode = null,
+            submittedBy = "user-1",
+            status = FoodItemSubmissionStatus.PENDING,
+            submittedAt = Instant.now(),
+            rejectReason = null,
+            nameLanguage = "sk",
+            item = makeItem(skName = "Mlieko").copy(czName = "", engName = ""),
+        )
+        val sut = FoodItemFormInput.from(submission)
+
+        assertEquals("Mlieko", sut.name)
+        val item = sut.withName("Mlieko polotučné").asFoodItemDomain()
+        assertEquals("Mlieko polotučné", item.skName)
+        assertEquals("editing a submission must not move its name into another language", "", item.czName)
+    }
+
+    @Test
+    fun initFromItem_preservesSlovakName() {
+        assertEquals("Tvaroh mäkký", FoodItemFormInput.from(makeItem(skName = "Tvaroh mäkký")).skName)
     }
 
     @Test
@@ -84,10 +136,11 @@ class FoodItemFormInputTest {
 
     // MARK: - Helpers
 
-    private fun makeItem(weight: Double, alcoholByVolume: Double? = null): FoodItemDomain = FoodItemDomain(
+    private fun makeItem(weight: Double = 100.0, alcoholByVolume: Double? = null, skName: String = "Tvaroh"): FoodItemDomain = FoodItemDomain(
         id = "12345678",
         kind = FoodItemKind.CATALOGUE,
         czName = "Tvaroh",
+        skName = skName,
         engName = "Cottage cheese",
         weight = weight,
         date = Instant.now(),

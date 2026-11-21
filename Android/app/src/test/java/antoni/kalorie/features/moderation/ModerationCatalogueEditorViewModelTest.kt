@@ -66,7 +66,7 @@ class ModerationCatalogueEditorViewModelTest {
         sut.barcodeQuery.value = "12345678"
         sut.onSearchTapped()
 
-        sut.formInput.value = sut.formInput.value.copy(name = "Opravený název")
+        sut.formInput.value = sut.formInput.value.copy(czName = "Opravený název")
         sut.onSaveTapped()
 
         assertEquals(originalDate, updateFoodItem.receivedItem?.date)
@@ -111,7 +111,7 @@ class ModerationCatalogueEditorViewModelTest {
         sut.barcodeQuery.value = "12345678"
         sut.onSearchTapped()
 
-        sut.formInput.value = sut.formInput.value.copy(name = "Opravený název")
+        sut.formInput.value = sut.formInput.value.copy(czName = "Opravený název")
         sut.onSaveTapped()
 
         assertEquals(R.string.moderation_error_itemChangedSinceLoad, sut.alertItem.value?.titleRes)
@@ -179,7 +179,7 @@ class ModerationCatalogueEditorViewModelTest {
             ticket = makeReport(locale = "cs"),
         )
         sut.onAppear()
-        sut.formInput.value = sut.formInput.value.copy(name = "Opravený název")
+        sut.formInput.value = sut.formInput.value.copy(czName = "Opravený název")
 
         sut.onSaveAndResolveTapped()
 
@@ -217,7 +217,7 @@ class ModerationCatalogueEditorViewModelTest {
             ticket = makeReport(),
         )
         sut.onAppear()
-        sut.formInput.value = sut.formInput.value.copy(name = "Rozpracovaná úprava")
+        sut.formInput.value = sut.formInput.value.copy(czName = "Rozpracovaná úprava")
 
         sut.onRejectTapped()
 
@@ -361,6 +361,7 @@ class ModerationCatalogueEditorViewModelTest {
         id = id,
         kind = FoodItemKind.CATALOGUE,
         czName = czName,
+        skName = czName,
         engName = "Cottage cheese",
         weight = 200.0,
         date = date,

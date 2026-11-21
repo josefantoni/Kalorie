@@ -17,6 +17,7 @@ data class FoodItemSubmissionDTO(
     val status: FoodItemSubmissionStatus,
     @SerialName("submitted_at") val submittedAt: Double,
     @SerialName("reject_reason") val rejectReason: String? = null,
+    @SerialName("name_language") val nameLanguage: String,
     val item: FoodItemDTO,
 ) {
 
@@ -29,6 +30,7 @@ data class FoodItemSubmissionDTO(
         status: FoodItemSubmissionStatus,
         submittedAt: Instant,
         rejectReason: String?,
+        nameLanguage: String,
         item: FoodItemDomain,
     ) : this(
         id = id,
@@ -37,6 +39,7 @@ data class FoodItemSubmissionDTO(
         status = status,
         submittedAt = submittedAt.epochSecondsAsExactDouble(),
         rejectReason = rejectReason,
+        nameLanguage = nameLanguage,
         item = FoodItemDTO(item),
     )
 
@@ -49,6 +52,7 @@ data class FoodItemSubmissionDTO(
         status = status,
         submittedAt = instantFromEpochSecondsExact(submittedAt),
         rejectReason = rejectReason,
+        nameLanguage = nameLanguage,
         item = item.asDomain(),
     )
 }

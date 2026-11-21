@@ -170,6 +170,7 @@ class UpdateFoodConsumedUseCaseTest {
         foodItemId = foodItemId,
         foodItemKind = kind,
         czName = "Vejce",
+        skName = "Vejce",
         engName = "Egg",
         weight = weight,
         date = Instant.now(),

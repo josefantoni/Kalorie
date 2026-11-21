@@ -4,6 +4,7 @@ import antoni.kalorie.core.auth.AuthError
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.FoodItemDomain
 import antoni.kalorie.core.models.FoodItemFormPhoto
+import antoni.kalorie.core.models.FoodItemRequiredNames
 import antoni.kalorie.core.models.FoodItemSubmissionDomain
 import antoni.kalorie.core.models.FoodItemSubmissionError
 import antoni.kalorie.core.models.FoodItemSubmissionStatus
@@ -30,12 +31,13 @@ class FoodItemSubmissionWriter(
     suspend fun write(
         id: String,
         item: FoodItemDomain,
+        nameLanguage: String,
         photo: FoodItemFormPhoto,
         previousPhotoUrl: String?,
     ): FoodItemSubmissionDomain {
         val userId = authProvider.userId ?: throw AuthError.NotAuthenticated
         val resolvedItem = if (item.id.isEmpty()) item.withId(id) else item
-        FoodItemValidation.validate(resolvedItem)?.let { throw FoodItemSubmissionError.from(it) }
+        FoodItemValidation.validate(resolvedItem, FoodItemRequiredNames.Original(nameLanguage))?.let { throw FoodItemSubmissionError.from(it) }
         if (photo == FoodItemFormPhoto.None) throw FoodItemSubmissionError.PhotoMissing
         val existing: FoodItemDTO? = dataProvider.loadFromServerAsync(id = resolvedItem.id, from = Constants.Firestore.FOOD_ITEMS)
         if (existing != null) throw FoodItemSubmissionError.ItemAlreadyExists
@@ -47,6 +49,7 @@ class FoodItemSubmissionWriter(
             status = FoodItemSubmissionStatus.PENDING,
             submittedAt = Instant.now(),
             rejectReason = null,
+            nameLanguage = nameLanguage,
             item = resolvedItem.withPhotoUrl(uploadedUrl ?: (photo as? FoodItemFormPhoto.Remote)?.url),
         )
         val dto = FoodItemSubmissionDTO(
@@ -56,6 +59,7 @@ class FoodItemSubmissionWriter(
             status = submission.status,
             submittedAt = submission.submittedAt,
             rejectReason = submission.rejectReason,
+            nameLanguage = submission.nameLanguage,
             item = submission.item,
         )
         try {

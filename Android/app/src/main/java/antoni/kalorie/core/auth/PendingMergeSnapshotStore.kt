@@ -8,8 +8,13 @@ import antoni.kalorie.core.networking.FoodConsumedDTO
 import antoni.kalorie.core.networking.FoodItemPersonalPortionsDTO
 import antoni.kalorie.core.networking.MyCreatedMealDTO
 import antoni.kalorie.core.utils.Constants
+import antoni.kalorie.textkit.slovakName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import java.io.File
 
 @Serializable
@@ -50,11 +55,30 @@ class PendingMergeSnapshotStore(directory: File) : PendingMergeSnapshotStoreProt
 
     override fun load(): PendingMergeSnapshot? {
         if (!file.exists()) return null
-        return json.decodeFromString(PendingMergeSnapshot.serializer(), file.readText())
+        val element = json.parseToJsonElement(file.readText())
+        val normalized = if (element is JsonObject) fillingMissingSlovakNames(element) else element
+        return json.decodeFromJsonElement(PendingMergeSnapshot.serializer(), normalized)
     }
 
     override fun delete() {
         if (!file.exists()) return
         check(file.delete()) { "Could not delete the pending merge snapshot" }
+    }
+
+    private fun fillingMissingSlovakNames(root: JsonObject): JsonObject = root
+        .mapObjects("foodConsumed") { it.withSlovakName() }
+        .mapObjects("favouriteFoods") { it.withSlovakName() }
+        .mapObjects("myCreatedMeals") { meal -> meal.mapObjects("ingredients") { it.withSlovakName() } }
+
+    private fun JsonObject.mapObjects(key: String, transform: (JsonObject) -> JsonObject): JsonObject {
+        val array = this[key] as? JsonArray ?: return this
+        val mapped = JsonArray(array.map { element -> (element as? JsonObject)?.let(transform) ?: element })
+        return JsonObject(this + (key to mapped))
+    }
+
+    private fun JsonObject.withSlovakName(): JsonObject {
+        if ("sk_name" in this) return this
+        fun text(key: String) = (this[key] as? JsonPrimitive)?.contentOrNull
+        return JsonObject(this + ("sk_name" to JsonPrimitive(slovakName(null, text("cz_name"), text("eng_name")))))
     }
 }

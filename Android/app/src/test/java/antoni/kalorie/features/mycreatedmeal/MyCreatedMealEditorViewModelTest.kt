@@ -426,6 +426,20 @@ class MyCreatedMealEditorViewModelTest {
     }
 
     @Test
+    fun onAppear_whenOnlySlovakNameWasCorrected_updatesIngredientAndMarksMealAsChanged() = runTest {
+        val sut = makeSUT(
+            fetchFoodItemsByIds = FetchFoodItemsByIdsUseCaseFake(stubbedItems = listOf(makeFoodItem().copy(skName = "Mlieko"))),
+            existingMeal = makeExistingMeal(),
+        )
+        assertFalse(sut.hasChanges)
+
+        sut.onAppear()
+
+        assertEquals("Mlieko", sut.ingredients.value.first().item.skName)
+        assertTrue(sut.hasChanges)
+    }
+
+    @Test
     fun onAppear_keepsTheEnteredGrams() = runTest {
         val sut = makeSUT(
             fetchFoodItemsByIds = FetchFoodItemsByIdsUseCaseFake(stubbedItems = listOf(makeFoodItem(calories = 140.0))),
@@ -539,6 +553,7 @@ class MyCreatedMealEditorViewModelTest {
         id = id,
         kind = FoodItemKind.CATALOGUE,
         czName = "Ovesné vločky",
+        skName = "Ovesné vločky",
         engName = "Oats",
         weight = 100.0,
         date = Instant.now(),
@@ -557,6 +572,7 @@ class MyCreatedMealEditorViewModelTest {
     private fun makeIngredientDomain(): MyCreatedMealIngredientDomain = MyCreatedMealIngredientDomain(
         foodItemId = "12345",
         czName = "Ovesné vločky",
+        skName = "Ovesné vločky",
         engName = "Oats",
         grams = 50.0,
         nutrition = FoodNutritionValues(

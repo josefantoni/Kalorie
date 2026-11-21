@@ -169,6 +169,7 @@ class FetchFoodFrequencyUseCaseTest {
         id = id,
         kind = kind,
         czName = czName,
+        skName = czName,
         engName = "",
         weight = 100.0,
         date = Instant.now(),
