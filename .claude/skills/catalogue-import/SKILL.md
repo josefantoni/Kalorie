@@ -19,7 +19,9 @@ document must be checked against `validFoodItem()` by hand.
 ## Building a document
 
 - All fields required by `validFoodItem()`, including `cz_name_folded` / `eng_name_folded` and
-  `*_search_terms` generated with `scripts/lib/search-terms.js`.
+  `*_search_terms` generated with `scripts/lib/search-terms.js`, and the Slovak trio `sk_name`,
+  `sk_name_folded`, `sk_name_search_terms` (design 0034). `sk_name` is the Slovak source when there is
+  one, otherwise `cz_name`, otherwise `eng_name` (`scripts/lib/name-rules.js`). Never leave it empty.
 - Generic items get our own ids: EAN-13 with the 12-digit base `200000000000 + n` plus a check digit.
   Find the highest `n` already used in prod before allocating. An OpenFoodFacts hit on a `2000000000…`
   id is a false positive.
