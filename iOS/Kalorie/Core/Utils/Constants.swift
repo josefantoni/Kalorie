@@ -43,7 +43,7 @@ enum Constants {
         static let gramsUnit = "g"
         static let millilitresUnit = "ml"
         static let perHundredAmount = 100.0
-        static let productFields = "code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
+        static let productFields = "code,product_name,product_name_sk,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
         static var userAgent: String {
             let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
             return "Kalorie-iOS/\(version)"
@@ -159,8 +159,10 @@ enum Constants {
 
         enum Field {
             static let czNameFolded = "cz_name_folded"
+            static let skNameFolded = "sk_name_folded"
             static let engNameFolded = "eng_name_folded"
             static let czNameSearchTerms = "cz_name_search_terms"
+            static let skNameSearchTerms = "sk_name_search_terms"
             static let engNameSearchTerms = "eng_name_search_terms"
             static let submittedBy = "submitted_by"
             static let submittedAt = "submitted_at"

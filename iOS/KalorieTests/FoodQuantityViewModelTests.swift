@@ -891,6 +891,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
                 MyCreatedMealIngredientDomain(
                     foodItemId: "beef",
                     czName: "Hovězí",
+                    skName: "Hovězí",
                     engName: "Beef",
                     grams: 200,
                     nutrition: FoodNutritionValues(
@@ -987,6 +988,7 @@ final class FoodQuantityViewModelTests: XCTestCase {
             id: "test",
             kind: kind,
             czName: "Tvaroh",
+            skName: "Tvaroh",
             engName: "Cottage cheese",
             weight: 100,
             date: .now,

@@ -12,47 +12,33 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_search_mergesResultsFromBothFoldedNameFields() async throws {
+    func test_search_mergesResultsFromThePrefixAndTokenFields() async throws {
         let (sut, dataProvider) = makeSUT()
         dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Tvaroh")]
-        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "2", czName: "Tvaroh jemný")]
+        dataProvider.stubbedByCzNameToken = [makeDTO(id: "2", czName: "Měkký tvaroh")]
 
         let result = try await sut(query: "tv")
 
         XCTAssertEqual(Set(result.map(\.id)), ["1", "2"])
     }
 
-    func test_search_withSameItemMatchingBothFoldedFields_deduplicatesById() async throws {
+    func test_search_mergesPrefixResultsBeforeTokenResults() async throws {
         let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Tvaroh")]
-        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "1", czName: "Tvaroh")]
-
-        let result = try await sut(query: "tv")
-
-        XCTAssertEqual(result.count, 1)
-    }
-
-    func test_search_mergesInFoldedCzFoldedEnTokenCzTokenEnOrder() async throws {
-        let (sut, dataProvider) = makeSUT()
-        dataProvider.stubbedByEngNameToken = [makeDTO(id: "4")]
-        dataProvider.stubbedByCzNameToken = [makeDTO(id: "3")]
-        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "2")]
+        dataProvider.stubbedByCzNameToken = [makeDTO(id: "2")]
         dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1")]
 
         let result = try await sut(query: "tv")
 
-        XCTAssertEqual(result.map(\.id), ["1", "2", "3", "4"])
+        XCTAssertEqual(result.map(\.id), ["1", "2"])
     }
 
     func test_search_matchesOnlyTheNameInTheAppLanguage() async throws {
-        let (sut, dataProvider) = makeSUT()
-        let item = makeDTO(id: "1", czName: "Hovězí maso", engName: "Beef").asDomain()
-        let hidden = item.displayName == item.czName ? item.engName : item.czName
+        let (sut, dataProvider) = makeSUT(languageCode: "en")
         dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Hovězí maso", engName: "Beef")]
         dataProvider.stubbedByEngNameFolded = [makeDTO(id: "1", czName: "Hovězí maso", engName: "Beef")]
 
-        let byHiddenName = try await sut(query: String(hidden.prefix(3)))
-        let byDisplayedName = try await sut(query: String(item.displayName.prefix(3)))
+        let byHiddenName = try await sut(query: "hov")
+        let byDisplayedName = try await sut(query: "bee")
 
         XCTAssertEqual(byHiddenName, [], "a row whose displayed name does not resemble the query reads as a wrong result")
         XCTAssertEqual(byDisplayedName.map(\.id), ["1"])
@@ -77,10 +63,7 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
         let result = try await sut(query: "tv")
 
         XCTAssertEqual(result.map(\.id), ["1"])
-        XCTAssertEqual(
-            Set(dataProvider.queriedFields),
-            ["cz_name_folded", "eng_name_folded", "cz_name_search_terms", "eng_name_search_terms"]
-        )
+        XCTAssertEqual(Set(dataProvider.queriedFields), ["cz_name_folded", "cz_name_search_terms"])
     }
 
     func test_search_whenEnergyKJMissing_computesItFromMacrosInsteadOfZero() async throws {
@@ -111,7 +94,6 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
 
         XCTAssertEqual(result.map(\.id), ["1"])
         XCTAssertEqual(dataProvider.arrayContainsValuesByField["cz_name_search_terms"], "mlek")
-        XCTAssertEqual(dataProvider.arrayContainsValuesByField["eng_name_search_terms"], "mlek")
     }
 
     func test_search_withMultiWordQuery_matchesTokenFieldByLastWordOnly() async throws {
@@ -132,17 +114,82 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
         XCTAssertEqual(result.count, 1)
     }
 
+    func test_search_onSlovakDevice_queriesOnlyTheTwoSlovakFields() async throws {
+        let (sut, dataProvider) = makeSUT(languageCode: "sk")
+        dataProvider.stubbedBySkNameFolded = [makeDTO(id: "1", czName: "Mléko", skName: "Mlieko")]
+
+        let result = try await sut(query: "mlie")
+
+        XCTAssertEqual(Set(dataProvider.queriedFields), ["sk_name_folded", "sk_name_search_terms"])
+        XCTAssertEqual(dataProvider.queriedFields.count, 2)
+        XCTAssertEqual(result.map(\.id), ["1"])
+    }
+
+    func test_search_withExplicitLanguage_queriesThatLanguageInsteadOfTheDevices() async throws {
+        let (sut, dataProvider) = makeSUT(languageCode: "cs")
+        dataProvider.stubbedBySkNameFolded = [makeDTO(id: "1", czName: "Brambory", skName: "Zemiaky")]
+
+        let result = try await sut(query: "zemiaky", languageCode: "sk")
+
+        XCTAssertEqual(Set(dataProvider.queriedFields), ["sk_name_folded", "sk_name_search_terms"])
+        XCTAssertEqual(result.map(\.id), ["1"], "the displayed-name filter must follow the explicit language too, or the Slovak match is dropped on a Czech device")
+    }
+
+    func test_search_onSlovakDevice_doesNotMatchTheCzechSpelling() async throws {
+        let (sut, dataProvider) = makeSUT(languageCode: "sk")
+        dataProvider.stubbedBySkNameFolded = [makeDTO(id: "1", czName: "Brambory", skName: "Zemiaky")]
+
+        let result = try await sut(query: "bram")
+
+        XCTAssertEqual(result, [])
+    }
+
+    func test_search_onCzechDevice_queriesOnlyTheTwoCzechFields() async throws {
+        let (sut, dataProvider) = makeSUT(languageCode: "cs")
+        dataProvider.stubbedByCzNameFolded = [makeDTO(id: "1", czName: "Mléko", skName: "Mlieko")]
+
+        let result = try await sut(query: "mlé")
+
+        XCTAssertEqual(Set(dataProvider.queriedFields), ["cz_name_folded", "cz_name_search_terms"])
+        XCTAssertEqual(dataProvider.queriedFields.count, 2)
+        XCTAssertEqual(result.map(\.id), ["1"])
+    }
+
+    func test_search_onEnglishDevice_queriesOnlyTheTwoEnglishFields() async throws {
+        let (sut, dataProvider) = makeSUT(languageCode: "en")
+        dataProvider.stubbedByEngNameFolded = [makeDTO(id: "1", czName: "Mléko", engName: "Milk")]
+
+        let result = try await sut(query: "mi")
+
+        XCTAssertEqual(
+            Set(dataProvider.queriedFields),
+            ["eng_name_folded", "eng_name_search_terms"],
+            "every catalogue item has a non-empty English name, so the Czech fallback queries are gone"
+        )
+        XCTAssertEqual(dataProvider.queriedFields.count, 2)
+        XCTAssertEqual(result.map(\.id), ["1"])
+    }
+
+    func test_search_onOtherLanguageDevice_queriesTheEnglishFields() async throws {
+        let (sut, dataProvider) = makeSUT(languageCode: "de")
+
+        _ = try await sut(query: "mi")
+
+        XCTAssertEqual(Set(dataProvider.queriedFields), ["eng_name_folded", "eng_name_search_terms"])
+    }
+
     // MARK: - Helpers
 
-    private func makeSUT() -> (sut: SearchFoodItemsUseCase, dataProvider: SearchDataProviderFake) {
+    private func makeSUT(languageCode: String = "cs") -> (sut: SearchFoodItemsUseCase, dataProvider: SearchDataProviderFake) {
         let dataProvider = SearchDataProviderFake()
-        let sut = SearchFoodItemsUseCase(dataProvider: dataProvider)
+        let sut = SearchFoodItemsUseCase(dataProvider: dataProvider) { languageCode }
         return (sut, dataProvider)
     }
 
     private func makeDTO(
         id: String = "8594004428464",
         czName: String = "Tvaroh",
+        skName: String? = nil,
         engName: String? = nil,
         fat: Double = 0.5,
         carbohydrate: Double = 4,
@@ -153,6 +200,7 @@ final class SearchFoodItemsUseCaseTests: XCTestCase {
                 id: id,
                 kind: .catalogue,
                 czName: czName,
+                skName: skName ?? czName,
                 engName: engName ?? czName,
                 weight: 100,
                 date: .now,
@@ -182,6 +230,8 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
     // MARK: - Properties
 
     var stubbedByCzNameFolded: [FoodItemDTO] = []
+    var stubbedBySkNameFolded: [FoodItemDTO] = []
+    var stubbedBySkNameToken: [FoodItemDTO] = []
     var stubbedByEngNameFolded: [FoodItemDTO] = []
     var stubbedByCzNameToken: [FoodItemDTO] = []
     var stubbedByEngNameToken: [FoodItemDTO] = []
@@ -208,6 +258,7 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
             XCTFail("The search must not query \(field)")
             return []
         case "cz_name_folded": return stubbedByCzNameFolded as? [T] ?? []
+        case "sk_name_folded": return stubbedBySkNameFolded as? [T] ?? []
         case "eng_name_folded": return stubbedByEngNameFolded as? [T] ?? []
         default: return []
         }
@@ -220,6 +271,7 @@ private final class SearchDataProviderFake: FirestoreDataProviderProtocol {
         }
         switch field {
         case "cz_name_search_terms": return stubbedByCzNameToken as? [T] ?? []
+        case "sk_name_search_terms": return stubbedBySkNameToken as? [T] ?? []
         case "eng_name_search_terms": return stubbedByEngNameToken as? [T] ?? []
         default: return []
         }

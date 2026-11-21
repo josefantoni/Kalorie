@@ -64,6 +64,7 @@ private func makeIngredient() -> MyCreatedMealIngredientDomain {
     MyCreatedMealIngredientDomain(
         foodItemId: "12345",
         czName: "Ovesné vločky",
+        skName: "Ovesné vločky",
         engName: "Oats",
         grams: 50,
         nutrition: FoodNutritionValues(

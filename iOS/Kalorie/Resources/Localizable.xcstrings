@@ -1456,6 +1456,29 @@
         }
       }
     },
+    "addFood_field_czechName_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Český název"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czech name"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Český názov"
+          }
+        }
+      }
+    },
     "addFood_field_energyKJ" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1475,6 +1498,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Energia (kJ) na 100 g"
+          }
+        }
+      }
+    },
+    "addFood_field_englishName_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anglický název"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English name"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anglický názov"
           }
         }
       }
@@ -1640,6 +1686,29 @@
         }
       }
     },
+    "addFood_field_originalName_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (originál)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (original)"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (originál)"
+          }
+        }
+      }
+    },
     "addFood_field_protein" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1682,6 +1751,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Soľ"
+          }
+        }
+      }
+    },
+    "addFood_field_slovakName_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slovenský název"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slovak name"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slovenský názov"
           }
         }
       }

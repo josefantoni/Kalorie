@@ -85,6 +85,43 @@ final class PendingMergeSnapshotStoreTests: XCTestCase {
         XCTAssertEqual(loaded?.appSettings?.asDomain().bodyWeightUnit, .lb)
     }
 
+    func test_load_snapshotWrittenBeforeSlovakNames_stillDecodes_withTheFallbackName() throws {
+        let sut = makeSUT()
+        try sut.save(makeSnapshot(sourceUserId: "anon-1", foodIds: ["f1"]))
+        let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent(Constants.Auth.pendingMergeSnapshotFileName)
+        let stripped = try String(contentsOf: fileURL, encoding: .utf8)
+            .replacingOccurrences(of: #","sk_name":"[^"]*""#, with: "", options: .regularExpression)
+        try stripped.write(to: fileURL, atomically: true, encoding: .utf8)
+
+        let loaded = try sut.load()
+
+        XCTAssertEqual(loaded?.foodConsumed.first?.skName, "Test")
+    }
+
+    func test_fillingMissingSlovakNames_fillsIngredientsOfCreatedMealsFromTheFirstNonBlankName() throws {
+        let legacy = """
+        {"myCreatedMeals":[{"ingredients":[{"cz_name":"","eng_name":"Oat"}]}]}
+        """
+
+        let migrated = PendingMergeSnapshotStore.fillingMissingSlovakNames(in: Data(legacy.utf8))
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: migrated) as? [String: Any])
+        let meal = try XCTUnwrap((json["myCreatedMeals"] as? [[String: Any]])?.first)
+        let ingredient = try XCTUnwrap((meal["ingredients"] as? [[String: Any]])?.first)
+
+        XCTAssertEqual(ingredient["sk_name"] as? String, "Oat")
+    }
+
+    func test_fillingMissingSlovakNames_keepsAnExistingSlovakName() throws {
+        let current = """
+        {"sourceAnonymousUserId":"anon-1","foodConsumed":[{"id":"f1","cz_name":"Mléko","sk_name":"Mlieko","eng_name":"Milk"}],"favouriteFoods":[],"myCreatedMeals":[]}
+        """
+
+        let migrated = PendingMergeSnapshotStore.fillingMissingSlovakNames(in: Data(current.utf8))
+
+        XCTAssertEqual(migrated, Data(current.utf8))
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() -> PendingMergeSnapshotStore {
@@ -100,6 +137,7 @@ final class PendingMergeSnapshotStoreTests: XCTestCase {
                     foodItemId: id,
                     foodItemKind: .catalogue,
                     czName: "Test",
+                    skName: "Test",
                     engName: "Test",
                     weight: 100,
                     date: Date().timeIntervalSince1970,

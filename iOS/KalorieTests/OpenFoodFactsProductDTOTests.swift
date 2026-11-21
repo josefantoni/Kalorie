@@ -27,6 +27,7 @@ final class OpenFoodFactsProductDTOTests: XCTestCase {
             }
             XCTAssertEqual(item.id, expected.id, mappingCase.name)
             XCTAssertEqual(item.czName, expected.czName, mappingCase.name)
+            XCTAssertEqual(item.skName, expected.skName, mappingCase.name)
             XCTAssertEqual(item.engName, expected.engName, mappingCase.name)
             XCTAssertEqual(item.weight, expected.weight, accuracy: 1e-9, mappingCase.name)
             XCTAssertEqual(item.energyKJ, expected.energyKJ, accuracy: 1e-9, mappingCase.name)
@@ -90,6 +91,7 @@ final class OpenFoodFactsProductDTOTests: XCTestCase {
     private struct ExpectedItem: Decodable {
         let id: String
         let czName: String
+        let skName: String
         let engName: String
         let weight: Double
         let energyKJ: Double

@@ -14,12 +14,15 @@ public struct FoodItemDTO: Codable {
 
     let id: String
     let czName: String
+    let skName: String
     let engName: String
     let czNameLowercase: String
     let engNameLowercase: String
     let czNameFolded: String?
+    let skNameFolded: String?
     let engNameFolded: String?
     let czNameSearchTerms: [String]?
+    let skNameSearchTerms: [String]?
     let engNameSearchTerms: [String]?
     let weight: Double
     let date: TimeInterval
@@ -43,12 +46,15 @@ public struct FoodItemDTO: Codable {
     enum CodingKeys: String, CodingKey {
         case id, weight, date, fat, carbohydrate, protein, salt, fiber, portions
         case czName = "cz_name"
+        case skName = "sk_name"
         case engName = "eng_name"
         case czNameLowercase = "cz_name_lowercase"
         case engNameLowercase = "eng_name_lowercase"
         case czNameFolded = "cz_name_folded"
+        case skNameFolded = "sk_name_folded"
         case engNameFolded = "eng_name_folded"
         case czNameSearchTerms = "cz_name_search_terms"
+        case skNameSearchTerms = "sk_name_search_terms"
         case engNameSearchTerms = "eng_name_search_terms"
         case energyKJ = "energy_kj"
         case caloriesPerHundredGrams = "calories_per_hundred_grams"
@@ -65,12 +71,15 @@ public struct FoodItemDTO: Codable {
     init(item: FoodItemDomain) {
         id = item.id
         czName = item.czName
+        skName = item.skName
         engName = item.engName
         czNameLowercase = item.czName.lowercased()
         engNameLowercase = item.engName.lowercased()
         czNameFolded = item.czName.lowercased().foldingDiacritics()
+        skNameFolded = item.skName.lowercased().foldingDiacritics()
         engNameFolded = item.engName.lowercased().foldingDiacritics()
         czNameSearchTerms = item.czName.searchTerms()
+        skNameSearchTerms = item.skName.searchTerms()
         engNameSearchTerms = item.engName.searchTerms()
         weight = item.weight
         date = item.date.timeIntervalSince1970
@@ -97,6 +106,7 @@ public struct FoodItemDTO: Codable {
             id: id,
             kind: .catalogue,
             czName: czName,
+            skName: skName,
             engName: engName,
             weight: weight,
             date: date.toDate,

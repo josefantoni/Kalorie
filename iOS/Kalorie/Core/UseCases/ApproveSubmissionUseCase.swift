@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TextKit
 
 enum ApproveSubmissionError: Error {
     case alreadyResolved
@@ -68,7 +69,7 @@ struct ApproveSubmissionUseCase: ApproveSubmissionUseCaseProtocol {
             guard current.submittedAt == submission.submittedAt.timeIntervalSince1970 else {
                 throw ApproveSubmissionError.changedSinceReview
             }
-            _ = try await createFoodItem(item.withPhotoURL(catalogueURL))
+            _ = try await createFoodItem(completedNames(of: item, submission: submission).withPhotoURL(catalogueURL))
         } catch {
             await deleteFoodPhoto.deleteQuietly(catalogueURL)
             throw error
@@ -88,6 +89,17 @@ struct ApproveSubmissionUseCase: ApproveSubmissionUseCaseProtocol {
     }
 
     // MARK: - Private
+
+    private func completedNames(of item: FoodItemDomain, submission: FoodItemSubmissionDomain) -> FoodItemDomain {
+        item.withNames(
+            NameRulesKt.completeNames(
+                nameLanguage: submission.nameLanguage,
+                czech: item.czName,
+                slovak: item.skName,
+                english: item.engName
+            )
+        )
+    }
 
     private func bytes(of photo: FoodItemFormPhoto) async throws -> Data {
         switch photo {

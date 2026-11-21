@@ -8,7 +8,7 @@
 import Foundation
 
 protocol UpdateMySubmissionUseCaseProtocol {
-    func callAsFunction(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain
+    func callAsFunction(id: String, item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain
 }
 
 struct UpdateMySubmissionUseCase: UpdateMySubmissionUseCaseProtocol {
@@ -36,7 +36,7 @@ struct UpdateMySubmissionUseCase: UpdateMySubmissionUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(id: String, item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain {
         try await FoodItemSubmissionWriter(
             dataProvider: dataProvider,
             authProvider: authProvider,
@@ -45,6 +45,7 @@ struct UpdateMySubmissionUseCase: UpdateMySubmissionUseCaseProtocol {
         ).write(
             id: id,
             item: item,
+            nameLanguage: nameLanguage,
             photo: photo,
             previousPhotoURL: previousPhotoURL
         )
@@ -60,7 +61,7 @@ struct UpdateMySubmissionUseCaseFake: UpdateMySubmissionUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(id: String, item: FoodItemDomain, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(id: String, item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto, previousPhotoURL: URL?) async throws -> FoodItemSubmissionDomain {
         if let errorToThrow { throw errorToThrow }
         return FoodItemSubmissionDomain(
             id: id,
@@ -69,6 +70,7 @@ struct UpdateMySubmissionUseCaseFake: UpdateMySubmissionUseCaseProtocol {
             status: .pending,
             submittedAt: .now,
             rejectReason: nil,
+            nameLanguage: nameLanguage,
             item: item
         )
     }

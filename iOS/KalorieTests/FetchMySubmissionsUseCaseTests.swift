@@ -57,10 +57,12 @@ final class FetchMySubmissionsUseCaseTests: XCTestCase {
             status: .pending,
             submittedAt: .now,
             rejectReason: nil,
+            nameLanguage: "cs",
             item: FoodItemDomain(
                 id: barcode,
                 kind: .catalogue,
                 czName: "Tvaroh",
+                skName: "Tvaroh",
                 engName: "",
                 weight: 200,
                 date: .now,

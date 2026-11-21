@@ -120,6 +120,7 @@ struct FoodPortionsManagerView: View {
                     id: "1",
                     kind: .catalogue,
                     czName: "Vejce",
+                    skName: "Vejce",
                     engName: "Egg",
                     weight: 100,
                     date: .now,

@@ -16,6 +16,7 @@ struct FoodConsumedDTO: Codable {
     let foodItemId: String
     let foodItemKind: FoodItemKind
     let czName: String
+    let skName: String
     let engName: String
     let weight: Double
     let date: TimeInterval
@@ -41,6 +42,7 @@ struct FoodConsumedDTO: Codable {
         case foodItemId = "food_item_id"
         case foodItemKind = "food_item_kind"
         case czName = "cz_name"
+        case skName = "sk_name"
         case engName = "eng_name"
         case carbohydrateSugar = "carbohydrate_sugar"
         case fatUnsaturated = "fat_unsaturated"
@@ -60,6 +62,7 @@ struct FoodConsumedDTO: Codable {
             foodItemId: foodItemId,
             foodItemKind: foodItemKind,
             czName: czName,
+            skName: skName,
             engName: engName,
             weight: weight,
             date: Date(timeIntervalSince1970: date),
@@ -88,6 +91,7 @@ extension FoodConsumedDTO {
             foodItemId: food.foodItemId,
             foodItemKind: food.foodItemKind,
             czName: food.czName,
+            skName: food.skName,
             engName: food.engName,
             weight: food.weight,
             date: (date ?? food.date).timeIntervalSince1970,

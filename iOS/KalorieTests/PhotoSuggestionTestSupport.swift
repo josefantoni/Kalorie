@@ -80,6 +80,7 @@ func makePhotoSuggestionItem(id: String = "12345678", photoURL: URL? = nil, calo
         id: id,
         kind: .catalogue,
         czName: "Tvaroh",
+        skName: "Tvaroh",
         engName: "",
         weight: 200,
         date: Date(timeIntervalSince1970: 1_700_000_000),

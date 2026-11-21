@@ -164,6 +164,7 @@ final class CopyFoodsConsumedUseCaseTests: XCTestCase {
             foodItemId: "item-\(id)",
             foodItemKind: kind,
             czName: "Jídlo",
+            skName: "Jídlo",
             engName: "Food",
             weight: 150,
             date: Date.now,

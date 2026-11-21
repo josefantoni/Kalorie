@@ -213,6 +213,7 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
             foodItemId: id,
             foodItemKind: .catalogue,
             czName: "Test",
+            skName: "Test",
             engName: "Test",
             weight: 100,
             date: Date().timeIntervalSince1970,
@@ -239,6 +240,7 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
                 id: id,
                 kind: .catalogue,
                 czName: "Test",
+                skName: "Test",
                 engName: "Test",
                 weight: 100,
                 date: .now,
@@ -266,6 +268,7 @@ final class MigrateAnonymousDataUseCaseTests: XCTestCase {
                     MyCreatedMealIngredientDomain(
                         foodItemId: "12345",
                         czName: "Test",
+                        skName: "Test",
                         engName: "Test",
                         grams: 50,
                         nutrition: FoodNutritionValues(

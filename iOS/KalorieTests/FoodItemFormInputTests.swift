@@ -16,6 +16,63 @@ final class FoodItemFormInputTests: XCTestCase {
         XCTAssertEqual(sut.engName, "Cottage cheese")
     }
 
+    func test_asFoodItemDomain_onSlovakDevice_storesTheTypedNameAsSlovakOnly() {
+        var sut = FoodItemFormInput()
+        sut.nameLanguage = "sk"
+        sut.name = "Mlieko"
+
+        let item = sut.asFoodItemDomain(id: "1")
+
+        XCTAssertEqual(item.skName, "Mlieko")
+        XCTAssertEqual(item.czName, "", "a Slovak name typed on a Slovak device must not be stored as Czech")
+        XCTAssertEqual(item.engName, "")
+    }
+
+    func test_asFoodItemDomain_onEnglishDevice_storesTheTypedNameAsEnglishOnly() {
+        var sut = FoodItemFormInput()
+        sut.nameLanguage = "en"
+        sut.name = "Milk"
+
+        let item = sut.asFoodItemDomain(id: "1")
+
+        XCTAssertEqual(item.engName, "Milk")
+        XCTAssertEqual(item.czName, "")
+        XCTAssertEqual(item.skName, "")
+    }
+
+    func test_asFoodItemDomain_trimsTheNames() {
+        var sut = FoodItemFormInput()
+        sut.nameLanguage = "cs"
+        sut.name = "  Mléko  "
+
+        XCTAssertEqual(sut.asFoodItemDomain(id: "1").czName, "Mléko")
+    }
+
+    func test_initFromSubmission_editsTheOriginalLanguageNameWhateverTheDeviceLanguage() {
+        let submission = FoodItemSubmissionDomain(
+            id: "sub-1",
+            barcode: nil,
+            submittedBy: "user-1",
+            status: .pending,
+            submittedAt: .now,
+            rejectReason: nil,
+            nameLanguage: "sk",
+            item: makeItem(czName: "", skName: "Mlieko", engName: "")
+        )
+        var sut = FoodItemFormInput(submission: submission)
+
+        XCTAssertEqual(sut.name, "Mlieko")
+        sut.name = "Mlieko polotučné"
+
+        let item = sut.asFoodItemDomain()
+        XCTAssertEqual(item.skName, "Mlieko polotučné")
+        XCTAssertEqual(item.czName, "", "editing a submission must not move its name into another language")
+    }
+
+    func test_initFromItem_preservesSlovakName() {
+        XCTAssertEqual(FoodItemFormInput(item: makeItem(skName: "Tvaroh mäkký")).skName, "Tvaroh mäkký")
+    }
+
     func test_initFromItem_withNilFatSaturatedAndFiber_keepsThemNil() {
         let item = makeItem(fatSaturated: nil, fiber: nil)
         let sut = FoodItemFormInput(item: item)
@@ -32,13 +89,13 @@ final class FoodItemFormInputTests: XCTestCase {
 
     func test_asFoodItemDomain_roundTripsEnglishName() {
         var sut = FoodItemFormInput(item: makeItem(engName: "Cottage cheese"))
-        sut.name = "Tvaroh opraveno"
+        sut.czName = "Tvaroh opraveno"
         XCTAssertEqual(sut.asFoodItemDomain().engName, "Cottage cheese", "editing an unrelated field must not blank the English name")
     }
 
     func test_asFoodItemDomain_whenFatSaturatedAndFiberWereUnknownAndUntouched_staysNil() {
         var sut = FoodItemFormInput(item: makeItem(fatSaturated: nil, fiber: nil))
-        sut.name = "Tvaroh opraveno"
+        sut.czName = "Tvaroh opraveno"
         let result = sut.asFoodItemDomain()
         XCTAssertNil(result.fatSaturated, "unknown nutrition must not silently become a false zero")
         XCTAssertNil(result.fiber, "unknown nutrition must not silently become a false zero")
@@ -104,6 +161,8 @@ final class FoodItemFormInputTests: XCTestCase {
     // MARK: - Helpers
 
     private func makeItem(
+        czName: String = "Tvaroh",
+        skName: String = "Tvaroh",
         engName: String = "Cottage cheese",
         fatSaturated: Double? = 0.3,
         fiber: Double? = 0,
@@ -113,7 +172,8 @@ final class FoodItemFormInputTests: XCTestCase {
         FoodItemDomain(
             id: "12345678",
             kind: .catalogue,
-            czName: "Tvaroh",
+            czName: czName,
+            skName: skName,
             engName: engName,
             weight: weight,
             date: .now,

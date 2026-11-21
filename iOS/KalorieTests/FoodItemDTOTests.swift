@@ -62,6 +62,23 @@ final class FoodItemDTOTests: XCTestCase {
         XCTAssertEqual(try decode(json).asDomain().photoURL, url)
     }
 
+    func test_skName_survivesRoundTripWithFoldedAndSearchTerms() throws {
+        let item = FoodItemDTO(item: makeItem(skName: "Mäso ľadové"))
+        let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(item)) as? [String: Any] ?? [:]
+
+        XCTAssertEqual(json["sk_name"] as? String, "Mäso ľadové")
+        XCTAssertEqual(json["sk_name_folded"] as? String, "maso ladove")
+        XCTAssertEqual((json["sk_name_search_terms"] as? [String])?.contains("lad"), true)
+        XCTAssertEqual(try decode(json).asDomain().skName, "Mäso ľadové")
+    }
+
+    func test_decode_whenSkNameIsAbsent_fails() throws {
+        var json = try encodedJSON()
+        json.removeValue(forKey: "sk_name")
+
+        XCTAssertThrowsError(try decode(json), "sk_name is required, so a document without it must not decode as an empty name")
+    }
+
     // MARK: - Helpers
 
     private func encodedJSON() throws -> [String: Any] {
@@ -72,11 +89,12 @@ final class FoodItemDTOTests: XCTestCase {
         try JSONDecoder().decode(FoodItemDTO.self, from: JSONSerialization.data(withJSONObject: json))
     }
 
-    private func makeItem(alcoholByVolume: Double? = nil, photoURL: URL? = nil) -> FoodItemDomain {
+    private func makeItem(skName: String = "Mléko", alcoholByVolume: Double? = nil, photoURL: URL? = nil) -> FoodItemDomain {
         FoodItemDomain(
             id: "12345678",
             kind: .catalogue,
             czName: "Mléko",
+            skName: skName,
             engName: "Milk",
             weight: 1000,
             date: .now,

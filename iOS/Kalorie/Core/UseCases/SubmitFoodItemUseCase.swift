@@ -8,7 +8,7 @@
 import Foundation
 
 protocol SubmitFoodItemUseCaseProtocol {
-    func callAsFunction(_ item: FoodItemDomain, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain
+    func callAsFunction(_ item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain
 }
 
 struct SubmitFoodItemUseCase: SubmitFoodItemUseCaseProtocol {
@@ -36,7 +36,7 @@ struct SubmitFoodItemUseCase: SubmitFoodItemUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(_ item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
         try await FoodItemSubmissionWriter(
             dataProvider: dataProvider,
             authProvider: authProvider,
@@ -45,6 +45,7 @@ struct SubmitFoodItemUseCase: SubmitFoodItemUseCaseProtocol {
         ).write(
             id: UUID().uuidString,
             item: item,
+            nameLanguage: nameLanguage,
             photo: photo,
             previousPhotoURL: nil
         )
@@ -60,7 +61,7 @@ struct SubmitFoodItemUseCaseFake: SubmitFoodItemUseCaseProtocol {
 
     // MARK: - Functions
 
-    func callAsFunction(_ item: FoodItemDomain, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
+    func callAsFunction(_ item: FoodItemDomain, nameLanguage: String, photo: FoodItemFormPhoto) async throws -> FoodItemSubmissionDomain {
         if let errorToThrow { throw errorToThrow }
         return FoodItemSubmissionDomain(
             id: UUID().uuidString,
@@ -69,6 +70,7 @@ struct SubmitFoodItemUseCaseFake: SubmitFoodItemUseCaseProtocol {
             status: .pending,
             submittedAt: .now,
             rejectReason: nil,
+            nameLanguage: nameLanguage,
             item: item
         )
     }

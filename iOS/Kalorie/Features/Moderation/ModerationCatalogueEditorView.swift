@@ -49,6 +49,7 @@ struct ModerationCatalogueEditorView: View {
                     highlightedFields: viewModel.recognizedFields,
                     barcodeRow: viewModel.isOpenedFromReport ? .locked : .hidden,
                     showsAlcoholByVolumeField: true,
+                    nameFields: .allLanguages(originalLanguage: nil),
                     onNutritionLabelScanTapped: viewModel.isOpenedFromReport ? nil : {
                         Task { await viewModel.onNutritionLabelCameraTapped() }
                     }

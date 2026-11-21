@@ -1039,6 +1039,7 @@ final class DashboardViewModelTests: XCTestCase {
             foodItemId: id,
             foodItemKind: .catalogue,
             czName: "Jídlo",
+            skName: "Jídlo",
             engName: "Food",
             weight: 100,
             date: date,

@@ -15,7 +15,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
     func test_submit_whenNotAuthenticated_throwsAuthError() async throws {
         let (sut, _, _) = makeSUT(userId: nil)
         do {
-            _ = try await sut(makeItem(), photo: localPhoto)
+            _ = try await sut(makeItem(), nameLanguage: "cs", photo: localPhoto)
             XCTFail("Expected notAuthenticated error")
         } catch AuthError.notAuthenticated {
             // pass
@@ -25,7 +25,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
     func test_submit_withInvalidItem_throwsValidationErrorAndDoesNotWrite() async throws {
         let (sut, dataProvider, _) = makeSUT()
         do {
-            _ = try await sut(makeItem(id: "123"), photo: localPhoto)
+            _ = try await sut(makeItem(id: "123"), nameLanguage: "cs", photo: localPhoto)
             XCTFail("Expected invalidCode error")
         } catch FoodItemSubmissionError.invalidCode {
             // pass
@@ -38,7 +38,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
         let item = makeItem()
         dataProvider.stubbedExistingFoodItem = FoodItemDTO(item: item)
         do {
-            _ = try await sut(item, photo: localPhoto)
+            _ = try await sut(item, nameLanguage: "cs", photo: localPhoto)
             XCTFail("Expected itemAlreadyExists error")
         } catch FoodItemSubmissionError.itemAlreadyExists {
             // pass
@@ -49,7 +49,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
     func test_submit_withValidItem_writesPendingSubmissionToFoodItemSubmissions() async throws {
         let (sut, dataProvider, _) = makeSUT(userId: "user-123")
         let item = makeItem()
-        let result = try await sut(item, photo: localPhoto)
+        let result = try await sut(item, nameLanguage: "cs", photo: localPhoto)
         XCTAssertEqual(result.barcode, item.id, "the item already has a real barcode; it must be kept, not discarded")
         XCTAssertEqual(result.submittedBy, "user-123")
         XCTAssertEqual(result.status, .pending)
@@ -62,7 +62,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
     func test_submit_withEmptyId_usesTheGeneratedSubmissionIdAsTheItemsIdentityAndHasNoBarcode() async throws {
         let (sut, _, _) = makeSUT(userId: "user-123")
         let item = makeItem(id: "", name: "Kukuřice")
-        let result = try await sut(item, photo: localPhoto)
+        let result = try await sut(item, nameLanguage: "cs", photo: localPhoto)
         XCTAssertEqual(result.item.id, result.id, "a barcode-less item's identity is the submission's own id, so favourites/portions/entries keep pointing at the right document once approved")
         XCTAssertNil(result.barcode, "the id is a UUID, not a barcode, and must never be sent to OpenFoodFacts or shown as one")
     }
@@ -70,7 +70,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
     func test_submit_withoutPhoto_throwsPhotoMissingAndUploadsAndWritesNothing() async throws {
         let (sut, dataProvider, storage) = makeSUT()
         do {
-            _ = try await sut(makeItem(), photo: .none)
+            _ = try await sut(makeItem(), nameLanguage: "cs", photo: .none)
             XCTFail("Expected photoMissing error")
         } catch FoodItemSubmissionError.photoMissing {
             // pass
@@ -81,7 +81,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
 
     func test_submit_withLocalPhoto_uploadsToTheAuthorsFolderAndStoresItsUrlOnTheItem() async throws {
         let (sut, _, storage) = makeSUT(userId: "user-123")
-        let result = try await sut(makeItem(), photo: localPhoto)
+        let result = try await sut(makeItem(), nameLanguage: "cs", photo: localPhoto)
         let path = try XCTUnwrap(storage.uploadedPaths.first)
         XCTAssertTrue(path.hasPrefix("submissionPhotos/user-123/"), "storage rules only let the author write into their own folder")
         let uploaded = try XCTUnwrap(storage.files.keys.first)
@@ -91,7 +91,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
     func test_submit_withRemotePhoto_keepsItAndUploadsNothing() async throws {
         let (sut, _, storage) = makeSUT()
         let url = try XCTUnwrap(URL(string: "https://storage.fake/existing.jpg"))
-        let result = try await sut(makeItem(), photo: .remote(url))
+        let result = try await sut(makeItem(), nameLanguage: "cs", photo: .remote(url))
         XCTAssertEqual(result.item.photoURL, url)
         XCTAssertTrue(storage.uploadedPaths.isEmpty)
     }
@@ -100,7 +100,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
         let (sut, dataProvider, storage) = makeSUT()
         dataProvider.writeError = URLError(.notConnectedToInternet)
         do {
-            _ = try await sut(makeItem(), photo: localPhoto)
+            _ = try await sut(makeItem(), nameLanguage: "cs", photo: localPhoto)
             XCTFail("Expected the write error")
         } catch {
             XCTAssertEqual((error as? URLError)?.code, .notConnectedToInternet)
@@ -112,7 +112,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
         let (sut, dataProvider, storage) = makeSUT()
         storage.uploadError = URLError(.notConnectedToInternet)
         do {
-            _ = try await sut(makeItem(), photo: localPhoto)
+            _ = try await sut(makeItem(), nameLanguage: "cs", photo: localPhoto)
             XCTFail("Expected photoUploadFailed error")
         } catch FoodItemSubmissionError.photoUploadFailed {
             // pass
@@ -124,7 +124,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
         let (sut, dataProvider, storage) = makeSUT()
         let item = makeItem()
         dataProvider.stubbedExistingFoodItem = FoodItemDTO(item: item)
-        _ = try? await sut(item, photo: localPhoto)
+        _ = try? await sut(item, nameLanguage: "cs", photo: localPhoto)
         XCTAssertTrue(storage.uploadedPaths.isEmpty)
     }
 
@@ -149,6 +149,7 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
             id: id,
             kind: .catalogue,
             czName: name,
+            skName: name,
             engName: "Cottage cheese",
             weight: 200,
             date: .now,

@@ -197,10 +197,12 @@ final class NotificationsViewModelTests: XCTestCase {
             status: .pending,
             submittedAt: date,
             rejectReason: nil,
+            nameLanguage: "cs",
             item: FoodItemDomain(
                 id: "333",
                 kind: .catalogue,
                 czName: "Tvaroh",
+                skName: "Tvaroh",
                 engName: "",
                 weight: 100,
                 date: .now,

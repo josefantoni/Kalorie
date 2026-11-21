@@ -94,6 +94,17 @@ final class CreateMyCreatedMealUseCaseTests: XCTestCase {
         XCTAssertNil(foodItem.fiber)
     }
 
+    func test_asFoodItem_storesTheMealNameInTheDeviceLanguageOnly() async throws {
+        let (sut, _) = makeSUT()
+        let meal = try await sut(name: "Ovsená kaša", ingredients: [makeIngredient()])
+
+        let slovak = meal.asFoodItem(languageCode: "sk")
+        let english = meal.asFoodItem(languageCode: "de")
+
+        XCTAssertEqual([slovak.czName, slovak.skName, slovak.engName], ["", "Ovsená kaša", ""])
+        XCTAssertEqual([english.czName, english.skName, english.engName], ["", "", "Ovsená kaša"])
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(userId: String? = "test-user") -> (sut: CreateMyCreatedMealUseCase, dataProvider: CreateMyCreatedMealDataProviderFake) {
@@ -112,6 +123,7 @@ final class CreateMyCreatedMealUseCaseTests: XCTestCase {
         MyCreatedMealIngredientDomain(
             foodItemId: "12345",
             czName: "Ovesné vločky",
+            skName: "Ovesné vločky",
             engName: "Oats",
             grams: grams,
             nutrition: FoodNutritionValues(

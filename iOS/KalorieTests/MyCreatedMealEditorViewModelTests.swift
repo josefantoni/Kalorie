@@ -427,6 +427,7 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
             id: id,
             kind: .catalogue,
             czName: "Ovesné vločky",
+            skName: "Ovesné vločky",
             engName: "Oats",
             weight: 100,
             date: .now,
@@ -447,6 +448,7 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         MyCreatedMealIngredientDomain(
             foodItemId: "12345",
             czName: "Ovesné vločky",
+            skName: "Ovesné vločky",
             engName: "Oats",
             grams: 50,
             nutrition: FoodNutritionValues(

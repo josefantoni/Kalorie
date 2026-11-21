@@ -52,6 +52,7 @@ final class FetchFoodsConsumedInRangeUseCaseTests: XCTestCase {
             foodItemId: id,
             foodItemKind: .catalogue,
             czName: id,
+            skName: id,
             engName: "",
             weight: 100,
             date: date.timeIntervalSince1970,

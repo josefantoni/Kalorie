@@ -47,7 +47,7 @@ final class SearchFoodExternallyUseCaseTests: XCTestCase {
         XCTAssertEqual(
             URLProtocolStub.lastRequest?.url?.absoluteString,
             "https://world.openfoodfacts.org/cgi/search.pl?search_terms=b%C3%ADl%C3%BD%20jogurt&json=1&page_size=20" +
-                "&fields=code,product_name,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
+                "&fields=code,product_name,product_name_sk,product_name_cs,product_name_en,nutriments,image_front_url,serving_quantity,serving_quantity_unit"
         )
         XCTAssertEqual(URLProtocolStub.lastRequest?.timeoutInterval, 10)
     }

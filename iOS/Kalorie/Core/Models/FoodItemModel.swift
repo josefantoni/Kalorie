@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TextKit
 
 enum FoodItemKind: String, Codable, Equatable {
     case catalogue
@@ -20,6 +21,7 @@ struct FoodItemDomain: BilingualNamed, Equatable {
     let id: String
     let kind: FoodItemKind
     let czName: String
+    let skName: String
     let engName: String
     let weight: Double
     let date: Date
@@ -44,6 +46,7 @@ struct FoodItemDomain: BilingualNamed, Equatable {
         id: String,
         kind: FoodItemKind,
         czName: String,
+        skName: String,
         engName: String,
         weight: Double,
         date: Date,
@@ -65,6 +68,7 @@ struct FoodItemDomain: BilingualNamed, Equatable {
         self.id = id
         self.kind = kind
         self.czName = czName
+        self.skName = skName
         self.engName = engName
         self.weight = weight
         self.date = date
@@ -114,6 +118,7 @@ extension FoodItemDomain {
         id: String,
         kind: FoodItemKind,
         czName: String,
+        skName: String,
         engName: String,
         weight: Double,
         date: Date,
@@ -123,6 +128,7 @@ extension FoodItemDomain {
             id: id,
             kind: kind,
             czName: czName,
+            skName: skName,
             engName: engName,
             weight: weight,
             date: date,
@@ -146,7 +152,34 @@ extension FoodItemDomain {
             id: id,
             kind: kind,
             czName: czName,
+            skName: skName,
             engName: engName,
+            weight: weight,
+            date: date,
+            energyKJ: energyKJ,
+            caloriesPerHundredGrams: caloriesPerHundredGrams,
+            fat: fat,
+            fatSaturated: fatSaturated,
+            fatUnsaturatedFattyAcids: fatUnsaturatedFattyAcids,
+            carbohydrate: carbohydrate,
+            carbohydratePureSugar: carbohydratePureSugar,
+            fiber: fiber,
+            protein: protein,
+            salt: salt,
+            portions: portions,
+            measure: measure,
+            alcoholByVolume: alcoholByVolume,
+            photoURL: photoURL
+        )
+    }
+
+    func withNames(_ names: FoodNames) -> FoodItemDomain {
+        FoodItemDomain(
+            id: id,
+            kind: kind,
+            czName: names.czech,
+            skName: names.slovak,
+            engName: names.english,
             weight: weight,
             date: date,
             energyKJ: energyKJ,
@@ -171,6 +204,7 @@ extension FoodItemDomain {
             id: id,
             kind: kind,
             czName: czName,
+            skName: skName,
             engName: engName,
             weight: weight,
             date: date,

@@ -56,6 +56,7 @@ final class AddFavouriteFoodUseCaseTests: XCTestCase {
             id: id,
             kind: kind,
             czName: "Vejce",
+            skName: "Vejce",
             engName: "Egg",
             weight: 100,
             date: .now,

@@ -29,6 +29,7 @@ final class IsFavouriteFoodUseCaseTests: XCTestCase {
                 id: "12345",
                 kind: .catalogue,
                 czName: "Vejce",
+                skName: "Vejce",
                 engName: "Egg",
                 weight: 100,
                 date: .now,

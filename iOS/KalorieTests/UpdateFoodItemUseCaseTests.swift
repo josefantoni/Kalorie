@@ -123,6 +123,7 @@ final class UpdateFoodItemUseCaseTests: XCTestCase {
             id: id,
             kind: .catalogue,
             czName: "Tvaroh",
+            skName: "Tvaroh",
             engName: "Cottage cheese",
             weight: 200,
             date: .now,

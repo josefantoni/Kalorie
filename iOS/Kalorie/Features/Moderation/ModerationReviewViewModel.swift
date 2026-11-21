@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TextKit
 import UIKit
 
 final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefilling {
@@ -50,7 +51,7 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
         onResolved: @escaping () -> Void
     ) {
         self.submission = submission
-        self.formInput = FoodItemFormInput(item: submission.item)
+        self.formInput = FoodItemFormInput(submission: submission)
         self.submittedAt = submission.submittedAt
         self.rejectReasonIfAny = submission.rejectReason
         self.approveSubmission = approveSubmission
@@ -67,7 +68,15 @@ final class ModerationReviewViewModel: ObservableObject, NutritionLabelPrefillin
     func onAppear() async {
         guard showsSimilarCatalogueItemsSection else { return }
         do {
-            similarCatalogueItems = try await searchFoodItems(query: submission.item.czName)
+            similarCatalogueItems = try await searchFoodItems(
+                query: NameRulesKt.originalName(
+                    nameLanguage: submission.nameLanguage,
+                    czech: submission.item.czName,
+                    slovak: submission.item.skName,
+                    english: submission.item.engName
+                ),
+                languageCode: submission.nameLanguage
+            )
         } catch {
             Log.warning(error, category: Constants.LogCategory.moderation)
             isSimilarCatalogueItemsSectionAvailable = false

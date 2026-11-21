@@ -198,6 +198,7 @@ struct FoodConsumedDetailView: View {
                     foodItemId: "1",
                     foodItemKind: .catalogue,
                     czName: "Ovesné vločky",
+                    skName: "Ovesné vločky",
                     engName: "Oats",
                     weight: 80,
                     date: .now,

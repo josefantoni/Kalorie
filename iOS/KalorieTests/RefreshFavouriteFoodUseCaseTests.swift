@@ -112,6 +112,7 @@ final class RefreshFavouriteFoodUseCaseTests: XCTestCase {
             id: "12345",
             kind: kind,
             czName: "Vejce",
+            skName: "Vejce",
             engName: "Egg",
             weight: 100,
             date: Date(timeIntervalSince1970: 500),
