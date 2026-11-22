@@ -403,6 +403,7 @@ class DashboardViewModelBodyWeightTest {
         saveBodyWeight = saveBodyWeight,
         authProvider = AuthProviderFake(),
         signInSpotlightStore = SignInSpotlightStoreFake(),
+        reviewPromptStore = ReviewPromptStoreFake(),
     )
 
     private companion object {

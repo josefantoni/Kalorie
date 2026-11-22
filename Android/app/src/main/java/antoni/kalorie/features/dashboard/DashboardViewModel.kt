@@ -97,6 +97,9 @@ data class FoodGroup(
 private const val COPY_CHECKMARK_MILLIS = 1000L
 private const val WEIGHT_CHECKMARK_MILLIS = 1000L
 private val SIGN_IN_SPOTLIGHT_INTERVAL = Duration.ofDays(7)
+private const val REVIEW_LOGGING_DAYS_REQUIRED = 3
+private val REVIEW_SNOOZE_DAYS = listOf(3L, 5L, 8L, 13L)
+private const val REVIEW_REPEAT_DAYS = 21L
 
 class DashboardViewModel(
     private val fetchMealTypes: FetchMealTypesUseCaseProtocol,
@@ -113,6 +116,7 @@ class DashboardViewModel(
     private val saveBodyWeight: SaveBodyWeightUseCaseProtocol,
     private val authProvider: AuthProviderProtocol,
     private val signInSpotlightStore: SignInSpotlightStoreProtocol,
+    private val reviewPromptStore: ReviewPromptStoreProtocol,
     private val now: () -> Instant = { Instant.now() },
 ) : ViewModel() {
 
@@ -134,6 +138,8 @@ class DashboardViewModel(
     val macroPopoverIndex = MutableStateFlow<Int?>(null)
     private val _isSignInSpotlightVisible = MutableStateFlow(false)
     val isSignInSpotlightVisible: StateFlow<Boolean> = _isSignInSpotlightVisible
+    private val _isReviewCardVisible = MutableStateFlow(false)
+    val isReviewCardVisible: StateFlow<Boolean> = _isReviewCardVisible
     val copyTargetDay = MutableStateFlow(Instant.now())
     val copyTargetMealTypeId = MutableStateFlow<String?>(null)
     private val _isCopying = MutableStateFlow(false)
@@ -255,10 +261,12 @@ class DashboardViewModel(
                 refreshMealTypes()
                 loadMonth(selectedDay.value)
                 foodsConsumed.value = foodsFromCache(selectedDay.value)
+                hideReviewCardIfNotDue()
                 showActiveDays(selectedDay.value)
                 settings.await()
                 weights.await()
                 showSignInSpotlightIfNeeded()
+                updateReviewCardVisibility()
             }
         }
         _state.value = LoadingState.loaded
@@ -277,10 +285,12 @@ class DashboardViewModel(
                 invalidateCache(selectedDay.value)
                 loadMonth(selectedDay.value)
                 foodsConsumed.value = foodsFromCache(selectedDay.value)
+                hideReviewCardIfNotDue()
                 showActiveDays(selectedDay.value)
                 settings.await()
                 weights.await()
                 showSignInSpotlightIfNeeded()
+                updateReviewCardVisibility()
             }
         }
     }
@@ -295,9 +305,11 @@ class DashboardViewModel(
                 refreshMealTypes()
                 reloadDay(selectedDay.value)
                 foodsConsumed.value = foodsFromCache(selectedDay.value)
+                hideReviewCardIfNotDue()
                 settings.await()
                 weights.await()
                 showSignInSpotlightIfNeeded()
+                updateReviewCardVisibility()
             }
         }
     }
@@ -311,6 +323,29 @@ class DashboardViewModel(
         _isSignInSpotlightVisible.value = false
     }
 
+    suspend fun onFoodAdded() {
+        recordLoggingDay()
+        onFoodConsumedUpdated()
+    }
+
+    fun onReviewRateTapped() {
+        if (!_isReviewCardVisible.value) return
+        reviewPromptStore.isCompleted = true
+        updateReviewCardVisibility()
+    }
+
+    fun onReviewNotNowTapped() {
+        if (!_isReviewCardVisible.value) return
+        reviewPromptStore.dismissCount += 1
+        reviewPromptStore.lastDismissedAt = now()
+        updateReviewCardVisibility()
+    }
+
+    fun onSettingsDismissed() {
+        showSettings.value = false
+        updateReviewCardVisibility()
+    }
+
     fun onSignInSpotlightDebugTriggered() {
         if (BuildConfig.DEBUG) _isSignInSpotlightVisible.value = true
     }
@@ -319,13 +354,16 @@ class DashboardViewModel(
         perform {
             reloadDay(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
+            hideReviewCardIfNotDue()
             showSignInSpotlightIfNeeded()
+            updateReviewCardVisibility()
         }
     }
 
     fun onAddFoodSheetDismissed() {
         showAddFoodSheet.value = false
         showSignInSpotlightIfNeeded()
+        updateReviewCardVisibility()
     }
 
     fun onDeleteRequested(food: FoodConsumedDomain) {
@@ -340,6 +378,7 @@ class DashboardViewModel(
             deleteFoodConsumed(id = food.id)
             reloadDay(selectedDay.value)
             foodsConsumed.value = foodsFromCache(selectedDay.value)
+            updateReviewCardVisibility()
         }
     }
 
@@ -520,6 +559,38 @@ class DashboardViewModel(
         _isSignInSpotlightVisible.value = true
     }
 
+    private fun recordLoggingDay() {
+        if (reviewPromptStore.loggingDays.size >= REVIEW_LOGGING_DAYS_REQUIRED) return
+        reviewPromptStore.loggingDays += BodyWeightDayKey.make(now())
+    }
+
+    private fun updateReviewCardVisibility() {
+        _isReviewCardVisible.value = isReviewCardDue
+    }
+
+    private fun hideReviewCardIfNotDue() {
+        if (_isReviewCardVisible.value && !isReviewCardDue) _isReviewCardVisible.value = false
+    }
+
+    private val isReviewCardDue: Boolean
+        get() {
+            if (reviewPromptStore.isCompleted ||
+                reviewPromptStore.loggingDays.size < REVIEW_LOGGING_DAYS_REQUIRED ||
+                _isSignInSpotlightVisible.value ||
+                showAddFoodSheet.value ||
+                foodsConsumed.value.isEmpty()
+            ) {
+                return false
+            }
+            val currentInstant = now()
+            val spotlightShownAt = signInSpotlightStore.lastShownAt
+            if (spotlightShownAt != null && BodyWeightDayKey.make(spotlightShownAt) == BodyWeightDayKey.make(currentInstant)) return false
+            val dismissCount = reviewPromptStore.dismissCount
+            if (dismissCount == 0) return true
+            val lastDismissedAt = reviewPromptStore.lastDismissedAt ?: return true
+            return Duration.between(lastDismissedAt, currentInstant) >= Duration.ofDays(REVIEW_SNOOZE_DAYS.getOrElse(dismissCount - 1) { REVIEW_REPEAT_DAYS })
+        }
+
     private suspend fun perform(
         onFailure: (Exception) -> Unit = { alertItem.value = unknownErrorAlertItem(it) },
         block: suspend () -> Unit,
@@ -546,6 +617,7 @@ class DashboardViewModel(
             reloadDay(copyTargetDay.value)
             if (copyTargetDay.value.isSameDay(selectedDay.value)) {
                 foodsConsumed.value = foodsFromCache(selectedDay.value)
+                updateReviewCardVisibility()
             }
         }
     }
@@ -650,11 +722,13 @@ class DashboardViewModel(
     private suspend fun loadFoods(date: Instant) {
         if (monthCacheKey(date) in cachedMonthKeys) {
             foodsConsumed.value = foodsFromCache(date)
+            updateReviewCardVisibility()
             showActiveDays(date)
         } else {
             perform {
                 loadMonth(date)
                 foodsConsumed.value = foodsFromCache(date)
+                updateReviewCardVisibility()
                 showActiveDays(date)
             }
         }
@@ -703,6 +777,7 @@ class DashboardViewModel(
         monthCache[key] = foods.toMutableList().also { it[index] = food }
         if (dayCacheKey(selectedDay.value) == key) {
             foodsConsumed.value = foodsFromCache(selectedDay.value)
+            updateReviewCardVisibility()
         }
     }
 

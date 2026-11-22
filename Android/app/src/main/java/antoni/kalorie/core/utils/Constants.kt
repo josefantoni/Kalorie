@@ -16,6 +16,14 @@ object Constants {
         const val PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=antoni.kalorie"
     }
 
+    object ReviewPrompt {
+        const val PREFERENCES = "reviewPrompt"
+        const val LOGGING_DAYS_KEY = "reviewPromptLoggingDays"
+        const val DISMISS_COUNT_KEY = "reviewPromptDismissCount"
+        const val LAST_DISMISSED_AT_KEY = "reviewPromptLastDismissedAt"
+        const val IS_COMPLETED_KEY = "reviewPromptIsCompleted"
+    }
+
     object DateFormat {
         const val MONTH_CACHE_KEY = "yyyy-MM"
         const val DAY_CACHE_KEY = "yyyy-MM-dd"

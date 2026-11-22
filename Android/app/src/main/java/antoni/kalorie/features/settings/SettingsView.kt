@@ -71,6 +71,7 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -318,6 +319,7 @@ private fun SettingsContent(
     val listState = rememberLazyListState()
     val isImeVisible = WindowInsets.isImeVisible
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val feedbackSubject = stringResource(R.string.settings_button_feedback)
 
     LaunchedEffect(isImeVisible, isAddFormVisible, isEditing) {
@@ -480,6 +482,14 @@ private fun SettingsContent(
                                             } catch (_: ActivityNotFoundException) {
                                                 onFeedbackMailUnavailable()
                                             }
+                                        },
+                                    )
+                                    SectionCardDivider()
+                                    NavigationRow(
+                                        title = stringResource(R.string.settings_button_rate),
+                                        onClick = {
+                                            viewModel.onRateTapped()
+                                            uriHandler.openUri(Constants.Store.PLAY_STORE_URL)
                                         },
                                     )
                                 }
