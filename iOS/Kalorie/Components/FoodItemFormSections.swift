@@ -47,9 +47,27 @@ struct FoodItemFormSections: View {
                     )
                     .listRowInsets(.vertical, 0)
                 case .allLanguages(let originalLanguage):
-                    languageNameField(language: "cs", title: L10n.AddFood.fieldCzechNameTitle, text: $formInput.czName, originalLanguage: originalLanguage, scanTargetLanguage: originalLanguage ?? formInput.nameLanguage)
-                    languageNameField(language: "sk", title: L10n.AddFood.fieldSlovakNameTitle, text: $formInput.skName, originalLanguage: originalLanguage, scanTargetLanguage: originalLanguage ?? formInput.nameLanguage)
-                    languageNameField(language: "en", title: L10n.AddFood.fieldEnglishNameTitle, text: $formInput.engName, originalLanguage: originalLanguage, scanTargetLanguage: originalLanguage ?? formInput.nameLanguage)
+                    languageNameField(
+                        language: "cs",
+                        title: L10n.AddFood.fieldCzechNameTitle,
+                        text: $formInput.czName,
+                        originalLanguage: originalLanguage,
+                        scanTargetLanguage: originalLanguage ?? formInput.nameLanguage
+                    )
+                    languageNameField(
+                        language: "sk",
+                        title: L10n.AddFood.fieldSlovakNameTitle,
+                        text: $formInput.skName,
+                        originalLanguage: originalLanguage,
+                        scanTargetLanguage: originalLanguage ?? formInput.nameLanguage
+                    )
+                    languageNameField(
+                        language: "en",
+                        title: L10n.AddFood.fieldEnglishNameTitle,
+                        text: $formInput.engName,
+                        originalLanguage: originalLanguage,
+                        scanTargetLanguage: originalLanguage ?? formInput.nameLanguage
+                    )
                 }
                 barcodeRowView
                     .listRowInsets(.vertical, 0)
