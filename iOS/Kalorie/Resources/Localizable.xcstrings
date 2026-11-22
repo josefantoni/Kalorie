@@ -8402,6 +8402,144 @@
         }
       }
     },
+    "reviewPrompt_actionNotNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teď ne"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teraz nie"
+          }
+        }
+      }
+    },
+    "reviewPrompt_actionRate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohodnotit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohodnotiť"
+          }
+        }
+      }
+    },
+    "reviewPrompt_body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie je zdarma, bez reklam a bez investorů. Velké aplikace mají na marketing miliony, my máme jen tebe 🫵. Hodnocení v %@ pomůže, aby nás našli další."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie is free, with no ads and no investors. Big apps spend millions on marketing; we only have you. A rating on %@ helps others find us."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalorie je zadarmo, bez reklám a bez investorov. Veľké aplikácie majú na marketing milióny, my máme len teba 🫵. Hodnotenie v %@ pomôže, aby nás našli ďalší."
+          }
+        }
+      }
+    },
+    "reviewPrompt_storeName_appStore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Storu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the App Store"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Store"
+          }
+        }
+      }
+    },
+    "reviewPrompt_storeName_googlePlay" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google Play"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google Play"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Google Play"
+          }
+        }
+      }
+    },
+    "reviewPrompt_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomož malé aplikaci"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help a small app"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pomôž malej aplikácii"
+          }
+        }
+      }
+    },
     "settings_bodyWeight_show" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8536,6 +8674,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Spätná väzba"
+          }
+        }
+      }
+    },
+    "settings_button_rate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohodnotit Kalorie"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate Kalorie"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohodnotiť Kalorie"
           }
         }
       }
