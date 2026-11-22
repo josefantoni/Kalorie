@@ -184,6 +184,8 @@ class DashboardViewModel(
     private var settingsChangeCount = 0
     private var goalsChangeCount = 0
 
+    // MARK: - Computed Properties
+
     val isWeightHistoryPushed: Boolean
         get() = backStack.any { it == DashboardDestination.BodyWeightHistory }
 
@@ -245,6 +247,37 @@ class DashboardViewModel(
                 result += FoodGroup(mealType = null, foods = unassigned)
             }
             return result
+        }
+
+    private val isAnyPresentationActive: Boolean
+        get() = showSettings.value ||
+            showAddFoodSheet.value ||
+            showCalendarSheet.value ||
+            showAccountSheet.value ||
+            alertItem.value != null ||
+            isDeleteConfirmationVisible.value ||
+            copyPopoverIndex.value != null ||
+            macroPopoverIndex.value != null ||
+            isWeightPopoverVisible.value ||
+            isWeightHistoryPushed
+
+    private val isReviewCardDue: Boolean
+        get() {
+            if (reviewPromptStore.isCompleted ||
+                reviewPromptStore.loggingDays.size < REVIEW_LOGGING_DAYS_REQUIRED ||
+                _isSignInSpotlightVisible.value ||
+                showAddFoodSheet.value ||
+                foodsConsumed.value.isEmpty()
+            ) {
+                return false
+            }
+            val currentInstant = now()
+            val spotlightShownAt = signInSpotlightStore.lastShownAt
+            if (spotlightShownAt != null && BodyWeightDayKey.make(spotlightShownAt) == BodyWeightDayKey.make(currentInstant)) return false
+            val dismissCount = reviewPromptStore.dismissCount
+            if (dismissCount == 0) return true
+            val lastDismissedAt = reviewPromptStore.lastDismissedAt ?: return true
+            return Duration.between(lastDismissedAt, currentInstant) >= Duration.ofDays(REVIEW_SNOOZE_DAYS.getOrElse(dismissCount - 1) { REVIEW_REPEAT_DAYS })
         }
 
     // MARK: - Functions
@@ -538,18 +571,6 @@ class DashboardViewModel(
 
     // MARK: - Private
 
-    private val isAnyPresentationActive: Boolean
-        get() = showSettings.value ||
-            showAddFoodSheet.value ||
-            showCalendarSheet.value ||
-            showAccountSheet.value ||
-            alertItem.value != null ||
-            isDeleteConfirmationVisible.value ||
-            copyPopoverIndex.value != null ||
-            macroPopoverIndex.value != null ||
-            isWeightPopoverVisible.value ||
-            isWeightHistoryPushed
-
     private fun showSignInSpotlightIfNeeded() {
         if (!authProvider.isAnonymous || monthCache.values.none { it.isNotEmpty() } || _isSignInSpotlightVisible.value || isAnyPresentationActive) return
         val currentInstant = now()
@@ -571,25 +592,6 @@ class DashboardViewModel(
     private fun hideReviewCardIfNotDue() {
         if (_isReviewCardVisible.value && !isReviewCardDue) _isReviewCardVisible.value = false
     }
-
-    private val isReviewCardDue: Boolean
-        get() {
-            if (reviewPromptStore.isCompleted ||
-                reviewPromptStore.loggingDays.size < REVIEW_LOGGING_DAYS_REQUIRED ||
-                _isSignInSpotlightVisible.value ||
-                showAddFoodSheet.value ||
-                foodsConsumed.value.isEmpty()
-            ) {
-                return false
-            }
-            val currentInstant = now()
-            val spotlightShownAt = signInSpotlightStore.lastShownAt
-            if (spotlightShownAt != null && BodyWeightDayKey.make(spotlightShownAt) == BodyWeightDayKey.make(currentInstant)) return false
-            val dismissCount = reviewPromptStore.dismissCount
-            if (dismissCount == 0) return true
-            val lastDismissedAt = reviewPromptStore.lastDismissedAt ?: return true
-            return Duration.between(lastDismissedAt, currentInstant) >= Duration.ofDays(REVIEW_SNOOZE_DAYS.getOrElse(dismissCount - 1) { REVIEW_REPEAT_DAYS })
-        }
 
     private suspend fun perform(
         onFailure: (Exception) -> Unit = { alertItem.value = unknownErrorAlertItem(it) },
