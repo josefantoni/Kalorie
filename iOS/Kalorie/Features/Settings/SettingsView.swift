@@ -171,6 +171,23 @@ struct SettingsView: View {
                                 }
                                 .buttonStyle(.plain)
                             }
+
+                            if let reviewURL = Constants.Store.appStoreWriteReviewURL {
+                                Button {
+                                    viewModel.onRateTapped()
+                                    openURL(reviewURL)
+                                } label: {
+                                    HStack {
+                                        Text(L10n.Settings.buttonRate)
+                                        Spacer()
+                                        Image(systemName: BaseImageName.chevronRight.rawValue)
+                                            .font(.footnote.weight(.semibold))
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
 
                         if Constants.Tips.isEnabled {

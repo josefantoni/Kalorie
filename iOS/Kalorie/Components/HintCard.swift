@@ -29,7 +29,7 @@ struct HintCard: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
                 .onTapGesture(perform: onTap)
-                .background(Color.accentColor.opacity(0.2), in: messageShape)
+                .background(Color.accentSecondary, in: messageShape)
             Button(action: onAction) {
                 Text(actionTitle)
                     .padding(.leading, 14)
@@ -39,7 +39,7 @@ struct HintCard: View {
                     .fontWeight(.semibold)
             }
             .buttonStyle(.borderless)
-            .background(Color.accentColor.opacity(0.2), in: actionShape)
+            .background(Color.accentSecondary, in: actionShape)
         }
         .fixedSize(horizontal: false, vertical: true)
     }

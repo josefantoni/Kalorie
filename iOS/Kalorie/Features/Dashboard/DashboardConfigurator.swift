@@ -33,7 +33,8 @@ struct DashboardConfigurator {
                 fetchDailyGoals: FetchDailyGoalsUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 saveBodyWeight: SaveBodyWeightUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 authProvider: authProvider,
-                signInSpotlightStore: SignInSpotlightStore()
+                signInSpotlightStore: SignInSpotlightStore(),
+                reviewPromptStore: ReviewPromptStore()
             ),
             router: DashboardRouter(
                 settingsConfigurator: SettingsConfigurator(maintainerClaimCache: maintainerClaimCache),

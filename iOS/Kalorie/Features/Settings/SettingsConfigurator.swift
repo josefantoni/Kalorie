@@ -44,6 +44,7 @@ struct SettingsConfigurator {
                 deleteMealType: DeleteMealTypeUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 updateMealTypeTimes: UpdateMealTypeTimesUseCase(dataProvider: dataProvider, authProvider: authProvider),
                 fetchMaintainerClaim: FetchMaintainerClaimUseCase(authProvider: authProvider, cache: maintainerClaimCache, forcesRefresh: true),
+                reviewPromptStore: ReviewPromptStore(),
                 hasLoadedAppSettings: hasLoadedAppSettings
             )
         )

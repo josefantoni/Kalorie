@@ -73,6 +73,7 @@ enum Constants {
 
     enum Store {
         static let appStoreURL = URL(string: "https://apps.apple.com/app/id6823155404")
+        static let appStoreWriteReviewURL = URL(string: "https://apps.apple.com/app/id6823155404?action=write-review")
     }
 
     enum Tips {
