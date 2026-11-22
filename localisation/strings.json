@@ -2098,5 +2098,40 @@
     "cs": "Tyto údaje slouží jen k odhadu níže a ukládají se spolu s cílem. Nejsou povinné, cíl si můžeš zadat i ručně.",
     "en": "These details are only used for the estimate below and are saved with the goal. They are optional, you can also enter a goal by hand.",
     "sk": "Tieto údaje slúžia len na odhad nižšie a ukladajú sa spolu s cieľom. Nie sú povinné, cieľ si môžeš zadať aj ručne."
+  },
+  "reviewPrompt_title": {
+    "cs": "Pomož malé aplikaci",
+    "en": "Help a small app",
+    "sk": "Pomôž malej aplikácii"
+  },
+  "reviewPrompt_body": {
+    "cs": "Kalorie je zdarma, bez reklam a bez investorů. Velké aplikace mají na marketing miliony, my máme jen tebe 🫵. Hodnocení v %@ pomůže, aby nás našli další.",
+    "en": "Kalorie is free, with no ads and no investors. Big apps spend millions on marketing; we only have you. A rating on %@ helps others find us.",
+    "sk": "Kalorie je zadarmo, bez reklám a bez investorov. Veľké aplikácie majú na marketing milióny, my máme len teba 🫵. Hodnotenie v %@ pomôže, aby nás našli ďalší."
+  },
+  "reviewPrompt_storeName_appStore": {
+    "cs": "App Storu",
+    "en": "the App Store",
+    "sk": "App Store"
+  },
+  "reviewPrompt_storeName_googlePlay": {
+    "cs": "Google Play",
+    "en": "Google Play",
+    "sk": "Google Play"
+  },
+  "reviewPrompt_actionRate": {
+    "cs": "Ohodnotit",
+    "en": "Rate",
+    "sk": "Ohodnotiť"
+  },
+  "reviewPrompt_actionNotNow": {
+    "cs": "Teď ne",
+    "en": "Not now",
+    "sk": "Teraz nie"
+  },
+  "settings_button_rate": {
+    "cs": "Ohodnotit Kalorie",
+    "en": "Rate Kalorie",
+    "sk": "Ohodnotiť Kalorie"
   }
 }
