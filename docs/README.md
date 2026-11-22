@@ -223,6 +223,7 @@ understanding why.
 | [0032](design/0032-propagating-catalogue-changes.md) | Propagating catalogue name and photo changes into users' copies | Draft | Backend |
 | [0033](design/0033-user-notifications-for-own-reports-and-photos.md) | User notifications for own reports and photo suggestions | Draft | Backend, Cross-platform, iOS, Android |
 | [0034](design/0034-slovak-catalogue-names.md) | Slovak catalogue names | Draft | Backend, Cross-platform, iOS, Android |
+| [0035](design/0035-store-review-prompt.md) | Store review prompt | Draft | Cross-platform, iOS, Android |
 
 ### Decision records
 
