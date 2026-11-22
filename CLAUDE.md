@@ -40,6 +40,17 @@ iOS, Android, the backend and the shared KMP modules live in one git repository.
   - Inline explanations (`// ...`) describing what the code does
 - Exception: if something in the code is genuinely non-obvious (a workaround for an SDK bug, a non-trivial invariant), add a short comment — but only in such cases.
 
+## Lint before you finish
+
+Once, at the end of the work — not after every edit — run the platform's linter over what you changed, on top of the
+build and tests:
+
+- iOS: `swiftlint lint --quiet $(git diff --name-only HEAD -- '*.swift')` from the repo root.
+- Android: `./gradlew :app:ktlintCheck` from `Android/`.
+
+A new warning is a defect of the change: fix it. A warning that was already there is not yours to fix silently — report
+it and leave it.
+
 ## Code navigation
 
 Find code with **LSP** (`definition`, `references`, `hover`) for symbols, types and callers, and with `grep` / `find`

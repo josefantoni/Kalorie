@@ -232,6 +232,9 @@ Build against a named simulator, as CI does:
 Never use `generic/platform=iOS Simulator` — it also builds x86_64, the KMP frameworks are
 arm64-only, and the link fails with `Undefined symbols for architecture x86_64`.
 
+The Xcode build phase runs `swiftlint` with the same `iOS/.swiftlint.yml`, so a warning in Xcode and one from the
+terminal command in the root `CLAUDE.md` are the same warning.
+
 ---
 
 ## Naming Conventions
