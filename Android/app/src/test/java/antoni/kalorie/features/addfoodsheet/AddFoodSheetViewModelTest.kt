@@ -12,6 +12,7 @@ import antoni.kalorie.core.models.FoodItemSubmissionStatus
 import antoni.kalorie.core.models.FoodNutritionValues
 import antoni.kalorie.core.models.MyCreatedMealDomain
 import antoni.kalorie.core.models.MyCreatedMealIngredientDomain
+import antoni.kalorie.core.models.displayName
 import antoni.kalorie.core.nutritionlabelrecognition.NutritionLabelReading
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseFake
 import antoni.kalorie.core.usecases.DeleteMyCreatedMealUseCaseProtocol
@@ -163,7 +164,7 @@ class AddFoodSheetViewModelTest {
         sut.searchText.value = "kaše"
 
         assertEquals(listOf("meal", "cat"), sut.displayedResults.map { it.id })
-        assertEquals("Ovesná kaše", sut.displayedResults.first().czName)
+        assertEquals("Ovesná kaše", sut.displayedResults.first().displayName)
     }
 
     @Test

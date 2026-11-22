@@ -9,8 +9,12 @@ import antoni.kalorie.core.models.FoodItemKind
 import antoni.kalorie.core.networking.AppSettingsDTO
 import antoni.kalorie.core.networking.BodyWeightDTO
 import antoni.kalorie.core.networking.DailyGoalsDTO
+import antoni.kalorie.core.networking.FavouriteFoodDTO
 import antoni.kalorie.core.networking.FoodConsumedDTO
+import antoni.kalorie.core.networking.MyCreatedMealDTO
+import antoni.kalorie.core.networking.MyCreatedMealIngredientDTO
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -107,6 +111,49 @@ class PendingMergeSnapshotStoreTest {
     }
 
     @Test
+    fun load_fillsAMissingSlovakNameOfFavouriteFoods() {
+        val snapshot = makeSnapshot(sourceUserId = "anon-1", foodIds = emptyList()).copy(favouriteFoods = listOf(makeFavouriteFood()))
+
+        val loaded = loadingWithoutSlovakNames(snapshot)
+
+        assertEquals("Mléko", loaded.favouriteFoods.single().skName)
+    }
+
+    @Test
+    fun load_fillsAMissingSlovakNameOfIngredientsOfCreatedMeals() {
+        val snapshot = makeSnapshot(sourceUserId = "anon-1", foodIds = emptyList()).copy(myCreatedMeals = listOf(makeCreatedMeal()))
+
+        val loaded = loadingWithoutSlovakNames(snapshot)
+
+        assertEquals("Ovesné vločky", loaded.myCreatedMeals.single().ingredients.single().skName)
+    }
+
+    @Test
+    fun load_fillsAMissingSlovakNameOfIngredientsFromTheFirstNonBlankName() {
+        val ingredient = makeCreatedMeal().ingredients.single().copy(czName = "", engName = "Oat")
+        val snapshot = makeSnapshot(sourceUserId = "anon-1", foodIds = emptyList()).copy(myCreatedMeals = listOf(makeCreatedMeal().copy(ingredients = listOf(ingredient))))
+
+        val loaded = loadingWithoutSlovakNames(snapshot)
+
+        assertEquals("Oat", loaded.myCreatedMeals.single().ingredients.single().skName)
+    }
+
+    @Test
+    fun load_keepsAnExistingSlovakName() {
+        val sut = makeSUT()
+        val snapshot = makeSnapshot(sourceUserId = "anon-1", foodIds = emptyList()).copy(
+            favouriteFoods = listOf(makeFavouriteFood().copy(skName = "Mlieko")),
+            myCreatedMeals = listOf(makeCreatedMeal().copy(ingredients = listOf(makeCreatedMeal().ingredients.single().copy(skName = "Ovsené vločky")))),
+        )
+        sut.save(snapshot)
+
+        val loaded = checkNotNull(sut.load())
+
+        assertEquals("Mlieko", loaded.favouriteFoods.single().skName)
+        assertEquals("Ovsené vločky", loaded.myCreatedMeals.single().ingredients.single().skName)
+    }
+
+    @Test
     fun saveAndLoad_roundTripsBodyWeightsAndSettings() {
         val sut = makeSUT()
         sut.save(
@@ -134,6 +181,58 @@ class PendingMergeSnapshotStoreTest {
     // MARK: - Helpers
 
     private fun makeSUT(): PendingMergeSnapshotStore = PendingMergeSnapshotStore(temporaryFolder.newFolder())
+
+    private fun loadingWithoutSlovakNames(snapshot: PendingMergeSnapshot): PendingMergeSnapshot {
+        val directory = temporaryFolder.newFolder()
+        val sut = PendingMergeSnapshotStore(directory)
+        sut.save(snapshot)
+        val file = java.io.File(directory, "pending-merge.json")
+        val stripped = file.readText().replace(Regex(""","sk_name":"[^"]*\""""), "")
+        assertFalse("the strip must really remove the field, or the test would pass without exercising the fill", stripped.contains("sk_name"))
+        file.writeText(stripped)
+        return checkNotNull(sut.load())
+    }
+
+    private fun makeFavouriteFood() = FavouriteFoodDTO(
+        id = "fav-1",
+        foodItemKind = FoodItemKind.CATALOGUE,
+        czName = "Mléko",
+        skName = "Mlieko",
+        engName = "Milk",
+        weight = 100.0,
+        date = Instant.now().epochSecond.toDouble(),
+        caloriesPerHundredGrams = 50.0,
+        fat = 1.0,
+        fatUnsaturatedFattyAcids = 1.0,
+        carbohydrate = 1.0,
+        carbohydratePureSugar = 1.0,
+        protein = 1.0,
+        salt = 0.1,
+        favouritedAt = Instant.now().epochSecond.toDouble(),
+    )
+
+    private fun makeCreatedMeal() = MyCreatedMealDTO(
+        id = "meal-1",
+        name = "Kaše",
+        ingredients = listOf(
+            MyCreatedMealIngredientDTO(
+                foodItemId = "12345",
+                czName = "Ovesné vločky",
+                skName = "Ovsené vločky",
+                engName = "Oats",
+                grams = 50.0,
+                caloriesPerHundredGrams = 155.0,
+                fat = 10.0,
+                fatUnsaturatedFattyAcids = 3.0,
+                carbohydrate = 1.0,
+                carbohydratePureSugar = 0.0,
+                protein = 13.0,
+                salt = 0.3,
+            ),
+        ),
+        createdAt = Instant.now().epochSecond.toDouble(),
+        updatedAt = Instant.now().epochSecond.toDouble(),
+    )
 
     private fun makeSnapshot(sourceUserId: String, foodIds: List<String>) = PendingMergeSnapshot(
         sourceAnonymousUserId = sourceUserId,
