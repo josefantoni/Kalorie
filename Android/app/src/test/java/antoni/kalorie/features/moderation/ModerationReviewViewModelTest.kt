@@ -233,6 +233,17 @@ class ModerationReviewViewModelTest {
     }
 
     @Test
+    fun onAppear_searchesByTheNameInTheSubmissionsOwnLanguage() = runTest {
+        val searchFoodItems = SearchFoodItemsUseCaseSpy()
+        val submission = makeSubmission(barcode = null, czName = "", skName = "Zemiaky", engName = "", nameLanguage = "sk")
+        val sut = makeSUT(submission = submission, searchFoodItems = searchFoodItems)
+
+        sut.onAppear()
+
+        assertEquals("a Slovak submission has no Czech name; searching it would query an empty string and let a duplicate through", "Zemiaky", searchFoodItems.receivedQuery)
+    }
+
+    @Test
     fun onAppear_whenSearchFails_marksSectionUnavailableButDoesNotBlockApproval() = runTest {
         val searchFoodItems = SearchFoodItemsUseCaseSpy(shouldThrow = true)
         val approveSubmission = ApproveSubmissionUseCaseSpy()
@@ -260,7 +271,7 @@ class ModerationReviewViewModelTest {
         onResolved = {},
     )
 
-    private fun makeSubmission(id: String = "sub-1", barcode: String? = "12345678", date: Instant = Instant.now(), engName: String = "Cottage cheese", nameLanguage: String = "cs"): FoodItemSubmissionDomain = FoodItemSubmissionDomain(
+    private fun makeSubmission(id: String = "sub-1", barcode: String? = "12345678", date: Instant = Instant.now(), czName: String = "Tvaroh", skName: String = "Tvaroh", engName: String = "Cottage cheese", nameLanguage: String = "cs"): FoodItemSubmissionDomain = FoodItemSubmissionDomain(
         id = id,
         barcode = barcode,
         submittedBy = "some-user",
@@ -268,7 +279,7 @@ class ModerationReviewViewModelTest {
         submittedAt = Instant.now(),
         rejectReason = null,
         nameLanguage = nameLanguage,
-        item = makeItem(id = barcode ?: "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D", date = date).copy(engName = engName),
+        item = makeItem(id = barcode ?: "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D", date = date).copy(czName = czName, skName = skName, engName = engName),
     )
 
     private fun makeItem(id: String = "12345678", czName: String = "Tvaroh", date: Instant = Instant.now()): FoodItemDomain = FoodItemDomain(
