@@ -66,6 +66,13 @@ struct DailyMacros {
 
 final class DashboardViewModel: ObservableObject {
 
+    // MARK: - Constants
+
+    private static let signInSpotlightInterval: TimeInterval = 7 * 24 * 60 * 60
+    private static let reviewLoggingDaysRequired = 3
+    private static let reviewSnoozeDays = [3, 5, 8, 13]
+    private static let reviewRepeatDays = 21
+
     // MARK: - Properties
 
     @Published private(set) var state: LoadingState<Void> = .loading
@@ -92,9 +99,6 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var moveFeedbackTrigger = 0
     @Published private(set) var recentWeights: [BodyWeightDomain] = []
     @Published private(set) var laterWeights: [BodyWeightDomain] = []
-    private var shownWeightsKey: String?
-    private var settingsChangeCount = 0
-    private var goalsChangeCount = 0
     @Published private(set) var appSettings = AppSettingsDomain.defaults
     @Published private(set) var hasLoadedSettings = false
     @Published private(set) var goalHistory = DailyGoalHistory.empty
@@ -117,6 +121,9 @@ final class DashboardViewModel: ObservableObject {
     private var weightPickerDay: Date?
     private var foodPendingDeletion: FoodConsumedDomain?
     private var dayChangeObserver: NSObjectProtocol?
+    private var shownWeightsKey: String?
+    private var settingsChangeCount = 0
+    private var goalsChangeCount = 0
 
     private let fetchMealTypes: any FetchMealTypesUseCaseProtocol
     private let fetchFoodsConsumedForMonth: any FetchFoodsConsumedForMonthUseCaseProtocol
@@ -180,7 +187,7 @@ final class DashboardViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Functions
+    // MARK: - Computed Properties
 
     var dailyMacros: DailyMacros { DailyMacros(foods: foodsConsumed) }
 
@@ -238,6 +245,46 @@ final class DashboardViewModel: ObservableObject {
 
         return result
     }
+
+    private var isAnyPresentationActive: Bool {
+        showSettings
+            || showAddFoodSheet
+            || showCalendarSheet
+            || showAccountSheet
+            || alertItem != nil
+            || isDeleteConfirmationVisible
+            || copyPopoverIndex != nil
+            || macroPopoverIndex != nil
+            || isWeightPopoverVisible
+            || isWeightHistoryPushed
+    }
+
+    private var isReviewCardDue: Bool {
+        guard
+            !reviewPromptStore.isCompleted,
+            reviewPromptStore.loggingDays.count >= Self.reviewLoggingDaysRequired,
+            !isSignInSpotlightVisible,
+            !showAddFoodSheet,
+            !foodsConsumed.isEmpty
+        else { return false }
+        let currentDate = now()
+        if
+            let spotlightShownAt = signInSpotlightStore.lastShownAt,
+            BodyWeightDayKey.make(from: spotlightShownAt) == BodyWeightDayKey.make(from: currentDate)
+        {
+            return false
+        }
+        let dismissCount = reviewPromptStore.dismissCount
+        guard dismissCount > 0 else { return true }
+        guard let lastDismissedAt = reviewPromptStore.lastDismissedAt else { return true }
+        let snoozeDays = Self.reviewSnoozeDays.indices.contains(dismissCount - 1)
+            ? Self.reviewSnoozeDays[dismissCount - 1]
+            : Self.reviewRepeatDays
+        let interval = TimeInterval(snoozeDays * 24 * 60 * 60)
+        return currentDate.timeIntervalSince(lastDismissedAt) >= interval
+    }
+
+    // MARK: - Functions
 
     @MainActor
     func onAppear() async {
@@ -655,21 +702,6 @@ final class DashboardViewModel: ObservableObject {
         laterWeights = window.later
     }
 
-    private static let signInSpotlightInterval: TimeInterval = 7 * 24 * 60 * 60
-
-    private var isAnyPresentationActive: Bool {
-        showSettings
-            || showAddFoodSheet
-            || showCalendarSheet
-            || showAccountSheet
-            || alertItem != nil
-            || isDeleteConfirmationVisible
-            || copyPopoverIndex != nil
-            || macroPopoverIndex != nil
-            || isWeightPopoverVisible
-            || isWeightHistoryPushed
-    }
-
     private func showSignInSpotlightIfNeeded() {
         guard
             authProvider.isAnonymous,
@@ -685,10 +717,6 @@ final class DashboardViewModel: ObservableObject {
         isSignInSpotlightVisible = true
     }
 
-    private static let reviewLoggingDaysRequired = 3
-    private static let reviewSnoozeDays = [3, 5, 8, 13]
-    private static let reviewRepeatDays = 21
-
     private func recordLoggingDay() {
         guard reviewPromptStore.loggingDays.count < Self.reviewLoggingDaysRequired else { return }
         reviewPromptStore.loggingDays.insert(BodyWeightDayKey.make(from: now()))
@@ -699,31 +727,6 @@ final class DashboardViewModel: ObservableObject {
         if isReviewCardVisible != isVisible {
             isReviewCardVisible = isVisible
         }
-    }
-
-    private var isReviewCardDue: Bool {
-        guard
-            !reviewPromptStore.isCompleted,
-            reviewPromptStore.loggingDays.count >= Self.reviewLoggingDaysRequired,
-            !isSignInSpotlightVisible,
-            !showAddFoodSheet,
-            !foodsConsumed.isEmpty
-        else { return false }
-        let currentDate = now()
-        if
-            let spotlightShownAt = signInSpotlightStore.lastShownAt,
-            BodyWeightDayKey.make(from: spotlightShownAt) == BodyWeightDayKey.make(from: currentDate)
-        {
-            return false
-        }
-        let dismissCount = reviewPromptStore.dismissCount
-        guard dismissCount > 0 else { return true }
-        guard let lastDismissedAt = reviewPromptStore.lastDismissedAt else { return true }
-        let snoozeDays = Self.reviewSnoozeDays.indices.contains(dismissCount - 1)
-            ? Self.reviewSnoozeDays[dismissCount - 1]
-            : Self.reviewRepeatDays
-        let interval = TimeInterval(snoozeDays * 24 * 60 * 60)
-        return currentDate.timeIntervalSince(lastDismissedAt) >= interval
     }
 
     private func hideReviewCardIfNotDue() {
