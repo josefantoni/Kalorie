@@ -14,6 +14,8 @@ import antoni.kalorie.core.usecases.SaveAppSettingsUseCaseProtocol
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCaseFake
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCaseProtocol
 import antoni.kalorie.core.utils.minutesSinceMidnight
+import antoni.kalorie.features.dashboard.ReviewPromptStoreFake
+import antoni.kalorie.features.dashboard.ReviewPromptStoreProtocol
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -327,6 +329,16 @@ class SettingsViewModelTest {
         assertEquals(0, notifyCount)
     }
 
+    @Test
+    fun onRateTapped_marksTheReviewPromptCompleted() {
+        val store = ReviewPromptStoreFake()
+        val sut = makeSUT(reviewPromptStore = store)
+
+        sut.onRateTapped()
+
+        assertTrue("rating from settings must stop the dashboard card from asking again", store.isCompleted)
+    }
+
     // MARK: - Helpers
 
     private fun makeSUT(
@@ -335,6 +347,7 @@ class SettingsViewModelTest {
         deleteMealType: DeleteMealTypeUseCaseProtocol = DeleteMealTypeUseCaseFake(),
         updateMealTypeTimes: UpdateMealTypeTimesUseCaseProtocol = UpdateMealTypeTimesUseCaseFake(),
         fetchMaintainerClaim: FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake(),
+        reviewPromptStore: ReviewPromptStoreProtocol = ReviewPromptStoreFake(),
         appSettings: AppSettingsDomain = AppSettingsDomain.defaults,
         hasLoadedAppSettings: Boolean = true,
         saveAppSettings: SaveAppSettingsUseCaseProtocol = SaveAppSettingsUseCaseFake(),
@@ -348,6 +361,7 @@ class SettingsViewModelTest {
         deleteMealType = deleteMealType,
         updateMealTypeTimes = updateMealTypeTimes,
         fetchMaintainerClaim = fetchMaintainerClaim,
+        reviewPromptStore = reviewPromptStore,
         hasLoadedAppSettings = hasLoadedAppSettings,
     )
 

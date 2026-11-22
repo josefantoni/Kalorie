@@ -1140,6 +1140,7 @@ class DashboardViewModelTest {
         assignFoodMealType: AssignFoodMealTypeUseCaseProtocol = AssignFoodMealTypeUseCaseFake(),
         authProvider: AuthProviderProtocol = AuthProviderFake(),
         signInSpotlightStore: SignInSpotlightStoreProtocol = SignInSpotlightStoreFake(),
+        reviewPromptStore: ReviewPromptStoreProtocol = ReviewPromptStoreFake(),
         now: Instant = Instant.now(),
     ): DashboardViewModel = DashboardViewModel(
         fetchMealTypes = fetchMealTypes,
@@ -1156,6 +1157,7 @@ class DashboardViewModelTest {
         saveBodyWeight = SaveBodyWeightUseCaseFake(),
         authProvider = authProvider,
         signInSpotlightStore = signInSpotlightStore,
+        reviewPromptStore = reviewPromptStore,
         now = { now },
     )
 

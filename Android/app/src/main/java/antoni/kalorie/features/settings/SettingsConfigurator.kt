@@ -1,6 +1,7 @@
 package antoni.kalorie.features.settings
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import antoni.kalorie.core.auth.AuthProviderProtocol
 import antoni.kalorie.core.models.AppSettingsDomain
@@ -13,6 +14,7 @@ import antoni.kalorie.core.usecases.MaintainerClaimCache
 import antoni.kalorie.core.usecases.SaveAppSettingsUseCase
 import antoni.kalorie.core.usecases.UpdateMealTypeTimesUseCase
 import antoni.kalorie.core.utils.rememberDialogViewModelStoreOwner
+import antoni.kalorie.features.dashboard.ReviewPromptStore
 import antoni.kalorie.features.moderation.ModerationConfigurator
 
 class SettingsConfigurator(
@@ -36,6 +38,7 @@ class SettingsConfigurator(
         onMealTypesChanged: () -> Unit = {},
         onAppSettingsChanged: (AppSettingsDomain) -> Unit = {},
     ) {
+        val reviewPromptStore = ReviewPromptStore(LocalContext.current.applicationContext)
         val viewModel = viewModel(viewModelStoreOwner = rememberDialogViewModelStoreOwner()) {
             SettingsViewModel(
                 mealTypes = mealTypes,
@@ -47,6 +50,7 @@ class SettingsConfigurator(
                 deleteMealType = DeleteMealTypeUseCase(dataProvider, authProvider),
                 updateMealTypeTimes = UpdateMealTypeTimesUseCase(dataProvider, authProvider),
                 fetchMaintainerClaim = FetchMaintainerClaimUseCase(authProvider, maintainerClaimCache, forcesRefresh = true),
+                reviewPromptStore = reviewPromptStore,
                 hasLoadedAppSettings = hasLoadedAppSettings,
             )
         }

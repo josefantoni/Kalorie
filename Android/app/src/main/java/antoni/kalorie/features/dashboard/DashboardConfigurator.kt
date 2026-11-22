@@ -51,6 +51,7 @@ class DashboardConfigurator(private val maintainerClaimCache: MaintainerClaimCac
         val context = LocalContext.current.applicationContext
         val stringProvider = remember { ContextStringProvider(context) }
         val signInSpotlightStore = remember { SignInSpotlightStore(context) }
+        val reviewPromptStore = remember { ReviewPromptStore(context) }
         val viewModel = viewModel(key = "$userId/$languageTag") {
             DashboardViewModel(
                 fetchMealTypes = FetchMealTypesUseCase(dataProvider, authProvider, stringProvider),
@@ -67,6 +68,7 @@ class DashboardConfigurator(private val maintainerClaimCache: MaintainerClaimCac
                 saveBodyWeight = SaveBodyWeightUseCase(dataProvider, authProvider),
                 authProvider = authProvider,
                 signInSpotlightStore = signInSpotlightStore,
+                reviewPromptStore = reviewPromptStore,
             )
         }
         val router = remember(dataProvider, authProvider, mergeStatusReporting, userId) {

@@ -18,6 +18,7 @@ import antoni.kalorie.core.utils.Log
 import antoni.kalorie.core.utils.minutesSinceMidnight
 import antoni.kalorie.core.utils.withAddedMinutes
 import antoni.kalorie.core.utils.zoned
+import antoni.kalorie.features.dashboard.ReviewPromptStoreProtocol
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +38,7 @@ class SettingsViewModel(
     private val deleteMealType: DeleteMealTypeUseCaseProtocol,
     private val updateMealTypeTimes: UpdateMealTypeTimesUseCaseProtocol,
     private val fetchMaintainerClaim: FetchMaintainerClaimUseCaseProtocol,
+    private val reviewPromptStore: ReviewPromptStoreProtocol,
     val hasLoadedAppSettings: Boolean = true,
 ) : ViewModel() {
 
@@ -62,6 +64,10 @@ class SettingsViewModel(
     private val saveMutex = Mutex()
 
     // MARK: - Functions
+
+    fun onRateTapped() {
+        reviewPromptStore.isCompleted = true
+    }
 
     suspend fun onAppear() {
         try {

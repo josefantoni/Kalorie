@@ -14,5 +14,5 @@ import androidx.compose.ui.unit.dp
 fun tintedSurfaceColor(): Color = if (isSystemInDarkTheme()) {
     MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
 } else {
-    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f).compositeOver(Color.White)
+    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f).compositeOver(Color.White)
 }

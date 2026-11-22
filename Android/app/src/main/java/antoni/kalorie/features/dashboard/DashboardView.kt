@@ -100,6 +100,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
@@ -127,6 +128,7 @@ import antoni.kalorie.components.RevealingSwipeToDeleteRow
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.core.models.FoodConsumedDomain
+import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
 import antoni.kalorie.core.utils.isSameDay
 import kotlinx.coroutines.Job
@@ -173,6 +175,8 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
     val scope = rememberCoroutineScope()
     val macroPopoverIndex by viewModel.macroPopoverIndex.collectAsState()
     val isSignInSpotlightVisible by viewModel.isSignInSpotlightVisible.collectAsState()
+    val isReviewCardVisible by viewModel.isReviewCardVisible.collectAsState()
+    val uriHandler = LocalUriHandler.current
     var accountIconBounds by remember { mutableStateOf(Rect.Zero) }
     var isRefreshing by remember { mutableStateOf(false) }
     val fabInteractionSource = remember { MutableInteractionSource() }
@@ -362,6 +366,18 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                         WeightAccessoryView(viewModel = viewModel)
                                     }
                                 }
+                                if (isReviewCardVisible) {
+                                    item(key = REVIEW_PROMPT_ITEM_KEY) {
+                                        ReviewPromptCard(
+                                            onRate = {
+                                                viewModel.onReviewRateTapped()
+                                                uriHandler.openUri(Constants.Store.PLAY_STORE_URL)
+                                            },
+                                            onNotNow = viewModel::onReviewNotNowTapped,
+                                            modifier = Modifier.animateItem(),
+                                        )
+                                    }
+                                }
                             }
                             groupedFoods.forEachIndexed { index, group ->
                                 val sectionKey = group.mealType?.id ?: UNASSIGNED_SECTION_KEY
@@ -527,7 +543,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                 viewModel.onAddFoodSheetDismissed()
                 scope.launch { notificationBell.onDotRefreshNeeded() }
             },
-            onFoodSaved = { scope.launch { viewModel.onFoodConsumedUpdated() } },
+            onFoodSaved = { scope.launch { viewModel.onFoodAdded() } },
         )
     }
 
@@ -550,7 +566,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
             appSettings = appSettings,
             hasLoadedAppSettings = hasLoadedSettings,
             onDismiss = {
-                viewModel.showSettings.value = false
+                viewModel.onSettingsDismissed()
                 scope.launch { notificationBell.onSheetDismissed() }
             },
             onMealTypesChanged = { scope.launch { viewModel.onMealTypesChanged() } },
@@ -682,6 +698,7 @@ private val FAB_CLEARANCE = 88.dp
 private val AUTOSCROLL_EDGE = 72.dp
 private const val AUTOSCROLL_STEP_PX = 12f
 private const val UNASSIGNED_SECTION_KEY = "unassigned"
+private const val REVIEW_PROMPT_ITEM_KEY = "reviewPrompt"
 private const val DRAGGED_FOOD_LABEL = "dragged-food-consumed"
 
 private fun Modifier.closeSwipeRowOnTapOutside(onClose: () -> Unit): Modifier = composed {
