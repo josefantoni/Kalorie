@@ -977,6 +977,7 @@ final class DashboardViewModelTests: XCTestCase {
         saveBodyWeight: any SaveBodyWeightUseCaseProtocol = SaveBodyWeightUseCaseFake(),
         authProvider: any AuthProviderProtocol = AuthProviderFake(),
         signInSpotlightStore: any SignInSpotlightStoreProtocol = SignInSpotlightStoreFake(),
+        reviewPromptStore: any ReviewPromptStoreProtocol = ReviewPromptStoreFake(),
         now: @escaping () -> Date = { Date.now }
     ) -> DashboardViewModel {
         let sut = DashboardViewModel(
@@ -994,6 +995,7 @@ final class DashboardViewModelTests: XCTestCase {
             saveBodyWeight: saveBodyWeight,
             authProvider: authProvider,
             signInSpotlightStore: signInSpotlightStore,
+            reviewPromptStore: reviewPromptStore,
             now: now
         )
         addTeardownBlock { [weak sut] in

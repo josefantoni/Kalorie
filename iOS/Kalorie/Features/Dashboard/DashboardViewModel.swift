@@ -70,7 +70,9 @@ final class DashboardViewModel: ObservableObject {
 
     @Published private(set) var state: LoadingState<Void> = .loading
     @Published var mealTypes: [MealTypeDomain] = []
-    @Published var foodsConsumed: [FoodConsumedDomain] = []
+    @Published var foodsConsumed: [FoodConsumedDomain] = [] {
+        didSet { hideReviewCardIfNotDue() }
+    }
     @Published var selectedDay = Date.now
     @Published var showSettings = false
     @Published var showAddFoodSheet = false
@@ -81,6 +83,7 @@ final class DashboardViewModel: ObservableObject {
     @Published var copyPopoverIndex: Int?
     @Published var macroPopoverIndex: Int?
     @Published private(set) var isSignInSpotlightVisible = false
+    @Published private(set) var isReviewCardVisible = false
     @Published var copyTargetDay = Date.now
     @Published var copyTargetMealTypeId: String?
     @Published private(set) var isCopying = false
@@ -129,6 +132,7 @@ final class DashboardViewModel: ObservableObject {
     private let saveBodyWeight: any SaveBodyWeightUseCaseProtocol
     private let authProvider: any AuthProviderProtocol
     private let signInSpotlightStore: any SignInSpotlightStoreProtocol
+    private let reviewPromptStore: any ReviewPromptStoreProtocol
     private let now: () -> Date
 
     // MARK: - Init
@@ -148,10 +152,12 @@ final class DashboardViewModel: ObservableObject {
         saveBodyWeight: any SaveBodyWeightUseCaseProtocol,
         authProvider: any AuthProviderProtocol,
         signInSpotlightStore: any SignInSpotlightStoreProtocol,
+        reviewPromptStore: any ReviewPromptStoreProtocol,
         now: @escaping () -> Date = { Date.now }
     ) {
         self.authProvider = authProvider
         self.signInSpotlightStore = signInSpotlightStore
+        self.reviewPromptStore = reviewPromptStore
         self.now = now
         self.fetchMealTypes = fetchMealTypes
         self.fetchFoodsConsumedForMonth = fetchFoodsConsumedForMonth
@@ -250,6 +256,7 @@ final class DashboardViewModel: ObservableObject {
             await weights
             state = .loaded
             showSignInSpotlightIfNeeded()
+            updateReviewCardVisibility()
         } catch {
             await settings
             await weights
@@ -276,6 +283,7 @@ final class DashboardViewModel: ObservableObject {
             await settings
             await weights
             showSignInSpotlightIfNeeded()
+            updateReviewCardVisibility()
         } catch {
             await settings
             await weights
@@ -297,6 +305,7 @@ final class DashboardViewModel: ObservableObject {
             await settings
             await weights
             showSignInSpotlightIfNeeded()
+            updateReviewCardVisibility()
         } catch {
             await settings
             await weights
@@ -315,19 +324,44 @@ final class DashboardViewModel: ObservableObject {
     }
 
     @MainActor
+    func onFoodAdded() async {
+        recordLoggingDay()
+        await onFoodConsumedUpdated()
+    }
+
+    func onReviewRateTapped() {
+        guard isReviewCardVisible else { return }
+        reviewPromptStore.isCompleted = true
+        updateReviewCardVisibility()
+    }
+
+    func onReviewNotNowTapped() {
+        guard isReviewCardVisible else { return }
+        reviewPromptStore.dismissCount += 1
+        reviewPromptStore.lastDismissedAt = now()
+        updateReviewCardVisibility()
+    }
+
+    @MainActor
     func onFoodConsumedUpdated() async {
         do {
             try await reloadDay(selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
             showSignInSpotlightIfNeeded()
+            updateReviewCardVisibility()
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = unknownErrorAlertItem(for: error)
         }
     }
 
+    func onSettingsDismissed() {
+        updateReviewCardVisibility()
+    }
+
     func onAddFoodSheetDismissed() {
         showSignInSpotlightIfNeeded()
+        updateReviewCardVisibility()
     }
 
     func onDeleteRequested(_ food: FoodConsumedDomain) {
@@ -343,6 +377,7 @@ final class DashboardViewModel: ObservableObject {
             try await deleteFoodConsumed(id: food.id)
             try await reloadDay(selectedDay)
             foodsConsumed = foodsFromCache(for: selectedDay)
+            updateReviewCardVisibility()
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
             alertItem = AlertItem(title: L10n.Dashboard.errorDeleteFailed)
@@ -650,6 +685,53 @@ final class DashboardViewModel: ObservableObject {
         isSignInSpotlightVisible = true
     }
 
+    private static let reviewLoggingDaysRequired = 3
+    private static let reviewSnoozeDays = [3, 5, 8, 13]
+    private static let reviewRepeatDays = 21
+
+    private func recordLoggingDay() {
+        guard reviewPromptStore.loggingDays.count < Self.reviewLoggingDaysRequired else { return }
+        reviewPromptStore.loggingDays.insert(BodyWeightDayKey.make(from: now()))
+    }
+
+    private func updateReviewCardVisibility() {
+        let isVisible = isReviewCardDue
+        if isReviewCardVisible != isVisible {
+            isReviewCardVisible = isVisible
+        }
+    }
+
+    private var isReviewCardDue: Bool {
+        guard
+            !reviewPromptStore.isCompleted,
+            reviewPromptStore.loggingDays.count >= Self.reviewLoggingDaysRequired,
+            !isSignInSpotlightVisible,
+            !showAddFoodSheet,
+            !foodsConsumed.isEmpty
+        else { return false }
+        let currentDate = now()
+        if
+            let spotlightShownAt = signInSpotlightStore.lastShownAt,
+            BodyWeightDayKey.make(from: spotlightShownAt) == BodyWeightDayKey.make(from: currentDate)
+        {
+            return false
+        }
+        let dismissCount = reviewPromptStore.dismissCount
+        guard dismissCount > 0 else { return true }
+        guard let lastDismissedAt = reviewPromptStore.lastDismissedAt else { return true }
+        let snoozeDays = Self.reviewSnoozeDays.indices.contains(dismissCount - 1)
+            ? Self.reviewSnoozeDays[dismissCount - 1]
+            : Self.reviewRepeatDays
+        let interval = TimeInterval(snoozeDays * 24 * 60 * 60)
+        return currentDate.timeIntervalSince(lastDismissedAt) >= interval
+    }
+
+    private func hideReviewCardIfNotDue() {
+        if isReviewCardVisible && !isReviewCardDue {
+            isReviewCardVisible = false
+        }
+    }
+
     private func unknownErrorAlertItem(for error: Error) -> AlertItem {
         if error.isFirestoreUnreachable {
             AlertItem(title: L10n.Common.errorOffline, message: L10n.Common.errorOfflineMessage)
@@ -665,6 +747,7 @@ final class DashboardViewModel: ObservableObject {
             try await reloadDay(copyTargetDay)
             if Calendar.current.isDate(copyTargetDay, inSameDayAs: selectedDay) {
                 foodsConsumed = foodsFromCache(for: selectedDay)
+                updateReviewCardVisibility()
             }
         } catch {
             Log.error(error, category: Constants.LogCategory.dashboard)
@@ -705,11 +788,13 @@ final class DashboardViewModel: ObservableObject {
         let key = monthCacheKey(for: date)
         if cachedMonthKeys.contains(key) {
             foodsConsumed = foodsFromCache(for: date)
+            updateReviewCardVisibility()
             showActiveDays(for: date)
         } else {
             do {
                 try await loadMonth(for: date)
                 foodsConsumed = foodsFromCache(for: date)
+                updateReviewCardVisibility()
                 showActiveDays(for: date)
             } catch {
                 Log.error(error, category: Constants.LogCategory.dashboard)
@@ -770,6 +855,7 @@ final class DashboardViewModel: ObservableObject {
         monthCache[key]?[index] = food
         if dayCacheKey(for: selectedDay) == key {
             foodsConsumed = foodsFromCache(for: selectedDay)
+            updateReviewCardVisibility()
         }
     }
 

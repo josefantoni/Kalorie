@@ -321,7 +321,8 @@ final class DashboardViewModelBodyWeightTests: XCTestCase {
             fetchDailyGoals: fetchDailyGoals,
             saveBodyWeight: saveBodyWeight,
             authProvider: AuthProviderFake(),
-            signInSpotlightStore: SignInSpotlightStoreFake()
+            signInSpotlightStore: SignInSpotlightStoreFake(),
+            reviewPromptStore: ReviewPromptStoreFake()
         )
         addTeardownBlock { [weak sut] in
             XCTAssertNil(sut, "DashboardViewModel leaked — potential retain cycle")

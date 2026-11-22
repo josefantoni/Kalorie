@@ -43,6 +43,7 @@ final class SettingsViewModel: ObservableObject {
     private let deleteMealType: any DeleteMealTypeUseCaseProtocol
     private let updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol
     private let fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol
+    private let reviewPromptStore: any ReviewPromptStoreProtocol
 
     // MARK: - Init
 
@@ -56,6 +57,7 @@ final class SettingsViewModel: ObservableObject {
         deleteMealType: any DeleteMealTypeUseCaseProtocol,
         updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol,
         fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol,
+        reviewPromptStore: any ReviewPromptStoreProtocol,
         hasLoadedAppSettings: Bool = true
     ) {
         self.mealTypes = mealTypes
@@ -69,9 +71,14 @@ final class SettingsViewModel: ObservableObject {
         self.deleteMealType = deleteMealType
         self.updateMealTypeTimes = updateMealTypeTimes
         self.fetchMaintainerClaim = fetchMaintainerClaim
+        self.reviewPromptStore = reviewPromptStore
     }
 
     // MARK: - Functions
+
+    func onRateTapped() {
+        reviewPromptStore.isCompleted = true
+    }
 
     @MainActor
     func onAppear() async {

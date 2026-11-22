@@ -29,7 +29,9 @@ struct DashboardView: View {
     @State private var isAddFoodAnimationPlaying = false
     @State private var isAddFoodPulsed = false
     @State private var isDashboardVisible = false
+    @State private var isReviewCardShown = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let router: DashboardRouter
 
@@ -61,6 +63,17 @@ struct DashboardView: View {
                             weightAccessory
                         } leadingAccessory: {
                             goalAccessory
+                        }
+
+                        if isReviewCardShown {
+                            ReviewPromptCard(
+                                onRate: {
+                                    viewModel.onReviewRateTapped()
+                                    openReviewPage()
+                                },
+                                onDismiss: { viewModel.onReviewNotNowTapped() }
+                            )
+                            .transition(.opacity)
                         }
                     }
 
@@ -169,6 +182,7 @@ struct DashboardView: View {
                     .dynamicTypeLimit()
             }
             .sheet(isPresented: $viewModel.showSettings) {
+                viewModel.onSettingsDismissed()
                 Task { await notificationBell.onSheetDismissed() }
             } content: {
                 router.makeSettingsView(
@@ -185,7 +199,7 @@ struct DashboardView: View {
                 Task { await notificationBell.onDotRefreshNeeded() }
             } content: {
                 router.makeAddFoodSheetView(for: viewModel.selectedDay, mealTypes: viewModel.mealTypes) {
-                    Task { await viewModel.onFoodConsumedUpdated() }
+                    Task { await viewModel.onFoodAdded() }
                 }
                 .dynamicTypeLimit()
             }
@@ -226,6 +240,9 @@ struct DashboardView: View {
                 Task { await notificationBell.onAppear() }
             }
             .onDisappear { isDashboardVisible = false }
+            .onChange(of: viewModel.isReviewCardVisible, initial: true) { _, isVisible in
+                withAnimation(reviewCardAnimation) { isReviewCardShown = isVisible }
+            }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     Task { await viewModel.onForeground() }
@@ -247,6 +264,15 @@ struct DashboardView: View {
     }
 
     // MARK: - Functions
+
+    private var reviewCardAnimation: Animation? {
+        reduceMotion ? nil : .easeInOut(duration: 0.25)
+    }
+
+    private func openReviewPage() {
+        guard let url = Constants.Store.appStoreWriteReviewURL else { return }
+        openURL(url)
+    }
 
     @ViewBuilder
     private func mealSection(index: Int, group: (mealType: MealTypeDomain?, foods: [FoodConsumedDomain])) -> some View {
@@ -709,7 +735,8 @@ struct DashboardView: View {
         fetchDailyGoals: FetchDailyGoalsUseCaseFake(),
         saveBodyWeight: SaveBodyWeightUseCaseFake(),
         authProvider: AuthProviderFake(),
-        signInSpotlightStore: SignInSpotlightStoreFake()
+        signInSpotlightStore: SignInSpotlightStoreFake(),
+        reviewPromptStore: ReviewPromptStoreFake()
     )
 
     let dataProvider = FirestoreDataProvider()

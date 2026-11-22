@@ -167,6 +167,14 @@ final class SettingsViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onRateTapped_marksTheReviewPromptCompleted() {
+        let store = ReviewPromptStoreFake()
+        let sut = makeSUT(reviewPromptStore: store)
+        sut.onRateTapped()
+        XCTAssertTrue(store.isCompleted, "rating from settings must stop the dashboard card from asking again")
+    }
+
+    @MainActor
     func test_feedbackURL_addressesSupportMailboxWithFeedbackSubject() throws {
         let sut = makeSUT()
 
@@ -278,6 +286,7 @@ final class SettingsViewModelTests: XCTestCase {
         deleteMealType: any DeleteMealTypeUseCaseProtocol = DeleteMealTypeUseCaseFake(),
         updateMealTypeTimes: any UpdateMealTypeTimesUseCaseProtocol = UpdateMealTypeTimesUseCaseFake(),
         fetchMaintainerClaim: any FetchMaintainerClaimUseCaseProtocol = FetchMaintainerClaimUseCaseFake(),
+        reviewPromptStore: any ReviewPromptStoreProtocol = ReviewPromptStoreFake(),
         appSettings: AppSettingsDomain = .defaults,
         hasLoadedAppSettings: Bool = true,
         saveAppSettings: any SaveAppSettingsUseCaseProtocol = SaveAppSettingsUseCaseFake(),
@@ -292,6 +301,7 @@ final class SettingsViewModelTests: XCTestCase {
             deleteMealType: deleteMealType,
             updateMealTypeTimes: updateMealTypeTimes,
             fetchMaintainerClaim: fetchMaintainerClaim,
+            reviewPromptStore: reviewPromptStore,
             hasLoadedAppSettings: hasLoadedAppSettings
         )
     }

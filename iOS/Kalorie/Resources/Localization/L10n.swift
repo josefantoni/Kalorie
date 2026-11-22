@@ -92,6 +92,12 @@ enum L10n {
         static var signInSpotlightTitle: String { String(localized: "dashboard_signInSpotlight_title") }
         static var signInSpotlightMessage: String { String(localized: "dashboard_signInSpotlight_message") }
         static var signInSpotlightActionSignIn: String { String(localized: "dashboard_signInSpotlight_actionSignIn") }
+        static var reviewPromptTitle: String { String(localized: "reviewPrompt_title") }
+        static var reviewPromptBody: String {
+            String(format: String(localized: "reviewPrompt_body"), String(localized: "reviewPrompt_storeName_appStore"))
+        }
+        static var reviewPromptActionRate: String { String(localized: "reviewPrompt_actionRate") }
+        static var reviewPromptActionNotNow: String { String(localized: "reviewPrompt_actionNotNow") }
         static var emptyTitle: String { String(localized: "dashboard_empty_title") }
         static var emptyDescription: String { String(localized: "dashboard_empty_description") }
         static var emptyTitlePast: String { String(localized: "dashboard_empty_title_past") }
@@ -470,6 +476,7 @@ enum L10n {
         static var buttonEdit: String { String(localized: "settings_button_edit") }
         static var buttonEditDone: String { String(localized: "settings_button_editDone") }
         static var buttonFeedback: String { String(localized: "settings_button_feedback") }
+        static var buttonRate: String { String(localized: "settings_button_rate") }
         static var buttonSupport: String { String(localized: "settings_button_support") }
         static var supportSubtitle: String { String(localized: "settings_support_subtitle") }
         static var feedbackNoMailTitle: String { String(localized: "settings_feedback_noMail_title") }
