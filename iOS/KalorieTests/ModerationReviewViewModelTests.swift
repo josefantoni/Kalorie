@@ -180,6 +180,17 @@ final class ModerationReviewViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onAppear_searchesByTheNameInTheSubmissionsOwnLanguage() async {
+        let searchFoodItems = SearchFoodItemsUseCaseSpy()
+        let submission = makeSubmission(barcode: nil, czName: "", skName: "Zemiaky", engName: "", nameLanguage: "sk")
+        let sut = makeSUT(submission: submission, searchFoodItems: searchFoodItems)
+
+        await sut.onAppear()
+
+        XCTAssertEqual(searchFoodItems.receivedQuery, "Zemiaky", "a Slovak submission has no Czech name; searching it would query an empty string and let a duplicate through")
+    }
+
+    @MainActor
     func test_onAppear_whenSearchFails_marksSectionUnavailableButDoesNotBlockApproval() async {
         let searchFoodItems = SearchFoodItemsUseCaseSpy(shouldThrow: true)
         let approveSubmission = ApproveSubmissionUseCaseSpy()
@@ -238,6 +249,8 @@ final class ModerationReviewViewModelTests: XCTestCase {
         id: String = "sub-1",
         barcode: String? = "12345678",
         date: Date = .now,
+        czName: String = "Tvaroh",
+        skName: String = "Tvaroh",
         engName: String = "Cottage cheese",
         nameLanguage: String = "cs"
     ) -> FoodItemSubmissionDomain {
@@ -252,8 +265,8 @@ final class ModerationReviewViewModelTests: XCTestCase {
             item: FoodItemDomain(
                 id: barcode ?? "9A5E1B2C-8D3F-4A6E-9C1D-7B2A4E5F6C8D",
                 kind: .catalogue,
-                czName: "Tvaroh",
-                skName: "Tvaroh",
+                czName: czName,
+                skName: skName,
                 engName: engName,
                 weight: 200,
                 date: date,

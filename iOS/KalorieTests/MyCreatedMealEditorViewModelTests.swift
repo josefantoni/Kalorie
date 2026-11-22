@@ -333,6 +333,18 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_onAppear_whenOnlySlovakNameWasCorrected_updatesIngredientAndMarksMealAsChanged() async {
+        let sut = makeSUT(
+            fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(stubbedItems: [makeFoodItem(skName: "Ovsené vločky")]),
+            existingMeal: makeExistingMeal()
+        )
+        XCTAssertFalse(sut.hasChanges)
+        await sut.onAppear()
+        XCTAssertEqual(sut.ingredients.first?.item.skName, "Ovsené vločky")
+        XCTAssertTrue(sut.hasChanges)
+    }
+
+    @MainActor
     func test_onAppear_keepsTheEnteredGrams() async {
         let sut = makeSUT(
             fetchFoodItemsByIds: FetchFoodItemsByIdsUseCaseFake(stubbedItems: [makeFoodItem(calories: 140)]),
@@ -422,12 +434,12 @@ final class MyCreatedMealEditorViewModelTests: XCTestCase {
         return sut
     }
 
-    private func makeFoodItem(id: String = "12345", calories: Double = 155) -> FoodItemDomain {
+    private func makeFoodItem(id: String = "12345", skName: String = "Ovesné vločky", calories: Double = 155) -> FoodItemDomain {
         FoodItemDomain(
             id: id,
             kind: .catalogue,
             czName: "Ovesné vločky",
-            skName: "Ovesné vločky",
+            skName: skName,
             engName: "Oats",
             weight: 100,
             date: .now,
