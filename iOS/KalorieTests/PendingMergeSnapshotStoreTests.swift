@@ -92,6 +92,7 @@ final class PendingMergeSnapshotStoreTests: XCTestCase {
             .appendingPathComponent(Constants.Auth.pendingMergeSnapshotFileName)
         let stripped = try String(contentsOf: fileURL, encoding: .utf8)
             .replacingOccurrences(of: #","sk_name":"[^"]*""#, with: "", options: .regularExpression)
+        XCTAssertFalse(stripped.contains("sk_name"), "the strip must really remove the field, or this test would pass without exercising the fill")
         try stripped.write(to: fileURL, atomically: true, encoding: .utf8)
 
         let loaded = try sut.load()
