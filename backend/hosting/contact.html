@@ -13,6 +13,7 @@
     color-scheme: light;
     --green: #1B7F6B;
     --green-dark: #14594b;
+    --frotaz: url("/img/frotaz-texture.webp") top left / 1200px 1200px no-repeat;
     --cream: #F6F2E8;
     --ink: #1f2a27;
     --phone-w: clamp(132px, min(36vw, 33vh), 300px);
@@ -68,7 +69,7 @@
   main { width: calc(100% - 2rem); max-width: 46rem; margin: 4.5rem auto 2rem; flex: none; }
   main a { color: var(--green-dark); }
   .card { margin-bottom: 1.2rem; padding: clamp(1.4rem, 5vw, 2.4rem); border-radius: 28px; background: #fff; box-shadow: 0 10px 30px rgba(20, 60, 50, .12); }
-  .card.green { background: var(--green); color: #fff; text-align: center; }
+  .card.green { background: var(--green) var(--frotaz); color: #fff; text-align: center; }
   .card h1 { margin: 0 0 .5rem; font-size: clamp(2.2rem, 7vw, 3.4rem); line-height: 1.05; font-weight: 800; letter-spacing: -.02em; }
   .card h2 { margin: 0 0 .4rem; font-size: 1.3rem; font-weight: 800; }
   .card p { margin: 0 0 .9rem; font-size: 1.05rem; }
