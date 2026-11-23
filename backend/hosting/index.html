@@ -3,29 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kalorie</title>
-<meta name="description" content="Jednoduchý kalorický deník pro iPhone i Android.">
+<title>Kalorie – počítání kalorií a maker zdarma</title>
+<meta name="description" content="Počítej kalorie a makra zdarma. Naskenuj nebo zapiš jídlo hned. Žádné předplatné, žádné reklamy.">
 <meta name="color-scheme" content="light">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Kalorie">
 <meta property="og:locale" content="cs_CZ">
 <meta property="og:title" content="Kalorie">
-<meta property="og:description" content="Jednoduchý kalorický deník pro iPhone i Android.">
+<meta property="og:description" content="Počítej kalorie a makra zdarma. Naskenuj nebo zapiš jídlo hned. Žádné předplatné, žádné reklamy.">
 <meta property="og:url" content="https://kalorie-official.web.app/">
 <meta property="og:image" content="https://kalorie-official.web.app/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Kalorie – kalorický deník pro iPhone i Android">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="icon.png">
-<link rel="apple-touch-icon" href="icon.png">
+<link rel="canonical" href="https://kalorie-official.web.app/">
+<link rel="alternate" hreflang="cs" href="https://kalorie-official.web.app/">
+<link rel="alternate" hreflang="sk" href="https://kalorie-official.web.app/sk/">
+<link rel="alternate" hreflang="en" href="https://kalorie-official.web.app/en/">
+<link rel="alternate" hreflang="x-default" href="https://kalorie-official.web.app/">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Kalorie", "description": "Počítej kalorie a makra zdarma. Naskenuj nebo zapiš jídlo hned. Žádné předplatné, žádné reklamy.", "operatingSystem": "iOS, Android", "applicationCategory": "HealthApplication", "inLanguage": ["cs", "sk", "en"], "url": "https://kalorie-official.web.app/", "image": "https://kalorie-official.web.app/icon.png", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "CZK"}, "sameAs": ["https://apps.apple.com/cz/app/kalorie/id6823155404", "https://play.google.com/store/apps/details?id=antoni.kalorie", "https://www.facebook.com/kalorie.official/"]}
+</script>
+<link rel="icon" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
 <style>
-  @font-face { font-family: "Amatic SC"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/amatic-sc-latin-700-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
-  @font-face { font-family: "Amatic SC"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/amatic-sc-latin-ext-700-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+  @font-face { font-family: "Amatic SC"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/amatic-sc-latin-700-normal.woff2") format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+  @font-face { font-family: "Amatic SC"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/amatic-sc-latin-ext-700-normal.woff2") format("woff2"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+  @font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 200 800; font-display: swap; src: url("/fonts/bricolage-grotesque-latin-wght-normal.woff2") format("woff2-variations"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+  @font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 200 800; font-display: swap; src: url("/fonts/bricolage-grotesque-latin-ext-wght-normal.woff2") format("woff2-variations"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
   :root {
     color-scheme: light;
     --green: #1B7F6B;
     --green-dark: #14594b;
+    --frotaz: url("/img/frotaz-texture.webp") top left / 1200px 1200px no-repeat;
     --cream: #F6F2E8;
     --ink: #1f2a27;
     --phone-h: clamp(290px, min(72vw, 64vh), 700px);
@@ -35,9 +46,9 @@
   body {
     margin: 0;
     min-height: 100vh;
-    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font: 16px/1.5 "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     color: var(--ink);
-    background: var(--cream) url("img/bg-tile.webp") 0 0 / 1900px auto repeat;
+    background: var(--cream) url("/img/bg-tile.webp") 0 0 / 1900px auto repeat;
     display: flex;
     flex-direction: column;
   }
@@ -78,14 +89,73 @@
   .panel button[aria-checked="true"] { background: #e6e6e6; font-weight: 700; }
   #menu-panel { min-width: 16rem; }
 
-  main { flex: 1; width: 100%; max-width: 62rem; margin: 0 auto; padding: 4.5rem 1rem 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  main { flex: 1; width: 100%; max-width: 62rem; margin: 0 auto; padding: 4.5rem 1rem 2rem; display: flex; flex-direction: column; align-items: center; }
+
+  .hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.1rem; width: 100%; margin-bottom: 2.2rem; padding: clamp(1.6rem, 5vw, 3rem); border-radius: 28px; background: var(--green) var(--frotaz); color: #fff; box-shadow: 0 10px 30px rgba(20, 60, 50, .12); }
+  .hero { position: relative; }
+  .hero .sticker { position: absolute; top: -16px; right: -12px; z-index: 1; color: var(--ink); rotate: 6deg; }
+  @media (max-width: 640px) {
+    .hero { padding-top: 4.4rem; }
+    .hero .sticker { right: -6px; padding: .45rem 1rem .5rem; }
+    .hero .sticker strong { font-size: 1.05rem; }
+    .hero .sticker span { font-size: .85rem; }
+  }
+  .sticker { display: inline-block; padding: .55rem 1.3rem .6rem; background: #FCE8A6; border-radius: 22px; rotate: 2deg; box-shadow: 0 4px 0 rgba(20, 89, 75, .18); line-height: 1.15; }
+  .sticker strong { display: block; font-size: 1.35rem; font-weight: 800; }
+  .sticker span { font-size: 1rem; font-weight: 700; }
+  .hero h1 { margin: 0; font-size: clamp(2.2rem, 7vw, 4.2rem); line-height: 1.02; font-weight: 800; letter-spacing: -.03em; }
+  .hero h1 .accent { display: block; color: #FCE8A6; }
+
+  .card { width: 100%; margin-top: 3.5rem; padding: clamp(1.6rem, 5vw, 3rem); border-radius: 28px; background: #fff; box-shadow: 0 10px 30px rgba(20, 60, 50, .12); }
+  .card.green { background: var(--green) var(--frotaz); color: #fff; }
+  .card h2 { margin: 0 0 1.4rem; font-size: clamp(1.6rem, 4.5vw, 2.4rem); line-height: 1.1; font-weight: 800; letter-spacing: -.02em; }
+  .card p { margin: 0 0 1rem; font-size: 1.05rem; }
+  .card p:last-child { margin-bottom: 0; }
+
+  .features { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.6rem 2rem; margin: 0; padding: 0; list-style: none; }
+  .features li { display: flex; gap: 1rem; align-items: flex-start; flex: 0 0 100%; }
+  @media (min-width: 640px) { .features li { flex-basis: calc((100% - 2rem) / 2); } }
+  @media (min-width: 900px) { .features li { flex-basis: calc((100% - 4rem) / 3); } }
+  .features .ico { flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: #fff; color: var(--green); }
+  .features .ico svg { width: 28px; height: 28px; }
+  .features h3 { margin: .15rem 0 .2rem; font-size: 1.3rem; font-weight: 800; }
+  .features p { margin: 0; font-size: 1rem; opacity: .95; }
+
+  .numbers { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.4rem 0; }
+  .numbers div { flex: 1 1 12rem; padding: 1rem 1.2rem; border-radius: 18px; background: var(--cream); }
+  .numbers strong { display: block; font-size: 1.8rem; font-weight: 800; color: var(--green); line-height: 1.1; }
+  .source { font-size: .85rem !important; color: #5b6763; }
+  .source a, .faq a, footer a { color: var(--green-dark); }
+
+  .faq details { border-top: 1px solid rgba(60, 60, 67, .18); padding: .9rem 0; }
+  .faq details:last-child { border-bottom: 1px solid rgba(60, 60, 67, .18); }
+  .faq summary { cursor: pointer; font-size: 1.1rem; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; font-weight: 800; color: var(--green); }
+  .faq details[open] summary::after { content: "–"; }
+  .faq details p { margin: .6rem 0 0; }
 
 
   .stage { display: flex; align-items: stretch; justify-content: center; gap: clamp(.8rem, 4vw, 3rem); width: 100%; }
   .platform { display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 1.1rem; }
-  .separator { align-self: stretch; width: 1px; background: rgba(60, 60, 67, .29); margin: .5rem 0; }
-  @media (min-resolution: 2dppx) { .separator { width: .5px; } }
-  @media (min-resolution: 3dppx) { .separator { width: .333px; } }
+  .separator { align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: .6rem; margin: .5rem 0; }
+  .separator .line { flex: 1; width: 1px; background: rgba(60, 60, 67, .29); }
+  @media (min-resolution: 2dppx) { .separator .line { width: .5px; } }
+  @media (min-resolution: 3dppx) { .separator .line { width: .333px; } }
+
+  .theme-toggle {
+    position: relative; flex: none; width: 32px; height: 64px; padding: 0;
+    border: .5px solid #111; border-radius: 16px; background: #fff; cursor: pointer;
+  }
+  .theme-toggle:hover { background: #f0f0f0; }
+  .theme-toggle:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+  .theme-toggle .thumb { position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--green); transition: transform .2s ease; }
+  .theme-toggle[aria-checked="true"] .thumb { transform: translateY(32px); }
+  .theme-toggle svg { position: absolute; left: 7px; width: 16px; height: 16px; color: #111; transition: color .2s; }
+  .theme-toggle .sun { top: 7px; }
+  .theme-toggle .moon { bottom: 7px; }
+  .theme-toggle[aria-checked="false"] .sun, .theme-toggle[aria-checked="true"] .moon { color: #fff; }
+  @media (prefers-reduced-motion: reduce) { .theme-toggle .thumb, .theme-toggle svg { transition: none; } }
 
   .device {
     position: relative;
@@ -93,8 +163,8 @@
     aspect-ratio: 640 / var(--ratio);
     filter: drop-shadow(0 18px 22px rgba(20, 50, 44, .3));
   }
-  .device.ios { --ratio: 1305; --app: #000; --mask: url(img/mask-ios.png); --l: 4.7%; --t: 1.85%; --r: 4.7%; --b: 1.85%; }
-  .device.android { --ratio: 1347; --app: #000; --mask: url(img/mask-android.png); --l: 4.184%; --t: 2.022%; --r: 5.035%; --b: 1.752%; }
+  .device.ios { --ratio: 1305; --app: #000; --mask: url(/img/mask-ios.png); --l: 4.7%; --t: 1.85%; --r: 4.7%; --b: 1.85%; }
+  .device.android { --ratio: 1347; --app: #000; --mask: url(/img/mask-android.png); --l: 4.184%; --t: 2.022%; --r: 5.035%; --b: 1.752%; }
   .screen-wrap { position: absolute; inset: 0; background: var(--app); -webkit-mask: var(--mask) 0 0 / 100% 100% no-repeat; mask: var(--mask) 0 0 / 100% 100% no-repeat; }
   .screen { position: absolute; left: var(--l); top: var(--t); width: calc(100% - var(--l) - var(--r)); height: calc(100% - var(--t) - var(--b)); object-fit: cover; object-position: top; background: #fff; }
   .frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -107,15 +177,16 @@
     animation: pulse 2s ease-in-out infinite;
     transition: scale .15s, rotate .15s;
   }
-  .download::before { content: ""; position: absolute; inset: 0; background: url("img/blob.webp") center / 100% 100% no-repeat; filter: drop-shadow(0 4px 0 rgba(20, 89, 75, .25)); }
+  .download::before { content: ""; position: absolute; inset: 0; background: url("/img/blob.webp") center / 100% 100% no-repeat; filter: drop-shadow(0 4px 0 rgba(20, 89, 75, .25)); }
   .download span { position: relative; display: block; padding-bottom: .12em; translate: -.1em 0; }
   .download:hover, .download:focus-visible { scale: 1.06; rotate: -2deg; }
   @keyframes pulse { 0%, 30%, 100% { transform: scale(1); } 15% { transform: scale(1.05); } }
   @media (prefers-reduced-motion: reduce) { .download { animation: none; } }
 
-  footer { text-align: center; padding: 0 1rem 1.5rem; font-size: .85rem; }
+  footer { margin-top: auto; display: flex; justify-content: center; padding: 1rem 1rem 1.5rem; font-size: .9rem; }
+  footer span { padding: .3rem .9rem; border-radius: 999px; background: rgba(246, 242, 232, .92); }
 </style>
-<noscript><style>.controls { display: none; }</style></noscript>
+<noscript><style>.controls, .theme-toggle { display: none; }</style></noscript>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -143,61 +214,111 @@
       <ul class="panel" id="menu-panel" hidden>
         <li><a id="link-privacy" href="/privacy#cs" data-i18n="privacy">Zásady ochrany osobních údajů</a></li>
         <li><a id="link-delete" href="/delete-account#cs" data-i18n="delete">Smazání účtu</a></li>
+        <li><a id="link-contact" href="/contact#cs" data-i18n="contact">Kontakt</a></li>
       </ul>
     </div>
   </div>
 
 <main>
-  <h1 class="sr-only">Kalorie</h1>
+  <header class="hero">
+    <div class="sticker"><strong data-i18n="stickerTop">Kompletně zdarma</strong><span data-i18n="stickerBottom">a tak to i zůstane!</span></div>
+    <h1><span data-i18n="h1a">Počítej kalorie,</span> <span class="accent" data-i18n="h1b">kontroluj svá makra.</span></h1>
+  </header>
   <div class="stage">
     <section class="platform">
-      <div class="device ios"><div class="screen-wrap"><img class="screen" id="shot-ios" src="img/ios-cs.webp" alt="Kalorie – iPhone"></div><img class="frame" src="img/frame-ios.webp" alt=""></div>
+      <div class="device ios"><div class="screen-wrap"><img class="screen" id="shot-ios" src="/img/ios-cs.webp" alt="Kalorie – iPhone"></div><img class="frame" src="/img/frame-ios.webp" alt=""></div>
     </section>
-    <div class="separator" role="presentation"></div>
+    <div class="separator">
+      <div class="line" role="presentation"></div>
+      <button class="theme-toggle" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Tmavý režim" data-i18n-aria="dark">
+        <span class="thumb"></span>
+        <svg class="sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.4 1.4M11.55 11.55l1.4 1.4M3.05 12.95l1.4-1.4M11.55 4.45l1.4-1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <svg class="moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.6A5.7 5.7 0 0 1 6.4 2.5a5.7 5.7 0 1 0 7.1 7.1Z" fill="currentColor"/></svg>
+      </button>
+      <div class="line" role="presentation"></div>
+    </div>
     <section class="platform">
-      <div class="device android"><div class="screen-wrap"><img class="screen" id="shot-android" src="img/android-cs.webp" alt="Kalorie – Android"></div><img class="frame" src="img/frame-android.webp" alt=""></div>
+      <div class="device android"><div class="screen-wrap"><img class="screen" id="shot-android" src="/img/android-cs.webp" alt="Kalorie – Android"></div><img class="frame" src="/img/frame-android.webp" alt=""></div>
     </section>
   </div>
-  <a class="download" href="/get"><span data-i18n="download">Stáhnout</span></a>
+  <a class="download" id="link-get" href="/get#cs"><span data-i18n="download">Stáhnout</span></a>
+
+  <section class="card green" aria-labelledby="features-title">
+    <h2 id="features-title" data-i18n="featuresTitle">Co Kalorie umí</h2>
+    <ul class="features">
+      <li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg></span><div><h3 data-i18n="f1t">Čárový kód i tabulka</h3><p data-i18n="f1d">Naskenuj kód nebo vyfoť nutriční tabulku na obalu a čísla se vyplní sama.</p></div></li>
+      <li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><h3 data-i18n="f2t">Žádný bastl</h3><p data-i18n="f2d">Bez reklam a zbytečných pseudofunkcí navíc.</p></div></li>
+      <li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></span><div><h3 data-i18n="f3t">Cíle</h3><p data-i18n="f3d">Spočítá BMR a denní příjem na míru.</p></div></li>
+      <li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></span><div><h3 data-i18n="f4t">Tělesná váha</h3><p data-i18n="f4d">Hlídá ji a vykresluje, jak se v čase mění.</p></div></li>
+      <li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span><div><h3 data-i18n="f6t">Vlastní jídla</h3><p data-i18n="f6d">Sůl, mouka, voda, to dělá chleba.</p></div></li>
+      <li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14l3 3 3-3"/></svg></span><div><h3 data-i18n="f7t">Jednoduché sdílení</h3><p data-i18n="f7d">Zapsané záznamy lze exportovat jako PDF.</p></div></li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="photo-title">
+    <h2 id="photo-title" data-i18n="photoTitle">Proč tu nenajdeš AI, která počítá z fotky talíře</h2>
+    <p data-i18n="photoP1">Z fotky nejde poznat, kolik jídlo váží, ani kolik oleje skončilo na pánvi. Přesto právě tohle slibuje spousta aplikací.</p>
+    <div class="numbers">
+      <div><strong data-i18n="n1v">250–345 kcal</strong><span data-i18n="n1d">průměrné podhodnocení jednoho jídla u čtyř aplikací s focením jídla</span></div>
+      <div><strong data-i18n="n2v">~30 g tuku</strong><span data-i18n="n2d">průměrně chybí v odhadu jednoho jídla</span></div>
+    </div>
+    <p data-i18n="photoP2">Při třech jídlech denně je to víc, než je celý běžný deficit na hubnutí. Myslíš si, že hubneš, a ve skutečnosti jíš na udržení.</p>
+    <p data-i18n="photoP3">Kalorie proto nehádá. Bere přesná čísla: čárový kód, nutriční tabulku z obalu a hmotnost z tvé váhy.</p>
+    <p class="source"><span data-i18n="sourceLabel">Zdroj:</span> <a href="https://www.news-medical.net/news/20260726/Photo-based-calorie-tracking-apps-fall-short-in-estimating-meal-nutrition.aspx" target="_blank" rel="noopener" data-i18n="sourceText">studie aplikací pro počítání kalorií z fotky (2026)</a></p>
+  </section>
+
+  <section class="card" aria-labelledby="why-title">
+    <h2 id="why-title" data-i18n="whyTitle">Proč zdarma</h2>
+    <p data-i18n="whyP1">Kalorie dělám sám. Ve fitness se pohybuju dlouho a chtěl jsem deník, který mi nebude stát v cestě: otevřu, rychle zapíšu a hotovo. Bez předplatného, bez reklam.</p>
+  </section>
+
+  <section class="card faq" aria-labelledby="faq-title">
+    <h2 id="faq-title" data-i18n="faqTitle">Časté otázky</h2>
+    <details><summary data-i18n="q1">Je to opravdu zdarma?</summary><p data-i18n="a1">Ano. Žádné předplatné, žádné reklamy, žádná zamčená funkce.</p></details>
+    <details><summary data-i18n="q2">Potřebuju účet?</summary><p data-i18n="a2">Ne. Zapisovat můžeš hned po spuštění. Přihlášení je volitelné a dosavadní záznamy se k účtu přenesou.</p></details>
+    <details><summary data-i18n="q3">Na čem a v jakém jazyce to funguje?</summary><p data-i18n="a3">Na iPhonu i Androidu, v češtině, slovenštině a angličtině.</p></details>
+    <details><summary data-i18n="q4">Co když v katalogu chybí moje jídlo?</summary><p data-i18n="a4">Přidej ho. Po kontrole se objeví v katalogu pro všechny.</p></details>
+    <details><summary data-i18n="q5">Co se děje s mými daty?</summary><p><span data-i18n="a5">Účet i všechna data můžeš kdykoli smazat v aplikaci nebo na webu. Podrobnosti najdeš v</span> <a class="link-privacy" href="/privacy#cs" data-i18n="a5link">zásadách ochrany osobních údajů</a>.</p></details>
+  </section>
+
 </main>
+<footer><span>© 2026 Kalorie</span></footer>
 
 <script>
 (function () {
-  var T = {
-    cs: { title: "Kalorie", desc: "Jednoduchý kalorický deník pro iPhone i Android.", download: "Stáhnout", privacy: "Zásady ochrany osobních údajů", "delete": "Smazání účtu" },
-    sk: { title: "Kalorie", desc: "Jednoduchý kalorický denník pre iPhone aj Android.", download: "Stiahnuť", privacy: "Zásady ochrany osobných údajov", "delete": "Zmazanie účtu" },
-    en: { title: "Kalorie", desc: "A simple calorie diary for iPhone and Android.", download: "Download", privacy: "Privacy policy", "delete": "Delete account" }
-  };
   var KEY = "kalorie-lang";
+  var THEME_KEY = "kalorie-theme";
+  var PATHS = { cs: "/", sk: "/sk/", en: "/en/" };
+  var lang = document.documentElement.lang;
+  var dark = false;
   var $ = function (id) { return document.getElementById(id); };
 
-  function initial() {
-    try { var s = localStorage.getItem(KEY); if (s && T[s]) return s; } catch (e) {}
-    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
-    for (var i = 0; i < list.length; i++) {
-      var p = String(list[i]).toLowerCase().slice(0, 2);
-      if (T[p]) return p;
-    }
-    return "en";
+  if (lang === "cs" && location.pathname === "/") {
+    try { var saved = localStorage.getItem(KEY); if (saved && saved !== lang && PATHS[saved]) { location.replace(PATHS[saved]); return; } } catch (e) {}
   }
 
-  function setLang(l) {
-    var t = T[l];
-    document.documentElement.lang = l;
-    document.title = t.title;
-    document.querySelector('meta[name="description"]').setAttribute("content", t.desc);
-    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) { el.textContent = t[el.getAttribute("data-i18n")]; });
-    $("lang-flag").firstElementChild.setAttribute("href", "#flag-" + l);
-    $("shot-ios").src = "img/ios-" + l + ".webp";
-    $("shot-android").src = "img/android-" + l + ".webp";
-    $("link-privacy").href = "/privacy#" + l;
-    $("link-delete").href = "/delete-account#" + l;
-    Array.prototype.forEach.call(document.querySelectorAll("#lang-panel button"), function (b) {
-      b.setAttribute("aria-checked", b.getAttribute("data-lang") === l ? "true" : "false");
-    });
-    try { localStorage.setItem(KEY, l); } catch (e) {}
+  function setShots() {
+    var suffix = dark ? "-dark" : "";
+    $("shot-ios").src = "/img/ios-" + lang + suffix + ".webp";
+    $("shot-android").src = "/img/android-" + lang + suffix + ".webp";
   }
 
+  function setTheme(d) {
+    dark = d;
+    $("theme-toggle").setAttribute("aria-checked", d ? "true" : "false");
+    setShots();
+    try { localStorage.setItem(THEME_KEY, d ? "dark" : "light"); } catch (e) {}
+  }
+
+  $("lang-flag").firstElementChild.setAttribute("href", "#flag-" + lang);
+  $("link-get").href = "/get#" + lang;
+  $("link-privacy").href = "/privacy#" + lang;
+  $("link-delete").href = "/delete-account#" + lang;
+  $("link-contact").href = "/contact#" + lang;
+  Array.prototype.forEach.call(document.querySelectorAll(".link-privacy"), function (a) { a.href = "/privacy#" + lang; });
+  Array.prototype.forEach.call(document.querySelectorAll("#lang-panel button"), function (b) {
+    b.setAttribute("aria-checked", b.getAttribute("data-lang") === lang ? "true" : "false");
+  });
   var pairs = [["lang-btn", "lang-panel"], ["menu-btn", "menu-panel"]];
   function closeAll(except) {
     pairs.forEach(function (p) {
@@ -221,10 +342,18 @@
     if (e.key === "Escape") { closeAll(); }
   });
   Array.prototype.forEach.call(document.querySelectorAll("#lang-panel button"), function (b) {
-    b.addEventListener("click", function (e) { setLang(b.getAttribute("data-lang")); closeAll(); if (e.detail === 0) { $("lang-btn").focus(); } });
+    b.addEventListener("click", function () {
+      var l = b.getAttribute("data-lang");
+      try { localStorage.setItem(KEY, l); } catch (e) {}
+      closeAll();
+      if (l !== lang) { location.href = PATHS[l]; }
+    });
   });
 
-  setLang(initial());
+  $("theme-toggle").addEventListener("click", function () { setTheme(!dark); });
+  try { dark = localStorage.getItem(THEME_KEY) === "dark"; } catch (e) {}
+  $("theme-toggle").setAttribute("aria-checked", dark ? "true" : "false");
+  setShots();
 })();
 </script>
 </body>

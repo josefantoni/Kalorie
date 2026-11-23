@@ -71,6 +71,8 @@
   .js hr { display: none; }
   .js main > div[hidden] { display: none; }
   noscript p { margin-top: 0; }
+  footer { margin-top: auto; display: flex; justify-content: center; padding: 1rem 1rem 1.5rem; font-size: .9rem; }
+  footer span { padding: .3rem .9rem; border-radius: 999px; background: rgba(246, 242, 232, .92); }
 </style>
 <noscript><style>.controls { display: none; }</style></noscript>
 </head>
@@ -101,6 +103,7 @@
         <li><a id="link-home" href="/" data-i18n="home">Domů</a></li>
         <li><a id="link-privacy" href="/privacy#cs" data-i18n="privacy">Zásady ochrany osobních údajů</a></li>
         <li><a id="link-delete" href="/delete-account#cs" data-i18n="delete">Smazání účtu</a></li>
+        <li><a id="link-contact" href="/contact#cs" data-i18n="contact">Kontakt</a></li>
       </ul>
     </div>
   </div>
@@ -176,13 +179,14 @@
 </div>
 
 </main>
+<footer><span>© 2026 Kalorie</span></footer>
 
 <script>
 (function () {
   var T = {
-    cs: { title: "Kalorie – Smazání účtu", home: "Domů", privacy: "Zásady ochrany osobních údajů", "delete": "Smazání účtu" },
-    sk: { title: "Kalorie – Zmazanie účtu", home: "Domov", privacy: "Zásady ochrany osobných údajov", "delete": "Zmazanie účtu" },
-    en: { title: "Kalorie – Delete account", home: "Home", privacy: "Privacy policy", "delete": "Delete account" }
+    cs: { title: "Kalorie – Smazání účtu", home: "Domů", privacy: "Zásady ochrany osobních údajů", "delete": "Smazání účtu", "contact": "Kontakt" },
+    sk: { title: "Kalorie – Zmazanie účtu", home: "Domov", privacy: "Zásady ochrany osobných údajov", "delete": "Zmazanie účtu", "contact": "Kontakt" },
+    en: { title: "Kalorie – Delete account", home: "Home", privacy: "Privacy policy", "delete": "Delete account", "contact": "Contact" }
   };
   var KEY = "kalorie-lang";
   var $ = function (id) { return document.getElementById(id); };
@@ -208,8 +212,10 @@
     Array.prototype.forEach.call(document.querySelectorAll("main > div[lang]"), function (d) { d.hidden = d.getAttribute("lang") !== l; });
     Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) { el.textContent = t[el.getAttribute("data-i18n")]; });
     $("lang-flag").firstElementChild.setAttribute("href", "#flag-" + l);
+    $("link-home").href = l === "cs" ? "/" : "/" + l + "/";
     $("link-privacy").href = "/privacy#" + l;
     $("link-delete").href = "/delete-account#" + l;
+    $("link-contact").href = "/contact#" + l;
     Array.prototype.forEach.call(document.querySelectorAll("#lang-panel button"), function (b) {
       b.setAttribute("aria-checked", b.getAttribute("data-lang") === l ? "true" : "false");
     });
