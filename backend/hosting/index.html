@@ -83,9 +83,24 @@
 
   .stage { display: flex; align-items: stretch; justify-content: center; gap: clamp(.8rem, 4vw, 3rem); width: 100%; }
   .platform { display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 1.1rem; }
-  .separator { align-self: stretch; width: 1px; background: rgba(60, 60, 67, .29); margin: .5rem 0; }
-  @media (min-resolution: 2dppx) { .separator { width: .5px; } }
-  @media (min-resolution: 3dppx) { .separator { width: .333px; } }
+  .separator { align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: .6rem; margin: .5rem 0; }
+  .separator .line { flex: 1; width: 1px; background: rgba(60, 60, 67, .29); }
+  @media (min-resolution: 2dppx) { .separator .line { width: .5px; } }
+  @media (min-resolution: 3dppx) { .separator .line { width: .333px; } }
+
+  .theme-toggle {
+    position: relative; flex: none; width: 32px; height: 64px; padding: 0;
+    border: .5px solid #111; border-radius: 16px; background: #fff; cursor: pointer;
+  }
+  .theme-toggle:hover { background: #f0f0f0; }
+  .theme-toggle:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+  .theme-toggle .thumb { position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--green); transition: transform .2s ease; }
+  .theme-toggle[aria-checked="true"] .thumb { transform: translateY(32px); }
+  .theme-toggle svg { position: absolute; left: 7px; width: 16px; height: 16px; color: #111; transition: color .2s; }
+  .theme-toggle .sun { top: 7px; }
+  .theme-toggle .moon { bottom: 7px; }
+  .theme-toggle[aria-checked="false"] .sun, .theme-toggle[aria-checked="true"] .moon { color: #fff; }
+  @media (prefers-reduced-motion: reduce) { .theme-toggle .thumb, .theme-toggle svg { transition: none; } }
 
   .device {
     position: relative;
@@ -115,7 +130,7 @@
 
   footer { text-align: center; padding: 0 1rem 1.5rem; font-size: .85rem; }
 </style>
-<noscript><style>.controls { display: none; }</style></noscript>
+<noscript><style>.controls, .theme-toggle { display: none; }</style></noscript>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -153,7 +168,15 @@
     <section class="platform">
       <div class="device ios"><div class="screen-wrap"><img class="screen" id="shot-ios" src="img/ios-cs.webp" alt="Kalorie – iPhone"></div><img class="frame" src="img/frame-ios.webp" alt=""></div>
     </section>
-    <div class="separator" role="presentation"></div>
+    <div class="separator">
+      <div class="line" role="presentation"></div>
+      <button class="theme-toggle" id="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Tmavý režim">
+        <span class="thumb"></span>
+        <svg class="sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.4 1.4M11.55 11.55l1.4 1.4M3.05 12.95l1.4-1.4M11.55 4.45l1.4-1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <svg class="moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.6A5.7 5.7 0 0 1 6.4 2.5a5.7 5.7 0 1 0 7.1 7.1Z" fill="currentColor"/></svg>
+      </button>
+      <div class="line" role="presentation"></div>
+    </div>
     <section class="platform">
       <div class="device android"><div class="screen-wrap"><img class="screen" id="shot-android" src="img/android-cs.webp" alt="Kalorie – Android"></div><img class="frame" src="img/frame-android.webp" alt=""></div>
     </section>
@@ -164,11 +187,14 @@
 <script>
 (function () {
   var T = {
-    cs: { title: "Kalorie", desc: "Jednoduchý kalorický deník pro iPhone i Android.", download: "Stáhnout", privacy: "Zásady ochrany osobních údajů", "delete": "Smazání účtu" },
-    sk: { title: "Kalorie", desc: "Jednoduchý kalorický denník pre iPhone aj Android.", download: "Stiahnuť", privacy: "Zásady ochrany osobných údajov", "delete": "Zmazanie účtu" },
-    en: { title: "Kalorie", desc: "A simple calorie diary for iPhone and Android.", download: "Download", privacy: "Privacy policy", "delete": "Delete account" }
+    cs: { title: "Kalorie", desc: "Jednoduchý kalorický deník pro iPhone i Android.", download: "Stáhnout", privacy: "Zásady ochrany osobních údajů", "delete": "Smazání účtu", dark: "Tmavý režim" },
+    sk: { title: "Kalorie", desc: "Jednoduchý kalorický denník pre iPhone aj Android.", download: "Stiahnuť", privacy: "Zásady ochrany osobných údajov", "delete": "Zmazanie účtu", dark: "Tmavý režim" },
+    en: { title: "Kalorie", desc: "A simple calorie diary for iPhone and Android.", download: "Download", privacy: "Privacy policy", "delete": "Delete account", dark: "Dark mode" }
   };
   var KEY = "kalorie-lang";
+  var THEME_KEY = "kalorie-theme";
+  var lang = "cs";
+  var dark = false;
   var $ = function (id) { return document.getElementById(id); };
 
   function initial() {
@@ -181,6 +207,19 @@
     return "en";
   }
 
+  function setShots() {
+    var suffix = dark ? "-dark" : "";
+    $("shot-ios").src = "img/ios-" + lang + suffix + ".webp";
+    $("shot-android").src = "img/android-" + lang + suffix + ".webp";
+  }
+
+  function setTheme(d) {
+    dark = d;
+    $("theme-toggle").setAttribute("aria-checked", d ? "true" : "false");
+    setShots();
+    try { localStorage.setItem(THEME_KEY, d ? "dark" : "light"); } catch (e) {}
+  }
+
   function setLang(l) {
     var t = T[l];
     document.documentElement.lang = l;
@@ -188,8 +227,9 @@
     document.querySelector('meta[name="description"]').setAttribute("content", t.desc);
     Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (el) { el.textContent = t[el.getAttribute("data-i18n")]; });
     $("lang-flag").firstElementChild.setAttribute("href", "#flag-" + l);
-    $("shot-ios").src = "img/ios-" + l + ".webp";
-    $("shot-android").src = "img/android-" + l + ".webp";
+    $("theme-toggle").setAttribute("aria-label", t.dark);
+    lang = l;
+    setShots();
     $("link-privacy").href = "/privacy#" + l;
     $("link-delete").href = "/delete-account#" + l;
     Array.prototype.forEach.call(document.querySelectorAll("#lang-panel button"), function (b) {
@@ -224,6 +264,9 @@
     b.addEventListener("click", function (e) { setLang(b.getAttribute("data-lang")); closeAll(); if (e.detail === 0) { $("lang-btn").focus(); } });
   });
 
+  $("theme-toggle").addEventListener("click", function () { setTheme(!dark); });
+  try { dark = localStorage.getItem(THEME_KEY) === "dark"; } catch (e) {}
+  $("theme-toggle").setAttribute("aria-checked", dark ? "true" : "false");
   setLang(initial());
 })();
 </script>
