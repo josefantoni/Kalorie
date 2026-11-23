@@ -149,6 +149,8 @@ scripts/node_modules/
 firestore-rules-tests/node_modules/
 backend/functions/node_modules/
 backend/functions/firestore-debug.log
+backend/hosting/sk/
+backend/hosting/en/
 
 ### Firebase emulator ###
 firestore-debug.log
