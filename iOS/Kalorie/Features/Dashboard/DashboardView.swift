@@ -86,6 +86,15 @@ struct DashboardView: View {
                 .padding(.bottom, 24)
             }
             .background(Color(.systemGroupedBackground))
+            .overlay(alignment: .bottom) {
+                if isAddFoodButtonVisible {
+                    AddFoodButton(isExpanded: isAddFoodExpanded, isAnimationPlaying: isAddFoodAnimationPlaying) {
+                        viewModel.showAddFoodSheet.toggle()
+                    }
+                    .scaleEffect(isAddFoodPulsed ? 1.2 : 1)
+                    .padding(.bottom, Self.addFoodBottomInset)
+                }
+            }
             .ignoresSafeArea(.container, edges: .bottom)
             .simultaneousGesture(TapGesture().onEnded { openSwipeRowId = nil })
             .onScrollPhaseChange { _, newPhase in
@@ -129,16 +138,6 @@ struct DashboardView: View {
                 .padding(.top, 8)
             }
             .contentMargins(.bottom, isAddFoodButtonVisible ? addFoodReservedHeight : 0, for: .scrollContent)
-            .overlay(alignment: .bottom) {
-                if isAddFoodButtonVisible {
-                    AddFoodButton(isExpanded: isAddFoodExpanded, isAnimationPlaying: isAddFoodAnimationPlaying) {
-                        viewModel.showAddFoodSheet.toggle()
-                    }
-                    .scaleEffect(isAddFoodPulsed ? 1.2 : 1)
-                    .padding(.bottom, Self.addFoodBottomInset)
-                    .ignoresSafeArea(edges: .bottom)
-                }
-            }
             .loader(viewModel.state.isLoading)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
