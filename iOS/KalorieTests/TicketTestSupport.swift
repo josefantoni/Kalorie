@@ -43,7 +43,11 @@ final class TicketDataProviderFake: FirestoreDataProviderProtocol {
     private(set) var updates: [Write] = []
     private(set) var deletes: [(id: String, collection: String)] = []
     private(set) var anonymised: [(id: String, ownerField: String, collection: String)] = []
-    private(set) var orderedQueries: [OrderedQuery] = []
+    private let lock = NSLock()
+    private var _orderedQueries: [OrderedQuery] = []
+    var orderedQueries: [OrderedQuery] {
+        lock.withLock { _orderedQueries }
+    }
     private(set) var equalityQueries: [(collection: String, filters: [String], limit: Int)] = []
     private(set) var events: [String] = []
 
@@ -61,13 +65,15 @@ final class TicketDataProviderFake: FirestoreDataProviderProtocol {
     func batchSetAsync<T: Encodable>(_ items: [(item: T, id: String)], in collection: String) async throws {}
 
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] {
-        orderedQueries.append(OrderedQuery(collection: collection, field: field, value: value, boolField: nil, boolValue: nil, orderField: orderField, descending: descending))
+        lock.withLock { _orderedQueries.append(OrderedQuery(collection: collection, field: field, value: value, boolField: nil, boolValue: nil, orderField: orderField, descending: descending)) }
         return try stubbed(collection)
     }
 
     func loadAsync<T: Decodable>(from collection: String, whereEqualTo filters: [(String, String)], isHidden: Bool, orderBy orderField: String, descending: Bool) async throws -> [T] {
         let filter = filters.first ?? ("", "")
-        orderedQueries.append(OrderedQuery(collection: collection, field: filter.0, value: filter.1, boolField: "hidden", boolValue: isHidden, orderField: orderField, descending: descending))
+        lock.withLock {
+            _orderedQueries.append(OrderedQuery(collection: collection, field: filter.0, value: filter.1, boolField: "hidden", boolValue: isHidden, orderField: orderField, descending: descending))
+        }
         return try stubbed(collection)
     }
 
