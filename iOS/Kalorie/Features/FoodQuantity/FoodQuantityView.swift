@@ -198,8 +198,8 @@ struct FoodQuantityView: View {
                     Text(Self.label(for: viewModel.unit, measure: viewModel.item.measure))
                     Image(systemName: BaseImageName.chevronUpDown.rawValue)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
+                .foregroundStyle(Color.accentColor)
             }
             .onChange(of: viewModel.unit) { _, _ in
                 quantityText = viewModel.quantity.formattedTrimmed()
