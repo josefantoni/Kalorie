@@ -22,10 +22,11 @@
   reads, but the calendar dots arrive late); a per-month `activeDays` document would give the dots for
   1 read but must be kept in sync on every write. A snapshot listener does not help (resume tokens last
   ~30 minutes).
-- **Google Search Console follow-up (from 2026-11-25)** — the property `https://kalorie-official.web.app/` is
+- **Google Search Console follow-up (from 2026-11-27)** — the property `https://kalorie-official.web.app/` is
   verified by `backend/hosting/google0ef1b9c5fae18000.html` (never delete it, or verification is lost).
-  `sitemap.xml` was submitted on 2026-11-23 and showed *Couldn't fetch*, which is normal for a new property.
-  Check that *Sitemaps* shows *Success* with 9 discovered pages; if it still fails, remove and resubmit it.
-  *Request indexing* for `/`, `/sk/` and `/en/` hit the daily quota on 2026-11-23, so retry it in *URL
-  inspection*. Then check *Pages* for which URLs are indexed and that `/sk/` and `/en/` are not reported as
-  duplicates of `/`.
+  `/` and `/sk/` are indexed, each with its own canonical, so `/sk/` is not a duplicate of `/`. Still open:
+  - `sitemap.xml` showed *Couldn't fetch* until 2026-11-26, when it was resubmitted. Check that *Sitemaps*
+    shows *Success* with 6 discovered pages; if it still fails, remove and resubmit it.
+  - `/en/` is unknown to Google. *Request indexing* for it in *URL inspection* (the daily quota ran out on
+    2026-11-26), then check that its Google-selected canonical is the inspected URL.
+  - *Pages* was still processing on 2026-11-26; check which URLs are indexed.
