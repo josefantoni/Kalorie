@@ -29,14 +29,3 @@
   *Request indexing* for `/`, `/sk/` and `/en/` hit the daily quota on 2026-11-23, so retry it in *URL
   inspection*. Then check *Pages* for which URLs are indexed and that `/sk/` and `/en/` are not reported as
   duplicates of `/`.
-
-## Fixes
-
-- **Flaky iOS test `FetchUserNotificationsUseCaseTests.test_fetch_queriesOnlyTheUsersVisibleTickets_inBothCollections`**
-  — failed once on CI (run 44741267745) with only the `photoSuggestions` query recorded and the
-  `foodItemReports` one missing. `FetchUserNotificationsUseCase` runs both queries concurrently with
-  `async let`, and `TicketDataProviderFake` (`iOS/KalorieTests/TicketTestSupport.swift`) appends to
-  `orderedQueries` from both `loadAsync` overloads without synchronisation, so one append can be lost.
-  Fix: guard both appends and the read with an `NSLock` (same pattern as
-  `arrayContainsValuesLock` in `SearchFoodItemsUseCaseTests.swift`). Own `[FIX]` commit on its own
-  iOS branch; check the other fakes in `TicketTestSupport.swift` for the same unguarded mutation.
