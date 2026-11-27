@@ -3,6 +3,8 @@
 ## Language
 
 - Reply in Czech. Czech is the language of the conversation, not of the project.
+- **The app's Czech and Slovak copy always uses *tykání*, never *vykání*** (`docs/ARCHITECTURE.md` § 5.3, *Tone of the copy*).
+  A neighbouring string is no evidence of the tone; the rule is.
 - **Everything that goes into the repository is written in English** — type, method and variable names, code comments, commit messages, documentation in `docs/`, `TODO.md` and `README.md`.
 
 ## Documentation

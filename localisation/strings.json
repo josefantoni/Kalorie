@@ -1925,14 +1925,14 @@
     "sk": "Súčet musí dať 100."
   },
   "goals_hint_macroModeIncomplete": {
-    "cs": "Vyplňte všechna tři makra, pak jde režim přepnout.",
+    "cs": "Vyplň všechna tři makra, pak jde režim přepnout.",
     "en": "Fill in all three macros to switch the mode.",
-    "sk": "Vyplňte všetky tri makrá, potom sa dá režim prepnúť."
+    "sk": "Vyplň všetky tri makrá, potom sa dá režim prepnúť."
   },
   "goals_hint_macroModeNeedsKcal": {
-    "cs": "Pro přepnutí na gramy zadejte nejdřív kcal.",
+    "cs": "Pro přepnutí na gramy zadej nejdřív kcal.",
     "en": "Enter the kcal goal first to switch to grams.",
-    "sk": "Na prepnutie na gramy zadajte najprv kcal."
+    "sk": "Na prepnutie na gramy zadaj najprv kcal."
   },
   "goals_hint_macroModeSumNot100": {
     "cs": "Procenta musí dávat dohromady 100, pak jde přepnout na gramy.",
