@@ -255,7 +255,8 @@
     <string name="goals_button_save">Nastaviť denný cieľ</string>
     <string name="goals_end_message">Sledovanie skončí od dnes. Minulé dni si svoj cieľ ponechajú, nič sa nezmaže.</string>
     <string name="goals_end_title">Ukončiť sledovanie cieľa?</string>
-    <string name="goals_error_percentSum">Súčet musí dať 100.</string>
+    <string name="goals_error_kcalOutsideVariants">Odporúčaný denný príjem je %1$s až %2$s kcal, teda od −10 %% do +10 %%.</string>
+    <string name="goals_error_percentSum">Tvoje rozloženie makier v **%** musí dávať súčet rovný **100**. Ak chceš mať makrá flexibilnejšie, prepni kartu na „Gramy“.</string>
     <string name="goals_error_saveFailed">Cieľ sa nepodarilo uložiť.</string>
     <string name="goals_estimate_bmr">Bazálny metabolizmus</string>
     <string name="goals_estimate_disclaimer">Je to len odhad, skutočný výdaj sa môže líšiť.</string>
@@ -267,11 +268,10 @@
     <string name="goals_field_sex">Pohlavie (pre odhad)</string>
     <string name="goals_field_weight">Hmotnosť</string>
     <string name="goals_footer_body">Tieto údaje slúžia len na odhad nižšie a ukladajú sa spolu s cieľom. Nie sú povinné, cieľ si môžeš zadať aj ručne.</string>
-    <string name="goals_footer_current">Toto je cieľ, ktorý sa uloží a podľa ktorého sa na prehľade meria tvoj deň. Zadaj denný príjem a rozlož ho na bielkoviny, sacharidy a tuky, buď podielom v percentách, alebo rovno v gramoch. V režime Podiel sa gramy dopočítajú z kalórií, v režime Gramy sa kalórie dopočítajú z gramov. Pod poľom je posuvník s odhadom podľa tvojich údajov o tele a aktivity; jeho posunutím sa denný príjem hneď prepíše.</string>
+    <string name="goals_footer_current">Toto je cieľ, ktorý sa uloží a podľa ktorého sa na prehľade meria tvoj deň. Zadaj denný príjem a rozlož ho na bielkoviny, sacharidy a tuky, buď podielom v percentách, alebo rovno v gramoch. V režime Podiel sa gramy dopočítajú z kalórií, v režime Gramy sa kalórie dopočítajú z gramov, a keď upravíš kalórie, prepočítajú sa gramy v rovnakom pomere. Pod poľom je posuvník s odhadom podľa tvojich údajov o tele a aktivity; jeho posunutím sa denný príjem hneď prepíše.</string>
     <string name="goals_gramsKcal">Gramy zodpovedajú %1$s kcal.</string>
     <string name="goals_hint_macroModeIncomplete">Vyplň všetky tri makrá, potom sa dá režim prepnúť.</string>
     <string name="goals_hint_macroModeNeedsKcal">Na prepnutie na gramy zadaj najprv kcal.</string>
-    <string name="goals_hint_macroModeSumNot100">Percentá musia dávať dokopy 100, potom sa dá prepnúť na gramy.</string>
     <string name="goals_info_buttonEdit">Upraviť cieľ</string>
     <string name="goals_info_buttonSet">Nastaviť cieľ</string>
     <string name="goals_info_donutNote">Koláč ukazuje podiel energie (kcal), nie gramov.</string>
@@ -280,10 +280,14 @@
     <string name="goals_info_noGoalMessage">Denný cieľ ukáže, koľko z kalórií a makroživín si za deň zjedol(a). Nastavíš ho ručne, alebo si ho nechaj vypočítať.</string>
     <string name="goals_info_over">Nad cieľom o</string>
     <string name="goals_info_remaining">Zostáva</string>
+    <string name="goals_kcalOutsideVariants_accept">Napriek tomu chcem cieľ uložiť.</string>
+    <string name="goals_kcalOutsideVariants_advice">Takú veľkú zmenu neodporúčame. Postupuj pomaly a vyťaž čo najviac z malého ubratia alebo pridania kalórií. Keď sa váha prestane hýbať, môžeš pritlačiť o niečo viac.</string>
     <string name="goals_macroMode_grams">Gramy</string>
     <string name="goals_macroMode_percent">Podiel</string>
     <string name="goals_macro_percentOfGoal">%1$s z cieľa</string>
     <string name="goals_navigationTitle">Denný cieľ</string>
+    <string name="goals_save_message">Cieľ bude platiť od dnes. Minulé dni si svoj cieľ ponechajú.</string>
+    <string name="goals_save_title">Nastaviť denný cieľ?</string>
     <string name="goals_section_activity">Tvoja týždenná aktivita</string>
     <string name="goals_section_body">Tvoje telesné údaje</string>
     <string name="goals_section_current">Aktuálny denný cieľ</string>
