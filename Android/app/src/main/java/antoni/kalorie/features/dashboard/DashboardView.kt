@@ -127,6 +127,7 @@ import antoni.kalorie.components.LoaderIndicator
 import antoni.kalorie.components.RevealingSwipeToDeleteRow
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.utils.Constants
 import antoni.kalorie.core.utils.isLoading
@@ -333,7 +334,8 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                 )
             },
         ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            val bottomInset = innerPadding.calculateBottomPadding()
+            Box(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom())) {
                 Column(modifier = Modifier.fillMaxSize()) {
                     DayPickerView(
                         selectedDay = selectedDay,
@@ -363,7 +365,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                             modifier = Modifier
                                 .fillMaxSize()
                                 .closeSwipeRowOnTapOutside { openSwipeRowId = null },
-                            contentPadding = PaddingValues(bottom = FAB_CLEARANCE),
+                            contentPadding = PaddingValues(bottom = FAB_CLEARANCE + bottomInset),
                         ) {
                             if (foodsConsumed.isNotEmpty()) {
                                 item {
@@ -496,7 +498,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                         DragAutoscrollEdge(
                             listState = listState,
                             direction = 1f,
-                            modifier = Modifier.align(Alignment.BottomCenter),
+                            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = bottomInset),
                         )
 
                         if (isEmptyStateVisible) {
@@ -505,7 +507,7 @@ fun DashboardView(viewModel: DashboardViewModel, router: DashboardRouter) {
                                 showsWeight = hasLoadedSettings && appSettings.showBodyWeight,
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = ADD_FOOD_BUTTON_EXPANDED_SIZE + 16.dp),
+                                    .padding(bottom = ADD_FOOD_BUTTON_EXPANDED_SIZE + 16.dp + bottomInset),
                             ) {
                                 WeightAccessoryView(viewModel = viewModel)
                             }

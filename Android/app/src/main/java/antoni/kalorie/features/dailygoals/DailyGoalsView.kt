@@ -90,6 +90,8 @@ import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionGroup
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.GoalActivityLevel
@@ -155,8 +157,8 @@ fun DailyGoalsView(viewModel: DailyGoalsViewModel, onBack: () -> Unit) {
             )
         },
     ) { padding ->
-        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
-            LazySectionStack {
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(padding.excludingBottom()).consumeWindowInsets(padding.excludingBottom()).imePadding()) {
+            LazySectionStack(contentPadding = padding.bottomOnly()) {
                 item { BodyDataSection(viewModel) }
                 item { ActivitySection(viewModel) }
                 item { CurrentGoalSection(viewModel, kcalFocusRequester, kcalBringIntoView) }

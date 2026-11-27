@@ -53,6 +53,8 @@ import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionGroup
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.SectionStack
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.rememberFoodPhotoThumbnailState
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedGrams
@@ -162,8 +164,8 @@ fun FoodConsumedDetailView(viewModel: FoodConsumedDetailViewModel, onBack: () ->
                 )
             },
         ) { innerPadding ->
-            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding).consumeWindowInsets(innerPadding).imePadding()) {
-                SectionStack {
+            KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding.excludingBottom()).imePadding()) {
+                SectionStack(contentPadding = innerPadding.bottomOnly()) {
                     SectionCard {
                         Row(
                             modifier = Modifier.fillMaxWidth().heightIn(min = SectionRowMinHeight).padding(start = 16.dp, end = 6.dp),
