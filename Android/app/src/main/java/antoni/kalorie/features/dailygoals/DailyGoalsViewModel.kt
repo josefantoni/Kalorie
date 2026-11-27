@@ -80,6 +80,8 @@ class DailyGoalsViewModel(
     val estimate: StateFlow<GoalEstimate?> = _estimate
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving
+    private val _isKcalOutsideRangeAccepted = MutableStateFlow(false)
+    val isKcalOutsideRangeAccepted: StateFlow<Boolean> = _isKcalOutsideRangeAccepted
     private val _didFinish = MutableStateFlow(false)
     val didFinish: StateFlow<Boolean> = _didFinish
     private val _rejectedMacroMode = MutableStateFlow<GoalMacroMode?>(null)
@@ -93,6 +95,7 @@ class DailyGoalsViewModel(
     val isWeightPickerVisible = MutableStateFlow(false)
     val isBirthYearPickerVisible = MutableStateFlow(false)
     val isHeightPickerVisible = MutableStateFlow(false)
+    val isSaveConfirmationVisible = MutableStateFlow(false)
     val isEndConfirmationVisible = MutableStateFlow(false)
     val alertItem = MutableStateFlow<AlertItem?>(null)
 
@@ -104,6 +107,7 @@ class DailyGoalsViewModel(
     private var gramsSplitAnchor: List<Double>? = null
     private var initialInputs: Inputs? = null
     private var isConvertingMacros = false
+    private var hasPendingKcalRescale = false
     private var isWeightDefaulted = false
 
     // MARK: - Init
@@ -142,7 +146,7 @@ class DailyGoalsViewModel(
             _kcalText.value = referenceKcalText(isMale = (profile?.sex ?: GoalSex.MALE) == GoalSex.MALE)
         }
         updateEstimate()
-        matchingVariantIndex?.let { _selectedVariantIndex.value = it.toDouble() }
+        syncSelectedVariant()
         initialInputs = inputs
     }
 
@@ -164,7 +168,6 @@ class DailyGoalsViewModel(
     private enum class MacroModeSwitchBlock {
         INCOMPLETE_MACROS,
         MISSING_KCAL,
-        PERCENT_SUM_NOT_100,
     }
 
     // MARK: - Computed
@@ -182,6 +185,16 @@ class DailyGoalsViewModel(
             weightKilograms = _weightKilograms.value,
             activityLevel = _activityLevel.value,
         )
+
+    private val inputsAfterPendingRescale: Inputs
+        get() {
+            val current = inputs
+            if (!hasPendingKcalRescale || _macroMode.value != GoalMacroMode.GRAMS) return current
+            val kcal = kcal ?: return current
+            val shares = gramsSplitAnchor ?: currentGramsShares() ?: return current
+            val (protein, carbs, fat) = gramsTexts(kcal, shares)
+            return current.copy(proteinText = protein, carbsText = carbs, fatText = fat)
+        }
 
     val kcal: Double? get() = parse(_kcalText.value)
 
@@ -244,6 +257,30 @@ class DailyGoalsViewModel(
     val selectedVariant: GoalVariant?
         get() = matchingVariantIndex?.let { _estimate.value?.variants?.get(it) }
 
+    val variantSliderPosition: Double
+        get() {
+            val kcals = _estimate.value?.variants?.map { it.kcal.toDouble() } ?: return _selectedVariantIndex.value
+            val goal = kcal ?: return _selectedVariantIndex.value
+            matchingVariantIndex?.let { return it.toDouble() }
+            val upper = kcals.indexOfFirst { it > goal }
+            if (upper < 0) return (kcals.size - 1).toDouble()
+            if (upper == 0) return 0.0
+            return upper - 1 + (goal - kcals[upper - 1]) / (kcals[upper] - kcals[upper - 1])
+        }
+
+    val kcalRangeOfVariants: IntRange?
+        get() {
+            val variants = _estimate.value?.variants ?: return null
+            return variants.first().kcal..variants.last().kcal
+        }
+
+    val kcalRangeExceededByGoal: IntRange?
+        get() {
+            val range = kcalRangeOfVariants ?: return null
+            val goal = kcal?.takeIf { it in SaveDailyGoalUseCase.KCAL_RANGE } ?: return null
+            return range.takeIf { goal < it.first || goal > it.last }
+        }
+
     val kcalPlaceholder: String
         get() = when (_sex.value) {
             GoalSex.MALE -> referenceKcalText(isMale = true)
@@ -260,12 +297,14 @@ class DailyGoalsViewModel(
             }
             if (_isSaving.value) return false
             val kcal = kcal ?: return false
-            val protein = protein ?: return false
-            val carbs = carbs ?: return false
-            val fat = fat ?: return false
+            val pending = inputsAfterPendingRescale
+            val protein = parse(pending.proteinText) ?: return false
+            val carbs = parse(pending.carbsText) ?: return false
+            val fat = parse(pending.fatText) ?: return false
             if (kcal !in SaveDailyGoalUseCase.KCAL_RANGE) return false
             if (protein !in macroRange || carbs !in macroRange || fat !in macroRange) return false
-            return !isPercentSumInvalid && inputs != initialInputs
+            val isKcalAllowed = kcalRangeExceededByGoal == null || _isKcalOutsideRangeAccepted.value
+            return !isPercentSumInvalid && isKcalAllowed && pending != initialInputs
         }
 
     @get:StringRes
@@ -275,7 +314,6 @@ class DailyGoalsViewModel(
             return when (macroModeSwitchBlock(rejected) ?: return null) {
                 MacroModeSwitchBlock.INCOMPLETE_MACROS -> R.string.goals_hint_macroModeIncomplete
                 MacroModeSwitchBlock.MISSING_KCAL -> R.string.goals_hint_macroModeNeedsKcal
-                MacroModeSwitchBlock.PERCENT_SUM_NOT_100 -> R.string.goals_hint_macroModeSumNot100
             }
         }
 
@@ -308,6 +346,13 @@ class DailyGoalsViewModel(
 
     fun onKcalTextChanged(text: String) = setKcalText(text)
 
+    fun onKcalEditingEnded() {
+        if (!hasPendingKcalRescale) return
+        hasPendingKcalRescale = false
+        if (_macroMode.value != GoalMacroMode.GRAMS) return
+        rescaleGrams(kcal ?: return)
+    }
+
     fun onProteinTextChanged(text: String) = setProteinText(text)
 
     fun onCarbsTextChanged(text: String) = setCarbsText(text)
@@ -316,7 +361,7 @@ class DailyGoalsViewModel(
 
     fun onSexChanged(newValue: GoalSex?) {
         val oldValue = _sex.value
-        if (newValue != oldValue) matchingVariantIndex?.let { _selectedVariantIndex.value = it.toDouble() }
+        if (newValue != oldValue) syncSelectedVariant()
         _sex.value = newValue
         if (newValue == oldValue) return
         updateEstimate()
@@ -335,7 +380,7 @@ class DailyGoalsViewModel(
 
     fun onActivityLevelChanged(newValue: GoalActivityLevel?) {
         val oldValue = _activityLevel.value
-        if (newValue != oldValue) matchingVariantIndex?.let { _selectedVariantIndex.value = it.toDouble() }
+        if (newValue != oldValue) syncSelectedVariant()
         _activityLevel.value = newValue
         if (newValue == oldValue) return
         updateEstimate()
@@ -344,6 +389,7 @@ class DailyGoalsViewModel(
 
     fun onMacroModeChanged(mode: GoalMacroMode) {
         if (mode == _macroMode.value) return
+        onKcalEditingEnded()
         val block = macroModeSwitchBlock(mode)
         if (block != null) {
             _rejectedMacroMode.value = mode
@@ -354,16 +400,25 @@ class DailyGoalsViewModel(
         _rejectedMacroMode.value = null
         rejectedMacroModeBlock = null
         gramsSplitAnchor = null
+        val isKcalFollowingGrams = mode == GoalMacroMode.GRAMS && isPercentSumInvalid
         isConvertingMacros = true
         try {
             convertMacros(mode)
+            if (isKcalFollowingGrams) followKcalOfConvertedGrams()
         } finally {
             _macroMode.value = mode
             isConvertingMacros = false
         }
     }
 
+    private fun followKcalOfConvertedGrams() {
+        val grams = GoalMacroGrams(protein = protein ?: return, carbs = carbs ?: return, fat = fat ?: return)
+        val gramsKcal = rounded(grams.kcal)
+        if (gramsKcal > 0) setKcalText(format(gramsKcal))
+    }
+
     fun onStep(macro: GoalMacro, direction: Int) {
+        onKcalEditingEnded()
         val isPercent = _macroMode.value == GoalMacroMode.PERCENT
         val step = if (isPercent) PERCENT_STEP else GRAMS_STEP
         val upper = if (isPercent) PERCENT_TOTAL else MAX_GRAMS
@@ -409,21 +464,37 @@ class DailyGoalsViewModel(
         _isActivityCollapsed.value = !_isActivityCollapsed.value
     }
 
+    fun onKcalOutsideRangeAcceptanceToggled() {
+        _isKcalOutsideRangeAccepted.value = !_isKcalOutsideRangeAccepted.value
+    }
+
     fun onVariantSliderReleased() {
         if (matchingVariantIndex != null) return
-        onVariantSelected(_selectedVariantIndex.value.toInt())
+        onVariantSelected(Math.round(variantSliderPosition).toInt())
+    }
+
+    fun onVariantStep(direction: Int) {
+        val kcals = _estimate.value?.variants?.map { it.kcal.toDouble() } ?: return
+        val kcal = kcal ?: return onVariantSliderMoved(_selectedVariantIndex.value.toInt() + direction)
+        val index = if (direction > 0) kcals.indexOfFirst { it > kcal } else kcals.indexOfLast { it < kcal }
+        if (index >= 0) onVariantSliderMoved(index)
+    }
+
+    fun onVariantSliderMoved(index: Int) {
+        onVariantSelected(index)
+        rebalanceInvalidPercentSplit()
     }
 
     fun onVariantSelected(index: Int) {
         val variants = _estimate.value?.variants ?: return
         if (index !in variants.indices) return
         _selectedVariantIndex.value = index.toDouble()
-        val variantKcal = variants[index].kcal.toDouble()
-        if (_macroMode.value == GoalMacroMode.GRAMS) rescaleGrams(variantKcal)
-        setKcalText(format(variantKcal))
+        setKcalText(format(variants[index].kcal.toDouble()))
+        onKcalEditingEnded()
     }
 
     suspend fun onSaveTapped() {
+        onKcalEditingEnded()
         if (!canSave) return
         val kcal = kcal ?: return
         val protein = protein ?: return
@@ -459,8 +530,13 @@ class DailyGoalsViewModel(
     // MARK: - Private
 
     private fun setKcalText(text: String) {
+        val oldValue = _kcalText.value
         _kcalText.value = text
-        matchingVariantIndex?.let { _selectedVariantIndex.value = it.toDouble() }
+        syncSelectedVariant()
+        if (text != oldValue) {
+            _isKcalOutsideRangeAccepted.value = false
+            if (!isConvertingMacros) hasPendingKcalRescale = true
+        }
         clearResolvedMacroModeRejection()
     }
 
@@ -484,8 +560,14 @@ class DailyGoalsViewModel(
         updateEstimate()
     }
 
+    private fun syncSelectedVariant() {
+        if (_estimate.value == null || kcal == null) return
+        _selectedVariantIndex.value = Math.round(variantSliderPosition).toDouble()
+    }
+
     private fun updateEstimate() {
         val hadEstimate = _estimate.value != null
+        val previousRange = kcalRangeOfVariants
         _estimate.value = GoalEstimate.make(
             sex = _sex.value,
             birthYear = _birthYear.value,
@@ -494,6 +576,7 @@ class DailyGoalsViewModel(
             activityLevel = _activityLevel.value,
             currentYear = currentYear,
         )
+        if (kcalRangeOfVariants != previousRange) _isKcalOutsideRangeAccepted.value = false
         if (!hadEstimate && _estimate.value != null && !hasActiveGoal && isKcalUntouchedPrefill) {
             onVariantSelected(_selectedVariantIndex.value.toInt())
         }
@@ -522,7 +605,12 @@ class DailyGoalsViewModel(
     private fun syncKcalWithGrams() {
         if (_macroMode.value != GoalMacroMode.GRAMS || isConvertingMacros) return
         val grams = kcalOfEnteredGrams ?: return
-        setKcalText(format(rounded(grams)))
+        isConvertingMacros = true
+        try {
+            setKcalText(format(rounded(grams)))
+        } finally {
+            isConvertingMacros = false
+        }
     }
 
     private fun currentGramsShares(): List<Double>? {
@@ -535,12 +623,39 @@ class DailyGoalsViewModel(
         gramsSplitAnchor = shares
         isConvertingMacros = true
         try {
-            setProteinText(format(rounded(gramsFromKcal(kcal, shares[0], isFat = false))))
-            setCarbsText(format(rounded(gramsFromKcal(kcal, shares[1], isFat = false))))
-            setFatText(format(rounded(gramsFromKcal(kcal, shares[2], isFat = true))))
+            val (protein, carbs, fat) = gramsTexts(kcal, shares)
+            setProteinText(protein)
+            setCarbsText(carbs)
+            setFatText(fat)
         } finally {
             isConvertingMacros = false
         }
+    }
+
+    private fun gramsTexts(kcal: Double, shares: List<Double>): Triple<String, String, String> = Triple(
+        format(rounded(gramsFromKcal(kcal, shares[0], isFat = false))),
+        format(rounded(gramsFromKcal(kcal, shares[1], isFat = false))),
+        format(rounded(gramsFromKcal(kcal, shares[2], isFat = true))),
+    )
+
+    private fun rebalanceInvalidPercentSplit() {
+        if (!isPercentSumInvalid) return
+        val entered = listOfNotNull(protein, carbs, fat).filter { it.isFinite() && it >= 0 }
+        val sum = entered.sum()
+        if (entered.size != MACRO_COUNT || sum <= 0) {
+            setProteinText(DEFAULT_PROTEIN_PERCENT)
+            setCarbsText(DEFAULT_CARBS_PERCENT)
+            setFatText(DEFAULT_FAT_PERCENT)
+            return
+        }
+        applyRoundedPercentSplit(entered.map { it / sum * PERCENT_TOTAL })
+    }
+
+    private fun applyRoundedPercentSplit(shares: List<Double>) {
+        val roundedShares = roundedToHundred(shares)
+        setProteinText(format(roundedShares[0]))
+        setCarbsText(format(roundedShares[1]))
+        setFatText(format(roundedShares[2]))
     }
 
     private fun applyEstimateOrReferenceKcal() {
@@ -549,10 +664,8 @@ class DailyGoalsViewModel(
 
     private fun applyReferenceKcal() {
         val sex = _sex.value ?: return
-        val reference = referenceKcalText(isMale = sex == GoalSex.MALE)
-        val referenceValue = parse(reference)
-        if (_macroMode.value == GoalMacroMode.GRAMS && referenceValue != null) rescaleGrams(referenceValue)
-        setKcalText(reference)
+        setKcalText(referenceKcalText(isMale = sex == GoalSex.MALE))
+        onKcalEditingEnded()
     }
 
     private fun convertMacros(mode: GoalMacroMode) {
@@ -569,10 +682,7 @@ class DailyGoalsViewModel(
             GoalMacroMode.PERCENT -> {
                 val shares = energyShares(protein, carbs, fat).map { it * PERCENT_TOTAL }
                 if (shares.sum() <= 0) return
-                val roundedShares = roundedToHundred(shares)
-                setProteinText(format(roundedShares[0]))
-                setCarbsText(format(roundedShares[1]))
-                setFatText(format(roundedShares[2]))
+                applyRoundedPercentSplit(shares)
             }
         }
     }
@@ -613,9 +723,6 @@ class DailyGoalsViewModel(
         val filledMacros = listOfNotNull(protein, carbs, fat).count { it.isFinite() && it >= 0 }
         if (filledMacros != 0 && filledMacros != MACRO_COUNT) return MacroModeSwitchBlock.INCOMPLETE_MACROS
         if (mode == GoalMacroMode.GRAMS && kcal == null && filledMacros == MACRO_COUNT) return MacroModeSwitchBlock.MISSING_KCAL
-        if (mode == GoalMacroMode.GRAMS && _macroMode.value == GoalMacroMode.PERCENT && filledMacros == MACRO_COUNT && isPercentSumInvalid) {
-            return MacroModeSwitchBlock.PERCENT_SUM_NOT_100
-        }
         return null
     }
 
