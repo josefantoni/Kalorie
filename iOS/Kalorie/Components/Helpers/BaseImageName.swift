@@ -30,6 +30,8 @@ enum BaseImageName: String {
     case gearshape = "gearshape"
     case listBulletRectanglePortrait = "list.bullet.rectangle.portrait"
     case checkmark = "checkmark"
+    case checkboxEmpty = "square"
+    case checkboxChecked = "checkmark.square.fill"
     case wineglass = "wineglass"
     case cameraFill = "camera.fill"
     case clock = "clock"

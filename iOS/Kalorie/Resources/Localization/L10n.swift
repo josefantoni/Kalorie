@@ -420,10 +420,12 @@ enum L10n {
         static var fieldBirthYear: String { String(localized: "goals_field_birthYear") }
         static var fieldHeight: String { String(localized: "goals_field_height") }
         static var fieldWeight: String { String(localized: "goals_field_weight") }
-        static var errorPercentSum: String { String(localized: "goals_error_percentSum") }
+        static var errorPercentSum: AttributedString {
+            let text = String(format: String(localized: "goals_error_percentSum"))
+            return (try? AttributedString(markdown: text)) ?? AttributedString(text)
+        }
         static var hintMacroModeIncomplete: String { String(localized: "goals_hint_macroModeIncomplete") }
         static var hintMacroModeNeedsKcal: String { String(localized: "goals_hint_macroModeNeedsKcal") }
-        static var hintMacroModeSumNot100: String { String(localized: "goals_hint_macroModeSumNot100") }
         static var activitySedentary: String { String(localized: "goals_activity_sedentary") }
         static var activityLight: String { String(localized: "goals_activity_light") }
         static var activityModerate: String { String(localized: "goals_activity_moderate") }
@@ -446,12 +448,19 @@ enum L10n {
         static var variantRaised: String { String(localized: "goals_variant_raised") }
         static var buttonSave: String { String(localized: "goals_button_save") }
         static var buttonEnd: String { String(localized: "goals_button_end") }
+        static var saveTitle: String { String(localized: "goals_save_title") }
+        static var saveMessage: String { String(localized: "goals_save_message") }
         static var endTitle: String { String(localized: "goals_end_title") }
         static var endMessage: String { String(localized: "goals_end_message") }
         static var errorSaveFailed: String { String(localized: "goals_error_saveFailed") }
         static func macroPercentOfGoal(_ value: String) -> String {
             String(format: String(localized: "goals_macro_percentOfGoal"), value)
         }
+        static func errorKcalOutsideVariants(_ lower: String, _ upper: String) -> String {
+            String(format: String(localized: "goals_error_kcalOutsideVariants"), lower, upper)
+        }
+        static var kcalOutsideVariantsAdvice: String { String(localized: "goals_kcalOutsideVariants_advice") }
+        static var kcalOutsideVariantsAccept: String { String(localized: "goals_kcalOutsideVariants_accept") }
         static func gramsKcal(_ value: String) -> String {
             String(format: String(localized: "goals_gramsKcal"), value)
         }
