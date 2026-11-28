@@ -27,12 +27,17 @@ private struct KeyboardDoneBar: ViewModifier {
                     HStack {
                         Spacer()
                         Button {
-                            UIApplication.shared.sendAction(
-                                #selector(UIResponder.resignFirstResponder),
-                                to: nil,
-                                from: nil,
-                                for: nil
-                            )
+                            // Resigning inside the glass button's action animates the keyboard's safe-area
+                            // change with the button's bouncy press spring: the list frame overshoots and
+                            // briefly hides rows at the bottom edge. Deferring it keeps the keyboard curve.
+                            DispatchQueue.main.async {
+                                UIApplication.shared.sendAction(
+                                    #selector(UIResponder.resignFirstResponder),
+                                    to: nil,
+                                    from: nil,
+                                    for: nil
+                                )
+                            }
                         } label: {
                             Text(L10n.Common.buttonDone)
                                 .padding(.all, 4)
