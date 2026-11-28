@@ -108,7 +108,7 @@ struct AccountView: View {
                     }
                 }
             }
-            .listSectionSpacing(.custom(24))
+            .appSectionSpacing()
             .bottomPinnedButtons(isVisible: !viewModel.isAnonymous) {
                 PrimaryButton(L10n.Account.buttonDeleteAccount, style: .destructive) {
                     viewModel.showDeleteConfirmation = true

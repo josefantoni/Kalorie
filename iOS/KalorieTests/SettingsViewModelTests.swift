@@ -152,6 +152,17 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertTrue(sut.isAddFormVisible)
     }
 
+    func test_onCancelAddForm_hidesFormAndDiscardsTypedName() {
+        let sut = makeSUT(mealTypes: [])
+        sut.onShowAddForm()
+        sut.newMealName = "Snack"
+
+        sut.onCancelAddForm()
+
+        XCTAssertFalse(sut.isAddFormVisible)
+        XCTAssertEqual(sut.newMealName, "")
+    }
+
     @MainActor
     func test_onAppear_whenMaintainerClaimIsTrue_setsIsMaintainer() async {
         let sut = makeSUT(fetchMaintainerClaim: FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer: true))

@@ -25,7 +25,7 @@ struct ModerationCatalogueEditorView: View {
     var body: some View {
         List {
             if let ticket = viewModel.ticket {
-                Section(L10n.Moderation.reportsTitle) {
+                Section(header: Text(L10n.Moderation.reportsTitle).appFirstSectionHeader()) {
                     Text(ticket.reason)
                         .fontWeight(.medium)
                 }
@@ -62,6 +62,7 @@ struct ModerationCatalogueEditorView: View {
                 rejectButtonSection
             }
         }
+        .appSectionSpacing()
         .navigationTitle(L10n.Moderation.editorTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -128,7 +129,6 @@ struct ModerationCatalogueEditorView: View {
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
         }
-        .listSectionSpacing(.custom(8))
     }
 }
 

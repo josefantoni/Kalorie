@@ -28,13 +28,14 @@ struct FoodItemFormSections: View {
     var showsAlcoholByVolumeField = false
     var nameFields: FoodItemFormNameFields = .single
     var onNutritionLabelScanTapped: (() -> Void)?
+    var startsList = false
     var onFieldEdited: (FoodItemFormField) -> Void = { _ in }
 
     // MARK: - Body
 
     var body: some View {
         Group {
-            FoodPortionsSection(portions: $formInput.portions, measure: formInput.measure)
+            FoodPortionsSection(portions: $formInput.portions, measure: formInput.measure, startsList: startsList)
             
             Section {
                 switch nameFields {
@@ -72,7 +73,7 @@ struct FoodItemFormSections: View {
                 barcodeRowView
                     .listRowInsets(.vertical, 0)
             }
-            .listSectionSpacing(.custom(20))
+            .appSectionSpacing()
             Section {
                 FoodPhotoPicker(photo: $formInput.photo, isMissing: highlightedFields.contains(.photo)) {
                     onFieldEdited(.photo)
@@ -80,7 +81,6 @@ struct FoodItemFormSections: View {
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
             }
-            .listSectionSpacing(.custom(20))
             Section {
                 nutritionLabelScanButton
                 FoodItemFormFields(
@@ -90,7 +90,6 @@ struct FoodItemFormSections: View {
                     onFieldEdited: onFieldEdited
                 )
             }
-            .listSectionSpacing(.custom(20))
         }
     }
 

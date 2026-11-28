@@ -34,7 +34,7 @@ struct ModerationPhotoSuggestionView: View {
                     .fontWeight(.medium)
             }
         }
-        .listSectionSpacing(.custom(24))
+        .appSectionSpacing()
         .bottomPinnedButtons {
             VStack(spacing: 12) {
                 if viewModel.canApprove {

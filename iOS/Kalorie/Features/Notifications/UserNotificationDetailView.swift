@@ -49,12 +49,12 @@ struct UserNotificationDetailView: View {
                     .foregroundStyle(.secondary)
             }
             if let reason = notification.reason {
-                Section(L10n.Notifications.userReasonTitle) {
+                Section(header: Text(L10n.Notifications.userReasonTitle)) {
                     Text(reason)
                 }
             }
             if notification.status != .pending, let response = notification.response {
-                Section(L10n.Notifications.userResponseTitle) {
+                Section(header: Text(L10n.Notifications.userResponseTitle)) {
                     Text(response)
                     if let resolvedAt = notification.resolvedAt {
                         Text(L10n.Notifications.userResolvedAt(resolvedAt.formatted(date: .abbreviated, time: .shortened)))
@@ -64,6 +64,7 @@ struct UserNotificationDetailView: View {
                 }
             }
         }
+        .appSectionSpacing()
         .bottomPinnedButtons(isVisible: notification.status == .pending) {
             PrimaryButton(L10n.Notifications.userWithdrawButton, style: .destructive) {
                 isWithdrawConfirmationVisible = true
@@ -71,7 +72,6 @@ struct UserNotificationDetailView: View {
             .disabled(isWithdrawing)
         }
         .scrollContentBackground(.hidden)
-        .contentMargins(.top, 0, for: .scrollContent)
         .background(Color(.systemGroupedBackground))
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)

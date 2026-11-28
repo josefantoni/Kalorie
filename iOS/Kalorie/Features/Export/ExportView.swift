@@ -35,6 +35,7 @@ struct ExportView: View {
                 .pickerStyle(.segmented)
             }
         }
+        .appSectionSpacing()
         .bottomPinnedButtons {
             PrimaryButton(L10n.Export.buttonExport) {
                 Task { await viewModel.onExportTapped() }

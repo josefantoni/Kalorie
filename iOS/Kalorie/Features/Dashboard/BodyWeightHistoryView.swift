@@ -66,7 +66,8 @@ struct BodyWeightHistoryView: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
-        .padding()
+        .padding([.horizontal, .bottom])
+        .padding(.top, Constants.Layout.topContentSpacing)
     }
 
     private var chartSection: some View {
@@ -134,7 +135,8 @@ struct BodyWeightHistoryView: View {
         .padding(24)
         .frame(maxWidth: .infinity)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
-        .padding()
+        .padding([.horizontal, .bottom])
+        .padding(.top, Constants.Layout.topContentSpacing)
     }
 
     private var emptyState: some View {
@@ -149,7 +151,8 @@ struct BodyWeightHistoryView: View {
         .padding(24)
         .frame(maxWidth: .infinity)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
-        .padding()
+        .padding([.horizontal, .bottom])
+        .padding(.top, Constants.Layout.topContentSpacing)
     }
 
     // MARK: - Functions

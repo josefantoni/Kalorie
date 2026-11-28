@@ -50,6 +50,7 @@ struct DailyGoalsView: View {
                 endGoalSection
             }
         }
+        .appSectionSpacing()
         .environment(\.defaultMinListRowHeight, 56)
         .navigationTitle(L10n.Goals.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
@@ -161,6 +162,7 @@ struct DailyGoalsView: View {
                 isCollapsed: viewModel.isBodyDataCollapsed,
                 action: viewModel.onBodyDataToggled
             )
+            .appFirstSectionHeader()
         }
     }
 
@@ -318,9 +320,7 @@ struct DailyGoalsView: View {
         isCollapsed: Bool,
         action: @escaping () -> Void
     ) -> some View {
-        HStack {
-            Text(title)
-            Spacer()
+        ButtonSectionHeader(title: title) {
             if isCollapsible {
                 BadgeButton(
                     imageName: .chevronDown,

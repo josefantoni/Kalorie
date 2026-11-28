@@ -235,6 +235,11 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
+    func onCancelAddForm() {
+        isAddFormVisible = false
+        newMealName = ""
+    }
+
     func onShowAddForm() {
         guard
             let latestEndMinutes = mealTypes.map({ $0.endMinutes }).max(),

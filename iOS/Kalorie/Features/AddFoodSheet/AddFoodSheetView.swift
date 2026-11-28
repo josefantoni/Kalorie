@@ -47,8 +47,8 @@ struct AddFoodSheetView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 16)
+                .padding(.top, Constants.Layout.topContentSpacing)
+                .padding(.bottom, Constants.Layout.hintCardSpacing - Constants.Layout.topContentSpacing)
 
                 switch viewModel.mode {
                 case .search:
@@ -217,7 +217,7 @@ struct AddFoodSheetView: View {
                     .listRowInsets(EdgeInsets())
                 }
                 .listRowBackground(Color.clear)
-                .listSectionSpacing(.custom(16))
+                .hintCardSectionSpacing()
             }
             if viewModel.searchText.isEmpty && !viewModel.favouriteFoods.isEmpty {
                 Section(header: Text(L10n.AddFood.sectionFavourites)) {
@@ -291,7 +291,7 @@ struct AddFoodSheetView: View {
                 }
             }
         }
-        .contentMargins(.top, 0, for: .scrollContent)
+        .appSectionSpacing()
         .overlay {
             if viewModel.isExternalSearchLoading {
                 LoaderIndicator()
@@ -402,6 +402,7 @@ struct AddFoodSheetView: View {
                         viewModel.alertItem = AlertItem(title: L10n.AddFood.cameraPermissionAlert)
                     }
                 },
+                startsList: viewModel.rejectionReasonBeingEdited == nil,
                 // Unlabeled trailing closure would be matched backward past the omitted onNutritionLabelScanTapped.
                 // swiftlint:disable:next trailing_closure
                 onFieldEdited: { field in
@@ -409,7 +410,7 @@ struct AddFoodSheetView: View {
                 }
             )
         }
-        .contentMargins(.top, 0, for: .scrollContent)
+        .appSectionSpacing()
         .keyboardDoneToolbar()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

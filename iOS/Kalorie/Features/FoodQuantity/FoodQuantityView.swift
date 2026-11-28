@@ -61,9 +61,7 @@ struct FoodQuantityView: View {
                 macroRow(label: L10n.FoodQuantity.fiber, value: viewModel.scaledFiber.formattedGrams())
                 macroRow(label: L10n.AddFood.fieldSalt, value: viewModel.scaledSalt.formattedGrams(fractionDigits: 2))
             } header: {
-                HStack {
-                    Text(L10n.FoodQuantity.sectionNutrition)
-                    Spacer()
+                ButtonSectionHeader(title: L10n.FoodQuantity.sectionNutrition) {
                     if viewModel.isAlcoholicDrink {
                         AlcoholicDrinkHintView(
                             formattedAlcoholByVolume: viewModel.formattedAlcoholByVolume,
@@ -86,6 +84,7 @@ struct FoodQuantityView: View {
                 }
             }
         }
+        .appSectionSpacing()
         .alert(L10n.MyCreatedMeal.confirmDelete, isPresented: $isDeleteConfirmationVisible) {
             Button(L10n.Common.buttonCancel, role: .cancel) {}
             Button(L10n.MyCreatedMeal.buttonDelete, role: .destructive) {
