@@ -9,6 +9,11 @@ import Foundation
 
 enum Constants {
 
+    enum Layout {
+        static let topContentSpacing: CGFloat = 8
+        static let hintCardSpacing: CGFloat = 16
+    }
+
     enum Time {
         static let secondsPerDay: TimeInterval = 24 * 60 * 60
     }

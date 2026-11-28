@@ -135,7 +135,7 @@ struct DashboardView: View {
                     onTapSelectedDay: { viewModel.showCalendarSheet = true }
                 )
                 .padding(.horizontal)
-                .padding(.top, 8)
+                .padding(.top, Constants.Layout.topContentSpacing)
             }
             .contentMargins(.bottom, isAddFoodButtonVisible ? addFoodReservedHeight : 0, for: .scrollContent)
             .loader(viewModel.state.isLoading)

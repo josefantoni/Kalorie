@@ -43,6 +43,7 @@ struct ModerationPhotoSuggestionsView: View {
                 }
             }
         }
+        .appSectionSpacing()
         .navigationTitle(L10n.Moderation.photosTitle)
         .navigationBarTitleDisplayMode(.inline)
         .loader(viewModel.state.isLoading)

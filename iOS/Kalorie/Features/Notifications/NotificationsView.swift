@@ -53,6 +53,7 @@ struct NotificationsView: View {
                     }
                 }
             }
+            .appSectionSpacing()
             .scrollContentBackground(.hidden)
             .background(Color(.systemGroupedBackground))
             .overlay {

@@ -36,21 +36,24 @@ struct SettingsView: View {
             VStack(spacing: 0) {
                 List {
                     Section(
-                        header: HStack {
-                            Text(L10n.Settings.sectionMealLayout)
-                            Spacer()
-                            Button {
-                                if editMode == .active {
+                        header: ButtonSectionHeader(title: L10n.Settings.sectionMealLayout) {
+                            BadgeButton(
+                                imageName: headerButton.imageName,
+                                size: 28,
+                                accessibilityLabel: headerButton.accessibilityLabel
+                            ) {
+                                if editMode == .inactive {
+                                    withAnimation { editMode = .active }
+                                } else if viewModel.isAddFormVisible {
+                                    focusedField = nil
+                                    withAnimation { viewModel.onCancelAddForm() }
+                                } else {
                                     withAnimation { editMode = .inactive }
                                     Task { await viewModel.onSaveReorder() }
-                                } else {
-                                    withAnimation { editMode = .active }
                                 }
-                            } label: {
-                                Text(editMode == .active ? L10n.Settings.buttonEditDone : L10n.Settings.buttonEdit)
                             }
-                            .buttonStyle(.glass)
-                        },
+                        }
+                        .appFirstSectionHeader(),
                         footer: Group {
                             if editMode == .active && !viewModel.isAddFormVisible {
                                 BadgeButton(imageName: .plus) {
@@ -241,6 +244,7 @@ struct SettingsView: View {
                         }
                     }
                 }
+                .appSectionSpacing()
                 .environment(\.editMode, $editMode)
                 .scrollRowIntoView(Self.newMealTimesRowID, when: focusedField != nil)
                 .bottomPinnedButtons(isVisible: editMode == .active && viewModel.isAddFormVisible) {
@@ -290,6 +294,16 @@ struct SettingsView: View {
 
     // MARK: - Functions
 
+    private var headerButton: (imageName: BaseImageName, accessibilityLabel: String) {
+        if editMode == .inactive {
+            (.pencil, L10n.Settings.buttonEdit)
+        } else if viewModel.isAddFormVisible {
+            (.close, L10n.Common.buttonCancel)
+        } else {
+            (.checkmark, L10n.Settings.buttonEditDone)
+        }
+    }
+
     private var newMealFormSection: some View {
         Section {
             FloatingLabelTextField(
@@ -322,7 +336,6 @@ struct SettingsView: View {
             .listRowInsets(.vertical, 0)
             .id(Self.newMealTimesRowID)
         }
-        .listSectionSpacing(.custom(20))
     }
 
     private static var newMealTimesRowID: String { "newMealTimes" }

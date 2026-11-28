@@ -49,6 +49,7 @@ struct ModerationReportsView: View {
                 }
             }
         }
+        .appSectionSpacing()
         .navigationTitle(L10n.Moderation.reportsTitle)
         .navigationBarTitleDisplayMode(.inline)
         .loader(viewModel.state.isLoading)

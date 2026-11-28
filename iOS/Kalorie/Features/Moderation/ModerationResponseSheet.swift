@@ -36,6 +36,7 @@ struct ModerationResponseSheet: View {
                         .lineLimit(4...10)
                 }
             }
+            .appSectionSpacing()
             .bottomPinnedButtons {
                 PrimaryButton(L10n.Moderation.responseSend, action: onSend)
                     .disabled(!draft.isSendable || isSending)

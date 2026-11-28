@@ -44,6 +44,7 @@ struct SupportView: View {
                 }
             }
         }
+        .appSectionSpacing()
         .navigationTitle(L10n.Settings.buttonSupport)
         .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.onAppear() }

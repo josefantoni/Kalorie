@@ -113,9 +113,7 @@ struct FoodConsumedDetailView: View {
                     Text(macros.salt.formattedGrams(fractionDigits: 2))
                 }
             } header: {
-                HStack {
-                    Text(L10n.FoodQuantity.sectionNutrition)
-                    Spacer()
+                ButtonSectionHeader(title: L10n.FoodQuantity.sectionNutrition) {
                     if viewModel.isAlcoholicDrink {
                         AlcoholicDrinkHintView(
                             formattedAlcoholByVolume: viewModel.formattedAlcoholByVolume,
@@ -128,6 +126,7 @@ struct FoodConsumedDetailView: View {
                 .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxX } action: { nutritionHeaderMaxX = $0 }
             }
         }
+        .appSectionSpacing()
         .foodPhotoPill(state: viewModel.photoPillState) { data in await viewModel.onPhotoSent(data) }
         .loader(viewModel.state.isLoading)
         .task { await viewModel.onAppear() }

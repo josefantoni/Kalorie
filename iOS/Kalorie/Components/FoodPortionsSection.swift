@@ -13,6 +13,7 @@ struct FoodPortionsSection: View {
 
     @Binding var portions: [FoodPortionDraft]
     var measure: FoodMeasure = .grams
+    var startsList = false
 
     @FocusState private var focusedPortionId: UUID?
 
@@ -20,7 +21,7 @@ struct FoodPortionsSection: View {
 
     var body: some View {
         Group {
-            Section(header: Text(L10n.FoodPortion.sectionTitle)) {
+            Section(header: Text(L10n.FoodPortion.sectionTitle).appFirstSectionHeader(startsList)) {
                 PortionDraftListView(
                     drafts: $portions,
                     measure: measure,

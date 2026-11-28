@@ -37,7 +37,7 @@ struct MyCreatedMealEditorView: View {
                     .listRowInsets(EdgeInsets())
                 }
                 .listRowBackground(Color.clear)
-                .listSectionSpacing(.custom(16))
+                .hintCardSectionSpacing()
             }
             Section {
                 FloatingLabelTextField(
@@ -101,7 +101,7 @@ struct MyCreatedMealEditorView: View {
 
             FoodPortionsSection(portions: $viewModel.portions)
         }
-        .contentMargins(.top, 0, for: .scrollContent)
+        .appSectionSpacing()
         .navigationTitle(viewModel.title)
         .navigationBarTitleDisplayMode(.inline)
         .keyboardDoneToolbar()

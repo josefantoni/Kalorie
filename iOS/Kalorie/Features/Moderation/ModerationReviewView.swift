@@ -38,7 +38,8 @@ struct ModerationReviewView: View {
                 nameFields: .allLanguages(originalLanguage: viewModel.formInput.nameLanguage),
                 onNutritionLabelScanTapped: {
                     Task { await viewModel.onNutritionLabelCameraTapped() }
-                }
+                },
+                startsList: viewModel.rejectReasonIfAny == nil
             ) { field in
                 viewModel.onFormFieldEdited(field)
             }
@@ -48,6 +49,7 @@ struct ModerationReviewView: View {
             approveButtonSection
             rejectButtonSection
         }
+        .appSectionSpacing()
         .task { await viewModel.onAppear() }
         .navigationTitle(viewModel.formInput.name)
         .navigationBarTitleDisplayMode(.inline)
@@ -103,7 +105,6 @@ struct ModerationReviewView: View {
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
         }
-        .listSectionSpacing(.custom(8))
     }
 
     @ViewBuilder private var similarCatalogueItemsSection: some View {

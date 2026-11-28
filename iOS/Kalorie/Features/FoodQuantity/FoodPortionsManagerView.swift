@@ -57,6 +57,7 @@ struct FoodPortionsManagerView: View {
 
             PortionDraftAddSection(drafts: $viewModel.portionDrafts, focusedField: $focusedField)
         }
+        .appSectionSpacing()
         .navigationTitle(L10n.MyPortions.title)
         .navigationBarTitleDisplayMode(.inline)
         .keyboardDoneToolbar()
