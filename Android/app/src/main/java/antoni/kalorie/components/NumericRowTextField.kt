@@ -30,6 +30,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+private val FIELD_MIN_HEIGHT = 36.dp
+private val FOCUSED_UNDERLINE = 2.dp
+private val UNFOCUSED_UNDERLINE = 1.dp
+
 @Composable
 fun NumericRowTextField(
     value: String,
@@ -93,7 +97,3 @@ fun NumericRowTextField(
         },
     )
 }
-
-private val FIELD_MIN_HEIGHT = 36.dp
-private val FOCUSED_UNDERLINE = 2.dp
-private val UNFOCUSED_UNDERLINE = 1.dp

@@ -143,6 +143,13 @@ It mirrors the iOS component of the same name. Never call `FilledIconButton` or
 - The same `// MARK: - Properties` / `// MARK: - Init` / `// MARK: - Body` / `// MARK: - Functions`
   headers as iOS, so paired files read alike. Kotlin has no `// MARK:` convention; use them
   anyway.
+- **Properties go first.** Every stored property of a type sits in `// MARK: - Properties` at the start of the
+  type, never between or after the `init` blocks and functions. A `companion object` stays at the end of its class,
+  as the Kotlin conventions say, and the rule applies inside it. Computed properties (a custom `get()`) are exempt.
+  The iOS rule is the same.
+- File-level `private val` / `private const val` go at the top of the file, right below the imports, never
+  between or after declarations. Private extension properties are declarations, not constants, and stay with
+  the code that uses them.
 - No comments beyond what the root `CLAUDE.md` allows.
 
 ## Testing

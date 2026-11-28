@@ -22,6 +22,15 @@ import java.time.ZoneId
 
 class CopyFoodsConsumedUseCaseTest {
 
+    // MARK: - Properties
+
+    private val zone: ZoneId = ZoneId.systemDefault()
+
+    private val mealTypes = listOf(
+        MealTypeDomain(id = "breakfast", name = "Breakfast", startMinutes = 7 * 60, endMinutes = 10 * 60),
+        MealTypeDomain(id = "lunch", name = "Lunch", startMinutes = 11 * 60, endMinutes = 14 * 60),
+    )
+
     // MARK: - Tests
 
     @Test
@@ -161,15 +170,8 @@ class CopyFoodsConsumedUseCaseTest {
 
     // MARK: - Helpers
 
-    private val zone: ZoneId = ZoneId.systemDefault()
-
     private val pastDay: Instant
         get() = Instant.now().atZone(zone).minusDays(3).toInstant()
-
-    private val mealTypes = listOf(
-        MealTypeDomain(id = "breakfast", name = "Breakfast", startMinutes = 7 * 60, endMinutes = 10 * 60),
-        MealTypeDomain(id = "lunch", name = "Lunch", startMinutes = 11 * 60, endMinutes = 14 * 60),
-    )
 
     private fun instantToday(hour: Int, minute: Int = 0, second: Int = 0): Instant = LocalDate.now(zone).atTime(hour, minute, second).atZone(zone).toInstant()
 

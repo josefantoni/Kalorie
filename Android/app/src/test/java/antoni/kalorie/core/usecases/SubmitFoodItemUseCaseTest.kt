@@ -21,6 +21,10 @@ import java.time.Instant
 
 class SubmitFoodItemUseCaseTest {
 
+    // MARK: - Properties
+
+    private val localPhoto = FoodItemFormPhoto.Local(byteArrayOf(1, 2, 3))
+
     // MARK: - Tests
 
     @Test
@@ -171,8 +175,6 @@ class SubmitFoodItemUseCaseTest {
     }
 
     // MARK: - Helpers
-
-    private val localPhoto = FoodItemFormPhoto.Local(byteArrayOf(1, 2, 3))
 
     private fun makeSUT(userId: String? = "test-user"): Triple<SubmitFoodItemUseCase, FirestoreDataProviderFake, StorageDataProviderFake> {
         val dataProvider = FirestoreDataProviderFake()

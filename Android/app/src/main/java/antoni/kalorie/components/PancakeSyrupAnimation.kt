@@ -38,6 +38,150 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 private const val LOOP_SECONDS = 9.0
+private val FADE = track(doubleArrayOf(0.0, 7.5, 8.4, 9.0), doubleArrayOf(1.0, 1.0, 0.0, 0.0))
+
+private val PLATE_X = track(
+    doubleArrayOf(0.0, 0.6, 9.0),
+    doubleArrayOf(420.0, 0.0, 0.0),
+    listOf(Spline(0.2, 0.7, 0.2, 1.0), Spline.Linear),
+)
+
+private val DROP_BOTTOM = dropTrack(0.5, 1.0)
+private val DROP_TOP = dropTrack(0.95, 1.45)
+
+private val SHADOW_ALPHA = track(doubleArrayOf(0.0, 0.5, 1.0, 9.0), doubleArrayOf(0.0, 0.0, 0.85, 0.85))
+
+private val POOL_SCALE = track(
+    doubleArrayOf(0.0, 2.25, 2.75, 3.2, 3.6, 8.91, 9.0),
+    doubleArrayOf(0.0, 0.0, 0.2, 1.05, 1.0, 1.0, 0.0),
+)
+
+private val BOTTLE_KEYS = doubleArrayOf(0.0, 1.4, 1.8, 2.05, 2.2, 3.3, 4.0, 9.0)
+private val BOTTLE_SPLINES = listOf(
+    Spline.Linear,
+    Spline(0.3, 0.0, 0.2, 1.0),
+    Spline(0.5, 0.0, 0.3, 1.0),
+    Spline(0.3, 0.0, 0.3, 1.0),
+    Spline.Linear,
+    Spline(0.3, 0.0, 0.2, 1.0),
+    Spline.Linear,
+)
+private val BOTTLE_X = track(BOTTLE_KEYS, doubleArrayOf(480.0, 480.0, 250.0, 250.0, 250.0, 250.0, 480.0, 480.0), BOTTLE_SPLINES)
+private val BOTTLE_Y = track(BOTTLE_KEYS, doubleArrayOf(0.0, 0.0, 130.0, 130.0, 130.0, 130.0, 0.0, 0.0), BOTTLE_SPLINES)
+private val BOTTLE_ROT = track(BOTTLE_KEYS, doubleArrayOf(0.0, 0.0, 12.0, -140.0, -130.0, -130.0, 0.0, 0.0), BOTTLE_SPLINES)
+
+private val DASH_ALPHA = track(
+    doubleArrayOf(0.0, 2.15, 2.25, 2.45, 2.55, 2.65, 2.8, 9.0),
+    doubleArrayOf(0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0),
+)
+private val SPLASH_ALPHA = track(
+    doubleArrayOf(0.0, 2.75, 2.85, 3.3, 3.4, 9.0),
+    doubleArrayOf(0.0, 0.0, 1.0, 1.0, 0.0, 0.0),
+)
+
+private val BITE_CUTS = doubleArrayOf(4.5, 5.3, 6.1)
+private val BITE_X = doubleArrayOf(240.0, 165.0, 0.0)
+private val SCALLOPS = listOf(262.0 to 24.0, 298.0 to 22.0)
+
+private val BITE_SHAPES: List<List<Path>> = (0 until 3).map { k ->
+    val xb = BITE_X[k]
+    val shapes = ArrayList<Path>()
+    shapes += Path().apply { addRect(Rect(xb.toFloat(), 225f, 440f, 355f)) }
+    if (k < 2) {
+        for ((y, r) in SCALLOPS) shapes += ovalPath(xb, y, r, r)
+    }
+    shapes
+}
+
+private val BOTTOM_CAKE = Cake(200.0, 283.0, 106.0, 24.0, 0.6)
+private val TOP_CAKE = Cake(192.0, 271.0, 94.0, 21.0, 2.1)
+private const val CAKE_THICKNESS = 5
+
+private val MOTTLES = listOf(
+    Mottle(-9.0, 2.4, 10.0, 3.2), Mottle(80.6, -1.4, 15.0, 3.2), Mottle(-59.9, 0.5, 12.0, 3.2),
+    Mottle(24.7, 11.9, 17.0, 3.2), Mottle(-77.1, -8.0, 14.0, 3.2), Mottle(29.2, 4.7, 11.0, 3.2),
+    Mottle(5.4, -17.8, 16.0, 3.2), Mottle(-58.9, -10.4, 13.0, 3.2), Mottle(-11.3, 13.9, 10.0, 3.2),
+)
+private val DOTS = listOf(
+    Dot(3.6, 5.7, 1.50), Dot(-8.1, -9.0, 1.85), Dot(64.6, 8.4, 2.20), Dot(-35.1, -10.9, 1.50),
+    Dot(50.6, -4.0, 1.85), Dot(65.9, -4.6, 2.20), Dot(-81.1, 5.2, 1.50), Dot(52.9, -9.3, 1.85),
+    Dot(56.4, -13.0, 2.20), Dot(11.3, -2.1, 1.50), Dot(-58.8, 9.4, 1.85), Dot(-72.9, -3.2, 2.20),
+    Dot(-37.2, 15.6, 1.50), Dot(-55.0, -4.3, 1.85), Dot(-48.8, 4.1, 2.20), Dot(-24.4, -1.9, 1.50),
+    Dot(14.2, 14.8, 1.85), Dot(-47.6, -12.6, 2.20), Dot(72.6, 4.2, 1.50), Dot(-14.9, -16.0, 1.85),
+    Dot(-46.2, 13.1, 2.20), Dot(18.3, -8.4, 1.50), Dot(13.7, -14.9, 1.85), Dot(-3.4, 9.3, 2.20),
+    Dot(-80.7, 1.9, 1.50), Dot(45.0, 8.2, 1.85), Dot(-28.2, 7.5, 2.20),
+)
+
+private const val P0X = 250.0
+private const val P0Y = 130.0
+private const val P1X = 237.0
+private const val P1Y = 141.0
+private const val P2X = 208.0
+private const val P2Y = 205.0
+private const val P3X = 199.0
+private const val P3Y = 272.0
+
+private const val ARC_N = 1000
+private val ARC_X = DoubleArray(ARC_N + 1) { bezX(it.toDouble() / ARC_N) }
+private val ARC_Y = DoubleArray(ARC_N + 1) { bezY(it.toDouble() / ARC_N) }
+private val ARC_CUM = DoubleArray(ARC_N + 1).also { cum ->
+    for (i in 1..ARC_N) cum[i] = cum[i - 1] + hypot(ARC_X[i] - ARC_X[i - 1], ARC_Y[i] - ARC_Y[i - 1])
+}
+
+private val ARC_Y_STEPS = doubleArrayOf(
+    130.0, 142.13, 155.56, 169.44, 183.6, 197.94, 212.5, 227.19, 242.03, 256.95, 272.0,
+)
+
+private val TOP_CLIP = ovalPath(192.0, 271.0, 88.0, 17.0)
+private val RIPPLES = listOf(2.8 to 3.2, 3.0 to 3.4, 3.2 to 3.6)
+
+private val DRIPS = listOf(Drip(165.0, 3.0, 3.9, 20.0), Drip(200.0, 3.1, 3.7, 14.0), Drip(232.0, 3.1, 4.0, 24.0))
+private val DRIP_EASE = Spline(0.35, 0.0, 0.65, 1.0)
+
+private val CRUMBS = listOf(
+    Crumb(268.0, 307.0, 1.2, 0, false),
+    Crumb(287.0, 314.0, 0.9, 0, true),
+    Crumb(212.0, 311.0, 1.1, 1, false),
+    Crumb(188.0, 318.0, 0.8, 1, true),
+    Crumb(150.0, 309.0, 1.0, 2, false),
+    Crumb(124.0, 315.0, 1.2, 2, true),
+    Crumb(162.0, 322.0, 0.8, 2, false),
+)
+private val CRUMB_PATH = polygon(
+    doubleArrayOf(-3.0, -1.0, 2.0, 3.0, 0.0, -3.0),
+    doubleArrayOf(-1.0, -3.0, -2.0, 1.0, 3.0, 2.0),
+)
+
+private const val FALL0 = 2.35
+private const val FALL1 = 2.75
+private const val RET0 = 3.3
+private const val RET1 = 3.5
+private const val HEAD_START = 2.35 + 0.0005 * 9
+
+private val FALL_EASE = Spline(0.55, 0.0, 1.0, 0.9)
+
+private val FALLING_DROPS = listOf(FallingDrop(2.0, 0.3, 5.0), FallingDrop(2.175, 0.275, 4.2))
+
+private val SPLASH_DROPS = listOf(
+    SplashDrop(-22.0, 10.0, 3.0, 0.6, 0.0),
+    SplashDrop(-10.0, 14.0, 3.6, 0.55, 0.15),
+    SplashDrop(10.0, 14.0, 3.6, 0.55, 0.08),
+    SplashDrop(22.0, 10.0, 3.0, 0.6, 0.25),
+)
+
+private val BOTTLE_BODY = Path().apply {
+    moveTo(-9f, 0f)
+    lineTo(9f, 0f)
+    lineTo(9f, 24f)
+    cubicTo(9f, 34f, 32f, 38f, 32f, 62f)
+    lineTo(32f, 106f)
+    quadraticBezierTo(32f, 120f, 18f, 120f)
+    lineTo(-18f, 120f)
+    quadraticBezierTo(-32f, 120f, -32f, 106f)
+    lineTo(-32f, 62f)
+    cubicTo(-32f, 38f, -9f, 34f, -9f, 24f)
+    close()
+}
 
 @Composable
 fun PancakeSyrupAnimation(modifier: Modifier = Modifier) {
@@ -182,15 +326,7 @@ private inline fun DrawScope.translated(x: Double, y: Double, crossinline block:
     withTransform({ translate(x.toFloat(), y.toFloat()) }) { block() }
 }
 
-private val FADE = track(doubleArrayOf(0.0, 7.5, 8.4, 9.0), doubleArrayOf(1.0, 1.0, 0.0, 0.0))
-
 private fun fadeAt(t: Double): Double = FADE.value(t)
-
-private val PLATE_X = track(
-    doubleArrayOf(0.0, 0.6, 9.0),
-    doubleArrayOf(420.0, 0.0, 0.0),
-    listOf(Spline(0.2, 0.7, 0.2, 1.0), Spline.Linear),
-)
 
 private fun dropTrack(ts: Double, tl: Double) = track(
     doubleArrayOf(0.0, ts, tl, tl + 0.06, tl + 0.12, 9.0),
@@ -203,53 +339,6 @@ private fun dropTrack(ts: Double, tl: Double) = track(
         Spline.Linear,
     ),
 )
-
-private val DROP_BOTTOM = dropTrack(0.5, 1.0)
-private val DROP_TOP = dropTrack(0.95, 1.45)
-
-private val SHADOW_ALPHA = track(doubleArrayOf(0.0, 0.5, 1.0, 9.0), doubleArrayOf(0.0, 0.0, 0.85, 0.85))
-
-private val POOL_SCALE = track(
-    doubleArrayOf(0.0, 2.25, 2.75, 3.2, 3.6, 8.91, 9.0),
-    doubleArrayOf(0.0, 0.0, 0.2, 1.05, 1.0, 1.0, 0.0),
-)
-
-private val BOTTLE_KEYS = doubleArrayOf(0.0, 1.4, 1.8, 2.05, 2.2, 3.3, 4.0, 9.0)
-private val BOTTLE_SPLINES = listOf(
-    Spline.Linear,
-    Spline(0.3, 0.0, 0.2, 1.0),
-    Spline(0.5, 0.0, 0.3, 1.0),
-    Spline(0.3, 0.0, 0.3, 1.0),
-    Spline.Linear,
-    Spline(0.3, 0.0, 0.2, 1.0),
-    Spline.Linear,
-)
-private val BOTTLE_X = track(BOTTLE_KEYS, doubleArrayOf(480.0, 480.0, 250.0, 250.0, 250.0, 250.0, 480.0, 480.0), BOTTLE_SPLINES)
-private val BOTTLE_Y = track(BOTTLE_KEYS, doubleArrayOf(0.0, 0.0, 130.0, 130.0, 130.0, 130.0, 0.0, 0.0), BOTTLE_SPLINES)
-private val BOTTLE_ROT = track(BOTTLE_KEYS, doubleArrayOf(0.0, 0.0, 12.0, -140.0, -130.0, -130.0, 0.0, 0.0), BOTTLE_SPLINES)
-
-private val DASH_ALPHA = track(
-    doubleArrayOf(0.0, 2.15, 2.25, 2.45, 2.55, 2.65, 2.8, 9.0),
-    doubleArrayOf(0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0),
-)
-private val SPLASH_ALPHA = track(
-    doubleArrayOf(0.0, 2.75, 2.85, 3.3, 3.4, 9.0),
-    doubleArrayOf(0.0, 0.0, 1.0, 1.0, 0.0, 0.0),
-)
-
-private val BITE_CUTS = doubleArrayOf(4.5, 5.3, 6.1)
-private val BITE_X = doubleArrayOf(240.0, 165.0, 0.0)
-private val SCALLOPS = listOf(262.0 to 24.0, 298.0 to 22.0)
-
-private val BITE_SHAPES: List<List<Path>> = (0 until 3).map { k ->
-    val xb = BITE_X[k]
-    val shapes = ArrayList<Path>()
-    shapes += Path().apply { addRect(Rect(xb.toFloat(), 225f, 440f, 355f)) }
-    if (k < 2) {
-        for ((y, r) in SCALLOPS) shapes += ovalPath(xb, y, r, r)
-    }
-    shapes
-}
 
 private class Cake(val cx: Double, val cy: Double, val rx: Double, val ry: Double, phase: Double) {
     val path: Path
@@ -268,36 +357,8 @@ private class Cake(val cx: Double, val cy: Double, val rx: Double, val ry: Doubl
     }
 }
 
-private val BOTTOM_CAKE = Cake(200.0, 283.0, 106.0, 24.0, 0.6)
-private val TOP_CAKE = Cake(192.0, 271.0, 94.0, 21.0, 2.1)
-private const val CAKE_THICKNESS = 5
-
 private class Mottle(val cx: Double, val cy: Double, val rx: Double, val ry: Double)
 private class Dot(val cx: Double, val cy: Double, val r: Double)
-
-private val MOTTLES = listOf(
-    Mottle(-9.0, 2.4, 10.0, 3.2), Mottle(80.6, -1.4, 15.0, 3.2), Mottle(-59.9, 0.5, 12.0, 3.2),
-    Mottle(24.7, 11.9, 17.0, 3.2), Mottle(-77.1, -8.0, 14.0, 3.2), Mottle(29.2, 4.7, 11.0, 3.2),
-    Mottle(5.4, -17.8, 16.0, 3.2), Mottle(-58.9, -10.4, 13.0, 3.2), Mottle(-11.3, 13.9, 10.0, 3.2),
-)
-private val DOTS = listOf(
-    Dot(3.6, 5.7, 1.50), Dot(-8.1, -9.0, 1.85), Dot(64.6, 8.4, 2.20), Dot(-35.1, -10.9, 1.50),
-    Dot(50.6, -4.0, 1.85), Dot(65.9, -4.6, 2.20), Dot(-81.1, 5.2, 1.50), Dot(52.9, -9.3, 1.85),
-    Dot(56.4, -13.0, 2.20), Dot(11.3, -2.1, 1.50), Dot(-58.8, 9.4, 1.85), Dot(-72.9, -3.2, 2.20),
-    Dot(-37.2, 15.6, 1.50), Dot(-55.0, -4.3, 1.85), Dot(-48.8, 4.1, 2.20), Dot(-24.4, -1.9, 1.50),
-    Dot(14.2, 14.8, 1.85), Dot(-47.6, -12.6, 2.20), Dot(72.6, 4.2, 1.50), Dot(-14.9, -16.0, 1.85),
-    Dot(-46.2, 13.1, 2.20), Dot(18.3, -8.4, 1.50), Dot(13.7, -14.9, 1.85), Dot(-3.4, 9.3, 2.20),
-    Dot(-80.7, 1.9, 1.50), Dot(45.0, 8.2, 1.85), Dot(-28.2, 7.5, 2.20),
-)
-
-private const val P0X = 250.0
-private const val P0Y = 130.0
-private const val P1X = 237.0
-private const val P1Y = 141.0
-private const val P2X = 208.0
-private const val P2Y = 205.0
-private const val P3X = 199.0
-private const val P3Y = 272.0
 
 private fun bezX(s: Double): Double {
     val u = 1 - s
@@ -319,13 +380,6 @@ private fun dbezY(s: Double): Double {
     return 3 * u * u * (P1Y - P0Y) + 6 * u * s * (P2Y - P1Y) + 3 * s * s * (P3Y - P2Y)
 }
 
-private const val ARC_N = 1000
-private val ARC_X = DoubleArray(ARC_N + 1) { bezX(it.toDouble() / ARC_N) }
-private val ARC_Y = DoubleArray(ARC_N + 1) { bezY(it.toDouble() / ARC_N) }
-private val ARC_CUM = DoubleArray(ARC_N + 1).also { cum ->
-    for (i in 1..ARC_N) cum[i] = cum[i - 1] + hypot(ARC_X[i] - ARC_X[i - 1], ARC_Y[i] - ARC_Y[i - 1])
-}
-
 private fun pointAtArc(f: Double): Pair<Double, Double> {
     val target = clamp01(f) * ARC_CUM[ARC_N]
     var lo = 0
@@ -340,10 +394,6 @@ private fun pointAtArc(f: Double): Pair<Double, Double> {
     return (ARC_X[lo - 1] + (ARC_X[lo] - ARC_X[lo - 1]) * q) to
         (ARC_Y[lo - 1] + (ARC_Y[lo] - ARC_Y[lo - 1]) * q)
 }
-
-private val ARC_Y_STEPS = doubleArrayOf(
-    130.0, 142.13, 155.56, 169.44, 183.6, 197.94, 212.5, 227.19, 242.03, 256.95, 272.0,
-)
 
 private fun arcYLerp(f: Double): Double {
     val x = clamp01(f) * 10
@@ -414,13 +464,7 @@ private fun DrawScope.drawPancake(cake: Cake, dropY: Double) {
     }
 }
 
-private val TOP_CLIP = ovalPath(192.0, 271.0, 88.0, 17.0)
-private val RIPPLES = listOf(2.8 to 3.2, 3.0 to 3.4, 3.2 to 3.6)
-
 private class Drip(val x: Double, val ts: Double, val te: Double, val len: Double)
-
-private val DRIPS = listOf(Drip(165.0, 3.0, 3.9, 20.0), Drip(200.0, 3.1, 3.7, 14.0), Drip(232.0, 3.1, 4.0, 24.0))
-private val DRIP_EASE = Spline(0.35, 0.0, 0.65, 1.0)
 
 private fun poolBlob(phase: Double): Path {
     val n = 56
@@ -485,20 +529,6 @@ private fun DrawScope.drawSyrup(t: Double) {
 
 private class Crumb(val x: Double, val y: Double, val size: Double, val bite: Int, val spot: Boolean)
 
-private val CRUMBS = listOf(
-    Crumb(268.0, 307.0, 1.2, 0, false),
-    Crumb(287.0, 314.0, 0.9, 0, true),
-    Crumb(212.0, 311.0, 1.1, 1, false),
-    Crumb(188.0, 318.0, 0.8, 1, true),
-    Crumb(150.0, 309.0, 1.0, 2, false),
-    Crumb(124.0, 315.0, 1.2, 2, true),
-    Crumb(162.0, 322.0, 0.8, 2, false),
-)
-private val CRUMB_PATH = polygon(
-    doubleArrayOf(-3.0, -1.0, 2.0, 3.0, 0.0, -3.0),
-    doubleArrayOf(-1.0, -3.0, -2.0, 1.0, 3.0, 2.0),
-)
-
 private fun DrawScope.drawCrumbs(t: Double) {
     for (c in CRUMBS) {
         val tin = BITE_CUTS[c.bite] + 0.08
@@ -517,12 +547,6 @@ private fun DrawScope.drawCrumbs(t: Double) {
         }
     }
 }
-
-private const val FALL0 = 2.35
-private const val FALL1 = 2.75
-private const val RET0 = 3.3
-private const val RET1 = 3.5
-private const val HEAD_START = 2.35 + 0.0005 * 9
 
 private fun streamPath(phase: Double): Path {
     val n = 44
@@ -564,20 +588,9 @@ private fun streamPath(phase: Double): Path {
     return polygon(xs, ys)
 }
 
-private val FALL_EASE = Spline(0.55, 0.0, 1.0, 0.9)
-
 private class FallingDrop(val ts: Double, val dur: Double, val r: Double)
 
-private val FALLING_DROPS = listOf(FallingDrop(2.0, 0.3, 5.0), FallingDrop(2.175, 0.275, 4.2))
-
 private class SplashDrop(val dx: Double, val h: Double, val r: Double, val dur: Double, val begin: Double)
-
-private val SPLASH_DROPS = listOf(
-    SplashDrop(-22.0, 10.0, 3.0, 0.6, 0.0),
-    SplashDrop(-10.0, 14.0, 3.6, 0.55, 0.15),
-    SplashDrop(10.0, 14.0, 3.6, 0.55, 0.08),
-    SplashDrop(22.0, 10.0, 3.0, 0.6, 0.25),
-)
 
 private fun DrawScope.drawPour(t: Double) {
     if (t >= FALL0 && t < RET1) {
@@ -663,20 +676,6 @@ private fun DrawScope.drawPour(t: Double) {
         }
         drawPath(dash, Pal.syrupHi, alpha = da.toFloat(), style = dashStyle)
     }
-}
-
-private val BOTTLE_BODY = Path().apply {
-    moveTo(-9f, 0f)
-    lineTo(9f, 0f)
-    lineTo(9f, 24f)
-    cubicTo(9f, 34f, 32f, 38f, 32f, 62f)
-    lineTo(32f, 106f)
-    quadraticBezierTo(32f, 120f, 18f, 120f)
-    lineTo(-18f, 120f)
-    quadraticBezierTo(-32f, 120f, -32f, 106f)
-    lineTo(-32f, 62f)
-    cubicTo(-32f, 38f, -9f, 34f, -9f, 24f)
-    close()
 }
 
 private fun DrawScope.drawBottle(t: Double) {

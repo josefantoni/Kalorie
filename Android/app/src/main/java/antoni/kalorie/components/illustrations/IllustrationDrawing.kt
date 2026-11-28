@@ -25,6 +25,8 @@ import antoni.kalorie.R
 import antoni.kalorie.components.AppColors
 import kotlin.math.min
 
+private const val NANOS_PER_SECOND = 1_000_000_000.0
+
 class IllustrationPalette(
     val ink: Color,
     val plate: Color,
@@ -95,8 +97,6 @@ internal fun rememberElapsedSeconds(): State<Double> {
     }
     return elapsed
 }
-
-private const val NANOS_PER_SECOND = 1_000_000_000.0
 
 internal inline fun DrawScope.group(
     offsetX: Float = 0f,

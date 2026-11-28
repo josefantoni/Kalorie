@@ -11,6 +11,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
+private val json = Json { ignoreUnknownKeys = true }
+
 @Serializable
 data class FoodFrequencyItemDTO(
     val id: String,
@@ -109,5 +111,3 @@ data class FoodFrequencyDocumentDTO(
 
     fun undecodableIds(): List<String> = (entries.keys - decodedEntries().keys).sorted()
 }
-
-private val json = Json { ignoreUnknownKeys = true }

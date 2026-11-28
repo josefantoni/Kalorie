@@ -12,6 +12,10 @@ import java.time.Instant
 
 class FetchMaintainerClaimUseCaseTest {
 
+    // MARK: - Properties
+
+    private val staleAge = Constants.Auth.MAINTAINER_CLAIM_CACHE_TTL_SECONDS + 1
+
     // MARK: - Tests
 
     @Test
@@ -64,8 +68,6 @@ class FetchMaintainerClaimUseCaseTest {
     }
 
     // MARK: - Helpers
-
-    private val staleAge = Constants.Auth.MAINTAINER_CLAIM_CACHE_TTL_SECONDS + 1
 
     private fun makeSUT(
         forcesRefresh: Boolean,

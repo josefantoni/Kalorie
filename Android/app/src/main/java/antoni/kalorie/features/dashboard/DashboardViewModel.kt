@@ -49,6 +49,13 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 
+private const val COPY_CHECKMARK_MILLIS = 1000L
+private const val WEIGHT_CHECKMARK_MILLIS = 1000L
+private val SIGN_IN_SPOTLIGHT_INTERVAL = Duration.ofDays(7)
+private const val REVIEW_LOGGING_DAYS_REQUIRED = 3
+private val REVIEW_SNOOZE_DAYS = listOf(3L, 5L, 8L, 13L)
+private const val REVIEW_REPEAT_DAYS = 21L
+
 data class DailyMacros(
     val calories: Int,
     val protein: Double,
@@ -93,13 +100,6 @@ data class FoodGroup(
     val mealType: MealTypeDomain?,
     val foods: List<FoodConsumedDomain>,
 )
-
-private const val COPY_CHECKMARK_MILLIS = 1000L
-private const val WEIGHT_CHECKMARK_MILLIS = 1000L
-private val SIGN_IN_SPOTLIGHT_INTERVAL = Duration.ofDays(7)
-private const val REVIEW_LOGGING_DAYS_REQUIRED = 3
-private val REVIEW_SNOOZE_DAYS = listOf(3L, 5L, 8L, 13L)
-private const val REVIEW_REPEAT_DAYS = 21L
 
 class DashboardViewModel(
     private val fetchMealTypes: FetchMealTypesUseCaseProtocol,

@@ -37,6 +37,14 @@ import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.GoalMacroGrams
 import java.text.NumberFormat
 
+// MARK: - Properties
+
+private val DONUT_SIZE = 160.dp
+private val ACCESSORY_TRAILING_PADDING = 20.dp
+private const val MACRO_LABEL_MIN_SCALE = 0.7f
+private val MAX_ACCESSORY_GAP = 40.dp
+private val MAX_OVERLAY_WIDTH = DONUT_SIZE + (MAX_ACCESSORY_GAP + WEIGHT_CIRCLE_SIZE) * 2 + ACCESSORY_TRAILING_PADDING
+
 @Composable
 fun MacroSummaryView(
     macros: DailyMacros,
@@ -130,14 +138,6 @@ fun MacroSummaryView(
         }
     }
 }
-
-// MARK: - Properties
-
-private val DONUT_SIZE = 160.dp
-private val ACCESSORY_TRAILING_PADDING = 20.dp
-private const val MACRO_LABEL_MIN_SCALE = 0.7f
-private val MAX_ACCESSORY_GAP = 40.dp
-private val MAX_OVERLAY_WIDTH = DONUT_SIZE + (MAX_ACCESSORY_GAP + WEIGHT_CIRCLE_SIZE) * 2 + ACCESSORY_TRAILING_PADDING
 
 // MARK: - Functions
 

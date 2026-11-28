@@ -92,6 +92,9 @@ private const val KCAL_SCROLL_DELAY_MILLIS = 350L
 private const val COLLAPSED_CHEVRON_ROTATION = 90f
 private const val MACRO_STEP_BUTTON_SIZE = 28
 private val SLIDER_THUMB_INSET = 14.dp
+private val WHEEL_HEIGHT = 160.dp
+private const val DEFAULT_PICKER_AGE = 30
+private const val DEFAULT_PICKER_HEIGHT_CM = 178
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -586,10 +589,6 @@ private fun WheelPicker(options: List<Int>, selection: Int, label: (Int) -> Stri
         },
     )
 }
-
-private val WHEEL_HEIGHT = 160.dp
-private const val DEFAULT_PICKER_AGE = 30
-private const val DEFAULT_PICKER_HEIGHT_CM = 178
 
 // MARK: - Building blocks
 
