@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
@@ -45,10 +46,10 @@ import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.BarcodeScannerOverlay
 import antoni.kalorie.components.FoodItemFormBarcodeRow
 import antoni.kalorie.components.FoodItemFormSections
-import antoni.kalorie.components.bottomOnly
 import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.rememberScannerAccess
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
+import antoni.kalorie.core.extensions.LocalKeyboardDoneClearance
 import antoni.kalorie.core.utils.AlertItem
 import antoni.kalorie.core.utils.CameraAccess
 import antoni.kalorie.core.utils.isLoading
@@ -177,7 +178,10 @@ fun NewItemReviewContent(viewModel: AddFoodSheetViewModel, onBack: () -> Unit) {
         },
     ) { innerPadding ->
         KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(innerPadding.excludingBottom()).consumeWindowInsets(innerPadding).imePadding()) {
-            LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = innerPadding.bottomOnly()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = innerPadding.calculateBottomPadding() + LocalKeyboardDoneClearance.current),
+            ) {
                 rejectionReason?.let { reason ->
                     item {
                         Text(

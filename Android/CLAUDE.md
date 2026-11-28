@@ -94,6 +94,11 @@ is always there, or whose content does not scroll, may pad the container. Outsid
 the keyboard itself), a container with `imePadding()` consumes only the `excludingBottom()` part, or the keyboard
 covers its bottom edge by the navigation bar's height.
 
+The Done button of `KeyboardDoneContainer` floats over the content, with no strip of its own. A text field stays above
+it through `Modifier.keepAboveKeyboardDone()`, which the shared fields already carry, and a list can scroll its last
+field that far because it adds `LocalKeyboardDoneClearance` to its bottom padding (`SectionStack` does; a custom
+`LazyColumn` must do it itself).
+
 - **Never write `padding(top = …)` on a card, a `Spacer` between blocks or your own `spacedBy`.** The rhythm
   lives in one place.
 - **A section title is `SectionGroup(title, trailing)`** wrapping its card, never a loose `Text`. It sits

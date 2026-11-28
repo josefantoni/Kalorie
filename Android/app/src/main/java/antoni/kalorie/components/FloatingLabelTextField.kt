@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import antoni.kalorie.core.extensions.keepAboveKeyboardDone
 
 private val UNDERLINE_INSET = 16.dp
 private val FOCUSED_UNDERLINE = 2.dp
@@ -116,6 +117,7 @@ fun FloatingLabelTextField(
             value = text,
             onValueChange = onTextChange,
             modifier = modifier
+                .keepAboveKeyboardDone()
                 .defaultMinSize(minWidth = TextFieldDefaults.MinWidth, minHeight = TextFieldDefaults.MinHeight)
                 .then(if (message is FloatingLabelTextFieldMessage.Error) Modifier.semantics { error(message.text) } else Modifier),
             enabled = enabled,

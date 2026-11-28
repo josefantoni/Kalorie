@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import antoni.kalorie.core.extensions.keepAboveKeyboardDone
 
 private val FIELD_MIN_HEIGHT = 36.dp
 private val FOCUSED_UNDERLINE = 2.dp
@@ -56,7 +57,7 @@ fun NumericRowTextField(
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.heightIn(min = SectionRowMinHeight).onFocusChanged { isFocused = it.isFocused },
+        modifier = modifier.keepAboveKeyboardDone().heightIn(min = SectionRowMinHeight).onFocusChanged { isFocused = it.isFocused },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
         textStyle = MaterialTheme.typography.bodyLarge.copy(
