@@ -1317,8 +1317,8 @@ whole, top to bottom, and it is identical on both clients:
    carries the button that enters and leaves edit mode. While the list is in edit mode everything
    below is hidden and the sheet cannot be dismissed. It is a round icon button: a pencil, a
    checkmark while editing, and a cross while the add form is open, so it is not taken for the
-   confirmation of the new meal, which is the bottom button. The cross closes the form, discards the
-   typed name and stays in edit mode; a pending reorder is still saved by the checkmark.
+   confirmation of the new meal, which is the bottom button. Both the checkmark and the cross leave
+   edit mode and save a pending reorder; the cross also closes the form and discards the typed name.
 2. **Body weight** — *Show weight on overview* (toggle) and *Weight unit* (kg / lb segmented, shown
    even while the circle is off because it also sets the unit of the history screen and the export).
    A change is written through `mergeAsync`, reverts with an alert on failure and is passed to the
