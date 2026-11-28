@@ -8,6 +8,10 @@ import kotlin.test.assertTrue
 
 class MealWindowsTest {
 
+    private val breakfast = MealWindow(id = "breakfast", startMinutes = 360, endMinutes = 600)
+    private val lunch = MealWindow(id = "lunch", startMinutes = 660, endMinutes = 840)
+    private val night = MealWindow(id = "night", startMinutes = 1320, endMinutes = 120)
+
     @Test
     fun minutesSinceMidnight_convertsHourAndMinute() {
         assertEquals(0, minutesSinceMidnight(hour = 0, minute = 0))
@@ -98,10 +102,6 @@ class MealWindowsTest {
     fun mealWindowsOverlap_wrapsMidnight_disjointFromLaterWindow_returnsFalse() {
         assertFalse(mealWindowsOverlap(startMinutes = 1430, endMinutes = 20, otherStartMinutes = 60, otherEndMinutes = 120))
     }
-
-    private val breakfast = MealWindow(id = "breakfast", startMinutes = 360, endMinutes = 600)
-    private val lunch = MealWindow(id = "lunch", startMinutes = 660, endMinutes = 840)
-    private val night = MealWindow(id = "night", startMinutes = 1320, endMinutes = 120)
 
     @Test
     fun resolvedMealWindowId_pinToExistingWindow_winsOverTime() {

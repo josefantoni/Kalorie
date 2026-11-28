@@ -1,12 +1,15 @@
 package antoni.kalorie.exportkit
 
-class ZipEntryInput(val name: String, val data: ByteArray)
-
 private val crcTable = IntArray(256) { n ->
     var c = n
     repeat(8) { c = if (c and 1 != 0) (c ushr 1) xor 0xEDB88320.toInt() else c ushr 1 }
     c
 }
+
+private const val DOS_TIME = 0
+private const val DOS_DATE = (1 shl 5) or 1
+
+class ZipEntryInput(val name: String, val data: ByteArray)
 
 fun crc32(data: ByteArray): Int {
     var crc = -1
@@ -46,9 +49,6 @@ private class ByteSink {
         }
     }
 }
-
-private const val DOS_TIME = 0
-private const val DOS_DATE = (1 shl 5) or 1
 
 fun zipStored(entries: List<ZipEntryInput>): ByteArray {
     val sink = ByteSink()

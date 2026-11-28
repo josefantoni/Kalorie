@@ -14,6 +14,9 @@ import com.conamobile.pdfkmp.unit.dp
 import com.conamobile.pdfkmp.unit.sp
 
 private val columnWeights = listOf(3.2f, 1.4f, 1f, 1f, 1.1f, 1.2f, 1.2f, 1f, 1.3f, 1.4f, 1f, 1f)
+private const val COLUMN_COUNT = 12
+private val dayBackground = PdfColor.fromRgb(0xECEFF1)
+private val gridColor = PdfColor.fromRgb(0xCFD8DC)
 
 private class PdfCells(val labels: ExportLabels) {
     fun integer(value: Double) = formatNumber(value, 0, labels.decimalSeparator)
@@ -47,10 +50,6 @@ private class PdfCells(val labels: ExportLabels) {
         decimal(totals.salt),
     )
 }
-
-private const val COLUMN_COUNT = 12
-private val dayBackground = PdfColor.fromRgb(0xECEFF1)
-private val gridColor = PdfColor.fromRgb(0xCFD8DC)
 
 private fun TableRowScope.numberCells(values: List<String>, bold: Boolean) {
     values.forEach { value ->

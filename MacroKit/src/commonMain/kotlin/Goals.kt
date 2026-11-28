@@ -4,6 +4,8 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
+private const val GRAMS_KCAL_TOLERANCE = 10.0
+
 enum class ActivityLevel(val factor: Double) {
     SEDENTARY(1.2),
     LIGHT(1.375),
@@ -11,8 +13,6 @@ enum class ActivityLevel(val factor: Double) {
     HIGH(1.725),
     VERY_HIGH(1.9),
 }
-
-private const val GRAMS_KCAL_TOLERANCE = 10.0
 
 val goalPercentChanges: List<Int> = listOf(-10, -5, 0, 5, 10)
 

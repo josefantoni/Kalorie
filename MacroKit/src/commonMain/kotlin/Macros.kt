@@ -2,6 +2,10 @@ package antoni.kalorie.macrokit
 
 import kotlin.math.roundToInt
 
+private const val KILOJOULES_PER_GRAM_FAT = 37.0
+private const val KILOJOULES_PER_GRAM_CARBOHYDRATE = 17.0
+private const val KILOJOULES_PER_GRAM_PROTEIN = 17.0
+
 data class Macros(
     val calories: Int,
     val protein: Double,
@@ -33,10 +37,6 @@ fun Macros.scaled(factor: Double): Macros = Macros(
     fiber = fiber * factor,
     salt = salt * factor,
 )
-
-private const val KILOJOULES_PER_GRAM_FAT = 37.0
-private const val KILOJOULES_PER_GRAM_CARBOHYDRATE = 17.0
-private const val KILOJOULES_PER_GRAM_PROTEIN = 17.0
 
 // EU Regulation 1169/2011, Annex XIV general conversion factors — used when a source's own
 // energy value is missing, so a food is never displayed at 0 kJ despite having real macros.

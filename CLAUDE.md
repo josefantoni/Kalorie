@@ -33,6 +33,17 @@ iOS, Android, the backend and the shared KMP modules live in one git repository.
 - **CI**: whenever you change `.github/workflows/`, make sure a change in one platform does not needlessly trigger the other's build.
 - If a new CI step or secret is needed, tell the user — do not quietly work it out yourself.
 
+## Shared KMP modules
+
+`MacroKit/`, `MealKit/`, `TextKit/` and `ExportKit/` have no `CLAUDE.md` of their own. They follow two layout
+rules, the same as the Android client:
+
+- **Properties go first.** Every stored property of a type sits at the start of the type, never between or after
+  the `init` blocks and functions. A `companion object` stays at the end of its class, and the rule applies inside
+  it. Computed properties (a custom `get()`) are exempt. The modules use no `// MARK:` headers.
+- File-level `private val` / `private const val` go at the top of the file, below the `package` line and the
+  imports, never between or after declarations. Private extension properties are declarations, not constants.
+
 ## Code comments
 
 - **Do not write code comments** unless I explicitly ask for them. That covers:
