@@ -89,8 +89,8 @@ final class DailyGoalsViewModelTests: XCTestCase {
 
     func test_save_withoutTouchingTheWeight_doesNotLogItAsTodaysMeasurement() async {
         let recorder = SaveBodyWeightRecorder()
-        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]), saveBodyWeight: recorder)
-        sut.kcalText = "2100"
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent, kcal: 2600)]), saveBodyWeight: recorder)
+        sut.kcalText = "2700"
         await sut.onSaveTapped()
         XCTAssertTrue(sut.didFinish)
         XCTAssertTrue(recorder.loggedKilograms.isEmpty)
@@ -98,7 +98,7 @@ final class DailyGoalsViewModelTests: XCTestCase {
 
     func test_save_afterEditingTheWeight_logsTheNewWeight() async {
         let recorder = SaveBodyWeightRecorder()
-        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]), saveBodyWeight: recorder)
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent, kcal: 2600)]), saveBodyWeight: recorder)
         sut.weightKilograms = 88
         await sut.onSaveTapped()
         XCTAssertEqual(recorder.loggedKilograms, [88])
@@ -151,31 +151,31 @@ final class DailyGoalsViewModelTests: XCTestCase {
     func test_save_poundsWeightRoundTrippedThroughThePicker_doesNotLogIt() async {
         let recorder = SaveBodyWeightRecorder()
         let sut = makeSUT(
-            history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]),
+            history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent, kcal: 2600)]),
             unit: .lb,
             saveBodyWeight: recorder
         )
         sut.onWeightChanged(BodyWeightUnit.lb.kilograms(from: Double(BodyWeightUnit.lb.tenths(kilograms: 80)) / 10))
-        sut.kcalText = "2100"
+        sut.kcalText = "2700"
         await sut.onSaveTapped()
         XCTAssertTrue(sut.didFinish)
         XCTAssertTrue(recorder.loggedKilograms.isEmpty)
     }
 
     func test_save_kilogramWeightRoundedToTheDisplayedTenth_doesNotLogIt() async {
-        var goal = profileGoal(macroMode: .percent)
+        var goal = profileGoal(macroMode: .percent, kcal: 2600)
         goal.weightKg = 80.25
         let recorder = SaveBodyWeightRecorder()
         let sut = makeSUT(history: DailyGoalHistory(entries: [goal]), saveBodyWeight: recorder)
         sut.onWeightChanged(80.3)
-        sut.kcalText = "2100"
+        sut.kcalText = "2700"
         await sut.onSaveTapped()
         XCTAssertTrue(recorder.loggedKilograms.isEmpty)
     }
 
     func test_save_weightMovedByOneTenth_logsIt() async {
         let recorder = SaveBodyWeightRecorder()
-        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]), saveBodyWeight: recorder)
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent, kcal: 2600)]), saveBodyWeight: recorder)
         sut.onWeightChanged(80.1)
         await sut.onSaveTapped()
         XCTAssertEqual(recorder.loggedKilograms, [80.1])
@@ -314,7 +314,7 @@ final class DailyGoalsViewModelTests: XCTestCase {
         XCTAssertNil(sut.macroModeHint)
     }
 
-    func test_macroModeHint_doesNotTurnIntoTheSumMessageWhenKcalIsTyped() {
+    func test_macroModeHint_needsKcalWithAnInvalidSplit_disappearsWhenKcalIsTyped() {
         let sut = makeSUT()
         sut.kcalText = ""
         sut.proteinText = "30"
@@ -350,29 +350,43 @@ final class DailyGoalsViewModelTests: XCTestCase {
         XCTAssertEqual(sut.kcalFocusRequestCount, 0)
     }
 
-    func test_macroModeToGrams_withPercentsNotSummingTo100_keepsPercentModeAndShowsHint() {
+    func test_macroModeToGrams_withPercentsNotSummingTo100_convertsTheTypedPercentsAndMovesTheKcalGoal() {
         let sut = makeSUT()
         sut.kcalText = "2000"
         sut.proteinText = "20"
         sut.carbsText = "50"
         sut.fatText = "20"
+
         sut.onMacroModeChanged(.grams)
-        XCTAssertEqual(sut.macroMode, .percent)
-        XCTAssertEqual(sut.carbsText, "50")
-        XCTAssertEqual(sut.macroModeHint, L10n.Goals.hintMacroModeSumNot100)
-        XCTAssertEqual(sut.kcalFocusRequestCount, 0)
+
+        XCTAssertEqual(sut.macroMode, .grams)
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["100", "250", "44"])
+        XCTAssertEqual(sut.kcalText, "1796")
+        XCTAssertNil(sut.macroModeHint)
     }
 
-    func test_macroModeHint_sumNot100_disappearsOnceThePercentsSumTo100() {
+    func test_macroModeBackToPercent_afterAnInvalidSplit_matchesTheGrams() {
         let sut = makeSUT()
         sut.kcalText = "2000"
         sut.fatText = "20"
         sut.onMacroModeChanged(.grams)
-        XCTAssertEqual(sut.macroMode, .percent)
-        sut.fatText = "30"
-        XCTAssertNil(sut.macroModeHint)
+
+        sut.onMacroModeChanged(.percent)
+
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["22", "56", "22"])
+        XCTAssertEqual(sut.kcalText, "1796")
+    }
+
+    func test_macroModeToGrams_withAllZeroPercents_keepsTheKcalGoal() {
+        let sut = makeSUT()
+        sut.kcalText = "2000"
+        sut.proteinText = "0"
+        sut.carbsText = "0"
+        sut.fatText = "0"
+
         sut.onMacroModeChanged(.grams)
-        XCTAssertEqual(sut.macroMode, .grams)
+
+        XCTAssertEqual(sut.kcalText, "2000")
     }
 
     func test_macroModeToGrams_withEmptyKcalAndPercentsNotSummingTo100_asksForKcalFirst() {
@@ -394,15 +408,81 @@ final class DailyGoalsViewModelTests: XCTestCase {
         XCTAssertNil(sut.kcalOfEnteredGramsDifferingFromGoal)
     }
 
-    func test_kcalOfEnteredGramsDifferingFromGoal_kcalGoalTypedDifferentFromGrams_isTheGramsKcal() {
-        let sut = makeSUT()
-        sut.kcalText = "2000"
-        sut.onMacroModeChanged(.grams)
-        sut.proteinText = "100"
-        sut.carbsText = "200"
-        sut.fatText = "100"
-        sut.kcalText = "2500"
+    func test_kcalOfEnteredGramsDifferingFromGoal_storedGoalNotMatchingItsGrams_isTheGramsKcal() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2500))
         XCTAssertEqual(sut.kcalOfEnteredGramsDifferingFromGoal, 2100)
+    }
+
+    func test_kcalTyped_inGramsMode_rescalesTheGramsInTheSameRatio() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2100))
+        sut.kcalText = "4200"
+        sut.onKcalEditingEnded()
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["200", "400", "200"])
+        XCTAssertNil(sut.kcalOfEnteredGramsDifferingFromGoal)
+    }
+
+    func test_kcalTyped_inGramsModeKeyByKey_scalesFromTheSplitBeforeTheFirstKey() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2100))
+        for text in ["210", "21", "2", "", "4", "42", "420", "4200"] {
+            sut.kcalText = text
+        }
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["100", "200", "100"])
+        sut.onKcalEditingEnded()
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["200", "400", "200"])
+    }
+
+    func test_kcalErased_inGramsMode_thenMacroStepped_keepsTheOtherGrams() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2100))
+        for text in ["210", "21", "2", ""] {
+            sut.kcalText = text
+        }
+        sut.onStep(.protein, direction: 1)
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["105", "200", "100"])
+    }
+
+    func test_macroStep_withTypedKcalStillBeingEdited_rescalesBeforeStepping() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2100))
+        sut.kcalText = "4200"
+        sut.onStep(.protein, direction: 1)
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["205", "400", "200"])
+        XCTAssertEqual(sut.kcalText, "4220")
+    }
+
+    func test_canSave_typedKcalThatWillRescaleGramsOutOfRange_isDisabledBeforeEditingEnds() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2100))
+        (sut.proteinText, sut.carbsText, sut.fatText) = ("150", "400", "80")
+        sut.kcalText = "8000"
+        XCTAssertFalse(sut.canSave)
+    }
+
+    func test_canSave_typedKcalThatWillRescaleGramsBackIntoRange_isEnabledBeforeEditingEnds() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2100))
+        (sut.proteinText, sut.carbsText, sut.fatText) = ("150", "400", "80")
+        sut.kcalText = "8000"
+        sut.onKcalEditingEnded()
+        sut.kcalText = "2500"
+        XCTAssertTrue(sut.canSave)
+    }
+
+    func test_canSave_typedKcalThatWillRestoreTheStoredGoal_isDisabledBeforeEditingEnds() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2100))
+        sut.kcalText = "4200"
+        sut.onKcalEditingEnded()
+        sut.kcalText = "2100"
+        XCTAssertFalse(sut.canSave)
+    }
+
+    func test_kcalAssignedUnchanged_inGramsMode_keepsAStoredMismatch() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2500))
+        sut.kcalText = sut.kcalText
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["100", "200", "100"])
+    }
+
+    func test_macroEdited_inGramsMode_doesNotRescaleTheOtherGrams() {
+        let sut = makeSUT(history: gramsHistory(kcal: 2100))
+        sut.proteinText = "150"
+        XCTAssertEqual(sut.kcalText, "2300")
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["150", "200", "100"])
     }
 
     func test_kcalOfEnteredGramsDifferingFromGoal_afterSwitchingASplitToGrams_ignoresTheRoundingOfWholeGrams() {
@@ -418,16 +498,8 @@ final class DailyGoalsViewModelTests: XCTestCase {
     }
 
     func test_kcalOfEnteredGramsDifferingFromGoal_justBeyondTheTolerance_isTheGramsKcal() {
-        let sut = makeSUT()
-        sut.kcalText = "2000"
-        sut.onMacroModeChanged(.grams)
-        sut.proteinText = "100"
-        sut.carbsText = "200"
-        sut.fatText = "100"
-        sut.kcalText = "2090"
-        XCTAssertNil(sut.kcalOfEnteredGramsDifferingFromGoal)
-        sut.kcalText = "2089"
-        XCTAssertEqual(sut.kcalOfEnteredGramsDifferingFromGoal, 2100)
+        XCTAssertNil(makeSUT(history: gramsHistory(kcal: 2090)).kcalOfEnteredGramsDifferingFromGoal)
+        XCTAssertEqual(makeSUT(history: gramsHistory(kcal: 2089)).kcalOfEnteredGramsDifferingFromGoal, 2100)
     }
 
     func test_kcalOfEnteredGramsDifferingFromGoal_withEmptyKcalGoal_isNil() {
@@ -577,6 +649,21 @@ final class DailyGoalsViewModelTests: XCTestCase {
         XCTAssertEqual(sut.matchingVariantIndex, index)
     }
 
+    func test_variantSliderReleased_afterBodyDataMovedTheThumb_appliesTheVariantUnderTheThumb() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        let variants = try XCTUnwrap(sut.estimate?.variants)
+        sut.kcalText = String(variants[3].kcal + 10)
+        XCTAssertEqual(sut.selectedVariantIndex, 3)
+
+        sut.weightKilograms = 50
+        let newVariants = try XCTUnwrap(sut.estimate?.variants)
+        XCTAssertGreaterThan(try XCTUnwrap(sut.kcal), Double(newVariants[4].kcal))
+        XCTAssertEqual(sut.variantSliderPosition, 4)
+
+        sut.onVariantSliderReleased()
+        XCTAssertEqual(sut.kcal, Double(newVariants[4].kcal))
+    }
+
     func test_variantSliderReleased_withMatchingVariant_keepsKcal() throws {
         let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
         sut.onVariantSelected(0)
@@ -651,6 +738,42 @@ final class DailyGoalsViewModelTests: XCTestCase {
         XCTAssertEqual(protein / total, expectedShare, accuracy: 0.02)
     }
 
+    func test_variantSliderMoved_withPercentSumNot100_rescalesTheSplit() {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        sut.fatText = "40"
+
+        sut.onVariantSliderMoved(0)
+
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["18", "46", "36"])
+    }
+
+    func test_variantSliderMoved_withAMissingPercent_restoresTheDefaultSplit() {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        sut.fatText = ""
+
+        sut.onVariantSliderMoved(0)
+
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["20", "50", "30"])
+    }
+
+    func test_variantStep_withPercentSumNot100_rescalesTheSplit() {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        sut.fatText = "40"
+
+        sut.onVariantStep(direction: 1)
+
+        XCTAssertEqual(sut.percentSum, 100)
+    }
+
+    func test_activityChange_withPercentSumNot100_keepsTheTypedSplit() {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        sut.fatText = "40"
+
+        sut.activityLevel = .high
+
+        XCTAssertEqual([sut.proteinText, sut.carbsText, sut.fatText], ["20", "50", "40"])
+    }
+
     func test_activityChange_reappliesTheVariantUnderTheSlider() throws {
         let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
         sut.onVariantSelected(3)
@@ -663,19 +786,144 @@ final class DailyGoalsViewModelTests: XCTestCase {
         XCTAssertEqual(sut.matchingVariantIndex, 3)
     }
 
-    func test_step_inGramsMode_afterReopeningAGoalSavedAtAVariant_keepsTheSliderOnThatVariant() throws {
+    func test_step_inGramsMode_movesTheSliderOffTheVariantTowardsTheNewKcal() throws {
         var goal = profileGoal(macroMode: .grams)
         goal.proteinGrams = 150
         goal.carbsGrams = 250
         goal.fatGrams = 67
-        let probe = makeSUT(history: DailyGoalHistory(entries: [goal]))
-        goal.kcalGoal = Double(try XCTUnwrap(probe.estimate?.variants[3].kcal))
         let sut = makeSUT(history: DailyGoalHistory(entries: [goal]))
-        XCTAssertEqual(sut.matchingVariantIndex, 3)
+        sut.onVariantSelected(2)
 
         sut.onStep(.protein, direction: 1)
         XCTAssertNil(sut.matchingVariantIndex)
-        XCTAssertEqual(sut.selectedVariantIndex, 3)
+        XCTAssertGreaterThan(sut.variantSliderPosition, 2)
+        XCTAssertLessThan(sut.variantSliderPosition, 3)
+        XCTAssertEqual(sut.selectedVariantIndex, 2)
+    }
+
+    func test_variantSliderPosition_kcalHalfwayBetweenVariants_isHalfway() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        let variants = try XCTUnwrap(sut.estimate?.variants)
+        sut.kcalText = String(Double(variants[1].kcal + variants[2].kcal) / 2)
+        XCTAssertEqual(sut.variantSliderPosition, 1.5, accuracy: 0.001)
+    }
+
+    func test_activityChange_afterTypingKcalNearAVariant_appliesTheVariantTheSliderIsClosestTo() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        sut.kcalText = String(try XCTUnwrap(sut.estimate?.variants[3].kcal) + 10)
+        sut.activityLevel = .high
+        XCTAssertEqual(sut.matchingVariantIndex, 3)
+    }
+
+    func test_kcalOutsideTheVariants_showsTheRangeAndDisablesSave() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        let range = try XCTUnwrap(sut.kcalRangeOfVariants)
+        for (kcal, position) in [(range.lowerBound - 1, 0.0), (range.upperBound + 1, 4.0)] {
+            sut.kcalText = String(kcal)
+            XCTAssertEqual(sut.kcalRangeExceededByGoal, range)
+            XCTAssertEqual(sut.variantSliderPosition, position)
+            XCTAssertFalse(sut.canSave)
+        }
+    }
+
+    func test_kcalOutsideTheVariants_accepted_allowsSaveUntilTheKcalChanges() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        let range = try XCTUnwrap(sut.kcalRangeOfVariants)
+        sut.kcalText = String(range.lowerBound - 100)
+        sut.onKcalOutsideRangeAcceptanceToggled()
+        XCTAssertTrue(sut.canSave)
+
+        sut.kcalText = String(range.lowerBound - 200)
+        XCTAssertFalse(sut.isKcalOutsideRangeAccepted)
+        XCTAssertFalse(sut.canSave)
+    }
+
+    func test_kcalOutsideTheVariants_accepted_isClearedWhenBodyDataMovesTheRange() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        let range = try XCTUnwrap(sut.kcalRangeOfVariants)
+        sut.kcalText = String(range.lowerBound - 100)
+        sut.onKcalOutsideRangeAcceptanceToggled()
+        XCTAssertTrue(sut.canSave)
+
+        sut.weightKilograms = 120
+        XCTAssertNotEqual(sut.kcalRangeOfVariants, range)
+        XCTAssertNotNil(sut.kcalRangeExceededByGoal)
+        XCTAssertFalse(sut.isKcalOutsideRangeAccepted)
+        XCTAssertFalse(sut.canSave)
+    }
+
+    func test_kcalOutsideTheHardRange_doesNotOfferTheAcceptance() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        XCTAssertNotNil(sut.estimate)
+        for kcal in ["400", "12000"] {
+            sut.kcalText = kcal
+            XCTAssertNil(sut.kcalRangeExceededByGoal)
+            XCTAssertFalse(sut.canSave)
+        }
+    }
+
+    func test_variantStep_onAVariant_movesToTheNeighbour() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        sut.onVariantSelected(2)
+
+        sut.onVariantStep(direction: 1)
+        XCTAssertEqual(sut.matchingVariantIndex, 3)
+        sut.onVariantStep(direction: -1)
+        sut.onVariantStep(direction: -1)
+        XCTAssertEqual(sut.matchingVariantIndex, 1)
+    }
+
+    func test_variantStep_betweenVariants_movesToTheNextVariantInThatDirection() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        let variants = try XCTUnwrap(sut.estimate?.variants)
+        sut.kcalText = String(variants[3].kcal + 10)
+
+        sut.onVariantStep(direction: 1)
+        XCTAssertEqual(sut.matchingVariantIndex, 4)
+
+        sut.kcalText = String(variants[3].kcal + 10)
+        sut.onVariantStep(direction: -1)
+        XCTAssertEqual(sut.matchingVariantIndex, 3)
+    }
+
+    func test_variantStep_pastTheOuterVariants_keepsOrReturnsIntoTheRange() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        let range = try XCTUnwrap(sut.kcalRangeOfVariants)
+        sut.kcalText = String(range.upperBound + 100)
+
+        sut.onVariantStep(direction: 1)
+        XCTAssertEqual(sut.kcal, Double(range.upperBound + 100))
+        sut.onVariantStep(direction: -1)
+        XCTAssertEqual(sut.matchingVariantIndex, 4)
+
+        sut.onVariantSelected(0)
+        sut.onVariantStep(direction: -1)
+        XCTAssertEqual(sut.matchingVariantIndex, 0)
+    }
+
+    func test_kcalOutsideTheVariants_acceptanceTakenBack_disablesSave() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        sut.kcalText = String(try XCTUnwrap(sut.kcalRangeOfVariants).upperBound + 100)
+        sut.onKcalOutsideRangeAcceptanceToggled()
+        sut.onKcalOutsideRangeAcceptanceToggled()
+        XCTAssertFalse(sut.canSave)
+    }
+
+    func test_kcalOnTheOuterVariants_isAllowed() throws {
+        let sut = makeSUT(history: DailyGoalHistory(entries: [profileGoal(macroMode: .percent)]))
+        let range = try XCTUnwrap(sut.kcalRangeOfVariants)
+        for kcal in [range.lowerBound, range.upperBound] {
+            sut.kcalText = String(kcal)
+            XCTAssertNil(sut.kcalRangeExceededByGoal)
+            XCTAssertTrue(sut.canSave)
+        }
+    }
+
+    func test_kcalWithoutAnEstimate_isNotLimited() {
+        let sut = makeSUT()
+        sut.kcalText = "1200"
+        XCTAssertNil(sut.kcalRangeExceededByGoal)
+        XCTAssertTrue(sut.canSave)
     }
 
     func test_activityChange_afterReopeningAGoalSavedAtAVariant_keepsThatVariant() throws {
@@ -832,8 +1080,16 @@ final class DailyGoalsViewModelTests: XCTestCase {
         XCTAssertEqual(sut.kcalText, "2400")
     }
 
-    private func profileGoal(macroMode: GoalMacroMode) -> DailyGoalDomain {
-        var goal = DailyGoalDomain(validFrom: "2026-11-01", kcalGoal: 2000, macroMode: macroMode)
+    private func gramsHistory(kcal: Double) -> DailyGoalHistory {
+        var goal = DailyGoalDomain(validFrom: "2026-11-01", kcalGoal: kcal, macroMode: .grams)
+        goal.proteinGrams = 100
+        goal.carbsGrams = 200
+        goal.fatGrams = 100
+        return DailyGoalHistory(entries: [goal])
+    }
+
+    private func profileGoal(macroMode: GoalMacroMode, kcal: Double = 2000) -> DailyGoalDomain {
+        var goal = DailyGoalDomain(validFrom: "2026-11-01", kcalGoal: kcal, macroMode: macroMode)
         goal.sex = .male
         goal.birthYear = 1990
         goal.heightCm = 180
@@ -862,73 +1118,4 @@ final class DailyGoalsViewModelTests: XCTestCase {
             saveBodyWeight: saveBodyWeight
         ) { _ in }
     }
-}
-
-private final class SuspendedSaveDailyGoal: SaveDailyGoalUseCaseProtocol {
-    private(set) var goals: [DailyGoalDomain] = []
-    private var continuation: CheckedContinuation<Void, Never>?
-    private var requestWaiter: CheckedContinuation<Void, Never>?
-
-    func waitUntilRequested() async {
-        guard goals.isEmpty else { return }
-        await withCheckedContinuation { requestWaiter = $0 }
-    }
-
-    func resume() {
-        continuation?.resume()
-        continuation = nil
-    }
-
-    func callAsFunction(_ goal: DailyGoalDomain) async throws -> DailyGoalHistory {
-        goals.append(goal)
-        if goals.count == 1 {
-            requestWaiter?.resume()
-            requestWaiter = nil
-            await withCheckedContinuation { continuation = $0 }
-        }
-        return DailyGoalHistory(entries: [goal])
-    }
-}
-
-private final class SaveBodyWeightRecorder: SaveBodyWeightUseCaseProtocol {
-    private(set) var loggedKilograms: [Double] = []
-
-    func callAsFunction(kilograms: Double, for day: Date) async throws {
-        loggedKilograms.append(kilograms)
-    }
-}
-
-private final class SuspendedFetchBodyWeights: FetchBodyWeightsUseCaseProtocol {
-    private let weights: [BodyWeightDomain]
-    private var continuation: CheckedContinuation<Void, Never>?
-    private var requestWaiter: CheckedContinuation<Void, Never>?
-    private var isRequested = false
-
-    init(weights: [BodyWeightDomain]) {
-        self.weights = weights
-    }
-
-    func waitUntilRequested() async {
-        guard !isRequested else { return }
-        await withCheckedContinuation { requestWaiter = $0 }
-    }
-
-    func resume() {
-        continuation?.resume()
-        continuation = nil
-    }
-
-    func callAsFunction(upTo day: Date) async throws -> [BodyWeightDomain] {
-        isRequested = true
-        requestWaiter?.resume()
-        requestWaiter = nil
-        await withCheckedContinuation { continuation = $0 }
-        return weights
-    }
-
-    func callAsFunction(after day: Date) async throws -> [BodyWeightDomain] { [] }
-
-    func callAsFunction(from: Date, to: Date) async throws -> [BodyWeightDomain] { [] }
-
-    func callAsFunction(inYear year: Int) async throws -> [BodyWeightDomain] { [] }
 }

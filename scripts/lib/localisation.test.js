@@ -164,3 +164,23 @@ test('realSource_generatesEveryKeyInAllFormats', () => {
     assert.ok(sk.includes(`name="${key}"`), `${key} missing from Slovak strings.xml`);
   }
 });
+
+// ARCHITECTURE: cs and sk say "tykání". Formal imperatives and verbs end in "-te"; add a word to the allowlist only
+// when it is not a form of address.
+const NOT_ADDRESSING = new Set(['ešte', 'účte', 'etikete']);
+const FORMAL = /^(?:vy|vás|vám|vámi|vami|váš\p{L}*|vaš\p{L}*|\p{L}+te)$/u;
+
+for (const file of ['localisation/strings.json', 'iOS/Kalorie/Resources/InfoPlist.xcstrings']) {
+  test(`copy_addressesTheUserInformally_${path.basename(file)}`, () => {
+    const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', file), 'utf8'));
+    const formal = Object.entries(parsed.strings ?? parsed).flatMap(([key, entry]) =>
+      ['cs', 'sk'].flatMap((language) => {
+        const text = entry.localizations ? entry.localizations[language]?.stringUnit.value : entry[language];
+        return (text?.toLowerCase().match(/\p{L}+/gu) ?? [])
+          .filter((word) => FORMAL.test(word) && !NOT_ADDRESSING.has(word))
+          .map((word) => `${key} (${language}): ${word}`);
+      })
+    );
+    assert.deepEqual(formal, []);
+  });
+}

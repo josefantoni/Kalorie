@@ -1080,8 +1080,31 @@ line (`gramsKcalDiffersFromGoal`). `ActivityLevel` and `GoalVariantKcal` are
 MacroKit's own types, not domain types, so ADR 0039 decision 1 is stretched by them: each client maps its
 `GoalActivityLevel` onto `ActivityLevel`. The screen is the goals screen pushed from the ring:
 the goal being saved, the calculator inputs and one slider with the five variants, which writes the
-variant's kcal into the kcal field at once (nothing is saved until Save). A change of the activity level applies
-the variant the slider shows again (`DailyGoalsViewModel.activityLevel`). A rejected macro mode switch keeps
+variant's kcal into the kcal field at once (nothing is saved until Save, which asks for a confirmation first,
+as ending the goal does). A change of the activity level applies
+the variant the slider shows again (`DailyGoalsViewModel.activityLevel`). In grams mode any change of the kcal
+goal, typed by hand or written by the calculator, rescales the three grams in the same energy ratio, and a changed
+gram value moves the kcal goal to the grams' kcal (`DailyGoalsViewModel`). A goal written by the calculator or the
+slider rescales at once. A typed one does so only when the editing ends: the field loses focus, or the user taps a
+macro step, the mode control or Save (`onKcalEditingEnded`), so the numbers passed through while typing never reach
+the grams. The buttons need their own call because tapping one does not take the focus away from the field. On
+Android, hiding the keyboard with the back gesture can leave the field focused, so the grams then keep their old
+values until one of those happens. This replaces design 0030's rule that a typed kcal goal leaves the grams
+unchanged. Goals saved earlier can still differ; they keep the info line until the kcal goal or a macro is edited.
+The slider thumb shows where the kcal goal lies between the variants
+(`variantSliderPosition`), while dragging it still snaps to one of the five; a change of sex or activity applies the
+nearest one. In split mode, moving or stepping the slider also repairs a split that does not sum to 100
+(`onVariantSliderMoved`): three entered percents are scaled
+to 100 in the same ratio, and a missing one or an all-zero split restores the default 20 / 50 / 30. A change of
+sex or activity leaves the split as typed. A split that does not sum to 100 does not block a switch to grams,
+which replaces design 0030's rejection: the typed percents are converted as they are and the kcal goal moves to
+the grams' kcal, so a switch back reads a split of 100 that matches the grams. With a split of 100 the kcal goal
+stays as typed. With an estimate, a kcal goal below the −10 % or above the +10 % variant shows an error with the
+recommended range in its own warning-coloured section between the goal card and Save (`kcalRangeExceededByGoal`), also for a goal saved earlier, and Save stays disabled
+until the user ticks the checkbox in that section saying the goal is not recommended (`isKcalOutsideRangeAccepted`, not
+stored, cleared by every change of the kcal goal or of the recommended range); without body data there is no such check. A kcal goal outside the
+storable `SaveDailyGoalUseCase.kcalRange` gets no section, because no tick could make it saveable. This adds a confirmation
+to design 0030's "a larger change is entered by hand". A rejected macro mode switch keeps
 its caption only while the same reason still blocks it (`rejectedMacroModeBlock`).
 
 The day total is computed from `foodsConsumed` directly, while the sections are computed
@@ -1705,10 +1728,20 @@ supported; the first string that needs one has to extend the generator. In `scri
 generate-strings` writes the files and `npm run check-strings` fails when any of them is stale — CI
 runs the latter.
 
+A literal percent sign is written `%%`; the generator rejects a lone `%`. The catalogue keeps `%%`, so iOS has to
+load such a string through `String(format:)`, with or without arguments. Android gets a single `%` in a string
+without placeholders; one with placeholders keeps `%%` for `stringResource` to format. Bold is written
+`**text**`, and neither client renders it on its own: the generator copies the asterisks through, so every call
+site of such a string renders them itself — iOS with `AttributedString(markdown:)` (`L10n.Goals.errorPercentSum`),
+Android with `boldMarkedText` (`DailyGoalsView.kt`, which moves to `components/` once a second screen needs it).
+
 **Tone of the copy:** Czech (`cs`) and Slovak (`sk`) address the user informally (*tykání* / *tykanie*) everywhere —
 "Chceš smazat…?", "Zkus to znovu", "Nesnědl/a" — never formally (*vykání*). Gender-neutral forms are written
 with a slash ("přihlášen/a", "zjedol/a"). English uses "you" and needs no distinction. A new or edited string
-follows this in both languages.
+follows this in both languages. `scripts/lib/localisation.test.js`, run by CI, fails on a formal pronoun or a word
+ending in *-te* in the `cs` / `sk` texts of `strings.json` and `InfoPlist.xcstrings`; a word that does not address
+the user goes into its allowlist. It catches the common forms, not every one, and does not read the web pages in
+`backend/hosting`.
 
 One thing about the app is Czech-first in a way neither catalogue covers:
 
@@ -1803,8 +1836,10 @@ purpose.
 **Scope:** `Cross-platform` for the palette and where it lives; `iOS` / `Android` for the mechanism.
 
 Every colour the app draws comes from one place per platform, under the same names. A view never
-writes a literal hue (`.red`, `.blue`, `Color(0xFF…)`) or a hex value; it asks for the role. White
-and `.clear` are the only literals, for content on the accent or on a filled colour.
+writes a literal hue (`.red`, `.blue`, `Color(0xFF…)`) or a hex value; it asks for the role. White,
+black and `.clear` are the only literals, for content on the accent or on a filled colour: black is the content
+colour on `warning` (the alcoholic drink hint, the daily goal section for a goal outside the recommended range),
+in light and dark mode alike.
 
 | Role | iOS (`Assets.xcassets` colour set) | Android (`AppColors`, backed by `res/values/colors.xml`) |
 |---|---|---|

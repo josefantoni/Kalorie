@@ -27,6 +27,11 @@ struct DailyGoalsView: View {
     var body: some View {
         ScrollViewReader { proxy in
             list
+                .onChange(of: isKcalFocused) { _, isFocused in
+                    if !isFocused {
+                        viewModel.onKcalEditingEnded()
+                    }
+                }
                 .onChange(of: viewModel.kcalFocusRequestCount) {
                     isKcalFocused = true
                     Task {
@@ -44,6 +49,7 @@ struct DailyGoalsView: View {
             bodyDataSection
             activitySection
             currentGoalSection
+            kcalOutsideRangeSection
             saveGoalSection
             if viewModel.hasActiveGoal {
                 endGoalSection
@@ -53,20 +59,21 @@ struct DailyGoalsView: View {
         .environment(\.defaultMinListRowHeight, 56)
         .navigationTitle(L10n.Goals.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button(L10n.Common.buttonDone) {
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
-            }
-        }
+        .keyboardDoneToolbar()
         .task { await viewModel.onAppear() }
         .onChange(of: viewModel.didFinish) { _, didFinish in
             if didFinish { dismiss() }
         }
         .alert(item: $viewModel.alertItem) { item in
             Alert(title: Text(item.title), message: item.message.map(Text.init), dismissButton: .default(Text(L10n.Common.ok)))
+        }
+        .alert(L10n.Goals.saveTitle, isPresented: $viewModel.isSaveConfirmationVisible) {
+            Button(L10n.Goals.buttonSave) {
+                Task { await viewModel.onSaveTapped() }
+            }
+            Button(L10n.Common.buttonCancel, role: .cancel) {}
+        } message: {
+            Text(L10n.Goals.saveMessage)
         }
         .alert(L10n.Goals.endTitle, isPresented: $viewModel.isEndConfirmationVisible) {
             Button(L10n.Goals.buttonEnd, role: .destructive) {
@@ -345,14 +352,20 @@ struct DailyGoalsView: View {
             }
             Slider(
                 value: Binding(
-                    get: { Double(viewModel.matchingVariantIndex ?? Int(viewModel.selectedVariantIndex)) },
-                    set: { viewModel.onVariantSelected(Int($0.rounded())) }
+                    get: { viewModel.variantSliderPosition },
+                    set: { viewModel.onVariantSliderMoved(Int($0.rounded())) }
                 ),
-                in: 0...Double(variants.count - 1),
-                step: 1
+                in: 0...Double(variants.count - 1)
             ) { editing in
                 if !editing {
                     viewModel.onVariantSliderReleased()
+                }
+            }
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: viewModel.onVariantStep(direction: 1)
+                case .decrement: viewModel.onVariantStep(direction: -1)
+                @unknown default: break
                 }
             }
         }
@@ -361,7 +374,8 @@ struct DailyGoalsView: View {
     private var saveGoalSection: some View {
         Section {
             PrimaryButton(L10n.Goals.buttonSave, style: .primary) {
-                Task { await viewModel.onSaveTapped() }
+                viewModel.onKcalEditingEnded()
+                viewModel.isSaveConfirmationVisible = true
             }
             .disabled(!viewModel.canSave)
             .listRowInsets(EdgeInsets())
@@ -418,6 +432,53 @@ struct DailyGoalsView: View {
 
     private func kcalString(_ kcal: Int) -> String {
         "\(kcal.formatted()) \(L10n.Common.unitKcal)"
+    }
+
+    @ViewBuilder private var kcalOutsideRangeSection: some View {
+        if let range = viewModel.kcalRangeExceededByGoal {
+            Section {
+                kcalOutsideRangeContent(range)
+                    .listRowBackground(Color.warning)
+            }
+        }
+    }
+
+    private func kcalOutsideRangeContent(_ range: ClosedRange<Int>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Group {
+                Text(L10n.Goals.errorKcalOutsideVariants(range.lowerBound.formatted(), range.upperBound.formatted()))
+                    .fontWeight(.semibold)
+                Text(L10n.Goals.kcalOutsideVariantsAdvice)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            Divider()
+                .overlay(Color.black.opacity(0.2))
+            Button {
+                viewModel.onKcalOutsideRangeAcceptanceToggled()
+            } label: {
+                HStack(spacing: 12) {
+                    Text(L10n.Goals.kcalOutsideVariantsAccept)
+                        .fontWeight(.semibold)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    BaseImage(
+                        imageName: viewModel.isKcalOutsideRangeAccepted ? .checkboxChecked : .checkboxEmpty,
+                        imageSize: 22,
+                        imageWeight: .regular
+                    )
+                }
+                .padding(.vertical, 2)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(.isToggle)
+            .accessibilityAddTraits(viewModel.isKcalOutsideRangeAccepted ? .isSelected : [])
+        }
+        .font(.footnote)
+        .foregroundStyle(.black)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 4)
     }
 
     private var kcalRow: some View {

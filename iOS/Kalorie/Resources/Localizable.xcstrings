@@ -5872,25 +5872,48 @@
         }
       }
     },
+    "goals_error_kcalOutsideVariants" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doporučený denní příjem je %1$@ až %2$@ kcal, tedy od −10 %% do +10 %%."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The recommended daily intake is %1$@ to %2$@ kcal, that is from −10 %% to +10 %%."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Odporúčaný denný príjem je %1$@ až %2$@ kcal, teda od −10 %% do +10 %%."
+          }
+        }
+      }
+    },
     "goals_error_percentSum" : {
       "extractionState" : "manual",
       "localizations" : {
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Součet musí dát 100."
+            "value" : "Tvoje rozložení maker v **%%** musí dávat součet rovný **100**. Pokud chceš mít makra flexibilnější, přepni kartu na „Gramy“."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The values must add up to 100."
+            "value" : "Your macro split in **%%** must add up to **100**. If you want more flexible macros, switch the tab to “Grams”."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Súčet musí dať 100."
+            "value" : "Tvoje rozloženie makier v **%%** musí dávať súčet rovný **100**. Ak chceš mať makrá flexibilnejšie, prepni kartu na „Gramy“."
           }
         }
       }
@@ -6154,19 +6177,19 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tohle je cíl, který se uloží a podle kterého se na přehledu měří tvůj den. Zadej denní příjem a rozlož ho na bílkoviny, sacharidy a tuky, buď podílem v procentech, nebo rovnou v gramech. V režimu Podíl se gramy dopočítají z kalorií, v režimu Gramy se kalorie dopočítají z gramů. Pod polem je posuvník s odhadem podle tvých údajů o těle a aktivity; jeho posunutím se denní příjem rovnou přepíše."
+            "value" : "Tohle je cíl, který se uloží a podle kterého se na přehledu měří tvůj den. Zadej denní příjem a rozlož ho na bílkoviny, sacharidy a tuky, buď podílem v procentech, nebo rovnou v gramech. V režimu Podíl se gramy dopočítají z kalorií, v režimu Gramy se kalorie dopočítají z gramů, a když upravíš kalorie, přepočítají se gramy ve stejném poměru. Pod polem je posuvník s odhadem podle tvých údajů o těle a aktivity; jeho posunutím se denní příjem rovnou přepíše."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This is the goal that gets saved and that your day is measured against on the overview. Enter your daily intake and split it into protein, carbs and fat, either as a percentage or directly in grams. In Split mode the grams follow from the calories, in Grams mode the calories follow from the grams. Below the field a slider estimates it from your body data and activity; moving it overwrites the daily intake straight away."
+            "value" : "This is the goal that gets saved and that your day is measured against on the overview. Enter your daily intake and split it into protein, carbs and fat, either as a percentage or directly in grams. In Split mode the grams follow from the calories, in Grams mode the calories follow from the grams, and if you change the calories, the grams are rescaled in the same ratio. Below the field a slider estimates it from your body data and activity; moving it overwrites the daily intake straight away."
           }
         },
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toto je cieľ, ktorý sa uloží a podľa ktorého sa na prehľade meria tvoj deň. Zadaj denný príjem a rozlož ho na bielkoviny, sacharidy a tuky, buď podielom v percentách, alebo rovno v gramoch. V režime Podiel sa gramy dopočítajú z kalórií, v režime Gramy sa kalórie dopočítajú z gramov. Pod poľom je posuvník s odhadom podľa tvojich údajov o tele a aktivity; jeho posunutím sa denný príjem hneď prepíše."
+            "value" : "Toto je cieľ, ktorý sa uloží a podľa ktorého sa na prehľade meria tvoj deň. Zadaj denný príjem a rozlož ho na bielkoviny, sacharidy a tuky, buď podielom v percentách, alebo rovno v gramoch. V režime Podiel sa gramy dopočítajú z kalórií, v režime Gramy sa kalórie dopočítajú z gramov, a keď upravíš kalórie, prepočítajú sa gramy v rovnakom pomere. Pod poľom je posuvník s odhadom podľa tvojich údajov o tele a aktivity; jeho posunutím sa denný príjem hneď prepíše."
           }
         }
       }
@@ -6200,7 +6223,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyplňte všechna tři makra, pak jde režim přepnout."
+            "value" : "Vyplň všechna tři makra, pak jde režim přepnout."
           }
         },
         "en" : {
@@ -6212,7 +6235,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyplňte všetky tri makrá, potom sa dá režim prepnúť."
+            "value" : "Vyplň všetky tri makrá, potom sa dá režim prepnúť."
           }
         }
       }
@@ -6223,7 +6246,7 @@
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pro přepnutí na gramy zadejte nejdřív kcal."
+            "value" : "Pro přepnutí na gramy zadej nejdřív kcal."
           }
         },
         "en" : {
@@ -6235,30 +6258,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Na prepnutie na gramy zadajte najprv kcal."
-          }
-        }
-      }
-    },
-    "goals_hint_macroModeSumNot100" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Procenta musí dávat dohromady 100, pak jde přepnout na gramy."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The percentages must add up to 100 to switch to grams."
-          }
-        },
-        "sk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Percentá musia dávať dokopy 100, potom sa dá prepnúť na gramy."
+            "value" : "Na prepnutie na gramy zadaj najprv kcal."
           }
         }
       }
@@ -6447,6 +6447,52 @@
         }
       }
     },
+    "goals_kcalOutsideVariants_accept" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Přesto chci cíl uložit."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I want to save this goal anyway."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napriek tomu chcem cieľ uložiť."
+          }
+        }
+      }
+    },
+    "goals_kcalOutsideVariants_advice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tak velkou změnu nedoporučujeme. Postupuj pomalu a vytěž co nejvíc z malého ubrání nebo přidání kalorií. Až se váha přestane hýbat, můžeš být o něco razantnější."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We don't recommend such a big change. Take it slowly and get as much as you can out of a small calorie cut or surplus. Once your weight stops moving, you can be a bit more aggressive."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takú veľkú zmenu neodporúčame. Postupuj pomaly a vyťaž čo najviac z malého ubratia alebo pridania kalórií. Keď sa váha prestane hýbať, môžeš pritlačiť o niečo viac."
+          }
+        }
+      }
+    },
     "goals_macro_percentOfGoal" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6535,6 +6581,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Denný cieľ"
+          }
+        }
+      }
+    },
+    "goals_save_message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cíl bude platit od dneška. Minulé dny si svůj cíl ponechají."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The goal applies from today. Past days keep their goal."
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cieľ bude platiť od dnes. Minulé dni si svoj cieľ ponechajú."
+          }
+        }
+      }
+    },
+    "goals_save_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavit denní cíl?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set daily goal?"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastaviť denný cieľ?"
           }
         }
       }

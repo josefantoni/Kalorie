@@ -23,6 +23,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import antoni.kalorie.core.extensions.LocalKeyboardDoneClearance
 
 val SectionStackSpacing = 8.dp
 
@@ -39,7 +40,7 @@ fun SectionStack(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(contentPadding)
-            .padding(bottom = SectionStackSpacing),
+            .padding(bottom = SectionStackSpacing + LocalKeyboardDoneClearance.current),
         verticalArrangement = Arrangement.spacedBy(SectionStackSpacing),
         content = content,
     )
@@ -56,7 +57,7 @@ fun LazySectionStack(
         modifier = modifier.fillMaxSize(),
         state = state,
         contentPadding = PaddingValues(
-            bottom = contentPadding.calculateBottomPadding() + SectionStackSpacing,
+            bottom = contentPadding.calculateBottomPadding() + SectionStackSpacing + LocalKeyboardDoneClearance.current,
         ),
         verticalArrangement = Arrangement.spacedBy(SectionStackSpacing),
         content = content,

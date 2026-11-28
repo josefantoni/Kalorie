@@ -54,6 +54,8 @@ import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.SectionStack
 import antoni.kalorie.components.appSegmentedButtonColors
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.core.models.BodyWeightDayKey
 import antoni.kalorie.core.models.BodyWeightDomain
 import antoni.kalorie.core.utils.LoadingState
@@ -100,12 +102,12 @@ fun BodyWeightHistoryView(viewModel: BodyWeightHistoryViewModel, onBack: () -> U
             )
         },
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding.excludingBottom())) {
             when {
                 state.isLoading -> LoaderIndicator(modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp))
-                state is LoadingState.Error -> SectionStack { LoadFailedState(onRetry = { scope.launch { viewModel.onRetryTapped() } }) }
-                weights.isEmpty() -> SectionStack { EmptyState() }
-                else -> LazySectionStack {
+                state is LoadingState.Error -> SectionStack(contentPadding = padding.bottomOnly()) { LoadFailedState(onRetry = { scope.launch { viewModel.onRetryTapped() } }) }
+                weights.isEmpty() -> SectionStack(contentPadding = padding.bottomOnly()) { EmptyState() }
+                else -> LazySectionStack(contentPadding = padding.bottomOnly()) {
                     item { ChartSection(viewModel) }
                     item {
                         SectionCard {

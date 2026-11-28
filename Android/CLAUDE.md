@@ -82,7 +82,22 @@ directly after a field.
 Every screen that stacks `SectionCard`s is built on `SectionStack` (scrolling `Column`) or `LazySectionStack`
 (`LazyColumn`), both in `components/SectionStack.kt`. They give 8 dp of padding at the bottom and 8 dp between
 children, none at the top (the top bar already leaves about 16 dp under its title); `SectionCard` adds its own
-4 dp above and below, so the result is 4 dp from the top bar, 16 dp between blocks and 12 dp at the bottom. Pass the Scaffold's `innerPadding.bottomOnly()` as `contentPadding`.
+4 dp above and below, so the result is 4 dp from the top bar, 16 dp between blocks and 12 dp at the bottom.
+
+**The Scaffold's bottom inset belongs to the scrolling content, never to its container.** The outer container takes
+`padding(innerPadding.excludingBottom())` and the stack takes `contentPadding = innerPadding.bottomOnly()`, including
+the stacks of empty and error states. Plain `padding(innerPadding)` on the container cuts the content off above the
+gesture bar and leaves an empty band over it. This holds for every screen with scrolling content, a custom
+`LazyColumn` too: add `innerPadding.calculateBottomPadding()` to its own `contentPadding`, and to anything else
+anchored to the bottom edge. The same applies when a `bottomBar` is only sometimes shown. A screen whose `bottomBar`
+is always there, or whose content does not scroll, may pad the container. Outside a `ModalBottomSheet` (which pads for
+the keyboard itself), a container with `imePadding()` consumes only the `excludingBottom()` part, or the keyboard
+covers its bottom edge by the navigation bar's height.
+
+The Done button of `KeyboardDoneContainer` floats over the content, with no strip of its own. A text field stays above
+it through `Modifier.keepAboveKeyboardDone()`, which the shared fields already carry, and a list can scroll its last
+field that far because it adds `LocalKeyboardDoneClearance` to its bottom padding (`SectionStack` does; a custom
+`LazyColumn` must do it itself).
 
 - **Never write `padding(top = …)` on a card, a `Spacer` between blocks or your own `spacedBy`.** The rhythm
   lives in one place.

@@ -20,8 +20,12 @@ final class DailyGoalsViewModel: ObservableObject {
 
     @Published var kcalText: String {
         didSet {
-            if let index = matchingVariantIndex {
-                selectedVariantIndex = Double(index)
+            syncSelectedVariant()
+            if kcalText != oldValue {
+                isKcalOutsideRangeAccepted = false
+                if !isConvertingMacros {
+                    hasPendingKcalRescale = true
+                }
             }
             clearResolvedMacroModeRejection()
         }
@@ -38,11 +42,8 @@ final class DailyGoalsViewModel: ObservableObject {
     }
     @Published var sex: GoalSex? {
         willSet {
-            guard
-                newValue != sex,
-                let index = matchingVariantIndex
-            else { return }
-            selectedVariantIndex = Double(index)
+            guard newValue != sex else { return }
+            syncSelectedVariant()
         }
         didSet {
             guard sex != oldValue else { return }
@@ -64,11 +65,8 @@ final class DailyGoalsViewModel: ObservableObject {
     @Published var isHeightPickerVisible = false
     @Published var activityLevel: GoalActivityLevel? {
         willSet {
-            guard
-                newValue != activityLevel,
-                let index = matchingVariantIndex
-            else { return }
-            selectedVariantIndex = Double(index)
+            guard newValue != activityLevel else { return }
+            syncSelectedVariant()
         }
         didSet {
             guard activityLevel != oldValue else { return }
@@ -78,7 +76,9 @@ final class DailyGoalsViewModel: ObservableObject {
     }
     @Published var selectedVariantIndex = Double(GoalEstimate.percentChanges.firstIndex(of: 0) ?? 0)
     @Published private(set) var isSaving = false
+    @Published private(set) var isKcalOutsideRangeAccepted = false
     @Published private(set) var didFinish = false
+    @Published var isSaveConfirmationVisible = false
     @Published var isEndConfirmationVisible = false
     @Published var alertItem: AlertItem?
     @Published private(set) var rejectedMacroMode: GoalMacroMode?
@@ -92,10 +92,13 @@ final class DailyGoalsViewModel: ObservableObject {
     let isBodyDataRemembered: Bool
     let isActivityRemembered: Bool
 
+    private static let defaultPercentSplit = (protein: "20", carbs: "50", fat: "30")
+
     private(set) var estimate: GoalEstimate?
     private var gramsSplitAnchor: [Double]?
     private var initialInputs: Inputs?
     private var isConvertingMacros = false
+    private var hasPendingKcalRescale = false
     private var isWeightDefaulted = false
     private let fetchBodyWeights: any FetchBodyWeightsUseCaseProtocol
     private let saveDailyGoal: any SaveDailyGoalUseCaseProtocol
@@ -140,9 +143,9 @@ final class DailyGoalsViewModel: ObservableObject {
             carbsText = active.carbsPercent.map(Self.format) ?? ""
             fatText = active.fatPercent.map(Self.format) ?? ""
         } else {
-            proteinText = "20"
-            carbsText = "50"
-            fatText = "30"
+            proteinText = Self.defaultPercentSplit.protein
+            carbsText = Self.defaultPercentSplit.carbs
+            fatText = Self.defaultPercentSplit.fat
         }
         sex = profile?.sex ?? .male
         birthYear = profile?.birthYear
@@ -161,9 +164,7 @@ final class DailyGoalsViewModel: ObservableObject {
             kcalText = reference
         }
         updateEstimate()
-        if let index = matchingVariantIndex {
-            selectedVariantIndex = Double(index)
-        }
+        syncSelectedVariant()
         initialInputs = inputs
     }
 
@@ -197,6 +198,18 @@ final class DailyGoalsViewModel: ObservableObject {
             weightKilograms: weightKilograms,
             activityLevel: activityLevel
         )
+    }
+
+    private var inputsAfterPendingRescale: Inputs {
+        var result = inputs
+        guard
+            hasPendingKcalRescale,
+            macroMode == .grams,
+            let kcal,
+            let shares = gramsSplitAnchor ?? currentGramsShares()
+        else { return result }
+        (result.proteinText, result.carbsText, result.fatText) = gramsTexts(kcal: kcal, shares: shares)
+        return result
     }
 
     var kcal: Double? { Self.parse(kcalText) }
@@ -264,6 +277,7 @@ final class DailyGoalsViewModel: ObservableObject {
 
     private func updateEstimate() {
         let hadEstimate = estimate != nil
+        let previousRange = kcalRangeOfVariants
         estimate = GoalEstimate(
             sex: sex,
             birthYear: birthYear,
@@ -272,6 +286,9 @@ final class DailyGoalsViewModel: ObservableObject {
             activityLevel: activityLevel,
             currentYear: currentYear
         )
+        if kcalRangeOfVariants != previousRange {
+            isKcalOutsideRangeAccepted = false
+        }
         if
             !hadEstimate,
             estimate != nil,
@@ -294,6 +311,45 @@ final class DailyGoalsViewModel: ObservableObject {
 
     var selectedVariant: GoalVariant? {
         matchingVariantIndex.flatMap { estimate?.variants[$0] }
+    }
+
+    var variantSliderPosition: Double {
+        guard
+            let kcals = estimate?.variants.map({ Double($0.kcal) }),
+            let kcal
+        else { return selectedVariantIndex }
+        if let matchingVariantIndex {
+            return Double(matchingVariantIndex)
+        }
+        guard let upper = kcals.firstIndex(where: { $0 > kcal }) else { return Double(kcals.count - 1) }
+        guard upper > 0 else { return 0 }
+        return Double(upper - 1) + (kcal - kcals[upper - 1]) / (kcals[upper] - kcals[upper - 1])
+    }
+
+    var kcalRangeOfVariants: ClosedRange<Int>? {
+        guard
+            let lower = estimate?.variants.first?.kcal,
+            let upper = estimate?.variants.last?.kcal
+        else { return nil }
+        return lower...upper
+    }
+
+    var kcalRangeExceededByGoal: ClosedRange<Int>? {
+        guard
+            let range = kcalRangeOfVariants,
+            let kcal,
+            SaveDailyGoalUseCase.kcalRange.contains(kcal),
+            kcal < Double(range.lowerBound) || kcal > Double(range.upperBound)
+        else { return nil }
+        return range
+    }
+
+    private func syncSelectedVariant() {
+        guard
+            estimate != nil,
+            kcal != nil
+        else { return }
+        selectedVariantIndex = variantSliderPosition.rounded()
     }
 
     var kcalPlaceholder: String {
@@ -327,7 +383,19 @@ final class DailyGoalsViewModel: ObservableObject {
             !isConvertingMacros,
             let kcalOfEnteredGrams
         else { return }
+        isConvertingMacros = true
+        defer { isConvertingMacros = false }
         kcalText = Self.format(kcalOfEnteredGrams.rounded())
+    }
+
+    func onKcalEditingEnded() {
+        guard hasPendingKcalRescale else { return }
+        hasPendingKcalRescale = false
+        guard
+            macroMode == .grams,
+            let kcal
+        else { return }
+        rescaleGrams(toKcal: kcal)
     }
 
     private func currentGramsShares() -> [Double]? {
@@ -345,9 +413,38 @@ final class DailyGoalsViewModel: ObservableObject {
         gramsSplitAnchor = shares
         isConvertingMacros = true
         defer { isConvertingMacros = false }
-        proteinText = Self.format(EnergyKt.gramsFromKcal(kcal: kcal, percent: shares[0], isFat: false).rounded())
-        carbsText = Self.format(EnergyKt.gramsFromKcal(kcal: kcal, percent: shares[1], isFat: false).rounded())
-        fatText = Self.format(EnergyKt.gramsFromKcal(kcal: kcal, percent: shares[2], isFat: true).rounded())
+        (proteinText, carbsText, fatText) = gramsTexts(kcal: kcal, shares: shares)
+    }
+
+    private func gramsTexts(kcal: Double, shares: [Double]) -> (protein: String, carbs: String, fat: String) {
+        (
+            Self.format(EnergyKt.gramsFromKcal(kcal: kcal, percent: shares[0], isFat: false).rounded()),
+            Self.format(EnergyKt.gramsFromKcal(kcal: kcal, percent: shares[1], isFat: false).rounded()),
+            Self.format(EnergyKt.gramsFromKcal(kcal: kcal, percent: shares[2], isFat: true).rounded())
+        )
+    }
+
+    private func rebalanceInvalidPercentSplit() {
+        guard isPercentSumInvalid else { return }
+        let entered = [protein, carbs, fat].compactMap { $0 }.filter { $0.isFinite && $0 >= 0 }
+        let sum = entered.reduce(0, +)
+        guard
+            entered.count == 3,
+            sum > 0
+        else {
+            proteinText = Self.defaultPercentSplit.protein
+            carbsText = Self.defaultPercentSplit.carbs
+            fatText = Self.defaultPercentSplit.fat
+            return
+        }
+        applyRoundedPercentSplit(entered.map { $0 / sum * 100 })
+    }
+
+    private func applyRoundedPercentSplit(_ shares: [Double]) {
+        let rounded = GoalsKt.roundedToHundred(values: shares.map { KotlinDouble(value: $0) }).map(\.doubleValue)
+        proteinText = Self.format(rounded[0])
+        carbsText = Self.format(rounded[1])
+        fatText = Self.format(rounded[2])
     }
 
     private func applyEstimateOrReferenceKcal() {
@@ -360,30 +457,26 @@ final class DailyGoalsViewModel: ObservableObject {
 
     private func applyReferenceKcal() {
         guard let sex else { return }
-        let reference = Self.referenceKcal(isMale: sex == .male)
-        if
-            macroMode == .grams,
-            let referenceKcal = Self.parse(reference)
-        {
-            rescaleGrams(toKcal: referenceKcal)
-        }
-        kcalText = reference
+        kcalText = Self.referenceKcal(isMale: sex == .male)
+        onKcalEditingEnded()
     }
 
     var canSave: Bool {
         let macroRange = macroMode == .percent ? SaveDailyGoalUseCase.macroPercentRange : SaveDailyGoalUseCase.macroGramsRange
+        let pending = inputsAfterPendingRescale
         guard
             !isSaving,
             let kcal,
             SaveDailyGoalUseCase.kcalRange.contains(kcal),
-            let protein,
-            let carbs,
-            let fat,
+            let protein = Self.parse(pending.proteinText),
+            let carbs = Self.parse(pending.carbsText),
+            let fat = Self.parse(pending.fatText),
             macroRange.contains(protein),
             macroRange.contains(carbs),
             macroRange.contains(fat)
         else { return false }
-        return !isPercentSumInvalid && inputs != initialInputs
+        let isKcalAllowed = kcalRangeExceededByGoal == nil || isKcalOutsideRangeAccepted
+        return !isPercentSumInvalid && isKcalAllowed && pending != initialInputs
     }
 
     func heightLabel(cm: Int) -> String {
@@ -426,13 +519,12 @@ final class DailyGoalsViewModel: ObservableObject {
             return L10n.Goals.hintMacroModeIncomplete
         case .missingKcal:
             return L10n.Goals.hintMacroModeNeedsKcal
-        case .percentSumNot100:
-            return L10n.Goals.hintMacroModeSumNot100
         }
     }
 
     func onMacroModeChanged(_ mode: GoalMacroMode) {
         guard mode != macroMode else { return }
+        onKcalEditingEnded()
         if let block = macroModeSwitchBlock(to: mode) {
             rejectedMacroMode = mode
             rejectedMacroModeBlock = block
@@ -444,6 +536,7 @@ final class DailyGoalsViewModel: ObservableObject {
         rejectedMacroMode = nil
         rejectedMacroModeBlock = nil
         gramsSplitAnchor = nil
+        let isKcalFollowingGrams = mode == .grams && isPercentSumInvalid
         isConvertingMacros = true
         defer {
             macroMode = mode
@@ -460,17 +553,29 @@ final class DailyGoalsViewModel: ObservableObject {
             proteinText = Self.format(EnergyKt.gramsFromKcal(kcal: kcal, percent: protein, isFat: false).rounded())
             carbsText = Self.format(EnergyKt.gramsFromKcal(kcal: kcal, percent: carbs, isFat: false).rounded())
             fatText = Self.format(EnergyKt.gramsFromKcal(kcal: kcal, percent: fat, isFat: true).rounded())
+            if isKcalFollowingGrams {
+                followKcalOfConvertedGrams()
+            }
         case .percent:
             let shares = EnergyKt.energyShares(protein: protein, carbohydrate: carbs, fat: fat).map { $0.doubleValue * 100 }
             guard shares.reduce(0, +) > 0 else { return }
-            let rounded = GoalsKt.roundedToHundred(values: shares.map { KotlinDouble(value: $0) }).map(\.doubleValue)
-            proteinText = Self.format(rounded[0])
-            carbsText = Self.format(rounded[1])
-            fatText = Self.format(rounded[2])
+            applyRoundedPercentSplit(shares)
         }
     }
 
+    private func followKcalOfConvertedGrams() {
+        guard
+            let protein,
+            let carbs,
+            let fat
+        else { return }
+        let gramsKcal = GoalMacroGrams(protein: protein, carbs: carbs, fat: fat).kcal.rounded()
+        guard gramsKcal > 0 else { return }
+        kcalText = Self.format(gramsKcal)
+    }
+
     func onStep(_ macro: GoalMacro, direction: Int) {
+        onKcalEditingEnded()
         let step = macroMode == .percent ? 1.0 : 5.0
         let upper = macroMode == .percent ? 100.0 : 1000.0
         func stepped(_ text: String) -> String {
@@ -519,9 +624,29 @@ final class DailyGoalsViewModel: ObservableObject {
         isActivityCollapsed.toggle()
     }
 
+    func onKcalOutsideRangeAcceptanceToggled() {
+        isKcalOutsideRangeAccepted.toggle()
+    }
+
     func onVariantSliderReleased() {
         guard matchingVariantIndex == nil else { return }
-        onVariantSelected(Int(selectedVariantIndex))
+        onVariantSelected(Int(variantSliderPosition.rounded()))
+    }
+
+    func onVariantStep(direction: Int) {
+        guard let kcals = estimate?.variants.map({ Double($0.kcal) }) else { return }
+        guard let kcal else {
+            onVariantSliderMoved(Int(selectedVariantIndex) + direction)
+            return
+        }
+        let index = direction > 0 ? kcals.firstIndex { $0 > kcal } : kcals.lastIndex { $0 < kcal }
+        guard let index else { return }
+        onVariantSliderMoved(index)
+    }
+
+    func onVariantSliderMoved(_ index: Int) {
+        onVariantSelected(index)
+        rebalanceInvalidPercentSplit()
     }
 
     func onVariantSelected(_ index: Int) {
@@ -530,15 +655,13 @@ final class DailyGoalsViewModel: ObservableObject {
             variants.indices.contains(index)
         else { return }
         selectedVariantIndex = Double(index)
-        let variantKcal = Double(variants[index].kcal)
-        if macroMode == .grams {
-            rescaleGrams(toKcal: variantKcal)
-        }
-        kcalText = Self.format(variantKcal)
+        kcalText = Self.format(Double(variants[index].kcal))
+        onKcalEditingEnded()
     }
 
     @MainActor
     func onSaveTapped() async {
+        onKcalEditingEnded()
         guard
             canSave,
             let kcal,
@@ -612,7 +735,6 @@ final class DailyGoalsViewModel: ObservableObject {
     private enum MacroModeSwitchBlock {
         case incompleteMacros
         case missingKcal
-        case percentSumNot100
     }
 
     private func macroModeSwitchBlock(to mode: GoalMacroMode) -> MacroModeSwitchBlock? {
@@ -629,14 +751,6 @@ final class DailyGoalsViewModel: ObservableObject {
             filledMacros == 3
         {
             return .missingKcal
-        }
-        if
-            mode == .grams,
-            macroMode == .percent,
-            filledMacros == 3,
-            isPercentSumInvalid
-        {
-            return .percentSumNot100
         }
         return nil
     }

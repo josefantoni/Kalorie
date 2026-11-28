@@ -41,6 +41,7 @@ jobs:
             l10n:
               - 'localisation/**'
               - 'iOS/Kalorie/Resources/Localizable.xcstrings'
+              - 'iOS/Kalorie/Resources/InfoPlist.xcstrings'
               - 'Android/app/src/main/res/values*/strings.xml'
               - 'scripts/generate-strings.js'
               - 'scripts/lib/localisation*'

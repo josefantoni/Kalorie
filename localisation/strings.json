@@ -1920,24 +1920,34 @@
     "sk": "Hmotnosť"
   },
   "goals_error_percentSum": {
-    "cs": "Součet musí dát 100.",
-    "en": "The values must add up to 100.",
-    "sk": "Súčet musí dať 100."
+    "cs": "Tvoje rozložení maker v **%%** musí dávat součet rovný **100**. Pokud chceš mít makra flexibilnější, přepni kartu na „Gramy“.",
+    "en": "Your macro split in **%%** must add up to **100**. If you want more flexible macros, switch the tab to “Grams”.",
+    "sk": "Tvoje rozloženie makier v **%%** musí dávať súčet rovný **100**. Ak chceš mať makrá flexibilnejšie, prepni kartu na „Gramy“."
   },
   "goals_hint_macroModeIncomplete": {
-    "cs": "Vyplňte všechna tři makra, pak jde režim přepnout.",
+    "cs": "Vyplň všechna tři makra, pak jde režim přepnout.",
     "en": "Fill in all three macros to switch the mode.",
-    "sk": "Vyplňte všetky tri makrá, potom sa dá režim prepnúť."
+    "sk": "Vyplň všetky tri makrá, potom sa dá režim prepnúť."
   },
   "goals_hint_macroModeNeedsKcal": {
-    "cs": "Pro přepnutí na gramy zadejte nejdřív kcal.",
+    "cs": "Pro přepnutí na gramy zadej nejdřív kcal.",
     "en": "Enter the kcal goal first to switch to grams.",
-    "sk": "Na prepnutie na gramy zadajte najprv kcal."
+    "sk": "Na prepnutie na gramy zadaj najprv kcal."
   },
-  "goals_hint_macroModeSumNot100": {
-    "cs": "Procenta musí dávat dohromady 100, pak jde přepnout na gramy.",
-    "en": "The percentages must add up to 100 to switch to grams.",
-    "sk": "Percentá musia dávať dokopy 100, potom sa dá prepnúť na gramy."
+  "goals_error_kcalOutsideVariants": {
+    "cs": "Doporučený denní příjem je %1$@ až %2$@ kcal, tedy od −10 %% do +10 %%.",
+    "en": "The recommended daily intake is %1$@ to %2$@ kcal, that is from −10 %% to +10 %%.",
+    "sk": "Odporúčaný denný príjem je %1$@ až %2$@ kcal, teda od −10 %% do +10 %%."
+  },
+  "goals_kcalOutsideVariants_accept": {
+    "cs": "Přesto chci cíl uložit.",
+    "en": "I want to save this goal anyway.",
+    "sk": "Napriek tomu chcem cieľ uložiť."
+  },
+  "goals_kcalOutsideVariants_advice": {
+    "cs": "Tak velkou změnu nedoporučujeme. Postupuj pomalu a vytěž co nejvíc z malého ubrání nebo přidání kalorií. Až se váha přestane hýbat, můžeš být o něco razantnější.",
+    "en": "We don't recommend such a big change. Take it slowly and get as much as you can out of a small calorie cut or surplus. Once your weight stops moving, you can be a bit more aggressive.",
+    "sk": "Takú veľkú zmenu neodporúčame. Postupuj pomaly a vyťaž čo najviac z malého ubratia alebo pridania kalórií. Keď sa váha prestane hýbať, môžeš pritlačiť o niečo viac."
   },
   "goals_gramsKcal": {
     "cs": "Gramy odpovídají %@ kcal.",
@@ -2054,6 +2064,16 @@
     "en": "End goal",
     "sk": "Ukončiť cieľ"
   },
+  "goals_save_title": {
+    "cs": "Nastavit denní cíl?",
+    "en": "Set daily goal?",
+    "sk": "Nastaviť denný cieľ?"
+  },
+  "goals_save_message": {
+    "cs": "Cíl bude platit od dneška. Minulé dny si svůj cíl ponechají.",
+    "en": "The goal applies from today. Past days keep their goal.",
+    "sk": "Cieľ bude platiť od dnes. Minulé dni si svoj cieľ ponechajú."
+  },
   "goals_end_title": {
     "cs": "Ukončit sledování cíle?",
     "en": "End goal tracking?",
@@ -2090,9 +2110,9 @@
     "sk": "Zobraziť riadok „%% z cieľa“"
   },
   "goals_footer_current": {
-    "cs": "Tohle je cíl, který se uloží a podle kterého se na přehledu měří tvůj den. Zadej denní příjem a rozlož ho na bílkoviny, sacharidy a tuky, buď podílem v procentech, nebo rovnou v gramech. V režimu Podíl se gramy dopočítají z kalorií, v režimu Gramy se kalorie dopočítají z gramů. Pod polem je posuvník s odhadem podle tvých údajů o těle a aktivity; jeho posunutím se denní příjem rovnou přepíše.",
-    "en": "This is the goal that gets saved and that your day is measured against on the overview. Enter your daily intake and split it into protein, carbs and fat, either as a percentage or directly in grams. In Split mode the grams follow from the calories, in Grams mode the calories follow from the grams. Below the field a slider estimates it from your body data and activity; moving it overwrites the daily intake straight away.",
-    "sk": "Toto je cieľ, ktorý sa uloží a podľa ktorého sa na prehľade meria tvoj deň. Zadaj denný príjem a rozlož ho na bielkoviny, sacharidy a tuky, buď podielom v percentách, alebo rovno v gramoch. V režime Podiel sa gramy dopočítajú z kalórií, v režime Gramy sa kalórie dopočítajú z gramov. Pod poľom je posuvník s odhadom podľa tvojich údajov o tele a aktivity; jeho posunutím sa denný príjem hneď prepíše."
+    "cs": "Tohle je cíl, který se uloží a podle kterého se na přehledu měří tvůj den. Zadej denní příjem a rozlož ho na bílkoviny, sacharidy a tuky, buď podílem v procentech, nebo rovnou v gramech. V režimu Podíl se gramy dopočítají z kalorií, v režimu Gramy se kalorie dopočítají z gramů, a když upravíš kalorie, přepočítají se gramy ve stejném poměru. Pod polem je posuvník s odhadem podle tvých údajů o těle a aktivity; jeho posunutím se denní příjem rovnou přepíše.",
+    "en": "This is the goal that gets saved and that your day is measured against on the overview. Enter your daily intake and split it into protein, carbs and fat, either as a percentage or directly in grams. In Split mode the grams follow from the calories, in Grams mode the calories follow from the grams, and if you change the calories, the grams are rescaled in the same ratio. Below the field a slider estimates it from your body data and activity; moving it overwrites the daily intake straight away.",
+    "sk": "Toto je cieľ, ktorý sa uloží a podľa ktorého sa na prehľade meria tvoj deň. Zadaj denný príjem a rozlož ho na bielkoviny, sacharidy a tuky, buď podielom v percentách, alebo rovno v gramoch. V režime Podiel sa gramy dopočítajú z kalórií, v režime Gramy sa kalórie dopočítajú z gramov, a keď upravíš kalórie, prepočítajú sa gramy v rovnakom pomere. Pod poľom je posuvník s odhadom podľa tvojich údajov o tele a aktivity; jeho posunutím sa denný príjem hneď prepíše."
   },
   "goals_footer_body": {
     "cs": "Tyto údaje slouží jen k odhadu níže a ukládají se spolu s cílem. Nejsou povinné, cíl si můžeš zadat i ručně.",

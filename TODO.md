@@ -30,3 +30,17 @@
   - `/en/` is unknown to Google. *Request indexing* for it in *URL inspection* (the daily quota ran out on
     2026-11-26), then check that its Google-selected canonical is the inspected URL.
   - *Pages* was still processing on 2026-11-26; check which URLs are indexed.
+- **Merging the daily goal changes with the onboarding (`fix/daily-goal-kcal-consistency` + `feat/onboarding`)** —
+  not urgent until the second of the two branches is merged, but required then. A trial merge on 2026-11-27 conflicts
+  in `iOS/Kalorie/Features/DailyGoals/DailyGoalsView.swift` and
+  `Android/app/src/main/java/antoni/kalorie/features/dailygoals/DailyGoalsView.kt`. While resolving, on both platforms:
+  - The onboarding goal step MUST show the out-of-range section (`kcalOutsideRangeSection` /
+    `KcalOutsideRangeSection`) with its checkbox. The step shows only the goal card and a pinned Save, so without the
+    section a goal outside the −10 % to +10 % variants leaves Save disabled with nothing to tick.
+  - Decide whether the onboarding Save asks for the confirmation too. Its button calls `onSaveTapped` directly, while
+    the pushed screen opens the dialog (`isSaveConfirmationVisible`). Recommendation, not yet confirmed by the owner:
+    no dialog in the onboarding. If it gets one, the iOS alert has to be attached to the list the onboarding shows.
+  - Keep the calls of `onKcalEditingEnded` in both views: on focus loss of the kcal field and on the Save button before
+    the dialog opens. The onboarding goal step needs the focus one too, or a typed goal rescales the grams only on a
+    macro step, the mode control or Save. No unit test covers the views.
+  - Afterwards run the tests on both platforms and check the onboarding goal step by hand with a goal outside the range.

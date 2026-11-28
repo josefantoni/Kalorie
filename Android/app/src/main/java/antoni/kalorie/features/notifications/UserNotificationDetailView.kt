@@ -38,6 +38,8 @@ import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionGroup
 import antoni.kalorie.components.SectionStack
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.components.sheetBottomBar
 import antoni.kalorie.core.models.TicketStatus
 import antoni.kalorie.core.models.UserNotificationDomain
@@ -90,7 +92,7 @@ fun UserNotificationDetailView(
             }
         },
     ) { innerPadding ->
-        SectionStack(modifier = Modifier.padding(innerPadding)) {
+        SectionStack(modifier = Modifier.padding(innerPadding.excludingBottom()), contentPadding = innerPadding.bottomOnly()) {
             SectionCard {
                 notification.photoUrl?.let { photoUrl ->
                     FoodPhotoRemoteContent(

@@ -100,8 +100,8 @@ class DailyGoalsViewModelTest {
     @Test
     fun save_withoutTouchingTheWeight_doesNotLogItAsTodaysMeasurement() = runTest {
         val recorder = SaveBodyWeightRecorder()
-        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))), saveBodyWeight = recorder)
-        sut.onKcalTextChanged("2100")
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT, kcal = 2600.0))), saveBodyWeight = recorder)
+        sut.onKcalTextChanged("2700")
         sut.onSaveTapped()
         assertTrue(sut.didFinish.value)
         assertTrue(recorder.loggedKilograms.isEmpty())
@@ -110,7 +110,7 @@ class DailyGoalsViewModelTest {
     @Test
     fun save_afterEditingTheWeight_logsTheNewWeight() = runTest {
         val recorder = SaveBodyWeightRecorder()
-        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))), saveBodyWeight = recorder)
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT, kcal = 2600.0))), saveBodyWeight = recorder)
         sut.onWeightChanged(88.0)
         sut.onSaveTapped()
         assertEquals(listOf(88.0), recorder.loggedKilograms)
@@ -167,9 +167,9 @@ class DailyGoalsViewModelTest {
     @Test
     fun save_poundsWeightRoundTrippedThroughThePicker_doesNotLogIt() = runTest {
         val recorder = SaveBodyWeightRecorder()
-        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))), unit = BodyWeightUnit.LB, saveBodyWeight = recorder)
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT, kcal = 2600.0))), unit = BodyWeightUnit.LB, saveBodyWeight = recorder)
         sut.onWeightChanged(BodyWeightUnit.LB.kilograms(BodyWeightUnit.LB.tenths(80.0) / 10.0))
-        sut.onKcalTextChanged("2100")
+        sut.onKcalTextChanged("2700")
         sut.onSaveTapped()
         assertTrue(sut.didFinish.value)
         assertTrue(recorder.loggedKilograms.isEmpty())
@@ -177,11 +177,11 @@ class DailyGoalsViewModelTest {
 
     @Test
     fun save_kilogramWeightRoundedToTheDisplayedTenth_doesNotLogIt() = runTest {
-        val goal = profileGoal(GoalMacroMode.PERCENT).copy(weightKg = 80.25)
+        val goal = profileGoal(GoalMacroMode.PERCENT, kcal = 2600.0).copy(weightKg = 80.25)
         val recorder = SaveBodyWeightRecorder()
         val sut = makeSUT(history = DailyGoalHistory(listOf(goal)), saveBodyWeight = recorder)
         sut.onWeightChanged(80.3)
-        sut.onKcalTextChanged("2100")
+        sut.onKcalTextChanged("2700")
         sut.onSaveTapped()
         assertTrue(recorder.loggedKilograms.isEmpty())
     }
@@ -189,7 +189,7 @@ class DailyGoalsViewModelTest {
     @Test
     fun save_weightMovedByOneTenth_logsIt() = runTest {
         val recorder = SaveBodyWeightRecorder()
-        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))), saveBodyWeight = recorder)
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT, kcal = 2600.0))), saveBodyWeight = recorder)
         sut.onWeightChanged(80.1)
         sut.onSaveTapped()
         assertEquals(listOf(80.1), recorder.loggedKilograms)
@@ -331,7 +331,7 @@ class DailyGoalsViewModelTest {
     }
 
     @Test
-    fun macroModeHint_doesNotTurnIntoTheSumMessageWhenKcalIsTyped() {
+    fun macroModeHint_needsKcalWithAnInvalidSplit_disappearsWhenKcalIsTyped() {
         val sut = makeSUT()
         sut.onKcalTextChanged("")
         sut.onProteinTextChanged("30")
@@ -370,30 +370,45 @@ class DailyGoalsViewModelTest {
     }
 
     @Test
-    fun macroModeToGrams_withPercentsNotSummingTo100_keepsPercentModeAndShowsHint() {
+    fun macroModeToGrams_withPercentsNotSummingTo100_convertsTheTypedPercentsAndMovesTheKcalGoal() {
         val sut = makeSUT()
         sut.onKcalTextChanged("2000")
         sut.onProteinTextChanged("20")
         sut.onCarbsTextChanged("50")
         sut.onFatTextChanged("20")
+
         sut.onMacroModeChanged(GoalMacroMode.GRAMS)
-        assertEquals(GoalMacroMode.PERCENT, sut.macroMode.value)
-        assertEquals("50", sut.carbsText.value)
-        assertEquals(R.string.goals_hint_macroModeSumNot100, sut.macroModeHint)
-        assertEquals(0, sut.kcalFocusRequestCount.value)
+
+        assertEquals(GoalMacroMode.GRAMS, sut.macroMode.value)
+        assertEquals(listOf("100", "250", "44"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+        assertEquals("1796", sut.kcalText.value)
+        assertNull(sut.macroModeHint)
     }
 
     @Test
-    fun macroModeHint_sumNot100_disappearsOnceThePercentsSumTo100() {
+    fun macroModeBackToPercent_afterAnInvalidSplit_matchesTheGrams() {
         val sut = makeSUT()
         sut.onKcalTextChanged("2000")
         sut.onFatTextChanged("20")
         sut.onMacroModeChanged(GoalMacroMode.GRAMS)
-        assertEquals(GoalMacroMode.PERCENT, sut.macroMode.value)
-        sut.onFatTextChanged("30")
-        assertNull(sut.macroModeHint)
+
+        sut.onMacroModeChanged(GoalMacroMode.PERCENT)
+
+        assertEquals(listOf("22", "56", "22"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+        assertEquals("1796", sut.kcalText.value)
+    }
+
+    @Test
+    fun macroModeToGrams_withAllZeroPercents_keepsTheKcalGoal() {
+        val sut = makeSUT()
+        sut.onKcalTextChanged("2000")
+        sut.onProteinTextChanged("0")
+        sut.onCarbsTextChanged("0")
+        sut.onFatTextChanged("0")
+
         sut.onMacroModeChanged(GoalMacroMode.GRAMS)
-        assertEquals(GoalMacroMode.GRAMS, sut.macroMode.value)
+
+        assertEquals("2000", sut.kcalText.value)
     }
 
     @Test
@@ -418,15 +433,90 @@ class DailyGoalsViewModelTest {
     }
 
     @Test
-    fun kcalOfEnteredGramsDifferingFromGoal_kcalGoalTypedDifferentFromGrams_isTheGramsKcal() {
-        val sut = makeSUT()
-        sut.onKcalTextChanged("2000")
-        sut.onMacroModeChanged(GoalMacroMode.GRAMS)
-        sut.onProteinTextChanged("100")
-        sut.onCarbsTextChanged("200")
-        sut.onFatTextChanged("100")
-        sut.onKcalTextChanged("2500")
+    fun kcalOfEnteredGramsDifferingFromGoal_storedGoalNotMatchingItsGrams_isTheGramsKcal() {
+        val sut = makeSUT(history = gramsHistory(2500.0))
         assertEquals(2100.0, sut.kcalOfEnteredGramsDifferingFromGoal)
+    }
+
+    @Test
+    fun kcalTyped_inGramsMode_rescalesTheGramsInTheSameRatio() {
+        val sut = makeSUT(history = gramsHistory(2100.0))
+        sut.onKcalTextChanged("4200")
+        sut.onKcalEditingEnded()
+        assertEquals(listOf("200", "400", "200"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+        assertNull(sut.kcalOfEnteredGramsDifferingFromGoal)
+    }
+
+    @Test
+    fun kcalTyped_inGramsModeKeyByKey_scalesFromTheSplitBeforeTheFirstKey() {
+        val sut = makeSUT(history = gramsHistory(2100.0))
+        listOf("210", "21", "2", "", "4", "42", "420", "4200").forEach(sut::onKcalTextChanged)
+        assertEquals(listOf("100", "200", "100"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+        sut.onKcalEditingEnded()
+        assertEquals(listOf("200", "400", "200"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+    }
+
+    @Test
+    fun canSave_typedKcalThatWillRescaleGramsOutOfRange_isDisabledBeforeEditingEnds() {
+        val sut = makeSUT(history = gramsHistory(2100.0))
+        sut.onProteinTextChanged("150")
+        sut.onCarbsTextChanged("400")
+        sut.onFatTextChanged("80")
+        sut.onKcalTextChanged("8000")
+        assertFalse(sut.canSave)
+    }
+
+    @Test
+    fun canSave_typedKcalThatWillRescaleGramsBackIntoRange_isEnabledBeforeEditingEnds() {
+        val sut = makeSUT(history = gramsHistory(2100.0))
+        sut.onProteinTextChanged("150")
+        sut.onCarbsTextChanged("400")
+        sut.onFatTextChanged("80")
+        sut.onKcalTextChanged("8000")
+        sut.onKcalEditingEnded()
+        sut.onKcalTextChanged("2500")
+        assertTrue(sut.canSave)
+    }
+
+    @Test
+    fun canSave_typedKcalThatWillRestoreTheStoredGoal_isDisabledBeforeEditingEnds() {
+        val sut = makeSUT(history = gramsHistory(2100.0))
+        sut.onKcalTextChanged("4200")
+        sut.onKcalEditingEnded()
+        sut.onKcalTextChanged("2100")
+        assertFalse(sut.canSave)
+    }
+
+    @Test
+    fun kcalErased_inGramsMode_thenMacroStepped_keepsTheOtherGrams() {
+        val sut = makeSUT(history = gramsHistory(2100.0))
+        listOf("210", "21", "2", "").forEach(sut::onKcalTextChanged)
+        sut.onStep(GoalMacro.PROTEIN, 1)
+        assertEquals(listOf("105", "200", "100"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+    }
+
+    @Test
+    fun macroStep_withTypedKcalStillBeingEdited_rescalesBeforeStepping() {
+        val sut = makeSUT(history = gramsHistory(2100.0))
+        sut.onKcalTextChanged("4200")
+        sut.onStep(GoalMacro.PROTEIN, 1)
+        assertEquals(listOf("205", "400", "200"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+        assertEquals("4220", sut.kcalText.value)
+    }
+
+    @Test
+    fun kcalAssignedUnchanged_inGramsMode_keepsAStoredMismatch() {
+        val sut = makeSUT(history = gramsHistory(2500.0))
+        sut.onKcalTextChanged(sut.kcalText.value)
+        assertEquals(listOf("100", "200", "100"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+    }
+
+    @Test
+    fun macroEdited_inGramsMode_doesNotRescaleTheOtherGrams() {
+        val sut = makeSUT(history = gramsHistory(2100.0))
+        sut.onProteinTextChanged("150")
+        assertEquals("2300", sut.kcalText.value)
+        assertEquals(listOf("150", "200", "100"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
     }
 
     @Test
@@ -444,16 +534,8 @@ class DailyGoalsViewModelTest {
 
     @Test
     fun kcalOfEnteredGramsDifferingFromGoal_justBeyondTheTolerance_isTheGramsKcal() {
-        val sut = makeSUT()
-        sut.onKcalTextChanged("2000")
-        sut.onMacroModeChanged(GoalMacroMode.GRAMS)
-        sut.onProteinTextChanged("100")
-        sut.onCarbsTextChanged("200")
-        sut.onFatTextChanged("100")
-        sut.onKcalTextChanged("2090")
-        assertNull(sut.kcalOfEnteredGramsDifferingFromGoal)
-        sut.onKcalTextChanged("2089")
-        assertEquals(2100.0, sut.kcalOfEnteredGramsDifferingFromGoal)
+        assertNull(makeSUT(history = gramsHistory(2090.0)).kcalOfEnteredGramsDifferingFromGoal)
+        assertEquals(2100.0, makeSUT(history = gramsHistory(2089.0)).kcalOfEnteredGramsDifferingFromGoal)
     }
 
     @Test
@@ -635,6 +717,22 @@ class DailyGoalsViewModelTest {
     }
 
     @Test
+    fun variantSliderReleased_afterBodyDataMovedTheThumb_appliesTheVariantUnderTheThumb() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        val variants = requireNotNull(sut.estimate.value).variants
+        sut.onKcalTextChanged((variants[3].kcal + 10).toString())
+        assertEquals(3.0, sut.selectedVariantIndex.value, 0.0)
+
+        sut.onWeightChanged(50.0)
+        val newVariants = requireNotNull(sut.estimate.value).variants
+        assertTrue(requireNotNull(sut.kcal) > newVariants[4].kcal)
+        assertEquals(4.0, sut.variantSliderPosition, 0.0)
+
+        sut.onVariantSliderReleased()
+        assertEquals(newVariants[4].kcal.toDouble(), requireNotNull(sut.kcal), 0.0)
+    }
+
+    @Test
     fun variantSliderReleased_withMatchingVariant_keepsKcal() {
         val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
         sut.onVariantSelected(0)
@@ -701,6 +799,46 @@ class DailyGoalsViewModelTest {
     }
 
     @Test
+    fun variantSliderMoved_withPercentSumNot100_rescalesTheSplit() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        sut.onFatTextChanged("40")
+
+        sut.onVariantSliderMoved(0)
+
+        assertEquals(listOf("18", "46", "36"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+    }
+
+    @Test
+    fun variantSliderMoved_withAMissingPercent_restoresTheDefaultSplit() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        sut.onFatTextChanged("")
+
+        sut.onVariantSliderMoved(0)
+
+        assertEquals(listOf("20", "50", "30"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+    }
+
+    @Test
+    fun variantStep_withPercentSumNot100_rescalesTheSplit() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        sut.onFatTextChanged("40")
+
+        sut.onVariantStep(1)
+
+        assertEquals(100.0, sut.percentSum)
+    }
+
+    @Test
+    fun activityChange_withPercentSumNot100_keepsTheTypedSplit() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        sut.onFatTextChanged("40")
+
+        sut.onActivityLevelChanged(GoalActivityLevel.HIGH)
+
+        assertEquals(listOf("20", "50", "40"), listOf(sut.proteinText.value, sut.carbsText.value, sut.fatText.value))
+    }
+
+    @Test
     fun activityChange_reappliesTheVariantUnderTheSlider() {
         val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
         sut.onVariantSelected(3)
@@ -737,16 +875,151 @@ class DailyGoalsViewModelTest {
     }
 
     @Test
-    fun step_inGramsMode_afterReopeningAGoalSavedAtAVariant_keepsTheSliderOnThatVariant() {
-        var goal = gramsProfileGoal(150.0, 250.0, 67.0)
-        val probe = makeSUT(history = DailyGoalHistory(listOf(goal)))
-        goal = goal.copy(kcalGoal = checkNotNull(probe.estimate.value).variants[3].kcal.toDouble())
-        val sut = makeSUT(history = DailyGoalHistory(listOf(goal)))
-        assertEquals(3, sut.matchingVariantIndex)
+    fun step_inGramsMode_movesTheSliderOffTheVariantTowardsTheNewKcal() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(gramsProfileGoal(150.0, 250.0, 67.0))))
+        sut.onVariantSelected(2)
 
         sut.onStep(GoalMacro.PROTEIN, 1)
-        assertEquals(null, sut.matchingVariantIndex)
-        assertEquals(3.0, sut.selectedVariantIndex.value, 0.0)
+        assertNull(sut.matchingVariantIndex)
+        assertTrue(sut.variantSliderPosition > 2 && sut.variantSliderPosition < 3)
+        assertEquals(2.0, sut.selectedVariantIndex.value, 0.0)
+    }
+
+    @Test
+    fun variantSliderPosition_kcalHalfwayBetweenVariants_isHalfway() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        val variants = requireNotNull(sut.estimate.value).variants
+        sut.onKcalTextChanged(((variants[1].kcal + variants[2].kcal) / 2.0).toString())
+        assertEquals(1.5, sut.variantSliderPosition, 0.001)
+    }
+
+    @Test
+    fun activityChange_afterTypingKcalNearAVariant_appliesTheVariantTheSliderIsClosestTo() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        sut.onKcalTextChanged((requireNotNull(sut.estimate.value).variants[3].kcal + 10).toString())
+        sut.onActivityLevelChanged(GoalActivityLevel.HIGH)
+        assertEquals(3, sut.matchingVariantIndex)
+    }
+
+    @Test
+    fun kcalOutsideTheVariants_showsTheRangeAndDisablesSave() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        val range = requireNotNull(sut.kcalRangeOfVariants)
+        for ((kcal, position) in listOf(range.first - 1 to 0.0, range.last + 1 to 4.0)) {
+            sut.onKcalTextChanged(kcal.toString())
+            assertEquals(range, sut.kcalRangeExceededByGoal)
+            assertEquals(position, sut.variantSliderPosition, 0.0)
+            assertFalse(sut.canSave)
+        }
+    }
+
+    @Test
+    fun kcalOutsideTheVariants_accepted_allowsSaveUntilTheKcalChanges() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        val range = requireNotNull(sut.kcalRangeOfVariants)
+        sut.onKcalTextChanged((range.first - 100).toString())
+        sut.onKcalOutsideRangeAcceptanceToggled()
+        assertTrue(sut.canSave)
+
+        sut.onKcalTextChanged((range.first - 200).toString())
+        assertFalse(sut.isKcalOutsideRangeAccepted.value)
+        assertFalse(sut.canSave)
+    }
+
+    @Test
+    fun kcalOutsideTheVariants_accepted_isClearedWhenBodyDataMovesTheRange() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        val range = requireNotNull(sut.kcalRangeOfVariants)
+        sut.onKcalTextChanged((range.first - 100).toString())
+        sut.onKcalOutsideRangeAcceptanceToggled()
+        assertTrue(sut.canSave)
+
+        sut.onWeightChanged(120.0)
+        assertNotEquals(range, sut.kcalRangeOfVariants)
+        assertNotNull(sut.kcalRangeExceededByGoal)
+        assertFalse(sut.isKcalOutsideRangeAccepted.value)
+        assertFalse(sut.canSave)
+    }
+
+    @Test
+    fun kcalOutsideTheHardRange_doesNotOfferTheAcceptance() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        assertNotNull(sut.estimate.value)
+        for (kcal in listOf("400", "12000")) {
+            sut.onKcalTextChanged(kcal)
+            assertNull(sut.kcalRangeExceededByGoal)
+            assertFalse(sut.canSave)
+        }
+    }
+
+    @Test
+    fun variantStep_onAVariant_movesToTheNeighbour() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        sut.onVariantSelected(2)
+
+        sut.onVariantStep(1)
+        assertEquals(3, sut.matchingVariantIndex)
+        sut.onVariantStep(-1)
+        sut.onVariantStep(-1)
+        assertEquals(1, sut.matchingVariantIndex)
+    }
+
+    @Test
+    fun variantStep_betweenVariants_movesToTheNextVariantInThatDirection() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        val variants = requireNotNull(sut.estimate.value).variants
+        sut.onKcalTextChanged((variants[3].kcal + 10).toString())
+
+        sut.onVariantStep(1)
+        assertEquals(4, sut.matchingVariantIndex)
+
+        sut.onKcalTextChanged((variants[3].kcal + 10).toString())
+        sut.onVariantStep(-1)
+        assertEquals(3, sut.matchingVariantIndex)
+    }
+
+    @Test
+    fun variantStep_pastTheOuterVariants_keepsOrReturnsIntoTheRange() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        val range = requireNotNull(sut.kcalRangeOfVariants)
+        sut.onKcalTextChanged((range.last + 100).toString())
+
+        sut.onVariantStep(1)
+        assertEquals((range.last + 100).toDouble(), requireNotNull(sut.kcal), 0.0)
+        sut.onVariantStep(-1)
+        assertEquals(4, sut.matchingVariantIndex)
+
+        sut.onVariantSelected(0)
+        sut.onVariantStep(-1)
+        assertEquals(0, sut.matchingVariantIndex)
+    }
+
+    @Test
+    fun kcalOutsideTheVariants_acceptanceTakenBack_disablesSave() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        sut.onKcalTextChanged((requireNotNull(sut.kcalRangeOfVariants).last + 100).toString())
+        sut.onKcalOutsideRangeAcceptanceToggled()
+        sut.onKcalOutsideRangeAcceptanceToggled()
+        assertFalse(sut.canSave)
+    }
+
+    @Test
+    fun kcalOnTheOuterVariants_isAllowed() {
+        val sut = makeSUT(history = DailyGoalHistory(listOf(profileGoal(GoalMacroMode.PERCENT))))
+        val range = requireNotNull(sut.kcalRangeOfVariants)
+        for (kcal in listOf(range.first, range.last)) {
+            sut.onKcalTextChanged(kcal.toString())
+            assertNull(sut.kcalRangeExceededByGoal)
+            assertTrue(sut.canSave)
+        }
+    }
+
+    @Test
+    fun kcalWithoutAnEstimate_isNotLimited() {
+        val sut = makeSUT()
+        sut.onKcalTextChanged("1200")
+        assertNull(sut.kcalRangeExceededByGoal)
+        assertTrue(sut.canSave)
     }
 
     @Test
@@ -892,10 +1165,23 @@ class DailyGoalsViewModelTest {
         fatPercent = 30.0,
     )
 
-    private fun profileGoal(macroMode: GoalMacroMode): DailyGoalDomain {
+    private fun gramsHistory(kcal: Double) = DailyGoalHistory(
+        listOf(
+            DailyGoalDomain(
+                "2026-11-01",
+                kcalGoal = kcal,
+                macroMode = GoalMacroMode.GRAMS,
+                proteinGrams = 100.0,
+                carbsGrams = 200.0,
+                fatGrams = 100.0,
+            ),
+        ),
+    )
+
+    private fun profileGoal(macroMode: GoalMacroMode, kcal: Double = 2000.0): DailyGoalDomain {
         val goal = DailyGoalDomain(
             "2026-11-01",
-            kcalGoal = 2000.0,
+            kcalGoal = kcal,
             macroMode = macroMode,
             sex = GoalSex.MALE,
             birthYear = 1990,

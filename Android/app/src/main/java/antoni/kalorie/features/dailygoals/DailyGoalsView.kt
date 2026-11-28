@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,10 +31,14 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -43,6 +48,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,10 +62,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.setProgress
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import antoni.kalorie.R
@@ -74,6 +90,8 @@ import antoni.kalorie.components.SectionCardDivider
 import antoni.kalorie.components.SectionGroup
 import antoni.kalorie.components.SectionRowMinHeight
 import antoni.kalorie.components.appSegmentedButtonColors
+import antoni.kalorie.components.bottomOnly
+import antoni.kalorie.components.excludingBottom
 import antoni.kalorie.core.extensions.KeyboardDoneContainer
 import antoni.kalorie.core.extensions.formattedGrams
 import antoni.kalorie.core.models.GoalActivityLevel
@@ -104,7 +122,11 @@ fun DailyGoalsView(viewModel: DailyGoalsViewModel, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val didFinish by viewModel.didFinish.collectAsState()
     val alertItem by viewModel.alertItem.collectAsState()
+    val isSaveConfirmationVisible by viewModel.isSaveConfirmationVisible.collectAsState()
     val isEndConfirmationVisible by viewModel.isEndConfirmationVisible.collectAsState()
+    viewModel.kcalText.collectAsState().value
+    viewModel.estimate.collectAsState().value
+    val exceededKcalRange = viewModel.kcalRangeExceededByGoal
     val isSaving by viewModel.isSaving.collectAsState()
     val kcalFocusRequestCount by viewModel.kcalFocusRequestCount.collectAsState()
     val kcalFocusRequester = remember { FocusRequester() }
@@ -135,12 +157,20 @@ fun DailyGoalsView(viewModel: DailyGoalsViewModel, onBack: () -> Unit) {
             )
         },
     ) { padding ->
-        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
-            LazySectionStack {
+        KeyboardDoneContainer(modifier = Modifier.fillMaxSize().padding(padding.excludingBottom()).consumeWindowInsets(padding.excludingBottom()).imePadding()) {
+            LazySectionStack(contentPadding = padding.bottomOnly()) {
                 item { BodyDataSection(viewModel) }
                 item { ActivitySection(viewModel) }
                 item { CurrentGoalSection(viewModel, kcalFocusRequester, kcalBringIntoView) }
-                item { SaveGoalButton(viewModel) { scope.launch { viewModel.onSaveTapped() } } }
+                if (exceededKcalRange != null) {
+                    item { KcalOutsideRangeSection(viewModel, exceededKcalRange) }
+                }
+                item {
+                    SaveGoalButton(viewModel) {
+                        viewModel.onKcalEditingEnded()
+                        viewModel.isSaveConfirmationVisible.value = true
+                    }
+                }
                 if (viewModel.hasActiveGoal) {
                     item {
                         PrimaryButton(
@@ -163,6 +193,29 @@ fun DailyGoalsView(viewModel: DailyGoalsViewModel, onBack: () -> Unit) {
             text = item.messageRes?.let { message -> { Text(stringResource(message)) } },
             confirmButton = {
                 TextButton(onClick = { viewModel.alertItem.value = null }) { Text(stringResource(R.string.common_ok)) }
+            },
+        )
+    }
+
+    if (isSaveConfirmationVisible) {
+        AlertDialog(
+            onDismissRequest = { viewModel.isSaveConfirmationVisible.value = false },
+            title = { Text(stringResource(R.string.goals_save_title)) },
+            text = { Text(stringResource(R.string.goals_save_message)) },
+            dismissButton = {
+                TextButton(onClick = { viewModel.isSaveConfirmationVisible.value = false }) {
+                    Text(stringResource(R.string.common_button_cancel))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.isSaveConfirmationVisible.value = false
+                        scope.launch { viewModel.onSaveTapped() }
+                    },
+                ) {
+                    Text(stringResource(R.string.goals_button_save))
+                }
             },
         )
     }
@@ -206,6 +259,7 @@ private fun SaveGoalButton(viewModel: DailyGoalsViewModel, onClick: () -> Unit) 
     viewModel.weightKilograms.collectAsState().value
     viewModel.activityLevel.collectAsState().value
     viewModel.isSaving.collectAsState().value
+    viewModel.isKcalOutsideRangeAccepted.collectAsState().value
 
     PrimaryButton(
         text = stringResource(R.string.goals_button_save),
@@ -295,12 +349,22 @@ private fun CurrentGoalSection(viewModel: DailyGoalsViewModel, kcalFocusRequeste
                     onStep = { viewModel.onStep(GoalMacro.FAT, it) },
                 )
                 if (viewModel.isPercentSumInvalid) {
-                    Text(stringResource(R.string.goals_error_percentSum), style = MaterialTheme.typography.bodySmall, color = AppColors.error)
+                    Text(boldMarkedText(stringResource(R.string.goals_error_percentSum)), style = MaterialTheme.typography.bodySmall, color = AppColors.error)
                 }
                 if (gramsKcal != null) {
                     BulletCaption(stringResource(R.string.goals_gramsKcal, NumberFormat.getIntegerInstance().format(gramsKcal.roundToInt())))
                 }
             }
+        }
+    }
+}
+
+private fun boldMarkedText(text: String): AnnotatedString = buildAnnotatedString {
+    text.split("**").forEachIndexed { index, part ->
+        if (index % 2 == 1) {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(part) }
+        } else {
+            append(part)
         }
     }
 }
@@ -448,7 +512,7 @@ private fun ActivitySection(viewModel: DailyGoalsViewModel) {
 
 @Composable
 private fun VariantSlider(viewModel: DailyGoalsViewModel, variants: List<GoalVariant>) {
-    val selectedIndex by viewModel.selectedVariantIndex.collectAsState()
+    viewModel.selectedVariantIndex.collectAsState().value
     viewModel.kcalText.collectAsState().value
     viewModel.estimate.collectAsState().value
     val matchingIndex = viewModel.matchingVariantIndex
@@ -464,12 +528,18 @@ private fun VariantSlider(viewModel: DailyGoalsViewModel, variants: List<GoalVar
                 )
             }
         }
+        val position = viewModel.variantSliderPosition.toFloat()
         Slider(
-            value = (matchingIndex ?: selectedIndex.toInt()).toFloat(),
-            onValueChange = { viewModel.onVariantSelected(it.roundToInt()) },
+            value = position,
+            onValueChange = { viewModel.onVariantSliderMoved(it.roundToInt()) },
+            modifier = Modifier.semantics {
+                setProgress { target ->
+                    viewModel.onVariantStep(if (target > position) 1 else -1)
+                    true
+                }
+            },
             onValueChangeFinished = viewModel::onVariantSliderReleased,
             valueRange = 0f..(variants.size - 1).toFloat(),
-            steps = variants.size - 2,
         )
     }
 }
@@ -487,7 +557,10 @@ private fun KcalRow(viewModel: DailyGoalsViewModel, focusRequester: FocusRequest
                 value = kcalText,
                 onValueChange = viewModel::onKcalTextChanged,
                 placeholder = viewModel.kcalPlaceholder,
-                modifier = Modifier.width(120.dp).focusRequester(focusRequester),
+                modifier = Modifier
+                    .width(120.dp)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { if (!it.isFocused) viewModel.onKcalEditingEnded() },
                 suffix = {
                     Text(stringResource(R.string.common_unit_kcal), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
@@ -495,6 +568,50 @@ private fun KcalRow(viewModel: DailyGoalsViewModel, focusRequester: FocusRequest
         }
         if (hint != null) {
             Text(stringResource(hint), style = MaterialTheme.typography.bodySmall, color = AppColors.error)
+        }
+    }
+}
+
+@Composable
+private fun KcalOutsideRangeSection(viewModel: DailyGoalsViewModel, range: IntRange) {
+    val isAccepted by viewModel.isKcalOutsideRangeAccepted.collectAsState()
+    val numbers = NumberFormat.getIntegerInstance()
+
+    SectionCard(color = AppColors.warning) {
+        CompositionLocalProvider(LocalContentColor provides Color.Black) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    stringResource(R.string.goals_error_kcalOutsideVariants, numbers.format(range.first), numbers.format(range.last)),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(stringResource(R.string.goals_kcalOutsideVariants_advice), style = MaterialTheme.typography.bodySmall)
+                HorizontalDivider(color = Color.Black.copy(alpha = 0.2f))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .toggleable(
+                            value = isAccepted,
+                            role = Role.Checkbox,
+                            onValueChange = { viewModel.onKcalOutsideRangeAcceptanceToggled() },
+                        )
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.goals_kcalOutsideVariants_accept),
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Checkbox(
+                        checked = isAccepted,
+                        onCheckedChange = null,
+                        colors = CheckboxDefaults.colors(checkedColor = Color.Black, uncheckedColor = Color.Black, checkmarkColor = AppColors.warning),
+                    )
+                }
+            }
         }
     }
 }
