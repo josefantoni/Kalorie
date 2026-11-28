@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -28,13 +27,14 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -111,6 +111,8 @@ import antoni.kalorie.features.dashboard.SwipeToDeleteRow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
+
+private val SECTION_HEADER_BUTTON_SIZE = 28.dp
 
 @Composable
 private fun SwitchSettingsRow(title: String, isChecked: Boolean, isEnabled: Boolean = true, onCheckedChange: (Boolean) -> Unit) {
@@ -376,24 +378,34 @@ private fun SettingsContent(
                         SectionGroup(
                             title = stringResource(R.string.settings_section_mealLayout),
                             trailing = {
-                                FilledTonalButton(
-                                    modifier = Modifier.height(32.dp),
-                                    contentPadding = PaddingValues(horizontal = 16.dp),
+                                BadgeButton(
+                                    icon = when {
+                                        !isEditing -> Icons.Filled.Edit
+                                        isAddFormVisible -> Icons.Filled.Close
+                                        else -> Icons.Filled.Check
+                                    },
                                     onClick = {
-                                        if (isEditing) {
-                                            onEditingChange(false)
-                                            scope.launch { viewModel.onSaveReorder() }
-                                        } else {
-                                            onEditingChange(true)
+                                        when {
+                                            !isEditing -> onEditingChange(true)
+                                            isAddFormVisible -> {
+                                                focusManager.clearFocus()
+                                                viewModel.onCancelAddForm()
+                                            }
+                                            else -> {
+                                                onEditingChange(false)
+                                                scope.launch { viewModel.onSaveReorder() }
+                                            }
                                         }
                                     },
-                                ) {
-                                    Text(
-                                        text = stringResource(
-                                            if (isEditing) R.string.settings_button_editDone else R.string.settings_button_edit,
-                                        ),
-                                    )
-                                }
+                                    contentDescription = stringResource(
+                                        when {
+                                            !isEditing -> R.string.settings_button_edit
+                                            isAddFormVisible -> R.string.common_button_cancel
+                                            else -> R.string.settings_button_editDone
+                                        },
+                                    ),
+                                    size = SECTION_HEADER_BUTTON_SIZE,
+                                )
                             },
                         ) {
                             SectionCard {

@@ -201,6 +201,11 @@ class SettingsViewModel(
         }
     }
 
+    fun onCancelAddForm() {
+        isAddFormVisible.value = false
+        newMealName.value = ""
+    }
+
     fun onShowAddForm() {
         val latestEndMinutes = mealTypes.value.maxOfOrNull { it.endMinutes }
         if (latestEndMinutes == null) {

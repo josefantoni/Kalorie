@@ -110,6 +110,7 @@ parameters (the icon scales with `size`; only the weight badge on the Dashboard 
 It mirrors the iOS component of the same name. Never call `FilledIconButton` or
 `Icons.Outlined.AddCircle` directly for this.
 
+- **A button in a section header** (`SectionGroup`'s `trailing`) is a 28 dp `BadgeButton`, never a text button.
 - **Add a row** (new portion, new meal in the settings layout) is `BadgeButton(icon = Icons.Filled.Add, …)`.
 - **A button inside a text field** is passed to `FloatingLabelTextField(trailingButton = { BadgeButton(...) })`.
   The field passes it to the Material `trailingIcon` slot, centred on label + text, 12 dp from the edge,

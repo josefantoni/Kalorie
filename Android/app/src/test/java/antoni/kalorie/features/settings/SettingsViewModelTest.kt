@@ -200,6 +200,18 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun onCancelAddForm_hidesFormAndDiscardsTypedName() {
+        val sut = makeSUT(mealTypes = emptyList())
+        sut.onShowAddForm()
+        sut.newMealName.value = "Snack"
+
+        sut.onCancelAddForm()
+
+        assertFalse(sut.isAddFormVisible.value)
+        assertEquals("", sut.newMealName.value)
+    }
+
+    @Test
     fun onAppear_whenMaintainerClaimIsTrue_setsIsMaintainer() = runTest {
         val sut = makeSUT(fetchMaintainerClaim = FetchMaintainerClaimUseCaseFake(stubbedIsMaintainer = true))
 
