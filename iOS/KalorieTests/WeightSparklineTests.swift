@@ -10,6 +10,10 @@ import XCTest
 
 final class WeightSparklineTests: XCTestCase {
 
+    // MARK: - Properties
+
+    private let rect = CGRect(x: 0, y: 0, width: 56, height: 16)
+
     // MARK: - Tests
 
     func test_newestWeight_isTheCentreOfTheGraph() {
@@ -59,6 +63,4 @@ final class WeightSparklineTests: XCTestCase {
     }
 
     // MARK: - Helpers
-
-    private let rect = CGRect(x: 0, y: 0, width: 56, height: 16)
 }

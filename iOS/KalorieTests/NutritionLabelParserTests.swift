@@ -10,6 +10,12 @@ import XCTest
 
 final class NutritionLabelParserTests: XCTestCase {
 
+    // MARK: - Properties
+
+    private let saturatesValueBox = CGRect(x: 0.6, y: 0.65, width: 0.15, height: 0.05)
+    private let carbohydrateValueBox = CGRect(x: 0.6, y: 0.55, width: 0.15, height: 0.05)
+    private let energyValueBox = CGRect(x: 0.6, y: 0.8, width: 0.3, height: 0.05)
+
     func test_parse_matchesSharedFixtureCases() throws {
         let fixture: ParsingFixture = try FixtureLoader.load("nutrition-label-parsing-cases")
         for parsingCase in fixture.cases where parsingCase.knownFailure == nil {
@@ -102,10 +108,6 @@ final class NutritionLabelParserTests: XCTestCase {
             RecognizedTextLine(text: "1 g", boundingBox: CGRect(x: 0.6, y: 0.3, width: 0.15, height: 0.05))
         ]
     }
-
-    private let saturatesValueBox = CGRect(x: 0.6, y: 0.65, width: 0.15, height: 0.05)
-    private let carbohydrateValueBox = CGRect(x: 0.6, y: 0.55, width: 0.15, height: 0.05)
-    private let energyValueBox = CGRect(x: 0.6, y: 0.8, width: 0.3, height: 0.05)
 
     private struct ParsingFixture: Decodable {
         let cases: [ParsingCase]
