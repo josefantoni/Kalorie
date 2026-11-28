@@ -44,11 +44,12 @@ struct SettingsView: View {
                             ) {
                                 if editMode == .inactive {
                                     withAnimation { editMode = .active }
-                                } else if viewModel.isAddFormVisible {
-                                    focusedField = nil
-                                    withAnimation { viewModel.onCancelAddForm() }
                                 } else {
-                                    withAnimation { editMode = .inactive }
+                                    focusedField = nil
+                                    withAnimation {
+                                        viewModel.onCancelAddForm()
+                                        editMode = .inactive
+                                    }
                                     Task { await viewModel.onSaveReorder() }
                                 }
                             }
