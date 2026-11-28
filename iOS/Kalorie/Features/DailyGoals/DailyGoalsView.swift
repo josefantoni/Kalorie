@@ -59,14 +59,7 @@ struct DailyGoalsView: View {
         .environment(\.defaultMinListRowHeight, 56)
         .navigationTitle(L10n.Goals.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button(L10n.Common.buttonDone) {
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                }
-            }
-        }
+        .keyboardDoneToolbar()
         .task { await viewModel.onAppear() }
         .onChange(of: viewModel.didFinish) { _, didFinish in
             if didFinish { dismiss() }
