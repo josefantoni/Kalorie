@@ -192,6 +192,12 @@ Required section headers in every type:
 // MARK: - Functions
 ```
 
+**Properties go first.** Every stored property of a type, `static` and property wrappers included, sits in
+`// MARK: - Properties` at the start of the type, never between or after the initialisers and functions. Computed
+properties are exempt: `body` and view helpers belong under `// MARK: - Body`, and any other computed property may
+sit with the stored ones or with the code that uses it. Android has the same rule
+([Android/CLAUDE.md](../Android/CLAUDE.md)).
+
 ---
 
 ## Testing — XCTest + Fake Objects

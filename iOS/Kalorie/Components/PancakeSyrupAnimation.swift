@@ -72,11 +72,11 @@ private enum Pal {
 private struct Spline {
     let x1, y1, x2, y2: Double
 
+    static let linear = Spline(0, 0, 1, 1)
+
     init(_ x1: Double, _ y1: Double, _ x2: Double, _ y2: Double) {
         self.x1 = x1; self.y1 = y1; self.x2 = x2; self.y2 = y2
     }
-
-    static let linear = Spline(0, 0, 1, 1)
 
     func ease(_ x: Double) -> Double {
         if x <= 0 { return 0 }
@@ -147,18 +147,9 @@ enum PancakeScene {
 
     private static let fadeTrack = Track([0, 7.5, 8.4, 9], [1, 1, 0, 0])
 
-    static func fade(at t: Double) -> Double { fadeTrack.value(t) }
-
-    // MARK: Timelines
-
     private static let plateX = Track([0, 0.6, 9], [420, 0, 0],
                                       [Spline(0.2, 0.7, 0.2, 1), .linear])
 
-    private static func dropTrack(start ts: Double, land tl: Double) -> Track {
-        Track([0, ts, tl, tl + 0.06, tl + 0.12, 9],
-              [-330, -330, 0, -5, 0, 0],
-              [.linear, Spline(0.5, 0, 1, 1), Spline(0, 0.4, 0.4, 1), Spline(0.6, 0, 1, 1), .linear])
-    }
     private static let dropBottom = dropTrack(start: 0.5, land: 1.0)
     private static let dropTop = dropTrack(start: 0.95, land: 1.45)
 
@@ -168,21 +159,138 @@ enum PancakeScene {
                                          [0, 0, 0.2, 1.05, 1, 1, 0])
 
     private static let bottleKeys: [Double] = [0, 1.4, 1.8, 2.05, 2.2, 3.3, 4.0, 9]
+
     private static let bottleSplines: [Spline] = [
         .linear, Spline(0.3, 0, 0.2, 1), Spline(0.5, 0, 0.3, 1), Spline(0.3, 0, 0.3, 1),
         .linear, Spline(0.3, 0, 0.2, 1), .linear
     ]
+
     private static let bottleX = Track(bottleKeys, [480, 480, 250, 250, 250, 250, 480, 480], bottleSplines)
     private static let bottleY = Track(bottleKeys, [0, 0, 130, 130, 130, 130, 0, 0], bottleSplines)
     private static let bottleRot = Track(bottleKeys, [0, 0, 12, -140, -130, -130, 0, 0], bottleSplines)
 
     private static let dashAlpha = Track([0, 2.15, 2.25, 2.45, 2.55, 2.65, 2.8, 9],
                                          [0, 0, 1, 1, 0, 1, 0, 0])
+
     private static let splashAlpha = Track([0, 2.75, 2.85, 3.3, 3.4, 9], [0, 0, 1, 1, 0, 0])
 
     private static let biteCuts: [Double] = [4.5, 5.3, 6.1]
     private static let biteX: [Double] = [240, 165, 0]
     private static let scallops: [(y: Double, r: Double)] = [(262, 24), (298, 22)]
+
+    private static let bottomCake = PancakeSpec(cx: 200, cy: 283, rx: 106, ry: 24,
+                                                path: outline(200, 283, 106, 24, 0.6))
+
+    private static let topCake = PancakeSpec(cx: 192, cy: 271, rx: 94, ry: 21,
+                                             path: outline(192, 271, 94, 21, 2.1))
+
+    private static let cakeThickness = 5
+
+    private static let mottles: [(cx: Double, cy: Double, rx: Double, ry: Double)] = [
+        (-9.0, 2.4, 10, 3.2), (80.6, -1.4, 15, 3.2), (-59.9, 0.5, 12, 3.2),
+        (24.7, 11.9, 17, 3.2), (-77.1, -8.0, 14, 3.2), (29.2, 4.7, 11, 3.2),
+        (5.4, -17.8, 16, 3.2), (-58.9, -10.4, 13, 3.2), (-11.3, 13.9, 10, 3.2)
+    ]
+
+    private static let dots: [(cx: Double, cy: Double, r: Double)] = [
+        (3.6, 5.7, 1.50), (-8.1, -9.0, 1.85), (64.6, 8.4, 2.20), (-35.1, -10.9, 1.50),
+        (50.6, -4.0, 1.85), (65.9, -4.6, 2.20), (-81.1, 5.2, 1.50), (52.9, -9.3, 1.85),
+        (56.4, -13.0, 2.20), (11.3, -2.1, 1.50), (-58.8, 9.4, 1.85), (-72.9, -3.2, 2.20),
+        (-37.2, 15.6, 1.50), (-55.0, -4.3, 1.85), (-48.8, 4.1, 2.20), (-24.4, -1.9, 1.50),
+        (14.2, 14.8, 1.85), (-47.6, -12.6, 2.20), (72.6, 4.2, 1.50), (-14.9, -16.0, 1.85),
+        (-46.2, 13.1, 2.20), (18.3, -8.4, 1.50), (13.7, -14.9, 1.85), (-3.4, 9.3, 2.20),
+        (-80.7, 1.9, 1.50), (45.0, 8.2, 1.85), (-28.2, 7.5, 2.20)
+    ]
+
+    private static let p0 = CGPoint(x: 250, y: 130)
+    private static let p1 = CGPoint(x: 237, y: 141)
+    private static let p2 = CGPoint(x: 208, y: 205)
+    private static let p3 = CGPoint(x: 199, y: 272)
+
+    private static let arcTable: (pts: [CGPoint], cum: [Double]) = {
+        let n = 1000
+        var pts: [CGPoint] = []
+        var cum: [Double] = [0]
+        for i in 0...n {
+            let b = bez(Double(i) / Double(n))
+            pts.append(CGPoint(x: b.x, y: b.y))
+            if i > 0 {
+                cum.append(cum[i - 1] + hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y))
+            }
+        }
+        return (pts, cum)
+    }()
+
+    private static let arcY: [Double] = [130.0, 142.13, 155.56, 169.44, 183.6, 197.94,
+                                         212.5, 227.19, 242.03, 256.95, 272.0]
+
+    private static let topClipPath = ellipse(192, 271, 88, 17)
+
+    private static let poolHighlight: Path = {
+        var p = Path()
+        p.move(to: CGPoint(x: -30, y: -2))
+        p.addQuadCurve(to: CGPoint(x: 8, y: -5), control: CGPoint(x: -12, y: -7))
+        return p
+    }()
+
+    private static let ripples: [(a: Double, b: Double)] = [(2.8, 3.2), (3.0, 3.4), (3.2, 3.6)]
+
+    private static let drips: [(x: Double, ts: Double, te: Double, len: Double)] = [
+        (165, 3.0, 3.9, 20), (200, 3.1, 3.7, 14), (232, 3.1, 4.0, 24)
+    ]
+
+    private static let dripEase = Spline(0.35, 0, 0.65, 1)
+
+    private static let crumbPoints: [CGPoint] = [
+        CGPoint(x: -3, y: -1), CGPoint(x: -1, y: -3), CGPoint(x: 2, y: -2),
+        CGPoint(x: 3, y: 1), CGPoint(x: 0, y: 3), CGPoint(x: -3, y: 2)
+    ]
+
+    private static let crumbs: [(x: Double, y: Double, size: Double, bite: Int, spot: Bool)] = [
+        (268, 307, 1.2, 0, false), (287, 314, 0.9, 0, true),
+        (212, 311, 1.1, 1, false), (188, 318, 0.8, 1, true),
+        (150, 309, 1.0, 2, false), (124, 315, 1.2, 2, true), (162, 322, 0.8, 2, false)
+    ]
+
+    private static let fall0 = 2.35, fall1 = 2.75
+    private static let ret0 = 3.3, ret1 = 3.5
+    private static let headStart = 2.35 + 0.0005 * 9
+
+    private static let fallEase = Spline(0.55, 0, 1, 0.9)
+
+    private static let fallingDrops: [(ts: Double, dur: Double, r: Double)] = [
+        (2.0, 0.3, 5), (2.175, 0.275, 4.2)
+    ]
+
+    private static let splashDrops: [(dx: Double, h: Double, r: Double, dur: Double, begin: Double)] = [
+        (-22, 10, 3, 0.6, 0), (-10, 14, 3.6, 0.55, 0.15), (10, 14, 3.6, 0.55, 0.08), (22, 10, 3, 0.6, 0.25)
+    ]
+
+    private static let bottleBody: Path = {
+        var p = Path()
+        p.move(to: CGPoint(x: -9, y: 0))
+        p.addLine(to: CGPoint(x: 9, y: 0))
+        p.addLine(to: CGPoint(x: 9, y: 24))
+        p.addCurve(to: CGPoint(x: 32, y: 62), control1: CGPoint(x: 9, y: 34), control2: CGPoint(x: 32, y: 38))
+        p.addLine(to: CGPoint(x: 32, y: 106))
+        p.addQuadCurve(to: CGPoint(x: 18, y: 120), control: CGPoint(x: 32, y: 120))
+        p.addLine(to: CGPoint(x: -18, y: 120))
+        p.addQuadCurve(to: CGPoint(x: -32, y: 106), control: CGPoint(x: -32, y: 120))
+        p.addLine(to: CGPoint(x: -32, y: 62))
+        p.addCurve(to: CGPoint(x: -9, y: 24), control1: CGPoint(x: -32, y: 38), control2: CGPoint(x: -9, y: 34))
+        p.closeSubpath()
+        return p
+    }()
+
+    static func fade(at t: Double) -> Double { fadeTrack.value(t) }
+
+    // MARK: Timelines
+
+    private static func dropTrack(start ts: Double, land tl: Double) -> Track {
+        Track([0, ts, tl, tl + 0.06, tl + 0.12, 9],
+              [-330, -330, 0, -5, 0, 0],
+              [.linear, Spline(0.5, 0, 1, 1), Spline(0, 0.4, 0.4, 1), Spline(0.6, 0, 1, 1), .linear])
+    }
 
     // MARK: Pancake geometry
 
@@ -203,33 +311,7 @@ enum PancakeScene {
         return polygon(pts)
     }
 
-    private static let bottomCake = PancakeSpec(cx: 200, cy: 283, rx: 106, ry: 24,
-                                                path: outline(200, 283, 106, 24, 0.6))
-    private static let topCake = PancakeSpec(cx: 192, cy: 271, rx: 94, ry: 21,
-                                             path: outline(192, 271, 94, 21, 2.1))
-    private static let cakeThickness = 5
-
-    private static let mottles: [(cx: Double, cy: Double, rx: Double, ry: Double)] = [
-        (-9.0, 2.4, 10, 3.2), (80.6, -1.4, 15, 3.2), (-59.9, 0.5, 12, 3.2),
-        (24.7, 11.9, 17, 3.2), (-77.1, -8.0, 14, 3.2), (29.2, 4.7, 11, 3.2),
-        (5.4, -17.8, 16, 3.2), (-58.9, -10.4, 13, 3.2), (-11.3, 13.9, 10, 3.2)
-    ]
-    private static let dots: [(cx: Double, cy: Double, r: Double)] = [
-        (3.6, 5.7, 1.50), (-8.1, -9.0, 1.85), (64.6, 8.4, 2.20), (-35.1, -10.9, 1.50),
-        (50.6, -4.0, 1.85), (65.9, -4.6, 2.20), (-81.1, 5.2, 1.50), (52.9, -9.3, 1.85),
-        (56.4, -13.0, 2.20), (11.3, -2.1, 1.50), (-58.8, 9.4, 1.85), (-72.9, -3.2, 2.20),
-        (-37.2, 15.6, 1.50), (-55.0, -4.3, 1.85), (-48.8, 4.1, 2.20), (-24.4, -1.9, 1.50),
-        (14.2, 14.8, 1.85), (-47.6, -12.6, 2.20), (72.6, 4.2, 1.50), (-14.9, -16.0, 1.85),
-        (-46.2, 13.1, 2.20), (18.3, -8.4, 1.50), (13.7, -14.9, 1.85), (-3.4, 9.3, 2.20),
-        (-80.7, 1.9, 1.50), (45.0, 8.2, 1.85), (-28.2, 7.5, 2.20)
-    ]
-
     // MARK: Stream path
-
-    private static let p0 = CGPoint(x: 250, y: 130)
-    private static let p1 = CGPoint(x: 237, y: 141)
-    private static let p2 = CGPoint(x: 208, y: 205)
-    private static let p3 = CGPoint(x: 199, y: 272)
 
     private static func bez(_ s: Double) -> (x: Double, y: Double) {
         let u = 1 - s
@@ -243,20 +325,6 @@ enum PancakeScene {
         return (3 * u * u * (p1.x - p0.x) + 6 * u * s * (p2.x - p1.x) + 3 * s * s * (p3.x - p2.x),
                 3 * u * u * (p1.y - p0.y) + 6 * u * s * (p2.y - p1.y) + 3 * s * s * (p3.y - p2.y))
     }
-
-    private static let arcTable: (pts: [CGPoint], cum: [Double]) = {
-        let n = 1000
-        var pts: [CGPoint] = []
-        var cum: [Double] = [0]
-        for i in 0...n {
-            let b = bez(Double(i) / Double(n))
-            pts.append(CGPoint(x: b.x, y: b.y))
-            if i > 0 {
-                cum.append(cum[i - 1] + hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y))
-            }
-        }
-        return (pts, cum)
-    }()
 
     private static func pointAtArc(_ f: Double) -> CGPoint {
         let cum = arcTable.cum, pts = arcTable.pts
@@ -272,9 +340,6 @@ enum PancakeScene {
         return CGPoint(x: pts[lo - 1].x + (pts[lo].x - pts[lo - 1].x) * q,
                        y: pts[lo - 1].y + (pts[lo].y - pts[lo - 1].y) * q)
     }
-
-    private static let arcY: [Double] = [130.0, 142.13, 155.56, 169.44, 183.6, 197.94,
-                                         212.5, 227.19, 242.03, 256.95, 272.0]
 
     private static func arcYLerp(_ f: Double) -> Double {
         let x = clamp01(f) * 10
@@ -366,14 +431,6 @@ enum PancakeScene {
         }
     }
 
-    private static let topClipPath = ellipse(192, 271, 88, 17)
-    private static let poolHighlight: Path = {
-        var p = Path()
-        p.move(to: CGPoint(x: -30, y: -2))
-        p.addQuadCurve(to: CGPoint(x: 8, y: -5), control: CGPoint(x: -12, y: -7))
-        return p
-    }()
-
     private static func poolBlob(_ phase: Double) -> Path {
         let n = 56
         var pts: [CGPoint] = []
@@ -385,13 +442,6 @@ enum PancakeScene {
         }
         return polygon(pts)
     }
-
-    private static let ripples: [(a: Double, b: Double)] = [(2.8, 3.2), (3.0, 3.4), (3.2, 3.6)]
-
-    private static let drips: [(x: Double, ts: Double, te: Double, len: Double)] = [
-        (165, 3.0, 3.9, 20), (200, 3.1, 3.7, 14), (232, 3.1, 4.0, 24)
-    ]
-    private static let dripEase = Spline(0.35, 0, 0.65, 1)
 
     private static func drawSyrup(_ g: GraphicsContext, _ t: Double) {
         var c = g
@@ -426,16 +476,6 @@ enum PancakeScene {
 
     // MARK: Crumbs
 
-    private static let crumbPoints: [CGPoint] = [
-        CGPoint(x: -3, y: -1), CGPoint(x: -1, y: -3), CGPoint(x: 2, y: -2),
-        CGPoint(x: 3, y: 1), CGPoint(x: 0, y: 3), CGPoint(x: -3, y: 2)
-    ]
-    private static let crumbs: [(x: Double, y: Double, size: Double, bite: Int, spot: Bool)] = [
-        (268, 307, 1.2, 0, false), (287, 314, 0.9, 0, true),
-        (212, 311, 1.1, 1, false), (188, 318, 0.8, 1, true),
-        (150, 309, 1.0, 2, false), (124, 315, 1.2, 2, true), (162, 322, 0.8, 2, false)
-    ]
-
     private static func drawCrumbs(_ g: GraphicsContext, _ t: Double) {
         for cr in crumbs {
             let tin = biteCuts[cr.bite] + 0.08
@@ -452,10 +492,6 @@ enum PancakeScene {
     }
 
     // MARK: Syrup stream, drops, splashes
-
-    private static let fall0 = 2.35, fall1 = 2.75
-    private static let ret0 = 3.3, ret1 = 3.5
-    private static let headStart = 2.35 + 0.0005 * 9
 
     private static func streamPath(_ phase: Double) -> Path {
         let n = 44
@@ -480,15 +516,6 @@ enum PancakeScene {
         }
         return polygon(left + right.reversed())
     }
-
-    private static let fallEase = Spline(0.55, 0, 1, 0.9)
-    private static let fallingDrops: [(ts: Double, dur: Double, r: Double)] = [
-        (2.0, 0.3, 5), (2.175, 0.275, 4.2)
-    ]
-
-    private static let splashDrops: [(dx: Double, h: Double, r: Double, dur: Double, begin: Double)] = [
-        (-22, 10, 3, 0.6, 0), (-10, 14, 3.6, 0.55, 0.15), (10, 14, 3.6, 0.55, 0.08), (22, 10, 3, 0.6, 0.25)
-    ]
 
     private static func drawPour(_ g: GraphicsContext, _ t: Double) {
         let syrupColor = Pal.syrup
@@ -557,22 +584,6 @@ enum PancakeScene {
     }
 
     // MARK: Bottle
-
-    private static let bottleBody: Path = {
-        var p = Path()
-        p.move(to: CGPoint(x: -9, y: 0))
-        p.addLine(to: CGPoint(x: 9, y: 0))
-        p.addLine(to: CGPoint(x: 9, y: 24))
-        p.addCurve(to: CGPoint(x: 32, y: 62), control1: CGPoint(x: 9, y: 34), control2: CGPoint(x: 32, y: 38))
-        p.addLine(to: CGPoint(x: 32, y: 106))
-        p.addQuadCurve(to: CGPoint(x: 18, y: 120), control: CGPoint(x: 32, y: 120))
-        p.addLine(to: CGPoint(x: -18, y: 120))
-        p.addQuadCurve(to: CGPoint(x: -32, y: 106), control: CGPoint(x: -32, y: 120))
-        p.addLine(to: CGPoint(x: -32, y: 62))
-        p.addCurve(to: CGPoint(x: -9, y: 24), control1: CGPoint(x: -32, y: 38), control2: CGPoint(x: -9, y: 34))
-        p.closeSubpath()
-        return p
-    }()
 
     private static func drawBottle(_ g: GraphicsContext, _ t: Double) {
         let x = bottleX.value(t)

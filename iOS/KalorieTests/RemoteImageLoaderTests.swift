@@ -10,6 +10,10 @@ import XCTest
 @testable import Kalorie
 
 final class RemoteImageLoaderTests: XCTestCase {
+    // MARK: - Properties
+
+    private let url = URL(fileURLWithPath: "/photo.jpg")
+
     func test_load_retriesAfterFailureAndReturnsTheImage() async throws {
         let (sut, fetcher) = makeSUT(failuresBeforeSuccess: 2)
         _ = try await sut.load(url)
@@ -89,8 +93,6 @@ final class RemoteImageLoaderTests: XCTestCase {
     }
 
     // MARK: - Helpers
-
-    private let url = URL(fileURLWithPath: "/photo.jpg")
 
     private func makeSUT(failuresBeforeSuccess: Int) -> (sut: RemoteImageLoader, fetcher: FetcherFake) {
         let fetcher = FetcherFake(failuresBeforeSuccess: failuresBeforeSuccess)

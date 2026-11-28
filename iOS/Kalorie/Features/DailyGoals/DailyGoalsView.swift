@@ -14,6 +14,7 @@ struct DailyGoalsView: View {
     @StateObject private var viewModel: DailyGoalsViewModel
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isKcalFocused: Bool
+    private static let kcalRowID = "kcalRow"
 
     // MARK: - Init
 
@@ -37,8 +38,6 @@ struct DailyGoalsView: View {
                 }
         }
     }
-
-    private static let kcalRowID = "kcalRow"
 
     private var list: some View {
         List {

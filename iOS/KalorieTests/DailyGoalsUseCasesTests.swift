@@ -332,6 +332,8 @@ private final class DailyGoalsDataProviderFake: FirestoreDataProviderProtocol {
     var queriedLowerBound: String?
     var queriedAscendingLimit: Int?
     var queriedRange: (lower: String, upper: String)?
+    var storedGoals: DailyGoalsDTO?
+    var mergedGoals: DailyGoalsDTO?
 
     // MARK: - Functions
 
@@ -342,8 +344,6 @@ private final class DailyGoalsDataProviderFake: FirestoreDataProviderProtocol {
     func loadAsync<T: Decodable>(from collection: String, where field: String, arrayContains value: String, limit: Int) async throws -> [T] { [] }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String) async throws -> T? { nil }
     func loadAsync<T: Decodable>(from collection: String, where field: String, isEqualTo value: String, orderBy orderField: String, descending: Bool) async throws -> [T] { [] }
-    var storedGoals: DailyGoalsDTO?
-    var mergedGoals: DailyGoalsDTO?
 
     func loadAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { storedGoals as? T }
     func loadFromServerAsync<T: Decodable>(id: String, from collection: String) async throws -> T? { nil }

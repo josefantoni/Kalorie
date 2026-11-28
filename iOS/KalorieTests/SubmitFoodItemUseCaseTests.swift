@@ -10,6 +10,10 @@ import XCTest
 
 final class SubmitFoodItemUseCaseTests: XCTestCase {
 
+    // MARK: - Properties
+
+    private let localPhoto = FoodItemFormPhoto.local(Data([1, 2, 3]))
+
     // MARK: - Tests
 
     func test_submit_whenNotAuthenticated_throwsAuthError() async throws {
@@ -129,8 +133,6 @@ final class SubmitFoodItemUseCaseTests: XCTestCase {
     }
 
     // MARK: - Helpers
-
-    private let localPhoto = FoodItemFormPhoto.local(Data([1, 2, 3]))
 
     private func makeSUT(userId: String? = "test-user") -> (sut: SubmitFoodItemUseCase, dataProvider: SubmitFoodItemDataProviderFake, storage: StorageDataProviderFake) {
         let dataProvider = SubmitFoodItemDataProviderFake()
