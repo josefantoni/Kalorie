@@ -1314,8 +1314,11 @@ list whose parts are documented where their logic lives; this is the only place 
 whole, top to bottom, and it is identical on both clients:
 
 1. **Meal layout** — create, reorder, delete and retime meal types (§ 3.4). The section header
-   carries the *Edit* / *Done* button. While the list is in edit mode everything below is hidden
-   and the sheet cannot be dismissed.
+   carries the button that enters and leaves edit mode. While the list is in edit mode everything
+   below is hidden and the sheet cannot be dismissed. It is a round icon button: a pencil, a
+   checkmark while editing, and a cross while the add form is open, so it is not taken for the
+   confirmation of the new meal, which is the bottom button. The cross closes the form, discards the
+   typed name and stays in edit mode; a pending reorder is still saved by the checkmark.
 2. **Body weight** — *Show weight on overview* (toggle) and *Weight unit* (kg / lb segmented, shown
    even while the circle is off because it also sets the unit of the history screen and the export).
    A change is written through `mergeAsync`, reverts with an alert on failure and is passed to the
@@ -1756,10 +1759,29 @@ which is acceptable. Do not report the small hit area as a defect.
 `FoodConsumedView` lives in `FoodConsumedView.swift`, matching the project's own
 `[Feature][Type].swift` rule.
 
+**Section spacing on iOS is 20 on every screen.** Every `List` and `Form` applies
+`appSectionSpacing()` (`Core/Extensions/View+SectionSpacing.swift`), including the gap between two
+`PrimaryButton`s in their own sections. The same modifier replaces the list's default top content
+margin with `Constants.Layout.topContentSpacing` (8), the gap between the navigation bar and the first
+object; a screen that is not a list uses the constant directly. A header with a button is
+`ButtonSectionHeader`, which draws the button as an overlay of the title, so the taller button does not
+change the header's height and the section is spaced like one with a plain title. Its button is a
+28 pt `BadgeButton`. A section header
+keeps the system header's top inset, about 10 pt on top of the section spacing. Only a header that is
+the first object of its list applies `appFirstSectionHeader()`, which drops that inset; without it the
+screen starts 10 pt lower than the others. The portions header is first only on a food form with no
+rejection reason above it, which the caller states with `startsList`. The section holding a
+`HintCard` takes `hintCardSectionSpacing()` (16), so the gap above
+the card equals the one between the add sheet's mode picker and the search field
+([design 0029](design/0029-catalogue-contribution-hint.md)). The only other spacing value is `.listSectionSpacing(0)` on the
+portions' `+` button section (§ 4.2); the section that follows it in `FoodItemFormSections` applies
+`appSectionSpacing()` itself to restore the gap. Android keeps its own rhythm in `SectionStack`
+([Android/CLAUDE.md](../Android/CLAUDE.md)); the two values are not meant to match.
+
 ### 5.5 Extensions
 
-`Core/Extensions/` is nine files of small, mostly single-purpose helpers. Four carry real
-behaviour and are worth knowing about before adding a fifth:
+`Core/Extensions/` is thirteen files of small, mostly single-purpose helpers. Five carry real
+behaviour and are worth knowing about before adding another:
 
 - `Date+Extension` — `minutesSinceMidnight` (the bridge into `MealKit`, see
   [ADR 0014](adr/0014-meal-assignment-by-time-of-day-only.md)), `formatCacheKey(with:)` (the
@@ -1769,9 +1791,12 @@ behaviour and are worth knowing about before adding a fifth:
 - `Double+Extension` — `formattedGrams`, the locale-aware gram formatter every screen goes
   through (see § 5.3).
 - `View+Loader` — `View.loader(_:)`, the shared busy indicator every screen overlays (see § 5.2).
+- `View+SectionSpacing` — `appSectionSpacing()`, the shared section and top spacing every iOS list
+  applies (see § 5.4).
 
-The rest (`CGFloat`, `Int`, `TimeInterval`, `NumberFormatter`, `UIWindowScene`) are one or two
-members each.
+The rest (`Int`, `TimeInterval`, `NumberFormatter`, `UIWindowScene`, `ProcessInfo`,
+`View+BottomPinnedButtons`, `View+DynamicTypeLimit`, `View+KeyboardDone`) each serve a single narrow
+purpose.
 
 ### 5.6 Colours
 
