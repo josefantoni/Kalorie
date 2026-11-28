@@ -9,6 +9,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+private val BADGE_BUTTON_SIZE = 36.dp
+private const val BADGE_BUTTON_ICON_RATIO = 20f / 36f
+
 // MARK: - Body
 
 @Composable
@@ -24,6 +27,3 @@ fun BadgeButton(
         Icon(icon, contentDescription = contentDescription, modifier = Modifier.size(size * BADGE_BUTTON_ICON_RATIO))
     }
 }
-
-private val BADGE_BUTTON_SIZE = 36.dp
-private const val BADGE_BUTTON_ICON_RATIO = 20f / 36f

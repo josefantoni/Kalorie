@@ -23,6 +23,8 @@ import antoni.kalorie.core.extensions.formattedAmount
 import antoni.kalorie.core.models.FoodConsumedDomain
 import antoni.kalorie.core.models.displayName
 
+private const val NAME_MIN_SCALE = 0.8f
+
 @Composable
 fun FoodConsumedView(foodConsumed: FoodConsumedDomain, modifier: Modifier = Modifier) {
     Row(
@@ -62,5 +64,3 @@ fun FoodConsumedView(foodConsumed: FoodConsumedDomain, modifier: Modifier = Modi
         )
     }
 }
-
-private const val NAME_MIN_SCALE = 0.8f

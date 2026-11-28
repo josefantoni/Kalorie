@@ -72,6 +72,11 @@ object NutritionLabelParser {
     private val misreadUnitRegex = Regex("(^|\\s)9\\s+(?=[0-9])")
     private val thousandsRegex = Regex("[0-9] [0-9]{3}(?![0-9])")
 
+    // Unsaturated fat is derived from fat minus saturates, so its own rows carry no field; left
+    // alone they match "saturates" (unsaturates, nenasycené mastné) or "fat" (ungesättigte Fettsäuren).
+    // Like polyols or starch, such a row still takes its own value, or every row below it reads its neighbour's.
+    private val unsaturatedMarkers = listOf("unsaturate", "nenasycen", "nienasycon", "ungesättigt", "ungesattigt")
+
     // MARK: - Functions
 
     fun parse(recognizedLines: List<RecognizedTextLine>): NutritionLabelReading {
@@ -497,11 +502,6 @@ object NutritionLabelParser {
         LabelField.SALT -> reading.copy(salt = numbers(text).firstOrNull())
         LabelField.UNLISTED -> reading
     }
-
-    // Unsaturated fat is derived from fat minus saturates, so its own rows carry no field; left
-    // alone they match "saturates" (unsaturates, nenasycené mastné) or "fat" (ungesättigte Fettsäuren).
-    // Like polyols or starch, such a row still takes its own value, or every row below it reads its neighbour's.
-    private val unsaturatedMarkers = listOf("unsaturate", "nenasycen", "nienasycon", "ungesättigt", "ungesattigt")
 
     // OCR misreads one letter of a label as often as a digit of a value ("Vaknina", "Eneraie"), so a long
     // keyword one edit away still matches, but only when no keyword matches exactly.

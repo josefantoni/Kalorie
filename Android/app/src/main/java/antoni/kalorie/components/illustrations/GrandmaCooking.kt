@@ -14,9 +14,9 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.PI
 import kotlin.math.sin
 
-private enum class Food { DUMPLING, SCHNITZEL, HEART }
-
 private const val POT_MOUTH_Y = 40f
+
+private enum class Food { DUMPLING, SCHNITZEL, HEART }
 
 @Composable
 fun GrandmaCooking(modifier: Modifier = Modifier) {

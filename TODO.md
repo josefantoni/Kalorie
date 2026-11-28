@@ -30,11 +30,3 @@
   - `/en/` is unknown to Google. *Request indexing* for it in *URL inspection* (the daily quota ran out on
     2026-11-26), then check that its Google-selected canonical is the inspected URL.
   - *Pages* was still processing on 2026-11-26; check which URLs are indexed.
-
-## Cleanup
-
-- **Android: one place for file-level constants** — go through `Android/app/src/main/java/` and move every
-  file-level `private val` / `private const val` that sits between or after declarations to the top of its
-  file, right below the imports, the counterpart of keeping them with the properties. Today both placements
-  are in use. Add the rule to `Android/CLAUDE.md` in the same change so it does not drift back. No behaviour
-  change, so it is a `[REFACTOR]` commit.

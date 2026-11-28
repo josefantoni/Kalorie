@@ -31,6 +31,9 @@ import antoni.kalorie.components.AppColors
 import antoni.kalorie.components.SectionCard
 import antoni.kalorie.components.tintedSurfaceColor
 
+private val BADGE_SIZE = 36.dp
+private val MIN_TARGET = 48.dp
+
 // MARK: - Body
 
 @Composable
@@ -80,6 +83,3 @@ fun ReviewPromptCard(
         }
     }
 }
-
-private val BADGE_SIZE = 36.dp
-private val MIN_TARGET = 48.dp

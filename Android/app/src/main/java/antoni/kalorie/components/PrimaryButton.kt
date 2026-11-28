@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+private val PRIMARY_BUTTON_HEIGHT = 56.dp
+
 enum class PrimaryButtonStyle { PRIMARY, DESTRUCTIVE }
 
 // MARK: - Body
@@ -38,5 +40,3 @@ fun PrimaryButton(
         Text(text, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
     }
 }
-
-private val PRIMARY_BUTTON_HEIGHT = 56.dp

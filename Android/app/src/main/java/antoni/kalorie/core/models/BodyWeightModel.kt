@@ -91,6 +91,7 @@ object BodyWeightDayKey {
     // MARK: - Properties
 
     private val formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd", Locale.ROOT).withChronology(IsoChronology.INSTANCE)
+    private const val NOON = 12
 
     // MARK: - Functions
 
@@ -103,6 +104,4 @@ object BodyWeightDayKey {
         if (parts.size != 3) return null
         return runCatching { LocalDate.of(parts[0], parts[1], parts[2]).atTime(NOON, 0).atZone(timeZone).toInstant() }.getOrNull()
     }
-
-    private const val NOON = 12
 }

@@ -34,6 +34,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private val UNDERLINE_INSET = 16.dp
+private val FOCUSED_UNDERLINE = 2.dp
+private val UNFOCUSED_UNDERLINE = 1.dp
+private val TRAILING_BUTTON_END_PADDING = 12.dp
+
 sealed interface FloatingLabelTextFieldMessage {
     val text: String
     val color: Color
@@ -149,11 +154,6 @@ fun FloatingLabelTextField(
         )
     }
 }
-
-private val UNDERLINE_INSET = 16.dp
-private val FOCUSED_UNDERLINE = 2.dp
-private val UNFOCUSED_UNDERLINE = 1.dp
-private val TRAILING_BUTTON_END_PADDING = 12.dp
 
 // MARK: - Functions
 

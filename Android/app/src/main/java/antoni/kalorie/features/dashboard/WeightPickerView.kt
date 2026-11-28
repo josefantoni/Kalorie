@@ -25,6 +25,8 @@ import antoni.kalorie.R
 import antoni.kalorie.core.models.BodyWeightUnit
 import java.util.Locale
 
+private val PICKER_HEIGHT = 216.dp
+
 @Composable
 fun WeightPickerView(
     kilograms: Double,
@@ -107,8 +109,6 @@ fun WeightPickerView(
         )
     }
 }
-
-private val PICKER_HEIGHT = 216.dp
 
 internal fun NumberPicker.applyTextColor(color: Int) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

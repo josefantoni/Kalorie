@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import antoni.kalorie.R
 import kotlinx.coroutines.delay
 
+private const val LABEL_DURATION_MILLIS = 1_000L
+
 @Composable
 fun FavouriteButton(isFavourite: Boolean, isEnabled: Boolean = true, onClick: () -> Unit) {
     // MARK: - Properties
@@ -74,5 +76,3 @@ fun FavouriteButton(isFavourite: Boolean, isEnabled: Boolean = true, onClick: ()
         )
     }
 }
-
-private const val LABEL_DURATION_MILLIS = 1_000L

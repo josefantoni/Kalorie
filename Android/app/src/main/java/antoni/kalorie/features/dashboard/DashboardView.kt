@@ -139,6 +139,22 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import kotlin.math.ceil
 
+private val FAB_CLEARANCE = 88.dp
+private val AUTOSCROLL_EDGE = 72.dp
+private const val AUTOSCROLL_STEP_PX = 12f
+private const val UNASSIGNED_SECTION_KEY = "unassigned"
+private const val REVIEW_PROMPT_ITEM_KEY = "reviewPrompt"
+private const val DRAGGED_FOOD_LABEL = "dragged-food-consumed"
+
+private const val ADD_FOOD_PULSE_INTERVAL_MILLIS = 4000
+private const val ADD_FOOD_FIRST_REST_MILLIS = 12000
+private const val ADD_FOOD_REPEAT_REST_MILLIS = 20000
+private const val ADD_FOOD_ANIMATION_MILLIS = 8400L
+private const val PULSE_DURATION_MILLIS = 350
+private const val PULSE_SCALE = 1.2f
+private const val SPOTLIGHT_FADE_MILLIS = 250
+private const val FAB_LONG_PRESS_MILLIS = 600L
+
 private fun areAnimationsEnabled(context: Context): Boolean = Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
 
 private enum class SelectedDayKind {
@@ -694,13 +710,6 @@ fun SwipeToDeleteRow(
     }
 }
 
-private val FAB_CLEARANCE = 88.dp
-private val AUTOSCROLL_EDGE = 72.dp
-private const val AUTOSCROLL_STEP_PX = 12f
-private const val UNASSIGNED_SECTION_KEY = "unassigned"
-private const val REVIEW_PROMPT_ITEM_KEY = "reviewPrompt"
-private const val DRAGGED_FOOD_LABEL = "dragged-food-consumed"
-
 private fun Modifier.closeSwipeRowOnTapOutside(onClose: () -> Unit): Modifier = composed {
     val currentOnClose by rememberUpdatedState(onClose)
     pointerInput(Unit) {
@@ -803,14 +812,6 @@ private fun DragAutoscrollEdge(listState: LazyListState, direction: Float, modif
             .dragAndDropTarget(shouldStartDragAndDrop = ::isDraggedFood, target = target),
     )
 }
-private const val ADD_FOOD_PULSE_INTERVAL_MILLIS = 4000
-private const val ADD_FOOD_FIRST_REST_MILLIS = 12000
-private const val ADD_FOOD_REPEAT_REST_MILLIS = 20000
-private const val ADD_FOOD_ANIMATION_MILLIS = 8400L
-private const val PULSE_DURATION_MILLIS = 350
-private const val PULSE_SCALE = 1.2f
-private const val SPOTLIGHT_FADE_MILLIS = 250
-private const val FAB_LONG_PRESS_MILLIS = 600L
 
 // A wrapped Text fills the whole available width, which pushes the icon beside it away from the
 // text; SwiftUI sizes it to its widest line instead.

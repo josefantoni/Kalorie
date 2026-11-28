@@ -14,6 +14,10 @@ import java.time.Instant
 
 class DTOWireShapeTest {
 
+    // MARK: - Properties
+
+    private val fixedDate: Instant = Instant.ofEpochSecond(1_758_800_000)
+
     @Test
     fun favouriteFood_encodesEveryFieldUnderItsSnakeCaseWireName() {
         val encoded = FirestoreDataMapper.encode(FavouriteFoodDTO(makeItem(), favouritedAt = fixedDate), FavouriteFoodDTO.serializer())
@@ -170,8 +174,6 @@ class DTOWireShapeTest {
     }
 
     // MARK: - Helpers
-
-    private val fixedDate: Instant = Instant.ofEpochSecond(1_758_800_000)
 
     private fun makeItem(): FoodItemDomain = FoodItemDomain(
         id = "12345678",

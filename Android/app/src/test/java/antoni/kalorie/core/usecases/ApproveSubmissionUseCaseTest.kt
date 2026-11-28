@@ -25,6 +25,10 @@ import java.time.Instant
 
 class ApproveSubmissionUseCaseTest {
 
+    // MARK: - Properties
+
+    private val localPhoto = FoodItemFormPhoto.Local(byteArrayOf(1, 2, 3))
+
     // MARK: - Tests
 
     @Test
@@ -255,8 +259,6 @@ class ApproveSubmissionUseCaseTest {
         )
         return Fixture(dataProvider, createFoodItem, storage, sut)
     }
-
-    private val localPhoto = FoodItemFormPhoto.Local(byteArrayOf(1, 2, 3))
 
     private fun makeSubmission(
         id: String = "sub-1",
