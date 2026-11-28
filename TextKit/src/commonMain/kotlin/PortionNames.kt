@@ -1,7 +1,5 @@
 package antoni.kalorie.textkit
 
-private class PortionEntry(val cs: String, val sk: String, val en: String, val matches: List<String>)
-
 private val portionEntries = listOf(
     PortionEntry("1 porce", "1 porcia", "1 serving", listOf("porce", "porcia", "serving", "portion")),
     PortionEntry("½ porce", "½ porcie", "½ serving", listOf("½ porce", "½ porcie", "½ serving", "polovicni porce", "polovicna porcia", "half serving", "half portion")),
@@ -18,6 +16,8 @@ private val portionEntries = listOf(
 
 private val sizeTokens = listOf("s", "m", "l", "xl")
 private val whitespaceRun = Regex("\\s+")
+
+private class PortionEntry(val cs: String, val sk: String, val en: String, val matches: List<String>)
 
 private fun portionKey(name: String): String =
     name.lowercase().map { diacriticFoldMap[it] ?: it }.joinToString("").removePrefix("1 ")
