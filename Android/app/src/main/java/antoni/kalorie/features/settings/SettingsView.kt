@@ -387,11 +387,9 @@ private fun SettingsContent(
                                     onClick = {
                                         when {
                                             !isEditing -> onEditingChange(true)
-                                            isAddFormVisible -> {
+                                            else -> {
                                                 focusManager.clearFocus()
                                                 viewModel.onCancelAddForm()
-                                            }
-                                            else -> {
                                                 onEditingChange(false)
                                                 scope.launch { viewModel.onSaveReorder() }
                                             }
